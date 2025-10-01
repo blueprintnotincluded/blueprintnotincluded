@@ -8,7 +8,7 @@ on:
 jobs:
   # Optional quick test check (non-blocking)
   quick-check:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     continue-on-error: true  # Don't block deployment
     
     steps:
@@ -32,7 +32,7 @@ jobs:
 
   # Main deployment job
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: quick-check
     if: always()  # Always deploy regardless of quick-check result
     
