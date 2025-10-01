@@ -37,7 +37,7 @@ WORKDIR /bpni
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY --from=build-backend /bpni/build /bpni/build
-COPY --from=build-frontend /bpni/build /bpni/build
+COPY --from=build-frontend /bpni/build/app/public /bpni/build/app/public
 
 EXPOSE 3000
 WORKDIR /bpni/build
