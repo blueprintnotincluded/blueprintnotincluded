@@ -1,4 +1,10 @@
-import { Component, OnInit, EventEmitter, Output } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  EventEmitter,
+  Output,
+} from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "../../../services/authentification-service";
@@ -14,7 +20,7 @@ import { Dialog } from "primeng/dialog";
   templateUrl: "./login-form.component.html",
   styleUrls: ["./login-form.component.css"],
 })
-export class LoginFormComponent {
+export class LoginFormComponent implements OnDestroy {
   loginForm = new FormGroup({
     username: new FormControl("", [
       Validators.required,
@@ -52,6 +58,23 @@ export class LoginFormComponent {
 
   subscription: Subscription;
   loginSubscription: Subscription;
+  resetSubscription: Subscription;
+  passwordResetSubscription: Subscription;
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    if (this.loginSubscription) {
+      this.loginSubscription.unsubscribe();
+    }
+    if (this.resetSubscription) {
+      this.resetSubscription.unsubscribe();
+    }
+    if (this.passwordResetSubscription) {
+      this.passwordResetSubscription.unsubscribe();
+    }
+  }
 
   onSubmit() {
     this.working = true;
@@ -159,7 +182,7 @@ export class LoginFormComponent {
       return;
     }
 
-    this.recaptchaV3Service
+    this.resetSubscription = this.recaptchaV3Service
       .execute("resetPassword")
       .pipe(
         catchError((error) => {
@@ -178,25 +201,27 @@ export class LoginFormComponent {
             return;
           }
 
-          this.authService.requestPasswordReset(this.resetEmail).subscribe({
-            next: () => {
-              this.messageService.add({
-                severity: "success",
-                summary: "Reset Email Sent",
-                detail:
-                  "Please check your inbox for password reset instructions",
-              });
-              this.showResetDialog = false;
-              this.resetEmail = "";
-            },
-            error: () => {
-              this.messageService.add({
-                severity: "error",
-                summary: "Error",
-                detail: "Failed to send reset email",
-              });
-            },
-          });
+          this.passwordResetSubscription = this.authService
+            .requestPasswordReset(this.resetEmail)
+            .subscribe({
+              next: () => {
+                this.messageService.add({
+                  severity: "success",
+                  summary: "Reset Email Sent",
+                  detail:
+                    "Please check your inbox for password reset instructions",
+                });
+                this.showResetDialog = false;
+                this.resetEmail = "";
+              },
+              error: () => {
+                this.messageService.add({
+                  severity: "error",
+                  summary: "Error",
+                  detail: "Failed to send reset email",
+                });
+              },
+            });
         },
         error: (error) => {
           this.messageService.add({
