@@ -1,0 +1,73 @@
+name: Frontend Tests (Blacksmith)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'frontend/**'
+      - 'lib/**'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'frontend/**'
+      - 'lib/**'
+
+jobs:
+  frontend-test:
+    runs-on: blacksmith-ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Backend for lib build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.4'
+          cache: 'npm'
+
+      - name: Install backend dependencies (for lib build)
+        run: npm ci
+
+      - name: Build shared library
+        run: npm run build:lib
+
+      - name: Setup Node.js (Frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.4'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run frontend linting
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm run ci:karma
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Upload frontend build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-blacksmith
+          path: frontend/dist/
+          retention-days: 30
+
+
+
+
+
