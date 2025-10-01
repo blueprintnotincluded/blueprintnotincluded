@@ -21,8 +21,10 @@ export class Routes {
     //let auth = expressJwt({secret: process.env.JWT_SECRET as string, userProperty: 'tokenPayload' });
     let auth = expressJwt({ 
       secret: process.env.JWT_SECRET as string,
-      algorithms: ['HS256']
-    });
+      algorithms: ['HS256'],
+      requestProperty: 'user'  // This ensures the token is attached to req.user
+    }).unless({ path: ['/api/register', '/api/login', '/api/request-reset', '/api/reset-password'] });
+    
     let recaptcha = new Recaptcha(process.env.CAPTCHA_SITE as string, process.env.CAPTCHA_SECRET as string);
 
 
