@@ -1,10 +1,9 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import dotenv from 'dotenv';
-import crypto from 'crypto-js'
-import jwt from 'jsonwebtoken'
+import crypto from 'crypto-js';
+import jwt from 'jsonwebtoken';
 
-export interface Blueprint extends Document
-{
+export interface Blueprint extends Document {
   owner: string;
   name: string;
   tags: string[];
@@ -18,31 +17,31 @@ export interface Blueprint extends Document
   deleted: boolean;
 }
 
-export class BlueprintModel
-{
+export class BlueprintModel {
   static model: Model<Blueprint>;
-  public static init()
-  {
+  public static init() {
     let blueprintSchema = new mongoose.Schema({
       owner: {
-        type: Schema.Types.ObjectId, ref: 'User',
-        required: true
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
       },
       name: {
         type: String,
-        required: true
+        required: true,
       },
-      tags: {type: [String]},
-      likes: {type: [String]},
+      tags: { type: [String] },
+      likes: { type: [String] },
       createdAt: Date,
       modifiedAt: Date,
       thumbnail: String,
       isCopy: Boolean,
       copyOf: {
-        type: Schema.Types.ObjectId, ref: 'Blueprint'
+        type: Schema.Types.ObjectId,
+        ref: 'Blueprint',
       },
       data: Object,
-      deleted: Boolean
+      deleted: Boolean,
     });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);

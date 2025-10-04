@@ -31,5 +31,5 @@ export enum SpriteTag {
   element_liquid_front,
   element_vacuum_front,
   info_back,
-  info_front
+  info_front,
 }

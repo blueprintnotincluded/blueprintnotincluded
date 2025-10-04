@@ -1,4 +1,4 @@
-import { StringHelpers } from "../string-helpers";
+import { StringHelpers } from '../string-helpers';
 
 export class BUiScreen {
   id: string;
@@ -9,11 +9,13 @@ export class BUiScreen {
     this.inputs = [];
   }
 
-  getDefaultValue(index: number): any { return null; }
+  getDefaultValue(index: number): any {
+    return null;
+  }
 
   importFrom(original: BUiScreen) {
     this.inputs = [];
-    for (let value of original.inputs) this.inputs.push(value)
+    for (let value of original.inputs) this.inputs.push(value);
   }
 
   static clone(original: BUiScreen): BUiScreen {
@@ -21,18 +23,15 @@ export class BUiScreen {
       let returnValue = new BSingleSliderSideScreen(original.id);
       returnValue.importFrom(original as BSingleSliderSideScreen);
       return returnValue;
-    }
-    else if (original.id == 'ThresholdSwitchSideScreen') {
+    } else if (original.id == 'ThresholdSwitchSideScreen') {
       let returnValue = new BThresholdSwitchSideScreen(original.id);
       returnValue.importFrom(original as BThresholdSwitchSideScreen);
       return returnValue;
-    }
-    else if (original.id == 'ActiveRangeSideScreen') {
+    } else if (original.id == 'ActiveRangeSideScreen') {
       let returnValue = new BActiveRangeSideScreen(original.id);
       returnValue.importFrom(original as BActiveRangeSideScreen);
       return returnValue;
-    }
-    else if (original.id == 'LogicBitSelectorSideScreen') {
+    } else if (original.id == 'LogicBitSelectorSideScreen') {
       let returnValue = new BBitSelectorSideScreen(original.id);
       returnValue.importFrom(original as BBitSelectorSideScreen);
       return returnValue;
@@ -63,7 +62,6 @@ export class UiSaveSettings {
 }
 
 export class BSingleSliderSideScreen extends BUiScreen {
-  
   public title: string = '';
   public sliderUnits: string = '';
   public min: number = 0;
@@ -76,7 +74,7 @@ export class BSingleSliderSideScreen extends BUiScreen {
     super(id);
   }
 
-  getDefaultValue(index: number): any { 
+  getDefaultValue(index: number): any {
     if (index == 0) return this.defaultValue;
     else return null;
   }
@@ -94,7 +92,6 @@ export class BSingleSliderSideScreen extends BUiScreen {
 }
 
 export class BThresholdSwitchSideScreen extends BUiScreen {
-  
   public title: string = '';
   public aboveToolTip: string = '';
   public belowToolTip: string = '';
@@ -110,7 +107,7 @@ export class BThresholdSwitchSideScreen extends BUiScreen {
     super(id);
   }
 
-  getDefaultValue(index: number): any { 
+  getDefaultValue(index: number): any {
     if (index == 0) return this.defaultValue;
     else if (index == 1) return this.defaultBoolean;
     else return null;
@@ -132,7 +129,6 @@ export class BThresholdSwitchSideScreen extends BUiScreen {
 }
 
 export class BActiveRangeSideScreen extends BUiScreen {
-  
   public title: string = '';
   public minValue: number = 0;
   public maxValue: number = 0;
@@ -147,7 +143,7 @@ export class BActiveRangeSideScreen extends BUiScreen {
     super(id);
   }
 
-  getDefaultValue(index: number): any { 
+  getDefaultValue(index: number): any {
     if (index == 0) return this.minValue;
     else if (index == 1) return this.maxValue;
     else return null;
@@ -164,7 +160,6 @@ export class BActiveRangeSideScreen extends BUiScreen {
 }
 
 export class BBitSelectorSideScreen extends BUiScreen {
-  
   public title: string = '';
   public description: string = '';
 
@@ -172,7 +167,7 @@ export class BBitSelectorSideScreen extends BUiScreen {
     super(id);
   }
 
-  getDefaultValue(index: number): any { 
+  getDefaultValue(index: number): any {
     if (index == 0) return 0;
     else return null;
   }

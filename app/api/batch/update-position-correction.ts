@@ -3,13 +3,11 @@ import { Database } from '../db';
 import { BlueprintModel, Blueprint } from '../models/blueprint';
 import { BatchUtils } from './batch-utils';
 
-
 export class UpdatePositionCorrection {
   public db: Database;
 
   constructor() {
-
-    console.log('Running batch UpdatePositionCorrection')
+    console.log('Running batch UpdatePositionCorrection');
 
     // initialize configuration
     dotenv.config();
@@ -22,12 +20,11 @@ export class UpdatePositionCorrection {
   }
 
   updateBaseOn() {
-
-    BlueprintModel.model.find({}).sort({ createdAt: 1 })
-      .then((blueprints) => {
-
+    BlueprintModel.model
+      .find({})
+      .sort({ createdAt: 1 })
+      .then(blueprints => {
         for (let toCorrect of blueprints) BatchUtils.UpdatePositionCorrection(toCorrect);
-
       });
   }
 }

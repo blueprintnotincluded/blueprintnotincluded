@@ -2,16 +2,31 @@ import dotenv from 'dotenv';
 import { Database } from '../db';
 import { BlueprintModel, Blueprint } from '../models/blueprint';
 import * as fs from 'fs';
-import { Blueprint as sharedBlueprint, Vector2, CameraService, Overlay, Display, ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem, MdbBlueprint } from '../../../lib';
-import { PixiNodeUtil } from "../pixi-node-util";
-
+import {
+  Blueprint as sharedBlueprint,
+  Vector2,
+  CameraService,
+  Overlay,
+  Display,
+  ImageSource,
+  BuildableElement,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BSpriteInfo,
+  SpriteInfo,
+  BSpriteModifier,
+  SpriteModifier,
+  BBuilding,
+  OniItem,
+  MdbBlueprint,
+} from '../../../lib';
+import { PixiNodeUtil } from '../pixi-node-util';
 
 export class UpdateThumbnail {
   public db: Database;
 
   constructor() {
-
-    console.log('Running batch UpdateThumbnail')
+    console.log('Running batch UpdateThumbnail');
 
     // initialize configuration
     dotenv.config();
@@ -37,7 +52,7 @@ export class UpdateThumbnail {
 
     let uiSprites: BSpriteInfo[] = json.uiSprites;
     SpriteInfo.init();
-    SpriteInfo.load(uiSprites)
+    SpriteInfo.load(uiSprites);
 
     let spriteModifiers: BSpriteModifier[] = json.spriteModifiers;
     SpriteModifier.init();
@@ -54,19 +69,21 @@ export class UpdateThumbnail {
   }
 
   async updateThumbnail() {
-
     let pixiNodeUtil = new PixiNodeUtil({ forceCanvas: true, preserveDrawingBuffer: true });
     await pixiNodeUtil.initTextures();
 
-    BlueprintModel.model.find({}).sort({ createdAt: 1 })
-      .then((blueprints) => {
+    BlueprintModel.model
+      .find({})
+      .sort({ createdAt: 1 })
+      .then(blueprints => {
         for (let index = blueprints.length - 1; index >= 0; index--) {
-          console.log('==> Generating thumbnail for blueprint : ' + index + ' : ' + blueprints[index].name);
+          console.log(
+            '==> Generating thumbnail for blueprint : ' + index + ' : ' + blueprints[index].name
+          );
 
           let mdbBlueprint = blueprints[index].data as MdbBlueprint | null;
           let angularBlueprint: sharedBlueprint | null = new sharedBlueprint();
           angularBlueprint.importFromMdb(mdbBlueprint!);
-
 
           let newThumbnail = pixiNodeUtil.generateThumbnail(angularBlueprint);
 
@@ -76,10 +93,18 @@ export class UpdateThumbnail {
           global.gc && global.gc();
 
           blueprints[index].thumbnail = newThumbnail;
-          blueprints[index].save()
-            .then(() => { console.log('====> Save Ok for blueprint : ' + index + ' : ' + blueprints[index].name); })
-            .catch(() => { console.log('====> Save Error for blueprint : ' + index + ' : ' + blueprints[index].name); })
-
+          blueprints[index]
+            .save()
+            .then(() => {
+              console.log(
+                '====> Save Ok for blueprint : ' + index + ' : ' + blueprints[index].name
+              );
+            })
+            .catch(() => {
+              console.log(
+                '====> Save Error for blueprint : ' + index + ' : ' + blueprints[index].name
+              );
+            });
         }
       });
   }

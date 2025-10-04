@@ -24,7 +24,7 @@ export class VersionController {
     // Try to get git commit hash if available (for development)
     let gitCommit = process.env.GIT_COMMIT;
     let gitBranch = process.env.GIT_BRANCH;
-    
+
     // Fall back to git commands in development (when git is available)
     if (!gitCommit || !gitBranch) {
       try {
@@ -56,7 +56,10 @@ export class VersionController {
       res.json(this.versionInfo);
     } catch (error) {
       console.error('Error in getVersion:', error);
-      res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : String(error) });
+      res.status(500).json({
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error),
+      });
     }
-  }
+  };
 }

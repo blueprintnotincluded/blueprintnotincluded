@@ -1,19 +1,13 @@
 //if (!global.Image) {
-  console.log('pixi-shim ❤️ image')
+console.log('pixi-shim ❤️ image');
 
-  require('jsdom-global')()
+require('jsdom-global')();
 
-  Object.defineProperty(
-    global.Image.prototype,
-    'addEventListener',
-    (action, callback) => document.addEventListener(action, callback)
-  )
+Object.defineProperty(global.Image.prototype, 'addEventListener', (action, callback) =>
+  document.addEventListener(action, callback)
+);
 
-  Object.defineProperty(
-    global.Image.prototype,
-    'removeEventListener',
-    () => {}
-  )
+Object.defineProperty(global.Image.prototype, 'removeEventListener', () => {});
 
-  Object.defineProperty(global.Image.prototype, 'fillRect', () => {})
+Object.defineProperty(global.Image.prototype, 'fillRect', () => {});
 //}

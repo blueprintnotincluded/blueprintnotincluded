@@ -17,19 +17,19 @@ export class TestDbHelper {
   static async seedDatabase() {
     // Create test users with unique identifiers
     const timestamp = Date.now();
-    const user1 = await this.createTestUser({ 
-      username: `blueprintmaster_${timestamp}`, 
-      email: `master_${timestamp}@blueprints.com` 
-    });
-    
-    const user2 = await this.createTestUser({ 
-      username: `poweruser_${timestamp}`, 
-      email: `power_${timestamp}@blueprints.com` 
+    const user1 = await this.createTestUser({
+      username: `blueprintmaster_${timestamp}`,
+      email: `master_${timestamp}@blueprints.com`,
     });
 
-    const user3 = await this.createTestUser({ 
-      username: `newbie_${timestamp}`, 
-      email: `newbie_${timestamp}@blueprints.com` 
+    const user2 = await this.createTestUser({
+      username: `poweruser_${timestamp}`,
+      email: `power_${timestamp}@blueprints.com`,
+    });
+
+    const user3 = await this.createTestUser({
+      username: `newbie_${timestamp}`,
+      email: `newbie_${timestamp}@blueprints.com`,
     });
 
     // Create various blueprints for testing
@@ -44,13 +44,13 @@ export class TestDbHelper {
         buildings: [
           { id: 'Generator', x: 0, y: 0, element: 'Coal' },
           { id: 'Battery', x: 1, y: 0 },
-          { id: 'Wire', x: 2, y: 0 }
+          { id: 'Wire', x: 2, y: 0 },
         ],
         info: {
           name: 'Super Coal Generator Setup',
-          description: 'Efficient coal power generation with automation'
-        }
-      }
+          description: 'Efficient coal power generation with automation',
+        },
+      },
     });
 
     const recentBlueprint = await this.createTestBlueprint(user2._id as Types.ObjectId, {
@@ -62,13 +62,13 @@ export class TestDbHelper {
         version: '1.0',
         buildings: [
           { id: 'Electrolyzer', x: 0, y: 0 },
-          { id: 'Pump', x: 1, y: 0 }
+          { id: 'Pump', x: 1, y: 0 },
         ],
         info: {
           name: 'Oxygen Production Line',
-          description: 'Basic oxygen production setup'
-        }
-      }
+          description: 'Basic oxygen production setup',
+        },
+      },
     });
 
     const oldBlueprint = await this.createTestBlueprint(user3._id as Types.ObjectId, {
@@ -80,13 +80,13 @@ export class TestDbHelper {
         version: '0.9',
         buildings: [
           { id: 'FarmTile', x: 0, y: 0 },
-          { id: 'MealLice', x: 0, y: 1 }
+          { id: 'MealLice', x: 0, y: 1 },
         ],
         info: {
           name: 'Legacy Food System',
-          description: 'Old-style farming setup'
-        }
-      }
+          description: 'Old-style farming setup',
+        },
+      },
     });
 
     const copiedBlueprint = await this.createTestBlueprint(user3._id as Types.ObjectId, {
@@ -102,18 +102,18 @@ export class TestDbHelper {
           { id: 'Generator', x: 0, y: 0, element: 'Coal' },
           { id: 'Battery', x: 1, y: 0 },
           { id: 'Wire', x: 2, y: 0 },
-          { id: 'Transformer', x: 3, y: 0 } // Added modification
+          { id: 'Transformer', x: 3, y: 0 }, // Added modification
         ],
         info: {
           name: 'Modified Coal Generator',
-          description: 'Coal generator with power transformation'
-        }
-      }
+          description: 'Coal generator with power transformation',
+        },
+      },
     });
 
     return {
       users: { user1, user2, user3 },
-      blueprints: { popularBlueprint, recentBlueprint, oldBlueprint, copiedBlueprint }
+      blueprints: { popularBlueprint, recentBlueprint, oldBlueprint, copiedBlueprint },
     };
   }
 

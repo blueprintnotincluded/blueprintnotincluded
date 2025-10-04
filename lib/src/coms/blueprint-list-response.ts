@@ -1,12 +1,10 @@
-export interface BlueprintListResponse
-{
+export interface BlueprintListResponse {
   blueprints: BlueprintListItem[];
   oldest: Date;
   remaining: number;
 }
 
-export interface BlueprintListItem
-{
+export interface BlueprintListItem {
   id: string;
   name: string;
   ownerId: string;

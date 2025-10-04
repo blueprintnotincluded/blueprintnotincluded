@@ -7,15 +7,24 @@ import requestIp from 'request-ip';
 import { Auth } from './api/auth';
 import passport from 'passport';
 import * as fs from 'fs';
-import { BBuilding, BuildableElement, OniItem, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, ImageSource } from '../lib/index'
+import {
+  BBuilding,
+  BuildableElement,
+  OniItem,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BSpriteInfo,
+  SpriteInfo,
+  BSpriteModifier,
+  SpriteModifier,
+  ImageSource,
+} from '../lib/index';
 
 class App {
   public db: Database;
   public app: express.Application;
   public auth: Auth;
   public routePrv: Routes = new Routes();
-
-
 
   constructor() {
     // Read database
@@ -38,7 +47,7 @@ class App {
 
     let uiSprites: BSpriteInfo[] = json.uiSprites;
     SpriteInfo.init();
-    SpriteInfo.load(uiSprites)
+    SpriteInfo.load(uiSprites);
 
     let spriteModifiers: BSpriteModifier[] = json.spriteModifiers;
     SpriteModifier.init();
@@ -57,30 +66,47 @@ class App {
     this.app.set('views', path.join(__dirname, 'views'));
     this.app.set('view engine', 'ejs');
 
-    this.app.use(helmet.contentSecurityPolicy({
-      directives: {
-        "default-src": ["'self'"],
-        "connect-src": ["'self'", "*.sentry.io", "https://www.google-analytics.com", "https://www.google.com", "https://www.gstatic.com"],
-        "style-src": ["'self'", "'unsafe-inline'"],
-        "frame-src": ["https://www.google.com", "http://localhost:4200"],
-        "img-src": ["'self'", "data:"],
-        "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com"],
-        "script-src-elem": ["'self'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com"],
-        "script-src-attr": ["'unsafe-inline'"],
-        "frame-ancestors": ["'self'", "https://oxygennotincluded.fandom.com"]
-      },
-    }));
+    this.app.use(
+      helmet.contentSecurityPolicy({
+        directives: {
+          'default-src': ["'self'"],
+          'connect-src': [
+            "'self'",
+            '*.sentry.io',
+            'https://www.google-analytics.com',
+            'https://www.google.com',
+            'https://www.gstatic.com',
+          ],
+          'style-src': ["'self'", "'unsafe-inline'"],
+          'frame-src': ['https://www.google.com', 'http://localhost:4200'],
+          'img-src': ["'self'", 'data:'],
+          'script-src': [
+            "'self'",
+            "'unsafe-inline'",
+            "'unsafe-eval'",
+            'https://www.google.com',
+            'https://www.gstatic.com',
+            'https://www.googletagmanager.com',
+          ],
+          'script-src-elem': [
+            "'self'",
+            'https://www.google.com',
+            'https://www.gstatic.com',
+            'https://www.googletagmanager.com',
+          ],
+          'script-src-attr': ["'unsafe-inline'"],
+          'frame-ancestors': ["'self'", 'https://oxygennotincluded.fandom.com'],
+        },
+      })
+    );
 
     this.app.use(requestIp.mw());
     this.app.use(express.json({ limit: '1mb' }));
     this.app.use(passport.initialize());
     this.routePrv.routes(this.app);
 
-
     //PixiBackend.initTextures();
-
   }
-
 }
 
 export default new App().app;

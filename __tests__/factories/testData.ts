@@ -38,22 +38,25 @@ export class TestDataFactory {
       username: `testuser${this.userCounter}_${timestamp}`,
       hash: 'dummy_hash_for_testing',
       salt: 'dummy_salt_for_testing',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createBlueprint(owner: Types.ObjectId, overrides: Partial<TestBlueprint> = {}): TestBlueprint {
+  static createBlueprint(
+    owner: Types.ObjectId,
+    overrides: Partial<TestBlueprint> = {}
+  ): TestBlueprint {
     this.blueprintCounter++;
     const now = new Date();
-    
+
     return {
       _id: new Types.ObjectId(),
       owner,
       name: `Test Blueprint ${this.blueprintCounter}`,
       tags: ['test', 'automation'],
       likes: [],
-      createdAt: new Date(now.getTime() - (this.blueprintCounter * 1000 * 60 * 60)), // Spread creation times
-      modifiedAt: new Date(now.getTime() - (this.blueprintCounter * 1000 * 60 * 30)), // Modified more recently
+      createdAt: new Date(now.getTime() - this.blueprintCounter * 1000 * 60 * 60), // Spread creation times
+      modifiedAt: new Date(now.getTime() - this.blueprintCounter * 1000 * 60 * 30), // Modified more recently
       thumbnail: `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`,
       data: {
         version: '1.0',
@@ -63,21 +66,24 @@ export class TestDataFactory {
             x: 0,
             y: 0,
             element: 'SandStone',
-            temperature: 293.15
-          }
+            temperature: 293.15,
+          },
         ],
         cells: [],
         info: {
           name: `Test Blueprint ${this.blueprintCounter}`,
-          description: 'A test blueprint for automated testing'
-        }
+          description: 'A test blueprint for automated testing',
+        },
       },
       deleted: false,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createPopularBlueprint(owner: Types.ObjectId, likes: string[] = ['user1', 'user2', 'user3']): TestBlueprint {
+  static createPopularBlueprint(
+    owner: Types.ObjectId,
+    likes: string[] = ['user1', 'user2', 'user3']
+  ): TestBlueprint {
     return this.createBlueprint(owner, {
       name: `Popular Blueprint ${this.blueprintCounter}`,
       tags: ['popular', 'power', 'automation'],
@@ -87,25 +93,25 @@ export class TestDataFactory {
         buildings: [
           { id: 'Generator', x: 0, y: 0 },
           { id: 'Battery', x: 1, y: 0 },
-          { id: 'Wire', x: 2, y: 0 }
+          { id: 'Wire', x: 2, y: 0 },
         ],
         info: {
           name: `Popular Blueprint ${this.blueprintCounter}`,
-          description: 'A popular power generation setup'
-        }
-      }
+          description: 'A popular power generation setup',
+        },
+      },
     });
   }
 
   static createOldBlueprint(owner: Types.ObjectId, daysAgo: number = 7): TestBlueprint {
     const oldDate = new Date();
     oldDate.setDate(oldDate.getDate() - daysAgo);
-    
+
     return this.createBlueprint(owner, {
       name: `Old Blueprint ${this.blueprintCounter}`,
       createdAt: oldDate,
       modifiedAt: oldDate,
-      tags: ['old', 'legacy']
+      tags: ['old', 'legacy'],
     });
   }
 
@@ -114,7 +120,7 @@ export class TestDataFactory {
       name: `Copy of Blueprint ${this.blueprintCounter}`,
       isCopy: true,
       copyOf: originalId,
-      tags: ['copy', 'modified']
+      tags: ['copy', 'modified'],
     });
   }
 

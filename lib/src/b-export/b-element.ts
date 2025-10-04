@@ -1,9 +1,8 @@
-import { StringHelpers } from "../string-helpers";
+import { StringHelpers } from '../string-helpers';
 
 // Elements that buildings can be made of (Exported from the game)
 // TODO we don't currently handle "exotic" elements (ie reed fibers for paintings, or bleach stone for sanitation stations)
 export class BuildableElement {
-
   // From export
   id: string = '';
   name: string = '';
@@ -19,16 +18,13 @@ export class BuildableElement {
   // Generated
   iconUrl: string = '';
 
-  public importFrom(original: BuildableElement)
-  {
+  public importFrom(original: BuildableElement) {
     this.id = original.id;
     this.name = original.name;
     this.tag = original.tag;
-    
+
     this.oreTags = [];
-    if (original.oreTags != null)
-      for (let s of original.oreTags)
-      this.oreTags.push(s);
+    if (original.oreTags != null) for (let s of original.oreTags) this.oreTags.push(s);
 
     this.icon = original.icon;
     this.iconUrl = StringHelpers.createUrl(this.icon, true);
@@ -45,16 +41,13 @@ export class BuildableElement {
   }
 
   // static
-  public static elements: BuildableElement[]
-  public static init()
-  {
+  public static elements: BuildableElement[];
+  public static init() {
     BuildableElement.elements = [];
   }
 
-  public static load(originals: BuildableElement[])
-  {
-    for (let original of originals)
-    {
+  public static load(originals: BuildableElement[]) {
+    for (let original of originals) {
       let newElement = new BuildableElement();
       newElement.importFrom(original);
 
@@ -68,25 +61,28 @@ export class BuildableElement {
   }
 
   public static getElement(id: string): BuildableElement {
-    for (let element of BuildableElement.elements)
-      if (element.id == id)
-        return element;
+    for (let element of BuildableElement.elements) if (element.id == id) return element;
 
     throw new Error('BuildableElement.getElement : Element not found');
   }
 
   // Get a list of elements that have the parameter tag
   public static getElementsFromTag(tag: string): BuildableElement[] {
-    
-    let returnValue: BuildableElement[] = []; 
+    let returnValue: BuildableElement[] = [];
 
-    for (let element of BuildableElement.elements) 
-      if (returnValue.indexOf(element) == -1 && (element.id == tag || element.oreTags.indexOf(tag) != -1) && element.oreTags.indexOf('BuildableAny') != -1 )
+    for (let element of BuildableElement.elements)
+      if (
+        returnValue.indexOf(element) == -1 &&
+        (element.id == tag || element.oreTags.indexOf(tag) != -1) &&
+        element.oreTags.indexOf('BuildableAny') != -1
+      )
         returnValue.push(element);
 
-    if (returnValue.length == 0) returnValue.push(BuildableElement.getElement('Unobtanium'))
+    if (returnValue.length == 0) returnValue.push(BuildableElement.getElement('Unobtanium'));
 
-    returnValue = returnValue.sort((i1, i2) => { return i1.buildMenuSort - i2.buildMenuSort; });
+    returnValue = returnValue.sort((i1, i2) => {
+      return i1.buildMenuSort - i2.buildMenuSort;
+    });
     return returnValue;
   }
 
@@ -98,7 +94,7 @@ export class BuildableElement {
       returnValue[indexTag] = [];
       returnValue[indexTag] = this.getElementsFromTag(tags[indexTag]);
     }
-    
+
     return returnValue;
   }
 }

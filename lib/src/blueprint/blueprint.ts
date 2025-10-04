@@ -1,5 +1,5 @@
 import { BlueprintItem } from './blueprint-item';
-import { BlueprintItemWire } from "./blueprint-item-wire";
+import { BlueprintItemWire } from './blueprint-item-wire';
 import { BinaryReader, Encoding } from 'csharp-binary-stream';
 import { BlueprintHelpers } from './blueprint-helpers';
 import { BlueprintItemElement } from './blueprint-item-element';
@@ -13,8 +13,7 @@ import { Overlay } from '../enums/overlay';
 import { DrawHelpers } from '../drawing/draw-helpers';
 import { UtilityConnectionTracker } from '../utility-connection';
 
-export class Blueprint
-{
+export class Blueprint {
   blueprintItems: BlueprintItem[];
   templateTiles: BlueprintItem[][] = [];
 
@@ -23,34 +22,29 @@ export class Blueprint
 
   innerYaml: any;
 
-  constructor()
-  {
+  constructor() {
     this.blueprintItems = [];
 
     this.observersBlueprintChanged = [];
   }
 
-  public importFromOni(oniBlueprint: OniTemplate)
-  {
+  public importFromOni(oniBlueprint: OniTemplate) {
     this.blueprintItems = [];
-    
 
     // Copy the buildings
-    for (let building of oniBlueprint.buildings)
-    {
+    for (let building of oniBlueprint.buildings) {
       let oniItem = OniItem.getOniItem(building.id);
 
       let newTemplateItem = BlueprintHelpers.createInstance(building.id);
       if (newTemplateItem == null) continue;
 
       newTemplateItem.importOniBuilding(building);
-      
+
       this.addBlueprintItem(newTemplateItem);
     }
 
     // Copy the cells
     for (let cell of oniBlueprint.cells) {
-
       let elementPosition = new Vector2();
       if (cell.location_x != null) elementPosition.x = cell.location_x;
       if (cell.location_y != null) elementPosition.y = cell.location_y;
@@ -58,7 +52,6 @@ export class Blueprint
       let currentElement: BlueprintItemElement | undefined = undefined;
       let buildingsAtPosition = this.getBlueprintItemsAt(elementPosition);
 
-      
       for (let building of buildingsAtPosition)
         if (building.oniItem.id == 'Element') {
           currentElement = building as BlueprintItemElement;
@@ -74,45 +67,42 @@ export class Blueprint
         currentElement.cleanUp();
 
         // TODO boolean in export instead
-        if (currentElement.buildableElements[0].hasTag('Liquid') || currentElement.buildableElements[0].hasTag('Gas') || currentElement.buildableElements[0].hasTag('Vacuum'))
+        if (
+          currentElement.buildableElements[0].hasTag('Liquid') ||
+          currentElement.buildableElements[0].hasTag('Gas') ||
+          currentElement.buildableElements[0].hasTag('Vacuum')
+        )
           this.addBlueprintItem(currentElement);
       }
-
     }
 
     // Keep a copy of the yaml object in memory
     this.innerYaml = oniBlueprint;
   }
 
-  public importFromBni(bniBlueprint: BniBlueprint)
-  {
+  public importFromBni(bniBlueprint: BniBlueprint) {
     this.blueprintItems = [];
 
-    for (let building of bniBlueprint.buildings)
-    {
+    for (let building of bniBlueprint.buildings) {
       try {
         let newTemplateItem = BlueprintHelpers.createInstance(building.buildingdef);
         if (newTemplateItem == null) continue;
-  
+
         newTemplateItem.importBniBuilding(building);
-        
+
         this.addBlueprintItem(newTemplateItem);
-      }
-      catch (error) {
+      } catch (error) {
         console.log(error);
       }
-      
     }
   }
 
-  public importFromMdb(mdbBlueprint: MdbBlueprint)
-  {
+  public importFromMdb(mdbBlueprint: MdbBlueprint) {
     this.blueprintItems = [];
 
-    for (let originalTemplateItem of mdbBlueprint.blueprintItems)
-    {
+    for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       let newTemplateItem = BlueprintHelpers.createInstance(originalTemplateItem.id);
-      
+
       // Don't import buildings we don't recognise
       if (newTemplateItem == null) continue;
 
@@ -121,8 +111,7 @@ export class Blueprint
     }
   }
 
-  public importFromBinary(template: ArrayBuffer)
-  {
+  public importFromBinary(template: ArrayBuffer) {
     const reader = new BinaryReader(template);
 
     let bniBlueprint = new BniBlueprint();
@@ -131,8 +120,7 @@ export class Blueprint
 
     let buildingCount = reader.readInt();
 
-    for (let buildingIndex = 0; buildingIndex < buildingCount; buildingIndex++) 
-    {
+    for (let buildingIndex = 0; buildingIndex < buildingCount; buildingIndex++) {
       let bniBuilding = new BniBuilding();
 
       let offsetX = reader.readInt();
@@ -143,8 +131,7 @@ export class Blueprint
       bniBuilding.buildingdef = buildingDef;
 
       let selectedElementCount = reader.readInt();
-      for (let elementIndex = 0; elementIndex < selectedElementCount; elementIndex++)
-      {
+      for (let elementIndex = 0; elementIndex < selectedElementCount; elementIndex++) {
         let tag = reader.readInt();
       }
 
@@ -158,7 +145,6 @@ export class Blueprint
     }
 
     this.importFromBni(bniBlueprint);
-
   }
 
   public destroyAndCopyItems(source: Blueprint, emitChanges: boolean = true) {
@@ -170,41 +156,51 @@ export class Blueprint
   }
 
   private currentOverlay: Overlay = Overlay.Base;
-  public prepareOverlayInfo(currentOverlay: Overlay)
-  {
+  public prepareOverlayInfo(currentOverlay: Overlay) {
     this.currentOverlay = currentOverlay;
     this.refreshOverlayInfo();
   }
 
-  public refreshOverlayInfo()
-  {
+  public refreshOverlayInfo() {
     //for (let blueprintItem of this.blueprintItems) blueprintItem.overlayChanged(this.currentOverlay);
   }
 
-  public addBlueprintItem(blueprintItem: BlueprintItem)
-  {
+  public addBlueprintItem(blueprintItem: BlueprintItem) {
     this.blueprintItems.push(blueprintItem);
 
     if (blueprintItem.tileIndexes == null) blueprintItem.prepareBoundingBox();
 
-    for (let tileIndex of blueprintItem.tileIndexes) this.getBlueprintItemsAtIndex(tileIndex).push(blueprintItem);
+    for (let tileIndex of blueprintItem.tileIndexes)
+      this.getBlueprintItemsAtIndex(tileIndex).push(blueprintItem);
     for (let connection of blueprintItem.oniItem.utilityConnections) {
       let connectionPosition = Vector2.cloneNullToZero(connection.offset);
-      connectionPosition = DrawHelpers.rotateVector2(connectionPosition, Vector2.Zero, blueprintItem.rotation);
-      connectionPosition = DrawHelpers.scaleVector2(connectionPosition, Vector2.Zero, blueprintItem.scale);
+      connectionPosition = DrawHelpers.rotateVector2(
+        connectionPosition,
+        Vector2.Zero,
+        blueprintItem.rotation
+      );
+      connectionPosition = DrawHelpers.scaleVector2(
+        connectionPosition,
+        Vector2.Zero,
+        blueprintItem.scale
+      );
       connectionPosition.x += blueprintItem.position.x;
       connectionPosition.y += blueprintItem.position.y;
 
-      let newUtilityTracker: UtilityConnectionTracker = {blueprintItem: blueprintItem, utilityConnection: connection};
-      this.getUtilityConnectionsAtIndex(DrawHelpers.getTileIndex(connectionPosition)).push(newUtilityTracker);
+      let newUtilityTracker: UtilityConnectionTracker = {
+        blueprintItem: blueprintItem,
+        utilityConnection: connection,
+      };
+      this.getUtilityConnectionsAtIndex(DrawHelpers.getTileIndex(connectionPosition)).push(
+        newUtilityTracker
+      );
       //console.log(this.getUtilityConnectionsAtIndex(DrawHelpers.getTileIndex(connectionPosition)))
     }
-  
+
     this.emitItemAdded(blueprintItem);
   }
 
-  public destroyBlueprintItem(templateItem: BlueprintItem)
-  {
+  public destroyBlueprintItem(templateItem: BlueprintItem) {
     // If the item is a wire, we need to disconnect it
     if (templateItem.oniItem.isWire) {
       let templateItemWire = templateItem as BlueprintItemWire;
@@ -213,14 +209,21 @@ export class Blueprint
       for (let i = 0; i < 4; i++) {
         if (connectionsArray[i]) {
           let offsetToModify = DrawHelpers.connectionVectors[i];
-          let positionToModify = new Vector2(templateItem.position.x + offsetToModify.x, templateItem.position.y + offsetToModify.y);
+          let positionToModify = new Vector2(
+            templateItem.position.x + offsetToModify.x,
+            templateItem.position.y + offsetToModify.y
+          );
 
-          let itemsToModify = this.getBlueprintItemsAt(positionToModify).filter(i => i.oniItem.objectLayer == templateItem.oniItem.objectLayer);
+          let itemsToModify = this.getBlueprintItemsAt(positionToModify).filter(
+            i => i.oniItem.objectLayer == templateItem.oniItem.objectLayer
+          );
           for (let itemToModify of itemsToModify) {
             let itemToModifyWire = itemToModify as BlueprintItemWire;
 
             if (itemToModifyWire != null) {
-              let connectionsArrayToModify = DrawHelpers.getConnectionArray(itemToModifyWire.connections);
+              let connectionsArrayToModify = DrawHelpers.getConnectionArray(
+                itemToModifyWire.connections
+              );
               connectionsArrayToModify[DrawHelpers.connectionBitsOpposite[i]] = false;
               itemToModifyWire.connections = DrawHelpers.getConnection(connectionsArrayToModify);
             }
@@ -231,8 +234,7 @@ export class Blueprint
 
     // First remove from the tilemap
     if (templateItem.tileIndexes != null && templateItem.tileIndexes.length > 0)
-      for (let tileIndex of templateItem.tileIndexes)
-      {
+      for (let tileIndex of templateItem.tileIndexes) {
         const indexInTileMap = this.templateTiles[tileIndex].indexOf(templateItem, 0);
         if (indexInTileMap > -1) this.templateTiles[tileIndex].splice(indexInTileMap, 1);
       }
@@ -240,15 +242,27 @@ export class Blueprint
     // Then from the utility map
     for (let connection of templateItem.oniItem.utilityConnections) {
       let connectionPosition = Vector2.cloneNullToZero(connection.offset);
-      connectionPosition = DrawHelpers.rotateVector2(connectionPosition, Vector2.Zero, templateItem.rotation);
-      connectionPosition = DrawHelpers.scaleVector2(connectionPosition, Vector2.Zero, templateItem.scale);
+      connectionPosition = DrawHelpers.rotateVector2(
+        connectionPosition,
+        Vector2.Zero,
+        templateItem.rotation
+      );
+      connectionPosition = DrawHelpers.scaleVector2(
+        connectionPosition,
+        Vector2.Zero,
+        templateItem.scale
+      );
       connectionPosition.x += templateItem.position.x;
       connectionPosition.y += templateItem.position.y;
 
-      let utilitiesAtPosition = this.getUtilityConnectionsAtIndex(DrawHelpers.getTileIndex(connectionPosition));
+      let utilitiesAtPosition = this.getUtilityConnectionsAtIndex(
+        DrawHelpers.getTileIndex(connectionPosition)
+      );
       for (let index = 0; index < utilitiesAtPosition.length; index++) {
-        if (utilitiesAtPosition[index].blueprintItem == templateItem && utilitiesAtPosition[index].utilityConnection == connection)
-        {
+        if (
+          utilitiesAtPosition[index].blueprintItem == templateItem &&
+          utilitiesAtPosition[index].utilityConnection == connection
+        ) {
           utilitiesAtPosition.splice(index, 1);
           break;
         }
@@ -256,7 +270,7 @@ export class Blueprint
       //console.log(utilitiesAtPosition)
     }
 
-    // Then remove from the item list, 
+    // Then remove from the item list,
     const index = this.blueprintItems.indexOf(templateItem, 0);
     if (index > -1) this.blueprintItems.splice(index, 1);
 
@@ -267,8 +281,7 @@ export class Blueprint
     this.emitItemDestroyed();
   }
 
-  public getBlueprintItemsAt(position: Vector2): BlueprintItem[]
-  {
+  public getBlueprintItemsAt(position: Vector2): BlueprintItem[] {
     let arrayIndex = DrawHelpers.getTileIndex(position);
     return this.getBlueprintItemsAtIndex(arrayIndex);
   }
@@ -277,8 +290,7 @@ export class Blueprint
     if (this.templateTiles == null) this.templateTiles = [];
 
     let returnValue = this.templateTiles[index];
-    if (returnValue == null)
-    {
+    if (returnValue == null) {
       returnValue = [];
       this.templateTiles[index] = returnValue;
     }
@@ -290,8 +302,7 @@ export class Blueprint
     if (this.utilities == null) this.utilities = [];
 
     let returnValue = this.utilities[index];
-    if (returnValue == null)
-    {
+    if (returnValue == null) {
       returnValue = [];
       this.utilities[index] = returnValue;
     }
@@ -316,56 +327,58 @@ export class Blueprint
 
   private emitItemDestroyed() {
     if (!this.pauseChangeEvents_) {
-      this.observersBlueprintChanged.map((observer) => {observer.itemDestroyed();});
+      this.observersBlueprintChanged.map(observer => {
+        observer.itemDestroyed();
+      });
       this.emitBlueprintChanged();
     }
   }
 
   private emitItemAdded(blueprintItem: BlueprintItem) {
     if (!this.pauseChangeEvents_) {
-      this.observersBlueprintChanged.map((observer) => { observer.itemAdded(blueprintItem); });
+      this.observersBlueprintChanged.map(observer => {
+        observer.itemAdded(blueprintItem);
+      });
       this.emitBlueprintChanged();
     }
   }
 
   public emitBlueprintChanged() {
     if (!this.pauseChangeEvents_) {
-      this.observersBlueprintChanged.map((observer) => { observer.blueprintChanged(); });
+      this.observersBlueprintChanged.map(observer => {
+        observer.blueprintChanged();
+      });
 
-      for (let blueprintItem of this.blueprintItems)
-        blueprintItem.updateTileables(this);
+      for (let blueprintItem of this.blueprintItems) blueprintItem.updateTileables(this);
     }
   }
 
-  public toMdbBlueprint(): MdbBlueprint
-  {
+  public toMdbBlueprint(): MdbBlueprint {
     let returnValue: MdbBlueprint = {
-      blueprintItems: []
-    }
+      blueprintItems: [],
+    };
 
-    for (let originalTemplateItem of this.blueprintItems) 
+    for (let originalTemplateItem of this.blueprintItems)
       returnValue.blueprintItems.push(originalTemplateItem.toMdbBuilding());
-    
+
     return returnValue;
   }
 
-  public toBniBlueprint(friendlyname: string): BniBlueprint
-  {
+  public toBniBlueprint(friendlyname: string): BniBlueprint {
     let returnValue: BniBlueprint = {
       friendlyname: friendlyname,
       buildings: [],
-      digcommands: []
-    }
+      digcommands: [],
+    };
 
     for (let originalTemplateItem of this.blueprintItems)
       if (originalTemplateItem.id != OniItem.elementId && originalTemplateItem.id != OniItem.infoId)
         returnValue.buildings.push(originalTemplateItem.toBniBuilding());
-    
+
     return returnValue;
   }
 
-  public clone(): Blueprint
-  {
+  public clone(): Blueprint {
     let mdb = this.toMdbBlueprint();
 
     let returnValue = new Blueprint();
@@ -375,12 +388,11 @@ export class Blueprint
   }
 
   public getBoundingBox(): Vector2[] {
-
     let topLeft = new Vector2(9999, 9999);
     let bottomRight = new Vector2(-9999, -9999);
 
-    this.blueprintItems.map((item) => { 
-      item.tileIndexes.map((index) => {
+    this.blueprintItems.map(item => {
+      item.tileIndexes.map(index => {
         let position = DrawHelpers.getTilePosition(index);
         if (topLeft.x > position.x) topLeft.x = position.x;
         if (topLeft.y > position.y) topLeft.y = position.y;
@@ -396,10 +408,8 @@ export class Blueprint
     for (let blueprintItem of this.blueprintItems) blueprintItem.sortChildren();
   }
 
-  public destroy(emitChanges: boolean = true)
-  {
+  public destroy(emitChanges: boolean = true) {
     if (this.blueprintItems != null) {
-
       let blueprintItemsCopy: BlueprintItem[] = [];
 
       for (let b of this.blueprintItems) blueprintItemsCopy.push(b);

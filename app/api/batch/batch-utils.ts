@@ -1,8 +1,7 @@
-import { Blueprint } from "../models/blueprint";
-import { Vector2, MdbBlueprint } from "../../../lib/index"
+import { Blueprint } from '../models/blueprint';
+import { Vector2, MdbBlueprint } from '../../../lib/index';
 
 export class BatchUtils {
-
   static UpdateBasedOn(suspect: Blueprint, blueprints: Blueprint[], indexMax: number) {
     let suspectData = suspect.data as MdbBlueprint;
 
@@ -15,27 +14,40 @@ export class BatchUtils {
       let originalData = blueprints[indexOriginal].data as MdbBlueprint;
 
       let nbPresent = 0;
-      for (let indexOriginalBuilding = 0; indexOriginalBuilding < originalData.blueprintItems.length; indexOriginalBuilding++) {
+      for (
+        let indexOriginalBuilding = 0;
+        indexOriginalBuilding < originalData.blueprintItems.length;
+        indexOriginalBuilding++
+      ) {
         let originalBuilding = originalData.blueprintItems[indexOriginalBuilding];
 
         for (let suspectBuilding of suspectData.blueprintItems) {
-          if (suspectBuilding.id == originalBuilding.id && Vector2.compare(suspectBuilding.position, originalBuilding.position)) {
+          if (
+            suspectBuilding.id == originalBuilding.id &&
+            Vector2.compare(suspectBuilding.position, originalBuilding.position)
+          ) {
             nbPresent++;
             break;
           }
         }
       }
 
-
-
-      if (originalData.blueprintItems.length > 15 && nbPresent >= 0.75 * originalData.blueprintItems.length) {
+      if (
+        originalData.blueprintItems.length > 15 &&
+        nbPresent >= 0.75 * originalData.blueprintItems.length
+      ) {
         isCopy = true;
-        console.log('====> Probably a copy of  : ' + indexOriginal + ' : ' + blueprints[indexOriginal].name);
+        console.log(
+          '====> Probably a copy of  : ' + indexOriginal + ' : ' + blueprints[indexOriginal].name
+        );
         suspect.isCopy = true;
         suspect.copyOf = blueprints[indexOriginal].id;
-        suspect.save()
-          .then(() => {  })
-          .catch(() => { console.log('====> Save Error '); })
+        suspect
+          .save()
+          .then(() => {})
+          .catch(() => {
+            console.log('====> Save Error ');
+          });
       }
 
       //console.log('====> ' + nbPresent);
@@ -44,7 +56,7 @@ export class BatchUtils {
   }
 
   static UpdatePositionCorrection(toCorrect: Blueprint) {
-    console.log("Analysing blueprints : " + toCorrect.name)
+    console.log('Analysing blueprints : ' + toCorrect.name);
 
     let toCorrectData = toCorrect.data as MdbBlueprint;
 
@@ -64,11 +76,14 @@ export class BatchUtils {
     if (save) {
       toCorrect.data = toCorrectData;
       toCorrect.markModified('data');
-      toCorrect.save()
-      .then(() => {
-        console.log('Save OK : ' + toCorrect.name);
-       })
-      .catch(() => { console.log('====> Save Error '); });
+      toCorrect
+        .save()
+        .then(() => {
+          console.log('Save OK : ' + toCorrect.name);
+        })
+        .catch(() => {
+          console.log('====> Save Error ');
+        });
     }
   }
 }

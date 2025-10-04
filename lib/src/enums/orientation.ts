@@ -1,5 +1,4 @@
-export enum Orientation
-{
+export enum Orientation {
   Neutral,
   R90,
   R180,

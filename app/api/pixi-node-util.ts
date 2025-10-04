@@ -3,7 +3,15 @@ const PIXI = require('../pixi-shim');
 require('../pixi-shim/lib/pixi-shim-node.js');
 
 import { Jimp, intToRGBA } from 'jimp';
-import { PixiUtil, ImageSource, Blueprint, Vector2, CameraService, Overlay, Display } from "../../lib";
+import {
+  PixiUtil,
+  ImageSource,
+  Blueprint,
+  Vector2,
+  CameraService,
+  Overlay,
+  Display,
+} from '../../lib';
 import { resources } from 'pixi.js-legacy';
 
 class NodeCanvasResource extends resources.BaseImageResource {
@@ -13,7 +21,6 @@ class NodeCanvasResource extends resources.BaseImageResource {
 }
 
 export class PixiNodeUtil implements PixiUtil {
-
   pixiApp: PIXI.Application;
   pixiGraphicsBack: PIXI.Graphics;
   pixiGraphicsFront: PIXI.Graphics;
@@ -44,7 +51,7 @@ export class PixiNodeUtil implements PixiUtil {
     return PIXI.Sprite.from(ressource);
   }
   getNewBaseTexture(url: string) {
-    throw new Error('This should not be called on node : all textures should be preloaded')
+    throw new Error('This should not be called on node : all textures should be preloaded');
   }
   getNewTexture(baseTex: any, rectangle: any) {
     return new PIXI.Texture(baseTex, rectangle);
@@ -75,7 +82,7 @@ export class PixiNodeUtil implements PixiUtil {
   }
 
   async getImageFromCanvas(path: string) {
-    console.log('loading image from file : ' + path)
+    console.log('loading image from file : ' + path);
     let image = await loadImage(path);
     let ressource = new NodeCanvasResource(image);
     let bt = new PIXI.BaseTexture(ressource);
@@ -101,7 +108,7 @@ export class PixiNodeUtil implements PixiUtil {
         let color = data.getPixelColor(x, y);
         let colorObject = intToRGBA(color);
         let alpha = colorObject.a / 255;
-        graphics.beginFill(0xFFFFFF, alpha);
+        graphics.beginFill(0xffffff, alpha);
         graphics.drawRect(x, y, 1, 1);
         graphics.endFill();
       }
@@ -121,7 +128,6 @@ export class PixiNodeUtil implements PixiUtil {
   }
 
   generateThumbnail(angularBlueprint: Blueprint) {
-
     let boundingBox = angularBlueprint.getBoundingBox();
     let topLeft = boundingBox[0];
     let bottomRight = boundingBox[1];
@@ -131,8 +137,10 @@ export class PixiNodeUtil implements PixiUtil {
     let maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
     let thumbnailTileSize = thumbnailSize / maxTotalSize;
     let cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
-    if (totalTileSize.x > totalTileSize.y) cameraOffset.y += totalTileSize.x / 2 - totalTileSize.y / 2;
-    if (totalTileSize.y > totalTileSize.x) cameraOffset.x += totalTileSize.y / 2 - totalTileSize.x / 2;
+    if (totalTileSize.x > totalTileSize.y)
+      cameraOffset.y += totalTileSize.x / 2 - totalTileSize.y / 2;
+    if (totalTileSize.y > totalTileSize.x)
+      cameraOffset.x += totalTileSize.y / 2 - totalTileSize.x / 2;
 
     thumbnailTileSize = Math.floor(thumbnailTileSize);
     cameraOffset.x = Math.floor(cameraOffset.x);
@@ -154,7 +162,7 @@ export class PixiNodeUtil implements PixiUtil {
     graphics.drawRect(0, 0, 200, 200);
     graphics.endFill();
 
-    angularBlueprint.blueprintItems.map((item) => {
+    angularBlueprint.blueprintItems.map(item => {
       item.updateTileables(angularBlueprint);
       item.drawPixi(exportCamera, this);
     });

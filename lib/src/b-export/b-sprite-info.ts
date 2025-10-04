@@ -1,7 +1,6 @@
-import { Vector2 } from "../vector2";
+import { Vector2 } from '../vector2';
 
-export class BSpriteInfo
-{
+export class BSpriteInfo {
   name: string = '';
   textureName: string = '';
   isIcon: boolean = false;
@@ -13,8 +12,7 @@ export class BSpriteInfo
   pivot: Vector2 = new Vector2();
 
   // Used when repacking textures
-  static clone(source: BSpriteInfo): BSpriteInfo
-  {
+  static clone(source: BSpriteInfo): BSpriteInfo {
     let returnValue: BSpriteInfo = new BSpriteInfo();
 
     returnValue.name = source.name;

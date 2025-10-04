@@ -6,7 +6,7 @@ import * as path from 'path';
  */
 export class AssetPaths {
   private static _projectRoot: string;
-  
+
   /**
    * Get the project root directory (calculated once)
    */
@@ -26,35 +26,77 @@ export class AssetPaths {
   }
 
   // Source paths (input)
-  static get exportZip(): string { return this.absolute('export.zip'); }
-  static get exportDir(): string { return this.absolute('export'); }
-  static get exportDatabase(): string { return this.absolute('export/database/database.json'); }
-  static get exportImages(): string { return this.absolute('export/images'); }
+  static get exportZip(): string {
+    return this.absolute('export.zip');
+  }
+  static get exportDir(): string {
+    return this.absolute('export');
+  }
+  static get exportDatabase(): string {
+    return this.absolute('export/database/database.json');
+  }
+  static get exportImages(): string {
+    return this.absolute('export/images');
+  }
 
   // Asset paths (backend storage)
-  static get assetsDir(): string { return this.absolute('assets'); }
-  static get assetsImages(): string { return this.absolute('assets/images'); }
-  static get assetsDatabase(): string { return this.absolute('assets/database'); }
-  static get assetsManual(): string { return this.absolute('assets/manual'); }
-  
+  static get assetsDir(): string {
+    return this.absolute('assets');
+  }
+  static get assetsImages(): string {
+    return this.absolute('assets/images');
+  }
+  static get assetsDatabase(): string {
+    return this.absolute('assets/database');
+  }
+  static get assetsManual(): string {
+    return this.absolute('assets/manual');
+  }
+
   // Database files
-  static get databaseJson(): string { return this.absolute('assets/database/database.json'); }
-  static get databaseGroups(): string { return this.absolute('assets/database/database-groups.json'); }
-  static get databaseWhite(): string { return this.absolute('assets/database/database-white.json'); }
-  static get databaseRepack(): string { return this.absolute('assets/database/database-repack.json'); }
-  static get databaseZip(): string { return this.absolute('assets/database/database.zip'); }
-  static get buildMenuRename(): string { return this.absolute('assets/manual-buildMenuRename.json'); }
+  static get databaseJson(): string {
+    return this.absolute('assets/database/database.json');
+  }
+  static get databaseGroups(): string {
+    return this.absolute('assets/database/database-groups.json');
+  }
+  static get databaseWhite(): string {
+    return this.absolute('assets/database/database-white.json');
+  }
+  static get databaseRepack(): string {
+    return this.absolute('assets/database/database-repack.json');
+  }
+  static get databaseZip(): string {
+    return this.absolute('assets/database/database.zip');
+  }
+  static get buildMenuRename(): string {
+    return this.absolute('assets/manual-buildMenuRename.json');
+  }
 
   // Frontend paths (deployment targets)
-  static get frontendAssets(): string { return this.absolute('frontend/src/assets'); }
-  static get frontendImages(): string { return this.absolute('frontend/src/assets/images'); }
-  static get frontendDatabase(): string { return this.absolute('frontend/src/assets/database'); }
-  static get frontendDatabaseJson(): string { return this.absolute('frontend/src/assets/database/database.json'); }
-  static get frontendDatabaseZip(): string { return this.absolute('frontend/src/assets/database/database.zip'); }
+  static get frontendAssets(): string {
+    return this.absolute('frontend/src/assets');
+  }
+  static get frontendImages(): string {
+    return this.absolute('frontend/src/assets/images');
+  }
+  static get frontendDatabase(): string {
+    return this.absolute('frontend/src/assets/database');
+  }
+  static get frontendDatabaseJson(): string {
+    return this.absolute('frontend/src/assets/database/database.json');
+  }
+  static get frontendDatabaseZip(): string {
+    return this.absolute('frontend/src/assets/database/database.zip');
+  }
 
   // Image subdirectories
-  static get uiImagesDir(): string { return this.absolute('assets/images/ui'); }
-  static get frontendUiImagesDir(): string { return this.absolute('frontend/src/assets/images/ui'); }
+  static get uiImagesDir(): string {
+    return this.absolute('assets/images/ui');
+  }
+  static get frontendUiImagesDir(): string {
+    return this.absolute('frontend/src/assets/images/ui');
+  }
 
   // Dynamic paths for generated files
   static uiIcon(iconName: string): string {
@@ -94,7 +136,7 @@ export class AssetPaths {
       this.frontendAssets,
       this.frontendImages,
       this.frontendDatabase,
-      this.frontendUiImagesDir
+      this.frontendUiImagesDir,
     ];
 
     dirs.forEach(dir => {
@@ -108,11 +150,6 @@ export class AssetPaths {
    * Get all database file paths for validation
    */
   static get allDatabaseFiles(): string[] {
-    return [
-      this.databaseJson,
-      this.databaseGroups,
-      this.databaseWhite,
-      this.databaseRepack
-    ];
+    return [this.databaseJson, this.databaseGroups, this.databaseWhite, this.databaseRepack];
   }
 }

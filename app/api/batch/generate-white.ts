@@ -1,14 +1,24 @@
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 import { Jimp } from 'jimp';
-import { BExport, SpriteTag } from "../../../lib/index";
-import { ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem } from '../../../lib';
+import { BExport, SpriteTag } from '../../../lib/index';
+import {
+  ImageSource,
+  BuildableElement,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BSpriteInfo,
+  SpriteInfo,
+  BSpriteModifier,
+  SpriteModifier,
+  BBuilding,
+  OniItem,
+} from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
 
 export class GenerateWhite {
   constructor(databasePath: string) {
-
-    console.log('Running batch GenerateWhite')
+    console.log('Running batch GenerateWhite');
 
     // initialize configuration
     dotenv.config();
@@ -34,7 +44,7 @@ export class GenerateWhite {
 
     let uiSprites: BSpriteInfo[] = json.uiSprites;
     SpriteInfo.init();
-    SpriteInfo.load(uiSprites)
+    SpriteInfo.load(uiSprites);
 
     let spriteModifiers: BSpriteModifier[] = json.spriteModifiers;
     SpriteModifier.init();
@@ -48,18 +58,26 @@ export class GenerateWhite {
   }
 
   async generateWhite(database: BExport) {
-
     let pixiNodeUtil = new PixiNodeUtil({ forceCanvas: true, preserveDrawingBuffer: true });
 
-    let sourceSpriteModifiers = database.spriteModifiers.filter((s) => { return s.tags.indexOf(SpriteTag.solid) != -1; })
+    let sourceSpriteModifiers = database.spriteModifiers.filter(s => {
+      return s.tags.indexOf(SpriteTag.solid) != -1;
+    });
 
     let sourceTextures: string[] = [];
 
     for (let sourceSpriteModifier of sourceSpriteModifiers) {
-      let sourceSpriteInfo = database.uiSprites.find((s) => { return s.name == sourceSpriteModifier.spriteInfoName; })
-      if (sourceSpriteInfo == undefined) throw new Error('GenerateWhite.generateWhite : spriteInfoName not found : ' + sourceSpriteModifier.spriteInfoName);
+      let sourceSpriteInfo = database.uiSprites.find(s => {
+        return s.name == sourceSpriteModifier.spriteInfoName;
+      });
+      if (sourceSpriteInfo == undefined)
+        throw new Error(
+          'GenerateWhite.generateWhite : spriteInfoName not found : ' +
+            sourceSpriteModifier.spriteInfoName
+        );
 
-      if (sourceTextures.indexOf(sourceSpriteInfo.textureName) == -1) sourceTextures.push(sourceSpriteInfo.textureName);
+      if (sourceTextures.indexOf(sourceSpriteInfo.textureName) == -1)
+        sourceTextures.push(sourceSpriteInfo.textureName);
 
       let spriteModifierWhite = BSpriteModifier.clone(sourceSpriteModifier);
       spriteModifierWhite.name = spriteModifierWhite.name + '_white';
@@ -75,7 +93,7 @@ export class GenerateWhite {
       if (spriteInfoWhite != undefined) {
         spriteInfoWhite.name = spriteModifierWhite.spriteInfoName;
         spriteInfoWhite.textureName = spriteInfoWhite.textureName + '_white';
-        database.uiSprites.push(spriteInfoWhite)
+        database.uiSprites.push(spriteInfoWhite);
       }
 
       for (let building of database.buildings)
@@ -84,7 +102,6 @@ export class GenerateWhite {
     }
 
     for (let sourceTexture of sourceTextures) {
-
       if (!ImageSource.isTextureLoaded(sourceTexture)) {
         let imageUrl = ImageSource.getUrl(sourceTexture);
         let brt = await pixiNodeUtil.getImageWhite(imageUrl);
@@ -95,25 +112,28 @@ export class GenerateWhite {
 
       let texture = pixiNodeUtil.getNewTextureWhole(baseTexture);
 
-      let brt = pixiNodeUtil.getNewBaseRenderTexture({ width: texture.width, height: texture.height });
+      let brt = pixiNodeUtil.getNewBaseRenderTexture({
+        width: texture.width,
+        height: texture.height,
+      });
       let rt = pixiNodeUtil.getNewRenderTexture(brt);
 
       let sprite = pixiNodeUtil.getSpriteFrom(texture);
 
       pixiNodeUtil.pixiApp.renderer.render(sprite, rt);
       let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
-      let white = await Jimp.read(Buffer.from(base64.replace(/^data:image\/png;base64,/, ""), 'base64'));
+      let white = await Jimp.read(
+        Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64')
+      );
       let whitePath = './assets/images/' + sourceTexture + '_white.png';
       console.log('saving white to ' + whitePath);
       white.write(whitePath as `${string}.png`);
-
     }
 
     let data = JSON.stringify(database, null, 2);
     fs.writeFileSync('./assets/database/database-white.json', data);
     console.log('done generating white');
   }
-
 }
 
 // Only execute this script if loaded directly with node

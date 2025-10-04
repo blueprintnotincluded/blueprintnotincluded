@@ -8,6 +8,6 @@ export const deepMap = (obj: Record<string, any>, fn: Function) => {
     } else {
       output.push(fn(key, val));
     }
-  })
+  });
   return output;
-}
+};

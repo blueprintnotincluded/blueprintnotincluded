@@ -4,7 +4,6 @@ import { Vector2 } from '../../../../lib';
 
 // This is used to repack all the textures into power of two spritesheets, so we can get mipmaps
 export class BinController {
-
   binSize: Vector2;
   binTrays: BinTray[];
 
@@ -13,8 +12,7 @@ export class BinController {
     this.binTrays = [];
   }
 
-  addItem(id: string, size:Vector2, bleed: Vector2): BinItem {
-
+  addItem(id: string, size: Vector2, bleed: Vector2): BinItem {
     //console.log('Trying to add this item :')
     //console.log({id: id, size: size, bleed: bleed});
 

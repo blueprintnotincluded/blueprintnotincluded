@@ -1,5 +1,4 @@
-export enum Overlay
-{
+export enum Overlay {
   None = -1,
   Base,
   Power,
@@ -12,5 +11,5 @@ export enum Overlay
   Light,
   Temperature,
   Room,
-  Unknown
+  Unknown,
 }

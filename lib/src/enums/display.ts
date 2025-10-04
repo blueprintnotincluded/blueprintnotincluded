@@ -1,5 +1,5 @@
 export enum Display {
-    None = -1,
-    blueprint,
-    solid
+  None = -1,
+  blueprint,
+  solid,
 }

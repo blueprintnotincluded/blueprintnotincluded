@@ -1,26 +1,40 @@
 import * as fs from 'fs';
-import { BExport, BActiveRangeSideScreen, BThresholdSwitchSideScreen, BBitSelectorSideScreen, BSingleSliderSideScreen, Vector2, SpriteTag } from "../../../lib/index";
-import { ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem, MdbBlueprint } from '../../../lib';
+import {
+  BExport,
+  BActiveRangeSideScreen,
+  BThresholdSwitchSideScreen,
+  BBitSelectorSideScreen,
+  BSingleSliderSideScreen,
+  Vector2,
+  SpriteTag,
+} from '../../../lib/index';
+import {
+  ImageSource,
+  BuildableElement,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BSpriteInfo,
+  SpriteInfo,
+  BSpriteModifier,
+  SpriteModifier,
+  BBuilding,
+  OniItem,
+  MdbBlueprint,
+} from '../../../lib';
 import { InfoIcon, BlueprintItemInfo } from '../../../lib/src/blueprint/blueprint-item-info';
 
-
 export class AddInfoIcons {
-
-
   constructor(inputPath?: string) {
-
-    console.log('Running batch FixHtmlLabels')
+    console.log('Running batch FixHtmlLabels');
 
     // Read database
     let databaseToFix = inputPath || './assets/database/' + process.argv[2];
     console.log('Adding info icons srpite infos and sprite modifiers to ' + databaseToFix);
 
-
     this.addInfoIcons(databaseToFix);
   }
 
   addInfoIcons(path: string) {
-
     let rawdata = fs.readFileSync(path).toString();
     let database = JSON.parse(rawdata) as BExport;
 
@@ -29,14 +43,14 @@ export class AddInfoIcons {
       'gas_tile_front',
       'liquid_tile_front',
       'vacuum_tile_front',
-      'info_back'
+      'info_back',
     ];
     let spriteModifierTags: SpriteTag[] = [
       SpriteTag.element_back,
       SpriteTag.element_gas_front,
       SpriteTag.element_liquid_front,
       SpriteTag.element_vacuum_front,
-      SpriteTag.info_back
+      SpriteTag.info_back,
     ];
     for (let i = 0; i < 12; i++) {
       spriteModifiersNames.push('info_front_' + i);

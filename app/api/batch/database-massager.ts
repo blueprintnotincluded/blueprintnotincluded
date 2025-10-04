@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { BExport } from "../../../lib/index";
+import { BExport } from '../../../lib/index';
 
 interface BuildMenuItem {
   category: number;
@@ -9,14 +9,16 @@ interface BuildMenuItem {
 
 interface BuildingTranslator {
   buildMenuItems: {
-    from: BuildMenuItem,
-    to: BuildMenuItem
+    from: BuildMenuItem;
+    to: BuildMenuItem;
   }[];
 }
 
 const readJson = (filePath: string) => JSON.parse(fs.readFileSync(filePath).toString());
-const writeJson = (filePath: string, data: object) => fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-export const updateJsonFile = (filePath: string, mutator: Function) => writeJson(filePath, mutator(readJson(filePath)))
+const writeJson = (filePath: string, data: object) =>
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+export const updateJsonFile = (filePath: string, mutator: Function) =>
+  writeJson(filePath, mutator(readJson(filePath)));
 
 // Uses a list of "alterations" needed for the build menu items
 // Each entry contains an optional from and to.
@@ -34,5 +36,5 @@ export const renameBuildings = (database: BExport, instructionsPath: string) => 
       database.buildMenuItems.splice(database.buildMenuItems.findIndex(finder), 1);
     }
   });
-  return database
-}
+  return database;
+};

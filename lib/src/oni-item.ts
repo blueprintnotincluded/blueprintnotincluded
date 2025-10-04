@@ -1,18 +1,18 @@
-import { Orientation } from "./enums/orientation";
-import { Vector2 } from "./vector2";
-import { UtilityConnection, ConnectionHelper } from "./utility-connection";
-import { BuildableElement } from "./b-export/b-element";
-import { BUiScreen } from "./b-export/b-ui-screen";
-import { SpriteModifierGroup } from "./drawing/sprite-modifier-group";
-import { PermittedRotations } from "./enums/permitted-rotations";
-import { ZIndex } from "./enums/z-index";
-import { Overlay } from "./enums/overlay";
-import { BBuilding } from "./b-export/b-building";
-import { StringHelpers } from "./string-helpers";
-import { SpriteModifier } from "./drawing/sprite-modifier";
-import { BuildMenuItem, BuildMenuCategory } from "./b-export/b-build-order";
-import { BuildLocationRule } from "./enums/build-location-rule";
-import { ConnectionType } from "./enums/connection-type";
+import { Orientation } from './enums/orientation';
+import { Vector2 } from './vector2';
+import { UtilityConnection, ConnectionHelper } from './utility-connection';
+import { BuildableElement } from './b-export/b-element';
+import { BUiScreen } from './b-export/b-ui-screen';
+import { SpriteModifierGroup } from './drawing/sprite-modifier-group';
+import { PermittedRotations } from './enums/permitted-rotations';
+import { ZIndex } from './enums/z-index';
+import { Overlay } from './enums/overlay';
+import { BBuilding } from './b-export/b-building';
+import { StringHelpers } from './string-helpers';
+import { SpriteModifier } from './drawing/sprite-modifier';
+import { BuildMenuItem, BuildMenuCategory } from './b-export/b-build-order';
+import { BuildLocationRule } from './enums/build-location-rule';
+import { ConnectionType } from './enums/connection-type';
 
 export class OniItem {
   static elementId = 'Element';
@@ -31,12 +31,14 @@ export class OniItem {
   isBridge: boolean = false;
   // TODO this should be a get like isInfo
   isElement: boolean = false;
-  get isInfo(): boolean { return this.id == OniItem.infoId; }
+  get isInfo(): boolean {
+    return this.id == OniItem.infoId;
+  }
   size: Vector2 = new Vector2();
   tileOffset: Vector2 = new Vector2();
   utilityConnections: UtilityConnection[] = [];
   backColor: number = 0x000000;
-  frontColor: number = 0xFFFFFF;
+  frontColor: number = 0xffffff;
   orientations: Orientation[] = [];
   dragBuild: boolean = false;
   objectLayer: number = 0; // TODO import enum?
@@ -51,7 +53,8 @@ export class OniItem {
 
   get isPartOfCircuit(): boolean {
     for (let utility of this.utilityConnections)
-      if (utility.type == ConnectionType.POWER_INPUT || utility.type == ConnectionType.POWER_OUTPUT) return true;
+      if (utility.type == ConnectionType.POWER_INPUT || utility.type == ConnectionType.POWER_OUTPUT)
+        return true;
 
     if (this.zIndex == ZIndex.Wires) return true;
 
@@ -59,15 +62,26 @@ export class OniItem {
   }
 
   private permittedRotations_: PermittedRotations = PermittedRotations.Unrotatable;
-  get permittedRotations() { return this.permittedRotations_; }
+  get permittedRotations() {
+    return this.permittedRotations_;
+  }
   set permittedRotations(value: PermittedRotations) {
     this.permittedRotations_ = value;
 
     if (value == PermittedRotations.Unrotatable) this.orientations = [Orientation.Neutral];
-    else if (value == PermittedRotations.FlipH) this.orientations = [Orientation.Neutral, Orientation.FlipH];
-    else if (value == PermittedRotations.FlipV) this.orientations = [Orientation.Neutral, Orientation.FlipV];
-    else if (value == PermittedRotations.R90) this.orientations = [Orientation.Neutral, Orientation.R90];
-    else if (value == PermittedRotations.R360) this.orientations = [Orientation.Neutral, Orientation.R90, Orientation.R180, Orientation.R270];
+    else if (value == PermittedRotations.FlipH)
+      this.orientations = [Orientation.Neutral, Orientation.FlipH];
+    else if (value == PermittedRotations.FlipV)
+      this.orientations = [Orientation.Neutral, Orientation.FlipV];
+    else if (value == PermittedRotations.R90)
+      this.orientations = [Orientation.Neutral, Orientation.R90];
+    else if (value == PermittedRotations.R360)
+      this.orientations = [
+        Orientation.Neutral,
+        Orientation.R90,
+        Orientation.R180,
+        Orientation.R270,
+      ];
   }
 
   buildLocationRule: BuildLocationRule = BuildLocationRule.Anywhere;
@@ -111,7 +125,11 @@ export class OniItem {
 
     this.buildableElementsArray = BuildableElement.getElementsFromTags(original.materialCategory);
     this.defaultElement = [];
-    for (let indexElements = 0; indexElements < this.buildableElementsArray.length; indexElements++) {
+    for (
+      let indexElements = 0;
+      indexElements < this.buildableElementsArray.length;
+      indexElements++
+    ) {
       let buildableElement = this.buildableElementsArray[indexElements];
       if (buildableElement.length > 0) this.defaultElement[indexElements] = buildableElement[0];
       else this.defaultElement[indexElements] = BuildableElement.getElement('Unobtanium');
@@ -140,9 +158,8 @@ export class OniItem {
         this.utilityConnections.push({
           type: connection.type,
           offset: connection.offset && new Vector2(connection.offset.x, connection.offset.y),
-          isSecondary: connection.isSecondary
+          isSecondary: connection.isSecondary,
         });
-
   }
 
   public getRealOverlay(overlay: Overlay) {
@@ -154,7 +171,8 @@ export class OniItem {
       case Overlay.Oxygen:
       case Overlay.Room:
       case Overlay.Temperature:
-      case Overlay.Unknown: returnValue = Overlay.Base;
+      case Overlay.Unknown:
+        returnValue = Overlay.Base;
     }
 
     return returnValue;
@@ -170,29 +188,29 @@ export class OniItem {
     if (this.zIndex == null) this.zIndex = ZIndex.Building;
     if (this.permittedRotations == null) this.permittedRotations = PermittedRotations.Unrotatable;
     if (this.backColor == null) this.backColor = 0x000000;
-    if (this.frontColor == null) this.frontColor = 0xFFFFFF;
-    if (this.buildableElementsArray == null || this.buildableElementsArray.length == 0) this.buildableElementsArray = [[BuildableElement.getElement('Vacuum')]];
+    if (this.frontColor == null) this.frontColor = 0xffffff;
+    if (this.buildableElementsArray == null || this.buildableElementsArray.length == 0)
+      this.buildableElementsArray = [[BuildableElement.getElement('Vacuum')]];
     if (this.materialMass == null) this.materialMass = [0];
     if (this.uiScreens == null) this.uiScreens = [];
     if (this.spriteGroup == null) this.spriteGroup = new SpriteModifierGroup();
     if (this.tileableLeftRight == null) this.tileableLeftRight = false;
     if (this.tileableTopBottom == null) this.tileableTopBottom = false;
-    if (this.defaultElement == null || this.defaultElement.length == 0) this.defaultElement = [BuildableElement.getElement('Vacuum')];
+    if (this.defaultElement == null || this.defaultElement.length == 0)
+      this.defaultElement = [BuildableElement.getElement('Vacuum')];
     if (this.overlay == null) this.overlay = Overlay.Base;
     if (this.buildLocationRule == null) this.buildLocationRule = BuildLocationRule.Anywhere;
 
     if (Vector2.Zero.equals(this.size)) this.tileOffset = Vector2.Zero;
     else {
-      this.tileOffset = new Vector2(
-        1 - (this.size.x + (this.size.x % 2)) / 2,
-        0
-      );
+      this.tileOffset = new Vector2(1 - (this.size.x + (this.size.x % 2)) / 2, 0);
     }
-
   }
 
   public static oniItemsMap: Map<string, OniItem>;
-  public static get oniItems() { return Array.from(OniItem.oniItemsMap.values()); }
+  public static get oniItems() {
+    return Array.from(OniItem.oniItemsMap.values());
+  }
   public static init() {
     OniItem.oniItemsMap = new Map<string, OniItem>();
   }
@@ -209,7 +227,6 @@ export class OniItem {
         //SpriteModifier.addTileSpriteModifier(building.kanimPrefix);
       }
 
-
       SpriteModifier.AddSpriteModifier(building);
 
       OniItem.oniItemsMap.set(oniItem.id, oniItem);
@@ -220,10 +237,18 @@ export class OniItem {
     elementOniItem.isElement = true;
     elementOniItem.zIndex = ZIndex.GasFront;
     elementOniItem.spriteGroup = new SpriteModifierGroup();
-    elementOniItem.spriteGroup.spriteModifiers.push(SpriteModifier.getSpriteModifer('element_tile_back'));
-    elementOniItem.spriteGroup.spriteModifiers.push(SpriteModifier.getSpriteModifer('gas_tile_front'));
-    elementOniItem.spriteGroup.spriteModifiers.push(SpriteModifier.getSpriteModifer('liquid_tile_front'));
-    elementOniItem.spriteGroup.spriteModifiers.push(SpriteModifier.getSpriteModifer('vacuum_tile_front'));
+    elementOniItem.spriteGroup.spriteModifiers.push(
+      SpriteModifier.getSpriteModifer('element_tile_back')
+    );
+    elementOniItem.spriteGroup.spriteModifiers.push(
+      SpriteModifier.getSpriteModifer('gas_tile_front')
+    );
+    elementOniItem.spriteGroup.spriteModifiers.push(
+      SpriteModifier.getSpriteModifer('liquid_tile_front')
+    );
+    elementOniItem.spriteGroup.spriteModifiers.push(
+      SpriteModifier.getSpriteModifer('vacuum_tile_front')
+    );
     elementOniItem.cleanUp();
     OniItem.oniItemsMap.set(elementOniItem.id, elementOniItem);
 
@@ -233,18 +258,20 @@ export class OniItem {
     infoOniItem.zIndex = ZIndex.BuildingUse;
     infoOniItem.spriteGroup = new SpriteModifierGroup();
     infoOniItem.spriteGroup.spriteModifiers.push(SpriteModifier.getSpriteModifer('info_back'));
-    for (let i = 0; i < 12; i++) infoOniItem.spriteGroup.spriteModifiers.push(SpriteModifier.getSpriteModifer('info_front_' + i));
+    for (let i = 0; i < 12; i++)
+      infoOniItem.spriteGroup.spriteModifiers.push(
+        SpriteModifier.getSpriteModifer('info_front_' + i)
+      );
     infoOniItem.cleanUp();
     OniItem.oniItemsMap.set(infoOniItem.id, infoOniItem);
-
   }
 
   public isOverlayPrimary(overlay: Overlay): boolean {
-    return overlay == ConnectionHelper.getOverlayFromLayer(this.zIndex)
+    return overlay == ConnectionHelper.getOverlayFromLayer(this.zIndex);
   }
 
   public isOverlaySecondary(overlay: Overlay): boolean {
-    return overlay == this.overlay
+    return overlay == this.overlay;
   }
 
   public getCategoryFromItem(): BuildMenuCategory {

@@ -1,6 +1,24 @@
-import { BniBlueprint, Blueprint, ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem, Vector2, CameraService, Overlay, Display, PixiUtil } from "../../../lib";
+import {
+  BniBlueprint,
+  Blueprint,
+  ImageSource,
+  BuildableElement,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BSpriteInfo,
+  SpriteInfo,
+  BSpriteModifier,
+  SpriteModifier,
+  BBuilding,
+  OniItem,
+  Vector2,
+  CameraService,
+  Overlay,
+  Display,
+  PixiUtil,
+} from '../../../lib';
 import * as fs from 'fs';
-import { PixiNodeUtil } from "../pixi-node-util";
+import { PixiNodeUtil } from '../pixi-node-util';
 //var PIXI = require('../../pixi-shim')
 //require('../../pixi-shim/lib/pixi-shim-node.js')
 //require('../../pixi-shim/lib/node/canvas.js')
@@ -18,10 +36,9 @@ class NodeCanvasResource extends resources.BaseImageResource
 }
 */
 
-export class TestCanvas //implements PixiUtil
-{
+export class TestCanvas {
+  //implements PixiUtil
   constructor() {
-
     // Read database
     let rawdata = fs.readFileSync('./assets/database/database-white.json').toString();
     let json = JSON.parse(rawdata);
@@ -42,7 +59,7 @@ export class TestCanvas //implements PixiUtil
 
     let uiSprites: BSpriteInfo[] = json.uiSprites;
     SpriteInfo.init();
-    SpriteInfo.load(uiSprites)
+    SpriteInfo.load(uiSprites);
 
     let spriteModifiers: BSpriteModifier[] = json.spriteModifiers;
     SpriteModifier.init();
@@ -64,7 +81,7 @@ export class TestCanvas //implements PixiUtil
   }
 
   getNewBaseTexture(url: string) {
-    throw new Error('This should not be called on node : preload all textures')
+    throw new Error('This should not be called on node : preload all textures');
   }
 
   getNewTexture(baseTex: PIXI.BaseTexture, rectangle: PIXI.Rectangle) {
@@ -76,7 +93,6 @@ export class TestCanvas //implements PixiUtil
   }
 
   async testCanvas() {
-
     let rawdata = fs.readFileSync('washroom.blueprint');
     let data: BniBlueprint = JSON.parse(rawdata.toString());
 
@@ -87,8 +103,8 @@ export class TestCanvas //implements PixiUtil
 
     let options = {
       forceCanvas: true,
-      preserveDrawingBuffer: true
-    }
+      preserveDrawingBuffer: true,
+    };
     let pixiNodeUtil = new PixiNodeUtil(options);
 
     await pixiNodeUtil.initTextures();
@@ -143,8 +159,6 @@ export class TestCanvas //implements PixiUtil
     return bt;
   }
   */
-
-
 }
 
 // Only execute this script if loaded directly with node

@@ -17,7 +17,7 @@ if (process.env.ENV_NAME === 'production') {
   } else {
     mailjetClient = new Mailjet({
       apiKey: process.env.MAILJET_API_KEY,
-      apiSecret: process.env.MAILJET_SECRET_KEY
+      apiSecret: process.env.MAILJET_SECRET_KEY,
     });
     console.log('Mailjet client initialized');
     console.log('Using sender email:', process.env.MAILJET_FROM_EMAIL);
@@ -27,10 +27,10 @@ if (process.env.ENV_NAME === 'production') {
     host: process.env.SMTP_HOST || 'localhost',
     port: parseInt(process.env.SMTP_PORT || '1025'),
     secure: false,
-    auth: undefined
+    auth: undefined,
   });
 
-  transporter.verify(function(error, success) {
+  transporter.verify(function (error, success) {
     if (error && process.env.NODE_ENV !== 'test') {
       console.error('SMTP connection error:', error);
     } else if (success && process.env.NODE_ENV !== 'test') {
@@ -52,7 +52,7 @@ export async function sendResetEmail(email: string, token: string) {
       <p><a href="${process.env.SITE_URL}/reset-password?token=${token}">Reset Password</a></p>
       <p>If you didn't request this, you can safely ignore this email.</p>
       <p>The link will expire in 1 hour.</p>
-    `
+    `,
   };
 
   try {
@@ -67,29 +67,27 @@ export async function sendResetEmail(email: string, token: string) {
       console.log('Sending via Mailjet with configuration:', {
         to: email,
         from: process.env.MAILJET_FROM_EMAIL,
-        subject: emailContent.subject
+        subject: emailContent.subject,
       });
 
-      const result = await mailjetClient
-        .post('send', { version: 'v3.1' })
-        .request({
-          Messages: [
-            {
-              From: {
-                Email: process.env.MAILJET_FROM_EMAIL,
-                Name: 'Blueprint Not Included'
+      const result = await mailjetClient.post('send', { version: 'v3.1' }).request({
+        Messages: [
+          {
+            From: {
+              Email: process.env.MAILJET_FROM_EMAIL,
+              Name: 'Blueprint Not Included',
+            },
+            To: [
+              {
+                Email: email,
               },
-              To: [
-                {
-                  Email: email
-                }
-              ],
-              Subject: emailContent.subject,
-              TextPart: emailContent.text,
-              HTMLPart: emailContent.html
-            }
-          ]
-        });
+            ],
+            Subject: emailContent.subject,
+            TextPart: emailContent.text,
+            HTMLPart: emailContent.html,
+          },
+        ],
+      });
 
       console.log('Mailjet API Response:', result.body);
       return result.body;
@@ -102,7 +100,7 @@ export async function sendResetEmail(email: string, token: string) {
         to: email,
         subject: emailContent.subject,
         text: emailContent.text,
-        html: emailContent.html
+        html: emailContent.html,
       });
       console.log('Reset email sent:', info.response);
       return info;
@@ -114,9 +112,9 @@ export async function sendResetEmail(email: string, token: string) {
       console.error('Mailjet error details:', {
         statusCode: mailjetError.statusCode,
         message: mailjetError.errorMessage,
-        type: mailjetError.errorType
+        type: mailjetError.errorType,
       });
     }
     throw error;
   }
-} 
+}

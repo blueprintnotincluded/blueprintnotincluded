@@ -102,7 +102,9 @@ export class AssetLogger {
     if (process.env.NODE_ENV !== 'production') {
       const used = process.memoryUsage();
       const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
-      this.debug(`Memory: RSS=${mb(used.rss)}MB, Heap=${mb(used.heapUsed)}/${mb(used.heapTotal)}MB`);
+      this.debug(
+        `Memory: RSS=${mb(used.rss)}MB, Heap=${mb(used.heapUsed)}/${mb(used.heapTotal)}MB`
+      );
     }
   }
 

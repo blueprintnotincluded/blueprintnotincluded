@@ -3,13 +3,11 @@ import { Database } from '../db';
 import { BlueprintModel, Blueprint } from '../models/blueprint';
 import { BatchUtils } from './batch-utils';
 
-
 export class UpdateBasedOn {
   public db: Database;
 
   constructor() {
-
-    console.log('Running batch UpdateBasedOn')
+    console.log('Running batch UpdateBasedOn');
 
     // initialize configuration
     dotenv.config();
@@ -22,12 +20,14 @@ export class UpdateBasedOn {
   }
 
   updateBaseOn() {
-
-    BlueprintModel.model.find({}).sort({ createdAt: 1 })
-      .then((blueprints) => {
-
+    BlueprintModel.model
+      .find({})
+      .sort({ createdAt: 1 })
+      .then(blueprints => {
         for (let indexSuspect = blueprints.length - 1; indexSuspect >= 0; indexSuspect--) {
-          console.log('==> Analysing blueprint : ' + indexSuspect + ' : ' + blueprints[indexSuspect].name);
+          console.log(
+            '==> Analysing blueprint : ' + indexSuspect + ' : ' + blueprints[indexSuspect].name
+          );
 
           BatchUtils.UpdateBasedOn(blueprints[indexSuspect], blueprints, indexSuspect);
         }

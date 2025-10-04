@@ -1,7 +1,18 @@
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 import { Jimp } from 'jimp';
-import { ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem } from '../../../lib';
+import {
+  ImageSource,
+  BuildableElement,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BSpriteInfo,
+  SpriteInfo,
+  BSpriteModifier,
+  SpriteModifier,
+  BBuilding,
+  OniItem,
+} from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
 import { AssetPaths } from './asset-paths';
 import { AssetLogger } from './asset-logger';
@@ -34,7 +45,7 @@ export class GenerateIcons {
 
     let uiSprites: BSpriteInfo[] = json.uiSprites;
     SpriteInfo.init();
-    SpriteInfo.load(uiSprites)
+    SpriteInfo.load(uiSprites);
 
     let spriteModifiers: BSpriteModifier[] = json.spriteModifiers;
     SpriteModifier.init();
@@ -49,15 +60,17 @@ export class GenerateIcons {
 
   async generateIcons() {
     AssetLogger.time('IconGeneration');
-    
+
     let pixiNodeUtil = new PixiNodeUtil({ forceCanvas: true, preserveDrawingBuffer: true });
     await pixiNodeUtil.initTextures();
 
-    const iconSprites = SpriteInfo.keys.filter(s => SpriteInfo.getSpriteInfo(s).isIcon && !SpriteInfo.getSpriteInfo(s).isInputOutput);
+    const iconSprites = SpriteInfo.keys.filter(
+      s => SpriteInfo.getSpriteInfo(s).isIcon && !SpriteInfo.getSpriteInfo(s).isInputOutput
+    );
     AssetLogger.info(`Generating ${iconSprites.length} UI icons`);
-    
+
     let processedCount = 0;
-    
+
     for (let k of iconSprites) {
       let uiSpriteInfo = SpriteInfo.getSpriteInfo(k);
 
@@ -69,15 +82,13 @@ export class GenerateIcons {
         AssetLogger.memory();
       }
 
-      if (k == 'electrical_disconnected') AssetLogger.debug(`Processing special icon: ${JSON.stringify(uiSpriteInfo)}`)
-
-
-
+      if (k == 'electrical_disconnected')
+        AssetLogger.debug(`Processing special icon: ${JSON.stringify(uiSpriteInfo)}`);
 
       let texture = uiSpriteInfo.getTexture(pixiNodeUtil);
       let uiSprite = pixiNodeUtil.getSpriteFrom(texture);
 
-      let size = Math.max(texture.width, texture.height)
+      let size = Math.max(texture.width, texture.height);
 
       let container = pixiNodeUtil.getNewContainer();
       container.addChild(uiSprite);
@@ -85,8 +96,8 @@ export class GenerateIcons {
       uiSprite.x = 0;
       uiSprite.y = 0;
 
-      if (texture.width > texture.height) uiSprite.y += (texture.width / 2 - texture.height / 2);
-      if (texture.height > texture.width) uiSprite.x += (texture.height / 2 - texture.width / 2);
+      if (texture.width > texture.height) uiSprite.y += texture.width / 2 - texture.height / 2;
+      if (texture.height > texture.width) uiSprite.x += texture.height / 2 - texture.width / 2;
 
       let brt = pixiNodeUtil.getNewBaseRenderTexture({ width: size, height: size });
       let rt = pixiNodeUtil.getNewRenderTexture(brt);
@@ -94,15 +105,17 @@ export class GenerateIcons {
       pixiNodeUtil.pixiApp.renderer.render(container, rt, true);
       let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
 
-      let icon = await Jimp.read(Buffer.from(base64.replace(/^data:image\/png;base64,/, ""), 'base64'));
-      
+      let icon = await Jimp.read(
+        Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64')
+      );
+
       // Ensure directories exist
       AssetPaths.ensureDirectories();
-      
+
       let iconPath = AssetPaths.uiIcon(k);
       AssetLogger.fileOperation('Writing icon', iconPath);
       icon.write(iconPath as `${string}.png`);
-      
+
       let frontendIconPath = AssetPaths.frontendUiIcon(k);
       AssetLogger.fileOperation('Writing frontend icon', frontendIconPath);
       icon.write(frontendIconPath as `${string}.png`);
@@ -115,10 +128,10 @@ export class GenerateIcons {
       container.destroy({ children: true });
       container = null;
       global.gc && global.gc();
-      
+
       processedCount++;
     }
-    
+
     AssetLogger.timeEnd('IconGeneration');
     AssetLogger.completeProcess('GenerateIcons');
   }

@@ -1,16 +1,15 @@
-import { BSpriteInfo } from "./b-sprite-info";
-import { BSpriteModifier } from "./b-sprite-modifier";
+import { BSpriteInfo } from './b-sprite-info';
+import { BSpriteModifier } from './b-sprite-modifier';
 import { UtilityConnection } from '../utility-connection';
 import { Overlay } from '../enums/overlay';
 import { PermittedRotations } from '../enums/permitted-rotations';
-import { BUiScreen } from "../b-export/b-ui-screen";
-import { Vector2 } from "../vector2";
-import { ZIndex } from "../enums/z-index";
-import { BuildLocationRule } from "../enums/build-location-rule";
+import { BUiScreen } from '../b-export/b-ui-screen';
+import { Vector2 } from '../vector2';
+import { ZIndex } from '../enums/z-index';
+import { BuildLocationRule } from '../enums/build-location-rule';
 
 // A building (exported from the game)
-export class BBuilding
-{
+export class BBuilding {
   name: string = '';
   prefabId: string = '';
   isTile: boolean = false;
@@ -26,7 +25,7 @@ export class BBuilding
   textureName: string = '';
 
   spriteInfos: BSpriteInfo[] = [];
-  spriteModifiers : BSpriteModifier[] = [];
+  spriteModifiers: BSpriteModifier[] = [];
   utilities: UtilityConnection[] = [];
   materialCategory: string[] = [];
   materialMass: number[] = [];
@@ -38,7 +37,7 @@ export class BBuilding
   permittedRotations: PermittedRotations = PermittedRotations.Unrotatable;
   buildLocationRule: BuildLocationRule = BuildLocationRule.Anywhere;
 
-  tileableLeftRight:boolean = false;
+  tileableLeftRight: boolean = false;
   tileableTopBottom: boolean = false;
 }
 
@@ -46,7 +45,7 @@ export class BBuilding
 // TODO since all sprites for a building are inside the same group, we don't need this class anymore. spriteNames should go directly into the BBuilding class
 export class BSpriteGroup {
   groupName: string;
-  spriteNames: string[]  =[];
+  spriteNames: string[] = [];
 
   constructor(groupName: string) {
     this.groupName = groupName;

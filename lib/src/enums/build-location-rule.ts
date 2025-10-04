@@ -1,5 +1,4 @@
-export enum BuildLocationRule
-{
+export enum BuildLocationRule {
   Anywhere,
   OnFloor,
   OnFloorOverSpace,

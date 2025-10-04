@@ -1,4 +1,4 @@
-import { deepMap } from "./utility";
+import { deepMap } from './utility';
 
 // More info on Open Graph meta tags at https://ogp.me/
 export interface OpenGraphMeta {
@@ -30,7 +30,7 @@ export interface OpenGraphImage {
   'og:image:height'?: string;
 }
 
-type OpenGraphTags = keyof Omit<OpenGraphMeta, 'images'> | (keyof OpenGraphImage);
+type OpenGraphTags = keyof Omit<OpenGraphMeta, 'images'> | keyof OpenGraphImage;
 
 export const defaultImageSquare: OpenGraphImage = {
   'og:image': '/images/site-preview-large-square.png',
@@ -38,8 +38,8 @@ export const defaultImageSquare: OpenGraphImage = {
   'og:image:type': 'image/png',
   'og:image:height': '1200',
   'og:image:width': '1200',
-  'og:image:alt': 'An example blueprint, shown against the website editor.'
-}
+  'og:image:alt': 'An example blueprint, shown against the website editor.',
+};
 
 export const defaultImageWide: OpenGraphImage = {
   'og:image': '/images/site-preview-large-wide.png',
@@ -47,23 +47,21 @@ export const defaultImageWide: OpenGraphImage = {
   'og:image:type': 'image/png',
   'og:image:height': '671',
   'og:image:width': '1200',
-  'og:image:alt': 'An example blueprint, shown against the website editor, next to the blueprint not included logo.'
-}
+  'og:image:alt':
+    'An example blueprint, shown against the website editor, next to the blueprint not included logo.',
+};
 
 export const defaultWebsiteMeta: OpenGraphMeta = {
   'og:type': 'website',
   'og:url': process.env.HOST || 'https://example.com',
   'og:title': 'Blueprint Not Included',
-  'og:description': 'A place to upload, build, and share your favourite blueprint designs for Oxygen Not Included.',
-  images: [
-    defaultImageSquare,
-    defaultImageWide
-  ]
-}
+  'og:description':
+    'A place to upload, build, and share your favourite blueprint designs for Oxygen Not Included.',
+  images: [defaultImageSquare, defaultImageWide],
+};
 
-export const htmlMetaTag = (property: OpenGraphTags, content: string) => (
-  `<meta property="${property}" content="${content}" />`
-)
+export const htmlMetaTag = (property: OpenGraphTags, content: string) =>
+  `<meta property="${property}" content="${content}" />`;
 
 export class WebsiteMeta {
   public meta: OpenGraphMeta;

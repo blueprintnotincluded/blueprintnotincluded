@@ -1,16 +1,31 @@
 import * as fs from 'fs';
-import { BExport, BActiveRangeSideScreen, BThresholdSwitchSideScreen, BBitSelectorSideScreen, BSingleSliderSideScreen } from "../../../lib/index";
-import { JSDOM } from 'jsdom'
-import { ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem, MdbBlueprint } from '../../../lib';
-
+import {
+  BExport,
+  BActiveRangeSideScreen,
+  BThresholdSwitchSideScreen,
+  BBitSelectorSideScreen,
+  BSingleSliderSideScreen,
+} from '../../../lib/index';
+import { JSDOM } from 'jsdom';
+import {
+  ImageSource,
+  BuildableElement,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BSpriteInfo,
+  SpriteInfo,
+  BSpriteModifier,
+  SpriteModifier,
+  BBuilding,
+  OniItem,
+  MdbBlueprint,
+} from '../../../lib';
 
 export class FixHtmlLabels {
-
-  dom: JSDOM
+  dom: JSDOM;
 
   constructor(inputPath?: string) {
-
-    console.log('Running batch FixHtmlLabels')
+    console.log('Running batch FixHtmlLabels');
 
     this.dom = new JSDOM('<!DOCTYPE html>');
 
@@ -22,7 +37,6 @@ export class FixHtmlLabels {
   }
 
   fixHtmlLabels(path: string) {
-
     let rawdata = fs.readFileSync(path).toString();
     let database = JSON.parse(rawdata) as BExport;
 
@@ -32,27 +46,35 @@ export class FixHtmlLabels {
       for (let uiScreen of building.uiScreens) {
         if (uiScreen.id == 'ActiveRangeSideScreen') {
           let activeRangeSideScreen = uiScreen as BActiveRangeSideScreen;
-          activeRangeSideScreen.activateTooltip = this.stripHtml(activeRangeSideScreen.activateTooltip);
-          activeRangeSideScreen.deactivateTooltip = this.stripHtml(activeRangeSideScreen.deactivateTooltip);
-          console.log(activeRangeSideScreen.activateTooltip); console.log(activeRangeSideScreen.deactivateTooltip);
-        }
-        else if (uiScreen.id == 'ThresholdSwitchSideScreen') {
+          activeRangeSideScreen.activateTooltip = this.stripHtml(
+            activeRangeSideScreen.activateTooltip
+          );
+          activeRangeSideScreen.deactivateTooltip = this.stripHtml(
+            activeRangeSideScreen.deactivateTooltip
+          );
+          console.log(activeRangeSideScreen.activateTooltip);
+          console.log(activeRangeSideScreen.deactivateTooltip);
+        } else if (uiScreen.id == 'ThresholdSwitchSideScreen') {
           let thresholdSwitchSideScreen = uiScreen as BThresholdSwitchSideScreen;
-          thresholdSwitchSideScreen.aboveToolTip = this.stripHtml(thresholdSwitchSideScreen.aboveToolTip);
-          thresholdSwitchSideScreen.belowToolTip = this.stripHtml(thresholdSwitchSideScreen.belowToolTip);
-          console.log(thresholdSwitchSideScreen.aboveToolTip); console.log(thresholdSwitchSideScreen.belowToolTip);
-        }
-        else if (uiScreen.id == 'LogicBitSelectorSideScreen') {
+          thresholdSwitchSideScreen.aboveToolTip = this.stripHtml(
+            thresholdSwitchSideScreen.aboveToolTip
+          );
+          thresholdSwitchSideScreen.belowToolTip = this.stripHtml(
+            thresholdSwitchSideScreen.belowToolTip
+          );
+          console.log(thresholdSwitchSideScreen.aboveToolTip);
+          console.log(thresholdSwitchSideScreen.belowToolTip);
+        } else if (uiScreen.id == 'LogicBitSelectorSideScreen') {
           let logicBitSelectorSideScreen = uiScreen as BBitSelectorSideScreen;
-          logicBitSelectorSideScreen.description = this.stripHtml(logicBitSelectorSideScreen.description);
+          logicBitSelectorSideScreen.description = this.stripHtml(
+            logicBitSelectorSideScreen.description
+          );
           console.log(logicBitSelectorSideScreen.description);
-        }
-        else if (uiScreen.id == 'SingleSliderSideScreen') {
+        } else if (uiScreen.id == 'SingleSliderSideScreen') {
           let singleSliderSideScreen = uiScreen as BSingleSliderSideScreen;
           singleSliderSideScreen.tooltip = this.stripHtml(singleSliderSideScreen.tooltip);
           console.log(singleSliderSideScreen.tooltip);
-        }
-        else console.log(uiScreen.id)
+        } else console.log(uiScreen.id);
       }
     }
 
@@ -66,7 +88,6 @@ export class FixHtmlLabels {
 
     console.log('done fixing labels');
   }
-
 
   stripHtml(html: string): string {
     let tmp = this.dom.window.document.createElement('div');

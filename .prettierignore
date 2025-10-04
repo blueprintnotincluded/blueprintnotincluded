@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+build/
+dist/
+
+# Assets and data files
+assets/
+export/
+*.zip
+*.png
+*.jpg
+*.jpeg
+
+# Database files
+*.json
+!.prettierrc.json
+!package.json
+!tsconfig.json
+
+# Generated files
+*.d.ts
+
+# Logs
+*.log
+
+# Frontend (has its own prettier config)
+frontend/

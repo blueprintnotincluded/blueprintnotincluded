@@ -1,7 +1,7 @@
-import { Vector2 } from "../../vector2"
-import { UiSaveSettings } from "../../b-export/b-ui-screen";
-import { InfoIcon } from "../../blueprint/blueprint-item-info";
-import { BuildableElement } from "../../b-export/b-element";
+import { Vector2 } from '../../vector2';
+import { UiSaveSettings } from '../../b-export/b-ui-screen';
+import { InfoIcon } from '../../blueprint/blueprint-item-info';
+import { BuildableElement } from '../../b-export/b-element';
 
 export interface MdbBuilding {
   id: string;

@@ -1,27 +1,24 @@
-import { Request, Response } from "express";
-import { UserModel } from "./models/user";
-import mongoose from "mongoose";
+import { Request, Response } from 'express';
+import { UserModel } from './models/user';
+import mongoose from 'mongoose';
 
 export class RegisterController {
-  public register(req: Request, res: Response) 
-  {
+  public register(req: Request, res: Response) {
     let reqAny = req as any;
-    if (process.env.ENV_NAME != 'development' && (
-      reqAny.recaptcha == null || 
-      reqAny.recaptcha.error != null || 
-      reqAny.recaptcha.data == null || 
-      reqAny.recaptcha.data.action != 'register' || 
-      !(reqAny.recaptcha.data.score > 0.5))) 
-    {
+    if (
+      process.env.ENV_NAME != 'development' &&
+      (reqAny.recaptcha == null ||
+        reqAny.recaptcha.error != null ||
+        reqAny.recaptcha.data == null ||
+        reqAny.recaptcha.data.action != 'register' ||
+        !(reqAny.recaptcha.data.score > 0.5))
+    ) {
       console.log(reqAny.recaptcha);
       res.status(401).send();
-    }
-    else
-    {
+    } else {
       console.log('Received registration from ' + req.clientIp);
 
-      if (mongoose.connection.readyState == 0) 
-      {
+      if (mongoose.connection.readyState == 0) {
         console.log('MongoDb is not ready');
         res.status(503).json({ registrationResult: 'DB_ERROR' });
       }
@@ -41,12 +38,14 @@ export class RegisterController {
       user.username = req.body.username;
       user.setPassword(req.body.password);
 
-      user.save()
+      user
+        .save()
         .then(() => {
           console.log('Registration succesful');
 
-          res.json({ token: user.generateJwt() }); }) 
-        .catch((error) => { 
+          res.json({ token: user.generateJwt() });
+        })
+        .catch(error => {
           console.log('Registration error');
           console.log(error);
 

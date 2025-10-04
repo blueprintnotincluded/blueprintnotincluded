@@ -1,8 +1,8 @@
-import { Vector2 } from "../vector2";
-import { BSpriteInfo } from "../b-export/b-sprite-info";
-import { DrawHelpers } from "./draw-helpers";
-import { ImageSource } from "./image-source";
-import { PixiUtil } from "./pixi-util";
+import { Vector2 } from '../vector2';
+import { BSpriteInfo } from '../b-export/b-sprite-info';
+import { DrawHelpers } from './draw-helpers';
+import { ImageSource } from './image-source';
+import { PixiUtil } from './pixi-util';
 
 export class SpriteInfo {
   public spriteInfoId: string;
@@ -21,14 +21,17 @@ export class SpriteInfo {
     this.cleanUp();
   }
 
-  public cleanUp() {
-  }
+  public cleanUp() {}
 
   private static spriteInfosMap: Map<string, SpriteInfo>;
 
   // Keys is used for some repack stuff
-  public static get keys() { return Array.from(SpriteInfo.spriteInfosMap.keys()); }
-  public static get spriteInfos() { return Array.from(SpriteInfo.spriteInfosMap.values()); }
+  public static get keys() {
+    return Array.from(SpriteInfo.spriteInfosMap.keys());
+  }
+  public static get spriteInfos() {
+    return Array.from(SpriteInfo.spriteInfosMap.values());
+  }
   public static init() {
     SpriteInfo.spriteInfosMap = new Map<string, SpriteInfo>();
   }
@@ -39,8 +42,8 @@ export class SpriteInfo {
       newUiSpriteInfo.copyFrom(uiSprite);
 
       let imageUrl: string = DrawHelpers.createUrl(newUiSpriteInfo.imageId, false);
-      imageUrl = imageUrl.replace('0_solid.png', '0.png')
-      ImageSource.AddImagePixi(newUiSpriteInfo.imageId, imageUrl)
+      imageUrl = imageUrl.replace('0_solid.png', '0.png');
+      ImageSource.AddImagePixi(newUiSpriteInfo.imageId, imageUrl);
 
       SpriteInfo.addSpriteInfo(newUiSpriteInfo);
     }
@@ -64,16 +67,20 @@ export class SpriteInfo {
     // DO NOT FORGET : if you add something here, you must add it to the texture repacker also
     let imageUrl: string = DrawHelpers.createUrl(original.textureName, false);
     // TODO FOR REAL find out why these textures are missing from extract
-    imageUrl = imageUrl.replace('0_solid.png', '0.png')
+    imageUrl = imageUrl.replace('0_solid.png', '0.png');
     ImageSource.AddImagePixi(original.textureName, imageUrl);
     this.imageId = original.textureName;
-    let uvMin = Vector2.clone(original.uvMin); if (uvMin == null) uvMin = new Vector2();
+    let uvMin = Vector2.clone(original.uvMin);
+    if (uvMin == null) uvMin = new Vector2();
     this.uvMin = uvMin;
-    let uvSize = Vector2.clone(original.uvSize); if (uvSize == null) uvSize = new Vector2();
+    let uvSize = Vector2.clone(original.uvSize);
+    if (uvSize == null) uvSize = new Vector2();
     this.uvSize = uvSize;
-    let realSize = Vector2.clone(original.realSize); if (realSize == null) realSize = new Vector2();
+    let realSize = Vector2.clone(original.realSize);
+    if (realSize == null) realSize = new Vector2();
     this.realSize = realSize;
-    let pivot = Vector2.clone(original.pivot); if (pivot == null) pivot = new Vector2();
+    let pivot = Vector2.clone(original.pivot);
+    if (pivot == null) pivot = new Vector2();
     this.pivot = pivot;
     this.isIcon = original.isIcon;
     this.isInputOutput = original.isInputOutput;
@@ -87,11 +94,10 @@ export class SpriteInfo {
     throw new Error('SpriteInfo.getSpriteInfo : Not found');
   }
 
-
   // Pixi stuf
   texture: any; // PIXI.Texture;
-  public getTexture(pixiUtil: PixiUtil): any // PIXI.Texture
-  {
+  public getTexture(pixiUtil: PixiUtil): any {
+    // PIXI.Texture
     if (this.texture == null) {
       let baseTex = ImageSource.getBaseTexture(this.imageId, pixiUtil);
       if (baseTex == null) return null;
@@ -109,8 +115,12 @@ export class SpriteInfo {
     return this.texture;
   }
 
-  public getTextureWithBleed(bleed: number, realBleed: Vector2 = new Vector2(), pixiUtil: PixiUtil): any // PIXI.Texture
-  {
+  public getTextureWithBleed(
+    bleed: number,
+    realBleed: Vector2 = new Vector2(),
+    pixiUtil: PixiUtil
+  ): any {
+    // PIXI.Texture
     let baseTex = ImageSource.getBaseTexture(this.imageId, pixiUtil);
     if (baseTex == null) return null;
 
@@ -123,8 +133,10 @@ export class SpriteInfo {
 
     if (rectangle.x < 0) rectangle.x = 0;
     if (rectangle.y < 0) rectangle.y = 0;
-    if (rectangle.x + rectangle.width > baseTex.width) rectangle.width = baseTex.width - rectangle.x;
-    if (rectangle.y + rectangle.height > baseTex.height) rectangle.height = baseTex.height - rectangle.y;
+    if (rectangle.x + rectangle.width > baseTex.width)
+      rectangle.width = baseTex.width - rectangle.x;
+    if (rectangle.y + rectangle.height > baseTex.height)
+      rectangle.height = baseTex.height - rectangle.y;
 
     realBleed.x = this.uvMin.x - rectangle.x;
     realBleed.y = this.uvMin.y - rectangle.y;

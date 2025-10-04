@@ -1,5 +1,5 @@
 export enum Visualization {
-    none,
-    temperature,
-    elements
+  none,
+  temperature,
+  elements,
 }
