@@ -5,6 +5,7 @@ import { BExport, Vector2 } from "../../../lib/index";
 import { ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem } from '../../../lib';
 import { BinController } from './bin-packing/bin-controller';
 import { PixiNodeUtil } from '../pixi-node-util';
+import { AssetPaths } from './asset-paths';
 
 
 export class GenerateRepack {
@@ -131,8 +132,12 @@ export class GenerateRepack {
 
       let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
       let repack = await Jimp.read(Buffer.from(base64.replace(/^data:image\/png;base64,/, ""), 'base64'));
-      let repackPath = './assets/images/' + textureBaseString + trayIndex + '.png'
-      let repackFrontendPath = './frontend/src/assets/images/' + textureBaseString + trayIndex + '.png'
+      
+      // Ensure directories exist
+      AssetPaths.ensureDirectories();
+      
+      let repackPath = AssetPaths.repackTexture(trayIndex);
+      let repackFrontendPath = AssetPaths.frontendRepackTexture(trayIndex);
       console.log('saving repack to ' + repackPath);
       repack.write(repackPath as `${string}.png`);
       console.log('saving repack to ' + repackFrontendPath);
@@ -140,8 +145,8 @@ export class GenerateRepack {
     }
 
     let data = JSON.stringify(database, null, 2);
-    fs.writeFileSync('./assets/database/database-repack.json', data);
-    fs.writeFileSync('./frontend/src/assets/database/database.json', data);
+    fs.writeFileSync(AssetPaths.databaseRepack, data);
+    fs.writeFileSync(AssetPaths.frontendDatabaseJson, data);
     console.log('done generating repack');
 
   }
@@ -149,5 +154,5 @@ export class GenerateRepack {
 
 // Only execute this script if loaded directly with node
 if (require.main === module) {
-  new GenerateRepack('./assets/database/database.json');
+  new GenerateRepack(AssetPaths.databaseJson);
 }

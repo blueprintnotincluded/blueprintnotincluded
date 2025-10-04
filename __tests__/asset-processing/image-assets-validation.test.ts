@@ -154,7 +154,7 @@ describe('Image Assets Validation', () => {
     });
 
     it('should have reasonable file count in frontend assets', () => {
-      const allPngFiles = fs.readdirSync(frontendImagePath, { recursive: true })
+      const allPngFiles = fs.readdirSync(frontendImagePath)
         .filter(f => f.toString().endsWith('.png'));
       
       expect(allPngFiles.length, 'Should have reasonable number of frontend PNG assets').to.be.greaterThan(100);

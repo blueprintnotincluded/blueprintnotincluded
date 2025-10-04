@@ -3,15 +3,16 @@ import * as fs from 'fs';
 import { Jimp } from 'jimp';
 import { ImageSource, BuildableElement, BuildMenuCategory, BuildMenuItem, BSpriteInfo, SpriteInfo, BSpriteModifier, SpriteModifier, BBuilding, OniItem } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
+import { AssetPaths } from './asset-paths';
+import { AssetLogger } from './asset-logger';
 
 export class GenerateIcons {
   constructor(databasePath: string) {
-
-    console.log('Running batch GenerateIcons')
+    AssetLogger.startProcess('GenerateIcons');
 
     // initialize configuration
     dotenv.config();
-    console.log(process.env.ENV_NAME);
+    AssetLogger.info(`Environment: ${process.env.ENV_NAME || 'development'}`);
 
     // Read database
     let rawdata = fs.readFileSync(databasePath).toString();
@@ -47,20 +48,28 @@ export class GenerateIcons {
   }
 
   async generateIcons() {
-
+    AssetLogger.time('IconGeneration');
+    
     let pixiNodeUtil = new PixiNodeUtil({ forceCanvas: true, preserveDrawingBuffer: true });
     await pixiNodeUtil.initTextures();
 
-    console.log('start generating icons')
-    for (let k of SpriteInfo.keys.filter(s => SpriteInfo.getSpriteInfo(s).isIcon && !SpriteInfo.getSpriteInfo(s).isInputOutput)) {
+    const iconSprites = SpriteInfo.keys.filter(s => SpriteInfo.getSpriteInfo(s).isIcon && !SpriteInfo.getSpriteInfo(s).isInputOutput);
+    AssetLogger.info(`Generating ${iconSprites.length} UI icons`);
+    
+    let processedCount = 0;
+    
+    for (let k of iconSprites) {
       let uiSpriteInfo = SpriteInfo.getSpriteInfo(k);
 
       // Only generate icons for sprite not in the texture atlases
       if (!uiSpriteInfo.isIcon || uiSpriteInfo.isInputOutput) continue;
 
-      //console.log('generating icon for ' + k);
+      if (processedCount % 10 === 0) {
+        AssetLogger.progress(processedCount, iconSprites.length, `Generating icon: ${k}`);
+        AssetLogger.memory();
+      }
 
-      if (k == 'electrical_disconnected') console.log(uiSpriteInfo)
+      if (k == 'electrical_disconnected') AssetLogger.debug(`Processing special icon: ${JSON.stringify(uiSpriteInfo)}`)
 
 
 
@@ -86,11 +95,16 @@ export class GenerateIcons {
       let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
 
       let icon = await Jimp.read(Buffer.from(base64.replace(/^data:image\/png;base64,/, ""), 'base64'));
-      let iconPath = './assets/images/ui/' + k + '.png';
-      console.log('saving icon to ' + iconPath);
+      
+      // Ensure directories exist
+      AssetPaths.ensureDirectories();
+      
+      let iconPath = AssetPaths.uiIcon(k);
+      AssetLogger.fileOperation('Writing icon', iconPath);
       icon.write(iconPath as `${string}.png`);
-      let frontendIconPath = './frontend/src/assets/images/ui/' + k + '.png';
-      console.log('saving icon to ' + frontendIconPath);
+      
+      let frontendIconPath = AssetPaths.frontendUiIcon(k);
+      AssetLogger.fileOperation('Writing frontend icon', frontendIconPath);
       icon.write(frontendIconPath as `${string}.png`);
 
       // Free memory
@@ -101,12 +115,16 @@ export class GenerateIcons {
       container.destroy({ children: true });
       container = null;
       global.gc && global.gc();
+      
+      processedCount++;
     }
-    console.log('done generating icons')
+    
+    AssetLogger.timeEnd('IconGeneration');
+    AssetLogger.completeProcess('GenerateIcons');
   }
 }
 
 // Only execute this script if loaded directly with node
 if (require.main === module) {
-  new GenerateIcons('./assets/database/database.json');
+  new GenerateIcons(AssetPaths.databaseJson);
 }
