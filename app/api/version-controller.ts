@@ -1,6 +1,4 @@
 import { Request, Response } from 'express';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export class VersionController {
   private versionInfo: any = null;
@@ -10,55 +8,39 @@ export class VersionController {
   }
 
   private loadVersionInfo() {
-    try {
-      // Load version info from package.json
-      const packagePath = path.join(process.cwd(), 'package.json');
-      
-      if (!fs.existsSync(packagePath)) {
-        console.error('package.json not found at:', packagePath);
-        throw new Error('package.json not found');
-      }
-      
-      const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-      
-      // Try to get git commit hash if available (for development)
-      let gitCommit = null;
+    // Try to get git commit hash if available (for development)
+    let gitCommit = process.env.GIT_COMMIT;
+    let gitBranch = process.env.GIT_BRANCH;
+    
+    // Fall back to git commands in development (when git is available)
+    if (!gitCommit || !gitBranch) {
       try {
         const { execSync } = require('child_process');
-        gitCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+        if (!gitCommit) {
+          gitCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+        }
+        if (!gitBranch) {
+          gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
+        }
       } catch (error) {
-        // Git not available or not a git repo
+        // Git not available or not a git repo - this is fine for production
       }
-
-      // Try to get git branch if available (for development)
-      let gitBranch = null;
-      try {
-        const { execSync } = require('child_process');
-        gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
-      } catch (error) {
-        // Git not available or not a git repo
-      }
-
-      this.versionInfo = {
-        version: packageJson.version,
-        name: packageJson.name,
-        buildTime: process.env.BUILD_DATE || new Date().toISOString(),
-        buildCommit: process.env.GIT_COMMIT || gitCommit,
-        buildBranch: process.env.GIT_BRANCH || gitBranch,
-        environment: process.env.ENV_NAME || 'development',
-        nodeVersion: process.version,
-      };
-    } catch (error) {
-      console.error('Error loading version info:', error);
-      this.versionInfo = {
-        version: 'unknown',
-        name: 'blueprintnotincluded',
-        buildTime: process.env.BUILD_DATE || new Date().toISOString(),
-        environment: process.env.ENV_NAME || 'development',
-        nodeVersion: process.version,
-        error: 'Failed to load version information'
-      };
     }
+
+    // Use git commit short hash as version, fallback to timestamp-based version
+    const version = gitCommit 
+      ? gitCommit.substring(0, 8)
+      : `dev-${new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-')}`;
+
+    this.versionInfo = {
+      version,
+      name: 'blueprintnotincluded',
+      buildTime: process.env.BUILD_DATE || new Date().toISOString(),
+      buildCommit: gitCommit,
+      buildBranch: gitBranch,
+      environment: process.env.ENV_NAME || 'development',
+      nodeVersion: process.version,
+    };
   }
 
   public getVersion = (req: Request, res: Response) => {
