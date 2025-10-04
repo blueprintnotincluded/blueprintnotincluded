@@ -49,4 +49,4 @@ ENV GIT_BRANCH=${GIT_BRANCH}
 
 EXPOSE 3000
 WORKDIR /bpni/build
-CMD [ "node", "server.js" ]
+CMD [ "node", "app/server.js" ]
