@@ -8,6 +8,7 @@ import { LoginController } from './api/login-controller';
 import { RegisterController } from "./api/register-controller";
 import { DuplicateCheckController } from "./api/duplicate-check-controller";
 import { BlueprintController } from "./api/blueprint-controller";
+import { VersionController } from "./api/version-controller";
 var Recaptcha = require('express-recaptcha').RecaptchaV3;
 export class Routes {
   public staticController = new StaticController();
@@ -15,6 +16,7 @@ export class Routes {
   public registerController = new RegisterController();
   public duplicateCheckController = new DuplicateCheckController();
   public uploadBlueprintController = new BlueprintController();
+  public versionController = new VersionController();
 
   public routes(app: Application): void {
     // Initialize authentication middleware
@@ -54,6 +56,7 @@ export class Routes {
     app.route("/api/getblueprintmod/:id").get(this.uploadBlueprintController.getBlueprintMod);
     app.route("/api/getblueprintthumbnail/:id").get(this.uploadBlueprintController.getBlueprintThumbnail);
     app.route("/api/getblueprints").get(this.uploadBlueprintController.getBlueprints);
+    app.route("/api/version").get(this.versionController.getVersion);
 
     // Logged in access
     app.route("/api/getblueprintsSecure").get(auth, this.uploadBlueprintController.getBlueprints);
