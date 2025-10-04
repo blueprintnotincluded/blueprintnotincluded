@@ -8,6 +8,19 @@ export class VersionController {
   }
 
   private loadVersionInfo() {
+    // Read version from package.json
+    let version: string;
+    let packageName: string;
+    try {
+      const packageJson = require('../../package.json');
+      version = packageJson.version;
+      packageName = packageJson.name;
+    } catch (error) {
+      console.warn('Could not read package.json:', error);
+      version = '0.0.0';
+      packageName = 'blueprintnotincluded';
+    }
+
     // Try to get git commit hash if available (for development)
     let gitCommit = process.env.GIT_COMMIT;
     let gitBranch = process.env.GIT_BRANCH;
@@ -27,14 +40,9 @@ export class VersionController {
       }
     }
 
-    // Use git commit short hash as version, fallback to timestamp-based version
-    const version = gitCommit 
-      ? gitCommit.substring(0, 8)
-      : `dev-${new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-')}`;
-
     this.versionInfo = {
       version,
-      name: 'blueprintnotincluded',
+      name: packageName,
       buildTime: process.env.BUILD_DATE || new Date().toISOString(),
       buildCommit: gitCommit,
       buildBranch: gitBranch,
