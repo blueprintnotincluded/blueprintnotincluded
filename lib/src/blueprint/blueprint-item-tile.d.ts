@@ -1,6 +1,6 @@
-import { Blueprint } from "./blueprint";
-import { BlueprintItem } from "./blueprint-item";
-import { CameraService } from "../drawing/camera-service";
+import { Blueprint } from './blueprint';
+import { BlueprintItem } from './blueprint-item';
+import { CameraService } from '../drawing/camera-service';
 export declare class BlueprintItemTile extends BlueprintItem {
     private tileConnections_;
     get tileConnections(): number;

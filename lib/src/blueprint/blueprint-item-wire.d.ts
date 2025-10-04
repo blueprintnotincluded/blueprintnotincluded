@@ -1,11 +1,11 @@
-import { Blueprint } from "./blueprint";
-import { BlueprintItem } from "./blueprint-item";
-import { OniBuilding } from "../io/oni/oni-building";
-import { BniBuilding } from "../io/bni/bni-building";
-import { MdbBuilding } from "../io/mdb/mdb-building";
-import { CameraService } from "../drawing/camera-service";
-import { PixiUtil } from "../drawing/pixi-util";
-import { BuildableElement } from "../b-export/b-element";
+import { Blueprint } from './blueprint';
+import { BlueprintItem } from './blueprint-item';
+import { OniBuilding } from '../io/oni/oni-building';
+import { BniBuilding } from '../io/bni/bni-building';
+import { MdbBuilding } from '../io/mdb/mdb-building';
+import { CameraService } from '../drawing/camera-service';
+import { PixiUtil } from '../drawing/pixi-util';
+import { BuildableElement } from '../b-export/b-element';
 export declare class BlueprintItemWire extends BlueprintItem {
     static defaultConnections: number;
     private connections_;

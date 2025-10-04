@@ -1,5 +1,5 @@
-import { Vector2 } from "../vector2";
-import { SpriteTag } from "../enums/sprite-tag";
+import { Vector2 } from '../vector2';
+import { SpriteTag } from '../enums/sprite-tag';
 export declare class BSpriteModifier {
     name: string;
     spriteInfoName: string;

@@ -1,6 +1,6 @@
-import { Vector2 } from "../vector2";
-import { BSpriteInfo } from "../b-export/b-sprite-info";
-import { PixiUtil } from "./pixi-util";
+import { Vector2 } from '../vector2';
+import { BSpriteInfo } from '../b-export/b-sprite-info';
+import { PixiUtil } from './pixi-util';
 export declare class SpriteInfo {
     spriteInfoId: string;
     imageId: string;

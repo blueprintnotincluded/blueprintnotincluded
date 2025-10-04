@@ -1,15 +1,15 @@
-import { Blueprint } from "./blueprint";
-import { Vector2 } from "../vector2";
-import { BuildableElement } from "../b-export/b-element";
-import { UiSaveSettings } from "../b-export/b-ui-screen";
-import { Orientation } from "../enums/orientation";
-import { OniItem } from "../oni-item";
-import { DrawPart } from "../drawing/draw-part";
-import { OniBuilding } from "../io/oni/oni-building";
-import { BniBuilding } from "../io/bni/bni-building";
-import { MdbBuilding } from "../io/mdb/mdb-building";
-import { CameraService } from "../drawing/camera-service";
-import { PixiUtil } from "../drawing/pixi-util";
+import { Blueprint } from './blueprint';
+import { Vector2 } from '../vector2';
+import { BuildableElement } from '../b-export/b-element';
+import { UiSaveSettings } from '../b-export/b-ui-screen';
+import { Orientation } from '../enums/orientation';
+import { OniItem } from '../oni-item';
+import { DrawPart } from '../drawing/draw-part';
+import { OniBuilding } from '../io/oni/oni-building';
+import { BniBuilding } from '../io/bni/bni-building';
+import { MdbBuilding } from '../io/mdb/mdb-building';
+import { CameraService } from '../drawing/camera-service';
+import { PixiUtil } from '../drawing/pixi-util';
 export declare class BlueprintItem {
     static defaultRotation: number;
     static defaultScale: Vector2;

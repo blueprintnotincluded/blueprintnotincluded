@@ -1,4 +1,4 @@
-import { PixiUtil } from "./pixi-util";
+import { PixiUtil } from './pixi-util';
 export declare class ImageSource {
     imageId: string;
     imageUrl: string;

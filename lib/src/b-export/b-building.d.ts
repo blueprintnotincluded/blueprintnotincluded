@@ -1,12 +1,12 @@
-import { BSpriteInfo } from "./b-sprite-info";
-import { BSpriteModifier } from "./b-sprite-modifier";
+import { BSpriteInfo } from './b-sprite-info';
+import { BSpriteModifier } from './b-sprite-modifier';
 import { UtilityConnection } from '../utility-connection';
 import { Overlay } from '../enums/overlay';
 import { PermittedRotations } from '../enums/permitted-rotations';
-import { BUiScreen } from "../b-export/b-ui-screen";
-import { Vector2 } from "../vector2";
-import { ZIndex } from "../enums/z-index";
-import { BuildLocationRule } from "../enums/build-location-rule";
+import { BUiScreen } from '../b-export/b-ui-screen';
+import { Vector2 } from '../vector2';
+import { ZIndex } from '../enums/z-index';
+import { BuildLocationRule } from '../enums/build-location-rule';
 export declare class BBuilding {
     name: string;
     prefabId: string;

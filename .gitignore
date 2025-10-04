@@ -3,3 +3,8 @@
 
 /build
 /.claude
+
+# TypeScript build artifacts (keep .d.ts for development)
+*.d.ts.map
+*.js.map
+*.tsbuildinfo

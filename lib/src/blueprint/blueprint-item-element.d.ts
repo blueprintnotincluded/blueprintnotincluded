@@ -1,7 +1,7 @@
-import { Blueprint } from "./blueprint";
-import { BlueprintItem } from "./blueprint-item";
-import { CameraService } from "../drawing/camera-service";
-import { MdbBuilding } from "../io/mdb/mdb-building";
+import { Blueprint } from './blueprint';
+import { BlueprintItem } from './blueprint-item';
+import { CameraService } from '../drawing/camera-service';
+import { MdbBuilding } from '../io/mdb/mdb-building';
 export declare class BlueprintItemElement extends BlueprintItem {
     static defaultMass: number;
     mass: number;

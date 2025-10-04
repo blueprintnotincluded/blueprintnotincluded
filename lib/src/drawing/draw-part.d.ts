@@ -1,9 +1,9 @@
-import { SpriteModifier } from "./sprite-modifier";
-import { SpriteInfo } from "./sprite-info";
-import { OniItem } from "../oni-item";
-import { Display } from "../enums/display";
-import { SpriteTag } from "../enums/sprite-tag";
-import { PixiUtil } from "./pixi-util";
+import { SpriteModifier } from './sprite-modifier';
+import { SpriteInfo } from './sprite-info';
+import { OniItem } from '../oni-item';
+import { Display } from '../enums/display';
+import { SpriteTag } from '../enums/sprite-tag';
+import { PixiUtil } from './pixi-util';
 export declare class DrawPart {
     spriteModifier: SpriteModifier;
     spriteInfo: SpriteInfo;

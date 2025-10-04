@@ -1,7 +1,7 @@
-import { SpriteTag } from "../enums/sprite-tag";
-import { Vector2 } from "../vector2";
-import { BSpriteModifier } from "../b-export/b-sprite-modifier";
-import { BBuilding } from "../b-export/b-building";
+import { SpriteTag } from '../enums/sprite-tag';
+import { Vector2 } from '../vector2';
+import { BSpriteModifier } from '../b-export/b-sprite-modifier';
+import { BBuilding } from '../b-export/b-building';
 export declare class SpriteModifier {
     spriteModifierId: string;
     spriteInfoName: string;

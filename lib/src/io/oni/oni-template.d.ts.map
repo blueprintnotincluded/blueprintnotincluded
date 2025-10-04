@@ -1,1 +1,0 @@
-{"version":3,"file":"oni-template.d.ts","sourceRoot":"","sources":["oni-template.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,WAAW,EAAC,MAAM,gBAAgB,CAAA;AAC1C,OAAO,EAAC,OAAO,EAAC,MAAM,YAAY,CAAA;AAElC,MAAM,WAAW,WAAW;IAExB,IAAI,EAAE,MAAM,CAAC;IACb,SAAS,EAAE,WAAW,EAAE,CAAA;IACxB,KAAK,EAAE,OAAO,EAAE,CAAA;CACnB"}

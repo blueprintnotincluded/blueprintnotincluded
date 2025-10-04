@@ -1,7 +1,7 @@
-import { Overlay } from "../enums/overlay";
-import { Vector2 } from "../vector2";
-import { BSpriteInfo } from "../b-export/b-sprite-info";
-import { SpriteTag } from "../enums/sprite-tag";
+import { Overlay } from '../enums/overlay';
+import { Vector2 } from '../vector2';
+import { BSpriteInfo } from '../b-export/b-sprite-info';
+import { SpriteTag } from '../enums/sprite-tag';
 export declare class DrawHelpers {
     static whiteColor: number;
     static createUrl(ressource: string, ui: boolean): string;

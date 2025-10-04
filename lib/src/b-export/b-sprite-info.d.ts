@@ -1,4 +1,4 @@
-import { Vector2 } from "../vector2";
+import { Vector2 } from '../vector2';
 export declare class BSpriteInfo {
     name: string;
     textureName: string;

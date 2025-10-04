@@ -1,15 +1,15 @@
-import { Orientation } from "./enums/orientation";
-import { Vector2 } from "./vector2";
-import { UtilityConnection } from "./utility-connection";
-import { BuildableElement } from "./b-export/b-element";
-import { BUiScreen } from "./b-export/b-ui-screen";
-import { SpriteModifierGroup } from "./drawing/sprite-modifier-group";
-import { PermittedRotations } from "./enums/permitted-rotations";
-import { ZIndex } from "./enums/z-index";
-import { Overlay } from "./enums/overlay";
-import { BBuilding } from "./b-export/b-building";
-import { BuildMenuCategory } from "./b-export/b-build-order";
-import { BuildLocationRule } from "./enums/build-location-rule";
+import { Orientation } from './enums/orientation';
+import { Vector2 } from './vector2';
+import { UtilityConnection } from './utility-connection';
+import { BuildableElement } from './b-export/b-element';
+import { BUiScreen } from './b-export/b-ui-screen';
+import { SpriteModifierGroup } from './drawing/sprite-modifier-group';
+import { PermittedRotations } from './enums/permitted-rotations';
+import { ZIndex } from './enums/z-index';
+import { Overlay } from './enums/overlay';
+import { BBuilding } from './b-export/b-building';
+import { BuildMenuCategory } from './b-export/b-build-order';
+import { BuildLocationRule } from './enums/build-location-rule';
 export declare class OniItem {
     static elementId: string;
     static infoId: string;

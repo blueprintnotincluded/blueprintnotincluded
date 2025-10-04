@@ -1,7 +1,7 @@
-import { Blueprint } from "./blueprint";
-import { BlueprintItem } from "./blueprint-item";
-import { CameraService } from "../drawing/camera-service";
-import { MdbBuilding } from "../io/mdb/mdb-building";
+import { Blueprint } from './blueprint';
+import { BlueprintItem } from './blueprint-item';
+import { CameraService } from '../drawing/camera-service';
+import { MdbBuilding } from '../io/mdb/mdb-building';
 export declare enum InfoIcon {
     icon_inf = 0,
     icon_int = 1,

@@ -1,1 +1,0 @@
-{"version":3,"file":"sprite-modifier-group.d.ts","sourceRoot":"","sources":["sprite-modifier-group.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAE,MAAM,mBAAmB,CAAC;AACnD,OAAO,EAAE,YAAY,EAAE,MAAM,wBAAwB,CAAC;AAEtD,qBAAa,mBAAmB;IAC9B,SAAS,EAAE,MAAM,CAAM;IACvB,eAAe,EAAE,cAAc,EAAE,CAAC;;IAMlC,UAAU,CAAC,QAAQ,EAAE,YAAY;CAQlC"}

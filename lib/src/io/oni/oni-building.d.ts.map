@@ -1,1 +1,0 @@
-{"version":3,"file":"oni-building.d.ts","sourceRoot":"","sources":["oni-building.ts"],"names":[],"mappings":"AACA,MAAM,WAAW,WAAW;IAExB,EAAE,EAAE,MAAM,CAAC;IACX,UAAU,EAAE,MAAM,CAAA;IAClB,UAAU,EAAC,MAAM,CAAA;IACjB,WAAW,EAAE,MAAM,CAAC;IACpB,mBAAmB,EAAE,MAAM,CAAC;IAC5B,OAAO,EAAE,MAAM,CAAC;IAChB,WAAW,EAAE,MAAM,CAAC;CACvB"}

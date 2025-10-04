@@ -1,8 +1,8 @@
-import { Vector2 } from "./vector2";
-import { ConnectionType } from "./enums/connection-type";
-import { Overlay } from "./enums/overlay";
-import { ZIndex } from "./enums/z-index";
-import { BlueprintItem } from "./blueprint/blueprint-item";
+import { Vector2 } from './vector2';
+import { ConnectionType } from './enums/connection-type';
+import { Overlay } from './enums/overlay';
+import { ZIndex } from './enums/z-index';
+import { BlueprintItem } from './blueprint/blueprint-item';
 export interface UtilityConnection {
     type: ConnectionType;
     offset: Vector2;
