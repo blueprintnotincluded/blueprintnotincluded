@@ -66,6 +66,7 @@ class App {
         "img-src": ["'self'", "data:"],
         "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com"],
         "script-src-elem": ["'self'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com"],
+        "script-src-attr": ["'unsafe-inline'"],
         "frame-ancestors": ["'self'", "https://oxygennotincluded.fandom.com"]
       },
     }));
