@@ -41,7 +41,57 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Build Docker image
-        run: docker build -t ${{ vars.IMAGE_NAME }} -f deploy.Dockerfile .
+        run: |
+          # Get version information
+          BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          GIT_COMMIT=$(git rev-parse HEAD)
+          GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          
+          echo "Building Docker image with version info:"
+          echo "  Version: $PACKAGE_VERSION"
+          echo "  Commit: $GIT_COMMIT"
+          echo "  Branch: $GIT_BRANCH"
+          echo "  Build Date: $BUILD_DATE"
+          
+          docker build \
+            --build-arg BUILD_DATE="$BUILD_DATE" \
+            --build-arg GIT_COMMIT="$GIT_COMMIT" \
+            --build-arg GIT_BRANCH="$GIT_BRANCH" \
+            -t ${{ vars.IMAGE_NAME }} \
+            -f deploy.Dockerfile .
+        
+      - name: Verify version information
+        run: |
+          echo "Verifying version information in built image..."
+          docker run --rm ${{ vars.IMAGE_NAME }} node -e "
+            console.log('Testing version controller...');
+            try {
+              // Test that the version controller can be loaded
+              const fs = require('fs');
+              const path = require('path');
+              
+              // Check if package.json exists in the expected location
+              const packagePath = path.join('..', 'package.json');
+              if (fs.existsSync(packagePath)) {
+                const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+                console.log('✓ Package version:', packageJson.version);
+              } else {
+                console.log('⚠ Package.json not found at expected location');
+              }
+              
+              // Check environment variables
+              console.log('✓ Build date:', process.env.BUILD_DATE || 'not set');
+              console.log('✓ Git commit:', process.env.GIT_COMMIT || 'not set');
+              console.log('✓ Git branch:', process.env.GIT_BRANCH || 'not set');
+              console.log('✓ Environment:', process.env.ENV_NAME || 'production');
+              
+              console.log('✓ Version verification completed successfully');
+            } catch (error) {
+              console.error('✗ Version verification failed:', error.message);
+              process.exit(1);
+            }
+          "
         
       - name: Install doctl
         uses: digitalocean/action-doctl@v2

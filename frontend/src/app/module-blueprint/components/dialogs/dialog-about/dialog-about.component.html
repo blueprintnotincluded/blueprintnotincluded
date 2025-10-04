@@ -86,5 +86,37 @@
         </li>
       </ul>
     </div>
+
+    <!-- Version Information Section -->
+    <div
+      class="content version-section"
+      style="
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+      "
+    >
+      <h3 style="margin-top: 0; color: #007bff" i18n>Version Information</h3>
+      <p style="margin: 5px 0; font-weight: bold">{{ versionString }}</p>
+      <details style="margin-top: 10px">
+        <summary style="cursor: pointer; color: #6c757d; font-size: 0.9em" i18n>
+          Show detailed information
+        </summary>
+        <pre
+          style="
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.8em;
+            white-space: pre-wrap;
+            border: 1px solid #dee2e6;
+          "
+          >{{ detailedVersionInfo }}</pre
+        >
+      </details>
+    </div>
   </div>
 </div>

@@ -39,6 +39,14 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY --from=build-backend /bpni/build /bpni/build
 COPY --from=build-frontend /bpni/build/app/public /bpni/build/app/public
 
+# Optional: Set version information via environment variables
+ARG BUILD_DATE
+ARG GIT_COMMIT
+ARG GIT_BRANCH
+ENV BUILD_DATE=${BUILD_DATE}
+ENV GIT_COMMIT=${GIT_COMMIT}
+ENV GIT_BRANCH=${GIT_BRANCH}
+
 EXPOSE 3000
 WORKDIR /bpni/build
 CMD [ "node", "server.js" ]
