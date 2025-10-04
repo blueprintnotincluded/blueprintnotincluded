@@ -41,4 +41,4 @@ COPY --from=build-frontend /bpni/build/app/public /bpni/build/app/public
 
 EXPOSE 3000
 WORKDIR /bpni/build
-CMD [ "node", "app/server.js" ]
+CMD [ "node", "server.js" ]
