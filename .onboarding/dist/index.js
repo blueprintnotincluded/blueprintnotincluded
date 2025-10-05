@@ -14,13 +14,13 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ONBOARDING_CONTENT_DIR = exports.ONBOARDING_DATA_DIR = exports.ONBOARDING_CONFIG_DIR = exports.ONBOARDING_VERSION = void 0;
+exports.ONBOARDING_VERSION = void 0;
 // Main entry point for the onboarding system
 __exportStar(require("./types"), exports);
 __exportStar(require("./errors"), exports);
 __exportStar(require("./utils/logger"), exports);
+__exportStar(require("./managers/documentation-manager"), exports);
+__exportStar(require("./engines/template-engine"), exports);
+__exportStar(require("./constants"), exports);
 exports.ONBOARDING_VERSION = '1.0.0';
-exports.ONBOARDING_CONFIG_DIR = '.onboarding/config';
-exports.ONBOARDING_DATA_DIR = '.onboarding/data';
-exports.ONBOARDING_CONTENT_DIR = '.onboarding/content';
 //# sourceMappingURL=index.js.map
