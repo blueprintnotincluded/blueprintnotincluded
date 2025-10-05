@@ -25,7 +25,7 @@ describe('Blueprint Validation API (Mocha)', function () {
   });
 
   beforeEach(async function () {
-    this.timeout(5000);
+    this.timeout(10000); // Increased timeout to 10 seconds for database operations
     testData = await TestSetup.beforeEach();
 
     // Register a user and get auth token
