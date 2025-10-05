@@ -1,0 +1,50 @@
+{
+  "contentValidation": {
+    "markdownChecks": {
+      "requiredSections": ["overview", "setup", "architecture", "contributing"],
+      "maxHeadingDepth": 6,
+      "requireFrontmatter": true
+    },
+    "codeExamples": {
+      "requireExecutability": true,
+      "validateSyntax": true,
+      "checkForSecrets": true
+    },
+    "links": {
+      "checkInternal": true,
+      "checkExternal": true,
+      "timeout": 5000
+    }
+  },
+  "linkValidation": {
+    "internalLinks": {
+      "checkFileExists": true,
+      "checkAnchors": true,
+      "relativePaths": true
+    },
+    "externalLinks": {
+      "enabled": true,
+      "timeout": 10000,
+      "retries": 2,
+      "userAgent": "OnboardingSystem/1.0"
+    },
+    "excludePatterns": [
+      "mailto:",
+      "localhost:",
+      "127.0.0.1:",
+      "example.com"
+    ]
+  },
+  "schemaValidation": {
+    "strictMode": true,
+    "additionalProperties": false,
+    "validateFormats": true,
+    "allErrors": true
+  },
+  "contentRules": {
+    "maxFileSize": 1048576,
+    "allowedExtensions": [".md", ".json", ".yaml", ".yml"],
+    "encoding": "utf-8",
+    "lineEndings": "LF"
+  }
+}

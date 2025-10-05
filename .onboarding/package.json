@@ -1,0 +1,30 @@
+{
+  "name": "@blueprintnotincluded/onboarding",
+  "version": "1.0.0",
+  "description": "Project onboarding system for humans and AI agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "onboarding",
+    "documentation",
+    "ai-agents",
+    "developer-experience"
+  ],
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.1.0",
+    "ajv": "^8.17.1",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": "^20.18"
+  }
+}
