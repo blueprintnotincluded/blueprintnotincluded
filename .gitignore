@@ -8,3 +8,6 @@
 *.d.ts.map
 *.js.map
 *.tsbuildinfo
+
+# Onboarding module build artifacts
+.onboarding/dist/
