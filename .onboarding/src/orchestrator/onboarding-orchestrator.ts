@@ -11,6 +11,29 @@ import {
 import { OnboardingError } from '../errors';
 import { randomUUID } from 'crypto';
 
+export interface CompletionCertificate {
+  sessionId: string;
+  userType: UserType;
+  developerRole?: DeveloperRole;
+  completionDate: Date;
+  achievements: string[];
+  totalTime: number;
+  certificateId: string;
+}
+
+export interface AnalyticsReport {
+  totalSessions: number;
+  completionRate: number;
+  averageDuration: number;
+  roleBreakdown: { [key: string]: number };
+  commonIssues: string[];
+  successMetrics: {
+    totalCompleted: number;
+    totalStarted: number;
+    averageSteps: number;
+  };
+}
+
 export class OnboardingOrchestrator {
   private sessions: Map<string, OnboardingSession> = new Map();
 
@@ -186,5 +209,162 @@ export class OnboardingOrchestrator {
       default:
         return undefined;
     }
+  }
+
+  /**
+   * Generate completion certificate for a finished onboarding session
+   */
+  generateCertificate(sessionId: string): Result<CompletionCertificate, OnboardingError> {
+    try {
+      const session = this.sessions.get(sessionId);
+      if (!session) {
+        return {
+          isSuccess: false,
+          error: new OnboardingError('Session not found', 'SESSION_NOT_FOUND', { sessionId })
+        } as ErrorResult<OnboardingError>;
+      }
+
+      if (!session.isComplete) {
+        return {
+          isSuccess: false,
+          error: new OnboardingError('Session not completed', 'SESSION_INCOMPLETE', { sessionId })
+        } as ErrorResult<OnboardingError>;
+      }
+
+      const certificate: CompletionCertificate = {
+        sessionId: session.sessionId,
+        userType: session.userType,
+        developerRole: session.developerRole,
+        completionDate: new Date(),
+        achievements: this.calculateAchievements(session),
+        totalTime: this.calculateTotalTime(session),
+        certificateId: randomUUID()
+      };
+
+      return {
+        isSuccess: true,
+        value: certificate
+      } as SuccessResult<CompletionCertificate>;
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Failed to generate certificate', 'CERTIFICATE_GENERATION_FAILED', { details: error })
+      } as ErrorResult<OnboardingError>;
+    }
+  }
+
+  /**
+   * Generate analytics report for all onboarding sessions
+   */
+  generateAnalyticsReport(): Result<AnalyticsReport, OnboardingError> {
+    try {
+      const allSessions = Array.from(this.sessions.values());
+      const completedSessions = allSessions.filter(s => s.isComplete);
+      
+      const roleBreakdown: { [key: string]: number } = {};
+      let totalDuration = 0;
+
+      for (const session of allSessions) {
+        const role = session.developerRole || 'unknown';
+        roleBreakdown[role] = (roleBreakdown[role] || 0) + 1;
+        
+        if (session.isComplete) {
+          totalDuration += this.calculateTotalTime(session);
+        }
+      }
+
+      const report: AnalyticsReport = {
+        totalSessions: allSessions.length,
+        completionRate: allSessions.length > 0 ? (completedSessions.length / allSessions.length) * 100 : 0,
+        averageDuration: completedSessions.length > 0 ? totalDuration / completedSessions.length : 0,
+        roleBreakdown,
+        commonIssues: [], // TODO: Track issues during sessions
+        successMetrics: {
+          totalCompleted: completedSessions.length,
+          totalStarted: allSessions.length,
+          averageSteps: completedSessions.reduce((sum, s) => sum + s.completedSteps.length, 0) / Math.max(1, completedSessions.length)
+        }
+      };
+
+      return {
+        isSuccess: true,
+        value: report
+      } as SuccessResult<AnalyticsReport>;
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Failed to generate analytics report', 'ANALYTICS_GENERATION_FAILED', { details: error })
+      } as ErrorResult<OnboardingError>;
+    }
+  }
+
+  /**
+   * Get session by ID
+   */
+  getSession(sessionId: string): Result<OnboardingSession, OnboardingError> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Session not found', 'SESSION_NOT_FOUND', { sessionId })
+      } as ErrorResult<OnboardingError>;
+    }
+
+    return {
+      isSuccess: true,
+      value: session
+    } as SuccessResult<OnboardingSession>;
+  }
+
+  /**
+   * Update session completion status
+   */
+  markSessionComplete(sessionId: string): Result<void, OnboardingError> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Session not found', 'SESSION_NOT_FOUND', { sessionId })
+      } as ErrorResult<OnboardingError>;
+    }
+
+    session.isComplete = true;
+    session.lastActivity = new Date();
+    session.completedAt = new Date();
+    this.sessions.set(sessionId, session);
+
+    return {
+      isSuccess: true,
+      value: undefined
+    } as SuccessResult<void>;
+  }
+
+  private calculateAchievements(session: OnboardingSession): string[] {
+    const achievements: string[] = [];
+    
+    if (session.completedSteps.length > 0) {
+      achievements.push('First Steps Completed');
+    }
+    
+    if (session.completedSteps.length >= 5) {
+      achievements.push('Making Progress');
+    }
+    
+    if (session.isComplete) {
+      achievements.push('Onboarding Complete');
+    }
+    
+    if (session.developerRole === DeveloperRole.FULLSTACK) {
+      achievements.push('Full Stack Explorer');
+    }
+    
+    return achievements;
+  }
+
+  private calculateTotalTime(session: OnboardingSession): number {
+    // Calculate time from start to completion in minutes
+    const now = new Date();
+    const endTime = session.isComplete ? now : session.lastActivity;
+    return Math.round((endTime.getTime() - session.startTime.getTime()) / (1000 * 60));
   }
 }

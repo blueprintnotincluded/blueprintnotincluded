@@ -18,6 +18,9 @@ export interface OnboardingSession {
     completedCount: number;
     estimatedTimeRemaining: number;
   };
+  failureCount?: number;
+  recoveryCount?: number;
+  completedAt?: Date;
 }
 
 export interface ProjectMetadata {
@@ -136,6 +139,15 @@ export interface ChecklistStep {
     [key: string]: any;
   };
   sessionId?: string;
+  instructions?: string[];
+  codeExamples?: Array<{
+    language: string;
+    code: string;
+    description?: string;
+  }>;
+  requirements?: string[];
+  prerequisites?: string[];
+  categories?: string[];
 }
 
 export enum StepStatus {
@@ -165,6 +177,7 @@ export interface ProgressUpdate {
   percentComplete: number;
   unlockedSteps: string[];
   timestamp: Date;
+  currentStepStatus?: StepStatus;
 }
 
 // Version Control Integration types

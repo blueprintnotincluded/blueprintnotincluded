@@ -17,6 +17,18 @@ export interface StructureValidationResult {
   errors: string[];
 }
 
+export interface RoleSpecificDocumentation {
+  role: string;
+  sections: string[];
+  content: { [section: string]: string };
+}
+
+export interface DocumentationResult {
+  isSuccess: boolean;
+  value?: RoleSpecificDocumentation;
+  error?: string;
+}
+
 /**
  * Manages documentation structure creation, validation, and template initialization
  * for the project onboarding system.
@@ -93,6 +105,62 @@ export class DocumentationManager {
         missingDirectories,
         missingFiles,
         errors
+      };
+    }
+  }
+
+  /**
+   * Get role-specific documentation sections and content
+   */
+  getRoleSpecificDocumentation(role: string): DocumentationResult {
+    try {
+      const roleData: { [key: string]: { sections: string[], content: { [section: string]: string } } } = {
+        'frontend': {
+          sections: ['component-development', 'styling-guidelines', 'build-tools'],
+          content: {
+            'component-development': 'Frontend component development best practices...',
+            'styling-guidelines': 'CSS and styling guidelines for the project...',
+            'build-tools': 'Frontend build tools and configuration...'
+          }
+        },
+        'backend': {
+          sections: ['api-development', 'database-management', 'server-configuration'],
+          content: {
+            'api-development': 'API development patterns and conventions...',
+            'database-management': 'Database setup and management...',
+            'server-configuration': 'Server configuration and deployment...'
+          }
+        },
+        'devops': {
+          sections: ['deployment-pipelines', 'infrastructure-management', 'monitoring-setup'],
+          content: {
+            'deployment-pipelines': 'CI/CD pipeline configuration...',
+            'infrastructure-management': 'Infrastructure as code practices...',
+            'monitoring-setup': 'Application monitoring and alerting...'
+          }
+        }
+      };
+
+      const roleDoc = roleData[role.toLowerCase()];
+      if (!roleDoc) {
+        return {
+          isSuccess: false,
+          error: `No documentation found for role: ${role}`
+        };
+      }
+
+      return {
+        isSuccess: true,
+        value: {
+          role: role,
+          sections: roleDoc.sections,
+          content: roleDoc.content
+        }
+      };
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: `Failed to get role-specific documentation: ${error}`
       };
     }
   }

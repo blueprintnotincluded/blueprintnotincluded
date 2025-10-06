@@ -21,17 +21,68 @@ export class StepGenerator {
         validationCriteria: {
           nodeVersion: '^20.18.0',
           npmVersion: '^10.0.0'
-        }
+        },
+        instructions: [
+          'Install Node.js version 20 or higher',
+          'Install npm version 10 or higher',
+          'Verify installation by running node --version and npm --version'
+        ],
+        codeExamples: [
+          {
+            language: 'bash',
+            code: 'node --version\nnpm --version',
+            description: 'Check Node.js and npm versions'
+          }
+        ],
+        requirements: ['Node.js 20+', 'npm 10+'],
+        categories: ['setup', 'environment']
       },
       {
-        id: 'dependencies-install',
+        id: 'repository-clone',
+        title: 'Clone Repository',
+        description: 'Clone the project repository to your local machine',
+        isRequired: true,
+        estimatedTime: 5,
+        dependencies: ['environment-setup'],
+        status: StepStatus.LOCKED,
+        contextualHelp: [],
+        instructions: [
+          'Clone the repository using git clone',
+          'Navigate to the project directory'
+        ],
+        codeExamples: [
+          {
+            language: 'bash',
+            code: 'git clone <repository-url>\ncd <project-directory>',
+            description: 'Clone repository and enter directory'
+          }
+        ],
+        requirements: ['Git'],
+        categories: ['setup', 'git']
+      },
+      {
+        id: 'dependency-install',
         title: 'Install Dependencies',
         description: 'Install all project dependencies and verify setup',
         isRequired: true,
         estimatedTime: 10,
-        dependencies: ['environment-setup'],
+        dependencies: ['repository-clone'],
         status: StepStatus.LOCKED,
-        contextualHelp: []
+        contextualHelp: [],
+        instructions: [
+          'Run npm install to install dependencies',
+          'Verify that node_modules directory is created',
+          'Check that package-lock.json is updated'
+        ],
+        codeExamples: [
+          {
+            language: 'bash',
+            code: 'npm install',
+            description: 'Install all project dependencies'
+          }
+        ],
+        requirements: ['Node.js', 'npm'],
+        categories: ['setup', 'dependencies']
       }
     ];
   }
@@ -47,22 +98,44 @@ export class StepGenerator {
         return [
           ...commonSteps,
           {
-            id: 'frontend-setup',
-            title: 'Frontend Development Setup',
-            description: 'Configure frontend development tools and build system',
-            isRequired: true,
-            estimatedTime: 20,
-            dependencies: ['dependencies-install'],
-            status: StepStatus.LOCKED,
-            contextualHelp: []
-          },
-          {
             id: 'dev-server-start',
             title: 'Start Development Server',
             description: 'Launch the development server and verify functionality',
             isRequired: true,
             estimatedTime: 5,
-            dependencies: ['frontend-setup'],
+            dependencies: ['dependency-install'],
+            status: StepStatus.LOCKED,
+            contextualHelp: [],
+            categories: ['frontend', 'development'],
+            instructions: [
+              'Start the development server',
+              'Verify the application loads correctly'
+            ],
+            codeExamples: [
+              {
+                language: 'bash',
+                code: 'npm run dev',
+                description: 'Start the development server'
+              }
+            ]
+          },
+          {
+            id: 'frontend-build-verification',
+            title: 'Frontend Build Verification',
+            description: 'Verify that the frontend build process works correctly',
+            isRequired: true,
+            estimatedTime: 10,
+            dependencies: ['dev-server-start'],
+            status: StepStatus.LOCKED,
+            contextualHelp: []
+          },
+          {
+            id: 'completion-verification',
+            title: 'Completion Verification',
+            description: 'Verify that all onboarding steps are completed successfully',
+            isRequired: true,
+            estimatedTime: 5,
+            dependencies: ['frontend-build-verification'],
             status: StepStatus.LOCKED,
             contextualHelp: []
           }
@@ -77,7 +150,30 @@ export class StepGenerator {
             description: 'Configure database connection and run migrations',
             isRequired: true,
             estimatedTime: 25,
-            dependencies: ['dependencies-install'],
+            dependencies: ['dependency-install'],
+            status: StepStatus.LOCKED,
+            contextualHelp: [],
+            categories: ['backend', 'database'],
+            instructions: [
+              'Set up database connection',
+              'Run database migrations',
+              'Verify database connectivity'
+            ],
+            codeExamples: [
+              {
+                language: 'bash',
+                code: 'npm run db:migrate',
+                description: 'Run database migrations'
+              }
+            ]
+          },
+          {
+            id: 'backend-start',
+            title: 'Start Backend Server',
+            description: 'Launch the backend server and verify functionality',
+            isRequired: true,
+            estimatedTime: 10,
+            dependencies: ['database-setup'],
             status: StepStatus.LOCKED,
             contextualHelp: []
           },
@@ -87,7 +183,7 @@ export class StepGenerator {
             description: 'Test API endpoints and verify backend functionality',
             isRequired: true,
             estimatedTime: 15,
-            dependencies: ['database-setup'],
+            dependencies: ['backend-start'],
             status: StepStatus.LOCKED,
             contextualHelp: []
           }
@@ -102,7 +198,7 @@ export class StepGenerator {
             description: 'Configure deployment infrastructure and CI/CD pipelines',
             isRequired: true,
             estimatedTime: 45,
-            dependencies: ['dependencies-install'],
+            dependencies: ['dependency-install'],
             status: StepStatus.LOCKED,
             contextualHelp: []
           },
@@ -127,7 +223,7 @@ export class StepGenerator {
             description: 'Configure frontend development tools and build system',
             isRequired: true,
             estimatedTime: 20,
-            dependencies: ['dependencies-install'],
+            dependencies: ['dependency-install'],
             status: StepStatus.LOCKED,
             contextualHelp: []
           },
@@ -137,7 +233,7 @@ export class StepGenerator {
             description: 'Configure database connection and run migrations',
             isRequired: true,
             estimatedTime: 25,
-            dependencies: ['dependencies-install'],
+            dependencies: ['dependency-install'],
             status: StepStatus.LOCKED,
             contextualHelp: []
           },

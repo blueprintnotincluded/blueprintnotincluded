@@ -33,6 +33,12 @@ export interface SessionResumeResult extends OnboardingSession {
   wasInterrupted: boolean;
 }
 
+export interface SessionState extends OnboardingSession {
+  failureCount?: number;
+  recoveryCount?: number;
+  completedAt?: Date;
+}
+
 export interface SessionHistoryEntry {
   sessionId: string;
   userId: string;
@@ -115,6 +121,14 @@ export class SessionManager {
         isSuccess: false,
         error: new OnboardingError(`Session ${sessionId} not found`, 'SESSION_NOT_FOUND')
       } as ErrorResult<OnboardingError>;
+    }
+
+    // Initialize failure tracking if not present
+    if (session.failureCount === undefined) {
+      session.failureCount = 0;
+    }
+    if (session.recoveryCount === undefined) {
+      session.recoveryCount = 0;
     }
 
     return {
@@ -284,6 +298,78 @@ export class SessionManager {
       return {
         isSuccess: false,
         error: new OnboardingError('Failed to get session history', 'SESSION_HISTORY_FAILED', { details: error })
+      } as ErrorResult<OnboardingError>;
+    }
+  }
+
+  /**
+   * Save session to filesystem (alias for persistSession)
+   */
+  saveSession(sessionId: string): Result<SessionPersistResult, OnboardingError> {
+    try {
+      const session = this.sessions.get(sessionId);
+      if (!session) {
+        return {
+          isSuccess: false,
+          error: new OnboardingError(`Session ${sessionId} not found`, 'SESSION_NOT_FOUND')
+        } as ErrorResult<OnboardingError>;
+      }
+
+      const filePath = path.join(this.sessionDataPath, `${sessionId}.json`);
+      const sessionData = JSON.stringify(session, null, 2);
+      
+      fs.writeFileSync(filePath, sessionData, 'utf8');
+
+      return {
+        isSuccess: true,
+        value: {
+          sessionId,
+          filePath,
+          timestamp: new Date()
+        }
+      } as SuccessResult<SessionPersistResult>;
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Failed to save session', 'SESSION_SAVE_FAILED', { details: error })
+      } as ErrorResult<OnboardingError>;
+    }
+  }
+
+  /**
+   * Restore session from filesystem (alias for resumeSession)
+   */
+  restoreSession(sessionId: string): Result<OnboardingSession, OnboardingError> {
+    try {
+      const filePath = path.join(this.sessionDataPath, `${sessionId}.json`);
+      
+      if (!fs.existsSync(filePath)) {
+        return {
+          isSuccess: false,
+          error: new OnboardingError(`Session file not found: ${sessionId}`, 'SESSION_FILE_NOT_FOUND')
+        } as ErrorResult<OnboardingError>;
+      }
+
+      const sessionData = fs.readFileSync(filePath, 'utf8');
+      const session: OnboardingSession = JSON.parse(sessionData);
+      
+      // Convert date strings back to Date objects
+      session.startTime = new Date(session.startTime);
+      session.lastActivity = new Date(session.lastActivity);
+
+      // Update last activity
+      session.lastActivity = new Date();
+
+      this.sessions.set(sessionId, session);
+
+      return {
+        isSuccess: true,
+        value: session
+      } as SuccessResult<OnboardingSession>;
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Failed to restore session', 'SESSION_RESTORE_FAILED', { details: error })
       } as ErrorResult<OnboardingError>;
     }
   }
