@@ -1,0 +1,17 @@
+{
+  "sessionId": "test-session",
+  "achievements": [
+    {
+      "milestoneId": "milestone1",
+      "sessionId": "test-session",
+      "achievedAt": "2025-10-06T14:53:38.392Z",
+      "significance": "minor",
+      "info": {
+        "name": "Test",
+        "description": "Test",
+        "category": "test"
+      }
+    }
+  ],
+  "persistedAt": "2025-10-06T14:53:38.392Z"
+}

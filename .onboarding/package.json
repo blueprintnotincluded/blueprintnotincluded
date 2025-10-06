@@ -18,9 +18,9 @@
     "developer-experience"
   ],
   "dependencies": {
+    "ajv": "^8.17.1",
     "gray-matter": "^4.0.3",
     "markdown-it": "^14.1.0",
-    "ajv": "^8.17.1",
     "yaml": "^2.8.1"
   },
   "devDependencies": {
