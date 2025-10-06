@@ -285,3 +285,8 @@ export interface DocumentationChangeHistory {
 }
 
 // Error types are defined in errors/index.ts
+
+// Re-export types from other modules
+export * from './content-validation';
+export * from './link-tracking';
+export * from './executable-examples';
