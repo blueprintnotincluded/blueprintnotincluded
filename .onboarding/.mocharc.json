@@ -1,0 +1,4 @@
+{
+  "spec": "dist/__tests__/**/*.js",
+  "timeout": 10000
+}

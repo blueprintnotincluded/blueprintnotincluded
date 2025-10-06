@@ -78,4 +78,71 @@ export interface ValidationResult {
     warnings: string[];
     timestamp: Date;
 }
+export interface Result<T, E> {
+    isSuccess: boolean;
+    value?: T;
+    error?: E;
+}
+export interface SuccessResult<T> extends Result<T, never> {
+    isSuccess: true;
+    value: T;
+}
+export interface ErrorResult<E> extends Result<never, E> {
+    isSuccess: false;
+    error: E;
+}
+export interface UserDetectionInput {
+    role?: string;
+    hasExperience?: boolean;
+    requestType?: string;
+    capabilities?: string[];
+}
+export interface UserDetectionResult {
+    userType: UserType;
+    recommendedRole?: DeveloperRole;
+    confidence: number;
+}
+export interface ChecklistStep {
+    id: string;
+    title: string;
+    description: string;
+    isRequired: boolean;
+    estimatedTime: number;
+    dependencies: string[];
+    status: StepStatus;
+    platformSpecific?: {
+        [platform: string]: string;
+    };
+    contextualHelp: string[];
+    validationCriteria?: {
+        [key: string]: any;
+    };
+    sessionId?: string;
+}
+export declare enum StepStatus {
+    LOCKED = "locked",
+    AVAILABLE = "available",
+    IN_PROGRESS = "in_progress",
+    COMPLETED = "completed",
+    SKIPPED = "skipped",
+    FAILED = "failed"
+}
+export interface StepValidationResult {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    validationDetails: {
+        [key: string]: any;
+    };
+    timestamp: Date;
+}
+export interface ProgressUpdate {
+    sessionId: string;
+    currentStep: string;
+    previousStep?: string;
+    nextStep?: string;
+    percentComplete: number;
+    unlockedSteps: string[];
+    timestamp: Date;
+}
 //# sourceMappingURL=index.d.ts.map
