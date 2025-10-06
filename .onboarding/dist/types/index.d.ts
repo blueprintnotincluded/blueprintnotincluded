@@ -248,6 +248,130 @@ export interface DocumentationChangeHistory {
     totalChanges: number;
     lastChange?: Date;
 }
+export interface CiCdIntegrationConfig {
+    projectPath: string;
+    buildCommands: string[];
+    validationRules: ValidationRule[];
+    onFailureAction: 'fail-build' | 'warn-only' | 'continue';
+    reportPath: string;
+    environmentVariables?: {
+        [key: string]: string;
+    };
+}
+export interface ValidationRule {
+    id: string;
+    threshold: number;
+    required: boolean;
+    description?: string;
+}
+export interface CiCdValidationResult {
+    overallScore: number;
+    validationResults: ValidationCheckResult[];
+    buildStatus: 'passed' | 'failed' | 'warning';
+    failureReasons?: string[];
+    executionTime: number;
+    timestamp: Date;
+}
+export interface ValidationCheckResult {
+    ruleId: string;
+    score: number;
+    passed: boolean;
+    threshold: number;
+    details: string;
+    affectedFiles?: string[];
+}
+export interface BuildProcessConfig {
+    commands: string[];
+    environment: {
+        [key: string]: string;
+    };
+    workingDirectory: string;
+    timeout?: number;
+}
+export interface ValidationCheckConfig {
+    enabled: boolean;
+    rules: ValidationRule[];
+    reportFormat: 'json' | 'junit' | 'markdown';
+    outputPath: string;
+}
+export interface CiCdBuildResult {
+    buildSteps: BuildStepResult[];
+    validationSteps: ValidationStepResult[];
+    overallResult: 'passed' | 'failed' | 'warning';
+    failureReasons?: string[];
+    executionTime: number;
+    artifacts: string[];
+}
+export interface BuildStepResult {
+    stepName: string;
+    command: string;
+    exitCode: number;
+    output: string;
+    error?: string;
+    duration: number;
+}
+export interface ValidationStepResult {
+    stepName: string;
+    passed: boolean;
+    score: number;
+    threshold: number;
+    details: string;
+    duration: number;
+}
+export interface GitHubActionsConfig {
+    workflowPath: string;
+    workflowContent: string;
+    triggers: GitHubActionsTrigger[];
+    jobs: GitHubActionsJob[];
+}
+export interface GitHubActionsTrigger {
+    event: 'push' | 'pull_request' | 'schedule' | 'workflow_dispatch';
+    branches?: string[];
+    paths?: string[];
+    schedule?: string;
+}
+export interface GitHubActionsJob {
+    name: string;
+    runsOn: string;
+    steps: GitHubActionsStep[];
+    needs?: string[];
+}
+export interface GitHubActionsStep {
+    name: string;
+    uses?: string;
+    run?: string;
+    with?: {
+        [key: string]: any;
+    };
+    env?: {
+        [key: string]: string;
+    };
+}
+export interface DocumentationCoverageResult {
+    coveragePercentage: number;
+    totalFiles: number;
+    documentedFiles: number;
+    undocumentedFiles: string[];
+    coverageByDirectory: {
+        [directory: string]: number;
+    };
+    recommendations: string[];
+}
+export interface CiCdReportSummary {
+    totalFiles: number;
+    validFiles: number;
+    invalidFiles: number;
+    overallScore: number;
+    executionTime: number;
+    timestamp: Date;
+}
+export interface CiCdValidationReport {
+    reportPath: string;
+    summary: CiCdReportSummary;
+    detailedResults: ValidationCheckResult[];
+    buildResults: BuildStepResult[];
+    recommendations: string[];
+}
 export * from './content-validation';
 export * from './link-tracking';
 export * from './executable-examples';

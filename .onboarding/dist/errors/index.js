@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GitError = exports.ConfigurationError = exports.NotFoundError = exports.SchemaError = exports.FileSystemError = exports.ValidationError = exports.OnboardingError = void 0;
+exports.CiCdError = exports.GitError = exports.ConfigurationError = exports.NotFoundError = exports.SchemaError = exports.FileSystemError = exports.ValidationError = exports.OnboardingError = void 0;
 exports.createErrorContext = createErrorContext;
 class OnboardingError extends Error {
     constructor(message, code, context) {
@@ -57,6 +57,13 @@ class GitError extends OnboardingError {
     }
 }
 exports.GitError = GitError;
+class CiCdError extends OnboardingError {
+    constructor(message, context) {
+        super(message, 'CICD_ERROR', context);
+        this.name = 'CiCdError';
+    }
+}
+exports.CiCdError = CiCdError;
 function createErrorContext(operation, userId, sessionId, metadata) {
     return {
         timestamp: new Date(),

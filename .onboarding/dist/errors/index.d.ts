@@ -21,6 +21,9 @@ export declare class ConfigurationError extends OnboardingError {
 export declare class GitError extends OnboardingError {
     constructor(message: string, context?: Record<string, any>);
 }
+export declare class CiCdError extends OnboardingError {
+    constructor(message: string, context?: Record<string, any>);
+}
 export interface ErrorContext {
     timestamp: Date;
     operation: string;
