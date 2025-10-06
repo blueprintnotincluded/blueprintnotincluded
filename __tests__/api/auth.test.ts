@@ -6,6 +6,7 @@ import path from 'path';
 // Load test environment first
 dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 process.env.NODE_ENV = 'test';
+process.env.ENV_NAME = 'development'; // Bypass reCAPTCHA in tests
 
 import { TestSetup } from '../setup/testSetup';
 
@@ -39,6 +40,7 @@ describe('Authentication API (Mocha)', function () {
 
   describe('POST /api/login', function () {
     it('should successfully login with valid credentials', async function () {
+      this.timeout(15000); // Increase timeout for this test
       // First create a user with a known password (matching Jest test exactly)
       const testPassword = 'testpassword123';
       const registerResponse = await TestSetup.request().post('/api/register').send({

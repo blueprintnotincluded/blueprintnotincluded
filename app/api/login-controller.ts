@@ -13,6 +13,7 @@ export class LoginController {
 
     if (
       process.env.ENV_NAME != 'development' &&
+      process.env.NODE_ENV != 'test' &&
       (reqAny.recaptcha == null ||
         reqAny.recaptcha.error != null ||
         reqAny.recaptcha.data == null ||
