@@ -50,6 +50,13 @@ export class ConfigurationError extends OnboardingError {
   }
 }
 
+export class GitError extends OnboardingError {
+  constructor(message: string, context?: Record<string, any>) {
+    super(message, 'GIT_ERROR', context);
+    this.name = 'GitError';
+  }
+}
+
 export interface ErrorContext {
   timestamp: Date;
   operation: string;
