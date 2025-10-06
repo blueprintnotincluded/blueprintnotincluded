@@ -1,12 +1,18 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import { OnboardingSystem } from '../../src/onboarding/OnboardingSystem';
 
 describe('Onboarding System Core Structure', () => {
   const onboardingDir = '.onboarding';
   const configDir = path.join(onboardingDir, 'config');
   const dataDir = path.join(onboardingDir, 'data');
   const contentDir = path.join(onboardingDir, 'content');
+
+  before(async () => {
+    const system = new OnboardingSystem(process.cwd());
+    await system.initializeStructure();
+  });
 
   describe('Task 1.1: Core TypeScript project structure', () => {
     it('should create .onboarding directory structure', () => {
