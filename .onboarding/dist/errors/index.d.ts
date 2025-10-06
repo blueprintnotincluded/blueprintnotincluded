@@ -18,6 +18,9 @@ export declare class NotFoundError extends OnboardingError {
 export declare class ConfigurationError extends OnboardingError {
     constructor(message: string, context?: Record<string, any>);
 }
+export declare class GitError extends OnboardingError {
+    constructor(message: string, context?: Record<string, any>);
+}
 export interface ErrorContext {
     timestamp: Date;
     operation: string;

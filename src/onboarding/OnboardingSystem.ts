@@ -71,10 +71,18 @@ export class OnboardingSystem {
   async validateConfiguration(configPath: string): Promise<ValidationResult> {
     try {
       await fs.access(configPath);
-      return { success: true };
+      return { 
+        success: true,
+        isValid: true,
+        errors: [],
+        warnings: []
+      };
     } catch (error) {
       return {
         success: false,
+        isValid: false,
+        errors: [`Configuration path does not exist: ${configPath}`],
+        warnings: [],
         error: {
           type: 'ValidationError',
           message: `Configuration path does not exist: ${configPath}`,

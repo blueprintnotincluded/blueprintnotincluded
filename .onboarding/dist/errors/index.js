@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConfigurationError = exports.NotFoundError = exports.SchemaError = exports.FileSystemError = exports.ValidationError = exports.OnboardingError = void 0;
+exports.GitError = exports.ConfigurationError = exports.NotFoundError = exports.SchemaError = exports.FileSystemError = exports.ValidationError = exports.OnboardingError = void 0;
 exports.createErrorContext = createErrorContext;
 class OnboardingError extends Error {
     constructor(message, code, context) {
@@ -50,6 +50,13 @@ class ConfigurationError extends OnboardingError {
     }
 }
 exports.ConfigurationError = ConfigurationError;
+class GitError extends OnboardingError {
+    constructor(message, context) {
+        super(message, 'GIT_ERROR', context);
+        this.name = 'GitError';
+    }
+}
+exports.GitError = GitError;
 function createErrorContext(operation, userId, sessionId, metadata) {
     return {
         timestamp: new Date(),

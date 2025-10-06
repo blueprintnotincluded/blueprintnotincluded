@@ -169,7 +169,7 @@ describe('Documentation Structure and Template System', () => {
         projectName: 'Test Project'
       });
 
-      const validationResult = await engine.validateTemplate(validTemplate.content, 'human-onboarding');
+      const validationResult = await engine.validateTemplate(validTemplate.content || '', 'human-onboarding');
 
       expect(validationResult.isValid).to.be.true;
       expect(validationResult.requiredSections).to.include('## Overview');

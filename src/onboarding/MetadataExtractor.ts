@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { ProjectMetadata, TechnologyStack, ArchitecturePattern, CodingStandards, ValidationResult } from './types/ProjectStructure';
+import { ProjectMetadata, TechnologyStack, ArchitecturePattern, CodingStandards, ValidationResult, NamingConventions } from './types/ProjectStructure';
 
 export interface ProjectStructure {
   directories: string[];
