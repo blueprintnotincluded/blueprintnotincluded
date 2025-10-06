@@ -57,6 +57,13 @@ export class GitError extends OnboardingError {
   }
 }
 
+export class CiCdError extends OnboardingError {
+  constructor(message: string, context?: Record<string, any>) {
+    super(message, 'CICD_ERROR', context);
+    this.name = 'CiCdError';
+  }
+}
+
 export interface ErrorContext {
   timestamp: Date;
   operation: string;
