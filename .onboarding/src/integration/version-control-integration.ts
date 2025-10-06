@@ -112,8 +112,8 @@ export class VersionControlIntegration {
     return {
       isSuccess: true,
       value: {
-        hasChanges: statusResult.value.length > 0,
-        changedFiles: statusResult.value,
+        hasChanges: (statusResult.value?.length ?? 0) > 0,
+        changedFiles: statusResult.value || [],
         timestamp: new Date()
       }
     } as SuccessResult<GitChangeEvent>;
@@ -408,7 +408,7 @@ export class VersionControlIntegration {
         } as ErrorResult<GitError>;
       }
       
-      const changes = logResult.value.map(line => {
+      const changes = (logResult.value || []).map(line => {
         const [hash, ...messageParts] = line.split(' ');
         return {
           timestamp: new Date(), // In real implementation, would parse git log timestamp

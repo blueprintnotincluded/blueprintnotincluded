@@ -57,10 +57,13 @@ export class GitUtils {
   static async getStatus(repositoryPath: string): Promise<Result<string[], GitError>> {
     const result = await this.executeGitCommand('git status --porcelain', repositoryPath);
     if (!result.isSuccess) {
-      return result;
+      return {
+        isSuccess: false,
+        error: result.error
+      } as ErrorResult<GitError>;
     }
 
-    const changedFiles = result.value
+    const changedFiles = (result.value || '')
       .split('\n')
       .filter(line => line.trim().length > 0)
       .map(line => line.substring(3)); // Remove git status prefix
@@ -85,10 +88,13 @@ export class GitUtils {
     
     const result = await this.executeGitCommand(command, repositoryPath);
     if (!result.isSuccess) {
-      return result;
+      return {
+        isSuccess: false,
+        error: result.error
+      } as ErrorResult<GitError>;
     }
 
-    const commits = result.value
+    const commits = (result.value || '')
       .split('\n')
       .filter(line => line.trim().length > 0)
       .slice(0, 10); // Limit to 10 recent changes

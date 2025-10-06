@@ -1,7 +1,5 @@
 // Main entry point for the onboarding system
 export * from './types';
-export * from './types/link-tracking';
-export * from './types/content-validation';
 export * from './errors';
 export * from './utils/logger';
 export * from './managers/documentation-manager';

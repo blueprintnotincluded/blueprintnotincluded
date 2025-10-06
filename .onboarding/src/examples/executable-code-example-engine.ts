@@ -15,7 +15,7 @@ import {
   ConfigFile,
   IntegrationReport,
   DocumentationUpdate,
-  ValidationError,
+  ExampleValidationError,
   ValidationWarning,
   ExtractionError,
   CodeExampleMetadata,
@@ -65,7 +65,7 @@ export class ExecutableCodeExampleEngine {
       logger.info(`Extracted ${examples.length} code examples from ${filePath}`);
       return examples;
     } catch (error) {
-      logger.error(`Failed to extract code examples from ${filePath}:`, error);
+      logger.error(`Failed to extract code examples from ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }
@@ -75,7 +75,7 @@ export class ExecutableCodeExampleEngine {
    */
   async validateCodeExample(example: CodeExample): Promise<ExampleValidationResult> {
     const startTime = Date.now();
-    const errors: ValidationError[] = [];
+    const errors: ExampleValidationError[] = [];
     const warnings: ValidationWarning[] = [];
 
     try {
@@ -300,7 +300,7 @@ export class ExecutableCodeExampleEngine {
             examples.push(example);
           }
         } catch (error) {
-          logger.error(`Error extracting example from ${filePath}:${i}`, error);
+          logger.error(`Error extracting example from ${filePath}:${i}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
     }

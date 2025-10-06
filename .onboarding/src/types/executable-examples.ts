@@ -43,12 +43,12 @@ export interface ExampleValidationResult {
   isValid: boolean;
   executionOutput?: string;
   executionTime?: number;
-  errors: ValidationError[];
+  errors: ExampleValidationError[];
   warnings: ValidationWarning[];
   validatedAt: Date;
 }
 
-export interface ValidationError {
+export interface ExampleValidationError {
   type: 'syntax_error' | 'runtime_error' | 'output_mismatch' | 'dependency_missing' | 'timeout';
   message: string;
   lineNumber?: number;
