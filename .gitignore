@@ -9,5 +9,10 @@
 *.js.map
 *.tsbuildinfo
 
-# Onboarding module build artifacts
+# Onboarding module build artifacts and runtime data
 .onboarding/dist/
+.onboarding/data/sessions/
+.onboarding/data/achievements/
+.onboarding/data/cache/
+.onboarding/test-fixtures/
+.onboarding/.onboarding/
