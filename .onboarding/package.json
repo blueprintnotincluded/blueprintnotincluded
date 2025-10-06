@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.3.20",
+    "@types/markdown-it": "^14.1.2",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.6.2",
     "chai": "^4.5.0",
