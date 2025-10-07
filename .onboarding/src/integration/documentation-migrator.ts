@@ -119,7 +119,7 @@ export class DocumentationMigrator {
         }
       ];
 
-      const contentMapping = this.generateContentMapping(parsedAgents);
+      const contentMapping = this.generateContentMapping(parsedAgents.value);
       
       return {
         isSuccess: true,
