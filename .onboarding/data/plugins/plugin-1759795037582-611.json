@@ -1,0 +1,16 @@
+{
+  "id": "plugin-1759795037582-611",
+  "name": "custom-slack-integration",
+  "version": "1.0.0",
+  "type": "notification",
+  "entryPoint": "./plugins/slack-integration.js",
+  "config": {
+    "webhookUrl": "https://hooks.slack.com/custom",
+    "channels": [
+      "#general",
+      "#dev-team"
+    ]
+  },
+  "registeredAt": "2025-10-06T23:57:17.583Z",
+  "status": "active"
+}
