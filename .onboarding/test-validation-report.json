@@ -1,0 +1,27 @@
+{
+  "summary": {
+    "overallScore": 85,
+    "totalFiles": 10,
+    "validFiles": 8,
+    "invalidFiles": 2,
+    "executionTime": 0
+  },
+  "detailedResults": [
+    {
+      "ruleId": "documentation-coverage",
+      "passed": true,
+      "score": 80,
+      "threshold": 80
+    },
+    {
+      "ruleId": "link-validation",
+      "passed": true,
+      "score": 90,
+      "threshold": 95
+    }
+  ],
+  "recommendations": [
+    "Improve documentation coverage for API endpoints",
+    "Fix broken links in README.md"
+  ]
+}

@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ONBOARDING_VERSION = void 0;
+exports.ONBOARDING_VERSION = exports.CiCdIntegration = void 0;
 // Main entry point for the onboarding system
 __exportStar(require("./types"), exports);
 __exportStar(require("./errors"), exports);
@@ -26,5 +26,8 @@ __exportStar(require("./validation/content-validation-engine"), exports);
 __exportStar(require("./orchestrator/onboarding-orchestrator"), exports);
 __exportStar(require("./examples/executable-code-example-engine"), exports);
 __exportStar(require("./constants"), exports);
+var ci_cd_integration_wrapper_1 = require("./integration/ci-cd-integration-wrapper");
+Object.defineProperty(exports, "CiCdIntegration", { enumerable: true, get: function () { return ci_cd_integration_wrapper_1.CiCdIntegration; } });
+__exportStar(require("./cli/validation-runner"), exports);
 exports.ONBOARDING_VERSION = '1.0.0';
 //# sourceMappingURL=index.js.map

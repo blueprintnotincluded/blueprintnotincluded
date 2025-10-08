@@ -8,5 +8,7 @@ export * from './validation/content-validation-engine';
 export * from './orchestrator/onboarding-orchestrator';
 export * from './examples/executable-code-example-engine';
 export * from './constants';
+export { CiCdIntegration } from './integration/ci-cd-integration-wrapper';
+export * from './cli/validation-runner';
 export declare const ONBOARDING_VERSION = "1.0.0";
 //# sourceMappingURL=index.d.ts.map

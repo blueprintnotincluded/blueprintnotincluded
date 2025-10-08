@@ -56,7 +56,7 @@ jobs:
           if [ ! -f "dist/cli/validation-runner.js" ]; then
             echo "Creating validation report through direct execution..."
             node -e "
-            const { CiCdIntegration } = require('./dist/integration/ci-cd-integration');
+            const { CiCdIntegration } = require('./dist/integration/ci-cd-integration-wrapper');
             const config = {
               projectPath: '..',
               buildCommands: ['echo \"Build validation\"'],

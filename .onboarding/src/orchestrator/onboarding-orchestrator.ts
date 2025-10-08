@@ -905,7 +905,7 @@ export class OnboardingOrchestrator {
     }
 
     // Human developer steps based on role
-    const commonSteps = [
+    const commonSteps: ChecklistStep[] = [
       {
         id: 'environment-setup',
         title: 'Environment Setup',

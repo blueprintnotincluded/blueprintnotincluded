@@ -80,6 +80,9 @@ export class DocumentationMigrator {
       }
 
       const parsedAgents = parseResult.value;
+      if (!parsedAgents) {
+        return { isSuccess: false, error: new Error('Failed to parse agents document') };
+      }
       
       const phases: MigrationPhase[] = [
         {
@@ -119,7 +122,7 @@ export class DocumentationMigrator {
         }
       ];
 
-      const contentMapping = this.generateContentMapping(parsedAgents.value);
+      const contentMapping = this.generateContentMapping(parsedAgents);
       
       return {
         isSuccess: true,
@@ -175,6 +178,9 @@ export class DocumentationMigrator {
       }
 
       const parsedAgents = parseResult.value;
+      if (!parsedAgents) {
+        return { isSuccess: false, error: new Error('Failed to parse agents document') };
+      }
       migrationLog.push(`Parsed ${Object.keys(parsedAgents.sections).length} sections`);
 
       // Create backup if needed

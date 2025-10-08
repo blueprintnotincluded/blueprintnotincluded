@@ -33,8 +33,9 @@ export class ContentValidationEngine {
   private ajv: Ajv;
   private md: MarkdownIt;
 
-  constructor(config?: ContentValidationConfig) {
+  constructor(config?: Partial<ContentValidationConfig>) {
     this.config = {
+      baseDirectory: config?.baseDirectory || process.cwd(),
       freshnessThresholdDays: DEFAULT_FRESHNESS_THRESHOLD_DAYS,
       fileExtensions: DEFAULT_FILE_EXTENSIONS,
       excludePatterns: DEFAULT_EXCLUDE_PATTERNS,
@@ -736,6 +737,11 @@ export class ContentValidationEngine {
     error?: string;
   }> {
     // Alias for validateLargeDocumentationSet
-    return this.validateLargeDocumentationSet(documentationSet);
+    const result = await this.validateLargeDocumentationSet(documentationSet);
+    return {
+      success: result.isSuccess,
+      results: result.value,
+      error: result.error
+    };
   }
 }

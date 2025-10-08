@@ -708,7 +708,7 @@ export class SystemIntegrationCoordinator {
       for (const [componentName, failed] of this.componentFailures.entries()) {
         if (failed) {
           const recoveryResult = await this.attemptComponentRecovery(componentName);
-          if (recoveryResult.isSuccess && recoveryResult.value.recoverySuccessful) {
+          if (recoveryResult.isSuccess && recoveryResult.value?.recoverySuccessful) {
             componentsRecovered.push(componentName);
           }
         }
