@@ -332,6 +332,13 @@ export interface ValidationCheckResult {
   affectedFiles?: string[];
 }
 
+export enum ValidationSeverity {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
+}
+
 export interface BuildProcessConfig {
   commands: string[];
   environment: { [key: string]: string };

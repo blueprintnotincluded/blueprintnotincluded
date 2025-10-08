@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StepStatus = exports.DeveloperRole = exports.UserType = void 0;
+exports.ValidationSeverity = exports.StepStatus = exports.DeveloperRole = exports.UserType = void 0;
 var UserType;
 (function (UserType) {
     UserType["HUMAN_DEVELOPER"] = "human";
@@ -36,6 +36,13 @@ var StepStatus;
     StepStatus["SKIPPED"] = "skipped";
     StepStatus["FAILED"] = "failed";
 })(StepStatus || (exports.StepStatus = StepStatus = {}));
+var ValidationSeverity;
+(function (ValidationSeverity) {
+    ValidationSeverity["LOW"] = "low";
+    ValidationSeverity["MEDIUM"] = "medium";
+    ValidationSeverity["HIGH"] = "high";
+    ValidationSeverity["CRITICAL"] = "critical";
+})(ValidationSeverity || (exports.ValidationSeverity = ValidationSeverity = {}));
 // Error types are defined in errors/index.ts
 // Re-export types from other modules
 __exportStar(require("./content-validation"), exports);

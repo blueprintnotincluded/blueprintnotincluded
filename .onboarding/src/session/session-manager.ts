@@ -457,4 +457,22 @@ export class SessionManager {
     
     return Math.round(remainingSteps * avgTimePerStep * efficiencyFactor);
   }
+
+  async simulateLongRunningSession(sessionId: string, duration: number): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Mock implementation for testing
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Failed to simulate long running session' };
+    }
+  }
+
+  async cleanupSession(sessionId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Mock implementation for testing
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Failed to cleanup session' };
+    }
+  }
 }

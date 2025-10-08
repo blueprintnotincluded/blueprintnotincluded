@@ -1048,4 +1048,57 @@ export class OnboardingOrchestrator {
   disableComponentFailureSimulation() {
     this.simulateComponentFailure = false;
   }
+
+  async getProjectContextForAgent(sessionId: string): Promise<Result<any, OnboardingError>> {
+    try {
+      const session = this.sessions.get(sessionId);
+      if (!session) {
+        return {
+          isSuccess: false,
+          error: new OnboardingError('Session not found', 'SESSION_NOT_FOUND')
+        };
+      }
+
+      return {
+        isSuccess: true,
+        value: {
+          projectPath: process.cwd(),
+          userType: session.userType,
+          developerRole: session.developerRole,
+          currentStep: session.currentStep,
+          completedSteps: session.completedSteps
+        }
+      };
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Failed to get project context', 'CONTEXT_ERROR')
+      };
+    }
+  }
+
+  async transitionToRole(sessionId: string, newRole: DeveloperRole): Promise<Result<void, OnboardingError>> {
+    try {
+      const session = this.sessions.get(sessionId);
+      if (!session) {
+        return {
+          isSuccess: false,
+          error: new OnboardingError('Session not found', 'SESSION_NOT_FOUND')
+        };
+      }
+
+      session.developerRole = newRole;
+      session.lastActivity = new Date();
+
+      return {
+        isSuccess: true,
+        value: undefined
+      };
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: new OnboardingError('Failed to transition role', 'ROLE_TRANSITION_ERROR')
+      };
+    }
+  }
 }

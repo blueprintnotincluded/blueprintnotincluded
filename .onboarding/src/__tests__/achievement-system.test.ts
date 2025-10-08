@@ -188,7 +188,7 @@ describe('AchievementSystem', () => {
       const sessionId = 'test-session';
       
       // Track some milestones first
-      achievementSystem.trackMilestone(sessionId, 'milestone1', { name: 'Test', description: 'Test', category: 'test' });
+      achievementSystem.trackMilestone(sessionId, 'milestone1', { name: 'Test', description: 'Test', category: 'testing' });
       
       const result = await achievementSystem.persistAchievements(sessionId);
       

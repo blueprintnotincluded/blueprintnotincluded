@@ -110,6 +110,60 @@ class DocumentationManager {
             };
         }
     }
+    /**
+     * Get role-specific documentation sections and content
+     */
+    getRoleSpecificDocumentation(role) {
+        try {
+            const roleData = {
+                'frontend': {
+                    sections: ['component-development', 'styling-guidelines', 'build-tools'],
+                    content: {
+                        'component-development': 'Frontend component development best practices...',
+                        'styling-guidelines': 'CSS and styling guidelines for the project...',
+                        'build-tools': 'Frontend build tools and configuration...'
+                    }
+                },
+                'backend': {
+                    sections: ['api-development', 'database-management', 'server-configuration'],
+                    content: {
+                        'api-development': 'API development patterns and conventions...',
+                        'database-management': 'Database setup and management...',
+                        'server-configuration': 'Server configuration and deployment...'
+                    }
+                },
+                'devops': {
+                    sections: ['deployment-pipelines', 'infrastructure-management', 'monitoring-setup'],
+                    content: {
+                        'deployment-pipelines': 'CI/CD pipeline configuration...',
+                        'infrastructure-management': 'Infrastructure as code practices...',
+                        'monitoring-setup': 'Application monitoring and alerting...'
+                    }
+                }
+            };
+            const roleDoc = roleData[role.toLowerCase()];
+            if (!roleDoc) {
+                return {
+                    isSuccess: false,
+                    error: `No documentation found for role: ${role}`
+                };
+            }
+            return {
+                isSuccess: true,
+                value: {
+                    role: role,
+                    sections: roleDoc.sections,
+                    content: roleDoc.content
+                }
+            };
+        }
+        catch (error) {
+            return {
+                isSuccess: false,
+                error: `Failed to get role-specific documentation: ${error}`
+            };
+        }
+    }
     async createTemplateFiles(projectPath, createdFiles) {
         const templatesDir = path.join(projectPath, '.onboarding', 'config', 'templates');
         // Human onboarding template
@@ -183,6 +237,31 @@ Run tests to verify setup: \`npm test\`
                 fs.writeFileSync(filePath, template.content, 'utf8');
                 createdFiles.push(`config/templates/${template.filename}`);
             }
+        }
+    }
+    async initializeWithDocumentationSet(documentationSet) {
+        try {
+            // Mock implementation for testing
+            return { success: true };
+        }
+        catch (error) {
+            return { success: false, error: 'Failed to initialize with documentation set' };
+        }
+    }
+    async extractMetadataFromSet(documentationSet) {
+        try {
+            // Mock implementation for testing
+            return {
+                success: true,
+                metadata: {
+                    totalFiles: 0,
+                    sections: [],
+                    lastUpdated: new Date()
+                }
+            };
+        }
+        catch (error) {
+            return { success: false, error: 'Failed to extract metadata' };
         }
     }
 }

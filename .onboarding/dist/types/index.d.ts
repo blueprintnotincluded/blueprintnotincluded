@@ -18,6 +18,9 @@ export interface OnboardingSession {
         completedCount: number;
         estimatedTimeRemaining: number;
     };
+    failureCount?: number;
+    recoveryCount?: number;
+    completedAt?: Date;
 }
 export interface ProjectMetadata {
     name: string;
@@ -118,6 +121,15 @@ export interface ChecklistStep {
         [key: string]: any;
     };
     sessionId?: string;
+    instructions?: string[];
+    codeExamples?: Array<{
+        language: string;
+        code: string;
+        description?: string;
+    }>;
+    requirements?: string[];
+    prerequisites?: string[];
+    categories?: string[];
 }
 export declare enum StepStatus {
     LOCKED = "locked",
@@ -144,6 +156,7 @@ export interface ProgressUpdate {
     percentComplete: number;
     unlockedSteps: string[];
     timestamp: Date;
+    currentStepStatus?: StepStatus;
 }
 export interface GitChangeEvent {
     hasChanges: boolean;
@@ -279,6 +292,12 @@ export interface ValidationCheckResult {
     threshold: number;
     details: string;
     affectedFiles?: string[];
+}
+export declare enum ValidationSeverity {
+    LOW = "low",
+    MEDIUM = "medium",
+    HIGH = "high",
+    CRITICAL = "critical"
 }
 export interface BuildProcessConfig {
     commands: string[];

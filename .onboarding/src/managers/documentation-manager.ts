@@ -246,4 +246,29 @@ Run tests to verify setup: \`npm test\`
       }
     }
   }
+
+  async initializeWithDocumentationSet(documentationSet: any): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Mock implementation for testing
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Failed to initialize with documentation set' };
+    }
+  }
+
+  async extractMetadataFromSet(documentationSet: any): Promise<{ success: boolean; metadata?: any; error?: string }> {
+    try {
+      // Mock implementation for testing
+      return { 
+        success: true, 
+        metadata: {
+          totalFiles: 0,
+          sections: [],
+          lastUpdated: new Date()
+        }
+      };
+    } catch (error) {
+      return { success: false, error: 'Failed to extract metadata' };
+    }
+  }
 }

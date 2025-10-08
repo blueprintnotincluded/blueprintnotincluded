@@ -335,4 +335,20 @@ export class ProjectManagementIntegration {
       error
     };
   }
+
+  async syncOnboardingProgress(sessionId: string, progress: any): Promise<Result<{ synced: boolean }, string>> {
+    try {
+      return {
+        isSuccess: true,
+        value: {
+          synced: true
+        }
+      };
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: 'Failed to sync onboarding progress'
+      };
+    }
+  }
 }

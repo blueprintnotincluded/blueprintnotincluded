@@ -729,4 +729,13 @@ export class ContentValidationEngine {
       overallScore
     };
   }
+
+  async validateDocumentationSet(documentationSet: Array<{path: string, content: string, lastModified: Date}>): Promise<{
+    success: boolean;
+    results?: any;
+    error?: string;
+  }> {
+    // Alias for validateLargeDocumentationSet
+    return this.validateLargeDocumentationSet(documentationSet);
+  }
 }
