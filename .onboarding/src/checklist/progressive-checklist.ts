@@ -40,6 +40,7 @@ export class ProgressiveChecklist {
       ...step,
       platformSpecific: PlatformInstructions.getInstructions(step.id, platform),
       contextualHelp: ContextualHelp.getHelp(step.id, role),
+      requirements: this.getPlatformSpecificRequirements(step.requirements || [], platform),
       sessionId
     }));
 
@@ -49,6 +50,16 @@ export class ProgressiveChecklist {
     }
 
     return steps;
+  }
+
+  private getPlatformSpecificRequirements(baseRequirements: string[], platform: string): string[] {
+    const platformRequirements: { [platform: string]: string[] } = {
+      'darwin': ['Xcode Command Line Tools', 'Homebrew', 'Node.js 20+', 'npm 10+'],
+      'linux': ['Node.js 20+', 'npm 10+'],
+      'win32': ['Node.js 20+', 'npm 10+']
+    };
+
+    return platformRequirements[platform] || baseRequirements;
   }
 
   /**

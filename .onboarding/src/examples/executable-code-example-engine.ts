@@ -289,15 +289,22 @@ export class ExecutableCodeExampleEngine {
     const examples: CodeExample[] = [];
     const lines = content.split('\n');
 
+    logger.debug(`Extracting from TypeScript file: ${filePath}`);
+    logger.debug(`Total lines: ${lines.length}`);
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
       // Look for @example comments
       if (line.includes('@example')) {
+        logger.debug(`Found @example at line ${i}: ${line}`);
         try {
           const example = this.extractExampleFromComment(lines, i, filePath);
           if (example) {
+            logger.debug(`Successfully extracted example: ${example.title}`);
             examples.push(example);
+          } else {
+            logger.debug(`Failed to extract example from line ${i}`);
           }
         } catch (error) {
           logger.error(`Error extracting example from ${filePath}:${i}: ${error instanceof Error ? error.message : String(error)}`);
@@ -305,6 +312,7 @@ export class ExecutableCodeExampleEngine {
       }
     }
 
+    logger.debug(`Total examples extracted: ${examples.length}`);
     return examples;
   }
 
@@ -401,24 +409,55 @@ export class ExecutableCodeExampleEngine {
     let inComment = false;
     const metadata: CodeExampleMetadata = {};
 
+    logger.debug(`Extracting example from comment starting at line ${startIndex}`);
+
     // Parse the comment block starting from @example line
     for (let i = startIndex; i < lines.length; i++) {
       const line = lines[i];
       const trimmedLine = line.trim();
       
-      // Start of comment block
-      if (trimmedLine.includes('/**') || trimmedLine.startsWith('*')) {
+      logger.debug(`Processing line ${i}: '${line}' (trimmed: '${trimmedLine}')`);
+      
+      // Start of comment block or already in comment (since we start from @example line)
+      if (trimmedLine.includes('/**') || trimmedLine.startsWith('*') || line.includes('@example')) {
         inComment = true;
+        logger.debug(`Set inComment = true`);
       }
       
       // End of comment block
       if (trimmedLine.includes('*/')) {
+        logger.debug(`Found end of comment block`);
         break;
       }
 
       if (inComment) {
-        // Extract @example title
-        if (trimmedLine.includes('@example')) {
+        // Start of code block
+        if (trimmedLine.includes('```')) {
+          logger.debug(`Found code block marker: '${trimmedLine}'`);
+          if (!codeBlockStarted) {
+            const langMatch = trimmedLine.match(/```(\w+)/);
+            if (langMatch) {
+              language = langMatch[1];
+              logger.debug(`Detected language: ${language}`);
+            }
+            codeBlockStarted = true;
+            logger.debug(`Started code block`);
+          } else {
+            logger.debug(`End of code block`);
+            break; // End of code block - don't include this line in code
+          }
+        }
+        // Code line inside block (check this after code block markers)
+        else if (codeBlockStarted) {
+          // Remove comment prefix and add to code
+          let codeLine = line.replace(/^\s*\*\s?/, '');
+          logger.debug(`Adding code line: '${codeLine}'`);
+          if (codeLine.trim().length > 0) {
+            codeLines.push(codeLine);
+          }
+        }
+        // Extract @example title (only if not in code block)
+        else if (trimmedLine.includes('@example')) {
           const titleMatch = trimmedLine.match(/@example\s+(.+)/);
           if (titleMatch) {
             title = titleMatch[1].trim();
@@ -438,26 +477,6 @@ export class ExecutableCodeExampleEngine {
             metadata.tags = tagsMatch[1].trim().split(',').map(t => t.trim());
           }
         }
-        // Start of code block
-        else if (trimmedLine.includes('```')) {
-          if (!codeBlockStarted) {
-            const langMatch = trimmedLine.match(/```(\w+)/);
-            if (langMatch) {
-              language = langMatch[1];
-            }
-            codeBlockStarted = true;
-          } else {
-            break; // End of code block
-          }
-        } 
-        // Code line inside block
-        else if (codeBlockStarted) {
-          // Remove comment prefix and add to code
-          let codeLine = line.replace(/^\s*\*\s?/, '');
-          if (codeLine.trim().length > 0) {
-            codeLines.push(codeLine);
-          }
-        }
         // Expected output
         else if (trimmedLine.includes('Expected:')) {
           const outputMatch = trimmedLine.match(/Expected:\s*(.+)/);
@@ -468,11 +487,18 @@ export class ExecutableCodeExampleEngine {
       }
     }
 
+    logger.debug(`Final codeLines length: ${codeLines.length}`);
+    logger.debug(`codeLines: ${JSON.stringify(codeLines)}`);
+    logger.debug(`codeBlockStarted: ${codeBlockStarted}`);
+    logger.debug(`inComment: ${inComment}`);
+
     if (codeLines.length === 0) {
+      logger.debug(`Returning null - no code lines found`);
       return null;
     }
 
     const code = codeLines.join('\n').trim();
+    logger.debug(`Final code: '${code}'`);
 
     return {
       id: this.generateExampleId(filePath, startIndex + 1, title),

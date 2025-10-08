@@ -135,9 +135,11 @@ export interface ChecklistStep {
     [platform: string]: string; // platform-specific instructions
   };
   contextualHelp: string[];
-  validationCriteria?: {
-    [key: string]: any;
-  };
+  validationCriteria?: Array<{
+    type: string;
+    value: string;
+    description: string;
+  }>;
   sessionId?: string;
   instructions?: string[];
   codeExamples?: Array<{

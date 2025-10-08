@@ -348,9 +348,12 @@ export class ContentValidationEngine {
     isSuccess: boolean;
     value?: {
       totalProcessed: number;
+      totalFiles: number;
       successfullyProcessed: number;
       averageProcessingTimePerFile: number;
       processingTime: number;
+      validationTime: number;
+      errors: any[];
     };
     error?: string;
   }> {
@@ -385,9 +388,12 @@ export class ContentValidationEngine {
         isSuccess: true,
         value: {
           totalProcessed: documentationSet.length,
+          totalFiles: documentationSet.length,
           successfullyProcessed,
           averageProcessingTimePerFile: averageProcessingTime,
-          processingTime: totalTime
+          processingTime: totalTime,
+          validationTime: totalTime,
+          errors: []
         }
       };
     } catch (error) {

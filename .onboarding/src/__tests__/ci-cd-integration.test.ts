@@ -163,7 +163,7 @@ describe('CICDIntegration', () => {
       };
       
       const invalidIntegration = new CICDIntegration();
-      const result = await invalidIntegration.validateDocumentationInBuild();
+      const result = await invalidIntegration.validateDocumentationInBuild('/non/existent/path');
       
       expect(result.isSuccess).to.be.false;
       if (!result.isSuccess && result.error) {

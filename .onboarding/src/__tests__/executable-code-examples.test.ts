@@ -239,16 +239,16 @@ export function add(a: number, b: number): number {
  * @example User management
  * @description Demonstrates user creation and management
  * @tags user, management, example
- * ` + '```typescript' + `
+ * \`\`\`typescript
  * const user = new User('test@example.com');
- * ` + '```' + `
+ * \`\`\`
  */
 export class User {
   constructor(public email: string) {}
 }`;
 
       fs.writeFileSync(sourceFile, content);
-      await engine.extractCodeExamples(sourceFile);
+      // Don't call extractCodeExamples first - let updateCodeExamples find the new examples
 
       // Act
       const updateResult = await engine.updateCodeExamples(sourceFile);

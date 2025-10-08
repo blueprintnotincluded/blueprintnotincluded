@@ -16,9 +16,9 @@ export class PlatformInstructions {
 4. Verify installation: node --version && npm --version`,
       
       'win32': `Install Node.js on Windows:
-1. Download Node.js installer from https://nodejs.org/
+1. Download Node.js installer (.exe) from https://nodejs.org/
 2. Run the installer and follow the setup wizard
-3. Open Command Prompt or PowerShell
+3. Open PowerShell or Command Prompt (cmd)
 4. Verify installation: node --version && npm --version`
     },
     

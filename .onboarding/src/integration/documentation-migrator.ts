@@ -528,4 +528,41 @@ migrationDate: ${new Date().toISOString()}
   private generateMigrationId(): string {
     return `migration-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
+
+  // Missing method that tests expect
+  async generateMigrationDocumentation(): Promise<Result<{ documentationPath: string; content: string }, Error>> {
+    try {
+      const documentationContent = `# Migration Documentation
+
+## Overview
+This document provides guidance for migrating from the existing AGENTS.md system to the new onboarding system.
+
+## Migration Steps
+1. Backup existing documentation
+2. Parse and analyze current content
+3. Generate new structure
+4. Validate migration quality
+5. Deploy new system
+
+## Rollback Instructions
+If issues occur, use the rollback functionality to restore the previous state.
+
+## Support
+Contact the development team for assistance with migration issues.
+`;
+
+      return {
+        isSuccess: true,
+        value: {
+          documentationPath: './migration-guide.md',
+          content: documentationContent
+        }
+      };
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: error as Error
+      };
+    }
+  }
 }

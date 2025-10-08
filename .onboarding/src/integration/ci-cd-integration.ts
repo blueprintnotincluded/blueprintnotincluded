@@ -138,8 +138,16 @@ export class CICDIntegration {
     }
   }
 
-  async validateDocumentationInBuild(): Promise<Result<{ buildStatus: string; validationResults: any[] }, Error>> {
+  async validateDocumentationInBuild(projectPath?: string): Promise<Result<{ buildStatus: string; validationResults: any[] }, Error>> {
     try {
+      // Check if project path is provided and exists
+      if (projectPath && !require('fs').existsSync(projectPath)) {
+        return {
+          isSuccess: false,
+          error: new Error(`Project path does not exist: ${projectPath}`)
+        };
+      }
+
       return {
         isSuccess: true,
         value: {

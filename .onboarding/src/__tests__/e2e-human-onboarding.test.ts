@@ -152,7 +152,8 @@ describe('End-to-End Human Developer Onboarding Flow (Task 8.2)', () => {
       // RED: This test should fail initially
       // Test session save/restore functionality
 
-      const sessionResult = orchestrator.startOnboarding(UserType.HUMAN_DEVELOPER, DeveloperRole.FULLSTACK);
+      // Create session using SessionManager instead of OnboardingOrchestrator
+      const sessionResult = sessionManager.createSession('test-user', UserType.HUMAN_DEVELOPER, DeveloperRole.FULLSTACK);
       expect(sessionResult.isSuccess).to.be.true;
       
       if (!sessionResult.isSuccess || !sessionResult.value) {

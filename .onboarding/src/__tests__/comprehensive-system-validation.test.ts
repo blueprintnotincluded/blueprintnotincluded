@@ -274,7 +274,7 @@ describe('Comprehensive System Validation (Task 10.1)', () => {
 
       // Test content validation performance
       const validationStartTime = Date.now();
-      const validationResult = await validationEngine.validateDocumentationSet(largeDocSet);
+      const validationResult = await validationEngine.validateDocumentationSet(largeDocSet.files);
       const validationTime = Date.now() - validationStartTime;
 
       expect(validationResult.success, 'Should validate large documentation set').to.be.true;
@@ -288,7 +288,7 @@ describe('Comprehensive System Validation (Task 10.1)', () => {
 
       // Test metadata extraction performance
       const metadataStartTime = Date.now();
-      const metadataResult = await documentationManager.extractMetadataFromSet(largeDocSet);
+      const metadataResult = await documentationManager.extractMetadataFromSet(largeDocSet.files);
       const metadataTime = Date.now() - metadataStartTime;
 
       expect(metadataResult.success, 'Should extract metadata from large set').to.be.true;
@@ -431,10 +431,10 @@ describe('Comprehensive System Validation (Task 10.1)', () => {
     it('should maintain data integrity during system failures', async () => {
       // RED: This test should fail initially as data integrity mechanisms aren't implemented
 
-      // Start multiple onboarding sessions
+      // Start multiple onboarding sessions using session manager
       const sessions: string[] = [];
       for (let i = 0; i < 5; i++) {
-        const sessionResult = orchestrator.startOnboarding(UserType.HUMAN_DEVELOPER, DeveloperRole.FRONTEND);
+        const sessionResult = sessionManager.createSession(`user-${i}`, UserType.HUMAN_DEVELOPER, DeveloperRole.FRONTEND);
         if (sessionResult.isSuccess && sessionResult.value) {
           sessions.push(sessionResult.value.sessionId);
         }
@@ -445,6 +445,12 @@ describe('Comprehensive System Validation (Task 10.1)', () => {
         const steps = checklist.generateChecklistForRole(DeveloperRole.FRONTEND, 'darwin', sessionId);
         await checklist.updateProgress(sessionId, steps[0].id, StepStatus.COMPLETED);
         await checklist.updateProgress(sessionId, steps[1].id, StepStatus.COMPLETED);
+      }
+
+      // Save sessions to disk before crash
+      for (const sessionId of sessions) {
+        const saveResult = sessionManager.saveSession(sessionId);
+        expect(saveResult.isSuccess, `Should save session ${sessionId}`).to.be.true;
       }
 
       // Simulate system crash
