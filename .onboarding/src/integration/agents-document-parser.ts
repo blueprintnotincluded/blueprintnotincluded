@@ -72,7 +72,9 @@ export class AgentsDocumentParser {
 
   private extractSections(content: string): { [key: string]: string } {
     const sections: { [key: string]: string } = {};
-    const lines = content.split('\n');
+    // Normalize line endings to handle Windows (\r\n) and Unix (\n) formats
+    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedContent.split('\n');
     let currentSection = '';
     let currentContent: string[] = [];
 
@@ -97,7 +99,6 @@ export class AgentsDocumentParser {
     if (currentSection) {
       sections[this.normalizeHeaderKey(currentSection)] = currentContent.join('\n').trim();
     }
-
     return sections;
   }
 

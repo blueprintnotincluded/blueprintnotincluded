@@ -54,9 +54,9 @@ export class ProgressiveChecklist {
 
   private getPlatformSpecificRequirements(baseRequirements: string[], platform: string): string[] {
     const platformRequirements: { [platform: string]: string[] } = {
-      'darwin': ['Xcode Command Line Tools', 'Homebrew', 'Node.js 20+', 'npm 10+'],
-      'linux': ['Node.js 20+', 'npm 10+'],
-      'win32': ['Node.js 20+', 'npm 10+']
+      'darwin': ['Homebrew', 'Xcode Command Line Tools', 'Node.js'],
+      'linux': ['curl', 'git', 'Node.js'],
+      'win32': ['Node.js', 'Git for Windows', 'PowerShell']
     };
 
     return platformRequirements[platform] || baseRequirements;

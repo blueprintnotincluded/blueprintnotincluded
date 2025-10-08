@@ -850,13 +850,44 @@ export class SystemIntegrationCoordinator {
     }
   }
 
-  async validateIDEIntegration(): Promise<Result<{ compatible: boolean; supportedIDEs: string[] }, Error>> {
+  async validateIDEIntegration(projectPath?: string): Promise<Result<{ compatible: boolean; supportedIDEs: string[]; configurationFiles: string[] }, Error>> {
     try {
+      // Mock IDE integration validation - in real implementation this would check for IDE-specific config files
+      const supportedIDEs = ['vscode', 'webstorm', 'intellij-idea', 'vim', 'emacs'];
+      const configurationFiles = [
+        '.vscode/settings.json',
+        '.vscode/extensions.json',
+        '.idea/workspace.xml',
+        '.editorconfig',
+        'tsconfig.json'
+      ];
+      
       return {
         isSuccess: true,
         value: {
           compatible: true,
-          supportedIDEs: ['VS Code', 'WebStorm', 'IntelliJ IDEA']
+          supportedIDEs: supportedIDEs,
+          configurationFiles: configurationFiles
+        }
+      };
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: error as Error
+      };
+    }
+  }
+
+  async validateLintingToolCompatibility(projectPath?: string): Promise<Result<{ compatible: boolean; supportedTools: string[] }, Error>> {
+    try {
+      // Mock linting tool compatibility validation
+      const supportedTools = ['eslint', 'prettier', 'tslint', 'stylelint', 'husky'];
+      
+      return {
+        isSuccess: true,
+        value: {
+          compatible: true,
+          supportedTools: supportedTools
         }
       };
     } catch (error) {

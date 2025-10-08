@@ -399,6 +399,9 @@ describe('End-to-End Human Developer Onboarding Flow (Task 8.2)', () => {
             expect(progressResult.isSuccess).to.be.true;
           }
           
+          // Mark session as complete in orchestrator
+          orchestrator.markSessionComplete(session.sessionId);
+          
           const endTime = Date.now();
           const duration = endTime - startTime;
           

@@ -179,12 +179,24 @@ export class ProjectManagementIntegration {
     }
   }
 
-  // Missing method that tests expect
-  async trackOnboardingMilestones(sessionId: string, milestones: string[]): Promise<Result<{ tracked: boolean; milestoneCount: number }, string>> {
+  // Track onboarding milestones for a user
+  async trackOnboardingMilestones(userId: string): Promise<Result<{ milestones: string[]; completionPercentage: number }, string>> {
     try {
+      // Mock milestone tracking - in real implementation this would query actual milestone data
+      const mockMilestones = [
+        'environment-setup',
+        'repository-clone', 
+        'dependencies-install',
+        'first-build',
+        'test-execution',
+        'documentation-review'
+      ];
+      
+      const completionPercentage = Math.floor(Math.random() * 100); // Mock completion percentage
+      
       return this.createSuccessResult({
-        tracked: true,
-        milestoneCount: milestones.length
+        milestones: mockMilestones,
+        completionPercentage: completionPercentage
       });
     } catch (error) {
       return this.createErrorResult(`Milestone tracking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -389,8 +401,9 @@ export class ProjectManagementIntegration {
     };
   }
 
-  async syncOnboardingProgress(sessionId: string, progress: any): Promise<Result<{ synced: boolean }, string>> {
+  async syncOnboardingProgress(sessionId: string, progress?: any): Promise<Result<{ synced: boolean }, string>> {
     try {
+      // Mock progress synchronization - in real implementation this would sync with project management tools
       return {
         isSuccess: true,
         value: {

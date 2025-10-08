@@ -356,7 +356,7 @@ migrationDate: ${new Date().toISOString()}
     }
 
     // Add installation section
-    if (parsedAgents.sections['development-commands']) {
+    if (parsedAgents.sections['development-commands'] || parsedAgents.sections['development-recommended']) {
       sections.push('## Installation');
       sections.push('');
       sections.push('1. Clone the repository');
@@ -364,6 +364,21 @@ migrationDate: ${new Date().toISOString()}
       sections.push('3. Configure environment variables');
       sections.push('4. Start the development server: `npm run dev`');
       sections.push('');
+      
+      // Include original development commands to preserve npm run references
+      if (parsedAgents.sections['development-commands']) {
+        sections.push('### Development Commands');
+        sections.push('');
+        sections.push(parsedAgents.sections['development-commands']);
+        sections.push('');
+      }
+      
+      if (parsedAgents.sections['development-recommended']) {
+        sections.push('### Recommended Development Workflow');
+        sections.push('');
+        sections.push(parsedAgents.sections['development-recommended']);
+        sections.push('');
+      }
     }
 
     // Add architecture section
@@ -372,6 +387,18 @@ migrationDate: ${new Date().toISOString()}
       sections.push('');
       sections.push(parsedAgents.sections['architecture']);
       sections.push('');
+    }
+
+    // Add additional sections that might contain npm run commands
+    const additionalSections = ['backend-development', 'testing', 'asset-processing', 'docker'];
+    for (const sectionKey of additionalSections) {
+      if (parsedAgents.sections[sectionKey]) {
+        const sectionTitle = sectionKey.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        sections.push(`## ${sectionTitle}`);
+        sections.push('');
+        sections.push(parsedAgents.sections[sectionKey]);
+        sections.push('');
+      }
     }
 
     // Add usage section if enhancing
@@ -408,10 +435,9 @@ migrationDate: ${new Date().toISOString()}
     const enhancements: string[] = [];
     
     if (options.enhanceContent) {
-      enhancements.push('Added frontmatter metadata');
-      enhancements.push('Added Prerequisites section');
-      enhancements.push('Improved section structure');
-      enhancements.push('Enhanced installation instructions');
+      enhancements.push('added-frontmatter');
+      enhancements.push('improved-structure');
+      enhancements.push('enhanced-code-formatting');
     }
 
     return enhancements;
@@ -424,6 +450,12 @@ migrationDate: ${new Date().toISOString()}
       lowerContent.includes(`## ${section}`) || lowerContent.includes(`# ${section}`)
     );
     
+    // If we have all required sections, give full score
+    if (presentSections.length === requiredSections.length) {
+      return 100;
+    }
+    
+    // Otherwise calculate based on present sections
     return (presentSections.length / requiredSections.length) * 100;
   }
 
