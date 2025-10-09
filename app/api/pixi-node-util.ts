@@ -1,6 +1,8 @@
 const { loadImage } = require('canvas');
 const PIXI = require('../pixi-shim');
 require('../pixi-shim/lib/pixi-shim-node.js');
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { Jimp, intToRGBA } from 'jimp';
 import {
@@ -76,8 +78,22 @@ export class PixiNodeUtil implements PixiUtil {
   async initTextures() {
     for (let k of ImageSource.keys) {
       let imageUrl = ImageSource.getUrl(k)!;
-      let brt = await this.getImageFromCanvas(imageUrl);
-      ImageSource.setBaseTexture(k, brt);
+      try {
+        let brt = await this.getImageFromCanvas(imageUrl);
+        ImageSource.setBaseTexture(k, brt);
+      } catch (error) {
+        console.warn(`Failed to load texture ${k} from ${imageUrl}, attempting fallback strategies...`);
+        
+        // Try to find a similar file with fallback patterns
+        const fallbackTexture = await this.tryFallbackTexture(k, imageUrl);
+        if (fallbackTexture) {
+          ImageSource.setBaseTexture(k, fallbackTexture);
+          console.log(`✓ Successfully loaded fallback texture for ${k}`);
+        } else {
+          console.warn(`⚠️ Skipping texture ${k} - no suitable fallback found`);
+          // Continue processing other textures instead of failing completely
+        }
+      }
     }
   }
 
@@ -89,9 +105,68 @@ export class PixiNodeUtil implements PixiUtil {
     return bt;
   }
 
-  async getImageWhite(path: string) {
-    console.log('reading ' + path);
-    let data: any = await Jimp.read(path);
+  async tryFallbackTexture(imageId: string, originalPath: string): Promise<any> {
+    const directory = path.dirname(originalPath);
+    const filename = path.basename(originalPath, '.png');
+    
+    // Common fallback patterns based on the export mismatch patterns
+    const fallbackPatterns: string[] = [
+      // Try adding _small suffix (rocket_oxidizer_tank_0 -> rocket_oxidizer_tank_small_0)
+      `${filename}_small.png`,
+      // Try cluster variant (rocket_oxidizer_tank_0 -> rocket_cluster_oxidizer_tank_0)  
+      filename.replace(/^rocket_/, 'rocket_cluster_').concat('.png'),
+      // Try removing _0 suffix and adding back with different number
+      `${filename.replace(/_0$/, '')}_1.png`,
+      // Try without the number suffix entirely
+      `${filename.replace(/_\d+$/, '')}.png`,
+    ];
+    
+    // Add liquid variant for tank items if applicable
+    if (filename.includes('tank')) {
+      fallbackPatterns.push(filename.replace('tank', 'tank_liquid').concat('.png'));
+    }
+    
+    for (const pattern of fallbackPatterns) {
+      const fallbackPath = path.join(directory, pattern);
+      
+      if (fs.existsSync(fallbackPath)) {
+        console.log(`Found fallback: ${originalPath} -> ${fallbackPath}`);
+        try {
+          return await this.getImageFromCanvas(fallbackPath);
+        } catch (error) {
+          console.warn(`Fallback ${fallbackPath} also failed, trying next...`);
+          continue;
+        }
+      }
+    }
+    
+    // If no fallbacks work, try to find any similar files using fuzzy matching
+    try {
+      const files = fs.readdirSync(directory);
+      const baseName = filename.replace(/_\d+$/, '').toLowerCase();
+      
+      const similarFile = files.find(file => 
+        file.toLowerCase().includes(baseName) && 
+        file.endsWith('.png') && 
+        file !== path.basename(originalPath)
+      );
+      
+      if (similarFile) {
+        const similarPath = path.join(directory, similarFile);
+        console.log(`Found similar file: ${originalPath} -> ${similarPath}`);
+        return await this.getImageFromCanvas(similarPath);
+      }
+    } catch (error) {
+      console.warn('Could not read directory for fuzzy matching');
+    }
+    
+    return null; // No suitable fallback found
+  }
+
+  async getImageWhite(imagePath: string): Promise<any> {
+    console.log('reading ' + imagePath);
+    try {
+      let data: any = await Jimp.read(imagePath);
     let width = data.width;
     let height = data.height;
 
@@ -123,8 +198,44 @@ export class PixiNodeUtil implements PixiUtil {
     data = null;
     global.gc && global.gc();
 
-    //console.log('render done for ' + path);
-    return brt;
+      //console.log('render done for ' + path);
+      return brt;
+    } catch (error) {
+      console.warn(`Failed to load white image from ${imagePath}, attempting fallback strategies...`);
+      
+      // Try to find a fallback file
+      const directory = path.dirname(imagePath);
+      const filename = path.basename(imagePath, '.png');
+      
+      // Use similar fallback logic as in tryFallbackTexture
+      const fallbackPatterns: string[] = [
+        `${filename}_small.png`,
+        filename.replace(/^rocket_/, 'rocket_cluster_').concat('.png'),
+        `${filename.replace(/_0$/, '')}_1.png`,
+        `${filename.replace(/_\d+$/, '')}.png`,
+      ];
+      
+      if (filename.includes('tank')) {
+        fallbackPatterns.push(filename.replace('tank', 'tank_liquid').concat('.png'));
+      }
+      
+      for (const pattern of fallbackPatterns) {
+        const fallbackPath = path.join(directory, pattern);
+        
+        if (fs.existsSync(fallbackPath)) {
+          console.log(`Found white fallback: ${path} -> ${fallbackPath}`);
+          try {
+            return await this.getImageWhite(fallbackPath);
+          } catch (fallbackError) {
+            console.warn(`White fallback ${fallbackPath} also failed, trying next...`);
+            continue;
+          }
+        }
+      }
+      
+      console.warn(`⚠️ Skipping white image ${imagePath} - no suitable fallback found`);
+      throw error; // Re-throw if no fallback works, let the caller handle it
+    }
   }
 
   generateThumbnail(angularBlueprint: Blueprint) {

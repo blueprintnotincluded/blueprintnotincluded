@@ -16,6 +16,7 @@ import {
 import { PixiNodeUtil } from '../pixi-node-util';
 import { AssetPaths } from './asset-paths';
 import { AssetLogger } from './asset-logger';
+import { ImageComparator } from './image-comparator';
 
 export class GenerateIcons {
   constructor(databasePath: string) {
@@ -105,20 +106,36 @@ export class GenerateIcons {
       pixiNodeUtil.pixiApp.renderer.render(container, rt, true);
       let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
 
-      let icon = await Jimp.read(
-        Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64')
-      );
-
+      let iconBuffer = Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64');
+      
       // Ensure directories exist
       AssetPaths.ensureDirectories();
 
       let iconPath = AssetPaths.uiIcon(k);
-      AssetLogger.fileOperation('Writing icon', iconPath);
-      icon.write(iconPath as `${string}.png`);
-
       let frontendIconPath = AssetPaths.frontendUiIcon(k);
-      AssetLogger.fileOperation('Writing frontend icon', frontendIconPath);
-      icon.write(frontendIconPath as `${string}.png`);
+
+      // Check if the new image would be identical to existing files
+      const [backendIdentical, frontendIdentical] = await Promise.all([
+        ImageComparator.isBufferIdenticalToFile(iconBuffer, iconPath),
+        ImageComparator.isBufferIdenticalToFile(iconBuffer, frontendIconPath)
+      ]);
+
+      // Only write files if they would be different
+      if (!backendIdentical) {
+        AssetLogger.fileOperation('Writing icon', iconPath);
+        let icon = await Jimp.read(iconBuffer);
+        icon.write(iconPath as `${string}.png`);
+      } else {
+        AssetLogger.fileOperation('Skipping identical icon', iconPath);
+      }
+
+      if (!frontendIdentical) {
+        AssetLogger.fileOperation('Writing frontend icon', frontendIconPath);
+        let icon = await Jimp.read(iconBuffer);
+        icon.write(frontendIconPath as `${string}.png`);
+      } else {
+        AssetLogger.fileOperation('Skipping identical frontend icon', frontendIconPath);
+      }
 
       // Free memory
       brt.destroy();

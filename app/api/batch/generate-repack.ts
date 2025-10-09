@@ -17,6 +17,7 @@ import {
 import { BinController } from './bin-packing/bin-controller';
 import { PixiNodeUtil } from '../pixi-node-util';
 import { AssetPaths } from './asset-paths';
+import { ImageComparator } from './image-comparator';
 
 export class GenerateRepack {
   constructor(databasePath: string) {
@@ -151,19 +152,36 @@ export class GenerateRepack {
       pixiNodeUtil.pixiApp.renderer.render(container, rt, true);
 
       let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
-      let repack = await Jimp.read(
-        Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64')
-      );
+      let repackBuffer = Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
       // Ensure directories exist
       AssetPaths.ensureDirectories();
 
       let repackPath = AssetPaths.repackTexture(trayIndex);
       let repackFrontendPath = AssetPaths.frontendRepackTexture(trayIndex);
-      console.log('saving repack to ' + repackPath);
-      repack.write(repackPath as `${string}.png`);
-      console.log('saving repack to ' + repackFrontendPath);
-      repack.write(repackFrontendPath as `${string}.png`);
+
+      // Check if the new repack images would be identical to existing files
+      const [backendIdentical, frontendIdentical] = await Promise.all([
+        ImageComparator.isBufferIdenticalToFile(repackBuffer, repackPath),
+        ImageComparator.isBufferIdenticalToFile(repackBuffer, repackFrontendPath)
+      ]);
+
+      // Only write files if they would be different
+      if (!backendIdentical) {
+        console.log('saving repack to ' + repackPath);
+        let repack = await Jimp.read(repackBuffer);
+        repack.write(repackPath as `${string}.png`);
+      } else {
+        console.log('skipping identical repack: ' + repackPath);
+      }
+
+      if (!frontendIdentical) {
+        console.log('saving repack to ' + repackFrontendPath);
+        let repack = await Jimp.read(repackBuffer);
+        repack.write(repackFrontendPath as `${string}.png`);
+      } else {
+        console.log('skipping identical repack: ' + repackFrontendPath);
+      }
     }
 
     let data = JSON.stringify(database, null, 2);
