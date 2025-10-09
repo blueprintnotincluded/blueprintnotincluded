@@ -31,6 +31,14 @@ export class GenerateGroups {
     // Read database
     let rawdata = fs.readFileSync(databasePath).toString();
     let json = JSON.parse(rawdata);
+    
+    // Strip HTML tags from building and element names (same as FixHtmlLabels does)
+    json.buildings.forEach((building: any) => {
+      building.name = this.stripHtml(building.name);
+    });
+    json.elements.forEach((element: any) => {
+      element.name = this.stripHtml(element.name);
+    });
 
     ImageSource.init();
 
@@ -216,6 +224,14 @@ export class GenerateGroups {
     let data = JSON.stringify(database, null, 2);
     fs.writeFileSync('./assets/database/database-groups.json', data);
     console.log('done generating groups');
+  }
+
+  /**
+   * Strip HTML tags from text (same logic as FixHtmlLabels)
+   */
+  private stripHtml(html: string): string {
+    // Simple regex-based HTML stripping since we don't want to add JSDOM dependency
+    return html.replace(/<[^>]*>/g, '');
   }
 }
 
