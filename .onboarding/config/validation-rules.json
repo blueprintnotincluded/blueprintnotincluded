@@ -1,0 +1,26 @@
+{
+  "contentValidation": {
+    "maxFileSize": 1048576,
+    "allowedExtensions": [
+      ".md",
+      ".json",
+      ".yml",
+      ".yaml"
+    ],
+    "requiredSections": [
+      "overview",
+      "setup",
+      "architecture",
+      "contributing"
+    ]
+  },
+  "linkValidation": {
+    "timeout": 5000,
+    "retries": 3,
+    "checkInterval": "24h"
+  },
+  "schemaValidation": {
+    "strictMode": true,
+    "validateReferences": true
+  }
+}

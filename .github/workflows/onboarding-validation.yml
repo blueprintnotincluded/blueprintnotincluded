@@ -1,0 +1,148 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - '.onboarding/**'
+      - 'docs/**'
+      - '*.md'
+      - 'AGENTS.md'
+      - 'README.md'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - '.onboarding/**'
+      - 'docs/**'
+      - '*.md'
+      - 'AGENTS.md'
+      - 'README.md'
+
+jobs:
+  onboarding-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.0'
+          cache: 'npm'
+          cache-dependency-path: '.onboarding/package-lock.json'
+
+      - name: Install onboarding dependencies
+        run: |
+          cd .onboarding
+          npm ci
+
+      - name: Build onboarding system
+        run: |
+          cd .onboarding
+          npm run build
+
+      - name: Run documentation validation
+        run: |
+          cd .onboarding
+          npm run test
+
+      - name: Generate validation report
+        if: always()
+        run: |
+          cd .onboarding
+          # Create a CLI runner if it doesn't exist
+          if [ ! -f "dist/cli/validation-runner.js" ]; then
+            echo "Creating validation report through direct execution..."
+            node -e "
+            const { CiCdIntegration } = require('./dist/integration/ci-cd-integration-wrapper');
+            const config = {
+              projectPath: '..',
+              buildCommands: ['echo \"Build validation\"'],
+              validationRules: [
+                { id: 'documentation-coverage', threshold: 80, required: true },
+                { id: 'link-validation', threshold: 95, required: true }
+              ],
+              onFailureAction: 'warn-only',
+              reportPath: './validation-report.json'
+            };
+            const integration = new CiCdIntegration(config);
+            integration.generateValidationReport().then(result => {
+              if (result.isSuccess) {
+                console.log('Validation report generated successfully');
+              } else {
+                console.error('Failed to generate validation report:', result.error?.message);
+              }
+            });
+            "
+          else
+            node dist/cli/validation-runner.js --output ./validation-report.json
+          fi
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-validation-report
+          path: .onboarding/validation-report.json
+          retention-days: 30
+
+      - name: Comment PR with validation results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = '.onboarding/validation-report.json';
+            
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              const comment = `## 📚 Documentation Validation Report
+              
+              **Overall Score:** ${report.summary.overallScore}%
+              **Files Validated:** ${report.summary.totalFiles}
+              **Valid Files:** ${report.summary.validFiles}
+              **Invalid Files:** ${report.summary.invalidFiles}
+              **Execution Time:** ${report.summary.executionTime}ms
+              
+              ${report.summary.invalidFiles > 0 ? '⚠️ Some validation issues found. Please review the full report in the artifacts.' : '✅ All documentation validation checks passed!'}
+              
+              ### Detailed Results
+              ${report.detailedResults.map(result => 
+                `- **${result.ruleId}**: ${result.passed ? '✅' : '❌'} ${result.score}% (threshold: ${result.threshold}%)`
+              ).join('\n')}
+              
+              ### Recommendations
+              ${report.recommendations.map(rec => `- ${rec}`).join('\n')}
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+      - name: Check validation status
+        if: always()
+        run: |
+          cd .onboarding
+          if [ -f "validation-report.json" ]; then
+            SCORE=$(node -p "JSON.parse(require('fs').readFileSync('validation-report.json', 'utf8')).summary.overallScore")
+            INVALID_FILES=$(node -p "JSON.parse(require('fs').readFileSync('validation-report.json', 'utf8')).summary.invalidFiles")
+            
+            echo "Documentation validation score: $SCORE%"
+            echo "Invalid files: $INVALID_FILES"
+            
+            if [ "$INVALID_FILES" -gt 0 ]; then
+              echo "⚠️ Documentation validation found issues but continuing (warn-only mode)"
+              exit 0
+            else
+              echo "✅ Documentation validation passed!"
+            fi
+          else
+            echo "❌ Validation report not found"
+            exit 1
+          fi

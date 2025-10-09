@@ -1,0 +1,16 @@
+{
+  "name": "basic-onboarding",
+  "description": "Basic onboarding template for new projects",
+  "sections": [
+    {
+      "id": "overview",
+      "title": "Project Overview",
+      "content": "# Project Overview\n\nWelcome to {{projectName}}!\n\n## What is this project?\n\n{{projectDescription}}\n\n## Technologies\n\n{{#each technologies}}\n- {{this}}\n{{/each}}"
+    },
+    {
+      "id": "setup",
+      "title": "Development Setup",
+      "content": "# Development Setup\n\n## Prerequisites\n\n- Node.js {{nodeVersion}} or higher\n- npm or yarn\n\n## Installation\n\n```bash\nnpm install\n```\n\n## Running the application\n\n```bash\nnpm start\n```"
+    }
+  ]
+}

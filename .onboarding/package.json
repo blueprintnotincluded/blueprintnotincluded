@@ -1,0 +1,43 @@
+{
+  "name": "@blueprintnotincluded/onboarding",
+  "version": "1.0.0",
+  "description": "Project onboarding system for humans and AI agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "ts-mocha 'src/__tests__/**/*.test.ts'",
+    "test:watch": "npm run build && mocha dist/__tests__/**/*.js --watch"
+  },
+  "keywords": [
+    "onboarding",
+    "documentation",
+    "ai-agents",
+    "developer-experience"
+  ],
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.1.0",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.20",
+    "@types/markdown-it": "^14.1.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.6.2",
+    "chai": "^4.5.0",
+    "mocha": "^11.7.4",
+    "ts-mocha": "^11.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": "^20.18"
+  },
+  "volta": {
+    "node": "20.18.0"
+  }
+}

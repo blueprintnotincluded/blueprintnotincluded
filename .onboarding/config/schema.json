@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Onboarding System Schema",
+  "description": "Schema definitions for the onboarding system",
+  "definitions": {
+    "ProjectMetadata": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "technologies",
+        "architecture",
+        "conventions",
+        "lastUpdated"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "technologies": {
+          "type": "object",
+          "properties": {
+            "runtime": {
+              "type": "string"
+            },
+            "language": {
+              "type": "string"
+            },
+            "framework": {
+              "type": "string"
+            },
+            "database": {
+              "type": "string"
+            },
+            "dependencies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "runtime",
+            "language",
+            "framework",
+            "dependencies"
+          ]
+        },
+        "architecture": {
+          "$ref": "#/definitions/ArchitecturePattern"
+        },
+        "conventions": {
+          "$ref": "#/definitions/CodingStandards"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "OnboardingSession": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userType": {
+          "type": "string"
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastActivityAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "progress": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "ProjectStructure": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "technologies",
+        "lastUpdated"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "technologies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "architecture": {
+          "$ref": "#/definitions/ArchitecturePattern"
+        },
+        "conventions": {
+          "$ref": "#/definitions/CodingStandards"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "ArchitecturePattern": {
+      "type": "object",
+      "required": [
+        "type",
+        "description",
+        "components"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "mvc",
+            "layered",
+            "microservices",
+            "event-driven",
+            "hexagonal"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ArchitectureComponent"
+          }
+        }
+      }
+    },
+    "ArchitectureComponent": {
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "description",
+        "dependencies"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "service",
+            "controller",
+            "model",
+            "view",
+            "middleware",
+            "repository"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CodingStandards": {
+      "type": "object",
+      "required": [
+        "naming",
+        "formatting",
+        "patterns"
+      ],
+      "properties": {
+        "naming": {
+          "$ref": "#/definitions/NamingConventions"
+        },
+        "formatting": {
+          "$ref": "#/definitions/FormattingRules"
+        },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CodePatterns"
+          }
+        }
+      }
+    },
+    "NamingConventions": {
+      "type": "object",
+      "required": [
+        "variables",
+        "functions",
+        "classes",
+        "files",
+        "directories"
+      ],
+      "properties": {
+        "variables": {
+          "type": "string",
+          "enum": [
+            "camelCase",
+            "snake_case",
+            "PascalCase"
+          ]
+        },
+        "functions": {
+          "type": "string",
+          "enum": [
+            "camelCase",
+            "snake_case",
+            "PascalCase"
+          ]
+        },
+        "classes": {
+          "type": "string",
+          "enum": [
+            "PascalCase",
+            "camelCase"
+          ]
+        },
+        "files": {
+          "type": "string",
+          "enum": [
+            "kebab-case",
+            "camelCase",
+            "PascalCase",
+            "snake_case"
+          ]
+        },
+        "directories": {
+          "type": "string",
+          "enum": [
+            "kebab-case",
+            "camelCase",
+            "PascalCase",
+            "snake_case"
+          ]
+        }
+      }
+    },
+    "FormattingRules": {
+      "type": "object",
+      "required": [
+        "indentation",
+        "indentSize",
+        "lineLength",
+        "trailingCommas",
+        "semicolons"
+      ],
+      "properties": {
+        "indentation": {
+          "type": "string",
+          "enum": [
+            "spaces",
+            "tabs"
+          ]
+        },
+        "indentSize": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "lineLength": {
+          "type": "number",
+          "minimum": 80,
+          "maximum": 200
+        },
+        "trailingCommas": {
+          "type": "boolean"
+        },
+        "semicolons": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CodePatterns": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "example"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "example": {
+          "type": "string"
+        },
+        "antiPattern": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
