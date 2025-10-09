@@ -13,7 +13,7 @@ export class AssetPaths {
   static get projectRoot(): string {
     if (!this._projectRoot) {
       // From app/api/batch/ to project root
-      this._projectRoot = path.join(__dirname, '../../../../');
+      this._projectRoot = path.join(__dirname, '../../../');
     }
     return this._projectRoot;
   }
