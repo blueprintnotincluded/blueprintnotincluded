@@ -19,6 +19,7 @@ import {
   MdbBlueprint,
 } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
+import { ImageComparator } from './image-comparator';
 
 export class GenerateGroups {
   constructor(databasePath: string) {
@@ -31,6 +32,14 @@ export class GenerateGroups {
     // Read database
     let rawdata = fs.readFileSync(databasePath).toString();
     let json = JSON.parse(rawdata);
+    
+    // Strip HTML tags from building and element names (same as FixHtmlLabels does)
+    json.buildings.forEach((building: any) => {
+      building.name = this.stripHtml(building.name);
+    });
+    json.elements.forEach((element: any) => {
+      element.name = this.stripHtml(element.name);
+    });
 
     ImageSource.init();
 
@@ -195,12 +204,19 @@ export class GenerateGroups {
         pixiNodeUtil.pixiApp.renderer.render(container, rt);
         let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
 
-        let group = await Jimp.read(
-          Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64')
-        );
+        let groupBuffer = Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64');
         let groupePath = './assets/images/' + textureName + '.png';
-        console.log('saving group to ' + groupePath);
-        group.write(groupePath as `${string}.png`);
+        
+        // Check if the new group image would be identical to existing file
+        const isIdentical = await ImageComparator.isBufferIdenticalToFile(groupBuffer, groupePath);
+        
+        if (!isIdentical) {
+          console.log('saving group to ' + groupePath);
+          let group = await Jimp.read(groupBuffer);
+          group.write(groupePath as `${string}.png`);
+        } else {
+          console.log('skipping identical group: ' + groupePath);
+        }
 
         // Free memory
         brt.destroy();
@@ -216,6 +232,14 @@ export class GenerateGroups {
     let data = JSON.stringify(database, null, 2);
     fs.writeFileSync('./assets/database/database-groups.json', data);
     console.log('done generating groups');
+  }
+
+  /**
+   * Strip HTML tags from text (same logic as FixHtmlLabels)
+   */
+  private stripHtml(html: string): string {
+    // Simple regex-based HTML stripping since we don't want to add JSDOM dependency
+    return html.replace(/<[^>]*>/g, '');
   }
 }
 

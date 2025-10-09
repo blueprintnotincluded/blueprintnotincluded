@@ -15,6 +15,7 @@ import {
   OniItem,
 } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
+import { ImageComparator } from './image-comparator';
 
 export class GenerateWhite {
   constructor(databasePath: string) {
@@ -104,8 +105,14 @@ export class GenerateWhite {
     for (let sourceTexture of sourceTextures) {
       if (!ImageSource.isTextureLoaded(sourceTexture)) {
         let imageUrl = ImageSource.getUrl(sourceTexture);
-        let brt = await pixiNodeUtil.getImageWhite(imageUrl);
-        ImageSource.setBaseTexture(sourceTexture, brt);
+        try {
+          let brt = await pixiNodeUtil.getImageWhite(imageUrl);
+          ImageSource.setBaseTexture(sourceTexture, brt);
+        } catch (error) {
+          console.warn(`⚠️ Skipping white texture ${sourceTexture} - could not load ${imageUrl}`);
+          // Continue with other textures instead of failing completely
+          continue;
+        }
       }
 
       let baseTexture = ImageSource.getBaseTexture(sourceTexture, pixiNodeUtil);
@@ -122,12 +129,19 @@ export class GenerateWhite {
 
       pixiNodeUtil.pixiApp.renderer.render(sprite, rt);
       let base64: string = pixiNodeUtil.pixiApp.renderer.plugins.extract.canvas(rt).toDataURL();
-      let white = await Jimp.read(
-        Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64')
-      );
+      let whiteBuffer = Buffer.from(base64.replace(/^data:image\/png;base64,/, ''), 'base64');
       let whitePath = './assets/images/' + sourceTexture + '_white.png';
-      console.log('saving white to ' + whitePath);
-      white.write(whitePath as `${string}.png`);
+      
+      // Check if the new white image would be identical to existing file
+      const isIdentical = await ImageComparator.isBufferIdenticalToFile(whiteBuffer, whitePath);
+      
+      if (!isIdentical) {
+        console.log('saving white to ' + whitePath);
+        let white = await Jimp.read(whiteBuffer);
+        white.write(whitePath as `${string}.png`);
+      } else {
+        console.log('skipping identical white image: ' + whitePath);
+      }
     }
 
     let data = JSON.stringify(database, null, 2);
