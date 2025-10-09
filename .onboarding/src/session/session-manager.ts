@@ -469,7 +469,15 @@ export class SessionManager {
 
   async cleanupSession(sessionId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Mock implementation for testing
+      // Remove session from memory
+      this.sessions.delete(sessionId);
+      
+      // Clean up any persisted session files
+      const sessionFilePath = path.join(this.sessionDataPath, `${sessionId}.json`);
+      if (fs.existsSync(sessionFilePath)) {
+        fs.unlinkSync(sessionFilePath);
+      }
+      
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to cleanup session' };

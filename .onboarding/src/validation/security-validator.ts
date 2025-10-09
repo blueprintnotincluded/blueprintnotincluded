@@ -76,8 +76,8 @@ export class SecurityValidator {
     try {
       const secretPatterns = [
         { type: 'password', pattern: /password['\s]*[:=]['\s]*[^'\s\n]+/gi },
-        { type: 'api_key', pattern: /(?:api[_-]?key|apikey)['\s]*[:=]['\s]*[^'\s\n]+/gi },
-        { type: 'jwt_secret', pattern: /(?:jwt[_-]?secret|jwtsecret)['\s]*[:=]['\s]*[^'\s\n]+/gi },
+        { type: 'api_key', pattern: /(?:api[_-]?key|apikey|api\s+keys?)['\s]*[:=]['\s]*[^'\s\n]+/gi },
+        { type: 'jwt_secret', pattern: /(?:jwt[_-]?secret|jwtsecret|jwt\s+secret)['\s]*[:=]['\s]*[^'\s\n]+/gi },
         { type: 'database_url', pattern: /(?:mongodb|postgres|mysql):\/\/[^'\s\n]+/gi },
         { type: 'private_key', pattern: /-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----/gi }
       ];
@@ -98,6 +98,7 @@ export class SecurityValidator {
           }
         }
       }
+
 
       const severity = detectedSecrets.length > 5 ? 'CRITICAL' :
                       detectedSecrets.length > 3 ? 'HIGH' :
@@ -190,7 +191,7 @@ export class SecurityValidator {
       let sanitizedInput = input;
 
       // Check for XSS threats
-      if (/<script|javascript:|on\w+\s*=/i.test(input)) {
+      if (/<script|javascript:|on\w+\s*=/.test(input)) {
         threats.push('XSS');
         sanitizedInput = sanitizedInput.replace(/<script[^>]*>.*?<\/script>/gi, '');
         sanitizedInput = sanitizedInput.replace(/javascript:/gi, '');
@@ -203,9 +204,15 @@ export class SecurityValidator {
       }
 
       // Check for path traversal
-      if (/\.\.[\/\\]/.test(input)) {
+      if (/\..[\/\\]/.test(input)) {
         threats.push('PATH_TRAVERSAL');
-        sanitizedInput = sanitizedInput.replace(/\.\.[\/\\]/g, '');
+        sanitizedInput = sanitizedInput.replace(/\..[\/\\]/g, '');
+      }
+
+      // Check for local file URL usage
+      if (/^\s*file:\/\//i.test(input) || /\bfile:\/\//i.test(input)) {
+        threats.push('FILE_URL');
+        sanitizedInput = sanitizedInput.replace(/file:\/\//gi, '');
       }
 
       // Check for code injection

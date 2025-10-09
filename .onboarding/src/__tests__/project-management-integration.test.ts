@@ -94,8 +94,8 @@ describe('ProjectManagementIntegration', () => {
     });
 
     it('should customize tasks based on developer role', async () => {
-      const frontendSession = { ...mockSession, developerRole: DeveloperRole.FRONTEND };
-      const backendSession = { ...mockSession, developerRole: DeveloperRole.BACKEND };
+      const frontendSession = { ...mockSession, sessionId: 'frontend-session', developerRole: DeveloperRole.FRONTEND };
+      const backendSession = { ...mockSession, sessionId: 'backend-session', developerRole: DeveloperRole.BACKEND };
       
       const config = {
         platform: 'github' as const,

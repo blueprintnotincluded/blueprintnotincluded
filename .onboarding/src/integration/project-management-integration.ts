@@ -104,35 +104,49 @@ export class ProjectManagementIntegration {
   }
 
   // Method for test compatibility - accepts (userId, role) parameters
-  async createOnboardingTasks(userId: string, role: DeveloperRole): Promise<Result<TaskCreationResult, string>> {
+  async createOnboardingTasks(userId: string, role: DeveloperRole): Promise<Result<TaskCreationResult, string>>;
+  async createOnboardingTasks(session: OnboardingSession, config: TaskCreationConfig): Promise<Result<TaskCreationResult, string>>;
+  async createOnboardingTasks(userIdOrSession: string | OnboardingSession, roleOrConfig: DeveloperRole | TaskCreationConfig): Promise<Result<TaskCreationResult, string>> {
     try {
-      // Create a mock session for testing
-      const mockSession: OnboardingSession = {
-        sessionId: `session-${userId}`,
-        userId,
-        userType: UserType.HUMAN_DEVELOPER,
-        developerRole: role,
-        startTime: new Date(),
-        lastActivity: new Date(),
-        currentStep: 'environment-setup',
-        completedSteps: [],
-        isComplete: false,
-        customizations: {},
-        progress: {
-          totalSteps: 6,
-          completedCount: 0,
-          estimatedTimeRemaining: 60
-        }
-      };
-      
-      const config: TaskCreationConfig = {
-        platform: 'jira',
-        projectId: 'TEST-PROJECT',
-        taskTemplate: 'onboarding',
-        assignee: userId
-      };
-      
-      return this.createOnboardingTasksImpl(mockSession, config);
+      // Handle both overloads
+      if (typeof userIdOrSession === 'string') {
+        // Original signature: (userId: string, role: DeveloperRole)
+        const userId = userIdOrSession;
+        const role = roleOrConfig as DeveloperRole;
+        
+        const mockSession: OnboardingSession = {
+          sessionId: `session-${userId}`,
+          userId,
+          userType: UserType.HUMAN_DEVELOPER,
+          developerRole: role,
+          startTime: new Date(),
+          lastActivity: new Date(),
+          currentStep: 'environment-setup',
+          completedSteps: [],
+          isComplete: false,
+          customizations: {},
+          progress: {
+            totalSteps: 6,
+            completedCount: 0,
+            estimatedTimeRemaining: 60
+          }
+        };
+        
+        const config: TaskCreationConfig = {
+          platform: 'jira',
+          projectId: 'TEST-PROJECT',
+          taskTemplate: 'onboarding',
+          assignee: userId
+        };
+        
+        return this.createOnboardingTasksImpl(mockSession, config);
+      } else {
+        // New signature: (session: OnboardingSession, config: TaskCreationConfig)
+        const session = userIdOrSession;
+        const config = roleOrConfig as TaskCreationConfig;
+        
+        return this.createOnboardingTasksImpl(session, config);
+      }
     } catch (error) {
       return this.createErrorResult(`Task creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
