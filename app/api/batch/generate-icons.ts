@@ -87,6 +87,12 @@ export class GenerateIcons {
         AssetLogger.debug(`Processing special icon: ${JSON.stringify(uiSpriteInfo)}`);
 
       let texture = uiSpriteInfo.getTexture(pixiNodeUtil);
+      if (texture == null) {
+        AssetLogger.debug(`Skipping icon ${k} - texture not available`);
+        processedCount++;
+        continue;
+      }
+      
       let uiSprite = pixiNodeUtil.getSpriteFrom(texture);
 
       let size = Math.max(texture.width, texture.height);

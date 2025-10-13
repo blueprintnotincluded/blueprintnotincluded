@@ -39,7 +39,16 @@ export class ImageSource {
     if (imageSource == null) return undefined;
 
     if (imageSource.baseTexture == null) {
-      imageSource.baseTexture = pixiUtil.getNewBaseTexture(imageSource.imageUrl);
+      // In Node.js environment, textures should be preloaded during initTextures()
+      // In browser environment, allow on-demand texture creation
+      if (typeof window === 'undefined') {
+        // Node.js environment - textures must be preloaded
+        console.warn(`⚠️ Texture ${imageId} was not preloaded - skipping`);
+        return undefined;
+      } else {
+        // Browser environment - allow on-demand creation
+        imageSource.baseTexture = pixiUtil.getNewBaseTexture(imageSource.imageUrl);
+      }
     }
 
     return imageSource.baseTexture;

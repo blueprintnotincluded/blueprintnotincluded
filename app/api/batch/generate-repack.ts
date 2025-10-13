@@ -138,7 +138,17 @@ export class GenerateRepack {
           realBleed,
           pixiNodeUtil
         );
+        
+        if (texture == null) {
+          console.warn(`⚠️ Skipping sprite ${spriteInfo.name} in repack - texture not available`);
+          continue;
+        }
+        
         let sprite = pixiNodeUtil.getSpriteFrom(texture);
+        if (sprite == null) {
+          console.warn(`⚠️ Skipping sprite ${spriteInfo.name} in repack - could not create sprite`);
+          continue;
+        }
 
         sprite.x = spriteInfo.uvMin.x - realBleed.x;
         sprite.y = spriteInfo.uvMin.y - realBleed.y;

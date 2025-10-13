@@ -138,7 +138,17 @@ export class GenerateGroups {
           let spriteInfo = SpriteInfo.getSpriteInfo(spriteModifier.spriteInfoName);
 
           let texture = spriteInfo.getTexture(pixiNodeUtil);
+          if (texture == null) {
+            console.warn(`⚠️ Skipping sprite ${spriteModifier.spriteInfoName} - texture not available`);
+            continue;
+          }
+          
           let sprite = pixiNodeUtil.getSpriteFrom(texture);
+          if (sprite == null) {
+            console.warn(`⚠️ Skipping sprite ${spriteModifier.spriteInfoName} - could not create sprite`);
+            continue;
+          }
+          
           sprite.anchor.set(spriteInfo.pivot.x, 1 - spriteInfo.pivot.y);
           sprite.x = 0 + spriteModifier.translation.x;
           sprite.y = 0 - spriteModifier.translation.y;

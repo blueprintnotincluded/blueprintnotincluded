@@ -50,6 +50,10 @@ export class PixiNodeUtil implements PixiUtil {
     return new PIXI.Container();
   }
   getSpriteFrom(ressource: any) {
+    if (ressource == null) {
+      console.warn('⚠️ Cannot create sprite from null resource');
+      return null;
+    }
     return PIXI.Sprite.from(ressource);
   }
   getNewBaseTexture(url: string) {

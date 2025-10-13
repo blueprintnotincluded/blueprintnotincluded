@@ -100,7 +100,10 @@ export class SpriteInfo {
     // PIXI.Texture
     if (this.texture == null) {
       let baseTex = ImageSource.getBaseTexture(this.imageId, pixiUtil);
-      if (baseTex == null) return null;
+      if (baseTex == null) {
+        console.warn(`⚠️ Cannot create texture for ${this.imageId} - base texture not available`);
+        return null;
+      }
 
       let rectangle = pixiUtil.getNewRectangle(
         this.uvMin.x,
