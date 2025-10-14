@@ -15,7 +15,7 @@ export class RegisterController {
 
     let username = req.body.username;
     let regexp = /^[a-zA-Z0-9-_]+$/;
-    if (username.search(regexp) == -1 || username.lenght > 30) {
+    if (username.search(regexp) == -1 || username.length > 30) {
       console.log('Username too long or with weird characters');
       res.status(500).json({ registrationResult: 'ERROR' });
       return;
