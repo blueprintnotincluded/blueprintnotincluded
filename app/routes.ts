@@ -9,7 +9,6 @@ import { RegisterController } from './api/register-controller';
 import { DuplicateCheckController } from './api/duplicate-check-controller';
 import { BlueprintController } from './api/blueprint-controller';
 import { VersionController } from './api/version-controller';
-var Recaptcha = require('express-recaptcha').RecaptchaV3;
 export class Routes {
   public staticController = new StaticController();
   public loginController = new LoginController();
@@ -29,32 +28,11 @@ export class Routes {
       path: ['/api/register', '/api/login', '/api/request-reset', '/api/reset-password'],
     });
 
-    let recaptcha = new Recaptcha(
-      process.env.CAPTCHA_SITE as string,
-      process.env.CAPTCHA_SECRET as string
-    );
-
-    if (process.env.ENV_NAME == 'development') {
-      console.log('Initializing routes without recaptcha verification');
-      app.route('/api/login').post(this.loginController.login);
-      app.route('/api/register').post(this.registerController.register);
-      app.route('/api/request-reset').post(this.loginController.requestPasswordReset);
-      app.route('/api/reset-password').post(this.loginController.resetPassword);
-    } else {
-      if (process.env.NODE_ENV !== 'test') {
-        console.log('Initializing routes with recaptcha verification');
-      }
-      app.route('/api/login').post(recaptcha.middleware.verify, this.loginController.login);
-      app
-        .route('/api/register')
-        .post(recaptcha.middleware.verify, this.registerController.register);
-      app
-        .route('/api/request-reset')
-        .post(recaptcha.middleware.verify, this.loginController.requestPasswordReset);
-      app
-        .route('/api/reset-password')
-        .post(recaptcha.middleware.verify, this.loginController.resetPassword);
-    }
+    console.log('Initializing routes without captcha verification');
+    app.route('/api/login').post(this.loginController.login);
+    app.route('/api/register').post(this.registerController.register);
+    app.route('/api/request-reset').post(this.loginController.requestPasswordReset);
+    app.route('/api/reset-password').post(this.loginController.resetPassword);
 
     // Anonymous access
     app.route('/api/checkusername').get(this.duplicateCheckController.checkUsername);

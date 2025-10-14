@@ -127,8 +127,79 @@
 - Performance testing
 - Documentation completion
 
+## Alternative Security Measures (Post-CAPTCHA Removal)
+
+With CAPTCHA removed as requested, consider implementing these alternative security measures:
+
+### Immediate Security Improvements
+- [ ] **Rate Limiting** - Implement request rate limiting for authentication endpoints
+  - Tool: `express-rate-limit` package
+  - Target: Login, registration, password reset endpoints
+  - Configuration: 5 attempts per IP per minute
+
+- [ ] **Account Lockout** - Temporary account lockout after failed login attempts  
+  - Implementation: Track failed attempts in user model
+  - Policy: Lock account for 15 minutes after 5 failed attempts
+  - Reset: Clear attempts counter on successful login
+
+- [ ] **Email Verification** - Require email verification for new accounts
+  - Current: Users can register without email verification
+  - Add: Email confirmation tokens and verification flow
+  - Benefit: Reduces fake account creation
+
+### Enhanced Authentication Security
+- [ ] **Password Strength Validation** - Enforce stronger password requirements
+  - Current: Basic required validation only
+  - Add: Minimum length, complexity requirements
+  - Tool: `zxcvbn` for password strength scoring
+
+- [ ] **Session Security** - Improve JWT token management
+  - Add: Token expiration and refresh mechanism
+  - Add: Token blacklisting for logout
+  - Consider: Shorter token lifetimes (1 hour vs current setup)
+
+- [ ] **Login Anomaly Detection** - Monitor suspicious login patterns
+  - Track: Login attempts by IP, time patterns
+  - Alert: Multiple IPs for same account, unusual locations
+  - Log: Authentication events for security monitoring
+
+### Infrastructure Security
+- [ ] **HTTPS Enforcement** - Ensure all traffic uses HTTPS in production
+  - Current: HTTP allowed in development
+  - Add: HTTPS redirect middleware
+  - Add: Security headers (HSTS, CSRF protection)
+
+- [ ] **Input Sanitization** - Strengthen input validation beyond current regex
+  - Current: Basic username regex validation  
+  - Add: Comprehensive input sanitization
+  - Add: XSS protection for user-generated content
+
+- [ ] **Monitoring & Logging** - Implement security event logging
+  - Log: Failed login attempts, account creation, password changes
+  - Monitor: Unusual patterns, potential attacks
+  - Tool: Consider structured logging with correlation IDs
+
+### Application-Level Protection
+- [ ] **Content Security Policy** - Add CSP headers to prevent XSS
+  - Implementation: Express middleware for CSP headers
+  - Configuration: Restrict script sources, inline styles
+  - Testing: Ensure blueprint viewer functionality works with CSP
+
+- [ ] **API Request Validation** - Strengthen API input validation
+  - Current: Basic validation exists but could be enhanced
+  - Add: Schema validation for all API endpoints
+  - Add: Request size limits to prevent DoS
+
+### Rationale for CAPTCHA Alternative
+These measures provide comprehensive protection while maintaining user experience:
+- Rate limiting prevents automated attacks without user friction
+- Account lockout stops brute force attempts
+- Email verification reduces fake accounts
+- Enhanced logging provides visibility into threats
+
 ## Session Notes
 - Currently using Mocha + Chai (switched from Jest as recommended by Mongoose team)
 - 16 tests passing, found 1 validation bug in Blueprint API
 - Node.js 18.20.8 locally, targeting Node.js 20 for upgrade
 - Test database setup working correctly
+- **2025-10-13**: Removed CAPTCHA system completely per user request due to reported problems

@@ -43,7 +43,6 @@
     "ejs": "^3.1.9",
     "express": "^5.1.0",
     "express-jwt": "^8.5.1",
-    "express-recaptcha": "^5.0.1",
     "helmet": "^7.2.0",
     "isbot": "^3.6.8",
     "jimp": "^1.6.0",

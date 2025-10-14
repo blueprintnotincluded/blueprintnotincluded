@@ -7,10 +7,6 @@ body {
   overflow-x: auto;
 }
 
-.grecaptcha-badge {
-  visibility: collapse !important;
-}
-
 .ui-clickable-icon {
   color: #333333;
   background-color: #f4f4f4;

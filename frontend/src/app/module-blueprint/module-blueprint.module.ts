@@ -47,7 +47,6 @@ import { CheckDuplicateService } from "./services/check-duplicate-service";
 import { LoginFormComponent } from "./components/user-auth/login-form/login-form.component";
 import { AuthenticationService } from "./services/authentification-service";
 import { BlueprintService } from "./services/blueprint-service";
-import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module } from "ng-recaptcha";
 import { ToolService } from "./services/tool-service";
 import { SelectTool } from "./common/tools/select-tool";
 import { BuildTool } from "./common/tools/build-tool";
@@ -113,7 +112,6 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     ToggleButtonModule,
     SidebarModule,
     RadioButtonModule,
-    RecaptchaV3Module,
     BrowserAnimationsModule,
   ],
   declarations: [
@@ -167,10 +165,6 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     ElementReport,
     DatePipe,
     MessageService,
-    {
-      provide: RECAPTCHA_V3_SITE_KEY,
-      useValue: "6Leizc0kAAAAAIZQRmbXVXZ2HvfS_cY_LrkOk8x6",
-    },
   ],
   exports: [ComponentBlueprintParentComponent],
 })
