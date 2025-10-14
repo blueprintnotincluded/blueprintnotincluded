@@ -16,7 +16,6 @@ interface TokenResponse {
 }
 
 export interface TokenPayload {
-  "g-recaptcha-response": string;
   email: string;
   username: string;
   password: string;

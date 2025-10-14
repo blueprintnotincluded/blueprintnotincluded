@@ -12,7 +12,6 @@ import { AuthenticationService } from "../../../services/authentification-servic
 import { MessageService } from "primeng/api";
 import { Subscription, of } from "rxjs";
 import { catchError } from "rxjs/operators";
-import { ReCaptchaV3Service } from "ng-recaptcha";
 import { UsernameValidationDirective } from "src/app/module-blueprint/directives/username-validation.directive";
 
 @Component({
@@ -40,8 +39,7 @@ export class RegisterFormComponent {
   constructor(
     private authService: AuthenticationService,
     private checkDuplicateService: CheckDuplicateService,
-    private messageService: MessageService,
-    private recaptchaV3Service: ReCaptchaV3Service
+    private messageService: MessageService
   ) {}
 
   get f() {
@@ -73,43 +71,20 @@ export class RegisterFormComponent {
   onSubmit() {
     this.working = true;
 
-    this.subscription = this.recaptchaV3Service
-      .execute("register")
-      .pipe(
-        catchError((error) => {
-          this.handleSaveError(error);
-          return of(null);
-        })
-      )
-      .subscribe({
-        next: (token) => {
-          if (token === null) {
-            // reCAPTCHA failed, error already handled
-            return;
-          }
+    let payload = {
+      email: this.registerForm.value.email as string,
+      username: this.registerForm.value.username as string,
+      password: this.registerForm.value.password as string,
+    };
 
-          let tokenPayload = {
-            "g-recaptcha-response": token,
-            email: this.registerForm.value.email as string,
-            username: this.registerForm.value.username as string,
-            password: this.registerForm.value.password as string,
-          };
-
-          this.registerSubscription = this.authService
-            .register(tokenPayload)
-            .subscribe({
-              next: (response) => {
-                this.handleSaveNext(response);
-              },
-              error: (error) => {
-                this.handleSaveError(error);
-              },
-            });
-        },
-        error: (error) => {
-          this.handleSaveError(error);
-        },
-      });
+    this.registerSubscription = this.authService.register(payload).subscribe({
+      next: (response) => {
+        this.handleSaveNext(response);
+      },
+      error: (error) => {
+        this.handleSaveError(error);
+      },
+    });
   }
 
   handleSaveNext(data: any) {
