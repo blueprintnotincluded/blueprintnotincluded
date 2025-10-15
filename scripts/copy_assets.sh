@@ -5,3 +5,6 @@ then
 else
   cp -r --parents assets/* build
 fi
+
+# Copy package.json for version info
+cp package.json build/
