@@ -7,6 +7,7 @@ import {
   AfterContentInit,
   ElementRef,
 } from "@angular/core";
+import { Router } from "@angular/router";
 import {
   BlueprintListItem,
   BlueprintListResponse,
@@ -51,7 +52,8 @@ export class DialogBrowseComponent implements OnInit {
   constructor(
     private blueprintService: BlueprintService,
     public authService: AuthenticationService,
-    public datepipe: DatePipe
+    public datepipe: DatePipe,
+    private router: Router
   ) {
     let tempDate = new Date();
     this.loadingBlueprintItem = {
@@ -198,9 +200,18 @@ export class DialogBrowseComponent implements OnInit {
       this.blueprintListItems.push(this.loadingBlueprintItem);
   }
 
-  openBlueprint(item: BlueprintListItem) {
-    this.hideDialog();
-    this.blueprintService.openBlueprintFromId(item.id);
+  handleTitleClick(event: MouseEvent, item: BlueprintListItem) {
+    // Only handle the click if it's a normal left click (no modifier keys)
+    // Let routerLink handle modifier+click and right-click naturally
+    if (
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      event.button === 0
+    ) {
+      this.hideDialog();
+      // Let routerLink handle the navigation - don't prevent default
+    }
   }
 
   hideDialog() {

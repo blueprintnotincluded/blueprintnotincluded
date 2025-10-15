@@ -45,12 +45,7 @@
   <div #scrollable class="scrollable">
     <div class="blueprint-line" *ngFor="let item of blueprintListItems">
       <div class="thumbnail">
-        <img
-          *ngIf="isReal(item.thumbnail)"
-          class="clickable-image"
-          [src]="item.thumbnail"
-          (click)="openBlueprint(item)"
-        />
+        <img *ngIf="isReal(item.thumbnail)" [src]="item.thumbnail" />
         <svg
           *ngIf="item.thumbnail === 'svg'"
           width="200"
@@ -97,7 +92,13 @@
 
       <div style="width: 100%">
         <div class="title-line">
-          <b>{{ item.name }}</b>
+          <b
+            ><a
+              [routerLink]="['/b', item.id]"
+              (click)="handleTitleClick($event, item)"
+              >{{ item.name }}</a
+            ></b
+          >
           <div
             *ngIf="isReal(item.thumbnail) && item.ownedByMe"
             class="like-widget"

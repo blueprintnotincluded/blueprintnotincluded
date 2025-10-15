@@ -29,13 +29,21 @@
   margin-left: auto;
 }
 
+.title-line a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.title-line a:hover {
+  text-decoration: underline;
+}
+
 .thumbnail {
   margin-right: 10px;
 }
 
-.clickable-image {
+.thumbnail img {
   width: 200px;
-  cursor: pointer;
 }
 
 .search {
