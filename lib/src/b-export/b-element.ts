@@ -70,6 +70,11 @@ export class BuildableElement {
   public static getElementsFromTag(tag: string): BuildableElement[] {
     let returnValue: BuildableElement[] = [];
 
+    // Some game exports include non-buildable cost items (e.g. BuildingFiber/Reed)
+    // that should not appear as a selectable construction material in the UI.
+    // Treat these as non-selectable by returning an empty list.
+    if (tag === 'BuildingFiber') return [];
+
     for (let element of BuildableElement.elements)
       if (
         returnValue.indexOf(element) == -1 &&
@@ -77,8 +82,6 @@ export class BuildableElement {
         element.oreTags.indexOf('BuildableAny') != -1
       )
         returnValue.push(element);
-
-    if (returnValue.length == 0) returnValue.push(BuildableElement.getElement('Unobtanium'));
 
     returnValue = returnValue.sort((i1, i2) => {
       return i1.buildMenuSort - i2.buildMenuSort;

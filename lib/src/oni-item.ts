@@ -123,16 +123,19 @@ export class OniItem {
     let imageUrl: string = StringHelpers.createUrl(imageId, false);
     //ImageSource.AddImagePixi(imageId, imageUrl);
 
-    this.buildableElementsArray = BuildableElement.getElementsFromTags(original.materialCategory);
+    // Map material categories to selectable elements; ignore non-selectable categories
+    // and drop empty slots so UI shows only real construction materials.
+    this.buildableElementsArray = BuildableElement.getElementsFromTags(original.materialCategory)
+      .filter((elements) => elements.length > 0);
+
     this.defaultElement = [];
     for (
       let indexElements = 0;
       indexElements < this.buildableElementsArray.length;
       indexElements++
     ) {
-      let buildableElement = this.buildableElementsArray[indexElements];
-      if (buildableElement.length > 0) this.defaultElement[indexElements] = buildableElement[0];
-      else this.defaultElement[indexElements] = BuildableElement.getElement('Unobtanium');
+      const buildableElements = this.buildableElementsArray[indexElements];
+      if (buildableElements.length > 0) this.defaultElement[indexElements] = buildableElements[0];
     }
 
     this.materialMass = [];
