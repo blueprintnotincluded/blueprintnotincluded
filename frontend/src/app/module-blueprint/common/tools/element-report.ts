@@ -38,6 +38,13 @@ export class ElementReport implements IObsBlueprintChange {
             item.oniItem.materialMass[elementIndex]
           );
         }
+      // Include secondary, non-selectable material costs (e.g., BuildingFiber)
+      if (
+        item.oniItem.secondaryMaterialCosts &&
+        item.oniItem.secondaryMaterialCosts.length > 0
+      )
+        for (const sec of item.oniItem.secondaryMaterialCosts)
+          this.addElementToReport(sec.element, sec.mass);
     });
 
     this.data = this.data.sort((i1, i2) => {

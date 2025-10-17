@@ -172,7 +172,7 @@ export class OniItem {
             displayElement.conduitColor = 0x8B4513;
             displayElement.icon = ''; // No icon
             displayElement.iconUrl = ''; // No icon URL
-            displayElement.oreTags = ['Fiber'];
+            displayElement.oreTags = ['Fiber', 'BuildableAny'];
             displayElement.buildMenuSort = 999;
           }
         }
