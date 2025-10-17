@@ -44,6 +44,49 @@
     >
     </app-buildable-element-picker>
 
+    <div
+      *ngIf="
+        !currentItem?.isInfo &&
+        (currentItem?.secondaryMaterialCosts?.length || 0) > 0
+      "
+      class="secondary-costs"
+    >
+      <fieldset class="ui-fieldset ui-widget ui-widget-content ui-corner-all">
+        <legend
+          class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text"
+        >
+          <span class="ui-fieldset-legend-text" i18n>Additional Costs</span>
+        </legend>
+        <div class="ui-fieldset-content-wrapper">
+          <div class="ui-fieldset-content">
+            <div
+              *ngFor="let cost of currentItem.secondaryMaterialCosts"
+              class="secondary-cost-item"
+            >
+              <div class="element-panel-content non-selectable">
+                <app-element-icon
+                  *ngIf="cost.element.iconUrl"
+                  [element]="cost.element"
+                  [width]="'40px'"
+                  [height]="'40px'"
+                ></app-element-icon>
+                <div
+                  *ngIf="!cost.element.iconUrl"
+                  class="generic-icon"
+                  [style.background-color]="
+                    '#' + cost.element.color.toString(16).padStart(6, '0')
+                  "
+                ></div>
+                <div class="left"></div>
+                <div>{{ cost.element.name }}</div>
+                <div class="right"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+
     <app-temperature-picker
       *ngIf="!currentItem.isInfo"
       [blueprintItem]="currentItemToBuild"

@@ -37,3 +37,25 @@
   color: darkred;
   text-align: justify;
 }
+
+.secondary-costs {
+  margin-top: 10px;
+}
+
+.secondary-cost-item {
+  margin-bottom: 5px;
+}
+
+.non-selectable {
+  opacity: 0.7;
+  cursor: default;
+  pointer-events: none;
+}
+
+.generic-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}

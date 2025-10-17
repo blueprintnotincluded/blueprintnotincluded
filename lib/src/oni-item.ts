@@ -13,6 +13,7 @@ import { SpriteModifier } from './drawing/sprite-modifier';
 import { BuildMenuItem, BuildMenuCategory } from './b-export/b-build-order';
 import { BuildLocationRule } from './enums/build-location-rule';
 import { ConnectionType } from './enums/connection-type';
+import { SpriteInfo } from './drawing/sprite-info';
 
 export class OniItem {
   static elementId = 'Element';
@@ -45,6 +46,7 @@ export class OniItem {
   buildableElementsArray: BuildableElement[][] = [];
   defaultElement: BuildableElement[] = [];
   materialMass: number[] = [0];
+  secondaryMaterialCosts: { element: BuildableElement; mass: number; category?: string }[] = [];
   uiScreens: BUiScreen[] = [];
   spriteGroup: SpriteModifierGroup = new SpriteModifierGroup();
 
@@ -125,8 +127,8 @@ export class OniItem {
 
     // Map material categories to selectable elements; ignore non-selectable categories
     // and drop empty slots so UI shows only real construction materials.
-    this.buildableElementsArray = BuildableElement.getElementsFromTags(original.materialCategory)
-      .filter((elements) => elements.length > 0);
+    const allMaterialElements = BuildableElement.getElementsFromTags(original.materialCategory);
+    this.buildableElementsArray = allMaterialElements.filter((elements) => elements.length > 0);
 
     this.defaultElement = [];
     for (
@@ -136,6 +138,49 @@ export class OniItem {
     ) {
       const buildableElements = this.buildableElementsArray[indexElements];
       if (buildableElements.length > 0) this.defaultElement[indexElements] = buildableElements[0];
+    }
+
+    // Collect secondary material costs (non-selectable materials like BuildingFiber)
+    this.secondaryMaterialCosts = [];
+    for (let i = 0; i < original.materialCategory.length; i++) {
+      const category = original.materialCategory[i];
+      const mass = original.materialMass[i];
+
+      // If this category was filtered out (empty elements), it's a secondary cost
+      if (i >= allMaterialElements.length || allMaterialElements[i].length === 0) {
+        // Try to find a representative element for display purposes
+        let displayElement: BuildableElement | null = null;
+        if (category === 'BuildingFiber') {
+          // Look for reed fiber or similar fiber element
+          for (const element of BuildableElement.elements) {
+            if (element.id.toLowerCase().includes('reed') || 
+                element.id.toLowerCase().includes('fiber') ||
+                element.oreTags.includes('Fiber')) {
+              displayElement = element;
+              break;
+            }
+          }
+          
+          // If no fiber element found, create a text-only placeholder
+          // Better to show no icon than the wrong icon
+          if (!displayElement) {
+            displayElement = new BuildableElement();
+            displayElement.id = 'BuildingFiber';
+            displayElement.name = 'Reed Fiber';
+            displayElement.color = 0x8B4513; // Brown color
+            displayElement.uiColor = 0x8B4513;
+            displayElement.conduitColor = 0x8B4513;
+            displayElement.icon = ''; // No icon
+            displayElement.iconUrl = ''; // No icon URL
+            displayElement.oreTags = ['Fiber'];
+            displayElement.buildMenuSort = 999;
+          }
+        }
+        
+        if (displayElement) {
+          this.secondaryMaterialCosts.push({ element: displayElement, mass, category });
+        }
+      }
     }
 
     this.materialMass = [];
@@ -195,6 +240,7 @@ export class OniItem {
     if (this.buildableElementsArray == null || this.buildableElementsArray.length == 0)
       this.buildableElementsArray = [[BuildableElement.getElement('Vacuum')]];
     if (this.materialMass == null) this.materialMass = [0];
+    if (this.secondaryMaterialCosts == null) this.secondaryMaterialCosts = [];
     if (this.uiScreens == null) this.uiScreens = [];
     if (this.spriteGroup == null) this.spriteGroup = new SpriteModifierGroup();
     if (this.tileableLeftRight == null) this.tileableLeftRight = false;
