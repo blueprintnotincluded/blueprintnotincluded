@@ -95,6 +95,9 @@ export class Blueprint {
         console.log(error);
       }
     }
+
+    // Recalculate wire connections based on adjacency (fixes issues with new blueprint format)
+    for (let blueprintItem of this.blueprintItems) blueprintItem.updateTileables(this);
   }
 
   public importFromMdb(mdbBlueprint: MdbBlueprint) {
@@ -109,6 +112,9 @@ export class Blueprint {
       newTemplateItem.importMdbBuilding(originalTemplateItem);
       this.addBlueprintItem(newTemplateItem);
     }
+
+    // Recalculate wire connections based on adjacency (fixes issues with new blueprint format)
+    for (let blueprintItem of this.blueprintItems) blueprintItem.updateTileables(this);
   }
 
   public importFromBinary(template: ArrayBuffer) {

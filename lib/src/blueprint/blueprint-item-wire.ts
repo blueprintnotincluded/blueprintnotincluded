@@ -159,5 +159,35 @@ export class BlueprintItemWire extends BlueprintItem {
 
   public updateTileables(blueprint: Blueprint) {
     super.updateTileables(blueprint);
+    
+    // Recalculate connections based on adjacent wires with the same objectLayer
+    let tempConnection = 0;
+
+    if (
+      blueprint
+        .getBlueprintItemsAt(new Vector2(this.position.x - 1, this.position.y))
+        .filter(b => b.oniItem.isWire && b.oniItem.objectLayer == this.oniItem.objectLayer).length > 0
+    )
+      tempConnection += 1; // LEFT
+    if (
+      blueprint
+        .getBlueprintItemsAt(new Vector2(this.position.x + 1, this.position.y))
+        .filter(b => b.oniItem.isWire && b.oniItem.objectLayer == this.oniItem.objectLayer).length > 0
+    )
+      tempConnection += 2; // RIGHT
+    if (
+      blueprint
+        .getBlueprintItemsAt(new Vector2(this.position.x, this.position.y + 1))
+        .filter(b => b.oniItem.isWire && b.oniItem.objectLayer == this.oniItem.objectLayer).length > 0
+    )
+      tempConnection += 4; // UP
+    if (
+      blueprint
+        .getBlueprintItemsAt(new Vector2(this.position.x, this.position.y - 1))
+        .filter(b => b.oniItem.isWire && b.oniItem.objectLayer == this.oniItem.objectLayer).length > 0
+    )
+      tempConnection += 8; // DOWN
+
+    this.connections = tempConnection;
   }
 }
