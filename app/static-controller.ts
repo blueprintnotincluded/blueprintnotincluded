@@ -8,6 +8,7 @@ export class StaticController {
   constructor() {
     this.getBlueprint = this.getBlueprint.bind(this);
     this.getHome = this.getHome.bind(this);
+    this.serveHtml = this.serveHtml.bind(this);
   }
 
   public getBlueprint(req: Request, res: Response) {
@@ -65,7 +66,10 @@ export class StaticController {
     this.serveHtml(req, res, { metaTags });
   }
 
-  public serveHtml(req: Request, res: Response, locals = {}) {
+  public serveHtml(req: Request, res: Response, locals?: any) {
+    if (!locals || typeof locals === 'function' || !locals.metaTags) {
+      locals = { metaTags: new WebsiteMeta().getHtmlTags() };
+    }
     if (isbot(req.get('user-agent'))) {
       res.render('index-robots', locals);
     } else {
