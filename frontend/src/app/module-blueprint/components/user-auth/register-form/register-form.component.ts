@@ -1,7 +1,7 @@
 import { Component, OnInit, Output, EventEmitter } from "@angular/core";
 import {
-  FormGroup,
-  FormControl,
+  UntypedFormGroup,
+  UntypedFormControl,
   Validators,
   AbstractControl,
   FormBuilder,
@@ -20,16 +20,19 @@ import { UsernameValidationDirective } from "src/app/module-blueprint/directives
   styleUrls: ["./register-form.component.css"],
 })
 export class RegisterFormComponent {
-  registerForm = new FormGroup(
+  registerForm = new UntypedFormGroup(
     {
-      email: new FormControl("", [Validators.required, Validators.email]),
-      username: new FormControl(
+      email: new UntypedFormControl("", [
+        Validators.required,
+        Validators.email,
+      ]),
+      username: new UntypedFormControl(
         "",
         [Validators.required, UsernameValidationDirective.validate],
         [this.checkDuplicateService.usernameValidator()]
       ),
-      password: new FormControl("", [Validators.required]),
-      confirmPassword: new FormControl("", [Validators.required]),
+      password: new UntypedFormControl("", [Validators.required]),
+      confirmPassword: new UntypedFormControl("", [Validators.required]),
     },
     { validators: [this.passwordConfirming] }
   );
