@@ -10,7 +10,7 @@ import { Vector2 } from "../../../../../lib/index";
 
 @Directive({
   selector: "[appDragAndDrop]",
-  
+  standalone: false,
 })
 export class DragAndDropDirective {
   @Output() myMouseUp = new EventEmitter();

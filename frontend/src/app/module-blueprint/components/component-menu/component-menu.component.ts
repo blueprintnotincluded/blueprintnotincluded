@@ -47,7 +47,7 @@ const ALL_LANGUAGES = [
   selector: "app-component-menu",
   templateUrl: "./component-menu.component.html",
   styleUrls: ["./component-menu.component.css"],
-  
+  standalone: false,
 })
 export class ComponentMenuComponent
   implements OnInit, IObsToolChanged, IObsCameraChanged

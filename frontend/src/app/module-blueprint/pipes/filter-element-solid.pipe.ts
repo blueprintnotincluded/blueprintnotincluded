@@ -3,7 +3,7 @@ import { ElementReportDataItem } from "../common/tools/element-report";
 
 @Pipe({
   name: "filterElementSolid",
-  
+  standalone: false,
 })
 export class FilterElementSolidPipe implements PipeTransform {
   transform(value: any, ...args: any[]): any {

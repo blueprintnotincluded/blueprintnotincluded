@@ -5,7 +5,7 @@ import { BlueprintItem } from "../../../../../../../../lib/index";
   selector: "app-ui-screen-container",
   templateUrl: "./ui-screen-container.component.html",
   styleUrls: ["./ui-screen-container.component.css"],
-  
+  standalone: false,
 })
 export class UiScreenContainerComponent {
   @Input() blueprintItem: BlueprintItem;

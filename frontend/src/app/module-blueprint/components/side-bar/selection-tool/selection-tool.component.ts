@@ -19,7 +19,7 @@ import { Accordion } from "primeng/accordion";
   selector: "app-selection-tool",
   templateUrl: "./selection-tool.component.html",
   styleUrls: ["./selection-tool.component.css"],
-  
+  standalone: false,
 })
 export class ComponentSideSelectionToolComponent {
   @ViewChild("buildingsAccordion", { static: true })

@@ -10,7 +10,7 @@ import { Validator, AbstractControl, NG_VALIDATORS } from "@angular/forms";
       multi: true,
     },
   ],
-  
+  standalone: false,
 })
 export class BlueprintNameValidationDirective implements Validator {
   constructor() {}
