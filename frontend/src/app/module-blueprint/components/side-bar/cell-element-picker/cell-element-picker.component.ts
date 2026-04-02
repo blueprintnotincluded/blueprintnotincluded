@@ -6,7 +6,7 @@ import { BuildableElement } from "../../../../../../../lib/index";
   selector: "app-cell-element-picker",
   templateUrl: "./cell-element-picker.component.html",
   styleUrls: ["./cell-element-picker.component.css"],
-  
+  standalone: false,
 })
 export class CellElementPickerComponent implements OnInit {
   filterNameSubject = new Subject<string>();

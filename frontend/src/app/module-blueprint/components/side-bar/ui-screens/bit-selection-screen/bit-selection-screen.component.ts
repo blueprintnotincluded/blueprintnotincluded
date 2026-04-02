@@ -8,7 +8,7 @@ import {
   selector: "app-bit-selection-screen",
   templateUrl: "./bit-selection-screen.component.html",
   styleUrls: ["./bit-selection-screen.component.css"],
-  
+  standalone: false,
 })
 export class BitSelectionScreenComponent implements OnInit {
   @Input() blueprintItem: BlueprintItem;

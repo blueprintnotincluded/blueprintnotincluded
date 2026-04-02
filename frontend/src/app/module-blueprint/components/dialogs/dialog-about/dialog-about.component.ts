@@ -5,7 +5,7 @@ import { VersionService } from "../../../../services/version.service";
   selector: "app-dialog-about",
   templateUrl: "./dialog-about.component.html",
   styleUrls: ["./dialog-about.component.css"],
-  
+  standalone: false,
 })
 export class DialogAboutComponent implements OnInit {
   visible: boolean;

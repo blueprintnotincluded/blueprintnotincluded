@@ -54,7 +54,7 @@ declare var PIXI: any;
   selector: "app-component-canvas",
   templateUrl: "./component-canvas.component.html",
   styleUrls: ["./component-canvas.component.css"],
-  
+  standalone: false,
 })
 export class ComponentCanvasComponent
   implements OnInit, OnDestroy, IObsCameraChanged

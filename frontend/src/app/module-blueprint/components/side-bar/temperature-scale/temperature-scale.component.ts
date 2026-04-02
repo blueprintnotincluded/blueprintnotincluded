@@ -11,7 +11,7 @@ import { GameStringService } from "../../../services/game-string-service";
   selector: "app-temperature-scale",
   templateUrl: "./temperature-scale.component.html",
   styleUrls: ["./temperature-scale.component.css"],
-  
+  standalone: false,
 })
 export class TemperatureScaleComponent {
   temperatureData: TemperatureThreshold[];

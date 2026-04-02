@@ -22,7 +22,7 @@ import { Dialog } from "primeng/dialog";
   selector: "app-login-form",
   templateUrl: "./login-form.component.html",
   styleUrls: ["./login-form.component.css"],
-  
+  standalone: false,
 })
 export class LoginFormComponent implements OnDestroy {
   loginForm = new UntypedFormGroup({

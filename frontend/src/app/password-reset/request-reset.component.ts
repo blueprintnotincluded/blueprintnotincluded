@@ -40,7 +40,7 @@ import { PasswordResetService } from "../services/password-reset.service";
       }
     `,
   ],
-  
+  standalone: false,
 })
 export class RequestResetComponent {
   email: string = "";

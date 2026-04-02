@@ -9,7 +9,7 @@ import { stringify } from "querystring";
   selector: "app-single-slider-screen",
   templateUrl: "./single-slider-screen.component.html",
   styleUrls: ["./single-slider-screen.component.css"],
-  
+  standalone: false,
 })
 export class SingleSliderScreenComponent implements OnInit {
   @Input() blueprintItem: BlueprintItem;
