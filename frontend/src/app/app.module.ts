@@ -9,7 +9,7 @@ import {
   NgxGoogleAnalyticsModule,
   NgxGoogleAnalyticsRouterModule,
 } from "ngx-google-analytics";
-import * as Sentry from "@sentry/angular-ivy";
+import * as Sentry from "@sentry/angular";
 import { FormsModule } from "@angular/forms";
 
 import { AppRoutingModule } from "./app-routing.module";
