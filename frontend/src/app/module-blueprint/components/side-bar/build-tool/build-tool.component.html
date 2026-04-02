@@ -106,7 +106,7 @@
     </div>
 
     <!-- These go first so we don't have to add one to the index when querying them -->
-    <p-overlayPanel
+    <p-popover
       [appendTo]="'body'"
       *ngFor="
         let buildMenuCategory of buildMenuCategories;
@@ -128,11 +128,11 @@
           <img src="{{ item.iconUrl }}" height="40px" />
         </div>
       </div>
-    </p-overlayPanel>
+    </p-popover>
   </div>
 </div>
 
-<p-overlayPanel #categoryPanel [appendTo]="'body'">
+<p-popover #categoryPanel [appendTo]="'body'">
   <div class="building-panel-content">
     <div
       class="ui-clickable-icon element-button"
@@ -174,4 +174,4 @@
       </div>
     </div>
   </div>
-</p-overlayPanel>
+</p-popover>

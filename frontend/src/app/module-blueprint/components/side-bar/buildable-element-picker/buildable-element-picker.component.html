@@ -38,7 +38,7 @@
           {{ currentElement[indexElement].name }}
         </div>
 
-        <p-overlayPanel [appendTo]="'body'">
+        <p-popover [appendTo]="'body'">
           <div *ngIf="!isGasLiquid" class="element-panel-content">
             <div
               *ngFor="
@@ -65,7 +65,7 @@
             (selectElementCell)="chooseElement($event, 0)"
           >
           </app-cell-element-picker>
-        </p-overlayPanel>
+        </p-popover>
       </div>
     </div>
   </div>

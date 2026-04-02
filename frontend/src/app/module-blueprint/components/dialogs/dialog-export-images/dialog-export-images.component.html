@@ -20,11 +20,11 @@
         [(ngModel)]="exportOptions.gridLines"
       ></p-checkbox
       ><br /><br />
-      <p-dropdown
+      <p-select
         [options]="pixelPerTile"
         [(ngModel)]="exportOptions.pixelsPerTile"
         [style]="{ width: '15em' }"
-      ></p-dropdown
+      ></p-select
       ><br />
       <ng-container i18n>Image size: {{ finalSize }}</ng-container>
       <br />

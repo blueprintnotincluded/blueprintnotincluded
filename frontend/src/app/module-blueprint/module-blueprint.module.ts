@@ -17,11 +17,11 @@ import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { ButtonModule } from "primeng/button";
 import { CardModule } from "primeng/card";
 import { ScrollPanelModule } from "primeng/scrollpanel";
-import { OverlayPanelModule } from "primeng/overlaypanel";
+import { PopoverModule } from "primeng/popover";
 import { MenubarModule } from "primeng/menubar";
-import { TabMenuModule } from "primeng/tabmenu";
+import { TabsModule } from "primeng/tabs";
 import { DialogModule } from "primeng/dialog";
-import { DropdownModule } from "primeng/dropdown";
+import { SelectModule } from "primeng/select";
 import { AccordionModule } from "primeng/accordion";
 import { SliderModule } from "primeng/slider";
 import { ToastModule } from "primeng/toast";
@@ -32,13 +32,13 @@ import { TooltipModule } from "primeng/tooltip";
 import { MessageService } from "primeng/api";
 import { PanelModule } from "primeng/panel";
 import { CheckboxModule } from "primeng/checkbox";
-import { InputSwitchModule } from "primeng/inputswitch";
+import { ToggleSwitchModule } from "primeng/toggleswitch";
 import { FieldsetModule } from "primeng/fieldset";
 import { ListboxModule } from "primeng/listbox";
 import { ToggleButtonModule } from "primeng/togglebutton";
-import { SidebarModule } from "primeng/sidebar";
+import { DrawerModule } from "primeng/drawer";
 import { RadioButtonModule } from "primeng/radiobutton";
-import { Textarea } from "primeng/inputtextarea";
+import { Textarea } from "primeng/textarea";
 import { UsernameValidationDirective } from "./directives/username-validation.directive";
 import { ComponentSideSelectionToolComponent } from "./components/side-bar/selection-tool/selection-tool.component";
 import { KeyboardDirective } from "./directives/keyboard.directive";
@@ -137,21 +137,21 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     ButtonModule,
     CardModule,
     ScrollPanelModule,
-    OverlayPanelModule,
+    PopoverModule,
     MenubarModule,
-    TabMenuModule,
+    TabsModule,
     DialogModule,
-    DropdownModule,
+    SelectModule,
     AccordionModule,
     ToastModule,
     TooltipModule,
     PanelModule,
-    InputSwitchModule,
+    ToggleSwitchModule,
     CheckboxModule,
     FieldsetModule,
     ListboxModule,
     ToggleButtonModule,
-    SidebarModule,
+    DrawerModule,
     RadioButtonModule,
     BrowserAnimationsModule,
   ],

@@ -36,7 +36,7 @@
   [(ngModel)]="infoString"
 ></textarea>
 
-<p-overlayPanel #iconPanel [appendTo]="'body'">
+<p-popover #iconPanel [appendTo]="'body'">
   <div class="icon-panel-content">
     <div
       *ngFor="let icon of iconList"
@@ -52,4 +52,4 @@
       ></app-info-input-icon>
     </div>
   </div>
-</p-overlayPanel>
+</p-popover>
