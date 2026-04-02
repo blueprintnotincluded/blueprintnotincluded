@@ -1,5 +1,9 @@
 import { Component, OnInit } from "@angular/core";
-import { FormGroup, FormControl, Validators } from "@angular/forms";
+import {
+  UntypedFormGroup,
+  UntypedFormControl,
+  Validators,
+} from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MessageService } from "primeng/api";
 import { AuthenticationService } from "../../../services/authentification-service";
@@ -10,12 +14,12 @@ import { AuthenticationService } from "../../../services/authentification-servic
   styleUrls: ["./reset-password.component.css"],
 })
 export class ResetPasswordComponent implements OnInit {
-  resetForm = new FormGroup({
-    password: new FormControl("", [
+  resetForm = new UntypedFormGroup({
+    password: new UntypedFormControl("", [
       Validators.required,
       Validators.minLength(6),
     ]),
-    confirmPassword: new FormControl("", [Validators.required]),
+    confirmPassword: new UntypedFormControl("", [Validators.required]),
   });
 
   working = false;

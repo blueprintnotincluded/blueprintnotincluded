@@ -1,6 +1,10 @@
 import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
 import { SaveInfo } from "../../../common/save-info";
-import { FormGroup, FormControl, Validators } from "@angular/forms";
+import {
+  UntypedFormGroup,
+  UntypedFormControl,
+  Validators,
+} from "@angular/forms";
 import { BlueprintService } from "../../../services/blueprint-service";
 import { MessageService } from "primeng/api";
 import { AuthenticationService } from "../../../services/authentification-service";
@@ -17,9 +21,9 @@ export class ComponentSaveDialogComponent {
 
   @Output() updateThumbnail = new EventEmitter();
 
-  saveBlueprintForm = new FormGroup({
-    thumbnailType: new FormControl("Color", [Validators.required]),
-    name: new FormControl("", [
+  saveBlueprintForm = new UntypedFormGroup({
+    thumbnailType: new UntypedFormControl("Color", [Validators.required]),
+    name: new UntypedFormControl("", [
       Validators.required,
       BlueprintNameValidationDirective.validateBlueprintName,
     ]),

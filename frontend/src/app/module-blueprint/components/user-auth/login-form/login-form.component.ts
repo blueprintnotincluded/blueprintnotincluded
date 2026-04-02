@@ -5,7 +5,11 @@ import {
   EventEmitter,
   Output,
 } from "@angular/core";
-import { FormControl, FormGroup, Validators } from "@angular/forms";
+import {
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators,
+} from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "../../../services/authentification-service";
 import { MessageService } from "primeng/api";
@@ -20,12 +24,12 @@ import { Dialog } from "primeng/dialog";
   styleUrls: ["./login-form.component.css"],
 })
 export class LoginFormComponent implements OnDestroy {
-  loginForm = new FormGroup({
-    username: new FormControl("", [
+  loginForm = new UntypedFormGroup({
+    username: new UntypedFormControl("", [
       Validators.required,
       UsernameValidationDirective.validate,
     ]),
-    password: new FormControl("", [Validators.required]),
+    password: new UntypedFormControl("", [Validators.required]),
   });
 
   @Output() loginRegistration = new EventEmitter();
