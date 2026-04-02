@@ -36,7 +36,7 @@
   "license": "ISC",
   "dependencies": {
     "adm-zip": "^0.5.10",
-    "canvas": "^2.6.1",
+    "canvas": "^3.2.3",
     "crypto-js": "^4.2.0",
     "csharp-binary-stream": "^1.0.2",
     "dotenv": "^8.2.0",
