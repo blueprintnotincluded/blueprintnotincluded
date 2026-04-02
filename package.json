@@ -46,7 +46,7 @@
     "helmet": "^7.2.0",
     "isbot": "^3.6.8",
     "jimp": "^1.6.0",
-    "jsdom": "^16.3.0",
+    "jsdom": "^26.1.0",
     "jsdom-global": "^3.0.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^8.18.1",
