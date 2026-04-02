@@ -1,22 +1,26 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Phase 5 - Angular Frontend upgrade
-- **Date**: 2026-04-01
-- **Stack**: Node 20.18.0 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 13.1.1
+- **Phase**: Phase 5 - Angular Frontend upgrade (Angular 20 remaining)
+- **Date**: 2026-04-02
+- **Stack**: Node 20.18.0 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 19.2.20
 - **Tests**: 108 passing (Mocha + Chai — do not switch to Jest)
 
 ## Upgrade Phases
 
 ### ✅ Phase 4: Canvas & Asset Processing (complete)
 - Canvas 2.11.2 → 3.2.3 (Node.js 20 compatible)
-- `package.json` declared version updated from `^2.6.1` → `^3.2.3`
-- Note: jsdom@16 shows canvas as invalid peer (harmless — jsdom+canvas not used in tests)
+- jsdom 16 → 26 upgraded alongside (required for canvas 3.x peer compat in npm ci)
 
-### Phase 5: Angular Frontend
-- Angular 13 → 20 (incremental: 13→14→15→16→18→20; skip 17)
-- Component modernization
-- Build system updates
+### Phase 5: Angular Frontend (in progress)
+- ✅ Angular 13 → 19 complete (had to go through 17, skip was not possible)
+- [ ] Angular 19 → 20 (final step)
+- Key fixes applied during upgrade:
+  - zone.js import: `zone.js/dist/zone` → `zone.js` (0.14+ exports change)
+  - @typescript-eslint 5 → 6 (TS 5.x support)
+  - .eslintrc.json: added tsconfig.app.json + tsconfig.spec.json, removed createDefaultProgram
+  - blueprint-service.ts: fixed direct `node_modules/js-yaml/lib/js-yaml` import → `js-yaml`
+  - Keep @angular-eslint in sync with Angular version each step
 
 ### Phase 6: Final Optimization
 - Security audit
