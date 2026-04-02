@@ -18,6 +18,7 @@ import { OverlayPanel } from "primeng/overlaypanel";
   selector: "app-buildable-element-picker",
   templateUrl: "./buildable-element-picker.component.html",
   styleUrls: ["./buildable-element-picker.component.css"],
+  
 })
 export class BuildableElementPickerComponent implements OnInit {
   @Input() buildableElementsArray: BuildableElement[][];

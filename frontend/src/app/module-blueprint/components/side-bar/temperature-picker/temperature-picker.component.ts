@@ -10,6 +10,7 @@ import {
   selector: "app-temperature-picker",
   templateUrl: "./temperature-picker.component.html",
   styleUrls: ["./temperature-picker.component.css"],
+  
 })
 export class TemperaturePickerComponent {
   // temperature

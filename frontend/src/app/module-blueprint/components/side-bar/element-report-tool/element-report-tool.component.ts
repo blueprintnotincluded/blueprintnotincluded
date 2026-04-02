@@ -10,6 +10,7 @@ import {
   selector: "app-element-report-tool",
   templateUrl: "./element-report-tool.component.html",
   styleUrls: ["./element-report-tool.component.css"],
+  
 })
 export class ElementReportToolComponent {
   get data() {

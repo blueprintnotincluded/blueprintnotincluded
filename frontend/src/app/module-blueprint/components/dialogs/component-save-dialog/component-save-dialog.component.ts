@@ -15,6 +15,7 @@ import { Display } from "../../../../../../../lib/index";
   selector: "app-component-save-dialog",
   templateUrl: "./component-save-dialog.component.html",
   styleUrls: ["./component-save-dialog.component.css"],
+  
 })
 export class ComponentSaveDialogComponent {
   visible: boolean = false;

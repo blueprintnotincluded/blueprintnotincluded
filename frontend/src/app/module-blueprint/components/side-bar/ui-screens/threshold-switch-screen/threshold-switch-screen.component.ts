@@ -8,6 +8,7 @@ import {
   selector: "app-threshold-switch-screen",
   templateUrl: "./threshold-switch-screen.component.html",
   styleUrls: ["./threshold-switch-screen.component.css"],
+  
 })
 export class ThresholdSwhitchScreenComponent implements OnInit {
   @Input() blueprintItem: BlueprintItem;

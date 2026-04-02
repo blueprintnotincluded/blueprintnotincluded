@@ -18,6 +18,7 @@ import { UsernameValidationDirective } from "src/app/module-blueprint/directives
   selector: "app-register-form",
   templateUrl: "./register-form.component.html",
   styleUrls: ["./register-form.component.css"],
+  
 })
 export class RegisterFormComponent {
   registerForm = new UntypedFormGroup(

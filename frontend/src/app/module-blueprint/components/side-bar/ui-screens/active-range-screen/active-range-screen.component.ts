@@ -8,6 +8,7 @@ import {
   selector: "app-active-range-screen",
   templateUrl: "./active-range-screen.component.html",
   styleUrls: ["./active-range-screen.component.css"],
+  
 })
 export class ActiveRangeScreenComponent implements OnInit {
   @Input() blueprintItem: BlueprintItem;

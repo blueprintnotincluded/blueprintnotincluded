@@ -30,6 +30,7 @@ import { BlueprintItemInfo } from "../../../../../../../lib/src/blueprint/bluepr
   selector: "app-build-tool",
   templateUrl: "./build-tool.component.html",
   styleUrls: ["./build-tool.component.css"],
+  
 })
 export class ComponentSideBuildToolComponent
   implements IObsBuildItemChanged, IObsToolChanged

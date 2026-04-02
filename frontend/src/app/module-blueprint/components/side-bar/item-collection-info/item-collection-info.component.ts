@@ -19,6 +19,7 @@ import { BlueprintItemInfo } from "../../../../../../../lib/src/blueprint/bluepr
   selector: "app-item-collection-info",
   templateUrl: "./item-collection-info.component.html",
   styleUrls: ["./item-collection-info.component.css"],
+  
 })
 export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
   nbItems: string;

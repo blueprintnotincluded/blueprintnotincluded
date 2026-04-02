@@ -15,6 +15,7 @@ import { disableDebugTools } from "@angular/platform-browser";
   selector: "app-login-dialog",
   templateUrl: "./login-dialog.component.html",
   styleUrls: ["./login-dialog.component.css"],
+  
 })
 export class ComponentLoginDialogComponent implements OnInit {
   visible: boolean = false;

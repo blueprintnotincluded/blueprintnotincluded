@@ -74,6 +74,7 @@ TODO Feature List before release :
   templateUrl: "./component-blueprint-parent.component.html",
   styleUrls: ["./component-blueprint-parent.component.css"],
   providers: [MessageService],
+  
 })
 export class ComponentBlueprintParentComponent
   implements OnInit, IObsBlueprintChanged

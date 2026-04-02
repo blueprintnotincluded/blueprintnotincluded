@@ -15,6 +15,7 @@ import { OverlayPanel } from "primeng/overlaypanel";
   selector: "app-pipe-content",
   templateUrl: "./pipe-content.component.html",
   styleUrls: ["./pipe-content.component.css"],
+  
 })
 export class PipeContentComponent {
   @Input() currentElement: BuildableElement;
