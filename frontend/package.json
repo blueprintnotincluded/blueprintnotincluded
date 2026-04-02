@@ -85,11 +85,11 @@
     "serialize-javascript": "^2.1.1"
   },
   "engines": {
-    "node": "^20.18",
+    "node": "^20.19",
     "npm": "^10.0"
   },
   "volta": {
-    "node": "20.18.0"
+    "node": "20.19.4"
   },
   "optionalDependencies": {
     "@nrwl/nx-darwin-arm64": "^15.9.3"
