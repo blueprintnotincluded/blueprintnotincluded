@@ -28,19 +28,21 @@
   <p-checkbox
     [(ngModel)]="getDuplicates"
     binary="true"
-    i18n-label
-    label="Show duplicate blueprints"
+    inputId="getDuplicates"
     (onChange)="duplicateChange()"
   ></p-checkbox>
+  <label for="getDuplicates" i18n>Show duplicate blueprints</label>
   <br />
   <p-checkbox
     *ngIf="filterUserName !== null"
     [(ngModel)]="filterUser"
     binary="true"
-    i18n-label
-    label="Show only blueprints by {{ filterUserName }}"
+    inputId="filterUser"
     (onChange)="filterUserChange()"
   ></p-checkbox>
+  <label *ngIf="filterUserName !== null" for="filterUser" i18n
+    >Show only blueprints by {{ filterUserName }}</label
+  >
 
   <div #scrollable class="scrollable">
     <div class="blueprint-line" *ngFor="let item of blueprintListItems">
