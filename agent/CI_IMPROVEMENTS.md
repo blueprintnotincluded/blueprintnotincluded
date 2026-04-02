@@ -198,3 +198,5 @@ This requires computing the build args in a prior step and exporting them as `$G
 2. **Docker Tag Name Mismatch** — `publish.yml` now consistently uses `bni-deploy` as the local tag; `vars.IMAGE_NAME` is only used for the final registry tag.
 3. **Dead Composite Actions** — deleted `.github/workflows/backend_install/` and `.github/workflows/frontend_install/`.
 4. **Node Version Inconsistency** — `frontend-test.yml` updated to Node 20.18.0; redundant second `setup-node` step removed.
+5. **Stale MongoDB Health Check** — deferred; `mongosh` is only available in MongoDB 6.0+. Switch image and health check together when upgrading MongoDB in Phase 2B.
+6. **Docker Layer Caching** — `publish.yml` now uses `docker/setup-buildx-action@v3` + `docker/build-push-action@v6` with `cache-from/to: type=gha`.
