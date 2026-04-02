@@ -6,11 +6,9 @@ on:
       - "master"
 
 jobs:
-  # Optional quick test check (non-blocking)
   quick-check:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    continue-on-error: true  # Don't block deployment
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,12 +28,10 @@ jobs:
       - name: Compile TypeScript
         run: npm run tsc
 
-  # Main deployment job
   deploy:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: quick-check
-    if: always()  # Always deploy regardless of quick-check result
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,13 +54,13 @@ jobs:
             --build-arg BUILD_DATE="$BUILD_DATE" \
             --build-arg GIT_COMMIT="$GIT_COMMIT" \
             --build-arg GIT_BRANCH="$GIT_BRANCH" \
-            -t ${{ vars.IMAGE_NAME }} \
+            -t bni-deploy \
             -f deploy.Dockerfile .
         
       - name: Verify version information
         run: |
           echo "Verifying version information in built image..."
-          docker run --rm ${{ vars.IMAGE_NAME }} node -e "
+          docker run --rm bni-deploy node -e "
             console.log('Testing version controller...');
             try {
               // Test that the version controller can be loaded
@@ -106,12 +102,3 @@ jobs:
         
       - name: Push image to DO Container Registry
         run: docker push ${{ vars.DIGITALOCEAN_REGISTRY }}/${{ vars.IMAGE_NAME }}
-        
-      - name: Report status
-        run: |
-          if [[ "${{ needs.quick-check.result }}" == "failure" ]]; then
-            echo "⚠️ WARNING: Quick checks failed but deployment proceeded"
-            echo "Please review any issues and run full test suite"
-          else
-            echo "✅ Deployment completed successfully"
-          fi
