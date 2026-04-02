@@ -30,18 +30,26 @@
     ></button>
   </div>
   <div class="scrollable">
-    <p-accordion #buildingsAccordion>
-      <p-accordionTab
+    <p-accordion
+      #buildingsAccordion
+      [value]="activePanels"
+      [multiple]="true"
+      [transitionOptions]="'0ms'"
+      (valueChange)="onPanelChange($event)"
+    >
+      <p-accordion-panel
         *ngFor="
-          let itemCollection of toolService.selectTool.sameItemCollections
+          let itemCollection of toolService.selectTool.sameItemCollections;
+          let i = index
         "
-        [(selected)]="itemCollection.selected"
-        [header]="itemCollection.header"
-        [transitionOptions]="'0ms'"
+        [value]="i"
       >
-        <app-item-collection-info [itemCollection]="itemCollection">
-        </app-item-collection-info>
-      </p-accordionTab>
+        <p-accordion-header>{{ itemCollection.header }}</p-accordion-header>
+        <p-accordion-content>
+          <app-item-collection-info [itemCollection]="itemCollection">
+          </app-item-collection-info>
+        </p-accordion-content>
+      </p-accordion-panel>
     </p-accordion>
   </div>
 </div>

@@ -12,7 +12,7 @@ import {
   Visualization,
   BuildableElement,
 } from "../../../../../../../lib/index";
-import { OverlayPanel } from "primeng/overlaypanel";
+import { Popover } from "primeng/popover";
 
 @Component({
   selector: "app-buildable-element-picker",
@@ -29,7 +29,7 @@ export class BuildableElementPickerComponent implements OnInit {
   @Output() changeElement: EventEmitter<ElementChangeInfo> =
     new EventEmitter<ElementChangeInfo>();
 
-  @ViewChildren(OverlayPanel) elementPanels!: QueryList<OverlayPanel>;
+  @ViewChildren(Popover) elementPanels!: QueryList<Popover>;
 
   private cameraService: CameraService;
 

@@ -10,7 +10,7 @@ import {
   ExportImageOptions,
 } from "src/app/module-blueprint/services/blueprint-service";
 import { SelectItem } from "primeng/api";
-import { Dropdown } from "primeng/dropdown";
+import { Select } from "primeng/select";
 import {
   CameraService,
   DrawHelpers,

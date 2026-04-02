@@ -25,11 +25,11 @@
     </div>
   </div>
 
-  <p-overlayPanel #elementPanel [appendTo]="'body'">
+  <p-popover #elementPanel [appendTo]="'body'">
     <app-cell-element-picker
       [forceTag]="forceTag"
       (selectElementCell)="chooseElement($event)"
     >
     </app-cell-element-picker>
-  </p-overlayPanel>
+  </p-popover>
 </fieldset>

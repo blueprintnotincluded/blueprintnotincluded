@@ -9,7 +9,7 @@ import {
   EventEmitter,
 } from "@angular/core";
 import { BuildableElement } from "../../../../../../../lib";
-import { OverlayPanel } from "primeng/overlaypanel";
+import { Popover } from "primeng/popover";
 
 @Component({
   selector: "app-pipe-content",
@@ -22,7 +22,7 @@ export class PipeContentComponent {
   @Input() forceTag: string;
   @Output() selectElementPipe = new EventEmitter<BuildableElement>();
 
-  @ViewChild("elementPanel", { static: false }) elementPanel: OverlayPanel;
+  @ViewChild("elementPanel", { static: false }) elementPanel: Popover;
 
   showElements(event: any) {
     this.elementPanel.toggle(event);

@@ -36,6 +36,18 @@ export class ComponentSideSelectionToolComponent {
     );
   }
 
+  get activePanels(): number[] {
+    return this.toolService.selectTool.sameItemCollections
+      .map((c, i) => (c.selected ? i : -1))
+      .filter((i) => i >= 0);
+  }
+
+  onPanelChange(values: number[]): void {
+    this.toolService.selectTool.sameItemCollections.forEach((c, i) => {
+      c.selected = values.includes(i);
+    });
+  }
+
   itemGroupeNext() {
     this.toolService.selectTool.itemGroupeNext();
   }

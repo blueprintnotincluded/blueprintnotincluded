@@ -1,9 +1,9 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Phase 5 - Angular Frontend upgrade (Angular 20 remaining)
+- **Phase**: Phase 6 - Final Optimization (all upgrades complete)
 - **Date**: 2026-04-02
-- **Stack**: Node 20.18.0 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 19.2.20
+- **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20.3.18 · PrimeNG 20.4.0
 - **Tests**: 108 passing (Mocha + Chai — do not switch to Jest)
 
 ## Upgrade Phases
@@ -12,9 +12,15 @@
 - Canvas 2.11.2 → 3.2.3 (Node.js 20 compatible)
 - jsdom 16 → 26 upgraded alongside (required for canvas 3.x peer compat in npm ci)
 
-### Phase 5: Angular Frontend (in progress)
+### ✅ Phase 5: Angular Frontend (complete)
 - ✅ Angular 13 → 19 complete (had to go through 17, skip was not possible)
-- [ ] Angular 19 → 20 (final step)
+- ✅ Angular 19 → 20 complete
+- Node.js 20.18.0 → 20.19.4 (Angular CLI 20 requires ^20.19.0)
+- @angular-eslint 19 → 20.7.0, eslint 8.17 → 8.57+
+- PrimeNG 19 → 20: renamed components: overlaypanel→popover, dropdown→select,
+  inputswitch→toggleswitch, sidebar→drawer, tabmenu→tabs, inputtextarea→textarea;
+  accordion API rewrite (p-accordionTab → p-accordion-panel/header/content)
+- tsconfig.base.json moduleResolution: "node" → "bundler" (required for @primeuix ES module subpath exports)
 - Key fixes applied during upgrade:
   - zone.js import: `zone.js/dist/zone` → `zone.js` (0.14+ exports change)
   - @typescript-eslint 5 → 6 (TS 5.x support)

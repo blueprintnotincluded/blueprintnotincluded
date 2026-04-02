@@ -22,7 +22,7 @@ import {
   IObsToolChanged,
 } from "src/app/module-blueprint/services/tool-service";
 import { IObsBuildItemChanged } from "src/app/module-blueprint/common/tools/build-tool";
-import { OverlayPanel } from "primeng/overlaypanel";
+import { Popover } from "primeng/popover";
 import { ElementChangeInfo } from "../buildable-element-picker/buildable-element-picker.component";
 import { BlueprintItemInfo } from "../../../../../../../lib/src/blueprint/blueprint-item-info";
 
@@ -51,8 +51,8 @@ export class ComponentSideBuildToolComponent
     return this.currentItemToBuild.oniItem.isElement;
   }
 
-  @ViewChild("categoryPanel") categoryPanel: OverlayPanel;
-  @ViewChildren(OverlayPanel) itemPanels!: QueryList<OverlayPanel>;
+  @ViewChild("categoryPanel") categoryPanel: Popover;
+  @ViewChildren(Popover) itemPanels!: QueryList<Popover>;
 
   constructor(public toolService: ToolService) {
     this.items = [];

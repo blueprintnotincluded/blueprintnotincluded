@@ -3,7 +3,7 @@ import {
   BlueprintItemInfo,
   InfoIcon,
 } from "../../../../../../../lib/src/blueprint/blueprint-item-info";
-import { OverlayPanel } from "primeng/overlaypanel";
+import { Popover } from "primeng/popover";
 import { ColorPicker } from "primeng/colorpicker";
 import { DrawHelpers } from "../../../../../../../lib";
 
@@ -16,7 +16,7 @@ import { DrawHelpers } from "../../../../../../../lib";
 export class InfoInputComponent implements OnInit {
   @Input() blueprintIteminfo: BlueprintItemInfo;
 
-  @ViewChild("iconPanel") iconPanel: OverlayPanel;
+  @ViewChild("iconPanel") iconPanel: Popover;
 
   iconList: InfoIcon[] = [
     InfoIcon.icon_inf,
