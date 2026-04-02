@@ -37,7 +37,7 @@ jobs:
       - name: Setup Node.js (Backend)
         uses: actions/setup-node@v4
         with:
-          node-version: '20.18.0'
+          node-version: '20.19.4'
           cache: 'npm'
 
       - name: Install backend dependencies
