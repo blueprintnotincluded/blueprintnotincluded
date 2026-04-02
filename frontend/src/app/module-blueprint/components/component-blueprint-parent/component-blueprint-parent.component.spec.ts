@@ -7,6 +7,7 @@ import {
 import { RouterTestingModule } from "@angular/router/testing";
 import { of } from "rxjs";
 
+import { DatePipe } from "@angular/common";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { BuildTool } from "src/app/module-blueprint/common/tools/build-tool";
 import { ComponentBlueprintParentComponent } from "./component-blueprint-parent.component";
@@ -30,6 +31,7 @@ describe("ComponentBlueprintParentComponent", () => {
         },
         AuthenticationService,
         BuildTool,
+        DatePipe,
         ElementReport,
         SelectTool,
         provideHttpClient(withInterceptorsFromDi()),
