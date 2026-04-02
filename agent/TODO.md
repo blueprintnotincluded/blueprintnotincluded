@@ -1,9 +1,9 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Phase 1A - Node.js Environment Upgrade
-- **Date**: 2025-08-20
-- **Goal**: Systematically upgrade from Node.js 14/16 to Node.js 20+ with improved test coverage
+- **Phase**: Phase 2B - Mongoose upgrade (5.7.7 → 6.x → 7.x → 8.x)
+- **Date**: 2026-04-01
+- **Goal**: Systematically upgrade all dependencies to current stable versions with improved test coverage
 
 ## Immediate Priorities
 
@@ -27,16 +27,11 @@
   - [ ] Multi-language support tests
 
 ### Bug Fixes Identified
-- [ ] **Blueprint API Date Casting Error** (app/api/blueprint-controller.ts:297) - CastError when olderthan parameter is invalid
-  - Location: Blueprint find query with invalid date
-  - Impact: API returns 500 instead of proper validation error
-  - Fix: Add date validation before Mongoose query
+- [x] **Blueprint API Date Casting Error** ✅ Fixed - date validation added before Mongoose query in `blueprint-controller.ts:297`
 
 ### Technical Debt & Improvements
-- [ ] **Testing Framework Decision** - Evaluate Jest vs Mocha
-  - Current: Mocha (as per Mongoose team recommendation)
-  - Consider: Coverage reporting setup
-  - Add: Test utilities for common patterns
+- [x] **Testing Framework Decision** - ✅ Mocha + Chai (Mongoose recommendation, do not switch to Jest)
+  - Coverage reporting can be added later via `nyc`
 
 - [ ] **API Error Handling** - Standardize error responses
   - Current: Mix of different error formats
@@ -95,17 +90,15 @@
    - Current support for English, Chinese, Russian, Korean
    - Need tests for translation loading and switching
 
-## Future Upgrade Phases
+## Upgrade Phases
 
-### Phase 1B: TypeScript Library Foundation
-- Upgrade lib TypeScript 3.5.3 → 5.9.2
-- Update ES5 → ES2020 target
-- Fix type compatibility issues
+### ✅ Phase 1A: Node.js 20
+### ✅ Phase 1B: lib TypeScript 3.5.3 → 5.9.2, ES2020 target
+### ✅ Phase 2A: Backend TypeScript 4.9.5 → 5.9.2, strict mode
 
-### Phase 2: Backend Core Dependencies  
-- Testing framework evaluation (Mocha vs Jest)
-- Mongoose 5.x → 8.x (incremental)
-- TypeScript backend upgrade
+### Phase 2B: Mongoose (next)
+- Mongoose 5.7.7 → 6.x → 7.x → 8.x (incremental, test at each step)
+- Remove `@types/mongoose` (built-in types from 6.x onwards)
 
 ### Phase 3: Express Framework
 - Express 4.x → 5.x
@@ -126,6 +119,11 @@
 - Security audit
 - Performance testing
 - Documentation completion
+
+## CI Improvements
+See `agent/CI_IMPROVEMENTS.md` for the full prioritized list. High-priority items:
+- [ ] Tests never block deployment (publish.yml `if: always()`)
+- [ ] Docker tag name mismatch (`vars.IMAGE_NAME` vs hardcoded `bni-deploy`)
 
 ## Alternative Security Measures (Post-CAPTCHA Removal)
 
