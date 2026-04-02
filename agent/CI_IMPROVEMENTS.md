@@ -194,4 +194,7 @@ This requires computing the build args in a prior step and exporting them as `$G
 
 ## Completed
 
-_Move items here as they are resolved._
+1. **Tests Never Block Deployment** — removed `continue-on-error: true` from `quick-check` and `if: always()` from `deploy` in `publish.yml`.
+2. **Docker Tag Name Mismatch** — `publish.yml` now consistently uses `bni-deploy` as the local tag; `vars.IMAGE_NAME` is only used for the final registry tag.
+3. **Dead Composite Actions** — deleted `.github/workflows/backend_install/` and `.github/workflows/frontend_install/`.
+4. **Node Version Inconsistency** — `frontend-test.yml` updated to Node 20.18.0; redundant second `setup-node` step removed.
