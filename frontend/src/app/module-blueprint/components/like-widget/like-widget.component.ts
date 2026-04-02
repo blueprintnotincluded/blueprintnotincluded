@@ -5,6 +5,7 @@ import { BlueprintService } from "../../services/blueprint-service";
   selector: "app-like-widget",
   templateUrl: "./like-widget.component.html",
   styleUrls: ["./like-widget.component.css"],
+  
 })
 export class LikeWidgetComponent implements OnInit {
   @Input() blueprintId: string;

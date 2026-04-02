@@ -1,6 +1,9 @@
 import { Directive, Output, HostListener, EventEmitter } from "@angular/core";
 
-@Directive({ selector: "[appMouseWheel]" })
+@Directive({
+  selector: "[appMouseWheel]",
+  
+})
 export class MouseWheelDirective {
   @Output() mouseWheelUp = new EventEmitter();
   @Output() mouseWheelDown = new EventEmitter();

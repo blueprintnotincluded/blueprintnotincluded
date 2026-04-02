@@ -10,6 +10,7 @@ import { Validator, AbstractControl, NG_VALIDATORS } from "@angular/forms";
       multi: true,
     },
   ],
+  
 })
 export class UsernameValidationDirective implements Validator {
   constructor() {}

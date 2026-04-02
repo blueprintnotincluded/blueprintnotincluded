@@ -17,7 +17,7 @@ import {
   BlueprintResponse,
   BlueprintDelete,
 } from "../../../../../lib/index";
-import * as yaml from "node_modules/js-yaml/lib/js-yaml";
+import * as yaml from "js-yaml";
 
 @Injectable({ providedIn: "root" })
 export class BlueprintService implements IObsBlueprintChange {

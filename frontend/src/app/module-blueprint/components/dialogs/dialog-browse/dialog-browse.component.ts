@@ -26,6 +26,7 @@ const LOADING_STR = $localize`Loading...`;
   selector: "app-dialog-browse",
   templateUrl: "./dialog-browse.component.html",
   styleUrls: ["./dialog-browse.component.css"],
+  
 })
 export class DialogBrowseComponent implements OnInit {
   @ViewChild("browseDialog", { static: true }) browseDialog: Dialog;

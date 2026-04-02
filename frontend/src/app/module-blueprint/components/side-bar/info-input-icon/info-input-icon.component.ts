@@ -4,6 +4,7 @@ import { Component, OnInit, Input } from "@angular/core";
   selector: "app-info-input-icon",
   templateUrl: "./info-input-icon.component.html",
   styleUrls: ["./info-input-icon.component.css"],
+  
 })
 export class InfoInputIconComponent {
   @Input() width: number;

@@ -8,7 +8,10 @@ import {
 } from "@angular/core";
 import { Vector2 } from "../../../../../lib/index";
 
-@Directive({ selector: "[appDragAndDrop]" })
+@Directive({
+  selector: "[appDragAndDrop]",
+  
+})
 export class DragAndDropDirective {
   @Output() myMouseUp = new EventEmitter();
   @Output() myMouseDown = new EventEmitter();

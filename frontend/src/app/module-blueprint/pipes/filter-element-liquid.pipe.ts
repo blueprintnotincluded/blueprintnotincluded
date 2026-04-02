@@ -3,6 +3,7 @@ import { ElementReportDataItem } from "../common/tools/element-report";
 
 @Pipe({
   name: "filterElementLiquid",
+  
 })
 export class FilterElementLiquidPipe implements PipeTransform {
   transform(value: any, ...args: any[]): any {

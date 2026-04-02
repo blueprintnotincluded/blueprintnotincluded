@@ -22,6 +22,7 @@ import {
   selector: "app-dialog-export-images",
   templateUrl: "./dialog-export-images.component.html",
   styleUrls: ["./dialog-export-images.component.css"],
+  
 })
 export class DialogExportImagesComponent implements OnInit {
   blueprintSize: Vector2;
