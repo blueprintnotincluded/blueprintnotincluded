@@ -1,11 +1,15 @@
 import { TestBed } from "@angular/core/testing";
 import {
-  HttpClientTestingModule,
   HttpTestingController,
+  provideHttpClientTesting,
 } from "@angular/common/http/testing";
 import { of, throwError } from "rxjs";
 
 import { VersionService, VersionInfo } from "./version.service";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 
 describe("VersionService", () => {
   let service: VersionService;
@@ -23,8 +27,12 @@ describe("VersionService", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [VersionService],
+      imports: [],
+      providers: [
+        VersionService,
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
     });
     service = TestBed.inject(VersionService);
     httpMock = TestBed.inject(HttpTestingController);

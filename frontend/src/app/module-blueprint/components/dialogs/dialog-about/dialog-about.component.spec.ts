@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { HttpClientTestingModule } from "@angular/common/http/testing";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { of } from "rxjs";
 
 import { DialogAboutComponent } from "./dialog-about.component";
@@ -7,6 +7,10 @@ import {
   VersionService,
   VersionInfo,
 } from "../../../../services/version.service";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 
 describe("DialogAboutComponent", () => {
   let component: DialogAboutComponent;
@@ -40,8 +44,12 @@ describe("DialogAboutComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [DialogAboutComponent],
-      imports: [HttpClientTestingModule],
-      providers: [{ provide: VersionService, useValue: versionServiceSpy }],
+      imports: [],
+      providers: [
+        { provide: VersionService, useValue: versionServiceSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DialogAboutComponent);

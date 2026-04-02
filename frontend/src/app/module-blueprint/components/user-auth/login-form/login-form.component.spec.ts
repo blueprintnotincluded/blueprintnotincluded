@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule, FormsModule } from "@angular/forms";
-import { HttpClientTestingModule } from "@angular/common/http/testing";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import { MessageService } from "primeng/api";
 import { of, throwError } from "rxjs";
@@ -9,6 +9,10 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { LoginFormComponent } from "./login-form.component";
 import { AuthenticationService } from "../../../services/authentification-service";
 import { UsernameValidationDirective } from "src/app/module-blueprint/directives/username-validation.directive";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 
 describe("LoginFormComponent", () => {
   let component: LoginFormComponent;
@@ -31,17 +35,14 @@ describe("LoginFormComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [LoginFormComponent, UsernameValidationDirective],
-      imports: [
-        ReactiveFormsModule,
-        FormsModule,
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      imports: [ReactiveFormsModule, FormsModule, RouterTestingModule],
       providers: [
         { provide: AuthenticationService, useValue: authServiceSpy },
         { provide: MessageService, useValue: messageServiceSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginFormComponent);

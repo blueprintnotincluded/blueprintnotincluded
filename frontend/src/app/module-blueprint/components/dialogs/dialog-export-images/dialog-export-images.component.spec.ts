@@ -1,5 +1,8 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import { RouterTestingModule } from "@angular/router/testing";
 
 import { DialogExportImagesComponent } from "./dialog-export-images.component";
@@ -11,9 +14,12 @@ describe("DialogExportImagesComponent", () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientModule, RouterTestingModule.withRoutes([])],
       declarations: [DialogExportImagesComponent],
-      providers: [AuthenticationService],
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        AuthenticationService,
+        provideHttpClient(withInterceptorsFromDi()),
+      ],
     }).compileComponents();
   }));
 

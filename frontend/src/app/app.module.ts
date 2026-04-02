@@ -1,7 +1,10 @@
 import { BrowserModule, EventManager } from "@angular/platform-browser";
 import { NgModule, ErrorHandler } from "@angular/core";
 import { Router } from "@angular/router";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import {
   NgxGoogleAnalyticsModule,
   NgxGoogleAnalyticsRouterModule,
@@ -18,12 +21,12 @@ import { RequestResetComponent } from "./password-reset/request-reset.component"
 
 @NgModule({
   declarations: [AppComponent, RequestResetComponent],
+  bootstrap: [AppComponent],
   imports: [
     BrowserModule,
     NgxGoogleAnalyticsModule.forRoot(process.env.NG_APP_GA_TRACKING_CODE),
     NgxGoogleAnalyticsRouterModule.forRoot(),
     ModuleBlueprintModule,
-    HttpClientModule,
     AppRoutingModule,
     FormsModule,
   ],
@@ -39,8 +42,8 @@ import { RequestResetComponent } from "./password-reset/request-reset.component"
       provide: Sentry.TraceService,
       deps: [Router],
     },
+    provideHttpClient(withInterceptorsFromDi()),
   ],
-  bootstrap: [AppComponent],
 })
 export class AppModule {
   constructor(trace: Sentry.TraceService) {}

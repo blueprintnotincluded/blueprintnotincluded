@@ -1,5 +1,8 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import { RouterTestingModule } from "@angular/router/testing";
 import { MessageService } from "primeng/api";
 
@@ -13,9 +16,14 @@ describe("RegisterFormComponent", () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientModule, RouterTestingModule.withRoutes([])],
       declarations: [RegisterFormComponent],
-      providers: [AuthenticationService, CheckDuplicateService, MessageService],
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        AuthenticationService,
+        CheckDuplicateService,
+        MessageService,
+        provideHttpClient(withInterceptorsFromDi()),
+      ],
     }).compileComponents();
   }));
 
