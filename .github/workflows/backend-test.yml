@@ -14,15 +14,6 @@ on:
       - 'scripts/**'
   pull_request:
     branches: [master]
-    paths:
-      - 'app/**'
-      - 'lib/**'
-      - '__tests__/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'jest.config.js'
-      - 'tsconfig.json'
-      - 'scripts/**'
 
 jobs:
   backend-test:
