@@ -1,5 +1,8 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 
 import { TemperatureScaleComponent } from "./temperature-scale.component";
 
@@ -9,8 +12,9 @@ xdescribe("TemperatureScaleComponent", () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientModule],
       declarations: [TemperatureScaleComponent],
+      imports: [],
+      providers: [provideHttpClient(withInterceptorsFromDi())],
     }).compileComponents();
   }));
 

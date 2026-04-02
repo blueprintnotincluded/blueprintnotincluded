@@ -13,7 +13,7 @@ import {
   Input,
 } from "@angular/core";
 //import { Http, Response } from "@angular/http"
-import { HttpClientModule, HttpClient } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 
 // Engine imports
 import {

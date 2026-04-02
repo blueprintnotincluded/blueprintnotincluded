@@ -1,5 +1,8 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import { RouterTestingModule } from "@angular/router/testing";
 
 import { BuildTool } from "src/app/module-blueprint/common/tools/build-tool";
@@ -14,9 +17,15 @@ describe("ComponentCanvasComponent", () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientModule, RouterTestingModule.withRoutes([])],
       declarations: [ComponentCanvasComponent],
-      providers: [AuthenticationService, BuildTool, ElementReport, SelectTool],
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        AuthenticationService,
+        BuildTool,
+        ElementReport,
+        SelectTool,
+        provideHttpClient(withInterceptorsFromDi()),
+      ],
     }).compileComponents();
   }));
 

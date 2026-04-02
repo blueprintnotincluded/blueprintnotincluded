@@ -1,6 +1,9 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute } from "@angular/router";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import { RouterTestingModule } from "@angular/router/testing";
 import { of } from "rxjs";
 
@@ -16,8 +19,8 @@ describe("ComponentBlueprintParentComponent", () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientModule, RouterTestingModule.withRoutes([])],
       declarations: [ComponentBlueprintParentComponent],
+      imports: [RouterTestingModule.withRoutes([])],
       providers: [
         {
           provide: ActivatedRoute,
@@ -29,6 +32,7 @@ describe("ComponentBlueprintParentComponent", () => {
         BuildTool,
         ElementReport,
         SelectTool,
+        provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();
   }));

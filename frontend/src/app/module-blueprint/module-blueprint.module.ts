@@ -1,7 +1,10 @@
 import { NgModule, ChangeDetectorRef } from "@angular/core";
 import { CommonModule, DatePipe } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import { Routes, RouterModule } from "@angular/router";
 import { ComponentCanvasComponent } from "src/app/module-blueprint/components/component-canvas/component-canvas.component";
 import { ComponentMenuComponent } from "src/app/module-blueprint/components/component-menu/component-menu.component";
@@ -81,39 +84,6 @@ import { PipeContentComponent } from "./components/side-bar/pipe-content/pipe-co
 import { ResetPasswordComponent } from "./components/user-auth/reset-password/reset-password.component";
 
 @NgModule({
-  imports: [
-    CommonModule,
-    HttpClientModule,
-    FormsModule,
-    ReactiveFormsModule,
-    InputTextareaModule,
-    PasswordModule,
-    ColorPickerModule,
-    InputTextModule,
-    SliderModule,
-    ButtonModule,
-    CardModule,
-    ScrollPanelModule,
-    OverlayPanelModule,
-    MenubarModule,
-    TabMenuModule,
-    SlideMenuModule,
-    DialogModule,
-    DropdownModule,
-    AccordionModule,
-    ToastModule,
-    TooltipModule,
-    PanelModule,
-    InputSwitchModule,
-    CheckboxModule,
-    FieldsetModule,
-    ListboxModule,
-    VirtualScrollerModule,
-    ToggleButtonModule,
-    SidebarModule,
-    RadioButtonModule,
-    BrowserAnimationsModule,
-  ],
   declarations: [
     UsernameValidationDirective,
     BlueprintNameValidationDirective,
@@ -155,6 +125,39 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     PipeContentComponent,
     ResetPasswordComponent,
   ],
+  exports: [ComponentBlueprintParentComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    InputTextareaModule,
+    PasswordModule,
+    ColorPickerModule,
+    InputTextModule,
+    SliderModule,
+    ButtonModule,
+    CardModule,
+    ScrollPanelModule,
+    OverlayPanelModule,
+    MenubarModule,
+    TabMenuModule,
+    SlideMenuModule,
+    DialogModule,
+    DropdownModule,
+    AccordionModule,
+    ToastModule,
+    TooltipModule,
+    PanelModule,
+    InputSwitchModule,
+    CheckboxModule,
+    FieldsetModule,
+    ListboxModule,
+    VirtualScrollerModule,
+    ToggleButtonModule,
+    SidebarModule,
+    RadioButtonModule,
+    BrowserAnimationsModule,
+  ],
   providers: [
     CheckDuplicateService,
     AuthenticationService,
@@ -165,7 +168,7 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     ElementReport,
     DatePipe,
     MessageService,
+    provideHttpClient(withInterceptorsFromDi()),
   ],
-  exports: [ComponentBlueprintParentComponent],
 })
 export class ModuleBlueprintModule {}
