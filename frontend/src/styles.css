@@ -1,10 +1,20 @@
 /* You can add global styles to this file, and also import other style files */
 
+:root {
+  --p-font-family: "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+}
+
 body {
   margin: 0;
   padding: 0;
   overflow-y: auto;
   overflow-x: auto;
+  font-family: var(--p-font-family);
+}
+
+.p-menubar.p-menubar {
+  border-radius: 0;
 }
 
 .ui-clickable-icon {
@@ -55,14 +65,14 @@ body {
 }
 
 .ui-widget {
-  font-family: "Open Sans", "Helvetica Neue", sans-serif;
-  font-size: 14px;
+  font-family: var(--p-font-family);
+  font-size: 1rem;
   text-decoration: none;
 }
 
 .ui-fieldset-false-link {
   cursor: pointer;
-  color: #007ad9;
+  color: var(--p-primary-500);
 }
 
 .ui-fieldset-legend {
