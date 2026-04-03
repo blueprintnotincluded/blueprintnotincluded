@@ -5,6 +5,8 @@ import {
   provideHttpClient,
   withInterceptorsFromDi,
 } from "@angular/common/http";
+import { providePrimeNG } from "primeng/config";
+import Aura from "@primeuix/themes/aura";
 import {
   NgxGoogleAnalyticsModule,
   NgxGoogleAnalyticsRouterModule,
@@ -44,6 +46,7 @@ import { RequestResetComponent } from "./password-reset/request-reset.component"
       deps: [Router],
     },
     provideHttpClient(withInterceptorsFromDi()),
+    providePrimeNG({ theme: { preset: Aura } }),
   ],
 })
 export class AppModule {
