@@ -11,7 +11,7 @@
     "build": "ng build --configuration=production",
     "build:dev": "ng build --configuration=dev",
     "test": "ng test",
-    "ci:karma": "ng test --karma-config=karma-ci.conf.js --no-progress",
+    "ci:karma": "ng test --karma-config=karma-ci.conf.js --no-progress --no-watch",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "compodoc": "npx compodoc -p tsconfig.app.json",
