@@ -22,10 +22,9 @@ import { CustomEventManager } from "./module-blueprint/directives/custom-event-m
 import { RequestResetComponent } from "./password-reset/request-reset.component";
 
 @NgModule({
-  declarations: [RequestResetComponent],
+  declarations: [AppComponent, RequestResetComponent],
   bootstrap: [AppComponent],
   imports: [
-    AppComponent,
     BrowserModule,
     NgxGoogleAnalyticsModule.forRoot(process.env.NG_APP_GA_TRACKING_CODE),
     NgxGoogleAnalyticsRouterModule.forRoot(),
