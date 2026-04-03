@@ -1,12 +1,12 @@
 import { TestBed, waitForAsync } from "@angular/core/testing";
-import { provideRouter } from "@angular/router";
+import { RouterOutlet } from "@angular/router";
 import { AppComponent } from "./app.component";
 
 xdescribe("AppComponent", () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [provideRouter([])],
+      declarations: [AppComponent],
+      imports: [RouterOutlet],
     }).compileComponents();
   }));
 
