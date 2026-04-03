@@ -24,7 +24,7 @@
             "outputPath": "dist/blueprintnotincluded",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "aot": true,
             "assets": ["src/favicon_blueprint_oxygen-32x32.png", "src/assets"],
@@ -89,38 +89,38 @@
         "serve": {
           "builder": "@ngx-env/builder:dev-server",
           "options": {
-            "browserTarget": "blueprintnotincluded:build",
+            "buildTarget": "blueprintnotincluded:build",
             "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {
-              "browserTarget": "blueprintnotincluded:build:production"
+              "buildTarget": "blueprintnotincluded:build:production"
             },
             "zh-Hans": {
-              "browserTarget": "blueprintnotincluded:build:zh-Hans"
+              "buildTarget": "blueprintnotincluded:build:zh-Hans"
             },
             "ru": {
-              "browserTarget": "blueprintnotincluded:build:ru"
+              "buildTarget": "blueprintnotincluded:build:ru"
             },
             "ko": {
-              "browserTarget": "blueprintnotincluded:build:ko"
+              "buildTarget": "blueprintnotincluded:build:ko"
             },
             "development": {
-              "browserTarget": "blueprintnotincluded:build:development"
+              "buildTarget": "blueprintnotincluded:build:development"
             }
           }
         },
         "extract-i18n": {
           "builder": "@ngx-env/builder:extract-i18n",
           "options": {
-            "browserTarget": "blueprintnotincluded:build"
+            "buildTarget": "blueprintnotincluded:build"
           }
         },
         "test": {
           "builder": "@ngx-env/builder:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "assets": ["src/favicon_blueprint_oxygen.png", "src/assets"],
