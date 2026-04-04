@@ -25,7 +25,7 @@ export class BlueprintModel {
       name: {
         type: String,
         required: true,
-        match: [/^[a-zA-Z0-9-_ ]+$/, 'Blueprint name may only contain letters, numbers, hyphens, underscores, and spaces'],
+        match: [/^[a-zA-Z0-9_ -]+$/, 'Blueprint name may only contain letters, numbers, hyphens, underscores, and spaces'],
         maxlength: [60, 'Blueprint name must be 60 characters or fewer'],
         minlength: [1, 'Blueprint name is required'],
       },
