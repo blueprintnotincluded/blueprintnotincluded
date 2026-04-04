@@ -12,20 +12,32 @@ export class RegisterController {
       res.status(503).json(apiError(503, 'Database unavailable'));
     }
 
-    let user = new UserModel.model();
-
     let username = req.body.username;
-    let regexp = /^[a-zA-Z0-9-_]+$/;
-    if (username.search(regexp) == -1 || username.length > 30) {
+    let email = req.body.email;
+    let password = req.body.password;
+
+    if (!username || !email || !password) {
+      res.status(400).json(apiError(400, 'Username, email, and password are required'));
+      return;
+    }
+
+    let usernameRegexp = /^[a-zA-Z0-9-_]+$/;
+    if (usernameRegexp.test(username) === false || username.length > 30) {
       console.log('Username too long or with weird characters');
       res.status(400).json(apiError(400, 'Username must be 1–30 alphanumeric characters (hyphens and underscores allowed)'));
       return;
     }
 
-    // TODO sanitation and check null here
-    user.email = req.body.email;
-    user.username = req.body.username;
-    user.setPassword(req.body.password);
+    let emailRegexp = /.+@.+\..+/;
+    if (!emailRegexp.test(email) || email.length > 254) {
+      res.status(400).json(apiError(400, 'Invalid email address'));
+      return;
+    }
+
+    let user = new UserModel.model();
+    user.email = email;
+    user.username = username;
+    user.setPassword(password);
 
     user
       .save()
@@ -38,7 +50,7 @@ export class RegisterController {
         console.log('Registration error');
         console.log(error);
 
-        if (error.code == 11000) res.json({ duplicateError: true });
+        if (error.code == 11000) res.status(409).json(apiError(409, 'Username or email already in use'));
         else res.status(500).json(apiError(500, 'Registration failed'));
       });
   }

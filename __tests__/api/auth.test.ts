@@ -42,7 +42,8 @@ describe('Authentication API (Mocha)', function () {
         password: 'testpassword123',
       });
 
-      expect(response.body.duplicateError).to.be.true;
+      expect(response.status).to.equal(409);
+      expect(response.body.errors).to.be.an('array');
     });
 
     it('should reject a duplicate email', async function () {
@@ -52,7 +53,8 @@ describe('Authentication API (Mocha)', function () {
         password: 'testpassword123',
       });
 
-      expect(response.body.duplicateError).to.be.true;
+      expect(response.status).to.equal(409);
+      expect(response.body.errors).to.be.an('array');
     });
 
     it('should reject a username with special characters', async function () {

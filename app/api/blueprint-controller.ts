@@ -33,6 +33,11 @@ export class BlueprintController {
       let thumbnail = req.body.thumbnail;
       let overwrite = req.body.overwrite;
 
+      if (!name) {
+        res.status(400).json(apiError(400, 'Blueprint name is required'));
+        return;
+      }
+
       let regexp = /^[a-zA-Z0-9-_ ]+$/;
       if (name.search(regexp) == -1 || name.length > 60) {
         console.log('Blueprint name too long or with weird characters');
@@ -315,7 +320,12 @@ export class BlueprintController {
         }
 
         filterUserId = req.query.filterUserId as string;
-        filterName = req.query.filterName as string;
+        const rawFilterName = req.query.filterName as string;
+        if (rawFilterName != null && rawFilterName.length > 60) {
+          res.status(400).json(apiError(400, 'filterName must be 60 characters or fewer'));
+          return;
+        }
+        filterName = rawFilterName;
         getDuplicates = req.query.getDuplicates as any;
       } catch (error) {
         console.log(error);
