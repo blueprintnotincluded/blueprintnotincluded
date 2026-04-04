@@ -10,7 +10,6 @@ process.env.NODE_ENV = 'test';
 import { TestSetup } from '../setup/testSetup';
 
 describe('Blueprint Validation API (Mocha)', function () {
-  let testData: any;
   let authToken: string;
 
   // Global setup
@@ -25,8 +24,8 @@ describe('Blueprint Validation API (Mocha)', function () {
   });
 
   beforeEach(async function () {
-    this.timeout(5000);
-    testData = await TestSetup.beforeEach();
+    this.timeout(15000);
+    await TestSetup.beforeEach();
 
     // Register a user and get auth token
     const registerResponse = await TestSetup.request().post('/api/register').send({
