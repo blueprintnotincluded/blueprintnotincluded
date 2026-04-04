@@ -4,7 +4,7 @@ import { Inject, Injectable, LOCALE_ID } from "@angular/core";
 import { po } from "gettext-parser";
 
 const BASE_STRING_DIR = "assets/strings";
-const PO_FILES = {
+const PO_FILES: Record<string, string> = {
   ko: "strings_preinstalled_ko_klei.po",
   ru: "strings_preinstalled_ru_klei.po",
   "zh-Hans": "strings_preinstalled_zh_klei.po",
@@ -14,7 +14,7 @@ const PO_FILES = {
 export class GameStringService {
   private poFile: string;
   private poData: Promise<Record<string, string>>;
-  public dict: Record<string, string>;
+  public dict!: Record<string, string>;
 
   constructor(
     @Inject(LOCALE_ID) private locale: string,
@@ -24,7 +24,7 @@ export class GameStringService {
     if (getLocaleId(this.locale) === "en") this.poFile = PO_FILES["zh-Hans"]; // use zh po file to get msgid
     const ctx2str: Record<string, string> = {};
 
-    this.poData = new Promise(async (res, rej) => {
+    this.poData = new Promise(async (res) => {
       this.http
         .get(BASE_STRING_DIR + "/" + this.poFile, { responseType: "text" })
         .subscribe((data) => {

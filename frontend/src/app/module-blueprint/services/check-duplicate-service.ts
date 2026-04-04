@@ -28,6 +28,7 @@ export class CheckDuplicateService {
             // return error
             return { usernameExists: true };
           }
+          return null;
         })
       );
     };

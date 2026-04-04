@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Router } from "@angular/router";
+
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
@@ -25,9 +25,9 @@ export interface TokenPayload {
 export class AuthenticationService {
   private static localStorage: string = "blueprintnotincluded-token";
 
-  private token: string;
+  private token: string = "";
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient) {}
 
   private saveToken(token: string): void {
     localStorage.setItem(AuthenticationService.localStorage, token);
@@ -36,12 +36,13 @@ export class AuthenticationService {
 
   public getToken(): string {
     if (!this.token) {
-      this.token = localStorage.getItem(AuthenticationService.localStorage);
+      this.token =
+        localStorage.getItem(AuthenticationService.localStorage) || "";
     }
     return this.token;
   }
 
-  public getUserDetails(): UserDetails {
+  public getUserDetails(): UserDetails | null {
     const token = this.getToken();
     let payload;
     if (token) {
@@ -70,9 +71,9 @@ export class AuthenticationService {
     let base;
 
     if (method === "post") {
-      base = this.http.post(`/api/${type}`, user);
+      base = this.http.post<TokenResponse>(`/api/${type}`, user);
     } else {
-      base = this.http.get(`/api/${type}`, {
+      base = this.http.get<TokenResponse>(`/api/${type}`, {
         headers: { Authorization: `Bearer ${this.getToken()}` },
       });
     }
