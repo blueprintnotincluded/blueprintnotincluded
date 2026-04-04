@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 // Library imports
 import { ActivatedRoute, Params, UrlSegment } from "@angular/router";
-import * as JSZip from "jszip";
+import JSZip from "jszip";
 import { MessageService } from "primeng/api";
 import {} from "sanitize-filename";
 import {

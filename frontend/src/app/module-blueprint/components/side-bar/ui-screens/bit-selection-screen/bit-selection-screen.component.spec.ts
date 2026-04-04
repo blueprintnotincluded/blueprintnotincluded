@@ -22,7 +22,7 @@ describe("BitSelectionScreenComponent", () => {
     fixture = TestBed.createComponent(BitSelectionScreenComponent);
     component = fixture.componentInstance;
     // TODO: replace these garbage stubs which are needed to boot this component for a non-test
-    OniItem.getOniItem = () => undefined;
+    OniItem.getOniItem = () => undefined as unknown as OniItem;
     component.blueprintItem = new BlueprintItem();
     component.blueprintItem.getUiSettings = () =>
       ({ values: [0] } as UiSaveSettings);

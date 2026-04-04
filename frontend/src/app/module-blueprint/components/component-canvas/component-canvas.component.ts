@@ -30,7 +30,7 @@ import {
 
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { DrawMiniUi } from "../../drawing/draw-mini-ui";
-import * as JSZip from "jszip";
+import JSZip from "jszip";
 import {
   BlueprintService,
   ExportImageOptions,

@@ -1,12 +1,8 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { of } from "rxjs";
 
 import { DialogAboutComponent } from "./dialog-about.component";
-import {
-  VersionService,
-  VersionInfo,
-} from "../../../../services/version.service";
+import { VersionService } from "../../../../services/version.service";
 import {
   provideHttpClient,
   withInterceptorsFromDi,
@@ -16,16 +12,6 @@ describe("DialogAboutComponent", () => {
   let component: DialogAboutComponent;
   let fixture: ComponentFixture<DialogAboutComponent>;
   let mockVersionService: jasmine.SpyObj<VersionService>;
-
-  const mockVersionInfo: VersionInfo = {
-    version: "1.2.3",
-    name: "blueprintnotincluded",
-    buildTime: "2024-01-15T10:30:00Z",
-    buildCommit: "abc123def4567890123456789012345678901234",
-    buildBranch: "main",
-    environment: "production",
-    nodeVersion: "v20.18.0",
-  };
 
   beforeEach(async () => {
     const versionServiceSpy = jasmine.createSpyObj("VersionService", [
