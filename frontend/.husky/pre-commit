@@ -1,11 +1,5 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# Frontend: lint staged files
-cd frontend && volta run --node 20.19.4 npx lint-staged
-
-# Backend: type-check if any backend/lib TS files are staged
-cd ..
-if git diff --cached --name-only | grep -qE '^(app|lib)/.*\.ts$'; then
-  volta run --node 20.19.4 npm run tsc
-fi
+(cd frontend && npx lint-staged)
+(cd frontend && npx tsc --noEmit)
