@@ -10,6 +10,7 @@ export class RegisterController {
     if (mongoose.connection.readyState == 0) {
       console.log('MongoDb is not ready');
       res.status(503).json(apiError(503, 'Database unavailable'));
+      return;
     }
 
     let username = req.body.username;
