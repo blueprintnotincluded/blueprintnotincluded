@@ -1,59 +1,55 @@
-# Session Notes - 2025-09-16
+# Session Notes - 2026-04-03
 
 ## What We Accomplished ✅
 
-### Previous Sessions (Discovered Already Complete)
-1. **Phase 1A: Node.js Environment Upgrade** ✅
-   - Node.js upgraded to 20.18.0 (volta config)
-   - .nvmrc updated to Node.js 20
-   - All tests passing with Node.js 20
+### Test Coverage Expansion (108 → 141 tests)
 
-2. **Phase 1B: TypeScript Library Foundation** ✅  
-   - lib TypeScript upgraded to 5.9.2
-   - lib @types/node updated to 20.18.0
-   - lib tsconfig.json targeting ES2020
+1. **User Auth Coverage** (auth.test.ts)
+   - Registration validation: duplicate username/email, special chars, length > 30
+   - Full password reset flow: request token (valid + nonexistent email), use token
+     (invalid, expired, success with login verification, token reuse prevention)
+   - Patched `emailService.ts` to skip SMTP when `NODE_ENV=test`
 
-3. **Critical Bug Fix** ✅
-   - Blueprint date validation bug fixed (app/api/blueprint-controller.ts:297)
-   - CastError handling improved
+2. **Blueprint API Coverage** (blueprints.test.ts)
+   - `GET /api/getblueprint/:id` — valid id, likedByMe flag, nonexistent id, bad id format
+   - `GET /api/getblueprints` — filterUserId, filterName, case-insensitive name search
+   - `POST /api/uploadblueprint` — 401 without auth, new blueprint, overwrite prompt,
+     overwrite=true, name validation (special chars, length > 60)
+   - `POST /api/likeblueprint` — 401 without auth, like, unlike, nonexistent id, missing id
+   - `POST /api/deleteblueprint` — 401 without auth, soft delete, ownership enforcement, missing id
 
-### Current Session Accomplishments
-4. **Phase 2A: Backend TypeScript Upgrade** ✅
-   - **TypeScript**: 4.9.5 → 5.9.2 
-   - **@types/node**: Updated to 20.19.16
-   - **tsconfig.json**: ES5 → ES2020 target, ES2020 lib
-   - **@types/mongoose**: Removed conflicting external types
-   - **Mongoose types**: Using built-in types from 5.7.7
-   - **Strict mode**: Full strict type checking enabled
-   - **All 18 tests passing** with strict TypeScript
+### Database Indexes Added
 
-## Current Project State
-- **Build Status**: ✅ Green - TypeScript 5.9.2 with strict mode
-- **Test Status**: ✅ 18/18 tests passing (Mocha + Chai framework)
-- **Node Version**: 20.18.0 (via volta)
-- **TypeScript**: 5.9.2 with strict checking
-- **Next Phase**: Phase 2B - Mongoose upgrade 5.7.7 → 6.x → 7.x → 8.x
+- **Blueprint**: `{ createdAt: -1 }`, `{ owner, createdAt }`, `{ owner, name }`
+- **User**: `{ resetToken }`
 
-## Key Technical Insights
-- **Mongoose built-in types** work better than external @types/mongoose
-- **ES2020 target** provides superior type inference
-- **Type conflicts** were causing the strict mode issues, not the codebase
-- **Foundation is solid** for incremental Mongoose upgrades
+### API Error Standardization
 
-## Key Files Modified This Session
-- app/api/models/user.ts (TypeScript method fixes)
-- app/api/login-controller.ts (type annotations, date fix)
-- app/api/duplicate-check-controller.ts (query type fix)
-- app/api/auth.ts (callback type annotations)
+All error responses now use JSON:API format via shared `apiError()` helper
+(`app/api/utils/apiError.ts`):
+```json
+{ "errors": [{ "status": "400", "title": "Human-readable message" }] }
+```
 
-## Test Infrastructure Ready
-- Mocha + Chai working well
-- Database setup functional
-- Good test organization structure
-- Ready for expansion during upgrade phases
+HTTP status codes corrected across all controllers:
+- Validation errors: `500` → `400`
+- Not found: `500` → `404`
+- Permission denied: `500` → `403`
+- Only genuine server faults remain `500`
 
-## User Preferences Noted
-- Improve test coverage whenever possible during upgrades
-- Stop and ask questions when coverage is minimal
-- Document future improvements in agent/*.md files
-- Create helpful documentation for agent work
+Success responses are unchanged (frontend reads them directly).
+
+## Decisions Made This Session
+
+- **Error format**: JSON:API (`{ errors: [{ status, title }] }`) — RFC 7807 deemed overkill
+- **Rate limiting**: Deferred to Cloudflare — no express-rate-limit needed
+- **Security items** (account lockout, email verification, JWT hardening): not prioritized
+
+## Remaining Work (from agent/TODO.md)
+
+- **Database Validation** — strengthen Mongoose schema validation / input sanitization
+- **Frontend tests** — no Angular tests exist
+- **Asset Processing tests** — batch script pipelines
+- **API Documentation** — no OpenAPI/Swagger spec
+- **Security** — account lockout, email verification, JWT hardening, HTTPS/HSTS,
+  input sanitization, security logging (rate limiting handled by Cloudflare)
