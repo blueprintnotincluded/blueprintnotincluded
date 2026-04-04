@@ -53,6 +53,7 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 - `npm start` - Start Angular development server
 - `npm run build` - Build for production
 - `npm run lint` - Run Angular linting
+- `npm test -- --watch=false` - Run frontend tests (required before committing frontend changes)
 
 ### Asset Processing
 The application processes game assets for blueprint visualization:
