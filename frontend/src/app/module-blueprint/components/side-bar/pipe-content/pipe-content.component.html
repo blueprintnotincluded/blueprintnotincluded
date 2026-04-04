@@ -27,7 +27,7 @@
 
   <p-popover #elementPanel [appendTo]="'body'">
     <app-cell-element-picker
-      [forceTag]="forceTag"
+      [forceTag]="forceTag || ''"
       (selectElementCell)="chooseElement($event)"
     >
     </app-cell-element-picker>

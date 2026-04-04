@@ -1,13 +1,4 @@
-import {
-  Component,
-  OnInit,
-  Output,
-  EventEmitter,
-  ViewChild,
-  ElementRef,
-  ViewChildren,
-  QueryList,
-} from "@angular/core";
+import { Component, ViewChild, ViewChildren, QueryList } from "@angular/core";
 import { ToolType } from "../../../common/tools/tool";
 import {
   BlueprintItemElement,
@@ -41,8 +32,8 @@ export class ComponentSideBuildToolComponent
     return BuildMenuCategory.buildMenuCategories;
   }
 
-  currentCategory: BuildMenuCategory;
-  currentItem: OniItem;
+  currentCategory!: BuildMenuCategory;
+  currentItem!: OniItem;
 
   get currentItemToBuild() {
     return this.toolService.buildTool.templateItemToBuild;
@@ -51,7 +42,7 @@ export class ComponentSideBuildToolComponent
     return this.currentItemToBuild.oniItem.isElement;
   }
 
-  @ViewChild("categoryPanel") categoryPanel: Popover;
+  @ViewChild("categoryPanel") categoryPanel!: Popover;
   @ViewChildren(Popover) itemPanels!: QueryList<Popover>;
 
   constructor(public toolService: ToolService) {
@@ -94,7 +85,11 @@ export class ComponentSideBuildToolComponent
     this.categoryPanel.hide();
   }
 
-  showItems(event: any, buildMenuCategory: BuildMenuCategory, indexCategory) {
+  showItems(
+    event: any,
+    buildMenuCategory: BuildMenuCategory,
+    indexCategory: number
+  ) {
     this.items[indexCategory] = [];
 
     let lineIndex = 0;
@@ -105,7 +100,7 @@ export class ComponentSideBuildToolComponent
         let oniItem = OniItem.getOniItem(buildMenuItem.buildingId);
         if (this.items[indexCategory][lineIndex] == null)
           this.items[indexCategory].push([]);
-        const specialItemName = {
+        const specialItemName: Record<string, string> = {
           Element: $localize`:special item:Element`,
           Info: $localize`:special item:Info`,
         };
@@ -145,7 +140,7 @@ export class ComponentSideBuildToolComponent
     this.uiItemChanged();
   }
 
-  changeElement(elementChangeInfo: ElementChangeInfo) {
+  changeElement(_elementChangeInfo: ElementChangeInfo) {
     this.toolService.buildTool.templateItemToBuild.reloadCamera = true;
     //this.toolService.buildTool.templateItemToBuild.setElement(elementChangeInfo.newElement.id, elementChangeInfo.index);
   }

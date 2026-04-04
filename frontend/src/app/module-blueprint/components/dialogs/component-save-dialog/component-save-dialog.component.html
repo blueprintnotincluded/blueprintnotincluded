@@ -21,11 +21,15 @@
       *ngIf="f.name.invalid && (f.name.dirty || f.name.touched)"
       class="error-red"
     >
-      <div *ngIf="f.name.errors.required" i18n>Blueprint name is required.</div>
-      <div *ngIf="f.name.errors.invalidChars" i18n>
+      <div *ngIf="f.name.errors?.['required']" i18n>
+        Blueprint name is required.
+      </div>
+      <div *ngIf="f.name.errors?.['invalidChars']" i18n>
         Invalid characters in blueprint name
       </div>
-      <div *ngIf="f.name.errors.tooLong" i18n>Blueprint name is too long</div>
+      <div *ngIf="f.name.errors?.['tooLong']" i18n>
+        Blueprint name is too long
+      </div>
     </div>
     <div *ngIf="overwrite" class="error-red" i18n>
       You already have a blueprint with this name. Overwrite?

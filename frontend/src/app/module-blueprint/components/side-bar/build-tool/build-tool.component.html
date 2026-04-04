@@ -101,7 +101,7 @@
     </app-ui-screen-container>
 
     <div *ngIf="currentItem.isInfo">
-      <app-info-input [blueprintIteminfo]="currentItemToBuild">
+      <app-info-input [blueprintIteminfo]="$any(currentItemToBuild)">
       </app-info-input>
     </div>
 

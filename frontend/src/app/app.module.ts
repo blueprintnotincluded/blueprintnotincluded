@@ -59,7 +59,7 @@ const BniTheme = definePreset(Aura, {
   bootstrap: [AppComponent],
   imports: [
     BrowserModule,
-    NgxGoogleAnalyticsModule.forRoot(process.env.NG_APP_GA_TRACKING_CODE),
+    NgxGoogleAnalyticsModule.forRoot(process.env.NG_APP_GA_TRACKING_CODE ?? ""),
     NgxGoogleAnalyticsRouterModule.forRoot(),
     ModuleBlueprintModule,
     AppRoutingModule,
@@ -82,5 +82,5 @@ const BniTheme = definePreset(Aura, {
   ],
 })
 export class AppModule {
-  constructor(trace: Sentry.TraceService) {}
+  constructor(_trace: Sentry.TraceService) {}
 }

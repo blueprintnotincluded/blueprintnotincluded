@@ -1,17 +1,14 @@
-import { Component, OnInit, Output, EventEmitter } from "@angular/core";
+import { Component, Output, EventEmitter } from "@angular/core";
 import {
   UntypedFormGroup,
   UntypedFormControl,
   Validators,
   AbstractControl,
-  FormBuilder,
 } from "@angular/forms";
-import { HttpClient } from "@angular/common/http";
 import { CheckDuplicateService } from "../../../services/check-duplicate-service";
 import { AuthenticationService } from "../../../services/authentification-service";
 import { MessageService } from "primeng/api";
-import { Subscription, of } from "rxjs";
-import { catchError } from "rxjs/operators";
+import { Subscription } from "rxjs";
 import { UsernameValidationDirective } from "src/app/module-blueprint/directives/username-validation.directive";
 
 @Component({
@@ -64,13 +61,14 @@ export class RegisterFormComponent {
     this.registerForm.reset();
   }
 
-  passwordConfirming(c: AbstractControl): { invalid: boolean } {
-    if (c.get("password").value !== c.get("confirmPassword").value)
+  passwordConfirming(c: AbstractControl): { invalid: boolean } | null {
+    if (c.get("password")?.value !== c.get("confirmPassword")?.value)
       return { invalid: true };
+    return null;
   }
 
-  subscription: Subscription;
-  registerSubscription: Subscription;
+  subscription!: Subscription;
+  registerSubscription!: Subscription;
 
   onSubmit() {
     this.working = true;
@@ -119,7 +117,7 @@ export class RegisterFormComponent {
     }
   }
 
-  handleSaveError(error: any) {
+  handleSaveError(_error: any) {
     this.authError = true;
     this.working = false;
 

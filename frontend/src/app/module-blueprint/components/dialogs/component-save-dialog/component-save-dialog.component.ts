@@ -1,5 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
-import { SaveInfo } from "../../../common/save-info";
+import { Component, Output, EventEmitter } from "@angular/core";
 import {
   UntypedFormGroup,
   UntypedFormControl,
@@ -75,7 +74,7 @@ export class ComponentSaveDialogComponent {
   }
 
   // TODO this is ugly, use pipe map instead
-  public id: string;
+  public id!: string;
   handleSaveNext(response: any) {
     if (response.overwrite) {
       this.overwrite = true;
@@ -106,7 +105,7 @@ export class ComponentSaveDialogComponent {
     this.working = false;
   }
 
-  intervalId: number;
+  intervalId!: number;
   showDialog() {
     this.reset();
     this.visible = true;
@@ -118,7 +117,7 @@ export class ComponentSaveDialogComponent {
 
   tryClearInterval() {
     if (this.intervalId != null) window.clearInterval(this.intervalId);
-    this.intervalId = null;
+    this.intervalId = null as any;
   }
 
   updateThumbnailReady() {

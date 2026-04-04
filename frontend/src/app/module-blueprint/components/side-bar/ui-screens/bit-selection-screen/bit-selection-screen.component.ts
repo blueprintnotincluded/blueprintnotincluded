@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import {
   BBitSelectorSideScreen,
   BlueprintItem,
@@ -11,11 +11,11 @@ import {
   standalone: false,
 })
 export class BitSelectionScreenComponent implements OnInit {
-  @Input() blueprintItem: BlueprintItem;
-  @Input() bitSelectorSideScreen: BBitSelectorSideScreen;
+  @Input() blueprintItem!: BlueprintItem;
+  @Input() bitSelectorSideScreen!: BBitSelectorSideScreen;
 
-  value: number;
-  buttonValues: boolean[];
+  value!: number;
+  buttonValues!: boolean[];
 
   get title() {
     return this.bitSelectorSideScreen.title;
@@ -27,8 +27,9 @@ export class BitSelectionScreenComponent implements OnInit {
 
   ngOnInit(): void {
     this.buttonValues = [];
-    this.value = this.blueprintItem.getUiSettings(this.bitSelectorSideScreen.id)
-      .values[0] as number;
+    this.value = this.blueprintItem.getUiSettings(
+      this.bitSelectorSideScreen.id
+    )!.values[0] as number;
 
     this.updateButtonValues();
   }
@@ -42,7 +43,7 @@ export class BitSelectionScreenComponent implements OnInit {
   clickBit(index: number) {
     this.value = index;
     this.updateButtonValues();
-    this.blueprintItem.getUiSettings(this.bitSelectorSideScreen.id).values[0] =
+    this.blueprintItem.getUiSettings(this.bitSelectorSideScreen.id)!.values[0] =
       index;
   }
 

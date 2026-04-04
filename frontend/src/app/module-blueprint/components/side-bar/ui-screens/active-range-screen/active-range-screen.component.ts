@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import {
   BlueprintItem,
   BActiveRangeSideScreen,
@@ -11,8 +11,8 @@ import {
   standalone: false,
 })
 export class ActiveRangeScreenComponent implements OnInit {
-  @Input() blueprintItem: BlueprintItem;
-  @Input() activeRangeSideScreen: BActiveRangeSideScreen;
+  @Input() blueprintItem!: BlueprintItem;
+  @Input() activeRangeSideScreen!: BActiveRangeSideScreen;
 
   get activateTooltip() {
     let toolip = this.activeRangeSideScreen.activateTooltip;
@@ -27,7 +27,7 @@ export class ActiveRangeScreenComponent implements OnInit {
     return toolip;
   }
 
-  values: number[];
+  values!: number[];
 
   constructor() {}
 
@@ -35,16 +35,16 @@ export class ActiveRangeScreenComponent implements OnInit {
     this.values = [];
     this.values[0] = this.blueprintItem.getUiSettings(
       this.activeRangeSideScreen.id
-    ).values[0] as number;
+    )!.values[0] as number;
     this.values[1] = this.blueprintItem.getUiSettings(
       this.activeRangeSideScreen.id
-    ).values[1] as number;
+    )!.values[1] as number;
   }
 
   onChange() {
-    this.blueprintItem.getUiSettings(this.activeRangeSideScreen.id).values[0] =
+    this.blueprintItem.getUiSettings(this.activeRangeSideScreen.id)!.values[0] =
       this.values[0];
-    this.blueprintItem.getUiSettings(this.activeRangeSideScreen.id).values[1] =
+    this.blueprintItem.getUiSettings(this.activeRangeSideScreen.id)!.values[1] =
       this.values[1];
   }
 }

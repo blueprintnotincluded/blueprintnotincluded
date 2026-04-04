@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { BlueprintItem } from "../../../../../../../../lib/index";
 
 @Component({
@@ -8,7 +8,7 @@ import { BlueprintItem } from "../../../../../../../../lib/index";
   standalone: false,
 })
 export class UiScreenContainerComponent {
-  @Input() blueprintItem: BlueprintItem;
+  @Input() blueprintItem!: BlueprintItem;
 
   get showSettings() {
     return this.blueprintItem.oniItem.uiScreens.length > 0;

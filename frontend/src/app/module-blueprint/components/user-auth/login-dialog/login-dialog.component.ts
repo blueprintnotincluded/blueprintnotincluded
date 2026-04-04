@@ -1,15 +1,7 @@
-import {
-  Component,
-  OnInit,
-  Output,
-  EventEmitter,
-  ViewChild,
-  ChangeDetectorRef,
-} from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { Dialog } from "primeng/dialog";
 import { LoginFormComponent } from "../login-form/login-form.component";
 import { RegisterFormComponent } from "../register-form/register-form.component";
-import { disableDebugTools } from "@angular/platform-browser";
 
 @Component({
   selector: "app-login-dialog",
@@ -21,9 +13,9 @@ export class ComponentLoginDialogComponent implements OnInit {
   visible: boolean = false;
   loginType: LoginType = LoginType.Login;
 
-  @ViewChild("loginDialog", { static: true }) loginDialog: Dialog;
-  @ViewChild("loginForm") loginForm: LoginFormComponent;
-  @ViewChild("registerForm") registerForm: RegisterFormComponent;
+  @ViewChild("loginDialog", { static: true }) loginDialog!: Dialog;
+  @ViewChild("loginForm") loginForm!: LoginFormComponent;
+  @ViewChild("registerForm") registerForm!: RegisterFormComponent;
 
   get label() {
     return this.isLogin ? $localize`Login` : $localize`Register`;
@@ -58,7 +50,7 @@ export class ComponentLoginDialogComponent implements OnInit {
     this.cdRef.detectChanges();
   }
 
-  cancel(event: any) {
+  cancel(_event: any) {
     this.hideDialog();
   }
 

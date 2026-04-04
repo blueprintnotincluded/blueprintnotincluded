@@ -8,10 +8,10 @@ import { BlueprintService } from "../../services/blueprint-service";
   standalone: false,
 })
 export class LikeWidgetComponent implements OnInit {
-  @Input() blueprintId: string;
+  @Input() blueprintId!: string;
   @Input() nbLikes: number = 0;
-  @Input() likedByMe: boolean;
-  @Input() disabled: boolean;
+  @Input() likedByMe!: boolean;
+  @Input() disabled!: boolean;
 
   get nbLikesString() {
     return $localize`like${this.nbLikes != 1 ? "s" : ""}`;

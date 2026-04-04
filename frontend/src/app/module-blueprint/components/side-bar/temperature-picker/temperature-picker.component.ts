@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
+import { Component, Input, Output, EventEmitter } from "@angular/core";
 import {
   BlueprintItem,
   CameraService,
@@ -14,8 +14,8 @@ import {
 })
 export class TemperaturePickerComponent {
   // temperature
-  @Input() blueprintItem: BlueprintItem;
-  @Input() temperatureWarning: boolean;
+  @Input() blueprintItem!: BlueprintItem;
+  @Input() temperatureWarning!: boolean;
 
   @Output() changeTemperature: EventEmitter<number> =
     new EventEmitter<number>();

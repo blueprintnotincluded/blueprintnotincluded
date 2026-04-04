@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { VersionService } from "../../../../services/version.service";
 
 @Component({
@@ -8,7 +8,7 @@ import { VersionService } from "../../../../services/version.service";
   standalone: false,
 })
 export class DialogAboutComponent implements OnInit {
-  visible: boolean;
+  visible: boolean = false;
   versionString: string = "Loading...";
   detailedVersionInfo: string = "";
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { DrawHelpers, BuildableElement } from "../../../../../../../lib/index";
 
 @Component({
@@ -8,9 +8,9 @@ import { DrawHelpers, BuildableElement } from "../../../../../../../lib/index";
   standalone: false,
 })
 export class ElementIconComponent {
-  @Input() element: BuildableElement;
-  @Input() width: string;
-  @Input() height: string;
+  @Input() element!: BuildableElement;
+  @Input() width!: string;
+  @Input() height!: string;
 
   // TODO boolean in export
   get isIcon() {

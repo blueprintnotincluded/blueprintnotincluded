@@ -1,17 +1,4 @@
-import {
-  Component,
-  OnInit,
-  ChangeDetectorRef,
-  Output,
-  EventEmitter,
-  ViewChild,
-  ElementRef,
-  Renderer2,
-  OnChanges,
-  AfterViewChecked,
-  AfterViewInit,
-} from "@angular/core";
-import { BlueprintService } from "../../../services/blueprint-service";
+import { Component, ViewChild, ElementRef, Renderer2 } from "@angular/core";
 import { ToolService } from "../../../services/tool-service";
 import { Accordion } from "primeng/accordion";
 
@@ -23,8 +10,8 @@ import { Accordion } from "primeng/accordion";
 })
 export class ComponentSideSelectionToolComponent {
   @ViewChild("buildingsAccordion", { static: true })
-  buildingsAccordion: Accordion;
-  @ViewChild("selectToolCard", { static: true }) selectToolCard: ElementRef;
+  buildingsAccordion!: Accordion;
+  @ViewChild("selectToolCard", { static: true }) selectToolCard!: ElementRef;
 
   constructor(public toolService: ToolService, private renderer: Renderer2) {}
 
@@ -42,9 +29,10 @@ export class ComponentSideSelectionToolComponent {
       .filter((i) => i >= 0);
   }
 
-  onPanelChange(values: number[]): void {
+  onPanelChange(values: any): void {
+    const vals = Array.isArray(values) ? values : [values];
     this.toolService.selectTool.sameItemCollections.forEach((c, i) => {
-      c.selected = values.includes(i);
+      c.selected = vals.includes(i);
     });
   }
 

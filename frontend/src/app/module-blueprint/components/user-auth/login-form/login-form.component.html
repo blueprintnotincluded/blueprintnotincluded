@@ -8,11 +8,11 @@
     *ngIf="f.username.invalid && (f.username.dirty || f.username.touched)"
     class="error-red"
   >
-    <div *ngIf="f.username.errors.required" i18n>Username is required.</div>
-    <div *ngIf="f.username.errors.invalidChars" i18n>
+    <div *ngIf="f.username.errors?.required" i18n>Username is required.</div>
+    <div *ngIf="f.username.errors?.invalidChars" i18n>
       Invalid characters in username
     </div>
-    <div *ngIf="f.username.errors.tooLong" i18n>Username is too long</div>
+    <div *ngIf="f.username.errors?.tooLong" i18n>Username is too long</div>
   </div>
 
   <br />
@@ -30,7 +30,7 @@
     *ngIf="f.password.invalid && (f.password.dirty || f.password.touched)"
     class="error-red"
   >
-    <div *ngIf="f.password.errors.required" i18n>Password is required.</div>
+    <div *ngIf="f.password.errors?.required" i18n>Password is required.</div>
   </div>
   <div *ngIf="authError" class="error-red" i18n>Authentication error</div>
 
