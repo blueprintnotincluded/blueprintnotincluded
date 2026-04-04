@@ -62,8 +62,9 @@ describe('Authentication API (Mocha)', function () {
         password: 'testpassword123',
       });
 
-      expect(response.status).to.equal(500);
-      expect(response.body.registrationResult).to.equal('ERROR');
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].status).to.equal('400');
     });
 
     it('should reject a username longer than 30 characters', async function () {
@@ -73,8 +74,9 @@ describe('Authentication API (Mocha)', function () {
         password: 'testpassword123',
       });
 
-      expect(response.status).to.equal(500);
-      expect(response.body.registrationResult).to.equal('ERROR');
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].status).to.equal('400');
     });
   });
 
@@ -148,7 +150,8 @@ describe('Authentication API (Mocha)', function () {
         .send({ email: 'nobody@nowhere.com' });
 
       expect(response.status).to.equal(404);
-      expect(response.body.message).to.equal('User not found');
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].title).to.equal('User not found');
     });
 
     it('should save a reset token for a valid email', async function () {
@@ -175,7 +178,8 @@ describe('Authentication API (Mocha)', function () {
         .send({ token: 'bogus-token', newPassword: 'newpassword123' });
 
       expect(response.status).to.equal(400);
-      expect(response.body.message).to.equal('Invalid or expired reset token');
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].title).to.equal('Invalid or expired reset token');
     });
 
     it('should reject an expired token', async function () {
@@ -189,7 +193,8 @@ describe('Authentication API (Mocha)', function () {
         .send({ token: 'expired-token', newPassword: 'newpassword123' });
 
       expect(response.status).to.equal(400);
-      expect(response.body.message).to.equal('Invalid or expired reset token');
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].title).to.equal('Invalid or expired reset token');
     });
 
     it('should reset the password and allow login with the new password', async function () {

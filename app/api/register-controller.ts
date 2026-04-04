@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { UserModel } from './models/user';
 import mongoose from 'mongoose';
+import { apiError } from './utils/apiError';
 
 export class RegisterController {
   public register(req: Request, res: Response) {
@@ -8,7 +9,7 @@ export class RegisterController {
 
     if (mongoose.connection.readyState == 0) {
       console.log('MongoDb is not ready');
-      res.status(503).json({ registrationResult: 'DB_ERROR' });
+      res.status(503).json(apiError(503, 'Database unavailable'));
     }
 
     let user = new UserModel.model();
@@ -17,7 +18,7 @@ export class RegisterController {
     let regexp = /^[a-zA-Z0-9-_]+$/;
     if (username.search(regexp) == -1 || username.length > 30) {
       console.log('Username too long or with weird characters');
-      res.status(500).json({ registrationResult: 'ERROR' });
+      res.status(400).json(apiError(400, 'Username must be 1–30 alphanumeric characters (hyphens and underscores allowed)'));
       return;
     }
 
@@ -38,7 +39,7 @@ export class RegisterController {
         console.log(error);
 
         if (error.code == 11000) res.json({ duplicateError: true });
-        else res.status(500).json({ registrationResult: 'ERROR' });
+        else res.status(500).json(apiError(500, 'Registration failed'));
       });
   }
 }

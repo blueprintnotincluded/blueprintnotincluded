@@ -56,8 +56,9 @@ describe('Blueprint Validation API (Mocha)', function () {
           overwrite: false,
         });
 
-      expect(response.status).to.equal(500);
-      expect(response.body.saveBlueprintResult).to.equal('ERROR');
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].status).to.equal('400');
     });
 
     it('should reject blueprint names longer than 60 characters', async function () {
@@ -72,8 +73,9 @@ describe('Blueprint Validation API (Mocha)', function () {
           overwrite: false,
         });
 
-      expect(response.status).to.equal(500);
-      expect(response.body.saveBlueprintResult).to.equal('ERROR');
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].status).to.equal('400');
     });
 
     it('should accept valid blueprint names', async function () {

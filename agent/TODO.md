@@ -56,9 +56,9 @@ CAPTCHA removed 2025-10-13 per user request. Remaining measures to implement:
 
 ## Technical Debt
 
-- [ ] **API Error Handling** — standardize response format across all endpoints (currently mixed)
+- [x] **API Error Handling** — all error responses now use JSON:API format `{ errors: [{ status, title }] }` via shared `apiError()` helper; success responses unchanged
 - [ ] **Database Validation** — strengthen Mongoose schema validation; add input sanitization layer
-- [ ] **Database Query Review** — audit blueprint listing queries for missing indexes and pagination efficiency
+- [x] **Database Query Review** — added indexes: Blueprint `{ createdAt: -1 }`, `{ owner, createdAt }`, `{ owner, name }`; User `{ resetToken }`
 - [ ] **API Documentation** — no OpenAPI/Swagger spec exists
 
 ## Questions for Product Owner
