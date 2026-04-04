@@ -119,7 +119,7 @@ export class ComponentMenuComponent
       this.overlayMenuItems.push({
         label: overlay.name,
         id: overlay.id.toString(),
-        command: (_event: any) => {
+        command: (event: any) => {
           this.clickOverlay(event);
         },
       });
@@ -129,14 +129,14 @@ export class ComponentMenuComponent
     this.displayMenuItems.push({
       label: $localize`Blueprint`,
       id: Display.blueprint.toString(),
-      command: (_event: any) => {
+      command: (event: any) => {
         this.clickDisplay(event);
       },
     });
     this.displayMenuItems.push({
       label: $localize`Color`,
       id: Display.solid.toString(),
-      command: (_event: any) => {
+      command: (event: any) => {
         this.clickDisplay(event);
       },
     });
@@ -145,21 +145,21 @@ export class ComponentMenuComponent
     this.visualizationMenuItems.push({
       label: $localize`None`,
       id: Visualization.none.toString(),
-      command: (_event: any) => {
+      command: (event: any) => {
         this.clickVisualization(event);
       },
     });
     this.visualizationMenuItems.push({
       label: $localize`Temperature`,
       id: Visualization.temperature.toString(),
-      command: (_event: any) => {
+      command: (event: any) => {
         this.clickVisualization(event);
       },
     });
     this.visualizationMenuItems.push({
       label: $localize`Elements`,
       id: Visualization.elements.toString(),
-      command: (_event: any) => {
+      command: (event: any) => {
         this.clickVisualization(event);
       },
     });
