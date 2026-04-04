@@ -4,6 +4,7 @@ import passport from 'passport';
 import { sendResetEmail } from './utils/emailService';
 import crypto from 'crypto-js';
 import { randomBytes } from 'crypto';
+import { apiError } from './utils/apiError';
 
 export class LoginController {
   public login(req: Request, res: Response) {
@@ -13,7 +14,7 @@ export class LoginController {
       var token;
       // If Passport throws/catches an error
       if (err) {
-        res.status(404).json(err);
+        res.status(500).json(apiError(500, 'Authentication error'));
         return;
       }
 
@@ -26,7 +27,7 @@ export class LoginController {
         });
       } else {
         // If user is not found
-        res.status(401).json();
+        res.status(401).json(apiError(401, 'Invalid credentials'));
       }
     })(req, res);
   }
@@ -40,7 +41,7 @@ export class LoginController {
       const user = await UserModel.model.findOne({ email });
       if (!user) {
         console.log('User not found for email:', email);
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json(apiError(404, 'User not found'));
       }
 
       // Generate reset token
@@ -57,11 +58,11 @@ export class LoginController {
         res.json({ message: 'Password reset email sent' });
       } catch (emailError) {
         console.error('Error sending reset email:', emailError);
-        res.status(500).json({ message: 'Error sending reset email' });
+        res.status(500).json(apiError(500, 'Error sending reset email'));
       }
     } catch (error) {
       console.error('Password reset request error:', error);
-      res.status(500).json({ message: 'Error processing request' });
+      res.status(500).json(apiError(500, 'Error processing request'));
     }
   }
 
@@ -75,7 +76,7 @@ export class LoginController {
       });
 
       if (!user) {
-        return res.status(400).json({ message: 'Invalid or expired reset token' });
+        return res.status(400).json(apiError(400, 'Invalid or expired reset token'));
       }
 
       user.setPassword(newPassword);
@@ -86,7 +87,7 @@ export class LoginController {
       res.json({ message: 'Password successfully reset' });
     } catch (error) {
       console.error('Password reset error:', error);
-      res.status(500).json({ message: 'Error resetting password' });
+      res.status(500).json(apiError(500, 'Error resetting password'));
     }
   }
 }

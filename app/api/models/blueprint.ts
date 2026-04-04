@@ -44,6 +44,13 @@ export class BlueprintModel {
       deleted: Boolean,
     });
 
+    // Listing query: filter by createdAt range + deleted, sort by createdAt desc
+    blueprintSchema.index({ createdAt: -1 });
+    // Listing query with owner filter
+    blueprintSchema.index({ owner: 1, createdAt: -1 });
+    // Upload duplicate-name check: find({ owner, name })
+    blueprintSchema.index({ owner: 1, name: 1 });
+
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }
 }

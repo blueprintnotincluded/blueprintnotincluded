@@ -37,6 +37,9 @@ export class UserModel {
       resetTokenExpiration: Date,
     });
 
+    // Password reset lookup: findOne({ resetToken, resetTokenExpiration: { $gt: ... } })
+    userSchema.index({ resetToken: 1 });
+
     userSchema.methods.setPassword = function (password: string): void {
       (this as any).salt = crypto.lib.WordArray.random(16).toString();
       (this as any).hash = crypto

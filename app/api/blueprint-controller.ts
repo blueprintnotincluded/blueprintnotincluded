@@ -17,6 +17,7 @@ import { UserModel, User, UserJwt } from './models/user';
 import { UpdateBasedOn } from './batch/update-based-on';
 import { BatchUtils } from './batch/batch-utils';
 import { use } from 'passport';
+import { apiError } from './utils/apiError';
 
 export class BlueprintController {
   public uploadBlueprint(req: Request, res: Response) {
@@ -35,7 +36,7 @@ export class BlueprintController {
       let regexp = /^[a-zA-Z0-9-_ ]+$/;
       if (name.search(regexp) == -1 || name.length > 60) {
         console.log('Blueprint name too long or with weird characters');
-        res.status(500).json({ saveBlueprintResult: 'ERROR' });
+        res.status(400).json(apiError(400, 'Blueprint name must be 1–60 alphanumeric characters (hyphens, underscores, and spaces allowed)'));
         return;
       }
 
@@ -73,7 +74,7 @@ export class BlueprintController {
         .catch(err => {
           console.log('Blueprint find error');
           console.log(err);
-          res.status(500).json({ saveBlueprintResult: 'ERROR' });
+          res.status(500).json(apiError(500, 'Failed to save blueprint'));
         });
     }
   }
@@ -89,7 +90,7 @@ export class BlueprintController {
         let ownerId = user._id;
 
         if (blueprintDelete.blueprintId == null || user == null) {
-          res.status(500).json({ likeBlueprint: 'ERROR' });
+          res.status(400).json(apiError(400, 'Missing blueprintId'));
           return;
         }
 
@@ -109,17 +110,17 @@ export class BlueprintController {
                 .catch(error => {
                   console.log('deleteBlueprint error');
                   console.log(error);
-                  res.status(500).json({ deleteBlueprint: 'ERROR' });
+                  res.status(500).json(apiError(500, 'Failed to delete blueprint'));
                 });
-            } else res.status(500).json({ deleteBlueprint: 'ERROR' });
+            } else res.status(403).json(apiError(403, 'Blueprint not found or not owned by user'));
           })
           .catch(err => {
             console.log('deleteBlueprint error');
             console.log(err);
-            res.status(500).json({ deleteBlueprint: 'ERROR' });
+            res.status(500).json(apiError(500, 'Failed to delete blueprint'));
           });
       } catch {
-        res.status(500).json({ deleteBlueprint: 'ERROR' });
+        res.status(500).json(apiError(500, 'Failed to delete blueprint'));
       }
     }
   }
@@ -133,7 +134,7 @@ export class BlueprintController {
         let blueprintLike = req.body as BlueprintLike;
 
         if (blueprintLike.blueprintId == null || blueprintLike.like == null || user == null) {
-          res.status(500).json({ likeBlueprint: 'ERROR' });
+          res.status(400).json(apiError(400, 'Missing blueprintId or like'));
           return;
         }
 
@@ -159,17 +160,17 @@ export class BlueprintController {
                 .catch(error => {
                   console.log('likeBlueprint error');
                   console.log(error);
-                  res.status(500).json({ likeBlueprint: 'ERROR' });
+                  res.status(500).json(apiError(500, 'Failed to update like'));
                 });
-            } else res.status(500).json({ likeBlueprint: 'ERROR' });
+            } else res.status(404).json(apiError(404, 'Blueprint not found'));
           })
           .catch(err => {
             console.log('likeBlueprint error');
             console.log(err);
-            res.status(500).json({ likeBlueprint: 'ERROR' });
+            res.status(500).json(apiError(500, 'Failed to update like'));
           });
       } catch {
-        res.status(500).json({ likeBlueprint: 'ERROR' });
+        res.status(500).json(apiError(500, 'Failed to update like'));
       }
     }
   }
@@ -207,12 +208,12 @@ export class BlueprintController {
               nbLikes: nbLikes,
             };
             res.json(response);
-          } else res.status(500).json({ getBlueprint: 'ERROR' });
+          } else res.status(404).json(apiError(404, 'Blueprint not found'));
         })
         .catch(err => {
           console.log('Blueprint find error');
           console.log(err);
-          res.status(500).json({ getBlueprint: 'ERROR' });
+          res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
         });
     }
   }
@@ -237,12 +238,12 @@ export class BlueprintController {
             let bniBlueprint = angularBlueprint.toBniBlueprint(blueprint.name);
 
             res.json(bniBlueprint);
-          } else res.status(500).json({ getBlueprint: 'ERROR' });
+          } else res.status(404).json(apiError(404, 'Blueprint not found'));
         })
         .catch(err => {
           console.log('Blueprint find error');
           console.log(err);
-          res.status(500).json({ getBlueprint: 'ERROR' });
+          res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
         });
     }
   }
@@ -269,12 +270,12 @@ export class BlueprintController {
             //PixiBackend.pixiBackend.generateThumbnail(angularBlueprint);
 
             res.json({ status: 'ok' });
-          } else res.status(500).json({ getBlueprint: 'ERROR' });
+          } else res.status(404).json(apiError(404, 'Blueprint not found'));
         })
         .catch(err => {
           console.log('Blueprint find error');
           console.log(err);
-          res.status(500).json({ getBlueprint: 'ERROR' });
+          res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
         });
     }
   }
@@ -295,13 +296,13 @@ export class BlueprintController {
       try {
         // Check if olderthan parameter exists and is not empty
         if (!req.query.olderthan || req.query.olderthan === '') {
-          res.status(400).json({ getBlueprints: 'Invalid olderthan parameter' });
+          res.status(400).json(apiError(400, 'Missing required parameter: olderthan'));
           return;
         }
 
         let dateInt = parseInt(req.query.olderthan as string);
         if (isNaN(dateInt)) {
-          res.status(400).json({ getBlueprints: 'Invalid olderthan parameter' });
+          res.status(400).json(apiError(400, 'Invalid olderthan parameter: must be a numeric timestamp'));
           return;
         }
 
@@ -309,7 +310,7 @@ export class BlueprintController {
 
         // Validate that the date is valid after setting time
         if (isNaN(dateFilter.getTime())) {
-          res.status(400).json({ getBlueprints: 'Invalid date value' });
+          res.status(400).json(apiError(400, 'Invalid olderthan parameter: timestamp out of range'));
           return;
         }
 
@@ -318,7 +319,7 @@ export class BlueprintController {
         getDuplicates = req.query.getDuplicates as any;
       } catch (error) {
         console.log(error);
-        res.status(400).json({ getBlueprints: 'Invalid parameters' });
+        res.status(400).json(apiError(400, 'Invalid query parameters'));
         return;
       }
 
@@ -342,7 +343,7 @@ export class BlueprintController {
         .catch(err => {
           console.log('Blueprint find error');
           console.log(err);
-          res.status(500).json({ getBlueprint: 'ERROR' });
+          res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
         });
     }
   }
@@ -451,7 +452,7 @@ export class BlueprintController {
         console.log('Blueprint save error');
         console.log(error);
 
-        res.status(500).json({ saveBlueprintResult: 'ERROR' });
+        res.status(500).json(apiError(500, 'Failed to save blueprint'));
       });
   }
 }

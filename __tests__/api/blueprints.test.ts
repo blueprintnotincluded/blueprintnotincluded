@@ -122,10 +122,9 @@ describe('Blueprint API (Mocha)', function () {
     it('should return 400 error with proper validation for missing olderthan parameter', async function () {
       const response = await TestSetup.request().get('/api/getblueprints');
 
-      // Fixed: Backend now properly validates the 'olderthan' parameter
-      // Returns 400 Bad Request instead of 500 Internal Server Error
       expect(response.status).to.equal(400);
-      expect(response.body.getBlueprints).to.equal('Invalid olderthan parameter');
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].status).to.equal('400');
     });
 
     it('should return 400 error for invalid olderthan parameter formats', async function () {
@@ -135,7 +134,7 @@ describe('Blueprint API (Mocha)', function () {
         .query({ olderthan: 'invalid-date' });
 
       expect(response1.status).to.equal(400);
-      expect(response1.body.getBlueprints).to.equal('Invalid olderthan parameter');
+      expect(response1.body.errors).to.be.an('array');
 
       // Test empty parameter
       const response2 = await TestSetup.request()
@@ -143,7 +142,7 @@ describe('Blueprint API (Mocha)', function () {
         .query({ olderthan: '' });
 
       expect(response2.status).to.equal(400);
-      expect(response2.body.getBlueprints).to.equal('Invalid olderthan parameter');
+      expect(response2.body.errors).to.be.an('array');
 
       // Test mixed alphanumeric
       const response3 = await TestSetup.request()
@@ -151,7 +150,7 @@ describe('Blueprint API (Mocha)', function () {
         .query({ olderthan: 'abc123def' });
 
       expect(response3.status).to.equal(400);
-      expect(response3.body.getBlueprints).to.equal('Invalid olderthan parameter');
+      expect(response3.body.errors).to.be.an('array');
     });
 
     it('should accept negative timestamps as valid dates before 1970', async function () {
@@ -239,18 +238,20 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.likedByMe).to.be.false;
     });
 
-    it('should return 500 for a nonexistent id', async function () {
+    it('should return 404 for a nonexistent id', async function () {
       const fakeId = '000000000000000000000001';
 
       const response = await TestSetup.request().get(`/api/getblueprint/${fakeId}`);
 
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(404);
+      expect(response.body.errors).to.be.an('array');
     });
 
     it('should return 500 for an invalid id format', async function () {
       const response = await TestSetup.request().get('/api/getblueprint/not-an-id');
 
       expect(response.status).to.equal(500);
+      expect(response.body.errors).to.be.an('array');
     });
   });
 
@@ -326,8 +327,9 @@ describe('Blueprint API (Mocha)', function () {
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'Bad! <Name>', blueprint: SAMPLE_BLUEPRINT_DATA, thumbnail: TINY_PNG });
 
-      expect(response.status).to.equal(500);
-      expect(response.body.saveBlueprintResult).to.equal('ERROR');
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].status).to.equal('400');
     });
 
     it('should reject a name longer than 60 characters', async function () {
@@ -342,8 +344,9 @@ describe('Blueprint API (Mocha)', function () {
           thumbnail: TINY_PNG,
         });
 
-      expect(response.status).to.equal(500);
-      expect(response.body.saveBlueprintResult).to.equal('ERROR');
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+      expect(response.body.errors[0].status).to.equal('400');
     });
   });
 
@@ -391,7 +394,7 @@ describe('Blueprint API (Mocha)', function () {
       expect(updated!.likes).to.not.include(testData.users.user2._id.toString());
     });
 
-    it('should return 500 for a nonexistent blueprint id', async function () {
+    it('should return 404 for a nonexistent blueprint id', async function () {
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
@@ -399,10 +402,11 @@ describe('Blueprint API (Mocha)', function () {
         .set('Authorization', `Bearer ${token}`)
         .send({ blueprintId: '000000000000000000000001', like: true });
 
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(404);
+      expect(response.body.errors).to.be.an('array');
     });
 
-    it('should return 500 when blueprintId is missing', async function () {
+    it('should return 400 when blueprintId is missing', async function () {
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
@@ -410,7 +414,8 @@ describe('Blueprint API (Mocha)', function () {
         .set('Authorization', `Bearer ${token}`)
         .send({ like: true });
 
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
     });
   });
 
@@ -450,13 +455,14 @@ describe('Blueprint API (Mocha)', function () {
         .set('Authorization', `Bearer ${token}`)
         .send({ blueprintId: id });
 
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(403);
+      expect(response.body.errors).to.be.an('array');
 
       const unchanged = await BlueprintModel.model.findById(id);
       expect(unchanged!.deleted).to.not.equal(true);
     });
 
-    it('should return 500 when blueprintId is missing', async function () {
+    it('should return 400 when blueprintId is missing', async function () {
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
@@ -464,7 +470,8 @@ describe('Blueprint API (Mocha)', function () {
         .set('Authorization', `Bearer ${token}`)
         .send({});
 
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
     });
   });
 });
