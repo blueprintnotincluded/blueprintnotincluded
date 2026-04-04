@@ -4,12 +4,7 @@ import {
   ExportImageOptions,
 } from "src/app/module-blueprint/services/blueprint-service";
 import { SelectItem } from "primeng/api";
-import {
-  CameraService,
-  DrawHelpers,
-  Vector2,
-  Overlay,
-} from "../../../../../../../lib/index";
+import { DrawHelpers, Vector2, Overlay } from "../../../../../../../lib/index";
 
 @Component({
   selector: "app-dialog-export-images",

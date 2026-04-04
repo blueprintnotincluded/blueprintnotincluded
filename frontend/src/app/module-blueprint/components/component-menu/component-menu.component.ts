@@ -6,7 +6,6 @@ import {
   OnInit,
   Output,
 } from "@angular/core";
-import { Router } from "@angular/router";
 import { MenuItem, MessageService } from "primeng/api";
 import {
   CameraService,

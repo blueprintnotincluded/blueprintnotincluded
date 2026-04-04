@@ -80,35 +80,35 @@ export class ComponentBlueprintParentComponent
   implements OnInit, IObsBlueprintChanged
 {
   @ViewChild("canvas", { static: true })
-  canvas: ComponentCanvasComponent;
+  canvas!: ComponentCanvasComponent;
 
   @ViewChild("buildTool", { static: false })
-  buildTool: ComponentSideBuildToolComponent;
+  buildTool!: ComponentSideBuildToolComponent;
 
   @ViewChild("saveDialog", { static: false })
-  saveDialog: ComponentSaveDialogComponent;
+  saveDialog!: ComponentSaveDialogComponent;
 
   @ViewChild("browseDialog", { static: false })
-  browseDialog: DialogBrowseComponent;
+  browseDialog!: DialogBrowseComponent;
 
   @ViewChild("loginDialog", { static: false })
-  loginDialog: ComponentLoginDialogComponent;
+  loginDialog!: ComponentLoginDialogComponent;
 
   @ViewChild("exportImagesDialog", { static: false })
-  exportImagesDialog: DialogExportImagesComponent;
+  exportImagesDialog!: DialogExportImagesComponent;
 
   @ViewChild("shareUrlDialog", { static: false })
-  shareUrlDialog: DialogShareUrlComponent;
+  shareUrlDialog!: DialogShareUrlComponent;
 
   @ViewChild("aboutDialog")
-  aboutDialog: DialogAboutComponent;
+  aboutDialog!: DialogAboutComponent;
 
   // The left ui panel is not static, because when in a iframe we don't load it
   @ViewChild("sidePanelLeft", { static: false })
-  sidePanelLeft: ElementRef;
+  sidePanelLeft!: ElementRef;
 
   @ViewChild("selectionTool", { static: false })
-  selectionTool: ComponentSideSelectionToolComponent;
+  selectionTool!: ComponentSideSelectionToolComponent;
 
   constructor(
     private messageService: MessageService,
