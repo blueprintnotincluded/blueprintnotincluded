@@ -51,11 +51,11 @@ export class RequestResetComponent {
 
   onSubmit() {
     this.passwordResetService.requestReset(this.email).subscribe(
-      (response) => {
+      () => {
         this.message = "Password reset email sent. Please check your inbox.";
         this.messageClass = "success";
       },
-      (error) => {
+      () => {
         this.message = "Error requesting password reset.";
         this.messageClass = "error";
       }

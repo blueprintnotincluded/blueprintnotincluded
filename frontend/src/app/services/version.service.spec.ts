@@ -3,7 +3,6 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from "@angular/common/http/testing";
-import { of, throwError } from "rxjs";
 
 import { VersionService, VersionInfo } from "./version.service";
 import {

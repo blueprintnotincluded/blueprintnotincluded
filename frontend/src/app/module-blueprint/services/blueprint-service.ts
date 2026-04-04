@@ -23,11 +23,11 @@ import * as yaml from "js-yaml";
 export class BlueprintService implements IObsBlueprintChange {
   static baseUrl: string = window.location.origin;
 
-  id: string;
-  name: string;
+  id!: string | null;
+  name!: string;
   // TODO observable when modified, to be subscribed by the canvas
   // TODO not sure getter setters are useful
-  blueprint_: Blueprint;
+  blueprint_!: Blueprint;
   get blueprint() {
     return this.blueprint_;
   }
@@ -35,7 +35,7 @@ export class BlueprintService implements IObsBlueprintChange {
     this.blueprint_ = value;
     //this.observersBlueprintChanged.map((observer) => { observer.blueprintChanged(this.blueprint_); })
   }
-  thumbnail: string;
+  thumbnail!: string;
   thumbnailStyle: Display;
 
   get savedBlueprint() {
@@ -92,7 +92,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   private loadYamlBlueprint(yamlString: string) {
-    let templateYaml: OniTemplate = yaml.safeLoad(yamlString);
+    let templateYaml: OniTemplate = yaml.load(yamlString) as OniTemplate;
 
     let newBlueprint = new Blueprint();
     this.name = templateYaml.name;
@@ -163,9 +163,9 @@ export class BlueprintService implements IObsBlueprintChange {
     this.likedByMe = false;
   }
 
-  suppressChanges: boolean;
-  undoStates: MdbBlueprint[];
-  undoIndex: number;
+  suppressChanges!: boolean;
+  undoStates!: MdbBlueprint[];
+  undoIndex!: number;
   undo() {
     let tempUndoIndex = this.undoIndex - 1;
 
@@ -203,7 +203,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   itemDestroyed() {}
-  itemAdded(blueprintItem: BlueprintItem) {}
+  itemAdded(_blueprintItem: BlueprintItem) {}
   blueprintChanged() {
     // We don't want to add a state if the changes come from the undo / redo action
     if (this.suppressChanges) return;
@@ -249,7 +249,8 @@ export class BlueprintService implements IObsBlueprintChange {
     });
   }
 
-  handleGetBlueprint(blueprint: Blueprint) {
+  handleGetBlueprint(blueprint: Blueprint | undefined) {
+    if (!blueprint) return;
     this.observersBlueprintChanged.map((observer) => {
       observer.blueprintChanged(blueprint);
     });
@@ -262,20 +263,23 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   getBlueprint(id: string) {
-    const request = this.http.get(`/api/getblueprint/${id}`).pipe(
-      map((response: BlueprintResponse) => {
-        if (response.data) {
-          let blueprint = new Blueprint();
+    const request = this.http
+      .get<BlueprintResponse>(`/api/getblueprint/${id}`)
+      .pipe(
+        map((response: BlueprintResponse) => {
+          if (response.data) {
+            let blueprint = new Blueprint();
 
-          this.id = response.id;
-          this.name = response.name;
-          this.likedByMe = response.likedByMe;
-          this.nbLikes = response.nbLikes;
-          blueprint.importFromMdb(response.data);
-          return blueprint;
-        }
-      })
-    );
+            this.id = response.id;
+            this.name = response.name;
+            this.likedByMe = response.likedByMe;
+            this.nbLikes = response.nbLikes;
+            blueprint.importFromMdb(response.data);
+            return blueprint;
+          }
+          return undefined;
+        })
+      );
 
     return request;
   }
@@ -365,8 +369,8 @@ export class BlueprintService implements IObsBlueprintChange {
     return request;
   }
 
-  nbLikes: number;
-  likedByMe: boolean;
+  nbLikes!: number;
+  likedByMe!: boolean;
   likeBlueprint(blueprintId: string, like: boolean) {
     this.likedByMe = !this.likedByMe;
     let body: BlueprintLike = {
@@ -384,11 +388,11 @@ export class BlueprintService implements IObsBlueprintChange {
 }
 
 export class SaveBlueprintMessage {
-  overwrite: boolean;
-  name: string;
+  overwrite!: boolean;
+  name!: string;
   tags?: string[];
-  blueprint: MdbBlueprint;
-  thumbnail: string;
+  blueprint!: MdbBlueprint;
+  thumbnail!: string;
 }
 
 export enum BlueprintFileType {
@@ -398,7 +402,7 @@ export enum BlueprintFileType {
 }
 
 export interface IObsBlueprintChanged {
-  blueprintChanged(blueprint: Blueprint);
+  blueprintChanged(blueprint: Blueprint): void;
 }
 
 export interface ExportImageOptions {

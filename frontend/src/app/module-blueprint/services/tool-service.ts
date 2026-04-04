@@ -117,18 +117,18 @@ export class ToolService implements ITool, IChangeTool {
   }
 
   // These should never be used
-  toggleable: boolean;
-  visible: boolean;
-  captureInput: boolean;
-  toolType: ToolType;
-  toolGroup: number;
+  toggleable!: boolean;
+  visible!: boolean;
+  captureInput!: boolean;
+  toolType!: ToolType;
+  toolGroup!: number;
 }
 
 export class ToolRequest {
-  toolType: ToolType;
-  templateItem: BlueprintItem;
+  toolType!: ToolType;
+  templateItem!: BlueprintItem;
 }
 
 export interface IObsToolChanged {
-  toolChanged(toolType: ToolType);
+  toolChanged(toolType: ToolType): void;
 }
