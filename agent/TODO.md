@@ -1,7 +1,7 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Phase 7 - Zero-Warning Enforcement
+- **Phase**: Phase 7 - Zero-Warning Enforcement (backend ✅, frontend ⏳)
 - **Date**: 2026-04-03
 - **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20.3.18 · PrimeNG 20.4.0
 - **Tests**: 141 passing (Mocha + Chai — do not switch to Jest)
@@ -9,6 +9,30 @@
 ---
 
 ## Phase 7: Zero-Warning Enforcement
+
+### ✅ DONE — Backend enforcement
+- `tsconfig.json` + `lib/tsconfig.json`: `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch` enabled
+- `frontend/.eslintrc.json`: `no-console` rule added
+- `.mocharc.json`: `forbid-only: true`
+- `__tests__/hooks.ts`: Mocha root hook fails on `console.warn`/`console.error`
+- `package.json`: `concurrently`, `typecheck`, `dev:full` scripts
+- `.github/workflows/backend-test.yml`: explicit `npm run tsc` step
+
+### ⏳ PENDING — Frontend strict enforcement
+
+The strict flags (`strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`,
+`noFallthroughCasesInSwitch`, `strictTemplates`) were prematurely added to
+`frontend/tsconfig.base.json` and **reverted** because the frontend has ~50 files with
+pre-existing violations. They must be fixed file-by-file before the flags can be re-enabled.
+
+See `agent/SESSION_NOTES.md` for the full list of known violations and fix approach.
+
+### ℹ️ Bundle budgets
+
+The bundle budget in `frontend/angular.json` was also part of Phase 7 enforcement. The actual
+production bundle is **3.25 MB**. Current budget: `3.5mb warn / 4mb error` (a meaningful
+constraint vs the original 5mb/10mb, and actually achievable). To tighten further requires
+real bundle-size reduction work (tree-shaking pixi.js, lazy-loading PrimeNG modules, etc.).
 
 Goal: every automated system (build, lint, test, dev server, CI, git hooks) treats warnings as
 errors and fails loudly. Work in two stages: (1) add enforcement mechanisms, (2) fix all existing
@@ -233,7 +257,8 @@ Deferred — no active sprint. Revisit when product direction is clearer.
 ## Future Test Coverage
 
 - **Asset Processing** — generateIcons, generateGroups pipeline tests
-- **Frontend** — no Angular tests exist; component units, service tests, blueprint viewer integration
+- **Frontend** — 48 Angular tests exist (version service, dialogs, pipes); more component units,
+  service tests, and blueprint viewer integration tests needed
 
 ---
 
