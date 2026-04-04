@@ -2,8 +2,6 @@ import passport from 'passport';
 import { Strategy } from 'passport-local';
 import { UserModel } from './models/user';
 import { Router } from 'express';
-import crypto from 'crypto';
-import { sendResetEmail } from './utils/emailService'; // Assume you have an email service
 
 const router = Router();
 
@@ -63,5 +61,5 @@ router.post('/reset-password', async (req, res) => {
   user.resetTokenExpiration = undefined;
   await user.save();
 
-  res.json({ message: 'Password has been reset' });
+  return res.json({ message: 'Password has been reset' });
 });

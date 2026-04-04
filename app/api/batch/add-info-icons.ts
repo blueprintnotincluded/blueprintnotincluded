@@ -1,27 +1,26 @@
 import * as fs from 'fs';
 import {
   BExport,
-  BActiveRangeSideScreen,
-  BThresholdSwitchSideScreen,
-  BBitSelectorSideScreen,
-  BSingleSliderSideScreen,
+//   BActiveRangeSideScreen,
+//   BThresholdSwitchSideScreen,
+//   BBitSelectorSideScreen,
+//   BSingleSliderSideScreen,
   Vector2,
   SpriteTag,
 } from '../../../lib/index';
 import {
-  ImageSource,
-  BuildableElement,
-  BuildMenuCategory,
-  BuildMenuItem,
+//   ImageSource,
+//   BuildableElement,
+//   BuildMenuCategory,
+//   BuildMenuItem,
   BSpriteInfo,
-  SpriteInfo,
+//   SpriteInfo,
   BSpriteModifier,
-  SpriteModifier,
-  BBuilding,
-  OniItem,
-  MdbBlueprint,
+//   SpriteModifier,
+//   BBuilding,
+//   OniItem,
+//   MdbBlueprint,
 } from '../../../lib';
-import { InfoIcon, BlueprintItemInfo } from '../../../lib/src/blueprint/blueprint-item-info';
 
 export class AddInfoIcons {
   constructor(inputPath?: string) {

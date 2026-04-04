@@ -13,7 +13,7 @@ export declare class SpriteModifier {
     importFrom(original: BSpriteModifier): void;
     cleanUp(): void;
     hasTag(tag: SpriteTag): boolean;
-    static AddSpriteModifier(bBuilding: BBuilding): void;
+    static AddSpriteModifier(_bBuilding: BBuilding): void;
     static get spriteModifiers(): SpriteModifier[];
     private static spriteModifiersMap;
     static init(): void;

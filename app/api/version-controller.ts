@@ -51,7 +51,7 @@ export class VersionController {
     };
   }
 
-  public getVersion = (req: Request, res: Response) => {
+  public getVersion = (_req: Request, res: Response) => {
     try {
       res.json(this.versionInfo);
     } catch (error) {

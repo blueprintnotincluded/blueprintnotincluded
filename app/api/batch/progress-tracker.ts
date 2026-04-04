@@ -236,7 +236,7 @@ export class ProgressTracker {
     this.completedSteps.clear();
     this.failedSteps.clear();
     
-    for (const [stepName, state] of this.state) {
+    for (const [_stepName, state] of this.state) {
       state.status = 'pending';
       state.progress = undefined;
       state.total = undefined;

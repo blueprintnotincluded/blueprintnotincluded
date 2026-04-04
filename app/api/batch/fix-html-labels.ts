@@ -7,19 +7,6 @@ import {
   BSingleSliderSideScreen,
 } from '../../../lib/index';
 import { JSDOM } from 'jsdom';
-import {
-  ImageSource,
-  BuildableElement,
-  BuildMenuCategory,
-  BuildMenuItem,
-  BSpriteInfo,
-  SpriteInfo,
-  BSpriteModifier,
-  SpriteModifier,
-  BBuilding,
-  OniItem,
-  MdbBlueprint,
-} from '../../../lib';
 
 export class FixHtmlLabels {
   dom: JSDOM;

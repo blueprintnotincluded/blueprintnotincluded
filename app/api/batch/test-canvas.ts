@@ -11,11 +11,11 @@ import {
   SpriteModifier,
   BBuilding,
   OniItem,
-  Vector2,
-  CameraService,
-  Overlay,
-  Display,
-  PixiUtil,
+//   Vector2,
+//   CameraService,
+//   Overlay,
+//   Display,
+//   PixiUtil,
 } from '../../../lib';
 import * as fs from 'fs';
 import { PixiNodeUtil } from '../pixi-node-util';
@@ -80,7 +80,7 @@ export class TestCanvas {
     return PIXI.Sprite.from(ressource);
   }
 
-  getNewBaseTexture(url: string) {
+  getNewBaseTexture(_url: string) {
     throw new Error('This should not be called on node : preload all textures');
   }
 

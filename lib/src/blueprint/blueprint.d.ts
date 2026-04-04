@@ -16,8 +16,7 @@ export declare class Blueprint {
     importFromMdb(mdbBlueprint: MdbBlueprint): void;
     importFromBinary(template: ArrayBuffer): void;
     destroyAndCopyItems(source: Blueprint, emitChanges?: boolean): void;
-    private currentOverlay;
-    prepareOverlayInfo(currentOverlay: Overlay): void;
+    prepareOverlayInfo(_currentOverlay: Overlay): void;
     refreshOverlayInfo(): void;
     addBlueprintItem(blueprintItem: BlueprintItem): void;
     destroyBlueprintItem(templateItem: BlueprintItem): void;

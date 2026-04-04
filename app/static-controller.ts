@@ -15,7 +15,7 @@ export class StaticController {
     const id = req.params.blueprintId;
     const blueprintUrl = `${process.env.HOST}/b/${id}`;
     const thumbnailUrl = `${process.env.HOST}/b/${id}/thumbnail`;
-    BlueprintModel.model
+    return BlueprintModel.model
       .findById(id)
       .select('name')
       .then(blueprint => {
@@ -37,12 +37,13 @@ export class StaticController {
         };
         const metaTags = new WebsiteMeta(blueprintMeta).getHtmlTags();
         this.serveHtml(req, res, { metaTags });
+        return;
       });
   }
 
   public getBlueprintThumbnail(req: Request, res: Response) {
     let id = req.params.blueprintId;
-    BlueprintModel.model
+    return BlueprintModel.model
       .findById(id)
       .then(blueprint => {
         if (!blueprint) return res.status(404).send();
@@ -53,6 +54,7 @@ export class StaticController {
           'Content-Length': img.length,
         });
         res.end(img);
+        return;
       })
       .catch(err => {
         console.log('Blueprint find error');

@@ -12,7 +12,7 @@ import { renameBuildings, updateJsonFile } from './database-massager';
 import { AssetPaths } from './asset-paths';
 import { AssetLogger } from './asset-logger';
 import { AssetValidator } from './asset-validator';
-import { ProgressTracker, ProcessingStep } from './progress-tracker';
+import { ProgressTracker,} from './progress-tracker';
 
 /**
  * Enhanced extract-export pipeline with improved error recovery and progress tracking

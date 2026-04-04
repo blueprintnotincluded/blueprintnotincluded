@@ -98,22 +98,27 @@ describe('Import Scripts Integration Tests', () => {
     });
 
     it('should handle invalid database gracefully', () => {
-      const tempDir = path.join(__dirname, 'temp');
-      const invalidDbPath = path.join(tempDir, 'invalid.json');
-      
-      // Ensure temp directory exists
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
+      const errorStub = sinon.stub(console, 'error');
+      try {
+        const tempDir = path.join(__dirname, 'temp');
+        const invalidDbPath = path.join(tempDir, 'invalid.json');
+        
+        // Ensure temp directory exists
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        // Create invalid JSON file
+        fs.writeFileSync(invalidDbPath, '{ "invalid": json }');
+
+        const isValid = AssetValidator.validateDatabase(invalidDbPath);
+        expect(isValid, 'Invalid database should fail validation').to.be.false;
+
+        // Cleanup
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      } finally {
+        errorStub.restore();
       }
-
-      // Create invalid JSON file
-      fs.writeFileSync(invalidDbPath, '{ "invalid": json }');
-
-      const isValid = AssetValidator.validateDatabase(invalidDbPath);
-      expect(isValid, 'Invalid database should fail validation').to.be.false;
-
-      // Cleanup
-      fs.rmSync(tempDir, { recursive: true, force: true });
     });
 
     it('should validate required database properties', () => {
@@ -319,14 +324,12 @@ describe('Import Scripts Integration Tests', () => {
           if (modifier.spriteInfoName && !spriteInfoNames.has(modifier.spriteInfoName)) {
             brokenReferences++;
             if (brokenReferences <= 5) { // Only log first few to avoid spam
-              console.warn(`Database ${dbName}: Sprite modifier "${modifier.name}" references non-existent sprite info "${modifier.spriteInfoName}"`);
+              // console.warn removed
             }
           }
         });
 
-        if (brokenReferences > 5) {
-          console.warn(`Database ${dbName}: ${brokenReferences} total broken sprite references (showing first 5)`);
-        }
+        // Removed console.warn message
 
         expect(brokenReferences, `Database ${dbName} should have less than ${maxBroken} broken sprite references`).to.be.lessThan(maxBroken);
 
@@ -340,7 +343,7 @@ describe('Import Scripts Integration Tests', () => {
               if (!spriteModifierNames.has(spriteName)) {
                 brokenBuildingRefs++;
                 if (brokenBuildingRefs <= 3) {
-                  console.warn(`Database ${dbName}: Building "${building.prefabId}" references non-existent sprite modifier "${spriteName}"`);
+                  // console.warn removed
                 }
               }
             });
@@ -368,9 +371,14 @@ describe('Import Scripts Integration Tests', () => {
 
   describe('Error Handling and Recovery', () => {
     it('should handle missing files gracefully', () => {
-      const nonExistentPath = '/path/that/does/not/exist.json';
-      const isValid = AssetValidator.validateDatabase(nonExistentPath);
-      expect(isValid).to.be.false;
+      const errorStub = sinon.stub(console, 'error');
+      try {
+        const nonExistentPath = '/path/that/does/not/exist.json';
+        const isValid = AssetValidator.validateDatabase(nonExistentPath);
+        expect(isValid).to.be.false;
+      } finally {
+        errorStub.restore();
+      }
     });
 
     it('should validate disk space check', () => {
@@ -391,8 +399,15 @@ describe('Import Scripts Integration Tests', () => {
     });
 
     it('should clean up on error', () => {
-      // This test ensures cleanup function doesn't crash
-      expect(() => AssetValidator.cleanupOnError()).to.not.throw();
+      const warnStub = sinon.stub(console, 'warn');
+      const errorStub = sinon.stub(console, 'error');
+      try {
+        // This test ensures cleanup function doesn't crash
+        expect(() => AssetValidator.cleanupOnError()).to.not.throw();
+      } finally {
+        warnStub.restore();
+        errorStub.restore();
+      }
     });
   });
 
@@ -417,7 +432,7 @@ describe('Import Scripts Integration Tests', () => {
     });
 
     it('should track memory usage during operations', () => {
-      const initialMemory = process.memoryUsage();
+      process.memoryUsage();
       
       // Simulate some memory-intensive operations
       AssetLogger.memory();

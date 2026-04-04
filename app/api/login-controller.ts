@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { User, UserModel } from './models/user';
 import passport from 'passport';
 import { sendResetEmail } from './utils/emailService';
-import crypto from 'crypto-js';
 import { randomBytes } from 'crypto';
 import { apiError } from './utils/apiError';
 
@@ -10,7 +9,7 @@ export class LoginController {
   public login(req: Request, res: Response) {
     console.log('login' + req.clientIp);
 
-    passport.authenticate('local', function (err: any, user: User | false, info: any) {
+    passport.authenticate('local', function (err: any, user: User | false, _info: any) {
       var token;
       // If Passport throws/catches an error
       if (err) {
@@ -55,14 +54,14 @@ export class LoginController {
       try {
         await sendResetEmail(email, resetToken);
         console.log('Reset email sent successfully to:', email);
-        res.json({ message: 'Password reset email sent' });
+        return res.json({ message: 'Password reset email sent' });
       } catch (emailError) {
         console.error('Error sending reset email:', emailError);
-        res.status(500).json(apiError(500, 'Error sending reset email'));
+        return res.status(500).json(apiError(500, 'Error sending reset email'));
       }
     } catch (error) {
       console.error('Password reset request error:', error);
-      res.status(500).json(apiError(500, 'Error processing request'));
+      return res.status(500).json(apiError(500, 'Error processing request'));
     }
   }
 
@@ -84,10 +83,10 @@ export class LoginController {
       user.resetTokenExpiration = undefined;
       await user.save();
 
-      res.json({ message: 'Password successfully reset' });
+      return res.json({ message: 'Password successfully reset' });
     } catch (error) {
       console.error('Password reset error:', error);
-      res.status(500).json(apiError(500, 'Error resetting password'));
+      return res.status(500).json(apiError(500, 'Error resetting password'));
     }
   }
 }
