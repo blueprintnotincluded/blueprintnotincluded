@@ -1,9 +1,8 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import {
   BlueprintItem,
   BSingleSliderSideScreen,
 } from "../../../../../../../../lib/index";
-import { stringify } from "querystring";
 
 @Component({
   selector: "app-single-slider-screen",
@@ -12,10 +11,10 @@ import { stringify } from "querystring";
   standalone: false,
 })
 export class SingleSliderScreenComponent implements OnInit {
-  @Input() blueprintItem: BlueprintItem;
-  @Input() singleSliderSideScreen: BSingleSliderSideScreen;
+  @Input() blueprintItem!: BlueprintItem;
+  @Input() singleSliderSideScreen!: BSingleSliderSideScreen;
 
-  value: number;
+  value!: number;
 
   get title() {
     return this.value + this.singleSliderSideScreen.sliderUnits;
@@ -41,11 +40,12 @@ export class SingleSliderScreenComponent implements OnInit {
   ngOnInit() {
     this.value = this.blueprintItem.getUiSettings(
       this.singleSliderSideScreen.id
-    ).values[0] as number;
+    )!.values[0] as number;
   }
 
   onChange() {
-    this.blueprintItem.getUiSettings(this.singleSliderSideScreen.id).values[0] =
-      this.value;
+    this.blueprintItem.getUiSettings(
+      this.singleSliderSideScreen.id
+    )!.values[0] = this.value;
   }
 }

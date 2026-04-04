@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component } from "@angular/core";
 import { BlueprintService } from "../../../services/blueprint-service";
 import { MessageService } from "primeng/api";
 
@@ -30,7 +30,7 @@ export class DialogShareUrlComponent {
     this.visible = false;
   }
 
-  copyToClipboard(inputElement) {
+  copyToClipboard(inputElement: HTMLInputElement) {
     inputElement.select();
     document.execCommand("copy");
     this.messageService.add({

@@ -286,8 +286,8 @@ export class BlueprintService implements IObsBlueprintChange {
 
   getBlueprints(
     olderThan: Date,
-    filterUserId: string,
-    filterName: string,
+    filterUserId: string | null,
+    filterName: string | null,
     getDuplicates: boolean
   ) {
     let parameterOlderThan = "olderthan=" + olderThan.getTime().toString();

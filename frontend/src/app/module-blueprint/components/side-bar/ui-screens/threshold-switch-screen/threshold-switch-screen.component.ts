@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import {
   BlueprintItem,
   BThresholdSwitchSideScreen,
@@ -11,11 +11,11 @@ import {
   standalone: false,
 })
 export class ThresholdSwhitchScreenComponent implements OnInit {
-  @Input() blueprintItem: BlueprintItem;
-  @Input() thresholdSwitchSideScreen: BThresholdSwitchSideScreen;
+  @Input() blueprintItem!: BlueprintItem;
+  @Input() thresholdSwitchSideScreen!: BThresholdSwitchSideScreen;
 
-  above: boolean;
-  value: number;
+  above!: boolean;
+  value!: number;
 
   get correctedMaxRange() {
     if (this.blueprintItem.id == "LogicPressureSensorGas")
@@ -78,29 +78,29 @@ export class ThresholdSwhitchScreenComponent implements OnInit {
   ngOnInit() {
     this.value = this.blueprintItem.getUiSettings(
       this.thresholdSwitchSideScreen.id
-    ).values[0] as number;
+    )!.values[0] as number;
     this.above = this.blueprintItem.getUiSettings(
       this.thresholdSwitchSideScreen.id
-    ).values[1] as boolean;
+    )!.values[1] as boolean;
   }
 
   clickAbove() {
     this.above = true;
     this.blueprintItem.getUiSettings(
       this.thresholdSwitchSideScreen.id
-    ).values[1] = this.above;
+    )!.values[1] = this.above;
   }
 
   clickBelow() {
     this.above = false;
     this.blueprintItem.getUiSettings(
       this.thresholdSwitchSideScreen.id
-    ).values[1] = this.above;
+    )!.values[1] = this.above;
   }
 
   onChange() {
     this.blueprintItem.getUiSettings(
       this.thresholdSwitchSideScreen.id
-    ).values[0] = this.value;
+    )!.values[0] = this.value;
   }
 }

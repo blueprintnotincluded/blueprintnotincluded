@@ -1,16 +1,9 @@
-import {
-  Component,
-  OnInit,
-  ViewChild,
-  Output,
-  EventEmitter,
-} from "@angular/core";
+import { Component, OnInit, Output, EventEmitter } from "@angular/core";
 import {
   BlueprintService,
   ExportImageOptions,
 } from "src/app/module-blueprint/services/blueprint-service";
 import { SelectItem } from "primeng/api";
-import { Select } from "primeng/select";
 import {
   CameraService,
   DrawHelpers,
@@ -25,12 +18,12 @@ import {
   standalone: false,
 })
 export class DialogExportImagesComponent implements OnInit {
-  blueprintSize: Vector2;
+  blueprintSize!: Vector2;
 
   visible: boolean = false;
 
-  pixelPerTile: SelectItem[];
-  overlayOptions: SelectItem[];
+  pixelPerTile!: SelectItem[];
+  overlayOptions!: SelectItem[];
 
   exportOptions: ExportImageOptions;
 
@@ -58,10 +51,7 @@ export class DialogExportImagesComponent implements OnInit {
           0.00000068120021446078431372549;
   }
 
-  private cameraService: CameraService;
-
   constructor(private blueprintService: BlueprintService) {
-    this.cameraService = CameraService.cameraService;
     this.pixelPerTile = [16, 24, 32, 48, 64, 96, 128].map((px) => ({
       label: $localize`${px} pixels per tile`,
       value: px,

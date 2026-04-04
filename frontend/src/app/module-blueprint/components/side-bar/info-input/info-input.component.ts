@@ -4,8 +4,6 @@ import {
   InfoIcon,
 } from "../../../../../../../lib/src/blueprint/blueprint-item-info";
 import { Popover } from "primeng/popover";
-import { ColorPicker } from "primeng/colorpicker";
-import { DrawHelpers } from "../../../../../../../lib";
 
 @Component({
   selector: "app-info-input",
@@ -14,9 +12,9 @@ import { DrawHelpers } from "../../../../../../../lib";
   standalone: false,
 })
 export class InfoInputComponent implements OnInit {
-  @Input() blueprintIteminfo: BlueprintItemInfo;
+  @Input() blueprintIteminfo!: BlueprintItemInfo;
 
-  @ViewChild("iconPanel") iconPanel: Popover;
+  @ViewChild("iconPanel") iconPanel!: Popover;
 
   iconList: InfoIcon[] = [
     InfoIcon.icon_inf,

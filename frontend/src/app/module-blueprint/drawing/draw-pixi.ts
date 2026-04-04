@@ -46,19 +46,19 @@ export class DrawPixi implements PixiUtil {
   getNewRenderTexture(brt: any) {
     return new PIXI.RenderTexture(brt);
   }
-  getNewPixiApp(options: any) {
+  getNewPixiApp(_options: any) {
     return this.pixiApp;
   }
 
   static instance: DrawPixi;
 
-  pixiApp: PIXI.Application;
-  backGraphics: PIXI.Graphics;
-  frontGraphics: PIXI.Graphics;
-  utilityGraphicsBack: PIXI.Graphics;
-  utilityGraphicsFront: PIXI.Graphics;
-  blueprintContainer: PIXI.Container;
-  parent: ComponentCanvasComponent;
+  pixiApp!: PIXI.Application;
+  backGraphics!: PIXI.Graphics;
+  frontGraphics!: PIXI.Graphics;
+  utilityGraphicsBack!: PIXI.Graphics;
+  utilityGraphicsFront!: PIXI.Graphics;
+  blueprintContainer!: PIXI.Container;
+  parent!: ComponentCanvasComponent;
 
   Init(canvas: ElementRef, parent: ComponentCanvasComponent) {
     DrawPixi.instance = this;
@@ -145,11 +145,11 @@ export class DrawPixi implements PixiUtil {
 
   // TODO abstract drawline
   drawBlueprintLine(
-    color: string,
+    _color: string,
     alpha: number,
     start: Vector2,
     end: Vector2,
-    lineWidth: number
+    _lineWidth: number
   ) {
     this.backGraphics.lineStyle(1, 0xffffff, alpha);
     this.backGraphics.moveTo(start.x, start.y);

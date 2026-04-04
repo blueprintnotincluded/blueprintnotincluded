@@ -6,8 +6,6 @@ import {
   CameraService,
   DrawHelpers,
   Vector2,
-  PixiUtil,
-  BuildCandidateResult,
   BuildLocationRule,
   ConnectionHelper,
 } from "../../../../../../lib/index";
@@ -17,10 +15,10 @@ import { DrawPixi } from "../../drawing/draw-pixi";
 
 @Injectable()
 export class BuildTool implements ITool {
-  templateItemToBuild: BlueprintItem;
+  templateItemToBuild!: BlueprintItem;
   private observers: IObsBuildItemChanged[];
 
-  parent: IChangeTool;
+  parent!: IChangeTool;
 
   constructor(
     private blueprintService: BlueprintService,

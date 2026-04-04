@@ -1,11 +1,11 @@
-import { NgModule, ChangeDetectorRef } from "@angular/core";
+import { NgModule } from "@angular/core";
 import { CommonModule, DatePipe } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {
   provideHttpClient,
   withInterceptorsFromDi,
 } from "@angular/common/http";
-import { Routes, RouterModule } from "@angular/router";
+import { RouterModule } from "@angular/router";
 import { ComponentCanvasComponent } from "src/app/module-blueprint/components/component-canvas/component-canvas.component";
 import { ComponentMenuComponent } from "src/app/module-blueprint/components/component-menu/component-menu.component";
 import { ComponentBlueprintParentComponent } from "src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component";

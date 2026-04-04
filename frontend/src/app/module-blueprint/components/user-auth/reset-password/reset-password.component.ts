@@ -24,7 +24,7 @@ export class ResetPasswordComponent implements OnInit {
   });
 
   working = false;
-  token: string;
+  token!: string;
   visible = true;
 
   constructor(

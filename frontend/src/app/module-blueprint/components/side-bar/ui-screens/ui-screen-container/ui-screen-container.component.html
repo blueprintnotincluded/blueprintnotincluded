@@ -12,25 +12,25 @@
     <app-single-slider-screen
       *ngIf="uiScreen.id === 'SingleSliderSideScreen'"
       [blueprintItem]="blueprintItem"
-      [singleSliderSideScreen]="uiScreen"
+      [singleSliderSideScreen]="$any(uiScreen)"
     >
     </app-single-slider-screen>
     <app-threshold-switch-screen
       *ngIf="uiScreen.id === 'ThresholdSwitchSideScreen'"
       [blueprintItem]="blueprintItem"
-      [thresholdSwitchSideScreen]="uiScreen"
+      [thresholdSwitchSideScreen]="$any(uiScreen)"
     >
     </app-threshold-switch-screen>
     <app-active-range-screen
       *ngIf="uiScreen.id === 'ActiveRangeSideScreen'"
       [blueprintItem]="blueprintItem"
-      [activeRangeSideScreen]="uiScreen"
+      [activeRangeSideScreen]="$any(uiScreen)"
     >
     </app-active-range-screen>
     <app-bit-selection-screen
       *ngIf="uiScreen.id === 'LogicBitSelectorSideScreen'"
       [blueprintItem]="blueprintItem"
-      [bitSelectorSideScreen]="uiScreen"
+      [bitSelectorSideScreen]="$any(uiScreen)"
     >
     </app-bit-selection-screen>
   </div>

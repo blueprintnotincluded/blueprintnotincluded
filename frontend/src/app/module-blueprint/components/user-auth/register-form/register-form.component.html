@@ -15,8 +15,8 @@
     *ngIf="f.email.invalid && (f.email.dirty || f.email.touched)"
     class="error-red"
   >
-    <div *ngIf="f.email.errors.required" i18n>E-Mail is required.</div>
-    <div *ngIf="f.email.errors.email" i18n>E-Mail is not valid.</div>
+    <div *ngIf="f.email.errors?.required" i18n>E-Mail is required.</div>
+    <div *ngIf="f.email.errors?.email" i18n>E-Mail is not valid.</div>
   </div>
 
   <br />
@@ -28,11 +28,11 @@
     *ngIf="f.username.invalid && (f.username.dirty || f.username.touched)"
     class="error-red"
   >
-    <div *ngIf="f.username.errors.required" i18n>Username is required.</div>
+    <div *ngIf="f.username.errors?.required" i18n>Username is required.</div>
     <div *ngIf="f.username.errors?.usernameExists" i18n>
       Username is unavailable.
     </div>
-    <div *ngIf="f.username.errors.invalidChars" i18n>
+    <div *ngIf="f.username.errors?.invalidChars" i18n>
       Invalid characters in username
     </div>
   </div>
@@ -58,7 +58,7 @@
     *ngIf="f.password.invalid && (f.password.dirty || f.password.touched)"
     class="error-red"
   >
-    <div *ngIf="f.password.errors.required" i18n>Password is required.</div>
+    <div *ngIf="f.password.errors?.required" i18n>Password is required.</div>
   </div>
 
   <br />

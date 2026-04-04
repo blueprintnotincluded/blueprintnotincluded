@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   Input,
   Output,
   EventEmitter,
@@ -20,11 +19,11 @@ import { Popover } from "primeng/popover";
   styleUrls: ["./buildable-element-picker.component.css"],
   standalone: false,
 })
-export class BuildableElementPickerComponent implements OnInit {
-  @Input() buildableElementsArray: BuildableElement[][];
-  @Input() currentElement: BuildableElement[];
-  @Input() nbElements: number[];
-  @Input() isGasLiquid: boolean;
+export class BuildableElementPickerComponent {
+  @Input() buildableElementsArray!: BuildableElement[][];
+  @Input() currentElement!: BuildableElement[];
+  @Input() nbElements!: number[];
+  @Input() isGasLiquid!: boolean;
 
   @Output() changeElement: EventEmitter<ElementChangeInfo> =
     new EventEmitter<ElementChangeInfo>();
@@ -35,10 +34,6 @@ export class BuildableElementPickerComponent implements OnInit {
 
   constructor() {
     this.cameraService = CameraService.cameraService;
-  }
-
-  ngOnInit() {
-    1; // required for type
   }
 
   showWarning(indexElement: number) {

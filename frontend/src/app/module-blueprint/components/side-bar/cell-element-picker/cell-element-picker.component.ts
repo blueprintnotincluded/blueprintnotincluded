@@ -10,20 +10,20 @@ import { BuildableElement } from "../../../../../../../lib/index";
 })
 export class CellElementPickerComponent implements OnInit {
   filterNameSubject = new Subject<string>();
-  filterName: string;
+  filterName!: string;
 
   selectedTags: string[] = ["Gas", "Liquid"];
-  elements: BuildableElement[];
+  elements!: BuildableElement[];
 
   @Output() selectElementCell = new EventEmitter<BuildableElement>();
 
-  @Input() forceTag: string;
+  @Input() forceTag?: string;
   get isForcedTag() {
     return this.forceTag != undefined;
   }
 
   constructor() {
-    this.filterNameSubject.subscribe((value) => {
+    this.filterNameSubject.subscribe((_value: string) => {
       this.filter();
     });
   }
@@ -36,7 +36,7 @@ export class CellElementPickerComponent implements OnInit {
     this.filterElements();
   }
 
-  tagChanged(event: any) {
+  tagChanged(_event: any) {
     this.filterElements();
   }
 
@@ -44,8 +44,6 @@ export class CellElementPickerComponent implements OnInit {
     this.elements = [];
     this.elements.push(BuildableElement.getElement("None"));
     for (let element of BuildableElement.elements) {
-      let addToList = false;
-
       let filterString = false;
       let filterTag = false;
       let filterMissing = true;

@@ -1,11 +1,4 @@
-import {
-  Directive,
-  Output,
-  HostListener,
-  EventEmitter,
-  ViewChild,
-  ElementRef,
-} from "@angular/core";
+import { Directive, Output, HostListener, EventEmitter } from "@angular/core";
 import { Vector2 } from "../../../../../lib/index";
 
 @Directive({
@@ -22,8 +15,8 @@ export class DragAndDropDirective {
   @Output() myMouseClick = new EventEmitter();
 
   isMouseDown: boolean[];
-  lastDragPosition: Vector2[];
-  startDragPosition: Vector2[];
+  lastDragPosition: (Vector2 | null)[];
+  startDragPosition: (Vector2 | null)[];
 
   constructor() {
     this.isMouseDown = [];
@@ -62,10 +55,10 @@ export class DragAndDropDirective {
 
     let dragButton: number = event.button;
 
-    // Emit a mouseclick if the mouse hasn't moved since mousedown
     if (
+      this.startDragPosition[dragButton] != null &&
       new Vector2(event.clientX, event.clientY).equals(
-        this.startDragPosition[dragButton]
+        this.startDragPosition[dragButton]!
       )
     )
       this.myMouseClick.emit(event);
@@ -75,7 +68,7 @@ export class DragAndDropDirective {
     this.stopDrag(event, dragButton);
   }
 
-  @HostListener("contextmenu", ["$event"]) onContextMenu(event: any) {
+  @HostListener("contextmenu", ["$event"]) onContextMenu(_event: any) {
     // Comment this to get context on canvas
     return false;
   }
@@ -94,12 +87,12 @@ export class DragAndDropDirective {
     if (isDragging) {
       for (let i = 0; i <= 2; i++)
         if (this.isMouseDown[i]) {
-          event.dragX = event.clientX - this.lastDragPosition[i].x;
-          event.dragY = event.clientY - this.lastDragPosition[i].y;
+          event.dragX = event.clientX - this.lastDragPosition[i]!.x;
+          event.dragY = event.clientY - this.lastDragPosition[i]!.y;
           event.dragButton = this.isMouseDown;
 
-          this.lastDragPosition[i].x = event.clientX;
-          this.lastDragPosition[i].y = event.clientY;
+          this.lastDragPosition[i]!.x = event.clientX;
+          this.lastDragPosition[i]!.y = event.clientY;
         }
       this.myMouseDrag.emit(event);
     } else {

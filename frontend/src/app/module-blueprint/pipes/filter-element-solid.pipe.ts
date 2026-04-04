@@ -6,7 +6,7 @@ import { ElementReportDataItem } from "../common/tools/element-report";
   standalone: false,
 })
 export class FilterElementSolidPipe implements PipeTransform {
-  transform(value: any, ...args: any[]): any {
+  transform(value: any, ..._args: any[]): any {
     let dataItems = value as ElementReportDataItem[];
 
     return dataItems.filter((d) => {

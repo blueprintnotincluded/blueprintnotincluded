@@ -1,22 +1,14 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  EventEmitter,
-  Output,
-} from "@angular/core";
+import { Component, OnDestroy, EventEmitter, Output } from "@angular/core";
 import {
   UntypedFormControl,
   UntypedFormGroup,
   Validators,
 } from "@angular/forms";
-import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "../../../services/authentification-service";
 import { MessageService } from "primeng/api";
-import { Observable, Subscription, of } from "rxjs";
+import { Subscription, of } from "rxjs";
 import { catchError } from "rxjs/operators";
 import { UsernameValidationDirective } from "src/app/module-blueprint/directives/username-validation.directive";
-import { Dialog } from "primeng/dialog";
 
 @Component({
   selector: "app-login-form",
@@ -59,10 +51,10 @@ export class LoginFormComponent implements OnDestroy {
     this.loginForm.reset();
   }
 
-  subscription: Subscription;
-  loginSubscription: Subscription;
-  resetSubscription: Subscription;
-  passwordResetSubscription: Subscription;
+  subscription!: Subscription;
+  loginSubscription!: Subscription;
+  resetSubscription!: Subscription;
+  passwordResetSubscription!: Subscription;
 
   ngOnDestroy() {
     if (this.subscription) {
@@ -108,7 +100,7 @@ export class LoginFormComponent implements OnDestroy {
       });
   }
 
-  handleSaveNext(response: any) {
+  handleSaveNext(_response: any) {
     this.loginOk.emit();
 
     const userDetails = this.authService.getUserDetails();
@@ -133,7 +125,7 @@ export class LoginFormComponent implements OnDestroy {
     }
   }
 
-  handleSaveError(error: any) {
+  handleSaveError(_error: any) {
     this.authError = true;
     this.working = false;
 

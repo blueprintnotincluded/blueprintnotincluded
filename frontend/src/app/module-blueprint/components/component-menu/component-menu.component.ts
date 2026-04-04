@@ -11,7 +11,6 @@ import { MenuItem, MessageService } from "primeng/api";
 import {
   CameraService,
   Display,
-  DrawHelpers,
   IObsCameraChanged,
   Overlay,
   Visualization,
@@ -54,12 +53,12 @@ export class ComponentMenuComponent
 {
   @Output() menuCommand = new EventEmitter<MenuCommand>();
 
-  menuItems: MenuItem[];
-  overlayMenuItems: MenuItem[];
-  displayMenuItems: MenuItem[];
-  visualizationMenuItems: MenuItem[];
-  toolMenuItems: MenuItem[];
-  languagesMenuItems: MenuItem[];
+  menuItems!: MenuItem[];
+  overlayMenuItems!: MenuItem[];
+  displayMenuItems!: MenuItem[];
+  visualizationMenuItems!: MenuItem[];
+  toolMenuItems!: MenuItem[];
+  languagesMenuItems!: MenuItem[];
 
   static debugFps: number = 0;
   public getFps() {
@@ -74,7 +73,6 @@ export class ComponentMenuComponent
     private messageService: MessageService,
     private toolService: ToolService,
     private blueprintService: BlueprintService,
-    private router: Router,
     @Inject(LOCALE_ID) private locale: string
   ) {
     this.toolService.subscribeToolChanged(this);
@@ -84,10 +82,12 @@ export class ComponentMenuComponent
 
   // TODO this causes errors
   get dynamicMenuItems() {
-    let blueprintMenuItems = this.menuItems.find((i) => i.id == "blueprint")
-      .items as MenuItem[];
-    blueprintMenuItems.find((i) => i.id == "save").disabled =
-      !this.authService.isLoggedIn();
+    const bpGroup = this.menuItems.find((i) => i.id == "blueprint");
+    const blueprintMenuItems = bpGroup?.items as MenuItem[] | undefined;
+    if (blueprintMenuItems) {
+      const saveItem = blueprintMenuItems.find((i) => i.id == "save");
+      if (saveItem) saveItem.disabled = !this.authService.isLoggedIn();
+    }
     return this.menuItems;
   }
 
@@ -120,7 +120,7 @@ export class ComponentMenuComponent
       this.overlayMenuItems.push({
         label: overlay.name,
         id: overlay.id.toString(),
-        command: (event) => {
+        command: (_event: any) => {
           this.clickOverlay(event);
         },
       });
@@ -130,14 +130,14 @@ export class ComponentMenuComponent
     this.displayMenuItems.push({
       label: $localize`Blueprint`,
       id: Display.blueprint.toString(),
-      command: (event) => {
+      command: (_event: any) => {
         this.clickDisplay(event);
       },
     });
     this.displayMenuItems.push({
       label: $localize`Color`,
       id: Display.solid.toString(),
-      command: (event) => {
+      command: (_event: any) => {
         this.clickDisplay(event);
       },
     });
@@ -146,21 +146,21 @@ export class ComponentMenuComponent
     this.visualizationMenuItems.push({
       label: $localize`None`,
       id: Visualization.none.toString(),
-      command: (event) => {
+      command: (_event: any) => {
         this.clickVisualization(event);
       },
     });
     this.visualizationMenuItems.push({
       label: $localize`Temperature`,
       id: Visualization.temperature.toString(),
-      command: (event) => {
+      command: (_event: any) => {
         this.clickVisualization(event);
       },
     });
     this.visualizationMenuItems.push({
       label: $localize`Elements`,
       id: Visualization.elements.toString(),
-      command: (event) => {
+      command: (_event: any) => {
         this.clickVisualization(event);
       },
     });
@@ -169,14 +169,14 @@ export class ComponentMenuComponent
       {
         label: $localize`Select`,
         id: ToolType[ToolType.select],
-        command: (event) => {
+        command: (_event: any) => {
           this.clickTool(ToolType.select);
         },
       },
       {
         label: $localize`Build`,
         id: ToolType[ToolType.build],
-        command: (event) => {
+        command: (_event: any) => {
           this.clickTool(ToolType.build);
         },
       },
@@ -199,7 +199,7 @@ export class ComponentMenuComponent
           {
             label: $localize`New`,
             icon: "pi pi-plus",
-            command: (event) => {
+            command: (_event: any) => {
               this.menuCommand.emit({
                 type: MenuCommandType.newBlueprint,
                 data: null,
@@ -210,7 +210,7 @@ export class ComponentMenuComponent
             id: "save",
             label: $localize`Save`,
             icon: "pi pi-save",
-            command: (event) => {
+            command: (_event: any) => {
               this.menuCommand.emit({
                 type: MenuCommandType.saveBlueprint,
                 data: null,
@@ -223,19 +223,19 @@ export class ComponentMenuComponent
             items: [
               {
                 label: $localize`Game (yaml)`,
-                command: (event) => {
+                command: (_event: any) => {
                   this.uploadYamlTemplate();
                 },
               },
               {
                 label: $localize`Blueprint (json)`,
-                command: (event) => {
+                command: (_event: any) => {
                   this.uploadJsonTemplate();
                 },
               },
               {
                 label: $localize`Blueprint (binary)`,
-                command: (event) => {
+                command: (_event: any) => {
                   this.uploadBsonTemplate();
                 },
               },
@@ -247,7 +247,7 @@ export class ComponentMenuComponent
             items: [
               {
                 label: $localize`Blueprint (json)`,
-                command: (event) => {
+                command: (_event: any) => {
                   this.menuCommand.emit({
                     type: MenuCommandType.exportBlueprint,
                     data: null,
@@ -259,7 +259,7 @@ export class ComponentMenuComponent
           {
             label: $localize`Browse`,
             icon: "pi pi-search",
-            command: (event) => {
+            command: (_event: any) => {
               this.menuCommand.emit({
                 type: MenuCommandType.browseBlueprints,
                 data: null,
@@ -269,7 +269,7 @@ export class ComponentMenuComponent
           {
             label: $localize`Get shareable Url`,
             icon: "pi pi-share-alt",
-            command: (event) => {
+            command: (_event: any) => {
               this.menuCommand.emit({
                 type: MenuCommandType.getShareableUrl,
                 data: null,
@@ -279,7 +279,7 @@ export class ComponentMenuComponent
           {
             label: $localize`Export images`,
             icon: "pi pi-images",
-            command: (event) => {
+            command: (_event: any) => {
               this.menuCommand.emit({
                 type: MenuCommandType.exportImages,
                 data: null,
@@ -294,14 +294,14 @@ export class ComponentMenuComponent
           {
             label: $localize`Undo`,
             icon: "pi pi-undo",
-            command: (event) => {
+            command: (_event: any) => {
               this.blueprintService.undo();
             },
           },
           {
             label: $localize`Redo`,
             icon: "pi pi-replay",
-            command: (event) => {
+            command: (_event: any) => {
               this.blueprintService.redo();
             },
           },
@@ -329,7 +329,7 @@ export class ComponentMenuComponent
           {
             label: $localize`About`,
             icon: "pi pi-info-circle",
-            command: (event) => {
+            command: (_event: any) => {
               this.menuCommand.emit({
                 type: MenuCommandType.about,
                 data: null,
@@ -362,12 +362,12 @@ export class ComponentMenuComponent
       ,{
         label: 'Technical',
         items: [
-          {label: 'Fetch images',          icon:'pi pi-download', command: (event) => { this.menuCommand.emit({type: MenuCommandType.fetchIcons, data:null}); } },
-          {label: 'Add element tiles',     icon:'pi pi-download', command: (event) => { this.menuCommand.emit({type: MenuCommandType.addElementsTiles, data:null}); } },
-          {label: 'Download groups',       icon:'pi pi-download', command: (event) => { this.menuCommand.emit({type: MenuCommandType.downloadGroups, data:null}); } },
-          {label: 'Download icons',        icon:'pi pi-download', command: (event) => { this.menuCommand.emit({type: MenuCommandType.downloadIcons, data:null}); } },
-          {label: 'Download white',        icon:'pi pi-download', command: (event) => { this.menuCommand.emit({type: MenuCommandType.downloadUtility, data:null}); } },
-          {label: 'Repack textures',       icon:'pi pi-download', command: (event) => { this.menuCommand.emit({type: MenuCommandType.repackTextures, data:null}); } }
+          {label: 'Fetch images',          icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.fetchIcons, data:null}); } },
+          {label: 'Add element tiles',     icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.addElementsTiles, data:null}); } },
+          {label: 'Download groups',       icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.downloadGroups, data:null}); } },
+          {label: 'Download icons',        icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.downloadIcons, data:null}); } },
+          {label: 'Download white',        icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.downloadUtility, data:null}); } },
+          {label: 'Repack textures',       icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.repackTextures, data:null}); } }
         ]
       }
       */
@@ -379,14 +379,19 @@ export class ComponentMenuComponent
     this.clickTool(ToolType.select);
   }
 
-  toolChanged(toolType: ToolType) {
+  toolChanged(_toolType: ToolType) {
     this.updateToolIcon();
   }
 
   updateToolIcon() {
     for (let menuItem of this.toolMenuItems) {
       if (!menuItem.separator) {
-        if (this.toolService.getTool(ToolType[menuItem.id]).visible)
+        if (
+          menuItem.id != null &&
+          this.toolService.getTool(
+            ToolType[menuItem.id as keyof typeof ToolType]
+          ).visible
+        )
           menuItem.icon = "pi pi-fw pi-check";
         else menuItem.icon = "pi pi-fw pi-none";
       }
@@ -399,8 +404,8 @@ export class ComponentMenuComponent
 
   userProfile() {
     let userFilter: BrowseData = {
-      filterUserId: this.authService.getUserDetails()._id,
-      filterUserName: this.authService.getUserDetails().username,
+      filterUserId: this.authService.getUserDetails()!._id,
+      filterUserName: this.authService.getUserDetails()!.username,
       getDuplicates: true,
     };
 
@@ -471,33 +476,33 @@ export class ComponentMenuComponent
     fileElem.click();
   }
 
-  templateUpload(event: any) {
+  templateUpload(_event: any) {
     let fileElem = document.getElementById("fileChooser") as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
       BlueprintFileType.YAML,
-      fileElem.files
+      fileElem.files!
     );
     fileElem.value = "";
   }
 
-  templateUploadJson(event: any) {
+  templateUploadJson(_event: any) {
     let fileElem = document.getElementById(
       "fileChooserJson"
     ) as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
       BlueprintFileType.JSON,
-      fileElem.files
+      fileElem.files!
     );
     fileElem.value = "";
   }
 
-  templateUploadBson(event: any) {
+  templateUploadBson(_event: any) {
     let fileElem = document.getElementById(
       "fileChooserBson"
     ) as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
       BlueprintFileType.BSON,
-      fileElem.files
+      fileElem.files!
     );
     fileElem.value = "";
   }
@@ -514,7 +519,7 @@ export class ComponentMenuComponent
     this.messageService.add({
       severity: "success",
       summary: $localize`Logout Successful`,
-      detail: null,
+      detail: undefined,
     });
   }
 }
@@ -544,7 +549,7 @@ export enum MenuCommandType {
 }
 
 export class MenuCommand {
-  type: MenuCommandType;
+  type!: MenuCommandType;
   data: any;
 }
 

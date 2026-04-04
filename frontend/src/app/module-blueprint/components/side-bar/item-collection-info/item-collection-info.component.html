@@ -35,22 +35,25 @@
 </div>
 
 <div *ngIf="itemCollection.oniItem.isInfo && itemCollection.items.length === 1">
-  <app-info-input [blueprintIteminfo]="itemCollection.items[0]">
+  <app-info-input [blueprintIteminfo]="$any(itemCollection.items[0])">
   </app-info-input>
 </div>
 <div *ngIf="itemCollection.oniItem.isInfo && itemCollection.items.length > 1">
   <div *ngFor="let info of itemCollection.items">
-    <div class="ui-clickable-icon info-button" (click)="selectThisInfo(info)">
+    <div
+      class="ui-clickable-icon info-button"
+      (click)="selectThisInfo($any(info))"
+    >
       <div class="info-panel-content">
         <app-info-input-icon
           [width]="40"
           [height]="40"
-          [frontColor]="info.htmlFrontColor"
-          [backColor]="info.htmlBackColor"
-          [svgPath]="info.htmlSvgPath"
+          [frontColor]="$any(info).htmlFrontColor"
+          [backColor]="$any(info).htmlBackColor"
+          [svgPath]="$any(info).htmlSvgPath"
         ></app-info-input-icon>
         <div class="left"></div>
-        <div>{{ info.title }}</div>
+        <div>{{ $any(info).title }}</div>
         <div class="right"></div>
       </div>
     </div>
@@ -58,8 +61,8 @@
 </div>
 <div *ngIf="showPipeContent">
   <app-pipe-content
-    [currentElement]="getPipeElement()"
-    [forceTag]="forceTag"
+    [currentElement]="getPipeElement()!"
+    [forceTag]="forceTag || ''"
     (selectElementPipe)="changePipeElement($event)"
   ></app-pipe-content>
 </div>

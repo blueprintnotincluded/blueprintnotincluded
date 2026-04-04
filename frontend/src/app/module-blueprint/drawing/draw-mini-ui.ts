@@ -22,9 +22,9 @@ export class DrawMiniUi implements IObsCameraChanged {
     "icon_category_automation",
     "icon_category_shipping",
   ];
-  texturesActive: PIXI.Texture[];
-  texturesInactive: PIXI.Texture[];
-  buttons: PIXI.Sprite[];
+  texturesActive!: PIXI.Texture[];
+  texturesInactive!: PIXI.Texture[];
+  buttons!: PIXI.Sprite[];
 
   cameraChanged(camera: CameraService): void {
     for (let i = 0; i < this.overlays.length; i++) {

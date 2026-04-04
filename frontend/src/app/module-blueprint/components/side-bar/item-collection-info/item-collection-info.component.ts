@@ -22,10 +22,10 @@ import { BlueprintItemInfo } from "../../../../../../../lib/src/blueprint/bluepr
   standalone: false,
 })
 export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
-  nbItems: string;
-  @Input() itemCollection: SameItemCollection;
+  nbItems!: string;
+  @Input() itemCollection!: SameItemCollection;
 
-  @ViewChild("focusElement", { static: true }) focusElement: ElementRef;
+  @ViewChild("focusElement", { static: true }) focusElement!: ElementRef;
 
   get debug() {
     let debug = this.itemCollection.items[0] as any;

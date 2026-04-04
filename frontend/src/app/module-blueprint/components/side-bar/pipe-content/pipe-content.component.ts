@@ -1,12 +1,9 @@
 import {
   Component,
-  OnInit,
   Input,
-  ViewChildren,
-  QueryList,
-  ViewChild,
   Output,
   EventEmitter,
+  ViewChild,
 } from "@angular/core";
 import { BuildableElement } from "../../../../../../../lib";
 import { Popover } from "primeng/popover";
@@ -18,11 +15,11 @@ import { Popover } from "primeng/popover";
   standalone: false,
 })
 export class PipeContentComponent {
-  @Input() currentElement: BuildableElement;
-  @Input() forceTag: string;
+  @Input() currentElement!: BuildableElement;
+  @Input() forceTag?: string;
   @Output() selectElementPipe = new EventEmitter<BuildableElement>();
 
-  @ViewChild("elementPanel", { static: false }) elementPanel: Popover;
+  @ViewChild("elementPanel", { static: false }) elementPanel!: Popover;
 
   showElements(event: any) {
     this.elementPanel.toggle(event);

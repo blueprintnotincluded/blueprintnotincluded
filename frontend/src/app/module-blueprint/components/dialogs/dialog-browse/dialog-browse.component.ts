@@ -1,13 +1,4 @@
-import {
-  Component,
-  OnInit,
-  ViewChild,
-  ChangeDetectorRef,
-  HostListener,
-  AfterContentInit,
-  ElementRef,
-} from "@angular/core";
-import { Router } from "@angular/router";
+import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import {
   BlueprintListItem,
   BlueprintListResponse,
@@ -16,9 +7,8 @@ import { BlueprintService } from "src/app/module-blueprint/services/blueprint-se
 import { Dialog } from "primeng/dialog";
 import { DatePipe } from "@angular/common";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
-import { timingSafeEqual } from "crypto";
-import { timer, Subject } from "rxjs";
-import { switchMap, debounceTime, distinctUntilChanged } from "rxjs/operators";
+import { Subject } from "rxjs";
+import { debounceTime } from "rxjs/operators";
 
 const LOADING_STR = $localize`Loading...`;
 
@@ -29,23 +19,23 @@ const LOADING_STR = $localize`Loading...`;
   standalone: false,
 })
 export class DialogBrowseComponent implements OnInit {
-  @ViewChild("browseDialog", { static: true }) browseDialog: Dialog;
-  @ViewChild("scrollable", { static: true }) scrollable: ElementRef;
+  @ViewChild("browseDialog", { static: true }) browseDialog!: Dialog;
+  @ViewChild("scrollable", { static: true }) scrollable!: ElementRef;
 
   visible: boolean = false;
-  blueprintListItems: BlueprintListItem[];
+  blueprintListItems!: BlueprintListItem[];
 
-  working: boolean;
-  noMoreBlueprints: boolean;
-  oldestDate: Date;
-  filterUserId: string;
-  filterUserName: string;
-  remaining: number;
+  working!: boolean;
+  noMoreBlueprints!: boolean;
+  oldestDate!: Date;
+  filterUserId!: string;
+  filterUserName!: string;
+  remaining!: number;
 
-  filterUser: boolean;
-  getDuplicates: boolean;
+  filterUser!: boolean;
+  getDuplicates!: boolean;
   filterNameSubject = new Subject<string>();
-  filterName: string;
+  filterName!: string;
 
   loadingBlueprintItem: BlueprintListItem;
   nothingBlueprintItem: BlueprintListItem;
@@ -53,33 +43,32 @@ export class DialogBrowseComponent implements OnInit {
   constructor(
     private blueprintService: BlueprintService,
     public authService: AuthenticationService,
-    public datepipe: DatePipe,
-    private router: Router
+    public datepipe: DatePipe
   ) {
     let tempDate = new Date();
     this.loadingBlueprintItem = {
-      id: null,
+      id: null as any,
       name: LOADING_STR,
       ownerId: "",
       ownerName: LOADING_STR,
       createdAt: tempDate,
       modifiedAt: tempDate,
       thumbnail: "svg",
-      tags: null,
+      tags: null as any,
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
     };
 
     this.nothingBlueprintItem = {
-      id: null,
+      id: null as any,
       name: $localize`:nothingBlueprintItem.name:No Results`,
       ownerId: "",
       ownerName: LOADING_STR,
       createdAt: tempDate,
       modifiedAt: tempDate,
       thumbnail: "svg_nothing",
-      tags: null,
+      tags: null as any,
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
@@ -88,11 +77,11 @@ export class DialogBrowseComponent implements OnInit {
     this.filterNameSubject
       .pipe(debounceTime(1000))
       //,distinctUntilChanged())
-      .subscribe((value) => {
+      .subscribe((_value) => {
         this.filterNameChange();
       });
 
-    this.filterNameSubject.subscribe((value) => {
+    this.filterNameSubject.subscribe((_value) => {
       this.removeAll();
     });
   }
@@ -119,8 +108,8 @@ export class DialogBrowseComponent implements OnInit {
   filterUserChange() {
     if (this.filterUser == false) {
       this.removeAll();
-      this.filterUserId = null;
-      this.filterUserName = null;
+      this.filterUserId = null as any;
+      this.filterUserName = null as any;
       this.oldestDate = new Date();
       this.getBlueprints();
     }
@@ -142,14 +131,14 @@ export class DialogBrowseComponent implements OnInit {
   }
 
   getBlueprints() {
-    let filterName = null;
+    let filterName: string | null = null;
     if (this.filterName != "" && this.filterName != null)
       filterName = this.filterName;
 
     this.blueprintService
       .getBlueprints(
         this.oldestDate,
-        this.filterUserId,
+        this.filterUserId || null,
         filterName,
         this.getDuplicates
       )
@@ -178,10 +167,10 @@ export class DialogBrowseComponent implements OnInit {
 
   reset() {
     this.filterUser = false;
-    this.filterUserId = null;
-    this.filterUserName = null;
+    this.filterUserId = null as any;
+    this.filterUserName = null as any;
     this.getDuplicates = false;
-    this.filterName = null;
+    this.filterName = null as any;
 
     this.removeAll();
   }
@@ -201,7 +190,7 @@ export class DialogBrowseComponent implements OnInit {
       this.blueprintListItems.push(this.loadingBlueprintItem);
   }
 
-  handleTitleClick(event: MouseEvent, item: BlueprintListItem) {
+  handleTitleClick(event: MouseEvent, _item: BlueprintListItem) {
     // Only handle the click if it's a normal left click (no modifier keys)
     // Let routerLink handle modifier+click and right-click naturally
     if (
@@ -220,8 +209,8 @@ export class DialogBrowseComponent implements OnInit {
   }
 
   showDialog(
-    filterUserId: string = null,
-    filterUserName: string = null,
+    filterUserId: string | null = null,
+    filterUserName: string | null = null,
     getDuplicates: boolean = false
   ) {
     this.reset();
@@ -242,7 +231,7 @@ export class DialogBrowseComponent implements OnInit {
     );
   }
 
-  scroll(e: Event) {
+  scroll(_e: Event) {
     let scrollTop: number = this.scrollable.nativeElement.scrollTop;
     let scrollMax: number =
       this.scrollable.nativeElement.scrollHeight -
