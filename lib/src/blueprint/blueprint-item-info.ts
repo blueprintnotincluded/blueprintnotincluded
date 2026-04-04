@@ -4,8 +4,6 @@ import { CameraService } from '../drawing/camera-service';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { Overlay } from '../enums/overlay';
 import { SpriteTag } from '../enums/sprite-tag';
-import { Display } from '../enums/display';
-import { Visualization } from '../enums/visualization';
 import { DrawHelpers } from '../drawing/draw-helpers';
 
 export enum InfoIcon {
@@ -53,11 +51,11 @@ export class BlueprintItemInfo extends BlueprintItem {
     super(id);
   }
 
-  public prepareSpriteVisibility(camera: CameraService) {}
+  public prepareSpriteVisibility(_camera: CameraService) {}
 
-  public updateTileables(blueprint: Blueprint) {}
+  public updateTileables(_blueprint: Blueprint) {}
 
-  drawTemplateItem(templateItem: BlueprintItem, camera: CameraService) {}
+  drawTemplateItem(_templateItem: BlueprintItem, _camera: CameraService) {}
 
   public importMdbBuilding(original: MdbBuilding) {
     if (original.infoString == null) this.infoString = BlueprintItemInfo.defaultInfoString;

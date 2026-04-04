@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { Database } from '../db';
-import { BlueprintModel, Blueprint } from '../models/blueprint';
+import { BlueprintModel,} from '../models/blueprint';
 import { BatchUtils } from './batch-utils';
 
 export class UpdateBasedOn {

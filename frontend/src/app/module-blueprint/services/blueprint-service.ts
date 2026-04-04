@@ -142,7 +142,7 @@ export class BlueprintService implements IObsBlueprintChange {
 
   public loadUrlBlueprint(url: string) {
     this.http.get(url).subscribe((value) => {
-      console.log(value);
+      console.warn(value);
     });
   }
 
@@ -258,7 +258,7 @@ export class BlueprintService implements IObsBlueprintChange {
 
   handleGetBlueprintError(error: any) {
     // TODO toast here
-    console.log(error);
+    console.error(error);
   }
 
   getBlueprint(id: string) {

@@ -123,7 +123,7 @@ export class DrawPart {
     if (this.hasTag(tagFilter)) this.visible = true;
   }
 
-  public addToContainer(container: any /*PIXI.Container*/) {
+  public addToContainer(_container: any /*PIXI.Container*/) {
     if (this.spriteModifier != null)
       this.spriteInfo = SpriteInfo.getSpriteInfo(this.spriteModifier.spriteInfoName);
   }

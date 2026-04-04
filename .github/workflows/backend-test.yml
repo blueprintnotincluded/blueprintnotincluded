@@ -60,6 +60,9 @@ jobs:
           echo "DB_URI=mongodb://localhost:27017/blueprintnotincluded_test" >> $GITHUB_ENV
           echo "JWT_SECRET=test_jwt_secret_for_ci" >> $GITHUB_ENV
 
+      - name: Type-check backend
+        run: npm run tsc
+
       - name: Run backend tests
         run: npm run test
 

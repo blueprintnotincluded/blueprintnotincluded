@@ -173,7 +173,7 @@ export class DialogBrowseComponent implements OnInit {
 
   handleDeleteError() {
     // TODO cleaner handling here, but I don't remember how to do it
-    console.log("Error when deleting blueprint");
+    console.error("Error when deleting blueprint");
   }
 
   reset() {

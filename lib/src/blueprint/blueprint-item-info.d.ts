@@ -31,9 +31,9 @@ export declare class BlueprintItemInfo extends BlueprintItem {
     get htmlBackColor(): string;
     get htmlSvgPath(): string;
     constructor(id: string);
-    prepareSpriteVisibility(camera: CameraService): void;
-    updateTileables(blueprint: Blueprint): void;
-    drawTemplateItem(templateItem: BlueprintItem, camera: CameraService): void;
+    prepareSpriteVisibility(_camera: CameraService): void;
+    updateTileables(_blueprint: Blueprint): void;
+    drawTemplateItem(_templateItem: BlueprintItem, _camera: CameraService): void;
     importMdbBuilding(original: MdbBuilding): void;
     toMdbBuilding(): MdbBuilding;
     cleanUp(): void;

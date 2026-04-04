@@ -40,7 +40,7 @@ export class SpriteModifier {
     return this.tags.indexOf(tag) != -1;
   }
 
-  public static AddSpriteModifier(bBuilding: BBuilding) {
+  public static AddSpriteModifier(_bBuilding: BBuilding) {
     // TODO Why is this empty again?
   }
 

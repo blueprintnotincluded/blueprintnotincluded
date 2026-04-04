@@ -2,7 +2,7 @@ export declare class BUiScreen {
     id: string;
     inputs: string[];
     constructor(id: string);
-    getDefaultValue(index: number): any;
+    getDefaultValue(_index: number): any;
     importFrom(original: BUiScreen): void;
     static clone(original: BUiScreen): BUiScreen;
 }

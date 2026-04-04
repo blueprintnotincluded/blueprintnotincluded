@@ -33,7 +33,6 @@ export class Blueprint {
 
     // Copy the buildings
     for (let building of oniBlueprint.buildings) {
-      let oniItem = OniItem.getOniItem(building.id);
 
       let newTemplateItem = BlueprintHelpers.createInstance(building.id);
       if (newTemplateItem == null) continue;
@@ -132,7 +131,7 @@ export class Blueprint {
 
       let selectedElementCount = reader.readInt();
       for (let elementIndex = 0; elementIndex < selectedElementCount; elementIndex++) {
-        let tag = reader.readInt();
+        reader.readInt();
       }
 
       let orientation = reader.readInt();
@@ -155,9 +154,7 @@ export class Blueprint {
     this.resumeChangeEvents(emitChanges);
   }
 
-  private currentOverlay: Overlay = Overlay.Base;
-  public prepareOverlayInfo(currentOverlay: Overlay) {
-    this.currentOverlay = currentOverlay;
+  public prepareOverlayInfo(_currentOverlay: Overlay) {
     this.refreshOverlayInfo();
   }
 

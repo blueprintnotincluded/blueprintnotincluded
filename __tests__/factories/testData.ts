@@ -1,6 +1,4 @@
 import { Types } from 'mongoose';
-import { User } from '../../app/api/models/user';
-import { Blueprint } from '../../app/api/models/blueprint';
 
 export interface TestUser {
   _id?: Types.ObjectId;

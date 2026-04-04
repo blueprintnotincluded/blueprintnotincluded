@@ -9,7 +9,7 @@ export class BUiScreen {
     this.inputs = [];
   }
 
-  getDefaultValue(index: number): any {
+  getDefaultValue(_index: number): any {
     return null;
   }
 

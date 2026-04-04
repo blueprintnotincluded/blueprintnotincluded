@@ -1,10 +1,6 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as sinon from 'sinon';
-import { AssetPaths } from '../../app/api/batch/asset-paths';
-import { AssetValidator } from '../../app/api/batch/asset-validator';
-import { AssetLogger } from '../../app/api/batch/asset-logger';
 
 describe('Extract Export Pipeline Tests', () => {
   describe('Pipeline Validation', () => {
@@ -345,7 +341,7 @@ describe('Extract Export Pipeline Tests', () => {
 
       // Most texture atlases should be used by multiple sprites for efficiency
       let inefficientAtlases = 0;
-      for (const [textureName, count] of textureUsage) {
+      for (const [_textureName, count] of textureUsage) {
         if (count === 1) {
           inefficientAtlases++;
         }

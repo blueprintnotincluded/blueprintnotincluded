@@ -78,7 +78,7 @@ export class AssetValidator {
    */
   static validateDiskSpace(): boolean {
     try {
-      const stats = fs.statSync(AssetPaths.projectRoot);
+      fs.statSync(AssetPaths.projectRoot);
       // This is a basic check - in production you'd want to check actual free space
       AssetLogger.info('✓ Project directory accessible');
       return true;

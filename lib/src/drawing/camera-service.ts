@@ -3,7 +3,6 @@ import { Overlay } from '../enums/overlay';
 import { Display } from '../enums/display';
 import { Visualization } from '../enums/visualization';
 import { OniItem } from '../oni-item';
-import { PixiUtil } from './pixi-util';
 
 declare var PIXI: any;
 

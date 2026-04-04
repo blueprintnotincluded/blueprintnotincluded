@@ -379,8 +379,6 @@ export class ComponentCanvasComponent
   }
 
   downloadGroups(database: BExport) {
-    console.log("downloadGroups");
-
     let renderTextures: PIXI.RenderTexture[] = [];
     let textureNames: string[] = [];
 
@@ -391,8 +389,6 @@ export class ComponentCanvasComponent
 
       let spritesToGroup: SpriteModifier[] = [];
       for (let spriteModifier of oniItem.spriteGroup.spriteModifiers) {
-        if (spriteModifier == undefined) console.log(oniItem);
-
         if (
           spriteModifier.tags.indexOf(SpriteTag.solid) != -1 &&
           spriteModifier.tags.indexOf(SpriteTag.tileable) == -1 &&
@@ -515,7 +511,7 @@ export class ComponentCanvasComponent
         newSpriteInfo.realSize = new Vector2(bounds.width, bounds.height);
         newSpriteInfo.uvSize = new Vector2(bounds.width, bounds.height);
         database.uiSprites.push(newSpriteInfo);
-      } else console.log(oniItem.id + " should not be grouped");
+      }
     }
 
     ComponentCanvasComponent.zip = new JSZip();
@@ -674,7 +670,6 @@ export class ComponentCanvasComponent
     ComponentCanvasComponent.zip.file(filename, blob);
 
     if (ComponentCanvasComponent.nbBlob == ComponentCanvasComponent.nbBlobMax) {
-      console.log("last blob arrived!");
       ComponentCanvasComponent.zip
         .generateAsync({ type: "blob" })
         .then(function (blob) {
@@ -775,7 +770,6 @@ export class ComponentCanvasComponent
       bottomRight.x - topLeft.x + 3,
       bottomRight.y - topLeft.y + 3
     );
-    console.log(totalTileSize);
     let sizeInPixels = new Vector2(
       totalTileSize.x * tileSize,
       totalTileSize.y * tileSize

@@ -13,7 +13,6 @@ import { SpriteModifier } from './drawing/sprite-modifier';
 import { BuildMenuItem, BuildMenuCategory } from './b-export/b-build-order';
 import { BuildLocationRule } from './enums/build-location-rule';
 import { ConnectionType } from './enums/connection-type';
-import { SpriteInfo } from './drawing/sprite-info';
 
 export class OniItem {
   static elementId = 'Element';
@@ -122,7 +121,7 @@ export class OniItem {
 
     // TODO not sure if this is usefull still
     let imageId: string = original.textureName;
-    let imageUrl: string = StringHelpers.createUrl(imageId, false);
+    StringHelpers.createUrl(imageId, false);
     //ImageSource.AddImagePixi(imageId, imageUrl);
 
     // Map material categories to selectable elements; ignore non-selectable categories

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { User, UserModel } from './models/user';
+import { UserModel } from './models/user';
 
 export class DuplicateCheckController {
   public async checkUsername(req: Request, res: Response) {

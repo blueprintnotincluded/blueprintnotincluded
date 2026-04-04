@@ -3,20 +3,18 @@ import { BlueprintModel, Blueprint } from './models/blueprint';
 import {
   MdbBlueprint,
   BlueprintResponse,
-  BlueprintListItem,
+//   BlueprintListItem,
   BlueprintListResponse,
   BlueprintLike,
-  Vector2,
-  CameraService,
-  Overlay,
-  ImageSource,
+//   Vector2,
+//   CameraService,
+//   Overlay,
+//   ImageSource,
   BlueprintDelete,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint } from '../../lib/index';
-import { UserModel, User, UserJwt } from './models/user';
-import { UpdateBasedOn } from './batch/update-based-on';
+import { UserModel, UserJwt } from './models/user';
 import { BatchUtils } from './batch/batch-utils';
-import { use } from 'passport';
 import { apiError } from './utils/apiError';
 
 export class BlueprintController {
@@ -229,7 +227,7 @@ export class BlueprintController {
     else {
       // TODO checks here
       let id = req.params.id;
-      let userId = req.query.userId;
+//       let _userId = req.query.userId;
 
       BlueprintModel.model
         .find({ _id: id })
@@ -259,7 +257,7 @@ export class BlueprintController {
     else {
       // TODO checks here
       let id = req.params.id;
-      let userId = req.query.userId;
+//       let _userId = req.query.userId;
 
       BlueprintModel.model
         .find({ _id: id })
@@ -359,7 +357,7 @@ export class BlueprintController {
   }
 
   private static handleGetBlueprint(
-    req: Request,
+    _req: Request,
     res: Response,
     userId: string,
     blueprints: Blueprint[]
@@ -423,7 +421,7 @@ export class BlueprintController {
   }
 
   private static saveBlueprint(
-    req: Request,
+    _req: Request,
     res: Response,
     blueprint: Blueprint,
     ownerId: string,

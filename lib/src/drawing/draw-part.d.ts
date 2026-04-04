@@ -28,7 +28,7 @@ export declare class DrawPart {
     makeEverythingButThisTagInvisible(tagFilter: SpriteTag): void;
     makeInvisibileIfHasTag(tagFilter: SpriteTag): void;
     makeVisibileIfHasTag(tagFilter: SpriteTag): void;
-    addToContainer(container: any): void;
+    addToContainer(_container: any): void;
 }
 export declare enum DrawPartType {
     Main = 0,

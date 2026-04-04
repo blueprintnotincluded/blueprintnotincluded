@@ -31,7 +31,7 @@ export class PixiNodeUtil implements PixiUtil {
     this.pixiGraphicsBack = this.getNewGraphics();
   }
 
-  getNewPixiApp(options: any) {
+  getNewPixiApp(_options: any) {
     return this.pixiApp;
     //return new PIXI.Application(options);
   }
@@ -50,7 +50,7 @@ export class PixiNodeUtil implements PixiUtil {
   getSpriteFrom(ressource: any) {
     return PIXI.Sprite.from(ressource);
   }
-  getNewBaseTexture(url: string) {
+  getNewBaseTexture(_url: string) {
     throw new Error('This should not be called on node : all textures should be preloaded');
   }
   getNewTexture(baseTex: any, rectangle: any) {

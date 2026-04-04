@@ -20,11 +20,11 @@ export class BlueprintItemElement extends BlueprintItem {
     super(id);
   }
 
-  public prepareSpriteVisibility(camera: CameraService) {}
+  public prepareSpriteVisibility(_camera: CameraService) {}
 
-  public updateTileables(blueprint: Blueprint) {}
+  public updateTileables(_blueprint: Blueprint) {}
 
-  drawTemplateItem(templateItem: BlueprintItem, camera: CameraService) {}
+  drawTemplateItem(_templateItem: BlueprintItem, _camera: CameraService) {}
 
   public importMdbBuilding(original: MdbBuilding) {
     if (original.mass == undefined) this.mass = 0;

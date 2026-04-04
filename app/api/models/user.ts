@@ -1,5 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
-import dotenv from 'dotenv';
+import mongoose, { Document, Model } from 'mongoose';
 import crypto from 'crypto-js';
 import jwt from 'jsonwebtoken';
 
