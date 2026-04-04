@@ -31,7 +31,7 @@ export class UserModel {
         type: String,
         unique: true,
         required: true,
-        match: [/^[a-zA-Z0-9-_]+$/, 'Username may only contain letters, numbers, hyphens, and underscores'],
+        match: [/^[a-zA-Z0-9_-]+$/, 'Username may only contain letters, numbers, hyphens, and underscores'],
         maxlength: [30, 'Username must be 30 characters or fewer'],
         minlength: [1, 'Username is required'],
       },
