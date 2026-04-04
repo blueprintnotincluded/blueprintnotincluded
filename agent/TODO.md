@@ -1,74 +1,249 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Phase 6 - Final Optimization (all upgrades complete)
+- **Phase**: Phase 7 - Zero-Warning Enforcement
 - **Date**: 2026-04-03
 - **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20.3.18 · PrimeNG 20.4.0
 - **Tests**: 141 passing (Mocha + Chai — do not switch to Jest)
 
-## Upgrade Phases
+---
 
-### ✅ Phase 4: Canvas & Asset Processing (complete)
-- Canvas 2.11.2 → 3.2.3 (Node.js 20 compatible)
-- jsdom 16 → 26 upgraded alongside (required for canvas 3.x peer compat in npm ci)
+## Phase 7: Zero-Warning Enforcement
 
-### ✅ Phase 5: Angular Frontend (complete)
-- ✅ Angular 13 → 19 complete (had to go through 17, skip was not possible)
-- ✅ Angular 19 → 20 complete
-- Node.js 20.18.0 → 20.19.4 (Angular CLI 20 requires ^20.19.0)
-- @angular-eslint 19 → 20.7.0, eslint 8.17 → 8.57+
-- PrimeNG 19 → 20: renamed components: overlaypanel→popover, dropdown→select,
-  inputswitch→toggleswitch, sidebar→drawer, tabmenu→tabs, inputtextarea→textarea;
-  accordion API rewrite (p-accordionTab → p-accordion-panel/header/content)
-- tsconfig.base.json moduleResolution: "node" → "bundler" (required for @primeuix ES module subpath exports)
-- Key fixes applied during upgrade:
-  - zone.js import: `zone.js/dist/zone` → `zone.js` (0.14+ exports change)
-  - @typescript-eslint 5 → 6 (TS 5.x support)
-  - .eslintrc.json: added tsconfig.app.json + tsconfig.spec.json, removed createDefaultProgram
-  - blueprint-service.ts: fixed direct `node_modules/js-yaml/lib/js-yaml` import → `js-yaml`
-  - Keep @angular-eslint in sync with Angular version each step
+Goal: every automated system (build, lint, test, dev server, CI, git hooks) treats warnings as
+errors and fails loudly. Work in two stages: (1) add enforcement mechanisms, (2) fix all existing
+noise that those mechanisms surface.
 
-### Phase 6: Final Optimization
-- Security audit
-- Performance testing
-- Documentation completion
+### Step 1 — Audit existing noise (run first, capture output)
 
-## Security (Post-CAPTCHA Removal)
+Before adding any enforcement, run each system and record every warning/error that currently
+exists. This becomes the fix list for Step 3.
 
-CAPTCHA removed 2025-10-13 per user request. Remaining measures to implement:
+| System | Command | What to capture |
+|--------|---------|-----------------|
+| Backend tsc | `npm run tsc` | All TS diagnostics |
+| Lib tsc | `tsc -b lib` | All TS diagnostics |
+| Backend tests | `npm run test` | Any `console.warn`/`console.error` output, deprecation notices |
+| Frontend lint | `cd frontend && npm run lint` | All ESLint warnings |
+| Frontend build | `cd frontend && npm run build` | Budget warnings, template warnings |
+| Frontend dev | `cd frontend && ng serve --no-live-reload` | Console output at startup |
 
-- [x] **Rate Limiting** — handled by Cloudflare; do not add express-rate-limit
-- [ ] **Account Lockout** — track failed attempts in user model; lock 15 min after 5 failures
-- [ ] **Email Verification** — require email confirmation for new registrations
-- [ ] **Password Strength** — enforce complexity; consider `zxcvbn`
-- [ ] **JWT Hardening** — add expiration, refresh mechanism, and logout blacklisting
-- [ ] **HTTPS Enforcement** — HTTPS redirect middleware + HSTS header in production
-- [ ] **Input Sanitization** — strengthen beyond current username regex; XSS protection for user content
-- [ ] **Security Logging** — structured log for auth events (failed logins, registrations, password changes)
-- [ ] **Login Anomaly Detection** — alert on multi-IP patterns, unusual frequency
+### Step 2 — Add enforcement mechanisms
 
-## Test Coverage Gaps
+Each item below adds a gate. After adding all gates, Step 3 clears all the failures they surface.
 
-- [x] **Blueprint API** — getblueprint (by id, likedByMe flag, bad ids), upload (new, overwrite, name validation), like/unlike, delete (ownership enforcement, soft delete)
-- [x] **User Management** — registration validation (duplicate username/email, bad chars, length), full password reset flow (request token, use token, token expiry, token reuse prevention)
-- [ ] **Asset Processing** — generateIcons, generateGroups pipeline tests
-- [ ] **Frontend** — no Angular tests exist; component units, service tests, blueprint viewer integration
+#### 2a. TypeScript: enable unused-variable and control-flow flags
 
-## Technical Debt
+**Files**: `tsconfig.json` and `lib/tsconfig.json`
+**Change**: Uncomment and enable these four flags (currently present but commented out):
+```json
+"noUnusedLocals": true,
+"noUnusedParameters": true,
+"noImplicitReturns": true,
+"noFallthroughCasesInSwitch": true
+```
+**Effect**: `npm run tsc` and `npm run build:lib` fail on dead code and incomplete return paths.
 
-- [x] **API Error Handling** — all error responses now use JSON:API format `{ errors: [{ status, title }] }` via shared `apiError()` helper; success responses unchanged
-- [x] **Database Validation** — Mongoose schema validators added (username regex/maxlength, email format/maxlength, blueprint name regex/maxlength); null checks, email format validation, and consistent apiError responses added to register-controller; blueprint name null guard added; filterName capped at 60 chars to prevent ReDoS; auth.ts reset-password uses JSON error format and validates inputs
-- [x] **Database Query Review** — added indexes: Blueprint `{ createdAt: -1 }`, `{ owner, createdAt }`, `{ owner, name }`; User `{ resetToken }`
-- [ ] **API Documentation** — no OpenAPI/Swagger spec exists
+#### 2b. TypeScript: add strict flags to Angular frontend
 
-## Questions for Product Owner
+**File**: `frontend/tsconfig.base.json`
+**Change**: Add to `compilerOptions`:
+```json
+"strict": true,
+"noUnusedLocals": true,
+"noUnusedParameters": true,
+"noImplicitReturns": true,
+"noFallthroughCasesInSwitch": true
+```
+**Also**: Add to `angularCompilerOptions`:
+```json
+"strictTemplates": true
+```
+(`strictInjectionParameters` is already present; `strictTemplates` additionally type-checks all
+component templates — binding types, missing inputs, pipe return types.)
 
-1. **Test Coverage Priority**: Blueprint upload/validation vs user auth vs frontend components — where first?
-2. **Error Handling Standard**: JSON:API, RFC 7807, or custom format for API error responses?
-3. **Asset Generation Performance**: Any throughput or concurrency requirements for image generation?
-4. **Frontend Testing**: Unit, integration, or E2E — what level is desired?
-5. **i18n Testing**: How thoroughly should English/Chinese/Russian/Korean switching be tested?
+**Effect**: `ng build` and `ng lint` fail on template type errors and dead code.
+
+#### 2c. ESLint: ban console statements in source code
+
+**File**: `frontend/.eslintrc.json`
+**Change**: In the `*.ts` files override, add to `rules`:
+```json
+"no-console": ["error", { "allow": ["warn", "error"] }]
+```
+**Effect**: `npm run lint` fails if `console.log` or `console.info` appear in frontend source.
+`console.warn` and `console.error` remain allowed for legitimate runtime diagnostics.
+
+**Note**: For the backend there is no ESLint setup today. A backend `.eslintrc.json` could be
+added as a separate step; for now the frontend lint gate is the higher-value target.
+
+#### 2d. Mocha: fail on `console.error`/`console.warn` and ban `.only`
+
+Two changes to `__tests__` infrastructure:
+
+**i. Add `--forbid-only` to `.mocharc.json`**
+```json
+"forbid-only": true
+```
+Prevents `it.only`/`describe.only` from accidentally being committed (they silently skip all
+other tests).
+
+**ii. Add a Mocha root hooks file** `__tests__/hooks.ts`
+```typescript
+// Root hook: fail any test that calls console.warn or console.error
+import { RootHookObject } from 'mocha';
+export const mochaHooks: RootHookObject = {
+  beforeAll() {
+    const fail = (level: string) => (...args: unknown[]) => {
+      throw new Error(`console.${level} called in tests: ${args.join(' ')}`);
+    };
+    console.warn  = fail('warn') as typeof console.warn;
+    console.error = fail('error') as typeof console.error;
+  }
+};
+```
+Register it in `.mocharc.json`:
+```json
+"require": ["ts-node/register", "__tests__/hooks.ts"]
+```
+
+**Effect**: Any test (or code under test) that calls `console.error`/`console.warn` fails
+immediately with a descriptive error. Forces legitimate warnings to be either suppressed
+intentionally (spy in a specific test) or fixed at the source.
+
+**Important**: Mongoose deprecation notices and driver warnings arrive via `console.warn` — these
+will become test failures and must be resolved (see Step 3).
+
+#### 2e. Backend dev server: parallel type-checking
+
+**Current problem**: `ts-node-dev --transpile-only` skips all type checking. TypeScript errors
+are invisible during local development.
+
+**Change**: Add two new scripts to `package.json`:
+```json
+"typecheck": "tsc --noEmit --watch",
+"dev:full": "concurrently --names 'server,types' 'npm run dev' 'npm run typecheck'"
+```
+Add `concurrently` as a dev dependency.
+
+**Effect**: `npm run dev:full` runs the hot-reload server and a parallel type watcher side by
+side. Type errors appear in the terminal as they are introduced. `npm run dev` (transpile-only)
+remains available for speed when type-checking is not needed.
+
+**Note**: `concurrently` is a very small dev-only dependency. Alternatively this can be achieved
+with two terminal tabs running `npm run dev` and `npm run typecheck` separately — the scripts
+are useful either way.
+
+#### 2f. Angular build: tighten bundle size budgets
+
+**File**: `frontend/angular.json`
+**Current thresholds**: initial bundle warning 5 MB / error 10 MB; component styles warning 6 kB / error 10 kB
+**Proposed thresholds**: Set warning to something near the current actual size (discovered in
+Step 1 audit), then set error ~20% above that. This turns future regressions into build failures.
+
+The exact numbers depend on the audit result. A reasonable starting point:
+- Initial bundle: warning 2 MB / error 3 MB
+- Component styles: warning 4 kB / error 8 kB
+
+Adjust after running `ng build --stats-json` and inspecting `stats.json`.
+
+**Effect**: Bundle size growth beyond baseline becomes a CI-blocking error rather than silent.
+
+#### 2g. CI: add explicit TypeScript type-check step to backend workflow
+
+**File**: `.github/workflows/backend-test.yml`
+**Current problem**: `npm run test` uses `TS_NODE_TRANSPILE_ONLY=true` — no type checking in CI.
+**Change**: Add a step before tests:
+```yaml
+- name: Type-check backend
+  run: npm run tsc
+```
+**Effect**: TypeScript errors in CI are caught as a blocking step, not silently skipped.
+
+#### 2h. CI: add tsc step to frontend workflow
+
+**File**: `.github/workflows/frontend-test.yml`
+**Current**: `ng lint` + `ng test` + `ng build` — the build already type-checks, so this is lower
+priority. However, `ng build` is the last step; adding `npm run tsc` (for lib) or a frontend-only
+`tsc --noEmit` before lint would surface errors earlier in the pipeline.
+
+#### 2i. Git pre-commit: extend to cover backend TypeScript
+
+**File**: `frontend/.husky/pre-commit`
+**Current**: Runs `lint-staged` in the frontend directory only. Backend TS changes are not checked.
+**Change**: Add backend `tsc --noEmit` when `app/` or `lib/` files are staged:
+```sh
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Frontend: lint staged files
+cd frontend && volta run --node 20.19.4 npx lint-staged
+
+# Backend: type-check if any backend/lib TS files are staged
+cd ..
+if git diff --cached --name-only | grep -qE '^(app|lib)/.*\.ts$'; then
+  volta run --node 20.19.4 npm run tsc
+fi
+```
+**Effect**: Backend type errors are caught before commit, not just in CI.
+
+### Step 3 — Fix all existing noise
+
+After Step 2, run each system and fix every failure that surfaces. Categories of expected findings:
+
+- **Unused variables/parameters** (TypeScript `noUnusedLocals`/`noUnusedParameters`) — prefix with `_` or delete
+- **Missing return paths** (`noImplicitReturns`) — add explicit returns
+- **Template type errors** (Angular `strictTemplates`) — fix binding types in component HTML
+- **`console.log` in frontend source** (ESLint `no-console`) — remove debug logs
+- **`console.warn`/`console.error` in test output** (Mocha hooks) — suppress intentionally or fix
+- **Bundle size** — investigate and reduce if over new budget thresholds
+- **Any TypeScript errors surfaced by CI tsc step** — fix at source
+
+### Step 4 — Verify all gates are green
+
+Run the full suite and confirm zero warnings, zero errors in each system:
+
+```bash
+npm run tsc                          # backend + lib
+npm run test                         # mocha (no console output)
+cd frontend && npm run lint          # ESLint (no warnings)
+cd frontend && npm run build         # ng build (no budget warnings)
+cd frontend && npm run ci:karma      # karma (no console output)
+```
+
+All CI workflows should also pass on the resulting branch.
+
+---
+
+## Future Security Improvements
+
+Deferred — no active sprint. Revisit when product direction is clearer.
+
+- **Account Lockout** — track failed attempts in user model; lock 15 min after 5 failures
+- **Email Verification** — require email confirmation for new registrations
+- **Password Strength** — enforce complexity; consider `zxcvbn`
+- **JWT Hardening** — add expiration, refresh mechanism, and logout blacklisting
+- **HTTPS Enforcement** — HTTPS redirect middleware + HSTS header in production
+- **Input Sanitization** — strengthen beyond current username regex; XSS protection for user content
+- **Security Logging** — structured log for auth events (failed logins, registrations, password changes)
+- **Login Anomaly Detection** — alert on multi-IP patterns, unusual frequency
+
+---
+
+## Future Test Coverage
+
+- **Asset Processing** — generateIcons, generateGroups pipeline tests
+- **Frontend** — no Angular tests exist; component units, service tests, blueprint viewer integration
+
+---
+
+## Future Technical Debt
+
+- **API Documentation** — no OpenAPI/Swagger spec exists
+
+---
 
 ## CI Notes
 All improvements complete — see `agent/CI_IMPROVEMENTS.md`.
-MongoDB health check uses legacy `mongo` CLI (fine for current `mongo:4.2` image); upgrade health check to `mongosh` when upgrading the MongoDB image.
+MongoDB health check uses legacy `mongo` CLI (fine for current `mongo:4.2` image); upgrade health
+check to `mongosh` when upgrading the MongoDB image.
