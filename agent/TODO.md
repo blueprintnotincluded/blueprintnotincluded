@@ -4,7 +4,7 @@
 - **Phase**: Phase 6 - Final Optimization (all upgrades complete)
 - **Date**: 2026-04-03
 - **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20.3.18 · PrimeNG 20.4.0
-- **Tests**: 118 passing (Mocha + Chai — do not switch to Jest)
+- **Tests**: 141 passing (Mocha + Chai — do not switch to Jest)
 
 ## Upgrade Phases
 
@@ -49,7 +49,7 @@ CAPTCHA removed 2025-10-13 per user request. Remaining measures to implement:
 
 ## Test Coverage Gaps
 
-- [ ] **Blueprint API** — upload/validation, image generation pipeline, sharing/permissions, malformed input errors
+- [x] **Blueprint API** — getblueprint (by id, likedByMe flag, bad ids), upload (new, overwrite, name validation), like/unlike, delete (ownership enforcement, soft delete)
 - [x] **User Management** — registration validation (duplicate username/email, bad chars, length), full password reset flow (request token, use token, token expiry, token reuse prevention)
 - [ ] **Asset Processing** — generateIcons, generateGroups pipeline tests
 - [ ] **Frontend** — no Angular tests exist; component units, service tests, blueprint viewer integration
