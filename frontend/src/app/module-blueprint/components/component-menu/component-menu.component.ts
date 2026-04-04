@@ -402,9 +402,14 @@ export class ComponentMenuComponent
   }
 
   userProfile() {
+    const user = this.authService.getUserDetails();
+    if (!user) {
+      return;
+    }
+
     let userFilter: BrowseData = {
-      filterUserId: this.authService.getUserDetails()!._id,
-      filterUserName: this.authService.getUserDetails()!.username,
+      filterUserId: user._id,
+      filterUserName: user.username,
       getDuplicates: true,
     };
 
