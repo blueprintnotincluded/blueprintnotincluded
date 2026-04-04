@@ -101,9 +101,10 @@ See `agent/CI_IMPROVEMENTS.md` for a prioritized list of known CI issues.
 Copy `.env.sample` to `.env` and configure:
 - `DB_URI` - MongoDB connection string
 - `JWT_SECRET` - Secret key for JWT tokens
-- `CAPTCHA_SITE`/`CAPTCHA_SECRET` - reCAPTCHA configuration
-- `ENV_NAME` - Environment identifier
-- `SMTP_HOST`/`SMTP_PORT` - Mail server configuration (defaults to localhost:1025)
+- `ENV_NAME` - Environment identifier (`production` enables Mailjet; otherwise nodemailer/SMTP)
+- `SMTP_HOST`/`SMTP_PORT` - Mail server for dev/test (defaults to localhost:1025)
+- `MAILJET_API_KEY`/`MAILJET_SECRET_KEY`/`MAILJET_FROM_EMAIL` - Required in production for email
+- `SITE_URL` - Base URL included in password reset links
 
 ## Database
 
@@ -125,70 +126,52 @@ Uses MongoDB 4.2 with Mongoose models in `app/api/models/`:
 Uses Mocha with Chai and TypeScript support. Test files in `__tests__/` directory. The test database setup script creates a clean test environment.
 
 ### Testing Framework Notes
-- **Framework**: Mocha with Chai (recommended by Mongoose team for MongoDB testing)
-- **Expected Warnings**: 
-  - MongoDB driver 3.x circular dependency warnings (will be resolved when upgrading Mongoose in Phase 2)
-  - Blueprint API cast error logs in one test (documents existing backend validation bug)
+- **Framework**: Mocha with Chai — do not introduce Jest
 - **Maintenance**: When removing large dependency sets, regenerate package-lock.json with `rm package-lock.json && npm install` to prevent corruption
+- **Email in tests**: `emailService.ts` skips SMTP when `NODE_ENV=test` — no mail server needed
 
-## 🔄 Active Upgrade Process
+## Current Status
 
-### Current Status (2026-04-01)
-- **Upgrade Phase**: Phase 2B - Mongoose upgrade (next up)
-- **Build Status**: ✅ TypeScript 5.9.2 strict mode passing
-- **Test Status**: ✅ 18/18 tests passing (Mocha + Chai)
-- **Node.js**: 20.18.0 (via volta)
-- **TypeScript**: 5.9.2 with strict checking (backend + lib)
+- **Phase**: Phase 6 - Final Optimization (all dependency upgrades complete)
+- **Date**: 2026-04-03
+- **Node.js**: 20.19.4 (via volta)
+- **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
+- **Tests**: ✅ 141 passing (Mocha + Chai — do not introduce Jest)
+- **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:
-- `agent/TODO.md` - Improvement roadmap and priorities
-- `agent/ASSESSMENT.md` - Detailed test coverage analysis  
+- `agent/TODO.md` - Improvement roadmap and remaining work
 - `agent/SESSION_NOTES.md` - Session-by-session progress
-- `agent/CI_IMPROVEMENTS.md` - GitHub Actions improvement backlog
-- `UPGRADE_PLAN.md` - Comprehensive upgrade strategy
+- `agent/CI_IMPROVEMENTS.md` - GitHub Actions improvements (all complete)
+- `UPGRADE_PLAN.md` - Upgrade history and strategy
 
 ### Quick Status Check Commands
 ```bash
 # Environment verification
-node --version        # Should be 20.18.0
-npm run test         # Should pass 18 tests
+node --version        # Should be 20.19.4
+npm run test         # Should pass 141 tests
 npm run tsc          # Should compile without errors
-git status           # Check working tree status
 
 # GitHub CI status
-gh run list --limit 5                    # Recent workflow runs
-gh run view <run-id>                     # Details of a specific run
-gh pr list                               # Open pull requests
-
-# View current upgrade status
-head -20 agent/TODO.md              # Current priorities
+gh run list --limit 5
+head -20 agent/TODO.md
 ```
 
-### Completed Phases
-1. ✅ **Phase 1A**: Node.js 20.18.0 (volta + .nvmrc)
+### All Upgrade Phases Complete
+1. ✅ **Phase 1A**: Node.js 20.18.0 → 20.19.4 (volta + .nvmrc)
 2. ✅ **Phase 1B**: lib TypeScript 3.5.3 → 5.9.2, ES2020 target
-3. ✅ **Phase 2A**: Backend TypeScript 4.9.5 → 5.9.2, strict mode, ES2020
-4. ✅ **Critical Bug**: Blueprint date validation CastError fixed (`blueprint-controller.ts:297`)
+3. ✅ **Phase 2A**: Backend TypeScript 4.9.5 → 5.9.2, strict mode
+4. ✅ **Phase 2B**: Mongoose 5.7.7 → 8.18.1 (incremental)
+5. ✅ **Phase 3**: Express 4.x → 5.1.0
+6. ✅ **Phase 4**: Canvas 2.6.1 → 3.2.3
+7. ✅ **Phase 5**: Angular 13 → 20, PrimeNG 19 → 20
+8. ✅ **CI**: All GitHub Actions improvements applied
 
-### Key Decision Points Made
-1. **Testing Framework**: ✅ Mocha + Chai (Mongoose team recommendation)
-2. **Node.js Target**: ✅ Node.js 20 LTS (Canvas 3.x compatibility)
-3. **Angular Strategy**: ✅ Incremental 13→14→15→16→18→20
-4. **Canvas Strategy**: ✅ Upgrade to 3.x with Node 20, avoid Node 22
-
-### Next Steps
-- **Phase 2B**: Mongoose 5.7.7 → 6.x → 7.x → 8.x (incremental)
-- **Phase 3**: Express 4.x → 5.x
-- **Phase 4**: Canvas 2.6.1 → 3.x
-- **Phase 5**: Angular 13 → 20
-- **CI Improvements**: See `agent/CI_IMPROVEMENTS.md` for prioritized list
-
-### Important Constraints & Context
-- Canvas package has Node.js 22 compatibility issues — stay on Node 20
-- Angular 13→20 requires incremental approach (7 major versions, skip 17)
-- Asset generation scripts depend on Canvas working correctly
-- All test infrastructure is Mocha + Chai (do not introduce Jest)
+### Key Constraints
+- Canvas 3.x requires Node 20 — do not upgrade to Node 22
+- All test infrastructure is Mocha + Chai — do not introduce Jest
+- Rate limiting is handled by Cloudflare — do not add express-rate-limit
 
 ---
 
