@@ -72,7 +72,7 @@ export class ElementReport implements IObsBlueprintChange {
 
   // Blueprint Change interface
   itemDestroyed() {}
-  itemAdded(blueprintItem: BlueprintItem) {}
+  itemAdded(_blueprintItem: BlueprintItem) {}
   blueprintChanged() {
     this.updateElementReport();
   }

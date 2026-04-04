@@ -8,19 +8,19 @@ export enum ToolType {
 }
 
 export interface ITool {
-  switchFrom();
-  switchTo();
+  switchFrom(): void;
+  switchTo(): void;
 
   // Input
-  leftClick(tile: Vector2);
-  rightClick(tile: Vector2);
-  mouseDown(tile: Vector2);
-  mouseOut();
-  hover(tile: Vector2);
-  drag(tileStart: Vector2, tileStop: Vector2);
-  dragStop();
-  keyDown(keyCode: string);
-  draw(drawPixi: DrawPixi, camera: CameraService);
+  leftClick(tile: Vector2): void;
+  rightClick(tile: Vector2): void;
+  mouseDown(tile: Vector2): void;
+  mouseOut(): void;
+  hover(tile: Vector2): void;
+  drag(tileStart: Vector2, tileStop: Vector2): void;
+  dragStop(): void;
+  keyDown(keyCode: string): void;
+  draw(drawPixi: DrawPixi, camera: CameraService): void;
 
   // Tool switching
   toggleable: boolean; // Can we close this tool by clicking on it a second time
@@ -31,5 +31,5 @@ export interface ITool {
 }
 
 export interface IChangeTool {
-  changeTool(toolType: ToolType);
+  changeTool(toolType: ToolType): void;
 }

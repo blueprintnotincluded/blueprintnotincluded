@@ -16,15 +16,13 @@ import { ToolService } from "src/app/module-blueprint/services/tool-service";
 
 @Injectable()
 export class SelectTool implements ITool {
-  public sameItemCollections: SameItemCollection[];
+  public sameItemCollections!: SameItemCollection[];
 
   public observersSelectionChanged: IObsSelectionChanged[] = [];
 
-  parent: ToolService;
+  parent!: ToolService;
 
-  private cameraService: CameraService;
   constructor(private blueprintService: BlueprintService) {
-    this.cameraService = CameraService.cameraService;
     // TODO also do this on blueprint loading
     this.reset();
   }
@@ -48,8 +46,8 @@ export class SelectTool implements ITool {
     });
   }
 
-  private lastSelected: BlueprintItem;
-  private lastSelectedDate: Date;
+  private lastSelected!: BlueprintItem;
+  private lastSelectedDate!: Date;
   selectFromBox(topLeft: Vector2, bottomRight: Vector2) {
     this.deselectAll();
     this.sameItemCollections = [];
@@ -71,7 +69,7 @@ export class SelectTool implements ITool {
         return i2.items[0].depth - i1.items[0].depth;
       });
 
-      let firstSelected: BlueprintItem = null;
+      let firstSelected: BlueprintItem | null = null;
       let selectedOne = false;
       this.sameItemCollections.map((itemCollection) => {
         if (
@@ -301,7 +299,7 @@ export class SelectTool implements ITool {
 
   mouseOut() {}
 
-  mouseDown(tile: Vector2) {}
+  mouseDown(_tile: Vector2) {}
 
   leftClick(tile: Vector2) {
     let doSelectFromBox = true;
@@ -323,18 +321,18 @@ export class SelectTool implements ITool {
     }
   }
 
-  rightClick(tile: Vector2) {
+  rightClick(_tile: Vector2) {
     this.deselectAll();
   }
 
-  hover(tile: Vector2) {}
+  hover(_tile: Vector2) {}
 
-  beginSelection: Vector2 = null;
-  endSelection: Vector2;
+  beginSelection: Vector2 | null = null;
+  endSelection!: Vector2;
   drag(tileStart: Vector2, tileStop: Vector2) {
     if (this.beginSelection == null)
-      this.beginSelection = Vector2.clone(tileStart);
-    this.endSelection = Vector2.clone(tileStop);
+      this.beginSelection = Vector2.clone(tileStart)!;
+    this.endSelection = Vector2.clone(tileStop)!;
   }
 
   dragStop() {
@@ -355,7 +353,7 @@ export class SelectTool implements ITool {
       this.selectFromBox(topLeft, bottomRight);
     }
 
-    this.beginSelection = null;
+    this.beginSelection = null; // Vector2 | null
   }
 
   keyDown(keyCode: string) {
@@ -368,7 +366,7 @@ export class SelectTool implements ITool {
     } else if (keyCode == "b") {
       // ignore keypress when a textbox is active
       let textboxElements = ["INPUT", "TEXTAREA"];
-      let activeElement = document.activeElement.tagName;
+      let activeElement = document.activeElement?.tagName ?? "";
       if (textboxElements.includes(activeElement)) {
         return;
       }
@@ -425,5 +423,5 @@ export class SelectTool implements ITool {
 }
 
 export interface IObsSelectionChanged {
-  selectionChanged();
+  selectionChanged(): void;
 }

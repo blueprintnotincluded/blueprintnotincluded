@@ -6,19 +6,12 @@ import {
   ViewChild,
   ElementRef,
   NgZone,
-  Output,
-  EventEmitter,
-  HostListener,
-  Pipe,
   Input,
 } from "@angular/core";
-//import { Http, Response } from "@angular/http"
-import { HttpClient } from "@angular/common/http";
 
 // Engine imports
 import {
   Blueprint,
-  IObsBlueprintChange,
   CameraService,
   IObsCameraChanged,
   SpriteInfo,
@@ -35,8 +28,6 @@ import {
   SpriteTag,
 } from "../../../../../../lib/index";
 
-// PrimeNg imports
-import { ComponentSideSelectionToolComponent } from "../side-bar/selection-tool/selection-tool.component";
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { DrawMiniUi } from "../../drawing/draw-mini-ui";
 import * as JSZip from "jszip";
@@ -45,7 +36,6 @@ import {
   ExportImageOptions,
 } from "../../services/blueprint-service";
 import { ToolService } from "../../services/tool-service";
-import { read } from "fs";
 
 import {} from "pixi.js-legacy";
 declare var PIXI: any;
@@ -59,21 +49,21 @@ declare var PIXI: any;
 export class ComponentCanvasComponent
   implements OnInit, OnDestroy, IObsCameraChanged
 {
-  width: number;
-  height: number;
+  width!: number;
+  height!: number;
 
   debug: any;
 
   @ViewChild("blueprintCanvas", { static: true })
-  canvasRef: ElementRef;
+  canvasRef!: ElementRef;
 
   @ViewChild("divCalcHeight", { static: true })
-  divCalcHeight: ElementRef;
+  divCalcHeight!: ElementRef;
 
   @Input()
-  forceSize: boolean;
+  forceSize!: boolean;
   @Input()
-  forcedSize: Vector2;
+  forcedSize!: Vector2;
 
   drawPixi: DrawPixi;
 
@@ -92,7 +82,7 @@ export class ComponentCanvasComponent
     this.cameraService.subscribeCameraChange(this);
   }
 
-  private running: boolean;
+  private running!: boolean;
   ngOnInit() {
     // Init the camera service (maybe this should be elsewhere?)
 
@@ -160,12 +150,12 @@ export class ComponentCanvasComponent
     }
   }
 
-  getCursorPosition(event): Vector2 {
+  getCursorPosition(event: any): Vector2 {
     let rect = this.canvasRef.nativeElement.getBoundingClientRect();
     return new Vector2(event.clientX - rect.left, event.clientY - rect.top);
   }
 
-  getCurrentTile(event): Vector2 {
+  getCurrentTile(event: any): Vector2 {
     let returnValue = this.cameraService.getTileCoords(
       this.getCursorPosition(event)
     );
@@ -192,7 +182,7 @@ export class ComponentCanvasComponent
     }
   }
 
-  mouseOut(event: any) {
+  mouseOut(_event: any) {
     this.toolService.mouseOut();
   }
 
@@ -206,9 +196,11 @@ export class ComponentCanvasComponent
     }
   }
 
-  storePreviousTileFloat: Vector2;
+  storePreviousTileFloat: Vector2 | null = null;
   mouseDrag(event: any) {
-    let previousTileFloat = Vector2.clone(this.storePreviousTileFloat);
+    let previousTileFloat = Vector2.clone(
+      this.storePreviousTileFloat ?? undefined
+    );
     let currentTileFloat = this.cameraService.getTileCoords(
       this.getCursorPosition(event)
     );
@@ -222,20 +214,20 @@ export class ComponentCanvasComponent
     } else if (event.dragButton[0]) {
       // Don't send the clicks to the tools if we are in an iframe
       if (!this.forceSize)
-        this.toolService.drag(previousTileFloat, currentTileFloat);
+        this.toolService.drag(previousTileFloat!, currentTileFloat!);
     }
 
     this.storePreviousTileFloat = Vector2.clone(currentTileFloat);
   }
 
-  mouseStopDrag(event: any) {
+  mouseStopDrag(_event: any) {
     this.storePreviousTileFloat = null;
     this.toolService.dragStop();
   }
 
   // previousMouse is used by the keyboard zoom
   previousMouse: Vector2 = new Vector2();
-  previousTileUnderMouse: Vector2;
+  previousTileUnderMouse: Vector2 | null = null;
   mouseMove(event: any) {
     this.previousMouse = this.getCursorPosition(event);
     let currentTileUnderMouse = this.getCurrentTile(event);
@@ -315,8 +307,8 @@ export class ComponentCanvasComponent
         return s.name == sourceSpriteModifier.spriteInfoName;
       });
 
-      if (sourceTextures.indexOf(sourceSpriteInfo.textureName) == -1)
-        sourceTextures.push(sourceSpriteInfo.textureName);
+      if (sourceTextures.indexOf(sourceSpriteInfo!.textureName) == -1)
+        sourceTextures.push(sourceSpriteInfo!.textureName);
 
       let spriteModifierWhite = BSpriteModifier.clone(sourceSpriteModifier);
       spriteModifierWhite.name = spriteModifierWhite.name + "_white";
@@ -325,7 +317,7 @@ export class ComponentCanvasComponent
       spriteModifierWhite.tags.push(SpriteTag.white);
       database.spriteModifiers.push(spriteModifierWhite);
 
-      let spriteInfoWhite: BSpriteInfo = null;
+      let spriteInfoWhite: BSpriteInfo | null = null;
       for (let spriteInfo of database.uiSprites)
         if (spriteInfo.name == sourceSpriteModifier.spriteInfoName)
           spriteInfoWhite = BSpriteInfo.clone(spriteInfo);
@@ -373,7 +365,7 @@ export class ComponentCanvasComponent
       this.drawPixi.pixiApp.renderer.render(sprite, rt);
 
       this.drawPixi.pixiApp.renderer.extract.canvas(rt).toBlob((b) => {
-        this.addBlob(b, sourceTexture + "_white.png");
+        this.addBlob(b!, sourceTexture + "_white.png");
       }, "image/png");
     }
   }
@@ -415,10 +407,10 @@ export class ComponentCanvasComponent
             continue;
 
           // Remove from the database building sprite list
-          let indexToRemove = buildingInDatabase.sprites.spriteNames.indexOf(
+          let indexToRemove = buildingInDatabase!.sprites.spriteNames.indexOf(
             spriteModifier.spriteModifierId
           );
-          buildingInDatabase.sprites.spriteNames.splice(indexToRemove, 1);
+          buildingInDatabase!.sprites.spriteNames.splice(indexToRemove, 1);
 
           // Then from the sprite modifiers
           let spriteModifierToRemove = database.spriteModifiers.find((s) => {
@@ -459,7 +451,7 @@ export class ComponentCanvasComponent
           indexDrawPart++;
         }
 
-        buildingInDatabase.sprites.spriteNames.push(modifierId);
+        buildingInDatabase!.sprites.spriteNames.push(modifierId);
 
         container.calculateBounds();
         let bounds = container.getBounds();
@@ -528,11 +520,11 @@ export class ComponentCanvasComponent
       this.drawPixi.pixiApp.renderer.extract
         .canvas(renderTextures[indexRt])
         .toBlob((b) => {
-          this.addBlob(b, textureNames[indexRt] + ".png");
+          this.addBlob(b!, textureNames[indexRt] + ".png");
         }, "image/png");
   }
 
-  repackTextures(database: any) {
+  repackTextures(_database: any) {
     /*
     // Tests bintrays
     let traySize = 1024;
@@ -656,7 +648,7 @@ export class ComponentCanvasComponent
 
       this.drawPixi.pixiApp.renderer.render(container, rt, true);
       this.drawPixi.pixiApp.renderer.extract.canvas(rt).toBlob((blob) => {
-        this.addBlob(blob, k + ".png");
+        this.addBlob(blob!, k + ".png");
       }, "image/png");
     }
   }
@@ -685,7 +677,7 @@ export class ComponentCanvasComponent
 
   updateThumbnail() {
     //console.log('updateThumbnail')
-    this.blueprintService.thumbnail = null;
+    this.blueprintService.thumbnail = null!;
 
     let clone = this.blueprint.clone();
     if (clone.blueprintItems.length == 0)
@@ -742,7 +734,7 @@ export class ComponentCanvasComponent
       reader.onload = () => {
         this.blueprintService.thumbnail = reader.result as string;
       };
-      reader.readAsDataURL(blob);
+      reader.readAsDataURL(blob!);
 
       /*
       // Test download
@@ -813,7 +805,7 @@ export class ComponentCanvasComponent
 
       this.drawPixi.pixiApp.renderer.extract.canvas(rt).toBlob((blob) => {
         this.addBlob(
-          blob,
+          blob!,
           "export_" + DrawHelpers.overlayString[overlay] + ".png"
         );
       });

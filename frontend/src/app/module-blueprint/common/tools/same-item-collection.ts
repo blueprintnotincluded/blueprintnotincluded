@@ -7,7 +7,7 @@ import {
 } from "../../../../../../lib/index";
 
 export class SameItemCollection {
-  private selected_: boolean;
+  private selected_: boolean = false;
   get selected() {
     return this.selected_;
   }
@@ -102,5 +102,5 @@ export class SameItemCollection {
 }
 
 export interface IObsSelected {
-  selected();
+  selected(): void;
 }

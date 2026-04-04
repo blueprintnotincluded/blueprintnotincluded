@@ -34,7 +34,7 @@ export class BuildTool implements ITool {
   destroy() {
     if (this.templateItemToBuild != null) {
       this.templateItemToBuild.destroy();
-      this.templateItemToBuild = null;
+      this.templateItemToBuild = null!;
     }
   }
 
@@ -172,7 +172,7 @@ export class BuildTool implements ITool {
   }
 
   buildAndConnect(tileStart: Vector2, tileStop: Vector2) {
-    this.templateItemToBuild.position = Vector2.clone(tileStop);
+    this.templateItemToBuild.position = Vector2.clone(tileStop)!;
     this.templateItemToBuild.prepareBoundingBox();
     this.updateBuildCandidateResult();
     this.build();
@@ -231,12 +231,12 @@ export class BuildTool implements ITool {
     this.build();
   }
 
-  rightClick(tile: Vector2) {
+  rightClick(_tile: Vector2) {
     this.parent.changeTool(ToolType.select);
   }
 
   hover(tile: Vector2) {
-    this.templateItemToBuild.position = Vector2.clone(tile);
+    this.templateItemToBuild.position = Vector2.clone(tile)!;
     this.templateItemToBuild.prepareBoundingBox();
     this.templateItemToBuild.sortChildren();
     this.updateBuildCandidateResult();
@@ -283,7 +283,7 @@ export class BuildTool implements ITool {
     if (tileStop.y == Math.floor(tileStop.y)) tileStop.y += delta.y * 0.005;
 
     // Current tile is the float tile that will
-    let currentTile = Vector2.clone(tileStart);
+    let currentTile: Vector2 = Vector2.clone(tileStart)!;
 
     //console.log('delta');
     //console.log(delta);
@@ -422,5 +422,5 @@ export class BuildTool implements ITool {
 }
 
 export interface IObsBuildItemChanged {
-  itemChanged(templateItem: BlueprintItem);
+  itemChanged(templateItem: BlueprintItem): void;
 }

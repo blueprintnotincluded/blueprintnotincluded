@@ -5,7 +5,7 @@
   <div class="menu-line">
     <div *ngIf="authService.isLoggedIn()" class="p-inputgroup like-bloc">
       <span class="p-inputgroup-addon" i18n
-        >Welcome, {{ authService.getUserDetails().username }}</span
+        >Welcome, {{ authService.getUserDetails()!.username }}</span
       >
       <button
         pButton

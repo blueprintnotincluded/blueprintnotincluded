@@ -143,7 +143,7 @@ export class DialogBrowseComponent implements OnInit {
         this.getDuplicates
       )
       .subscribe({
-        next: this.handleGetBlueprints.bind(this),
+        next: (r: any) => this.handleGetBlueprints(r),
       });
   }
 
@@ -216,7 +216,7 @@ export class DialogBrowseComponent implements OnInit {
     this.reset();
     if (filterUserId != null) {
       this.filterUserId = filterUserId;
-      this.filterUserName = filterUserName;
+      this.filterUserName = filterUserName!;
       this.filterUser = true;
     }
     this.getDuplicates = getDuplicates;
