@@ -37,7 +37,7 @@
 
 CAPTCHA removed 2025-10-13 per user request. Remaining measures to implement:
 
-- [ ] **Rate Limiting** — `express-rate-limit` on login, registration, password reset (5 req/min/IP)
+- [x] **Rate Limiting** — handled by Cloudflare; do not add express-rate-limit
 - [ ] **Account Lockout** — track failed attempts in user model; lock 15 min after 5 failures
 - [ ] **Email Verification** — require email confirmation for new registrations
 - [ ] **Password Strength** — enforce complexity; consider `zxcvbn`
@@ -57,7 +57,7 @@ CAPTCHA removed 2025-10-13 per user request. Remaining measures to implement:
 ## Technical Debt
 
 - [x] **API Error Handling** — all error responses now use JSON:API format `{ errors: [{ status, title }] }` via shared `apiError()` helper; success responses unchanged
-- [ ] **Database Validation** — strengthen Mongoose schema validation; add input sanitization layer
+- [x] **Database Validation** — Mongoose schema validators added (username regex/maxlength, email format/maxlength, blueprint name regex/maxlength); null checks, email format validation, and consistent apiError responses added to register-controller; blueprint name null guard added; filterName capped at 60 chars to prevent ReDoS; auth.ts reset-password uses JSON error format and validates inputs
 - [x] **Database Query Review** — added indexes: Blueprint `{ createdAt: -1 }`, `{ owner, createdAt }`, `{ owner, name }`; User `{ resetToken }`
 - [ ] **API Documentation** — no OpenAPI/Swagger spec exists
 

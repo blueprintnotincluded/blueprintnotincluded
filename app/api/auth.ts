@@ -44,13 +44,18 @@ export class Auth {
 
 router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ errors: [{ status: '400', title: 'Token and new password are required' }] });
+  }
+
   const user = await UserModel.model.findOne({
     resetToken: token,
     resetTokenExpiration: { $gt: new Date() },
   });
 
   if (!user) {
-    return res.status(400).send('Invalid or expired token');
+    return res.status(400).json({ errors: [{ status: '400', title: 'Invalid or expired token' }] });
   }
 
   user.setPassword(newPassword);
@@ -58,5 +63,5 @@ router.post('/reset-password', async (req, res) => {
   user.resetTokenExpiration = undefined;
   await user.save();
 
-  res.send('Password has been reset');
+  res.json({ message: 'Password has been reset' });
 });
