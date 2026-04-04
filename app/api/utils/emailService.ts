@@ -40,6 +40,10 @@ if (process.env.ENV_NAME === 'production') {
 }
 
 export async function sendResetEmail(email: string, token: string) {
+  if (process.env.NODE_ENV === 'test') {
+    return { message: 'Email skipped in test mode' };
+  }
+
   console.log('Attempting to send reset email to:', email);
 
   const emailContent = {
