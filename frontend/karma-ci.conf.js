@@ -10,10 +10,12 @@ properties.colors = false;
 properties.singleRun = true;
 properties.autoWatch = false;
 properties.browsers = ["ChromeHeadlessCI"];
+properties.browserDisconnectTimeout = 10000;
+properties.browserNoActivityTimeout = 60000;
 (properties.customLaunchers = {
   ChromeHeadlessCI: {
     base: "ChromeHeadless",
-    flags: ["--no-sandbox"],
+    flags: ["--no-sandbox", "--disable-dev-shm-usage"],
   },
 }),
   (module.exports = function (config) {
