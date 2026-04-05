@@ -6,6 +6,7 @@ export interface TestUser {
   username: string;
   hash?: string;
   salt?: string;
+  authProvider?: string;
 }
 
 export interface TestBlueprint {
@@ -36,6 +37,7 @@ export class TestDataFactory {
       username: `testuser${this.userCounter}_${timestamp}`,
       hash: 'dummy_hash_for_testing',
       salt: 'dummy_salt_for_testing',
+      authProvider: 'legacy',
       ...overrides,
     };
   }
