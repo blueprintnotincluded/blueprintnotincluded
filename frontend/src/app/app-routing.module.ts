@@ -2,6 +2,7 @@ import { NgModule } from "@angular/core";
 import { Routes, RouterModule } from "@angular/router";
 import { ComponentBlueprintParentComponent } from "./module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component";
 import { ResetPasswordComponent } from "./module-blueprint/components/user-auth/reset-password/reset-password.component";
+import { AuthCallbackComponent } from "./module-blueprint/components/user-auth/auth-callback/auth-callback.component";
 
 const routes: Routes = [
   { path: "", component: ComponentBlueprintParentComponent },
@@ -14,6 +15,8 @@ const routes: Routes = [
   { path: "browse", component: ComponentBlueprintParentComponent },
   { path: "about", component: ComponentBlueprintParentComponent },
   { path: "reset-password", component: ResetPasswordComponent },
+  { path: "auth/callback", component: AuthCallbackComponent },
+  { path: "auth/error", component: AuthCallbackComponent },
   { path: "", redirectTo: "/", pathMatch: "prefix" },
 ];
 

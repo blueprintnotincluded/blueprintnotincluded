@@ -80,6 +80,7 @@ import { InfoInputComponent } from "./components/side-bar/info-input/info-input.
 import { InfoInputIconComponent } from "./components/side-bar/info-input-icon/info-input-icon.component";
 import { PipeContentComponent } from "./components/side-bar/pipe-content/pipe-content.component";
 import { ResetPasswordComponent } from "./components/user-auth/reset-password/reset-password.component";
+import { AuthCallbackComponent } from "./components/user-auth/auth-callback/auth-callback.component";
 
 @NgModule({
   declarations: [
@@ -122,6 +123,7 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     InfoInputIconComponent,
     PipeContentComponent,
     ResetPasswordComponent,
+    AuthCallbackComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [

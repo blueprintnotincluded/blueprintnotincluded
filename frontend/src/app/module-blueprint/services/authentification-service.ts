@@ -29,7 +29,7 @@ export class AuthenticationService {
 
   constructor(private http: HttpClient) {}
 
-  private saveToken(token: string): void {
+  public saveToken(token: string): void {
     localStorage.setItem(AuthenticationService.localStorage, token);
     this.token = token;
   }

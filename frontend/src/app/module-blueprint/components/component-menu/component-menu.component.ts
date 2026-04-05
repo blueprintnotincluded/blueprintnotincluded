@@ -512,10 +512,7 @@ export class ComponentMenuComponent
   }
 
   login() {
-    this.menuCommand.emit({
-      type: MenuCommandType.showLoginDialog,
-      data: null,
-    });
+    window.location.href = "/api/auth/workos";
   }
 
   logout() {
