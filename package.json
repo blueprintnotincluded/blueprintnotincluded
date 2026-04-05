@@ -37,6 +37,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@workos-inc/node": "^8.11.1",
     "adm-zip": "^0.5.10",
     "canvas": "^3.2.3",
     "crypto-js": "^4.2.0",

@@ -5,9 +5,17 @@ import jwt from 'jsonwebtoken';
 export interface User extends Document {
   email?: string;
   username?: string;
+
+  // Legacy authentication (will be deprecated)
   password?: string;
   hash?: string;
-  salt: string;
+  salt?: string;
+
+  // WorkOS integration
+  workosUserId?: string;
+  authProvider: 'legacy' | 'workos';
+  migratedToWorkosAt?: Date;
+
   resetToken?: string;
   resetTokenExpiration?: Date;
 
@@ -35,14 +43,31 @@ export class UserModel {
         maxlength: [30, 'Username must be 30 characters or fewer'],
         minlength: [1, 'Username is required'],
       },
+      // Legacy auth fields (will be removed after full migration)
       hash: String,
       salt: String,
+      // WorkOS fields
+      workosUserId: {
+        type: String,
+        sparse: true,  // Allows null during migration
+        unique: true,  // But must be unique when set
+      },
+      authProvider: {
+        type: String,
+        enum: ['legacy', 'workos'],
+        default: 'legacy',
+      },
+      migratedToWorkosAt: Date,
       resetToken: String,
       resetTokenExpiration: Date,
     });
 
     // Password reset lookup: findOne({ resetToken, resetTokenExpiration: { $gt: ... } })
     userSchema.index({ resetToken: 1 });
+    // WorkOS user lookup
+    userSchema.index({ workosUserId: 1 });
+    // Migration tracking
+    userSchema.index({ authProvider: 1 });
 
     userSchema.methods.setPassword = function (password: string): void {
       (this as any).salt = crypto.lib.WordArray.random(16).toString();
@@ -52,6 +77,9 @@ export class UserModel {
     };
 
     userSchema.methods.validPassword = function (password: string): boolean {
+      if (!(this as any).hash || !(this as any).salt) {
+        return false;
+      }
       var hash = crypto
         .PBKDF2(password, (this as any).salt, { keySize: 512 / 32 })
         .toString(crypto.enc.Hex);
@@ -71,7 +99,7 @@ export class UserModel {
       return jwt.sign(userJwt, process.env.JWT_SECRET as string); // DO NOT KEEP YOUR SECRET IN THE CODE!
     };
 
-    UserModel.model = mongoose.model<User>('User', userSchema);
+    UserModel.model = (mongoose.models['User'] as Model<User>) || mongoose.model<User>('User', userSchema);
   }
 
   public static isUser(obj: User | any): obj is User {
