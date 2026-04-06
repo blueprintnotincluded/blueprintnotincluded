@@ -8,6 +8,25 @@ import { apiError } from './utils/apiError';
 // Codes are short-lived (60 s) and deleted on first use.
 const pendingTokenCodes = new Map<string, { token: string; expiresAt: number }>();
 
+const OAUTH_STATE_COOKIE = 'oauth_state';
+const OAUTH_STATE_COOKIE_OPTS = {
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 5 * 60 * 1000, // 5 minutes — enough for the OAuth round-trip
+};
+
+function getCookieValue(req: Request, name: string): string | undefined {
+  const header = req.headers.cookie ?? '';
+  for (const part of header.split(';')) {
+    const eqIdx = part.indexOf('=');
+    if (eqIdx === -1) continue;
+    const k = part.slice(0, eqIdx).trim();
+    if (k === name) return decodeURIComponent(part.slice(eqIdx + 1).trim());
+  }
+  return undefined;
+}
+
 function generateOneTimeCode(token: string): string {
   const code = crypto.randomBytes(32).toString('hex');
   pendingTokenCodes.set(code, { token, expiresAt: Date.now() + 60_000 });
@@ -36,7 +55,9 @@ export class WorkOSAuthController {
    */
   public login(_req: Request, res: Response) {
     try {
-      const authUrl = WorkOSService.getAuthorizationUrl();
+      const state = crypto.randomBytes(32).toString('hex');
+      res.cookie(OAUTH_STATE_COOKIE, state, OAUTH_STATE_COOKIE_OPTS);
+      const authUrl = WorkOSService.getAuthorizationUrl(state);
       res.redirect(authUrl);
     } catch (error) {
       console.error('WorkOS login error:', error);
@@ -49,7 +70,15 @@ export class WorkOSAuthController {
    */
   public async callback(req: Request, res: Response): Promise<void> {
     try {
-      const { code } = req.query;
+      const { code, state } = req.query;
+
+      // Validate OAuth state before doing anything else
+      const storedState = getCookieValue(req, OAUTH_STATE_COOKIE);
+      res.clearCookie(OAUTH_STATE_COOKIE, { path: OAUTH_STATE_COOKIE_OPTS.path });
+      if (!storedState || !state || typeof state !== 'string' || state !== storedState) {
+        res.status(400).json(apiError(400, 'Invalid OAuth state'));
+        return;
+      }
 
       if (!code || typeof code !== 'string') {
         res.status(400).json(apiError(400, 'Missing authorization code'));

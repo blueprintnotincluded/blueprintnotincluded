@@ -17,7 +17,7 @@ export class WorkOSService {
   /**
    * Get authorization URL for user login
    */
-  static getAuthorizationUrl(): string {
+  static getAuthorizationUrl(state: string): string {
     const clientId = process.env.WORKOS_CLIENT_ID;
     const backendHost = process.env.BACKEND_HOST || process.env.HOST;
     if (!clientId) throw new Error('WORKOS_CLIENT_ID environment variable is not set');
@@ -27,6 +27,7 @@ export class WorkOSService {
       provider: 'authkit',
       clientId,
       redirectUri: `${backendHost}/api/auth/callback`,
+      state,
     });
   }
 
