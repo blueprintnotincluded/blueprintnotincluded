@@ -267,8 +267,9 @@ Test against WorkOS Staging + local DB. Confirm login, org membership check, adm
 Run the provisioning script against your local DB to create WorkOS Staging accounts for all local legacy users:
 
 ```bash
-npx ts-node scripts/provision-workos-users.ts --dry-run --verbose
-npx ts-node scripts/provision-workos-users.ts --verbose
+npm run build:backend
+npm run provision:workos -- --dry-run --verbose
+npm run provision:workos -- --verbose
 ```
 
 ### Phase 3 — Migrate on staging site
@@ -278,11 +279,11 @@ Deploy to the staging site (WorkOS Production + shared DB). Run the provisioning
 ```bash
 # Dry run first
 WORKOS_API_KEY=sk_… WORKOS_CLIENT_ID=client_… WORKOS_PLATFORM_ORG_ID=org_… \
-  npx ts-node scripts/provision-workos-users.ts --dry-run --verbose
+  npm run provision:workos -- --dry-run --verbose
 
 # Apply
 WORKOS_API_KEY=sk_… WORKOS_CLIENT_ID=client_… WORKOS_PLATFORM_ORG_ID=org_… \
-  npx ts-node scripts/provision-workos-users.ts --verbose
+  npm run provision:workos -- --verbose
 ```
 
 After running: log in via the staging site, confirm `adminAuth` passes on `GET /api/migration/status`, and verify migration status counts.
