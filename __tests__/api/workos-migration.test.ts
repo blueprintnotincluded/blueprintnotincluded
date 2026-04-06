@@ -40,8 +40,8 @@ describe('WorkOS Migration Script', function () {
       expect(result.errorCount).to.equal(0);
       expect(result.errors).to.be.an('array').with.lengthOf(0);
 
-      // Verify user was migrated
-      const migratedUser = await UserModel.model.findById(user._id);
+      // Verify user was migrated — use lean() to read raw BSON, bypassing schema defaults
+      const migratedUser = await UserModel.model.findById(user._id).lean();
       expect(migratedUser?.authProvider).to.equal('legacy');
     });
 
@@ -92,9 +92,7 @@ describe('WorkOS Migration Script', function () {
       expect(unchangedUser?.authProvider).to.be.undefined;
     });
 
-    it('should handle migration errors gracefully', async function () {
-      // This test would need to mock a save failure
-      // For now, we just verify the error handling structure exists
+    it('returns result shape with errors array', async function () {
       const result = await migrateUsersToWorkOS();
 
       expect(result).to.have.property('errors');
@@ -148,8 +146,8 @@ describe('WorkOS Migration Script', function () {
       const result2 = await migrateUsersToWorkOS();
       expect(result2.totalProcessed).to.equal(0); // No users to migrate
 
-      // Verify user is still in correct state
-      const finalUser = await UserModel.model.findById(user._id);
+      // Verify user is still in correct state — use lean() to read raw BSON, bypassing schema defaults
+      const finalUser = await UserModel.model.findById(user._id).lean();
       expect(finalUser?.authProvider).to.equal('legacy');
     });
   });

@@ -107,6 +107,12 @@ export class AuthenticationService {
     window.localStorage.removeItem(AuthenticationService.localStorage);
   }
 
+  public exchangeCode(code: string): Observable<{ token: string }> {
+    return this.http.get<{ token: string }>(
+      `/api/auth/exchange?code=${encodeURIComponent(code)}`
+    );
+  }
+
   public getSwitchAccountUrl(): Observable<{ url: string }> {
     return this.http.get<{ url: string }>("/api/auth/switch-account", {
       headers: { Authorization: `Bearer ${this.getToken()}` },

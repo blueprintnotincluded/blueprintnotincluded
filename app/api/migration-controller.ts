@@ -55,8 +55,16 @@ export class MigrationController {
 
       // For legacy users, create a magic auth link via WorkOS
       // This allows them to set up their WorkOS account
+      if (!localUser.email) {
+        return res.json({
+          message: 'Account has no email address — use WorkOS login to complete migration',
+          status: 'ready',
+          loginUrl: '/api/auth/workos'
+        });
+      }
+
       try {
-        await WorkOSService.createMagicAuth(localUser.email!);
+        await WorkOSService.createMagicAuth(localUser.email);
 
         return res.json({
           message: 'Migration initiated - check your email',

@@ -45,12 +45,14 @@ export class Routes {
         '/api/reset-password',
         '/api/auth/workos',
         '/api/auth/callback',
+        '/api/auth/exchange',
       ],
     });
 
     // WorkOS Authentication Routes (primary auth method)
     app.route('/api/auth/workos').get(this.workosAuthController.login);
     app.route('/api/auth/callback').get(this.workosAuthController.callback);
+    app.route('/api/auth/exchange').get(this.workosAuthController.exchangeCode);
     app.route('/api/auth/profile').get(auth, this.workosAuthController.getProfile);
     app.route('/api/auth/switch-account').get(auth, this.workosAuthController.getSwitchAccountUrl);
 

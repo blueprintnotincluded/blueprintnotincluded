@@ -1,12 +1,32 @@
+import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { UserModel, UserJwt } from './models/user';
 import { WorkOSService } from './services/workos-service';
 import { apiError } from './utils/apiError';
 
+// One-time code store for secure OAuth token delivery.
+// Codes are short-lived (60 s) and deleted on first use.
+const pendingTokenCodes = new Map<string, { token: string; expiresAt: number }>();
+
+function generateOneTimeCode(token: string): string {
+  const code = crypto.randomBytes(32).toString('hex');
+  pendingTokenCodes.set(code, { token, expiresAt: Date.now() + 60_000 });
+  return code;
+}
+
+function redeemCode(code: string): string | null {
+  const entry = pendingTokenCodes.get(code);
+  if (!entry) return null;
+  pendingTokenCodes.delete(code);
+  if (Date.now() > entry.expiresAt) return null;
+  return entry.token;
+}
+
 export class WorkOSAuthController {
   constructor() {
     this.login = this.login.bind(this);
     this.callback = this.callback.bind(this);
+    this.exchangeCode = this.exchangeCode.bind(this);
     this.getProfile = this.getProfile.bind(this);
     this.getSwitchAccountUrl = this.getSwitchAccountUrl.bind(this);
   }
@@ -48,9 +68,19 @@ export class WorkOSAuthController {
         localUser = await UserModel.model.findOne({ email: workosUser.email });
 
         if (localUser) {
+          // Verify WorkOS email before linking to legacy account
+          if (!workosUser.emailVerified) {
+            const frontendUrl = process.env.FRONTEND_URL || process.env.HOST || 'http://localhost:4200';
+            res.redirect(`${frontendUrl}/auth/error?message=WorkOS email address is not verified`);
+            return;
+          }
+
           console.log(`Migrating existing user ${localUser.id} to WorkOS (workosId: ${workosUser.id})`);
 
-          // Migrate existing user
+          // Write externalId to WorkOS BEFORE making destructive local changes so a
+          // failed WorkOS write does not leave the user without valid credentials.
+          await WorkOSService.updateUser(workosUser.id, { externalId: (localUser._id as any).toString() });
+
           localUser.workosUserId = workosUser.id;
           localUser.authProvider = 'workos';
           localUser.migratedToWorkosAt = new Date();
@@ -81,6 +111,20 @@ export class WorkOSAuthController {
             authProvider: 'workos',
           });
           await localUser.save();
+
+          // Write externalId back to WorkOS after the new user record exists
+          try {
+            await WorkOSService.updateUser(workosUser.id, { externalId: (localUser._id as any).toString() });
+          } catch (err) {
+            console.error('Failed to write externalId to WorkOS (non-fatal):', err);
+          }
+        }
+      } else if (!workosUser.externalId) {
+        // Existing WorkOS user — write externalId if not already set
+        try {
+          await WorkOSService.updateUser(workosUser.id, { externalId: (localUser._id as any).toString() });
+        } catch (err) {
+          console.error('Failed to write externalId to WorkOS (non-fatal):', err);
         }
       }
 
@@ -90,25 +134,37 @@ export class WorkOSAuthController {
         await localUser.save();
       }
 
-      // Write externalId back to WorkOS so webhooks and the dashboard can resolve the local user
-      if (!workosUser.externalId) {
-        await WorkOSService.updateUser(workosUser.id, { externalId: (localUser._id as any).toString() });
-      }
-
       // Check platform org membership to determine admin role
       const role = await WorkOSService.getPlatformRole(workosUser.id);
 
       // Generate JWT for our API
       const token = localUser.generateJwt(role ?? undefined);
 
-      // Redirect to frontend with token
+      // Issue a one-time code and redirect — never put the JWT in the URL
+      const exchangeCode = generateOneTimeCode(token);
       const frontendUrl = process.env.FRONTEND_URL || process.env.HOST || 'http://localhost:4200';
-      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+      res.redirect(`${frontendUrl}/auth/callback?code=${exchangeCode}`);
     } catch (error) {
       console.error('WorkOS callback error:', error);
       const frontendUrl = process.env.FRONTEND_URL || process.env.HOST || 'http://localhost:4200';
       res.redirect(`${frontendUrl}/auth/error?message=Authentication failed`);
     }
+  }
+
+  /**
+   * Exchange a one-time code (issued by the OAuth callback) for a JWT.
+   * Codes expire after 60 seconds and are deleted on first use.
+   */
+  public exchangeCode(req: Request, res: Response) {
+    const { code } = req.query;
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json(apiError(400, 'Missing code'));
+    }
+    const token = redeemCode(code);
+    if (!token) {
+      return res.status(400).json(apiError(400, 'Invalid or expired code'));
+    }
+    return res.json({ token });
   }
 
   /**
@@ -170,7 +226,8 @@ export class WorkOSAuthController {
         return res.status(400).json(apiError(400, 'No active WorkOS session found'));
       }
 
-      const loginUrl = `${process.env.HOST}/api/auth/workos`;
+      const backendHost = process.env.BACKEND_HOST || process.env.HOST;
+      const loginUrl = `${backendHost}/api/auth/workos`;
       const logoutUrl = WorkOSService.getLogoutUrl(localUser.workosSessionId, loginUrl);
       return res.json({ url: logoutUrl });
     } catch (error) {

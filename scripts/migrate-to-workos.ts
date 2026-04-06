@@ -77,11 +77,17 @@ export async function migrateUsersToWorkOS(
           }
           successCount++;
         } else {
-          user.authProvider = 'legacy';
-          await user.save();
-          successCount++;
-          if (verbose) {
-            console.log(`Migrated: ${user.username}`);
+          // Atomic conditional write: only sets authProvider when it is still unset,
+          // preventing a race where two concurrent runs both process the same user.
+          const result = await UserModel.model.updateOne(
+            { _id: user._id, $or: [{ authProvider: { $exists: false } }, { authProvider: null }] },
+            { $set: { authProvider: 'legacy' } }
+          );
+          if (result.modifiedCount > 0) {
+            successCount++;
+            if (verbose) {
+              console.log(`Migrated: ${user.username}`);
+            }
           }
         }
       } catch (error: any) {

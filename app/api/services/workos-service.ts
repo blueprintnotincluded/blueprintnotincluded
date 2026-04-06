@@ -18,11 +18,15 @@ export class WorkOSService {
    * Get authorization URL for user login
    */
   static getAuthorizationUrl(): string {
+    const clientId = process.env.WORKOS_CLIENT_ID;
+    const backendHost = process.env.BACKEND_HOST || process.env.HOST;
+    if (!clientId) throw new Error('WORKOS_CLIENT_ID environment variable is not set');
+    if (!backendHost) throw new Error('BACKEND_HOST environment variable is not set');
     const workos = getWorkOSClient();
     return workos.userManagement.getAuthorizationUrl({
       provider: 'authkit',
-      clientId: process.env.WORKOS_CLIENT_ID!,
-      redirectUri: `${process.env.HOST}/api/auth/callback`,
+      clientId,
+      redirectUri: `${backendHost}/api/auth/callback`,
     });
   }
 
@@ -56,10 +60,12 @@ export class WorkOSService {
    * Authenticate user with authorization code
    */
   static async authenticateWithCode(code: string) {
+    const clientId = process.env.WORKOS_CLIENT_ID;
+    if (!clientId) throw new Error('WORKOS_CLIENT_ID environment variable is not set');
     const workos = getWorkOSClient();
     const { user, accessToken } = await workos.userManagement.authenticateWithCode({
       code,
-      clientId: process.env.WORKOS_CLIENT_ID!,
+      clientId,
     });
 
     return { user, accessToken };
@@ -76,12 +82,12 @@ export class WorkOSService {
   /**
    * Create a WorkOS user from existing user data
    */
-  static async createUser(email: string, password: string) {
+  static async createUser(email: string, password: string, verified: boolean) {
     const workos = getWorkOSClient();
     return await workos.userManagement.createUser({
       email,
       password,
-      emailVerified: true, // Since they were verified in our system
+      ...(verified ? { emailVerified: true } : {}),
     });
   }
 
