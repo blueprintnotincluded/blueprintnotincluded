@@ -3,6 +3,12 @@
   flex-flow: row;
 }
 
-.like-bloc {
-  margin-right: 1em;
+.menu-line .like-bloc {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.25rem;
 }
