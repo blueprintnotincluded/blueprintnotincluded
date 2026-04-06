@@ -76,7 +76,8 @@ export class WorkOSAuthController {
       const storedState = getCookieValue(req, OAUTH_STATE_COOKIE);
       res.clearCookie(OAUTH_STATE_COOKIE, { path: OAUTH_STATE_COOKIE_OPTS.path });
       if (!storedState || !state || typeof state !== 'string' || state !== storedState) {
-        res.status(400).json(apiError(400, 'Invalid OAuth state'));
+        const frontendUrl = process.env.FRONTEND_URL || process.env.HOST || 'http://localhost:4200';
+        res.redirect(`${frontendUrl}/auth/error?message=Login session expired. Please try again.`);
         return;
       }
 
