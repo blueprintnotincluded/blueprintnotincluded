@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
 import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { catchError, map } from "rxjs/operators";
 
 export interface UserDetails {
   _id: string;
@@ -11,15 +11,16 @@ export interface UserDetails {
   exp: number;
 }
 
-interface TokenResponse {
-  token: string;
-}
-
 export interface TokenPayload {
   email: string;
   username: string;
   password: string;
 }
+
+export type LoginResult =
+  | { kind: "success"; token: string }
+  | { kind: "legacy_account" }
+  | { kind: "invalid_credentials" };
 
 @Injectable()
 export class AuthenticationService {
@@ -63,45 +64,6 @@ export class AuthenticationService {
     }
   }
 
-  private request(
-    method: "post" | "get",
-    type: "login" | "register" | "profile",
-    user?: TokenPayload
-  ): Observable<any> {
-    let base;
-
-    if (method === "post") {
-      base = this.http.post<TokenResponse>(`/api/${type}`, user);
-    } else {
-      base = this.http.get<TokenResponse>(`/api/${type}`, {
-        headers: { Authorization: `Bearer ${this.getToken()}` },
-      });
-    }
-
-    const request = base.pipe(
-      map((data: TokenResponse) => {
-        if (data.token) {
-          this.saveToken(data.token);
-        }
-        return data;
-      })
-    );
-
-    return request;
-  }
-
-  public register(user: TokenPayload): Observable<any> {
-    return this.request("post", "register", user);
-  }
-
-  public login(user: TokenPayload): Observable<any> {
-    return this.request("post", "login", user);
-  }
-
-  public profile(): Observable<any> {
-    return this.request("get", "profile");
-  }
-
   public logout(): void {
     this.token = "";
     window.localStorage.removeItem(AuthenticationService.localStorage);
@@ -119,14 +81,66 @@ export class AuthenticationService {
     });
   }
 
-  public requestPasswordReset(email: string): Observable<any> {
-    return this.http.post("/api/request-reset", { email });
+  // ─── New custom auth methods ──────────────────────────────────────────────
+
+  public loginWithPassword(
+    email: string,
+    password: string
+  ): Observable<LoginResult> {
+    return this.http
+      .post<{ token: string }>("/api/auth/login", { email, password })
+      .pipe(
+        map((res) => ({ kind: "success" as const, token: res.token })),
+        catchError((err) => {
+          const error = err?.error?.error;
+          if (error === "legacy_account") {
+            return [{ kind: "legacy_account" as const }];
+          }
+          return [{ kind: "invalid_credentials" as const }];
+        })
+      );
   }
 
-  public resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post("/api/reset-password", {
-      token,
-      newPassword,
+  public registerWithPassword(
+    email: string,
+    password: string,
+    username: string
+  ): Observable<{ token: string }> {
+    return this.http.post<{ token: string }>("/api/auth/register", {
+      email,
+      password,
+      username,
     });
+  }
+
+  public sendMagicLink(email: string): Observable<void> {
+    return this.http
+      .post<void>("/api/auth/send-magic", { email })
+      .pipe(map(() => undefined));
+  }
+
+  public verifyMagicCode(
+    code: string,
+    email: string
+  ): Observable<{ token: string }> {
+    return this.http.post<{ token: string }>("/api/auth/verify-magic", {
+      code,
+      email,
+    });
+  }
+
+  public forgotPassword(email: string): Observable<void> {
+    return this.http
+      .post<void>("/api/auth/forgot-password", { email })
+      .pipe(map(() => undefined));
+  }
+
+  public resetPasswordWithToken(
+    token: string,
+    newPassword: string
+  ): Observable<void> {
+    return this.http
+      .post<void>("/api/auth/reset-password", { token, newPassword })
+      .pipe(map(() => undefined));
   }
 }

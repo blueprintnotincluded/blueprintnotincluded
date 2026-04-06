@@ -1,0 +1,73 @@
+<div class="auth-page">
+  <p-card header="Log in">
+    <form (ngSubmit)="submit()" #loginForm="ngForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          required
+          autocomplete="email"
+          class="w-full"
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <p-password
+          inputId="password"
+          [(ngModel)]="password"
+          name="password"
+          required
+          [feedback]="false"
+          [toggleMask]="true"
+          autocomplete="current-password"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        ></p-password>
+      </div>
+
+      <div *ngIf="errorMessage" class="auth-error">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="showLegacyHint" class="legacy-hint">
+        <p>
+          It looks like you have an existing account, but our login system has
+          been upgraded. Check your email for a sign-in link, or click below to
+          send one now.
+        </p>
+        <button
+          pButton
+          type="button"
+          label="Send me a sign-in link"
+          icon="pi pi-envelope"
+          class="p-button-outlined w-full"
+          (click)="sendMagicLink()"
+        ></button>
+      </div>
+
+      <div class="auth-actions">
+        <button
+          pButton
+          type="submit"
+          label="Log in"
+          icon="pi pi-sign-in"
+          [loading]="loading"
+          class="w-full"
+        ></button>
+      </div>
+
+      <div class="auth-links">
+        <a routerLink="/login/forgot">Forgot password?</a>
+        <span class="separator">·</span>
+        <a routerLink="/login/magic">Sign in with a link instead</a>
+        <span class="separator">·</span>
+        <a routerLink="/register">No account? Register</a>
+      </div>
+    </form>
+  </p-card>
+</div>
