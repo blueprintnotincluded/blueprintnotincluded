@@ -31,6 +31,8 @@
     "addInfoIcons": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/generate-icons.ts",
     "testCanvas": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/test-canvas.ts",
     "enhancedSeed": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/enhanced-extract-export.ts",
+    "migrate:workos": "npx ts-node scripts/migrate-to-workos.ts",
+    "provision:workos": "npx ts-node scripts/provision-workos-users.ts",
     "format": "prettier --write \"**/*.{ts,js,json}\" --ignore-path .prettierignore",
     "format:check": "prettier --check \"**/*.{ts,js,json}\" --ignore-path .prettierignore"
   },
