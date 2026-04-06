@@ -7,12 +7,14 @@ import { StaticController } from './static-controller';
 import { BlueprintController } from './api/blueprint-controller';
 import { VersionController } from './api/version-controller';
 import { WorkOSAuthController } from './api/workos-auth-controller';
+import { AuthController } from './api/auth-controller';
 import { MigrationController } from './api/migration-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
   public versionController = new VersionController();
   public workosAuthController = new WorkOSAuthController();
+  public authController = new AuthController();
   public migrationController = new MigrationController();
 
   public routes(app: Application): void {
@@ -35,6 +37,12 @@ export class Routes {
         '/api/auth/workos',
         '/api/auth/callback',
         '/api/auth/exchange',
+        '/api/auth/login',
+        '/api/auth/register',
+        '/api/auth/send-magic',
+        '/api/auth/verify-magic',
+        '/api/auth/forgot-password',
+        '/api/auth/reset-password',
       ],
     });
 
@@ -44,6 +52,14 @@ export class Routes {
     app.route('/api/auth/exchange').get(this.workosAuthController.exchangeCode);
     app.route('/api/auth/profile').get(auth, this.workosAuthController.getProfile);
     app.route('/api/auth/switch-account').get(auth, this.workosAuthController.getSwitchAccountUrl);
+
+    // Custom auth routes (password + magic link — no redirects)
+    app.route('/api/auth/login').post(this.authController.login);
+    app.route('/api/auth/register').post(this.authController.register);
+    app.route('/api/auth/send-magic').post(this.authController.sendMagic);
+    app.route('/api/auth/verify-magic').post(this.authController.verifyMagic);
+    app.route('/api/auth/forgot-password').post(this.authController.forgotPassword);
+    app.route('/api/auth/reset-password').post(this.authController.resetPassword);
 
     // Migration Routes
     app.route('/api/migration/status').get(auth, adminAuth, this.migrationController.getMigrationStatus);
