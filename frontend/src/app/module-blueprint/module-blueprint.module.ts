@@ -19,6 +19,7 @@ import { CardModule } from "primeng/card";
 import { ScrollPanelModule } from "primeng/scrollpanel";
 import { PopoverModule } from "primeng/popover";
 import { MenubarModule } from "primeng/menubar";
+import { MenuModule } from "primeng/menu";
 import { TabsModule } from "primeng/tabs";
 import { DialogModule } from "primeng/dialog";
 import { SelectModule } from "primeng/select";
@@ -141,6 +142,7 @@ import { AuthCallbackComponent } from "./components/user-auth/auth-callback/auth
     ScrollPanelModule,
     PopoverModule,
     MenubarModule,
+    MenuModule,
     TabsModule,
     DialogModule,
     SelectModule,

@@ -8,6 +8,7 @@ export class WorkOSAuthController {
     this.login = this.login.bind(this);
     this.callback = this.callback.bind(this);
     this.getProfile = this.getProfile.bind(this);
+    this.getSwitchAccountUrl = this.getSwitchAccountUrl.bind(this);
   }
 
   /**
@@ -36,7 +37,8 @@ export class WorkOSAuthController {
       }
 
       // Authenticate with WorkOS
-      const { user: workosUser } = await WorkOSService.authenticateWithCode(code);
+      const { user: workosUser, accessToken } = await WorkOSService.authenticateWithCode(code);
+      const sessionId = WorkOSService.extractSessionId(accessToken);
 
       // Find or create user in our database
       let localUser = await UserModel.model.findOne({ workosUserId: workosUser.id });
@@ -52,6 +54,7 @@ export class WorkOSAuthController {
           localUser.workosUserId = workosUser.id;
           localUser.authProvider = 'workos';
           localUser.migratedToWorkosAt = new Date();
+          if (sessionId) localUser.workosSessionId = sessionId;
           // Clear legacy auth fields
           localUser.hash = undefined;
           localUser.salt = undefined;
@@ -74,10 +77,17 @@ export class WorkOSAuthController {
             email: workosUser.email,
             username: username,
             workosUserId: workosUser.id,
+            workosSessionId: sessionId ?? undefined,
             authProvider: 'workos',
           });
           await localUser.save();
         }
+      }
+
+      // Update session ID on every login so we always have the latest one for logout
+      if (sessionId && localUser.workosSessionId !== sessionId) {
+        localUser.workosSessionId = sessionId;
+        await localUser.save();
       }
 
       // Write externalId back to WorkOS so webhooks and the dashboard can resolve the local user
@@ -144,6 +154,28 @@ export class WorkOSAuthController {
     } catch (error) {
       console.error('Profile error:', error);
       return res.status(500).json(apiError(500, 'Failed to get profile'));
+    }
+  }
+
+  /**
+   * Return the WorkOS logout URL for the current user's session (protected route).
+   * The frontend navigates to this URL to end the WorkOS session before re-logging in.
+   */
+  public async getSwitchAccountUrl(req: Request, res: Response) {
+    try {
+      const userJwt = req.user as UserJwt;
+      const localUser = await UserModel.model.findById(userJwt._id);
+
+      if (!localUser?.workosSessionId) {
+        return res.status(400).json(apiError(400, 'No active WorkOS session found'));
+      }
+
+      const loginUrl = `${process.env.HOST}/api/auth/workos`;
+      const logoutUrl = WorkOSService.getLogoutUrl(localUser.workosSessionId, loginUrl);
+      return res.json({ url: logoutUrl });
+    } catch (error) {
+      console.error('Switch account error:', error);
+      return res.status(500).json(apiError(500, 'Failed to get switch account URL'));
     }
   }
 }
