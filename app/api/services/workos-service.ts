@@ -178,6 +178,44 @@ export class WorkOSService {
   }
 
   /**
+   * Authenticate a user with email and password
+   */
+  static async authenticateWithPassword(email: string, password: string) {
+    const clientId = process.env.WORKOS_CLIENT_ID;
+    if (!clientId) throw new Error('WORKOS_CLIENT_ID environment variable is not set');
+    const workos = getWorkOSClient();
+    const { user, accessToken } = await workos.userManagement.authenticateWithPassword({
+      email,
+      password,
+      clientId,
+    });
+    return { user, accessToken };
+  }
+
+  /**
+   * Authenticate a user with a magic auth code
+   */
+  static async authenticateWithMagicAuth(code: string, email: string) {
+    const clientId = process.env.WORKOS_CLIENT_ID;
+    if (!clientId) throw new Error('WORKOS_CLIENT_ID environment variable is not set');
+    const workos = getWorkOSClient();
+    const { user, accessToken } = await workos.userManagement.authenticateWithMagicAuth({
+      code,
+      email,
+      clientId,
+    });
+    return { user, accessToken };
+  }
+
+  /**
+   * Reset a user's password using a reset token
+   */
+  static async resetPassword(token: string, newPassword: string) {
+    const workos = getWorkOSClient();
+    return await workos.userManagement.resetPassword({ token, newPassword });
+  }
+
+  /**
    * Update a WorkOS user record (e.g. to set externalId)
    */
   static async updateUser(userId: string, attrs: { externalId?: string }) {
