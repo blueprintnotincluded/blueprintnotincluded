@@ -12,30 +12,10 @@ import { TestSetup } from '../setup/testSetup';
 describe('Blueprint Validation API (Mocha)', function () {
   let authToken: string;
 
-  // Global setup
-  before(async function () {
-    this.timeout(10000);
-    // Give the app time to initialize
-    await new Promise(resolve => setTimeout(resolve, 2000));
-  });
-
-  after(async function () {
-    // Local cleanup - don't close database connection as other tests might still need it
-  });
-
   beforeEach(async function () {
     this.timeout(15000);
-    await TestSetup.beforeEach();
-
-    // Register a user and get auth token
-    const registerResponse = await TestSetup.request().post('/api/register').send({
-      username: 'testuser_validation',
-      email: 'testuser_validation@test.com',
-      password: 'testpassword123',
-    });
-
-    expect(registerResponse.status).to.equal(200);
-    authToken = registerResponse.body.token;
+    const testData = await TestSetup.beforeEach();
+    authToken = testData.users.user1.generateJwt();
   });
 
   afterEach(async function () {

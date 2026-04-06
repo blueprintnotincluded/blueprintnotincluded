@@ -43,10 +43,6 @@ import { Textarea } from "primeng/textarea";
 import { UsernameValidationDirective } from "./directives/username-validation.directive";
 import { ComponentSideSelectionToolComponent } from "./components/side-bar/selection-tool/selection-tool.component";
 import { KeyboardDirective } from "./directives/keyboard.directive";
-import { ComponentLoginDialogComponent } from "./components/user-auth/login-dialog/login-dialog.component";
-import { RegisterFormComponent } from "./components/user-auth/register-form/register-form.component";
-import { CheckDuplicateService } from "./services/check-duplicate-service";
-import { LoginFormComponent } from "./components/user-auth/login-form/login-form.component";
 import { AuthenticationService } from "./services/authentification-service";
 import { BlueprintService } from "./services/blueprint-service";
 import { ToolService } from "./services/tool-service";
@@ -80,7 +76,6 @@ import { BitSelectionScreenComponent } from "./components/side-bar/ui-screens/bi
 import { InfoInputComponent } from "./components/side-bar/info-input/info-input.component";
 import { InfoInputIconComponent } from "./components/side-bar/info-input-icon/info-input-icon.component";
 import { PipeContentComponent } from "./components/side-bar/pipe-content/pipe-content.component";
-import { ResetPasswordComponent } from "./components/user-auth/reset-password/reset-password.component";
 import { AuthCallbackComponent } from "./components/user-auth/auth-callback/auth-callback.component";
 
 @NgModule({
@@ -96,9 +91,6 @@ import { AuthCallbackComponent } from "./components/user-auth/auth-callback/auth
     ComponentSaveDialogComponent,
     ComponentSideBuildToolComponent,
     ComponentSideSelectionToolComponent,
-    ComponentLoginDialogComponent,
-    RegisterFormComponent,
-    LoginFormComponent,
     DialogShareUrlComponent,
     ItemCollectionInfoComponent,
     DialogBrowseComponent,
@@ -123,7 +115,6 @@ import { AuthCallbackComponent } from "./components/user-auth/auth-callback/auth
     InfoInputComponent,
     InfoInputIconComponent,
     PipeContentComponent,
-    ResetPasswordComponent,
     AuthCallbackComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
@@ -160,7 +151,6 @@ import { AuthCallbackComponent } from "./components/user-auth/auth-callback/auth
     BrowserAnimationsModule,
   ],
   providers: [
-    CheckDuplicateService,
     AuthenticationService,
     BlueprintService,
     ToolService,
