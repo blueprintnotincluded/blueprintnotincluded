@@ -1,0 +1,25 @@
+<div class="auth-page">
+  <p-card>
+    <div *ngIf="loading" class="loading-state">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+      <p>Signing you in…</p>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="error-state">
+      <i
+        class="pi pi-times-circle"
+        style="font-size: 2rem; color: var(--red-500, #ef4444)"
+      ></i>
+      <p>{{ errorMessage }}</p>
+      <a routerLink="/login/magic">
+        <button
+          pButton
+          type="button"
+          label="Request a new link"
+          icon="pi pi-envelope"
+          class="p-button-outlined"
+        ></button>
+      </a>
+    </div>
+  </p-card>
+</div>

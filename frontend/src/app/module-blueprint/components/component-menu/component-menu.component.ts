@@ -17,6 +17,7 @@ import {
   Visualization,
 } from "../../../../../../lib/index";
 import { ToolType } from "../../common/tools/tool";
+import { Router } from "@angular/router";
 import { AuthenticationService } from "../../services/authentification-service";
 import {
   BlueprintFileType,
@@ -77,6 +78,7 @@ export class ComponentMenuComponent
     private messageService: MessageService,
     private toolService: ToolService,
     private blueprintService: BlueprintService,
+    private router: Router,
     @Inject(LOCALE_ID) private locale: string
   ) {
     this.toolService.subscribeToolChanged(this);
@@ -536,7 +538,7 @@ export class ComponentMenuComponent
   }
 
   login() {
-    window.location.href = "/api/auth/workos";
+    this.router.navigate(["/login"]);
   }
 
   switchAccount() {
@@ -546,9 +548,9 @@ export class ComponentMenuComponent
         window.location.href = url;
       },
       error: () => {
-        // Fall back to normal login if we can't get a logout URL
+        // Fall back to login page if we can't get a WorkOS logout URL
         this.authService.logout();
-        window.location.href = "/api/auth/workos";
+        this.router.navigate(["/login"]);
       },
     });
   }
