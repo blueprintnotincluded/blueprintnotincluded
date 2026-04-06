@@ -5,7 +5,9 @@ import {
   LOCALE_ID,
   OnInit,
   Output,
+  ViewChild,
 } from "@angular/core";
+import { Menu } from "primeng/menu";
 import { MenuItem, MessageService } from "primeng/api";
 import {
   CameraService,
@@ -52,7 +54,10 @@ export class ComponentMenuComponent
 {
   @Output() menuCommand = new EventEmitter<MenuCommand>();
 
+  @ViewChild("userMenu") userMenu!: Menu;
+
   menuItems!: MenuItem[];
+  userMenuItems!: MenuItem[];
   overlayMenuItems!: MenuItem[];
   displayMenuItems!: MenuItem[];
   visualizationMenuItems!: MenuItem[];
@@ -372,6 +377,25 @@ export class ComponentMenuComponent
       */
     ];
 
+    this.userMenuItems = [
+      {
+        label: $localize`My Blueprints`,
+        icon: "pi pi-images",
+        command: () => this.userProfile(),
+      },
+      {
+        label: $localize`Switch account`,
+        icon: "pi pi-refresh",
+        command: () => this.switchAccount(),
+      },
+      { separator: true },
+      {
+        label: $localize`Log out`,
+        icon: "pi pi-sign-out",
+        command: () => this.logout(),
+      },
+    ];
+
     this.clickOverlay({ item: { id: Overlay.Base } });
     this.clickDisplay({ item: { id: Display.solid } });
     this.clickVisualization({ item: { id: Visualization.none } });
@@ -513,6 +537,20 @@ export class ComponentMenuComponent
 
   login() {
     window.location.href = "/api/auth/workos";
+  }
+
+  switchAccount() {
+    this.authService.getSwitchAccountUrl().subscribe({
+      next: ({ url }) => {
+        this.authService.logout();
+        window.location.href = url;
+      },
+      error: () => {
+        // Fall back to normal login if we can't get a logout URL
+        this.authService.logout();
+        window.location.href = "/api/auth/workos";
+      },
+    });
   }
 
   logout() {

@@ -13,6 +13,7 @@ export interface User extends Document {
 
   // WorkOS integration
   workosUserId?: string;
+  workosSessionId?: string;
   authProvider: 'legacy' | 'workos';
   migratedToWorkosAt?: Date;
 
@@ -52,6 +53,7 @@ export class UserModel {
         sparse: true,  // Allows null during migration
         unique: true,  // But must be unique when set
       },
+      workosSessionId: String,
       authProvider: {
         type: String,
         enum: ['legacy', 'workos'],

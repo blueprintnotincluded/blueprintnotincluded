@@ -52,6 +52,7 @@ export class Routes {
     app.route('/api/auth/workos').get(this.workosAuthController.login);
     app.route('/api/auth/callback').get(this.workosAuthController.callback);
     app.route('/api/auth/profile').get(auth, this.workosAuthController.getProfile);
+    app.route('/api/auth/switch-account').get(auth, this.workosAuthController.getSwitchAccountUrl);
 
     // Migration Routes
     app.route('/api/migration/status').get(auth, adminAuth, this.migrationController.getMigrationStatus);
