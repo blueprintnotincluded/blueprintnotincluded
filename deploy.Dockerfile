@@ -22,6 +22,7 @@ COPY ./scripts/copy_views.sh ./scripts/
 RUN ./scripts/copy_views.sh
 COPY ./scripts/copy_public.sh ./scripts/
 RUN ./scripts/copy_public.sh
+COPY ./scripts ./scripts
 RUN npm run build:backend
 
 FROM extract as build-frontend
