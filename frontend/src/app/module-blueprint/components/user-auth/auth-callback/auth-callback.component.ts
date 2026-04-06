@@ -17,12 +17,24 @@ export class AuthCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const token = this.route.snapshot.queryParams["token"];
+    const code = this.route.snapshot.queryParams["code"];
     const errorMessage = this.route.snapshot.queryParams["message"];
 
-    if (token) {
-      this.authService.saveToken(token);
-      this.router.navigate(["/"]);
+    if (code) {
+      this.authService.exchangeCode(code).subscribe({
+        next: (response: { token: string }) => {
+          this.authService.saveToken(response.token);
+          this.router.navigate(["/"]);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: "error",
+            summary: "Login failed",
+            detail: "Code exchange failed",
+          });
+          this.router.navigate(["/"]);
+        },
+      });
     } else {
       this.messageService.add({
         severity: "error",

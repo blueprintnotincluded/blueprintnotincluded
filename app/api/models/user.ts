@@ -88,7 +88,12 @@ export class UserModel {
 
     userSchema.methods.generateJwt = function (role?: string): string {
       var expiry = new Date();
-      expiry.setDate(expiry.getDate() + 7);
+      if (role) {
+        // Role-bearing tokens expire in 24 hours — shorter window limits stale admin access
+        expiry.setHours(expiry.getHours() + 24);
+      } else {
+        expiry.setDate(expiry.getDate() + 7);
+      }
 
       let userJwt: UserJwt = {
         _id: (this as any)._id,
