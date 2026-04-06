@@ -49,7 +49,6 @@ import { DialogExportImagesComponent } from "../dialogs/dialog-export-images/dia
 import { DialogShareUrlComponent } from "../dialogs/dialog-share-url/dialog-share-url.component";
 import { ComponentSideBuildToolComponent } from "../side-bar/build-tool/build-tool.component";
 import { ComponentSideSelectionToolComponent } from "../side-bar/selection-tool/selection-tool.component";
-import { ComponentLoginDialogComponent } from "../user-auth/login-dialog/login-dialog.component";
 var sanitize = require("sanitize-filename");
 
 /*
@@ -90,9 +89,6 @@ export class ComponentBlueprintParentComponent
 
   @ViewChild("browseDialog", { static: false })
   browseDialog!: DialogBrowseComponent;
-
-  @ViewChild("loginDialog", { static: false })
-  loginDialog!: ComponentLoginDialogComponent;
 
   @ViewChild("exportImagesDialog", { static: false })
   exportImagesDialog!: DialogExportImagesComponent;
@@ -314,8 +310,6 @@ export class ComponentBlueprintParentComponent
   menuCommand(menuCommand: MenuCommand) {
     if (menuCommand.type == MenuCommandType.newBlueprint)
       this.blueprintService.newBlueprint();
-    else if (menuCommand.type == MenuCommandType.showLoginDialog)
-      this.loginDialog.showDialog();
     else if (menuCommand.type == MenuCommandType.browseBlueprints)
       this.browseBlueprints(menuCommand.data);
     else if (menuCommand.type == MenuCommandType.about)

@@ -583,8 +583,6 @@ export enum MenuCommandType {
   downloadUtility,
   repackTextures,
   addElementsTiles,
-
-  showLoginDialog,
 }
 
 export class MenuCommand {
