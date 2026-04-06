@@ -1,7 +1,13 @@
-# Production Docker Compose - uses pre-built images
+# Docker Compose
+# Default: pulls pre-built image from Docker Hub.
+# To build and run from local source instead:
+#   docker compose up --build
 services:
   app:
     image: racefpv/bpni:latest
+    build:
+      context: .
+      dockerfile: deploy.Dockerfile
     container_name: bpni-prod
     environment:
       - ENV_NAME=development
@@ -15,6 +21,11 @@ services:
       - MAILJET_FROM_EMAIL=help@blueprintnotincluded.org
       - SMTP_HOST=mailhog
       - SMTP_PORT=1025
+      - HOST=http://localhost:3000
+      - BACKEND_HOST=http://localhost:3000
+      - WORKOS_API_KEY=${WORKOS_API_KEY}
+      - WORKOS_CLIENT_ID=${WORKOS_CLIENT_ID}
+      - WORKOS_PLATFORM_ORG_ID=${WORKOS_PLATFORM_ORG_ID}
     depends_on:
       - database
       - mailhog
