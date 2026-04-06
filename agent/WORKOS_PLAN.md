@@ -7,9 +7,14 @@ The `auth-workos` branch introduces WorkOS AuthKit as the primary authentication
 - **Login / OAuth flow** — `GET /api/auth/workos` → WorkOS → `GET /api/auth/callback`
 - **User migration** — on callback, existing legacy users are linked to their WorkOS ID; new users are created
 - **Self-service migration** — `POST /api/migration/migrate` lets a logged-in legacy user trigger a magic-link email
-- **Admin status check** — `GET /api/migration/status` gated behind `adminAuth`, which today reads `ADMIN_USERNAMES` from an env var (a stopgap)
-
-The `accessToken` returned by `authenticateWithCode` is currently discarded. This is the key gap — that token is a signed JWT that WorkOS populates with the user's organization memberships and roles, and it is the natural carrier for admin status.
+- **Admin status check** — `GET /api/migration/status` is gated behind `adminAuth` in `app/routes.ts`, which checks `req.user.role === 'admin'` on the JWT; no env var needed
+- **Role plumbing** — after `authenticateWithCode`, the callback calls `WorkOSService.getPlatformRole(workosUser.id)` to check the user's membership in the platform org; the role slug is embedded in the JWT via `localUser.generateJwt(role)` in `app/api/models/user.ts`; role-bearing JWTs expire in 24 h (vs 7 days for regular users)
+- **externalId write-back** — on each login the callback writes `localUser._id` to WorkOS as `externalId`, linking the two systems bidirectionally; for legacy-user migration the write-back happens *before* clearing the local password hash so a failed WorkOS write leaves credentials intact
+- **One-time code exchange** — the OAuth callback no longer puts the JWT in the redirect URL; instead it issues a short-lived (60 s) single-use code and redirects to `/auth/callback?code=…`; the frontend calls `GET /api/auth/exchange?code=…` to obtain the JWT
+- **Email verification gate** — legacy accounts are only linked/migrated when `workosUser.emailVerified` is true; unverified callbacks are rejected before touching local credentials
+- **env vars** — `HOST` is the public-facing site URL; `BACKEND_HOST` is the server origin used for WorkOS redirect URI and switch-account login URL; `WORKOS_CLIENT_ID` and `BACKEND_HOST` are validated at call time in `WorkOSService` with descriptive errors
+- **Atomic migration script** — `scripts/migrate-to-workos.ts` uses `updateOne` with a conditional filter instead of `document.save()`, preventing race-condition double-processing
+- **Bulk WorkOS provisioning** — `scripts/provision-workos-users.ts` creates WorkOS accounts for all legacy MongoDB users (no password; users sign in via "forgot password" or magic link). Idempotent: re-running re-confirms existing accounts and repairs stale `workosUserId` links. If `WORKOS_PLATFORM_ORG_ID` is set, each user is also added to the platform org (existing memberships, including admin role, are left untouched).
 
 ---
 
@@ -243,26 +248,45 @@ This only needs to run once per user. If you want to avoid the extra write on ev
 | 0.5 | Add Staging keys + Staging org ID to local `.env` |
 | 0.6 | Add Production keys + Production org ID to staging/production server config |
 
-### Phase 1 — Code changes (single PR)
+### Phase 1 — Code changes (complete)
 
-| Step | Action | Blocks what |
-|------|--------|-------------|
-| 1.1 | Add `updateUser` to `workos-service.ts` | 1.2 |
-| 1.2 | Write `externalId` back to WorkOS in the auth callback | — |
-| 1.3 | Implement `getPlatformRole` in `workos-service.ts` | 1.4 |
-| 1.4 | Add `role` field to `UserJwt` | 1.5 |
-| 1.5 | Pass role into `generateJwt` in the callback controller | 1.6 |
-| 1.6 | Replace env-var `adminAuth` in `routes.ts` with role check | — |
-| 1.7 | Remove `ADMIN_USERNAMES` from `.env.sample` and docs | — |
+| Step | Action | Status |
+|------|--------|--------|
+| 1.1 | Add `updateUser` to `workos-service.ts` | ✅ done |
+| 1.2 | Write `externalId` back to WorkOS in the auth callback | ✅ done |
+| 1.3 | Implement `getPlatformRole` in `workos-service.ts` | ✅ done |
+| 1.4 | Add `role` field to `UserJwt` | ✅ done |
+| 1.5 | Pass role into `generateJwt` in the callback controller | ✅ done |
+| 1.6 | Replace env-var `adminAuth` in `routes.ts` with role check | ✅ done |
+| 1.7 | `ADMIN_USERNAMES` env var is not used — no `.env.sample` entry exists | ✅ done |
 
 ### Phase 2 — Validate locally
 
 Test against WorkOS Staging + local DB. Confirm login, org membership check, admin role on `GET /api/migration/status`, and `externalId` being written back.
 
+Run the provisioning script against your local DB to create WorkOS Staging accounts for all local legacy users:
+
+```bash
+npx ts-node scripts/provision-workos-users.ts --dry-run --verbose
+npx ts-node scripts/provision-workos-users.ts --verbose
+```
+
 ### Phase 3 — Migrate on staging site
 
-Deploy the branch to the staging site (WorkOS Production + shared DB). Log in as yourself — this populates your real WorkOS Production user, links your `workosUserId` in the shared DB, and your pre-created org membership means `adminAuth` will pass. Verify migration status counts, run a test migration for a legacy user if possible.
+Deploy to the staging site (WorkOS Production + shared DB). Run the provisioning script on the server to create WorkOS Production accounts for all existing users and add them to the platform org:
+
+```bash
+# Dry run first
+WORKOS_API_KEY=sk_… WORKOS_CLIENT_ID=client_… WORKOS_PLATFORM_ORG_ID=org_… \
+  npx ts-node scripts/provision-workos-users.ts --dry-run --verbose
+
+# Apply
+WORKOS_API_KEY=sk_… WORKOS_CLIENT_ID=client_… WORKOS_PLATFORM_ORG_ID=org_… \
+  npx ts-node scripts/provision-workos-users.ts --verbose
+```
+
+After running: log in via the staging site, confirm `adminAuth` passes on `GET /api/migration/status`, and verify migration status counts.
 
 ### Phase 4 — Deploy to production
 
-Merge and deploy. WorkOS Production is already populated; the shared DB already has `workosUserId` links from Phase 3. Production traffic flows through the new auth path with no further migration work needed.
+Merge and deploy. WorkOS Production already has all user accounts (from Phase 3). The shared DB already has `workosUserId` links. Production traffic flows through the new auth path with no further migration work needed.

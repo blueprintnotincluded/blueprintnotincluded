@@ -113,6 +113,71 @@ export class WorkOSService {
   }
 
   /**
+   * Create a WorkOS account for a legacy user (no password — they must use
+   * magic link or "forgot password" to sign in for the first time).
+   * If a WorkOS user already exists for this email, returns it rather than
+   * throwing, so the script is safe to re-run.
+   */
+  static async provisionUser(
+    email: string,
+    externalId: string
+  ): Promise<{ user: { id: string; email: string }; created: boolean }> {
+    const workos = getWorkOSClient();
+    try {
+      const user = await workos.userManagement.createUser({
+        email,
+        emailVerified: true,
+        externalId,
+      });
+      return { user, created: true };
+    } catch {
+      // createUser failed — the user may already exist in WorkOS under a
+      // different ID or error code. Attempt a lookup before giving up.
+      const list = await workos.userManagement.listUsers({ email });
+      const user = list.data[0];
+      if (!user) {
+        throw new Error(`Could not create or find WorkOS user for ${email}`);
+      }
+      return { user, created: false };
+    }
+  }
+
+  /**
+   * Ensure a WorkOS user is a member of the given org. Creates the membership
+   * if it doesn't exist; returns the existing one if it does. Safe to call on
+   * every provision run (idempotent).
+   */
+  static async ensureOrgMembership(
+    workosUserId: string,
+    organizationId: string
+  ): Promise<{ membershipId: string; created: boolean }> {
+    const workos = getWorkOSClient();
+    try {
+      const membership = await workos.userManagement.createOrganizationMembership({
+        userId: workosUserId,
+        organizationId,
+      });
+      return { membershipId: membership.id, created: true };
+    } catch (error: any) {
+      // Membership already exists — fetch it rather than erroring
+      if (error?.status === 409 || error?.status === 422) {
+        const list = await workos.userManagement.listOrganizationMemberships({
+          userId: workosUserId,
+          organizationId,
+        });
+        const existing = list.data[0];
+        if (!existing) {
+          throw new Error(
+            `Membership conflict for user ${workosUserId} in org ${organizationId} but could not be retrieved`
+          );
+        }
+        return { membershipId: existing.id, created: false };
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Update a WorkOS user record (e.g. to set externalId)
    */
   static async updateUser(userId: string, attrs: { externalId?: string }) {
