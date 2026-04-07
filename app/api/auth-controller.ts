@@ -175,7 +175,7 @@ export class AuthController {
       }
 
       // Create WorkOS user
-      const workosUser = await WorkOSService.createUser(email, password, false);
+      const workosUser = await WorkOSService.createUser(email, password, true);
 
       // Create local user
       const localUser = new UserModel.model({
