@@ -6,14 +6,12 @@ import { expressjwt as expressJwt } from 'express-jwt';
 import { StaticController } from './static-controller';
 import { BlueprintController } from './api/blueprint-controller';
 import { VersionController } from './api/version-controller';
-import { WorkOSAuthController } from './api/workos-auth-controller';
 import { AuthController } from './api/auth-controller';
 import { MigrationController } from './api/migration-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
   public versionController = new VersionController();
-  public workosAuthController = new WorkOSAuthController();
   public authController = new AuthController();
   public migrationController = new MigrationController();
 
@@ -34,9 +32,6 @@ export class Routes {
       requestProperty: 'user', // This ensures the token is attached to req.user
     }).unless({
       path: [
-        '/api/auth/workos',
-        '/api/auth/callback',
-        '/api/auth/exchange',
         '/api/auth/login',
         '/api/auth/register',
         '/api/auth/send-magic',
@@ -46,14 +41,7 @@ export class Routes {
       ],
     });
 
-    // WorkOS Authentication Routes (primary auth method)
-    app.route('/api/auth/workos').get(this.workosAuthController.login);
-    app.route('/api/auth/callback').get(this.workosAuthController.callback);
-    app.route('/api/auth/exchange').get(this.workosAuthController.exchangeCode);
-    app.route('/api/auth/profile').get(auth, this.workosAuthController.getProfile);
-    app.route('/api/auth/switch-account').get(auth, this.workosAuthController.getSwitchAccountUrl);
-
-    // Custom auth routes (password + magic link — no redirects)
+    // Auth routes (password + magic link)
     app.route('/api/auth/login').post(this.authController.login);
     app.route('/api/auth/register').post(this.authController.register);
     app.route('/api/auth/send-magic').post(this.authController.sendMagic);

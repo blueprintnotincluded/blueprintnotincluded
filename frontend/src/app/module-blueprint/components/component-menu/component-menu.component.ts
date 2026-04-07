@@ -542,17 +542,8 @@ export class ComponentMenuComponent
   }
 
   switchAccount() {
-    this.authService.getSwitchAccountUrl().subscribe({
-      next: ({ url }) => {
-        this.authService.logout();
-        window.location.href = url;
-      },
-      error: () => {
-        // Fall back to login page if we can't get a WorkOS logout URL
-        this.authService.logout();
-        this.router.navigate(["/login"]);
-      },
-    });
+    this.authService.logout();
+    this.router.navigate(["/login"]);
   }
 
   logout() {

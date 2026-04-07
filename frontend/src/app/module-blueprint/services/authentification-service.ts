@@ -11,12 +11,6 @@ export interface UserDetails {
   exp: number;
 }
 
-export interface TokenPayload {
-  email: string;
-  username: string;
-  password: string;
-}
-
 export type LoginResult =
   | { kind: "success"; token: string }
   | { kind: "legacy_account" }
@@ -69,19 +63,7 @@ export class AuthenticationService {
     window.localStorage.removeItem(AuthenticationService.localStorage);
   }
 
-  public exchangeCode(code: string): Observable<{ token: string }> {
-    return this.http.get<{ token: string }>(
-      `/api/auth/exchange?code=${encodeURIComponent(code)}`
-    );
-  }
-
-  public getSwitchAccountUrl(): Observable<{ url: string }> {
-    return this.http.get<{ url: string }>("/api/auth/switch-account", {
-      headers: { Authorization: `Bearer ${this.getToken()}` },
-    });
-  }
-
-  // ─── New custom auth methods ──────────────────────────────────────────────
+  // ─── Auth methods ─────────────────────────────────────────────────────────
 
   public loginWithPassword(
     email: string,
