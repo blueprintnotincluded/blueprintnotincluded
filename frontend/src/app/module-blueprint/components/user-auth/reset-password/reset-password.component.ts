@@ -14,6 +14,7 @@ export class ResetPasswordComponent implements OnInit {
   confirmPassword = "";
   loading = false;
   errorMessage = "";
+  tokenError = false;
 
   constructor(
     private authService: AuthenticationService,
@@ -24,6 +25,7 @@ export class ResetPasswordComponent implements OnInit {
   ngOnInit() {
     this.token = this.route.snapshot.queryParams["token"] ?? "";
     if (!this.token) {
+      this.tokenError = true;
       this.errorMessage = "Invalid or missing reset token.";
     }
   }
@@ -37,6 +39,7 @@ export class ResetPasswordComponent implements OnInit {
 
     this.loading = true;
     this.errorMessage = "";
+    this.tokenError = false;
 
     this.authService
       .resetPasswordWithToken(this.token, this.newPassword)
@@ -47,6 +50,7 @@ export class ResetPasswordComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
+          this.tokenError = true;
           const title = err?.error?.errors?.[0]?.title;
           this.errorMessage =
             title || "Failed to reset password. The link may have expired.";
