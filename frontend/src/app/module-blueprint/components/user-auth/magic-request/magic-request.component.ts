@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { AuthenticationService } from "../../../services/authentification-service";
 
 @Component({
@@ -13,9 +13,14 @@ export class MagicRequestComponent implements OnInit {
   loading = false;
   submitted = false;
 
+  code = "";
+  codeLoading = false;
+  codeError = "";
+
   constructor(
     private authService: AuthenticationService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -38,6 +43,23 @@ export class MagicRequestComponent implements OnInit {
       error: () => {
         this.loading = false;
         this.submitted = true; // Always show confirmation — no enumeration
+      },
+    });
+  }
+
+  verifyCode() {
+    if (!this.code) return;
+    this.codeLoading = true;
+    this.codeError = "";
+
+    this.authService.verifyMagicCode(this.code.trim(), this.email).subscribe({
+      next: (res) => {
+        this.authService.saveToken(res.token);
+        this.router.navigate(["/"]);
+      },
+      error: () => {
+        this.codeLoading = false;
+        this.codeError = "Invalid or expired code. Please try again.";
       },
     });
   }

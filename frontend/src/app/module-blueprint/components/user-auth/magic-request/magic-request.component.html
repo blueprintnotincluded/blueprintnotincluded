@@ -8,10 +8,10 @@
       />
       <div class="auth-site-name">Blueprint Not Included</div>
     </a>
-    <p-card header="Sign in with a link">
+    <p-card header="Sign in with a code">
       <ng-container *ngIf="!submitted; else done">
         <p class="description">
-          Enter your email and we'll send you a sign-in link — no password
+          Enter your email and we'll send you a sign-in code — no password
           needed.
         </p>
 
@@ -34,7 +34,7 @@
             <button
               pButton
               type="submit"
-              label="Send sign-in link"
+              label="Send sign-in code"
               icon="pi pi-envelope"
               [loading]="loading"
               class="w-full"
@@ -44,7 +44,39 @@
       </ng-container>
 
       <ng-template #done>
-        <p class="confirmation-message">Check your email for a sign-in link.</p>
+        <p class="confirmation-message">
+          Check your email for a 6-digit sign-in code.
+        </p>
+
+        <form (ngSubmit)="verifyCode()" #codeForm="ngForm">
+          <div class="field">
+            <label for="code">Sign-in code</label>
+            <input
+              pInputText
+              id="code"
+              type="text"
+              [(ngModel)]="code"
+              name="code"
+              required
+              autocomplete="one-time-code"
+              placeholder="123456"
+              class="w-full"
+            />
+          </div>
+
+          <p *ngIf="codeError" class="error-message">{{ codeError }}</p>
+
+          <div class="auth-actions">
+            <button
+              pButton
+              type="submit"
+              label="Sign in"
+              icon="pi pi-sign-in"
+              [loading]="codeLoading"
+              class="w-full"
+            ></button>
+          </div>
+        </form>
       </ng-template>
 
       <div class="auth-links">
