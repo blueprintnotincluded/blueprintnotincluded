@@ -206,7 +206,7 @@ export class AuthController {
       // Send verification email — the user must verify before they can log in
       await WorkOSService.sendVerificationEmail(workosUser.id);
 
-      res.status(201).json({ message: 'Account created. Please check your email to verify your address before logging in.' });
+      res.status(201).json({ message: 'Account created. Please check your email to verify your address before logging in.', userId: workosUser.id });
     } catch (err: any) {
       if (err?.status === 422 || err?.code === 'user_email_taken') {
         res.status(409).json(apiError(409, 'An account with that email already exists'));
@@ -239,6 +239,17 @@ export class AuthController {
       const { user: workosUser } = await WorkOSService.verifyEmail(code, userId);
 
       const localUser = await resolveLocalUser(workosUser);
+
+      // Add to platform org now that the user is verified
+      const platformOrgId = process.env.WORKOS_PLATFORM_ORG_ID;
+      if (platformOrgId) {
+        try {
+          await WorkOSService.ensureOrgMembership(workosUser.id, platformOrgId);
+        } catch (err) {
+          console.error('Failed to add verified user to platform org (non-fatal):', err);
+        }
+      }
+
       const role = await WorkOSService.getPlatformRole(workosUser.id);
       const token = localUser.generateJwt(role ?? undefined);
 

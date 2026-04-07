@@ -9,19 +9,7 @@
       <div class="auth-site-name">Blueprint Not Included</div>
     </a>
     <p-card header="Create account">
-      <div *ngIf="registered" class="verify-state">
-        <i
-          class="pi pi-envelope"
-          style="font-size: 2rem; color: var(--primary-color)"
-        ></i>
-        <p>Check your email</p>
-        <p class="verify-hint">
-          We sent a verification link to <strong>{{ email }}</strong
-          >. Click it to activate your account.
-        </p>
-      </div>
-
-      <form *ngIf="!registered" (ngSubmit)="submit()" #registerForm="ngForm">
+      <form (ngSubmit)="submit()" #registerForm="ngForm">
         <div class="field">
           <label for="username">Username</label>
           <input

@@ -9,7 +9,9 @@ import { AuthenticationService } from "../../../services/authentification-servic
   standalone: false,
 })
 export class VerifyEmailCallbackComponent implements OnInit {
-  loading = true;
+  code = "";
+  userId = "";
+  loading = false;
   errorMessage = "";
 
   constructor(
@@ -19,24 +21,22 @@ export class VerifyEmailCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const code = this.route.snapshot.queryParams["code"];
-    const userId = this.route.snapshot.queryParams["user_id"];
+    this.userId = this.route.snapshot.queryParams["userId"] ?? "";
+  }
 
-    if (!code || !userId) {
-      this.loading = false;
-      this.errorMessage = "Invalid verification link.";
-      return;
-    }
+  submit() {
+    if (!this.code || !this.userId) return;
+    this.loading = true;
+    this.errorMessage = "";
 
-    this.authService.verifyEmail(code, userId).subscribe({
+    this.authService.verifyEmail(this.code, this.userId).subscribe({
       next: (res) => {
         this.authService.saveToken(res.token);
         this.router.navigate(["/"]);
       },
       error: () => {
         this.loading = false;
-        this.errorMessage =
-          "This verification link has expired or already been used.";
+        this.errorMessage = "Invalid or expired code. Please try again.";
       },
     });
   }

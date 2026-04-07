@@ -8,27 +8,43 @@
       />
       <div class="auth-site-name">Blueprint Not Included</div>
     </a>
-    <p-card>
-      <div *ngIf="loading" class="loading-state">
-        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-        <p>Verifying your email…</p>
-      </div>
+    <p-card header="Verify your email">
+      <p class="verify-hint">
+        Enter the verification code we sent to your email address.
+      </p>
 
-      <div *ngIf="!loading && errorMessage" class="error-state">
-        <i
-          class="pi pi-times-circle"
-          style="font-size: 2rem; color: var(--red-500, #ef4444)"
-        ></i>
-        <p>{{ errorMessage }}</p>
-        <button
-          pButton
-          routerLink="/register"
-          type="button"
-          label="Back to registration"
-          icon="pi pi-arrow-left"
-          class="p-button-outlined"
-        ></button>
-      </div>
+      <form (ngSubmit)="submit()" #verifyForm="ngForm">
+        <div class="field">
+          <label for="code">Verification code</label>
+          <input
+            pInputText
+            id="code"
+            type="text"
+            [(ngModel)]="code"
+            name="code"
+            required
+            autocomplete="one-time-code"
+            inputmode="numeric"
+            class="w-full"
+          />
+        </div>
+
+        <div *ngIf="errorMessage" class="auth-error">
+          {{ errorMessage }}
+        </div>
+
+        <div class="auth-actions">
+          <button
+            pButton
+            type="submit"
+            label="Verify email"
+            icon="pi pi-check"
+            [loading]="loading"
+            [disabled]="!code"
+            class="w-full"
+          ></button>
+        </div>
+      </form>
     </p-card>
   </div>
 </div>
