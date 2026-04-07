@@ -46,13 +46,12 @@
         <div *ngIf="showLegacyHint" class="legacy-hint">
           <p>
             It looks like you have an existing account, but our login system has
-            been upgraded. Check your email for a sign-in link, or click below
-            to send one now.
+            been upgraded. Click below to sign in with a one-time code instead.
           </p>
           <button
             pButton
             type="button"
-            label="Send me a sign-in link"
+            label="Sign in with a code"
             icon="pi pi-envelope"
             class="p-button-outlined w-full"
             (click)="sendMagicLink()"
