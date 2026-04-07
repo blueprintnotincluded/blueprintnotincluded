@@ -67,6 +67,8 @@ The old callback URI (`https://blueprintnotincluded.org/api/auth/callback`) is n
 
 The `SITE_URL` env var must be set to `https://blueprintnotincluded.org` so the backend passes the correct `redirectUri` when creating magic auth sessions. Without it, WorkOS falls back to its default redirect URI.
 
+`FRONTEND_URL` and `BACKEND_HOST` have been removed from `.env.sample` — they were only used by the old OAuth controller and are no longer needed.
+
 ---
 
 ## Validate on staging
