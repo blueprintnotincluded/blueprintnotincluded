@@ -34,6 +34,7 @@ export class Routes {
       path: [
         '/api/auth/login',
         '/api/auth/register',
+        '/api/auth/verify-email',
         '/api/auth/send-magic',
         '/api/auth/verify-magic',
         '/api/auth/forgot-password',
@@ -44,6 +45,7 @@ export class Routes {
     // Auth routes (password + magic link)
     app.route('/api/auth/login').post(this.authController.login);
     app.route('/api/auth/register').post(this.authController.register);
+    app.route('/api/auth/verify-email').post(this.authController.verifyEmail);
     app.route('/api/auth/send-magic').post(this.authController.sendMagic);
     app.route('/api/auth/verify-magic').post(this.authController.verifyMagic);
     app.route('/api/auth/forgot-password').post(this.authController.forgotPassword);

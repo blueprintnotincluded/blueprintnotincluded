@@ -35,52 +35,12 @@
   text-transform: uppercase;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
-}
-
-.field label {
-  font-weight: 500;
-}
-
-.auth-error {
-  color: var(--red-500, #ef4444);
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-}
-
-.auth-actions {
-  margin-top: 0.5rem;
-}
-
-.auth-links {
-  margin-top: 1rem;
-  text-align: center;
-  font-size: 0.875rem;
-}
-
-.auth-links a {
-  color: var(--primary-500, #007ad9);
-  text-decoration: none;
-}
-
-.auth-links a:hover {
-  text-decoration: underline;
-}
-
-.verify-state {
+.loading-state,
+.error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1rem 0;
   text-align: center;
-}
-
-.verify-hint {
-  font-size: 0.875rem;
-  color: var(--text-color-secondary);
 }

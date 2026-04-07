@@ -14,6 +14,7 @@ export class RegisterPageComponent {
   password = "";
   loading = false;
   errorMessage = "";
+  registered = false;
 
   constructor(
     private authService: AuthenticationService,
@@ -28,10 +29,9 @@ export class RegisterPageComponent {
     this.authService
       .registerWithPassword(this.email, this.password, this.username)
       .subscribe({
-        next: (res) => {
+        next: () => {
           this.loading = false;
-          this.authService.saveToken(res.token);
-          this.router.navigate(["/"]);
+          this.registered = true;
         },
         error: (err) => {
           this.loading = false;
