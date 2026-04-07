@@ -76,7 +76,6 @@ import { BitSelectionScreenComponent } from "./components/side-bar/ui-screens/bi
 import { InfoInputComponent } from "./components/side-bar/info-input/info-input.component";
 import { InfoInputIconComponent } from "./components/side-bar/info-input-icon/info-input-icon.component";
 import { PipeContentComponent } from "./components/side-bar/pipe-content/pipe-content.component";
-import { AuthCallbackComponent } from "./components/user-auth/auth-callback/auth-callback.component";
 import { LoginPageComponent } from "./components/user-auth/login-page/login-page.component";
 import { RegisterPageComponent } from "./components/user-auth/register-page/register-page.component";
 import { ForgotPasswordComponent } from "./components/user-auth/forgot-password/forgot-password.component";
@@ -121,7 +120,6 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     InfoInputComponent,
     InfoInputIconComponent,
     PipeContentComponent,
-    AuthCallbackComponent,
     LoginPageComponent,
     RegisterPageComponent,
     ForgotPasswordComponent,

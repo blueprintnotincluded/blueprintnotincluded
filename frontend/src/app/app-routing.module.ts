@@ -1,7 +1,6 @@
 import { NgModule } from "@angular/core";
 import { Routes, RouterModule } from "@angular/router";
 import { ComponentBlueprintParentComponent } from "./module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component";
-import { AuthCallbackComponent } from "./module-blueprint/components/user-auth/auth-callback/auth-callback.component";
 import { LoginPageComponent } from "./module-blueprint/components/user-auth/login-page/login-page.component";
 import { RegisterPageComponent } from "./module-blueprint/components/user-auth/register-page/register-page.component";
 import { ForgotPasswordComponent } from "./module-blueprint/components/user-auth/forgot-password/forgot-password.component";
@@ -25,8 +24,6 @@ const routes: Routes = [
   { path: "register", component: RegisterPageComponent },
   { path: "auth/magic", component: MagicCallbackComponent },
   { path: "auth/reset-password", component: ResetPasswordComponent },
-  { path: "auth/callback", component: AuthCallbackComponent },
-  { path: "auth/error", component: AuthCallbackComponent },
   { path: "", redirectTo: "/", pathMatch: "prefix" },
 ];
 

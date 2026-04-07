@@ -15,64 +15,6 @@ function getWorkOSClient(): WorkOS {
 
 export class WorkOSService {
   /**
-   * Get authorization URL for user login
-   */
-  static getAuthorizationUrl(state: string): string {
-    const clientId = process.env.WORKOS_CLIENT_ID;
-    const backendHost = process.env.BACKEND_HOST || process.env.HOST;
-    if (!clientId) throw new Error('WORKOS_CLIENT_ID environment variable is not set');
-    if (!backendHost) throw new Error('BACKEND_HOST environment variable is not set');
-    const workos = getWorkOSClient();
-    return workos.userManagement.getAuthorizationUrl({
-      provider: 'authkit',
-      clientId,
-      redirectUri: `${backendHost}/api/auth/callback`,
-      state,
-    });
-  }
-
-  /**
-   * Extract the WorkOS session ID from the access token JWT.
-   * The access token is a standard JWT whose payload contains a `sid` claim.
-   */
-  static extractSessionId(accessToken: string): string | null {
-    try {
-      const payload = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64url').toString());
-      return payload.sid ?? null;
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Get the WorkOS logout URL for a given session. Redirects to
-   * postLogoutRedirectUri after the session is terminated.
-   */
-  static getLogoutUrl(sessionId: string, postLogoutRedirectUri: string): string {
-    const workos = getWorkOSClient();
-    const url = workos.userManagement.getLogoutUrl({ sessionId });
-    // Append post_logout_redirect_uri so WorkOS sends the user back to our login
-    const parsed = new URL(url);
-    parsed.searchParams.set('post_logout_redirect_uri', postLogoutRedirectUri);
-    return parsed.toString();
-  }
-
-  /**
-   * Authenticate user with authorization code
-   */
-  static async authenticateWithCode(code: string) {
-    const clientId = process.env.WORKOS_CLIENT_ID;
-    if (!clientId) throw new Error('WORKOS_CLIENT_ID environment variable is not set');
-    const workos = getWorkOSClient();
-    const { user, accessToken } = await workos.userManagement.authenticateWithCode({
-      code,
-      clientId,
-    });
-
-    return { user, accessToken };
-  }
-
-  /**
    * Get user by WorkOS ID
    */
   static async getUser(userId: string) {
@@ -107,8 +49,10 @@ export class WorkOSService {
    */
   static async createMagicAuth(email: string) {
     const workos = getWorkOSClient();
+    const siteUrl = process.env.SITE_URL;
     return await workos.userManagement.createMagicAuth({
       email,
+      ...(siteUrl ? { redirectUri: `${siteUrl}/auth/magic` } : {}),
     });
   }
 
