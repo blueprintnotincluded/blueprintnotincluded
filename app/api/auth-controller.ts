@@ -99,6 +99,7 @@ export class AuthController {
   constructor() {
     this.login = this.login.bind(this);
     this.register = this.register.bind(this);
+    this.verifyEmail = this.verifyEmail.bind(this);
     this.sendMagic = this.sendMagic.bind(this);
     this.verifyMagic = this.verifyMagic.bind(this);
     this.forgotPassword = this.forgotPassword.bind(this);
@@ -183,8 +184,8 @@ export class AuthController {
         return;
       }
 
-      // Create WorkOS user
-      const workosUser = await WorkOSService.createUser(email, password, true);
+      // Create WorkOS user (unverified — they must click the email link)
+      const workosUser = await WorkOSService.createUser(email, password, false);
 
       // Create local user
       const localUser = new UserModel.model({
@@ -202,18 +203,10 @@ export class AuthController {
         console.error('Failed to write externalId to WorkOS (non-fatal):', err);
       }
 
-      // Add to platform org
-      const platformOrgId = process.env.WORKOS_PLATFORM_ORG_ID;
-      if (platformOrgId) {
-        try {
-          await WorkOSService.ensureOrgMembership(workosUser.id, platformOrgId);
-        } catch (err) {
-          console.error('Failed to add new user to platform org (non-fatal):', err);
-        }
-      }
+      // Send verification email — the user must verify before they can log in
+      await WorkOSService.sendVerificationEmail(workosUser.id);
 
-      const token = localUser.generateJwt();
-      res.status(201).json({ token });
+      res.status(201).json({ message: 'Account created. Please check your email to verify your address before logging in.' });
     } catch (err: any) {
       if (err?.status === 422 || err?.code === 'user_email_taken') {
         res.status(409).json(apiError(409, 'An account with that email already exists'));
@@ -221,6 +214,38 @@ export class AuthController {
       }
       console.error('Register error:', err);
       res.status(500).json(apiError(500, 'Registration failed'));
+    }
+  }
+
+  /**
+   * POST /api/auth/verify-email
+   * Exchange a WorkOS email verification code for a JWT.
+   * WorkOS sends the user a link containing ?code=...; the frontend
+   * hits this endpoint with that code to complete verification.
+   */
+  public async verifyEmail(req: Request, res: Response): Promise<void> {
+    const { code, userId } = req.body ?? {};
+
+    if (!code || typeof code !== 'string') {
+      res.status(400).json(apiError(400, 'code is required'));
+      return;
+    }
+    if (!userId || typeof userId !== 'string') {
+      res.status(400).json(apiError(400, 'userId is required'));
+      return;
+    }
+
+    try {
+      const { user: workosUser } = await WorkOSService.verifyEmail(code, userId);
+
+      const localUser = await resolveLocalUser(workosUser);
+      const role = await WorkOSService.getPlatformRole(workosUser.id);
+      const token = localUser.generateJwt(role ?? undefined);
+
+      res.json({ token });
+    } catch (err) {
+      console.error('verifyEmail error:', err);
+      res.status(400).json(apiError(400, 'Invalid or expired verification code'));
     }
   }
 

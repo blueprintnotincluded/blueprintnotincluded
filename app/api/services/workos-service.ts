@@ -148,6 +148,23 @@ export class WorkOSService {
   }
 
   /**
+   * Send an email verification link to a WorkOS user.
+   */
+  static async sendVerificationEmail(userId: string) {
+    const workos = getWorkOSClient();
+    return await workos.userManagement.sendVerificationEmail({ userId });
+  }
+
+  /**
+   * Verify a user's email using the code and userId from the verification link.
+   * Returns the verified WorkOS user.
+   */
+  static async verifyEmail(code: string, userId: string) {
+    const workos = getWorkOSClient();
+    return await workos.userManagement.verifyEmail({ code, userId });
+  }
+
+  /**
    * Reset a user's password using a reset token
    */
   static async resetPassword(token: string, newPassword: string) {

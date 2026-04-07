@@ -1,0 +1,34 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <a class="auth-brand" routerLink="/">
+      <img
+        src="assets/images/ui/manual/logo.png"
+        alt="Blueprint Not Included"
+        class="auth-logo"
+      />
+      <div class="auth-site-name">Blueprint Not Included</div>
+    </a>
+    <p-card>
+      <div *ngIf="loading" class="loading-state">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <p>Verifying your email…</p>
+      </div>
+
+      <div *ngIf="!loading && errorMessage" class="error-state">
+        <i
+          class="pi pi-times-circle"
+          style="font-size: 2rem; color: var(--red-500, #ef4444)"
+        ></i>
+        <p>{{ errorMessage }}</p>
+        <button
+          pButton
+          routerLink="/register"
+          type="button"
+          label="Back to registration"
+          icon="pi pi-arrow-left"
+          class="p-button-outlined"
+        ></button>
+      </div>
+    </p-card>
+  </div>
+</div>

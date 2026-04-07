@@ -7,6 +7,7 @@ import { ForgotPasswordComponent } from "./module-blueprint/components/user-auth
 import { MagicRequestComponent } from "./module-blueprint/components/user-auth/magic-request/magic-request.component";
 import { MagicCallbackComponent } from "./module-blueprint/components/user-auth/magic-callback/magic-callback.component";
 import { ResetPasswordComponent } from "./module-blueprint/components/user-auth/reset-password/reset-password.component";
+import { VerifyEmailCallbackComponent } from "./module-blueprint/components/user-auth/verify-email-callback/verify-email-callback.component";
 
 const routes: Routes = [
   { path: "", component: ComponentBlueprintParentComponent },
@@ -23,6 +24,7 @@ const routes: Routes = [
   { path: "login/magic", component: MagicRequestComponent },
   { path: "register", component: RegisterPageComponent },
   { path: "auth/magic", component: MagicCallbackComponent },
+  { path: "auth/verify-email", component: VerifyEmailCallbackComponent },
   { path: "auth/reset-password", component: ResetPasswordComponent },
   { path: "", redirectTo: "/", pathMatch: "prefix" },
 ];

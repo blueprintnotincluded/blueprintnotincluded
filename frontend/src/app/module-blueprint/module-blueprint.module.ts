@@ -82,6 +82,7 @@ import { ForgotPasswordComponent } from "./components/user-auth/forgot-password/
 import { MagicRequestComponent } from "./components/user-auth/magic-request/magic-request.component";
 import { MagicCallbackComponent } from "./components/user-auth/magic-callback/magic-callback.component";
 import { ResetPasswordComponent } from "./components/user-auth/reset-password/reset-password.component";
+import { VerifyEmailCallbackComponent } from "./components/user-auth/verify-email-callback/verify-email-callback.component";
 
 @NgModule({
   declarations: [
@@ -126,6 +127,7 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
     MagicRequestComponent,
     MagicCallbackComponent,
     ResetPasswordComponent,
+    VerifyEmailCallbackComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [
