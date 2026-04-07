@@ -87,12 +87,11 @@ export class AuthenticationService {
     email: string,
     password: string,
     username: string
-  ): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>("/api/auth/register", {
-      email,
-      password,
-      username,
-    });
+  ): Observable<{ message: string; userId: string }> {
+    return this.http.post<{ message: string; userId: string }>(
+      "/api/auth/register",
+      { email, password, username }
+    );
   }
 
   public verifyEmail(
