@@ -207,7 +207,7 @@ export class AuthController {
 
   /**
    * POST /api/auth/send-magic
-   * Send a magic auth link to the given email. Always returns 200.
+   * Send a magic auth code to the given email. Always returns 200.
    */
   public async sendMagic(req: Request, res: Response): Promise<void> {
     const { email } = req.body ?? {};
@@ -224,7 +224,7 @@ export class AuthController {
       console.error('sendMagic error (non-fatal):', err);
     }
 
-    res.json({ message: 'If that email has an account, a sign-in link has been sent.' });
+    res.json({ message: 'If that email has an account, a sign-in code has been sent.' });
   }
 
   /**

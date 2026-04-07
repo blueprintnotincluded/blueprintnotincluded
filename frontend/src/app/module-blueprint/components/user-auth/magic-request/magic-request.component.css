@@ -60,6 +60,12 @@
   padding: 0.5rem 0;
 }
 
+.error-message {
+  color: var(--red-500, #ef4444);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
 .auth-links {
   margin-top: 1rem;
   text-align: center;

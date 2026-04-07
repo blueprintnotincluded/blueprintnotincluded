@@ -49,11 +49,7 @@ export class WorkOSService {
    */
   static async createMagicAuth(email: string) {
     const workos = getWorkOSClient();
-    const siteUrl = process.env.SITE_URL;
-    return await workos.userManagement.createMagicAuth({
-      email,
-      ...(siteUrl ? { redirectUri: `${siteUrl}/auth/magic` } : {}),
-    });
+    return await workos.userManagement.createMagicAuth({ email });
   }
 
   /**
