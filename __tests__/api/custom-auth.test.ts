@@ -8,6 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 process.env.NODE_ENV = 'test';
 
 import { TestSetup } from '../setup/testSetup';
+import { generateUniqueUsername } from '../../app/api/auth-controller';
 
 describe('Custom Auth API', function () {
   let testData: any;
@@ -167,6 +168,42 @@ describe('Custom Auth API', function () {
         .post('/api/auth/reset-password')
         .send({ token: 'some-token' });
       expect(response.status).to.equal(400);
+    });
+  });
+
+  // ─── generateUniqueUsername ───────────────────────────────────────────────────
+
+  describe('generateUniqueUsername', function () {
+    it('returns the base username when it is not taken', async function () {
+      const result = await generateUniqueUsername('alice', async () => null);
+      expect(result).to.equal('alice');
+    });
+
+    it('appends a counter when the base username is taken', async function () {
+      // 'alice' is taken, 'alice1' is free
+      const result = await generateUniqueUsername('alice', async (u) => (u === 'alice' ? {} : null));
+      expect(result).to.equal('alice1');
+    });
+
+    it('increments the counter until a free username is found', async function () {
+      // 'bob', 'bob1', 'bob2' are taken; 'bob3' is free
+      const taken = new Set(['bob', 'bob1', 'bob2']);
+      const result = await generateUniqueUsername('bob', async (u) => (taken.has(u) ? {} : null));
+      expect(result).to.equal('bob3');
+    });
+
+    it('throws after maxAttempts when no unique username can be found', async function () {
+      // Every candidate is "taken"
+      let threw = false;
+      try {
+        await generateUniqueUsername('x', async () => ({}), 3);
+      } catch (err: any) {
+        threw = true;
+        expect(err.message).to.include('Could not generate a unique username');
+        expect(err.message).to.include('"x"');
+        expect(err.message).to.include('3 attempts');
+      }
+      expect(threw).to.equal(true);
     });
   });
 

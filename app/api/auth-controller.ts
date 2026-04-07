@@ -4,6 +4,27 @@ import { WorkOSService } from './services/workos-service';
 import { apiError } from './utils/apiError';
 
 /**
+ * Find a unique username by appending incrementing counters.
+ * Exported for testing.
+ */
+export async function generateUniqueUsername(
+  baseUsername: string,
+  findOne: (username: string) => Promise<unknown>,
+  maxAttempts = 1000,
+): Promise<string> {
+  let username = baseUsername;
+  let counter = 1;
+  while (await findOne(username)) {
+    if (counter > maxAttempts) {
+      throw new Error(`Could not generate a unique username for email prefix "${baseUsername}" after ${maxAttempts} attempts`);
+    }
+    username = `${baseUsername}${counter}`;
+    counter++;
+  }
+  return username;
+}
+
+/**
  * Resolve a WorkOS user to a local user record.
  * Handles three cases:
  *   1. Existing WorkOS-linked user → return it
@@ -34,13 +55,11 @@ async function resolveLocalUser(workosUser: {
       await localUser.save();
     } else {
       // Create new user — derive username from email prefix
-      let baseUsername = workosUser.email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
-      let username = baseUsername;
-      let counter = 1;
-      while (await UserModel.model.findOne({ username })) {
-        username = `${baseUsername}${counter}`;
-        counter++;
-      }
+      const baseUsername = workosUser.email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
+      const username = await generateUniqueUsername(
+        baseUsername,
+        (u) => UserModel.model.findOne({ username: u }),
+      );
 
       localUser = new UserModel.model({
         email: workosUser.email,
