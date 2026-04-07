@@ -4,11 +4,33 @@
   align-items: center;
   min-height: 100vh;
   padding: 1rem;
+  background: #1a1f2e;
 }
 
-.auth-page p-card {
+.auth-container {
   width: 100%;
   max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-brand {
+  text-align: center;
+}
+
+.auth-logo {
+  height: 80px;
+  width: auto;
+}
+
+.auth-site-name {
+  color: #c8d6e8;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .loading-state,
