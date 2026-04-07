@@ -74,6 +74,15 @@ async function resolveLocalUser(workosUser: {
       } catch (err) {
         console.error('Failed to write externalId to WorkOS (non-fatal):', err);
       }
+
+      const platformOrgId = process.env.WORKOS_PLATFORM_ORG_ID;
+      if (platformOrgId) {
+        try {
+          await WorkOSService.ensureOrgMembership(workosUser.id, platformOrgId);
+        } catch (err) {
+          console.error('Failed to add auto-provisioned user to platform org (non-fatal):', err);
+        }
+      }
     }
   } else if (!workosUser.externalId) {
     try {
@@ -191,6 +200,16 @@ export class AuthController {
         await WorkOSService.updateUser(workosUser.id, { externalId: (localUser._id as any).toString() });
       } catch (err) {
         console.error('Failed to write externalId to WorkOS (non-fatal):', err);
+      }
+
+      // Add to platform org
+      const platformOrgId = process.env.WORKOS_PLATFORM_ORG_ID;
+      if (platformOrgId) {
+        try {
+          await WorkOSService.ensureOrgMembership(workosUser.id, platformOrgId);
+        } catch (err) {
+          console.error('Failed to add new user to platform org (non-fatal):', err);
+        }
       }
 
       const token = localUser.generateJwt();
