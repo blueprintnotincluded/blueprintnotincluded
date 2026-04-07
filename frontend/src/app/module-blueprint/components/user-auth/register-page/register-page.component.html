@@ -1,66 +1,76 @@
 <div class="auth-page">
-  <p-card header="Create account">
-    <form (ngSubmit)="submit()" #registerForm="ngForm">
-      <div class="field">
-        <label for="username">Username</label>
-        <input
-          pInputText
-          id="username"
-          type="text"
-          [(ngModel)]="username"
-          name="username"
-          required
-          autocomplete="username"
-          class="w-full"
-        />
-      </div>
+  <div class="auth-container">
+    <div class="auth-brand">
+      <img
+        src="assets/images/ui/manual/logo.png"
+        alt="Blueprint Not Included"
+        class="auth-logo"
+      />
+      <div class="auth-site-name">Blueprint Not Included</div>
+    </div>
+    <p-card header="Create account">
+      <form (ngSubmit)="submit()" #registerForm="ngForm">
+        <div class="field">
+          <label for="username">Username</label>
+          <input
+            pInputText
+            id="username"
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            required
+            autocomplete="username"
+            class="w-full"
+          />
+        </div>
 
-      <div class="field">
-        <label for="email">Email</label>
-        <input
-          pInputText
-          id="email"
-          type="email"
-          [(ngModel)]="email"
-          name="email"
-          required
-          autocomplete="email"
-          class="w-full"
-        />
-      </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            pInputText
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            required
+            autocomplete="email"
+            class="w-full"
+          />
+        </div>
 
-      <div class="field">
-        <label for="password">Password</label>
-        <p-password
-          inputId="password"
-          [(ngModel)]="password"
-          name="password"
-          required
-          [toggleMask]="true"
-          autocomplete="new-password"
-          styleClass="w-full"
-          inputStyleClass="w-full"
-        ></p-password>
-      </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <p-password
+            inputId="password"
+            [(ngModel)]="password"
+            name="password"
+            required
+            [toggleMask]="true"
+            autocomplete="new-password"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+          ></p-password>
+        </div>
 
-      <div *ngIf="errorMessage" class="auth-error">
-        {{ errorMessage }}
-      </div>
+        <div *ngIf="errorMessage" class="auth-error">
+          {{ errorMessage }}
+        </div>
 
-      <div class="auth-actions">
-        <button
-          pButton
-          type="submit"
-          label="Create account"
-          icon="pi pi-user-plus"
-          [loading]="loading"
-          class="w-full"
-        ></button>
-      </div>
+        <div class="auth-actions">
+          <button
+            pButton
+            type="submit"
+            label="Create account"
+            icon="pi pi-user-plus"
+            [loading]="loading"
+            class="w-full"
+          ></button>
+        </div>
 
-      <div class="auth-links">
-        <a routerLink="/login">Already have an account? Log in</a>
-      </div>
-    </form>
-  </p-card>
+        <div class="auth-links">
+          <a routerLink="/login">Already have an account? Log in</a>
+        </div>
+      </form>
+    </p-card>
+  </div>
 </div>

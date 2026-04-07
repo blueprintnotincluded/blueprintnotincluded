@@ -1,44 +1,55 @@
 <div class="auth-page">
-  <p-card header="Sign in with a link">
-    <ng-container *ngIf="!submitted; else done">
-      <p class="description">
-        Enter your email and we'll send you a sign-in link — no password needed.
-      </p>
-
-      <form (ngSubmit)="submit()" #magicForm="ngForm">
-        <div class="field">
-          <label for="email">Email</label>
-          <input
-            pInputText
-            id="email"
-            type="email"
-            [(ngModel)]="email"
-            name="email"
-            required
-            autocomplete="email"
-            class="w-full"
-          />
-        </div>
-
-        <div class="auth-actions">
-          <button
-            pButton
-            type="submit"
-            label="Send sign-in link"
-            icon="pi pi-envelope"
-            [loading]="loading"
-            class="w-full"
-          ></button>
-        </div>
-      </form>
-    </ng-container>
-
-    <ng-template #done>
-      <p class="confirmation-message">Check your email for a sign-in link.</p>
-    </ng-template>
-
-    <div class="auth-links">
-      <a routerLink="/login">Back to login</a>
+  <div class="auth-container">
+    <div class="auth-brand">
+      <img
+        src="assets/images/ui/manual/logo.png"
+        alt="Blueprint Not Included"
+        class="auth-logo"
+      />
+      <div class="auth-site-name">Blueprint Not Included</div>
     </div>
-  </p-card>
+    <p-card header="Sign in with a link">
+      <ng-container *ngIf="!submitted; else done">
+        <p class="description">
+          Enter your email and we'll send you a sign-in link — no password
+          needed.
+        </p>
+
+        <form (ngSubmit)="submit()" #magicForm="ngForm">
+          <div class="field">
+            <label for="email">Email</label>
+            <input
+              pInputText
+              id="email"
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              required
+              autocomplete="email"
+              class="w-full"
+            />
+          </div>
+
+          <div class="auth-actions">
+            <button
+              pButton
+              type="submit"
+              label="Send sign-in link"
+              icon="pi pi-envelope"
+              [loading]="loading"
+              class="w-full"
+            ></button>
+          </div>
+        </form>
+      </ng-container>
+
+      <ng-template #done>
+        <p class="confirmation-message">Check your email for a sign-in link.</p>
+      </ng-template>
+
+      <div class="auth-links">
+        <a routerLink="/login">Back to login</a>
+      </div>
+    </p-card>
+  </div>
 </div>
