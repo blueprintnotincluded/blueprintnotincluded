@@ -20,15 +20,14 @@
           style="font-size: 2rem; color: var(--red-500, #ef4444)"
         ></i>
         <p>{{ errorMessage }}</p>
-        <a routerLink="/login/magic">
-          <button
-            pButton
-            type="button"
-            label="Request a new link"
-            icon="pi pi-envelope"
-            class="p-button-outlined"
-          ></button>
-        </a>
+        <button
+          pButton
+          routerLink="/login/magic"
+          type="button"
+          label="Request a new link"
+          icon="pi pi-envelope"
+          class="p-button-outlined"
+        ></button>
       </div>
     </p-card>
   </div>
