@@ -38,7 +38,7 @@
       You must be logged in to save a blueprint
     </div>
 
-    <p-footer>
+    <ng-template pTemplate="footer">
       <p-button
         *ngIf="!overwrite"
         type="submit"
@@ -66,6 +66,6 @@
         label="Yes"
         [disabled]="disabledSaveButton"
       ></button>
-    </p-footer>
+    </ng-template>
   </p-dialog>
 </form>

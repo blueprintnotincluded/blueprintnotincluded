@@ -60,12 +60,12 @@
     </div>
   </div>
 
-  <p-footer>
+  <ng-template pTemplate="footer">
     <p-button
       i18n-label
       label="Download images"
       [disabled]="disabled"
       (click)="downloadImages()"
     ></p-button>
-  </p-footer>
+  </ng-template>
 </p-dialog>
