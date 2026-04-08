@@ -447,14 +447,14 @@ export class BlueprintController {
         let id = newBlueprint.id;
         res.json({ id: id });
 
-        // Then we identify if the uploaded bleuprint is a duplicate
-        BlueprintModel.model
-          .find({})
-          .sort({ createdAt: 1 })
-          .then(blueprints => {
-            BatchUtils.UpdateBasedOn(newBlueprint, blueprints, blueprints.length - 1);
-            BatchUtils.UpdatePositionCorrection(newBlueprint);
-          });
+        BatchUtils.UpdatePositionCorrection(newBlueprint);
+
+        // TODO: duplicate detection
+        // The old approach (UpdateBasedOn) loaded every blueprint into memory on each upload — removed due to OOM crashes.
+        // Proper approach: at upload time, compute a stable hash of the canonical blueprint content
+        // (sorted blueprintItems by id+position, excluding metadata like name/thumbnail) and store it
+        // on the document. Duplicate detection then becomes a single indexed query: find({ owner, contentHash }).
+        // The batch script update-based-on.ts can be repurposed to backfill hashes on existing documents.
       })
       .catch(error => {
         console.log('Blueprint save error');

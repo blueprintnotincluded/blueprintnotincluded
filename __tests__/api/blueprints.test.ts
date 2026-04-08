@@ -348,6 +348,37 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.errors).to.be.an('array');
       expect(response.body.errors[0].status).to.equal('400');
     });
+
+    it('should correct out-of-bounds building positions after upload', async function () {
+      const token = testData.users.user1.generateJwt();
+
+      const blueprintWithOffsets = {
+        blueprintItems: [
+          { id: 'Generator', position: { x: 10000, y: 0 } },   // x > 8000 → 10000 - 9999 = 1
+          { id: 'Battery',   position: { x: 0,     y: -9000 } }, // y < -8000 → -9000 + 9999 = 999
+          { id: 'Wire',      position: { x: 100,   y: -100 } },  // in bounds, unchanged
+        ],
+      };
+
+      const upload = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Position Correction Test', blueprint: blueprintWithOffsets, thumbnail: TINY_PNG });
+
+      expect(upload.status).to.equal(200);
+      const id = upload.body.id;
+
+      // Allow the async UpdatePositionCorrection save to complete
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const saved = await BlueprintModel.model.findById(id);
+      const items = (saved!.data as any).blueprintItems;
+
+      expect(items[0].position.x).to.equal(1);
+      expect(items[1].position.y).to.equal(999);
+      expect(items[2].position.x).to.equal(100);
+      expect(items[2].position.y).to.equal(-100);
+    });
   });
 
   describe('POST /api/likeblueprint', function () {
