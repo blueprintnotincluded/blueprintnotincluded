@@ -405,8 +405,7 @@ export class ComponentMenuComponent
       {
         label: $localize`Admin Panel`,
         icon: "pi pi-shield",
-        url: "/admin",
-        target: "_blank",
+        command: () => this.openAdminPanel(),
         visible: isAdmin,
       },
       { separator: true },
@@ -421,6 +420,23 @@ export class ComponentMenuComponent
     this.clickDisplay({ item: { id: Display.solid } });
     this.clickVisualization({ item: { id: Visualization.none } });
     this.clickTool(ToolType.select);
+  }
+
+  openAdminPanel() {
+    const adminWin = window.open("/admin", "_blank");
+    if (!adminWin) return;
+    // Receive the "ADMIN_READY" signal from the newly opened admin app, then
+    // send the JWT back via postMessage so it never appears in the URL.
+    const handler = (event: MessageEvent) => {
+      if (event.source !== adminWin) return;
+      if (event.data?.type !== "ADMIN_READY") return;
+      window.removeEventListener("message", handler);
+      const token = this.authService.getToken();
+      if (token) {
+        adminWin.postMessage({ type: "AUTH_TOKEN", token }, event.origin);
+      }
+    };
+    window.addEventListener("message", handler);
   }
 
   toolChanged(_toolType: ToolType) {

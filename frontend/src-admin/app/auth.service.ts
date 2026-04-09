@@ -13,31 +13,70 @@ export interface AdminUser {
 @Injectable({ providedIn: "root" })
 export class AdminAuthService {
   constructor() {
-    // In dev the admin app runs on a different port than the main app, so
-    // localStorage isn't shared. Accept ?token= in the URL as a handoff.
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
-      params.delete("token");
-      const newSearch = params.toString();
-      const newUrl =
-        window.location.pathname +
-        (newSearch ? "?" + newSearch : "") +
-        window.location.hash;
-      window.history.replaceState(null, "", newUrl);
+    // In dev the admin app runs on a different port (4201) while the main app
+    // runs on port 4200, so localStorage is not shared.  Rather than passing
+    // the JWT in the URL (exposes it to browser history and referrer headers)
+    // we use a postMessage handoff: signal the opener that we are ready, then
+    // wait for it to send the token back over a trusted channel.
+    //
+    // In production the two apps share the same origin so localStorage already
+    // holds the token and no handoff is needed.
+    if (window.opener && !localStorage.getItem(TOKEN_KEY)) {
+      window.addEventListener(
+        "message",
+        (event: MessageEvent) => {
+          // Only accept messages from the window that opened us.
+          if (event.source !== window.opener) return;
+          if (
+            event.data?.type !== "AUTH_TOKEN" ||
+            typeof event.data.token !== "string"
+          )
+            return;
+          if (this.isValidToken(event.data.token)) {
+            localStorage.setItem(TOKEN_KEY, event.data.token);
+          }
+        },
+        { once: true }
+      );
+      // Sending no sensitive data so '*' is acceptable here.
+      window.opener.postMessage({ type: "ADMIN_READY" }, "*");
     }
+  }
+
+  /** Decode a base64url-encoded JWT payload segment correctly. */
+  private decodeJwtPayload(token: string): Record<string, unknown> | null {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    try {
+      // JWT uses base64url (RFC 4648 §5): '-' instead of '+', '_' instead of
+      // '/', and no padding.  atob() requires standard base64 with padding.
+      const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+      return JSON.parse(atob(padded));
+    } catch {
+      return null;
+    }
+  }
+
+  /** Basic client-side sanity check before storing a received token. */
+  private isValidToken(token: string): boolean {
+    const payload = this.decodeJwtPayload(token);
+    if (!payload) return false;
+    if (
+      typeof payload["exp"] !== "number" ||
+      payload["exp"] < Date.now() / 1000
+    )
+      return false;
+    if (payload["role"] !== "admin") return false;
+    return true;
   }
 
   private parseToken(): AdminUser | null {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) return null;
-    try {
-      const payload = JSON.parse(window.atob(token.split(".")[1]));
-      return payload as AdminUser;
-    } catch {
-      return null;
-    }
+    const payload = this.decodeJwtPayload(token);
+    if (!payload) return null;
+    return payload as unknown as AdminUser;
   }
 
   public getUser(): AdminUser | null {
