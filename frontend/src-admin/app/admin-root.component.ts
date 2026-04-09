@@ -5,7 +5,7 @@ import { Component } from "@angular/core";
   template: `
     <nav class="admin-navbar">
       <a href="/" class="admin-navbar-brand">
-        <img src="/favicon-32x32.png" alt="" width="24" height="24" />
+        <img src="/assets/favicon-32x32.png" alt="" width="24" height="24" />
         <span>Blueprint Not Included</span>
       </a>
       <span class="admin-navbar-label">Admin</span>
