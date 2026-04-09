@@ -48,14 +48,15 @@
           </span>
         </td>
         <td>
-          <span
-            class="message-preview"
-            (click)="openDetail(item)"
-            style="cursor: pointer; text-decoration: underline dotted"
-          >
-            {{ item.message | slice : 0 : 120
-            }}{{ item.message.length > 120 ? "…" : "" }}
-          </span>
+          <p-button
+            styleClass="p-button-text message-preview"
+            [label]="
+              (item.message | slice : 0 : 120) +
+              (item.message.length > 120 ? '…' : '')
+            "
+            aria-label="Open feedback detail"
+            (onClick)="openDetail(item)"
+          ></p-button>
         </td>
         <td>
           <p-tag
