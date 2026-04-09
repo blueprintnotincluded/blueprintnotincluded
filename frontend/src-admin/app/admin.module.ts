@@ -7,6 +7,8 @@ import {
   provideHttpClient,
   withInterceptorsFromDi,
 } from "@angular/common/http";
+import { providePrimeNG } from "primeng/config";
+import Aura from "@primeuix/themes/aura";
 
 import { ButtonModule } from "primeng/button";
 import { TableModule } from "primeng/table";
@@ -39,7 +41,10 @@ import { FeedbackListComponent } from "./feedback/feedback-list.component";
     TagModule,
     TooltipModule,
   ],
-  providers: [provideHttpClient(withInterceptorsFromDi())],
+  providers: [
+    provideHttpClient(withInterceptorsFromDi()),
+    providePrimeNG({ theme: { preset: Aura } }),
+  ],
   bootstrap: [AdminRootComponent],
 })
 export class AdminModule {}
