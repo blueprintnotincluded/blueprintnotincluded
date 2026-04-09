@@ -171,6 +171,7 @@
             "aot": true,
             "assets": [],
             "styles": [
+              "src/styles.css",
               "node_modules/primeicons/primeicons.css",
               "node_modules/primeflex/primeflex.css"
             ],
