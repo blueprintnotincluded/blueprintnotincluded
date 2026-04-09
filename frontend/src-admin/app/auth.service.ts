@@ -13,33 +13,20 @@ export interface AdminUser {
 @Injectable({ providedIn: "root" })
 export class AdminAuthService {
   constructor() {
-    // In dev the admin app runs on a different port (4201) while the main app
-    // runs on port 4200, so localStorage is not shared.  Rather than passing
-    // the JWT in the URL (exposes it to browser history and referrer headers)
-    // we use a postMessage handoff: signal the opener that we are ready, then
-    // wait for it to send the token back over a trusted channel.
-    //
-    // In production the two apps share the same origin so localStorage already
-    // holds the token and no handoff is needed.
-    if (window.opener && !localStorage.getItem(TOKEN_KEY)) {
-      window.addEventListener(
-        "message",
-        (event: MessageEvent) => {
-          // Only accept messages from the window that opened us.
-          if (event.source !== window.opener) return;
-          if (
-            event.data?.type !== "AUTH_TOKEN" ||
-            typeof event.data.token !== "string"
-          )
-            return;
-          if (this.isValidToken(event.data.token)) {
-            localStorage.setItem(TOKEN_KEY, event.data.token);
-          }
-        },
-        { once: true }
-      );
-      // Sending no sensitive data so '*' is acceptable here.
-      window.opener.postMessage({ type: "ADMIN_READY" }, "*");
+    // In dev the admin app runs on a different port than the main app, so
+    // localStorage isn't shared. Accept ?token= in the URL as a handoff,
+    // then immediately remove it from the address bar.
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      params.delete("token");
+      const newSearch = params.toString();
+      const newUrl =
+        window.location.pathname +
+        (newSearch ? "?" + newSearch : "") +
+        window.location.hash;
+      window.history.replaceState(null, "", newUrl);
     }
   }
 
@@ -56,19 +43,6 @@ export class AdminAuthService {
     } catch {
       return null;
     }
-  }
-
-  /** Basic client-side sanity check before storing a received token. */
-  private isValidToken(token: string): boolean {
-    const payload = this.decodeJwtPayload(token);
-    if (!payload) return false;
-    if (
-      typeof payload["exp"] !== "number" ||
-      payload["exp"] < Date.now() / 1000
-    )
-      return false;
-    if (payload["role"] !== "admin") return false;
-    return true;
   }
 
   private parseToken(): AdminUser | null {
