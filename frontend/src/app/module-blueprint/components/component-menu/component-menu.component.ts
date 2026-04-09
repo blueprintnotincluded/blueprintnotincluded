@@ -392,6 +392,16 @@ export class ComponentMenuComponent
       },
       { separator: true },
       {
+        label: $localize`Send Feedback`,
+        icon: "pi pi-comment",
+        command: () =>
+          this.menuCommand.emit({
+            type: MenuCommandType.sendFeedback,
+            data: null,
+          }),
+      },
+      { separator: true },
+      {
         label: $localize`Log out`,
         icon: "pi pi-sign-out",
         command: () => this.logout(),
@@ -576,6 +586,8 @@ export enum MenuCommandType {
   downloadUtility,
   repackTextures,
   addElementsTiles,
+
+  sendFeedback,
 }
 
 export class MenuCommand {

@@ -83,6 +83,8 @@ import { MagicRequestComponent } from "./components/user-auth/magic-request/magi
 import { MagicCallbackComponent } from "./components/user-auth/magic-callback/magic-callback.component";
 import { ResetPasswordComponent } from "./components/user-auth/reset-password/reset-password.component";
 import { VerifyEmailCallbackComponent } from "./components/user-auth/verify-email-callback/verify-email-callback.component";
+import { FeedbackDialogComponent } from "./components/dialogs/feedback-dialog/feedback-dialog.component";
+import { FeedbackService } from "./services/feedback.service";
 
 @NgModule({
   declarations: [
@@ -128,6 +130,7 @@ import { VerifyEmailCallbackComponent } from "./components/user-auth/verify-emai
     MagicCallbackComponent,
     ResetPasswordComponent,
     VerifyEmailCallbackComponent,
+    FeedbackDialogComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [
@@ -164,6 +167,7 @@ import { VerifyEmailCallbackComponent } from "./components/user-auth/verify-emai
   ],
   providers: [
     AuthenticationService,
+    FeedbackService,
     BlueprintService,
     ToolService,
     SelectTool,

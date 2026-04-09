@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import { Application, Request, Response, NextFunction } from 'express';
 import express from 'express';
 import { expressjwt as expressJwt } from 'express-jwt';
@@ -8,12 +9,16 @@ import { BlueprintController } from './api/blueprint-controller';
 import { VersionController } from './api/version-controller';
 import { AuthController } from './api/auth-controller';
 import { MigrationController } from './api/migration-controller';
+import { HealthController } from './api/health-controller';
+import { FeedbackController } from './api/feedback-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
   public versionController = new VersionController();
   public authController = new AuthController();
   public migrationController = new MigrationController();
+  public healthController = new HealthController();
+  public feedbackController = new FeedbackController();
 
   public routes(app: Application): void {
     // Admin-only middleware: requires role === 'admin' in the JWT (set from WorkOS platform org membership)
@@ -63,12 +68,26 @@ export class Routes {
       .get(this.uploadBlueprintController.getBlueprintThumbnail);
     app.route('/api/getblueprints').get(this.uploadBlueprintController.getBlueprints);
     app.route('/api/version').get(this.versionController.getVersion);
+    app.route('/api/health').get(this.healthController.getHealth);
 
     // Logged in access
     app.route('/api/getblueprintsSecure').get(auth, this.uploadBlueprintController.getBlueprints);
     app.route('/api/uploadblueprint').post(auth, this.uploadBlueprintController.uploadBlueprint);
     app.route('/api/likeblueprint').post(auth, this.uploadBlueprintController.likeBlueprint);
     app.route('/api/deleteblueprint').post(auth, this.uploadBlueprintController.deleteBlueprint);
+    app.route('/api/feedback').post(auth, this.feedbackController.submit);
+
+    // Admin-only API
+    app.route('/api/admin/feedback').get(auth, adminAuth, this.feedbackController.list);
+    app.route('/api/admin/feedback/:id').patch(auth, adminAuth, this.feedbackController.updateStatus);
+
+    // Admin app — served at /admin when built; skipped in dev (admin runs on port 4201)
+    const adminIndexHtml = path.join(__dirname, 'public', 'admin', 'index.html');
+    if (fs.existsSync(adminIndexHtml)) {
+      app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
+      app.get('/admin', (_req, res) => res.sendFile(adminIndexHtml));
+      app.get('/admin/*path', (_req, res) => res.sendFile(adminIndexHtml));
+    }
 
     app.get('/', this.staticController.getHome);
     app.get('/b/:blueprintId', this.staticController.getBlueprint);
