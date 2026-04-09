@@ -379,6 +379,8 @@ export class ComponentMenuComponent
       */
     ];
 
+    const isAdmin = this.authService.getUserDetails()?.role === "admin";
+
     this.userMenuItems = [
       {
         label: $localize`My Blueprints`,
@@ -399,6 +401,13 @@ export class ComponentMenuComponent
             type: MenuCommandType.sendFeedback,
             data: null,
           }),
+      },
+      {
+        label: $localize`Admin Panel`,
+        icon: "pi pi-shield",
+        url: "/admin",
+        target: "_blank",
+        visible: isAdmin,
       },
       { separator: true },
       {
