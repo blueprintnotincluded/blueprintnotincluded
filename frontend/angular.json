@@ -169,7 +169,9 @@
             "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.admin.json",
             "aot": true,
-            "assets": [],
+            "assets": [
+              { "glob": "**/*", "input": "src/assets", "output": "/assets" }
+            ],
             "styles": [
               "src/styles.css",
               "node_modules/primeicons/primeicons.css",
