@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export type FeedbackStatus = 'open' | 'resolved' | 'spam';
 
 export interface Feedback extends Document {
-  userId: string;
+  userId: mongoose.Types.ObjectId;
   userEmail: string;
   username: string;
   message: string;
@@ -23,9 +23,16 @@ export class FeedbackModel {
       userEmail: { type: String, required: true },
       username: { type: String, required: true },
       message: { type: String, required: true, maxlength: 5000 },
-      url: { type: String, default: '' },
-      userAgent: { type: String, default: '' },
-      consoleErrors: { type: [String], default: [] },
+      url: { type: String, default: '', maxlength: 2048 },
+      userAgent: { type: String, default: '', maxlength: 512 },
+      consoleErrors: {
+        type: [{ type: String, maxlength: 1000 }],
+        default: [],
+        validate: {
+          validator: (v: string[]) => v.length <= 50,
+          message: 'consoleErrors may not exceed 50 entries',
+        },
+      },
       status: {
         type: String,
         enum: ['open', 'resolved', 'spam'],
