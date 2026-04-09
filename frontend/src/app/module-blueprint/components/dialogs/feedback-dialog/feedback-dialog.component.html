@@ -1,0 +1,57 @@
+<p-dialog
+  header="Send Feedback"
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+>
+  <ng-container *ngIf="state !== 'success'">
+    <textarea
+      pTextarea
+      [(ngModel)]="message"
+      [rows]="8"
+      [autoResize]="false"
+      placeholder="Tell us what's on your mind..."
+      [disabled]="state === 'submitting'"
+      style="width: 100%; resize: vertical"
+    ></textarea>
+    <p
+      *ngIf="state === 'error'"
+      style="color: var(--p-red-500); margin-top: 0.5rem"
+    >
+      Something went wrong. Please try again.
+    </p>
+  </ng-container>
+
+  <p *ngIf="state === 'success'" style="margin: 1rem 0">
+    Thanks for the feedback!
+  </p>
+  <p *ngIf="state === 'success'" style="margin: 1rem 0">
+    You can also chat with us on the
+    <a href="https://discord.gg/4MKpqrcF" target="_blank" rel="noopener"
+      >BNI Discord</a
+    >.
+  </p>
+
+  <ng-template pTemplate="footer">
+    <ng-container *ngIf="state !== 'success'">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        (onClick)="visible = false"
+        [disabled]="state === 'submitting'"
+      ></p-button>
+      <p-button
+        label="Send"
+        [loading]="state === 'submitting'"
+        [disabled]="!message.trim()"
+        (onClick)="submit()"
+      ></p-button>
+    </ng-container>
+    <p-button
+      *ngIf="state === 'success'"
+      label="Close"
+      (onClick)="visible = false"
+    ></p-button>
+  </ng-template>
+</p-dialog>

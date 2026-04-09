@@ -1,5 +1,6 @@
 import { UserModel } from '../../app/api/models/user';
 import { BlueprintModel } from '../../app/api/models/blueprint';
+import { FeedbackModel } from '../../app/api/models/feedback';
 import { TestDataFactory, TestUser, TestBlueprint } from '../factories/testData';
 import { Types } from 'mongoose';
 
@@ -121,6 +122,7 @@ export class TestDbHelper {
     try {
       await BlueprintModel.model.deleteMany({});
       await UserModel.model.deleteMany({});
+      await FeedbackModel.model.deleteMany({});
       TestDataFactory.reset();
     } catch (error) {
       console.error('Error cleaning database:', error);

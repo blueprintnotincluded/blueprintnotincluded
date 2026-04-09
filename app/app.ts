@@ -103,6 +103,15 @@ class App {
     this.app.use(requestIp.mw());
     this.app.use(express.json({ limit: '1mb' }));
     this.app.use(passport.initialize());
+
+    // Subdomain redirects
+    this.app.use((req, res, next) => {
+      if (req.hostname === 'status.blueprintnotincluded.org') {
+        return res.redirect(301, 'https://stats.uptimerobot.com/V6QANX8e9U');
+      }
+      return next();
+    });
+
     this.routePrv.routes(this.app);
 
     //PixiBackend.initTextures();

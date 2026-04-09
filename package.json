@@ -16,7 +16,7 @@
     "build": "npm run build:backend && npm run build:lib && npm run build:frontend",
     "build:backend": "tsc -b",
     "build:lib": "tsc -b lib",
-    "build:frontend": "(cd frontend && npm run build -- --output-path=../build/app/public/)",
+    "build:frontend": "(cd frontend && npm run build -- --output-path=../build/app/public/ && npm run build:admin -- --output-path=../build/app/public/admin/)",
     "postbuild": "./scripts/copy_assets.sh && ./scripts/copy_lib.sh && ./scripts/copy_views.sh && ./scripts/copy_public.sh",
     "serve:prod": "(cd build && node ./app/server.js)",
     "seed": "node --expose_gc ./build/app/api/batch/extract-export.js",

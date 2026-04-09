@@ -9,6 +9,7 @@ export interface UserDetails {
   email: string;
   username: string;
   exp: number;
+  role?: string;
 }
 
 export type LoginResult =
