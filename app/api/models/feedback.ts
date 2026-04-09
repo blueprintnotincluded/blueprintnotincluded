@@ -46,6 +46,6 @@ export class FeedbackModel {
     // Filter by status + sort by date
     feedbackSchema.index({ status: 1, createdAt: -1 });
 
-    FeedbackModel.model = mongoose.model<Feedback>('Feedback', feedbackSchema);
+    FeedbackModel.model = (mongoose.models['Feedback'] as Model<Feedback>) ?? mongoose.model<Feedback>('Feedback', feedbackSchema);
   }
 }
