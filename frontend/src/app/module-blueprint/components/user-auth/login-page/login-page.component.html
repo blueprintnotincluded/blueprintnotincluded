@@ -46,15 +46,15 @@
         <div *ngIf="showLegacyHint" class="legacy-hint">
           <p>
             It looks like you have an existing account, but our login system has
-            been upgraded. Click below to sign in with a one-time code instead.
+            been upgraded. Click below to set a new password and regain access.
           </p>
           <button
             pButton
             type="button"
-            label="Sign in with a code"
+            label="Reset your password"
             icon="pi pi-envelope"
             class="p-button-outlined w-full"
-            (click)="sendMagicLink()"
+            (click)="resetPassword()"
           ></button>
         </div>
 
