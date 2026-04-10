@@ -406,7 +406,6 @@ export class ComponentMenuComponent
         label: $localize`Admin Panel`,
         icon: "pi pi-shield",
         url: "/admin",
-        target: "_blank",
         visible: isAdmin,
       },
       { separator: true },

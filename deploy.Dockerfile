@@ -32,6 +32,7 @@ RUN npm ci --ignore-scripts && npm cache clean --force
 COPY ./lib ../lib
 COPY ./frontend ./
 RUN npm run build -- --output-path=../build/app/public/
+RUN npm run build:admin -- --output-path=../build/app/public/admin/
 
 FROM --platform=amd64 node:20-alpine as serve-prod
 WORKDIR /bpni
