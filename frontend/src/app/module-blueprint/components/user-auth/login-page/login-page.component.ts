@@ -59,8 +59,8 @@ export class LoginPageComponent implements OnInit {
     });
   }
 
-  sendMagicLink() {
-    this.router.navigate(["/login/magic"], {
+  resetPassword() {
+    this.router.navigate(["/login/forgot"], {
       queryParams: { email: this.email },
     });
   }

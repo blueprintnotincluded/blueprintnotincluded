@@ -1,4 +1,5 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
 import { AuthenticationService } from "../../../services/authentification-service";
 
 @Component({
@@ -7,12 +8,22 @@ import { AuthenticationService } from "../../../services/authentification-servic
   styleUrls: ["./forgot-password.component.css"],
   standalone: false,
 })
-export class ForgotPasswordComponent {
+export class ForgotPasswordComponent implements OnInit {
   email = "";
   loading = false;
   submitted = false;
 
-  constructor(private authService: AuthenticationService) {}
+  constructor(
+    private authService: AuthenticationService,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit() {
+    const email = this.route.snapshot.queryParams["email"];
+    if (email) {
+      this.email = email;
+    }
+  }
 
   submit() {
     if (!this.email) return;

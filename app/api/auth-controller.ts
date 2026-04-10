@@ -325,6 +325,11 @@ export class AuthController {
     }
 
     try {
+      // Ensure legacy users exist in WorkOS before attempting a reset
+      const localUser = await UserModel.model.findOne({ email });
+      if (localUser && localUser.authProvider !== 'workos') {
+        await WorkOSService.provisionUser(email, (localUser._id as any).toString());
+      }
       await WorkOSService.sendPasswordResetEmail(email);
     } catch (err) {
       // Log but do not expose — prevents email enumeration
