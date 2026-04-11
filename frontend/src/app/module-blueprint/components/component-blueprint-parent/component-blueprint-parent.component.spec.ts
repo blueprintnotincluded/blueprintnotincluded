@@ -11,6 +11,7 @@ import { DatePipe } from "@angular/common";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { BuildTool } from "src/app/module-blueprint/common/tools/build-tool";
 import { ComponentBlueprintParentComponent } from "./component-blueprint-parent.component";
+import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { ElementReport } from "src/app/module-blueprint/common/tools/element-report";
 import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
 
@@ -47,5 +48,14 @@ describe("ComponentBlueprintParentComponent", () => {
 
   it("should create", () => {
     expect(component).toBeTruthy();
+  });
+
+  it("should unsubscribe from blueprintService on destroy", () => {
+    const blueprintService = TestBed.inject(BlueprintService);
+    const observersBefore = blueprintService.observersBlueprintChanged.length;
+    fixture.destroy();
+    expect(blueprintService.observersBlueprintChanged.length).toBe(
+      observersBefore - 1
+    );
   });
 });

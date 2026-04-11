@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import {
   Component,
   ElementRef,
+  OnDestroy,
   OnInit,
   Renderer2,
   ViewChild,
@@ -77,7 +78,7 @@ TODO Feature List before release :
   standalone: false,
 })
 export class ComponentBlueprintParentComponent
-  implements OnInit, IObsBlueprintChanged
+  implements OnInit, OnDestroy, IObsBlueprintChanged
 {
   @ViewChild("canvas", { static: true })
   canvas!: ComponentCanvasComponent;
@@ -201,6 +202,10 @@ export class ComponentBlueprintParentComponent
         this.sidePanelLeft.nativeElement.getBoundingClientRect().y;
       this.selectionTool.setMaxHeight(sidePanelPosition);
     }
+  }
+
+  ngOnDestroy() {
+    this.blueprintService.unsubscribeBlueprintChanged(this);
   }
 
   blueprintChanged(blueprint: Blueprint) {

@@ -69,6 +69,10 @@ export class BlueprintService implements IObsBlueprintChange {
   subscribeBlueprintChanged(observer: IObsBlueprintChanged) {
     this.observersBlueprintChanged.push(observer);
   }
+  unsubscribeBlueprintChanged(observer: IObsBlueprintChanged) {
+    const index = this.observersBlueprintChanged.indexOf(observer);
+    if (index !== -1) this.observersBlueprintChanged.splice(index, 1);
+  }
 
   openBlueprintFromUpload(fileType: BlueprintFileType, fileList: FileList) {
     if (fileList.length > 0) {
