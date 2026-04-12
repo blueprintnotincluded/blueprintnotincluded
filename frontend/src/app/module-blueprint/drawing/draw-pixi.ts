@@ -88,8 +88,8 @@ export class DrawPixi implements PixiUtil {
     this.blueprintContainer.addChild(this.utilityGraphicsBack);
     this.blueprintContainer.addChild(this.utilityGraphicsFront);
     this.pixiApp.stage.addChild(this.backGraphics);
-    this.pixiApp.stage.addChild(this.frontGraphics);
     this.pixiApp.stage.addChild(this.blueprintContainer);
+    this.pixiApp.stage.addChild(this.frontGraphics);
 
     //this.pixiApp.stage.sortableChildren = true;
     this.pixiApp.ticker.add(() => {
