@@ -579,12 +579,17 @@ export class BlueprintItem {
             drawPart.tint = 0x4cff00;
             drawPart.alpha = camera.sinWave * 0.8;
           }
+        } else if (drawPart.hasTag(SpriteTag.solid) && this.visualizationTint == -1) {
+          // Most buildings, tiles, and pipes have no white overlay sprite.
+          // Pulse the solid sprite itself — cameraChanged sets its tint to 0xffffff so
+          // the base is stable and the blend does not accumulate across frames.
+          drawPart.tint = DrawHelpers.blendColor(0xffffff, 0x4cff00, camera.sinWave);
         }
       } else if (camera.display == Display.blueprint) {
         if (drawPart.hasTag(SpriteTag.place)) {
-          drawPart.tint = DrawHelpers.blendColor(drawPart.tint, 0x4cff00, camera.sinWave);
-        } else if (drawPart.hasTag(SpriteTag.white)) {
-          drawPart.tint = DrawHelpers.blendColor(drawPart.tint, 0x4cff00, camera.sinWave);
+          drawPart.tint = DrawHelpers.blendColor(0xffffff, 0x4cff00, camera.sinWave);
+        } else if (drawPart.hasTag(SpriteTag.white) && this.visualizationTint !== -1) {
+          drawPart.tint = DrawHelpers.blendColor(this.visualizationTint, 0x4cff00, camera.sinWave);
         }
       }
 
