@@ -20,7 +20,7 @@
 }
 
 .error-red {
-  color: darkred;
+  color: var(--p-red-500);
   font-size: smaller;
   text-align: justify;
 }

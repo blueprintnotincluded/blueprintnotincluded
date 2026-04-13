@@ -18,9 +18,9 @@ body {
 }
 
 .ui-clickable-icon {
-  color: #333333;
-  background-color: #f4f4f4;
-  border: 1px solid #f4f4f4;
+  color: var(--p-text-color);
+  background-color: var(--p-content-hover-background);
+  border: 1px solid var(--p-content-hover-background);
   box-sizing: border-box;
   display: inline-block;
   transition: background-color 0.2s, box-shadow 0.2s;
@@ -29,9 +29,9 @@ body {
 }
 
 .ui-clickable-icon:hover {
-  background-color: #c8c8c8;
-  color: #333333;
-  border-color: #c8c8c8;
+  background-color: var(--p-content-border-color);
+  color: var(--p-text-color);
+  border-color: var(--p-content-border-color);
 }
 
 .ui-clickable-icon:focus {
@@ -41,27 +41,28 @@ body {
 }
 
 .ui-clickable-icon:active {
-  background-color: #a0a0a0;
-  color: #333333;
-  border-color: #a0a0a0;
+  background-color: var(--p-content-border-color);
+  color: var(--p-text-color);
+  border-color: var(--p-content-border-color);
+  filter: brightness(0.9);
 }
 
 .ui-close-button {
-  color: #848484;
+  color: var(--p-text-muted-color);
   float: right;
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .ui-close-button:hover {
-  color: #333333;
+  color: var(--p-text-color);
 }
 
 .ui-fieldset {
-  border: 1px solid #c8c8c8;
-  background-color: #fff;
+  border: 1px solid var(--p-content-border-color);
+  background-color: var(--p-content-background);
   border-radius: 3px;
-  color: #333;
+  color: var(--p-text-color);
 }
 
 .ui-widget {
@@ -80,8 +81,8 @@ body {
 }
 
 .box-card {
-  background-color: #ffffff;
-  color: #333333;
+  background-color: var(--p-content-background);
+  color: var(--p-text-color);
   border-radius: 3px;
   padding: 10px;
   width: 100%;

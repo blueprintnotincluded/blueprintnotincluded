@@ -34,7 +34,7 @@
 }
 
 .error-red {
-  color: darkred;
+  color: var(--p-red-500);
   text-align: justify;
 }
 

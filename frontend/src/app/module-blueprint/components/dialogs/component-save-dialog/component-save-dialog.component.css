@@ -1,5 +1,5 @@
 .error-red {
-  color: darkred;
+  color: var(--p-red-500);
   margin-left: 0.5em;
 }
 
