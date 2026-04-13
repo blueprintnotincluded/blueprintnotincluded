@@ -1,5 +1,5 @@
 .error-red {
-  color: darkred;
+  color: var(--p-red-500);
   margin-left: 0.5em;
 }
 
@@ -16,7 +16,7 @@
   padding: 10px;
 
   border-radius: 3px;
-  border: 1px solid #c8c8c8;
+  border: 1px solid var(--p-content-border-color);
 }
 
 .title-line {
