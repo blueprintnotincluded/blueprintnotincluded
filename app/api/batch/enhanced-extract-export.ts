@@ -283,7 +283,8 @@ export class EnhancedExtractExport {
       // Ensure target directories exist
       AssetPaths.ensureDirectories();
 
-      // Create database zip
+      // The Angular frontend loads ONLY from database.zip (not the loose .json files).
+      // The zip contains the processed export database.json as its sole entry.
       var zip = new AdmZip();
       zip.addLocalFile(AssetPaths.exportDatabase);
       zip.writeZip(AssetPaths.databaseZip);
@@ -293,6 +294,8 @@ export class EnhancedExtractExport {
         return false;
       }
 
+      // Legacy: copies database-repack.json to frontend/src/assets/database/database.json.
+      // This file is no longer read by the Angular app (which reads the zip above instead).
       if (!AssetValidator.safeCopyFile(AssetPaths.databaseRepack, AssetPaths.frontendDatabaseJson)) {
         return false;
       }
