@@ -50,10 +50,19 @@ export class ResetPasswordComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
-          this.tokenError = true;
           const title = err?.error?.errors?.[0]?.title;
-          this.errorMessage =
-            title || "Failed to reset password. The link may have expired.";
+          if (err?.status === 422) {
+            // Password policy violation — keep form visible so user can retry
+            this.tokenError = false;
+            this.errorMessage =
+              title ||
+              "Password does not meet the requirements. Please try a different password.";
+          } else {
+            // Invalid or expired token — hide form, prompt for new link
+            this.tokenError = true;
+            this.errorMessage =
+              title || "Failed to reset password. The link may have expired.";
+          }
         },
       });
   }
