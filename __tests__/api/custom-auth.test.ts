@@ -1,5 +1,7 @@
 import { describe, it, beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
+import sinon from 'sinon';
+import { BadRequestException, NotFoundException } from '@workos-inc/node';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -9,6 +11,7 @@ process.env.NODE_ENV = 'test';
 
 import { TestSetup } from '../setup/testSetup';
 import { generateUniqueUsername } from '../../app/api/auth-controller';
+import { WorkOSService } from '../../app/api/services/workos-service';
 
 describe('Custom Auth API', function () {
   let testData: any;
@@ -20,6 +23,7 @@ describe('Custom Auth API', function () {
 
   afterEach(async function () {
     this.timeout(5000);
+    sinon.restore();
     await TestSetup.afterEach();
   });
 
@@ -167,6 +171,59 @@ describe('Custom Auth API', function () {
       const response = await TestSetup.request()
         .post('/api/auth/reset-password')
         .send({ token: 'some-token' });
+      expect(response.status).to.equal(400);
+    });
+
+    it('should return 400 with a descriptive message when the token is not found', async function () {
+      sinon.stub(console, 'error');
+      sinon.stub(WorkOSService, 'resetPassword').rejects(
+        new NotFoundException({ code: 'password_reset_token_not_found', message: 'Could not locate user with provided token', path: '/user_management/password_reset/confirm', requestID: 'req_test' }),
+      );
+
+      const response = await TestSetup.request()
+        .post('/api/auth/reset-password')
+        .send({ token: 'expired-token', newPassword: 'NewPass123!' });
+
+      expect(response.status).to.equal(400);
+      expect(response.body.errors[0].title).to.include('invalid or has expired');
+    });
+
+    it('should return 422 and keep the form usable when WorkOS rejects the password', async function () {
+      sinon.stub(console, 'error');
+      sinon.stub(WorkOSService, 'resetPassword').rejects(
+        new BadRequestException({ code: 'password_reset_error', message: 'Could not reset password.', errors: [{ message: 'Password is too weak' }], requestID: 'req_test' }),
+      );
+
+      const response = await TestSetup.request()
+        .post('/api/auth/reset-password')
+        .send({ token: 'valid-token', newPassword: 'weak' });
+
+      expect(response.status).to.equal(422);
+      expect(response.body.errors[0].title).to.equal('Password is too weak');
+    });
+
+    it('should return 422 with a generic policy message when WorkOS errors array has no message', async function () {
+      sinon.stub(console, 'error');
+      sinon.stub(WorkOSService, 'resetPassword').rejects(
+        new BadRequestException({ code: 'password_reset_error', message: 'Could not reset password.', requestID: 'req_test' }),
+      );
+
+      const response = await TestSetup.request()
+        .post('/api/auth/reset-password')
+        .send({ token: 'valid-token', newPassword: 'weak' });
+
+      expect(response.status).to.equal(422);
+      expect(response.body.errors[0].title).to.include('does not meet the requirements');
+    });
+
+    it('should return 400 for an unexpected WorkOS error', async function () {
+      sinon.stub(console, 'error');
+      sinon.stub(WorkOSService, 'resetPassword').rejects(new Error('Unexpected network failure'));
+
+      const response = await TestSetup.request()
+        .post('/api/auth/reset-password')
+        .send({ token: 'some-token', newPassword: 'NewPass123!' });
+
       expect(response.status).to.equal(400);
     });
   });

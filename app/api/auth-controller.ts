@@ -358,9 +358,25 @@ export class AuthController {
     try {
       await WorkOSService.resetPassword(token, newPassword);
       res.json({ message: 'Password reset successfully' });
-    } catch (err) {
+    } catch (err: any) {
       console.error('resetPassword error:', err);
-      res.status(400).json(apiError(400, 'Invalid or expired reset token'));
+
+      if (err?.code === 'password_reset_token_not_found') {
+        res.status(400).json(apiError(400, 'Reset link is invalid or has expired. Please request a new one.'));
+        return;
+      }
+
+      if (err?.code === 'password_reset_error') {
+        // Password policy violation — surface WorkOS detail if available
+        const detail: string =
+          err?.errors?.[0]?.message ||
+          err?.errors?.[0]?.code ||
+          'Password does not meet the requirements. Please try a different password.';
+        res.status(422).json(apiError(422, detail));
+        return;
+      }
+
+      res.status(400).json(apiError(400, 'Could not reset password. Please request a new reset link.'));
     }
   }
 
