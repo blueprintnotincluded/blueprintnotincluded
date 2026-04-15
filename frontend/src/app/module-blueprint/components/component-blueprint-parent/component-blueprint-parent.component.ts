@@ -279,7 +279,10 @@ export class ComponentBlueprintParentComponent
       // End comment here
 
       /*
-      // Start comment here
+      // Dead code: direct JSON fetch, replaced by the zip approach above.
+      // The loose database.json in frontend/src/assets/database/ is a legacy copy
+      // of database-repack.json and is NOT the same file that lives inside the zip.
+      // To patch sceneLayer / z-index values, edit inside database.zip (see AssetPaths comments).
       fetch("/assets/database/database.json")
         .then(response => { return response.json(); })
         .then(json => {
