@@ -213,6 +213,7 @@ DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:run
 # DO dashboard → prod cluster → Backups → Create backup now  (wait for completion)
 npm run migrate:dry-run   # one final check
 npm run migrate:run
+npm run migrate:validate  # confirm counts match expectations (deletedTrue == deletedAtSet, deletedFalse+deletedMissing == deletedAtNull, deletedAtMissing == 0)
 ```
 
 ### Rollback

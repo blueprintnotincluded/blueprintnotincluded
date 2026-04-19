@@ -490,7 +490,7 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.errors).to.be.an('array');
 
       const unchanged = await BlueprintModel.model.findById(id);
-      expect(unchanged!.deletedAt).to.be.null;
+      expect(unchanged!.deletedAt ?? null).to.be.null;
     });
 
     it('should return 400 when blueprintId is missing', async function () {
@@ -508,6 +508,12 @@ describe('Blueprint API (Mocha)', function () {
     it('should exclude deleted blueprints from getblueprints listing', async function () {
       const token = testData.users.user1.generateJwt();
       const id = testData.blueprints.popularBlueprint._id.toString();
+
+      const before = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now() });
+      expect(before.status).to.equal(200);
+      expect(before.body.blueprints.map((bp: any) => bp.name)).to.include('Super Coal Generator Setup');
 
       await TestSetup.request()
         .post('/api/deleteblueprint')
