@@ -1,49 +1,43 @@
-.about-card {
-  background-color: #ffffff;
-  color: #333333;
-  border-radius: 3px;
-  padding: 10px;
-  height: 100%;
-  display: flex;
-  flex-flow: column;
-
-  -webkit-box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2),
-    0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
-  -moz-box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2),
-    0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14),
-    0 2px 1px -1px rgba(0, 0, 0, 0.12);
+.version-section {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--p-primary-color);
+  background: var(--p-surface-100);
 }
 
-.header {
-  display: flex;
-  width: 100%;
+.version-section h3 {
+  margin-top: 0;
+  color: var(--p-primary-color);
+}
+
+.version-summary {
+  cursor: pointer;
+  color: var(--p-text-muted-color);
+  font-size: 0.9em;
+}
+
+.version-pre {
+  background: var(--p-surface-0);
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-size: 0.8em;
+  white-space: pre-wrap;
+  border: 1px solid var(--p-surface-300);
 }
 
 .block-title {
   text-decoration: underline;
 }
 
-.ui-close-button {
-  margin-left: auto;
-}
-
 .scrollable {
   overflow-y: auto;
-  flex: 1;
-}
-
-.logo {
-  float: left;
 }
 
 .image-float-right {
   float: right;
   margin-left: 20px;
-}
-
-h1 {
-  display: block;
 }
 
 .content {
