@@ -9,16 +9,23 @@ import { MagicCallbackComponent } from "./module-blueprint/components/user-auth/
 import { ResetPasswordComponent } from "./module-blueprint/components/user-auth/reset-password/reset-password.component";
 import { VerifyEmailCallbackComponent } from "./module-blueprint/components/user-auth/verify-email-callback/verify-email-callback.component";
 import { BrowsePageComponent } from "./module-blueprint/components/browse-page/browse-page.component";
+import { homeRedirectGuard } from "./module-blueprint/guards/home-redirect.guard";
 
 const routes: Routes = [
-  { path: "", component: ComponentBlueprintParentComponent },
+  {
+    path: "",
+    pathMatch: "full",
+    canActivate: [homeRedirectGuard],
+    component: ComponentBlueprintParentComponent,
+  },
+  { path: "editor", component: ComponentBlueprintParentComponent },
+  { path: "discover", component: BrowsePageComponent },
   { path: "b/:id", component: ComponentBlueprintParentComponent },
   {
     path: "b/:id/hideui/:width/:height",
     component: ComponentBlueprintParentComponent,
   },
   { path: "openfromurl/:url", component: ComponentBlueprintParentComponent },
-  { path: "browse", component: BrowsePageComponent },
   { path: "about", component: ComponentBlueprintParentComponent },
   { path: "login", component: LoginPageComponent },
   { path: "login/forgot", component: ForgotPasswordComponent },
