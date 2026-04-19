@@ -1,0 +1,75 @@
+<div class="browse-page">
+  <div class="browse-header">
+    <h1 i18n>Browse Blueprints</h1>
+    <input
+      class="search-input"
+      type="text"
+      i18n-placeholder
+      placeholder="Search"
+      [(ngModel)]="filterName"
+      (ngModelChange)="filterNameSubject.next($event)"
+      pInputText
+    />
+  </div>
+
+  <div class="blueprint-grid">
+    <div class="blueprint-card" *ngFor="let item of blueprintListItems">
+      <div class="card-thumbnail">
+        <img *ngIf="isReal(item.thumbnail)" [src]="item.thumbnail" />
+        <svg
+          *ngIf="item.thumbnail === 'svg'"
+          width="200"
+          height="200"
+          viewBox="0 0 200 200"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="200" height="200" fill="#007aff" />
+          <path
+            fill="#fff"
+            d="m114.92 91.943 9.4524-6.3017c4.671-3.1163 7.4625-8.3331 7.4625-13.944v-11.499c4.1094-1.4649 7.0755-5.355 7.0755-9.9637v-7.0755c0-1.9554-1.5823-3.5378-3.5378-3.5378h-70.755c-1.9554 0-3.5378 1.5823-3.5378 3.5378v7.0755c0 4.6087 2.966 8.4989 7.0755 9.9637v11.499c0 5.6106 2.7915 10.827 7.4625 13.944l9.4524 6.3017c2.7017 1.8033 4.3116 4.8161 4.3116 8.0566 0 3.2406-1.6099 6.2533-4.3116 8.0566l-9.4524 6.3017c-4.671 3.1163-7.4625 8.3331-7.4625 13.944v11.499c-4.1094 1.4649-7.0755 5.355-7.0755 9.9637v7.0755c0 1.9554 1.5823 3.5378 3.5378 3.5378h70.755c1.9554 0 3.5378-1.5823 3.5378-3.5378v-7.0755c0-4.6087-2.966-8.4988-7.0755-9.9637v-11.499c0-5.6106-2.7915-10.827-7.4625-13.944l-9.4524-6.3017c-2.7017-1.8033-4.3116-4.8161-4.3116-8.0566 0-3.2406 1.6099-6.2533 4.3116-8.0566zm-11.387 8.0566c0 5.6106 2.7915 10.827 7.4625 13.944l9.4524 6.3017c2.7017 1.8033 4.3116 4.8161 4.3116 8.0566v10.849h-49.529v-10.849c0-3.2406 1.6099-6.2533 4.3116-8.0566l9.4524-6.3017c4.671-3.1163 7.4625-8.333 7.4625-13.944 0-5.6106-2.7915-10.827-7.4625-13.944l-9.4524-6.3017c-2.7017-1.8033-4.3116-4.8161-4.3116-8.0566v-10.849h49.529v10.849c0 3.2406-1.6099 6.2533-4.3116 8.0566l-9.4524 6.3017c-4.671 3.1163-7.4625 8.3331-7.4625 13.944z"
+          />
+          <path
+            fill="#fff"
+            d="m102.12 118.39c-1.2576-0.93963-2.9849-0.93963-4.2425 0l-15.568 11.677v2.0047h35.378v-2.0047z"
+          />
+        </svg>
+        <svg
+          *ngIf="item.thumbnail === 'svg_nothing'"
+          width="200"
+          height="200"
+          viewBox="0 0 200 200"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="200" height="200" fill="#007aff" />
+          <path
+            d="m144.19 144.19a62.5 62.5 0 0 1-88.388 0 62.5 62.5 0 0 1 1e-6 -88.388 62.5 62.5 0 0 1 88.388 0 62.5 62.5 0 0 1 0 88.388z"
+            fill="none"
+            stroke="#fff"
+            stroke-width="20"
+          />
+          <path
+            d="m55.806 55.806 88.388 88.388"
+            fill="none"
+            stroke="#fff"
+            stroke-width="20"
+          />
+        </svg>
+      </div>
+
+      <div class="card-info">
+        <div class="card-title">
+          <a *ngIf="isReal(item.thumbnail)" [routerLink]="['/b', item.id]">{{
+            item.name
+          }}</a>
+          <span *ngIf="!isReal(item.thumbnail)">{{ item.name }}</span>
+        </div>
+        <div *ngIf="isReal(item.thumbnail)" class="card-meta">
+          <span i18n>by {{ item.ownerName }}</span>
+          <span class="card-date">{{
+            datepipe.transform(item.createdAt, "yyyy-MM-dd")
+          }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -8,6 +8,7 @@ import { MagicRequestComponent } from "./module-blueprint/components/user-auth/m
 import { MagicCallbackComponent } from "./module-blueprint/components/user-auth/magic-callback/magic-callback.component";
 import { ResetPasswordComponent } from "./module-blueprint/components/user-auth/reset-password/reset-password.component";
 import { VerifyEmailCallbackComponent } from "./module-blueprint/components/user-auth/verify-email-callback/verify-email-callback.component";
+import { BrowsePageComponent } from "./module-blueprint/components/browse-page/browse-page.component";
 
 const routes: Routes = [
   { path: "", component: ComponentBlueprintParentComponent },
@@ -17,7 +18,7 @@ const routes: Routes = [
     component: ComponentBlueprintParentComponent,
   },
   { path: "openfromurl/:url", component: ComponentBlueprintParentComponent },
-  { path: "browse", component: ComponentBlueprintParentComponent },
+  { path: "browse", component: BrowsePageComponent },
   { path: "about", component: ComponentBlueprintParentComponent },
   { path: "login", component: LoginPageComponent },
   { path: "login/forgot", component: ForgotPasswordComponent },
