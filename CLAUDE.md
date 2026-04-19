@@ -225,7 +225,6 @@ head -20 agent/TODO.md
 
 Uses **migrate-mongo** — Rails-style versioned migrations tracked in the `migrations` collection.
 Migration files live in `migrations/` as plain CommonJS `.js` files (no compilation needed).
-Validation script: `scripts/migration/validate-data-shape.ts` (compiled to `build/`).
 
 ### Commands
 ```bash
@@ -233,7 +232,6 @@ npm run migrate:status          # show applied / pending migrations
 npm run migrate:up              # run all pending migrations
 npm run migrate:down            # roll back the last applied migration
 npm run migrate:create -- <name>  # scaffold a new migration file
-npm run migrate:validate        # report collection shape (compare local vs prod)
 ```
 
 ### Authoring a migration
@@ -272,7 +270,6 @@ npm run test
 # 2. Check status and run against local DB
 npm run migrate:status
 npm run migrate:up
-npm run migrate:validate
 
 # 3. Dump prod using read-only credentials
 source .env.migration
@@ -284,7 +281,6 @@ mongorestore --uri="mongodb://localhost:27017" --db="bpni-prod" --drop ./prod-du
 # 5. Run against real prod data — this is where you catch actual problems
 DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:status
 DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:up
-DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:validate
 # Inspect results before proceeding
 ```
 
@@ -293,7 +289,6 @@ DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:validate
 # DO dashboard → prod cluster → Backups → Create backup now  (wait for completion)
 npm run migrate:status   # confirm which migrations are pending
 npm run migrate:up
-npm run migrate:validate
 ```
 
 **First deploy with migrate-mongo:** prod has no `migrations` tracking collection yet.
