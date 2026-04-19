@@ -9,13 +9,6 @@
   right: 0;
   padding: 10px;
 }
-.side-panel-about {
-  position: absolute;
-  right: 0;
-  padding: 10px;
-  height: 90vh;
-}
-
 .outer {
   display: flex;
   flex-flow: column;
