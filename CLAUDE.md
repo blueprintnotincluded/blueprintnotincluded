@@ -174,6 +174,55 @@ head -20 agent/TODO.md
 - All test infrastructure is Mocha + Chai — do not introduce Jest
 - Rate limiting is handled by Cloudflare — do not add express-rate-limit
 
+## Database Migrations
+
+Migration scripts live in `app/api/batch/`. Validation script: `scripts/migration/validate-data-shape.ts`.
+
+### Credential rules
+- Admin URI (`doadmin`) — DO app console env only. Never on local machine.
+- `doctl` — not installed. Removed to eliminate a path to admin credentials.
+- Read-only URI — `/.env.migration` (gitignored). Safe to store; cannot write to DB.
+- `/.env` — local dev only. Never put prod or staging credentials here.
+- `/prod-dump/` — gitignored. Real prod data; never commit.
+
+### Pre-merge process for every migration
+```bash
+# 1. Tests pass
+npm run test
+
+# 2. Smoke-test scripts run without errors (local DB is empty outside tests — that's fine)
+DB_URI=mongodb://localhost:27017/bpni npm run migrate:validate
+DB_URI=mongodb://localhost:27017/bpni npm run migrate:dry-run
+
+# 3. Dump prod using read-only credentials
+source .env.migration
+mongodump --uri="$PROD_READONLY_URI" --out=./prod-dump
+
+# 4. Restore prod dump locally under a separate DB name
+mongorestore --uri="mongodb://localhost:27017" --db="bpni-prod" --drop ./prod-dump/blueprintnotincluded
+
+# 5. Run against real prod data — this is where you catch actual problems
+DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:validate
+DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:dry-run
+DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:run
+# Inspect results — validate counts match expectations before proceeding
+```
+
+### Post-deploy execution (DO app console)
+```bash
+# DO dashboard → prod cluster → Backups → Create backup now  (wait for completion)
+npm run migrate:dry-run   # one final check
+npm run migrate:run
+```
+
+### Rollback
+DO dashboard → Backups → restore pre-migration snapshot to a new cluster → update `DB_URI` env var in App Platform to point at restored cluster.
+
+### Migration script rules
+- Never `$unset` the old field in the same operation that reads it as a filter — the filter breaks once the field disappears. Set new fields first, verify, clean up old fields separately.
+- Always support `--dry-run` that reports counts without writing.
+- Leave orphaned old fields in place after migration; they disappear naturally once removed from the Mongoose schema.
+
 ---
 
 ## Important Instructions
