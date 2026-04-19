@@ -31,8 +31,4 @@ export class DialogAboutComponent implements OnInit {
   toggleDialog() {
     this.visible = !this.visible;
   }
-
-  close() {
-    this.visible = false;
-  }
 }

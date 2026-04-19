@@ -26,21 +26,12 @@
       </app-build-tool>
     </div>
     <div class="side-panel-right">
-      <app-element-report-tool
-        *ngIf="showElementReport && !aboutDialog.visible"
-        #elementReportTool
-      >
+      <app-element-report-tool *ngIf="showElementReport" #elementReportTool>
       </app-element-report-tool>
-      <app-temperature-scale
-        *ngIf="showTemperatureScale && !aboutDialog.visible"
-        #temperatureScale
-      >
+      <app-temperature-scale *ngIf="showTemperatureScale" #temperatureScale>
       </app-temperature-scale>
     </div>
-    <div class="side-panel-about">
-      <app-dialog-about [hidden]="!aboutDialog.visible" #aboutDialog>
-      </app-dialog-about>
-    </div>
+    <app-dialog-about #aboutDialog></app-dialog-about>
   </div>
 </div>
 
