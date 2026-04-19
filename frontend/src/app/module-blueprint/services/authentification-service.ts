@@ -66,7 +66,13 @@ export class AuthenticationService {
 
   public toggleAlpha(): Observable<string> {
     return this.http
-      .post<{ token: string }>("/api/admin/alpha/toggle", {})
+      .post<{ token: string }>(
+        "/api/admin/alpha/toggle",
+        {},
+        {
+          headers: { Authorization: `Bearer ${this.getToken()}` },
+        }
+      )
       .pipe(map((res) => res.token));
   }
 
