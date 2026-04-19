@@ -29,8 +29,10 @@ const KNOWN_FIELDS = new Set([
   'createdAt', 'modifiedAt', 'thumbnail',
   'isCopy', 'copyOf',
   'data',
-  'deleted',    // old field — present before Migration 1
-  'deletedAt',  // new field — present after Migration 1
+  'deleted',      // old field — present before Migration 1
+  'deletedAt',    // new field — present after Migration 1
+  'gameVersion',  // discovery feed field
+  'category',     // discovery feed field
 ]);
 
 async function run() {
@@ -99,6 +101,30 @@ async function run() {
     isCopyTrue, copyOfSet,
     unknownFields: [...unknownFields].sort(),
   }, null, 2));
+
+  // --- Post-migration assertion mode ---
+  // Run with --assert-post-migration to fail the process if counts violate
+  // expected post-migration invariants (all docs have deletedAt, counts mirror deleted).
+  if (process.argv.includes('--assert-post-migration')) {
+    const failures: string[] = [];
+
+    if (deletedAtMissing !== 0)
+      failures.push(`deletedAtMissing=${deletedAtMissing} (expected 0 — all docs must have deletedAt after migration)`);
+    if (deletedAtSet !== deletedTrue)
+      failures.push(`deletedAtSet=${deletedAtSet} !== deletedTrue=${deletedTrue} (must mirror exactly)`);
+    if (deletedAtNull !== deletedFalse + deletedMissing)
+      failures.push(`deletedAtNull=${deletedAtNull} !== deletedFalse+deletedMissing=${deletedFalse + deletedMissing} (must mirror exactly)`);
+    if (unknownFields.size !== 0)
+      failures.push(`unknown fields present: ${[...unknownFields].sort().join(', ')}`);
+
+    if (failures.length > 0) {
+      console.error('\n✗ Post-migration assertion FAILED:');
+      for (const f of failures) console.error(`  - ${f}`);
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+    console.log('\n✓ Post-migration assertions passed');
+  }
 
   await mongoose.disconnect();
 }
