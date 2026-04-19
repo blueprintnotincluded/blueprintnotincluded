@@ -11,6 +11,7 @@ import { AuthController } from './api/auth-controller';
 import { MigrationController } from './api/migration-controller';
 import { HealthController } from './api/health-controller';
 import { FeedbackController } from './api/feedback-controller';
+import { AlphaController } from './api/alpha-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
@@ -19,6 +20,7 @@ export class Routes {
   public migrationController = new MigrationController();
   public healthController = new HealthController();
   public feedbackController = new FeedbackController();
+  public alphaController = new AlphaController();
 
   public routes(app: Application): void {
     // Admin-only middleware: requires role === 'admin' in the JWT (set from WorkOS platform org membership)
@@ -80,6 +82,7 @@ export class Routes {
     // Admin-only API
     app.route('/api/admin/feedback').get(auth, adminAuth, this.feedbackController.list);
     app.route('/api/admin/feedback/:id').patch(auth, adminAuth, this.feedbackController.updateStatus);
+    app.route('/api/admin/alpha/toggle').post(auth, adminAuth, this.alphaController.toggleAlpha);
 
     // Admin app — served at /admin when built; skipped in dev (admin runs on port 4201)
     const adminIndexHtml = path.join(__dirname, 'public', 'admin', 'index.html');

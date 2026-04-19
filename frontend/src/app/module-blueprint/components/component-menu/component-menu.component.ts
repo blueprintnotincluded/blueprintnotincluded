@@ -380,6 +380,7 @@ export class ComponentMenuComponent
     ];
 
     const isAdmin = this.authService.getUserDetails()?.role === "admin";
+    const isAlpha = this.authService.isAlpha();
 
     this.userMenuItems = [
       {
@@ -407,6 +408,12 @@ export class ComponentMenuComponent
         icon: "pi pi-shield",
         url: "/admin",
         visible: isAdmin,
+      },
+      {
+        label: isAlpha ? $localize`Exit Alpha` : $localize`Enter Alpha`,
+        icon: "pi pi-star",
+        visible: isAdmin,
+        command: () => this.toggleAlpha(),
       },
       { separator: true },
       {
@@ -562,6 +569,15 @@ export class ComponentMenuComponent
   switchAccount() {
     this.authService.logout();
     this.router.navigate(["/login"]);
+  }
+
+  toggleAlpha() {
+    this.authService.toggleAlpha().subscribe({
+      next: (token: string) => {
+        this.authService.saveToken(token);
+        this.router.navigate(["/"]);
+      },
+    });
   }
 
   logout() {
