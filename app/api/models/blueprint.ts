@@ -11,6 +11,8 @@ export interface Blueprint extends Document {
   copyOf?: string;
   data: any;
   deletedAt?: Date | null;
+  gameVersion?: string | null;
+  category?: string | null;
 }
 
 export class BlueprintModel {
@@ -41,6 +43,8 @@ export class BlueprintModel {
       },
       data: Object,
       deletedAt: { type: Date, default: null },
+      gameVersion: { type: String, index: true },
+      category: { type: String, index: true },
     });
 
     // Listing query: filter by createdAt range, sort by createdAt desc
