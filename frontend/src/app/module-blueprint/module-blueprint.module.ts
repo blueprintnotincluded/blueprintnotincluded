@@ -85,6 +85,7 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
 import { VerifyEmailCallbackComponent } from "./components/user-auth/verify-email-callback/verify-email-callback.component";
 import { FeedbackDialogComponent } from "./components/dialogs/feedback-dialog/feedback-dialog.component";
 import { FeedbackService } from "./services/feedback.service";
+import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
 
 @NgModule({
   declarations: [
@@ -131,6 +132,7 @@ import { FeedbackService } from "./services/feedback.service";
     ResetPasswordComponent,
     VerifyEmailCallbackComponent,
     FeedbackDialogComponent,
+    BrowsePageComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [
