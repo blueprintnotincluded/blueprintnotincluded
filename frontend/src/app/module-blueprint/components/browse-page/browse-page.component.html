@@ -1,3 +1,10 @@
+<p-toast position="top-center" [style]="{ marginTop: '40px' }"></p-toast>
+
+<app-component-menu (menuCommand)="menuCommand($event)"></app-component-menu>
+
+<app-dialog-about #aboutDialog></app-dialog-about>
+<app-feedback-dialog #feedbackDialog></app-feedback-dialog>
+
 <div class="browse-page">
   <div class="browse-header">
     <h1 i18n>Browse Blueprints</h1>
