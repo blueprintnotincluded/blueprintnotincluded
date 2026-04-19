@@ -83,7 +83,7 @@ export class ComponentMenuComponent
   ) {
     this.toolService.subscribeToolChanged(this);
     this.cameraService = CameraService.cameraService;
-    this.cameraService.subscribeCameraChange(this);
+    if (this.cameraService) this.cameraService.subscribeCameraChange(this);
   }
 
   // TODO this causes errors
@@ -501,15 +501,18 @@ export class ComponentMenuComponent
   }
 
   clickOverlay(event: any) {
-    this.cameraService.overlay = event.item.id as Overlay;
+    if (this.cameraService)
+      this.cameraService.overlay = event.item.id as Overlay;
   }
 
   clickDisplay(event: any) {
-    this.cameraService.display = event.item.id as Display;
+    if (this.cameraService)
+      this.cameraService.display = event.item.id as Display;
   }
 
   clickVisualization(event: any) {
-    this.cameraService.visualization = event.item.id as Visualization;
+    if (this.cameraService)
+      this.cameraService.visualization = event.item.id as Visualization;
   }
 
   uploadYamlTemplate() {
