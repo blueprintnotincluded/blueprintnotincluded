@@ -268,8 +268,8 @@ Run the provisioning script against your local DB to create WorkOS Staging accou
 
 ```bash
 npm run build:backend
-npm run provision:workos -- --dry-run --verbose
-npm run provision:workos -- --verbose
+node build/scripts/provision-workos-users.js --dry-run --verbose
+node build/scripts/provision-workos-users.js --verbose
 ```
 
 ### Phase 3 — Migrate on staging site
@@ -279,11 +279,11 @@ Deploy to the staging site (WorkOS Production + shared DB). Run the provisioning
 ```bash
 # Dry run first
 WORKOS_API_KEY=sk_… WORKOS_CLIENT_ID=client_… WORKOS_PLATFORM_ORG_ID=org_… \
-  npm run provision:workos -- --dry-run --verbose
+  node build/scripts/provision-workos-users.js --dry-run --verbose
 
 # Apply
 WORKOS_API_KEY=sk_… WORKOS_CLIENT_ID=client_… WORKOS_PLATFORM_ORG_ID=org_… \
-  npm run provision:workos -- --verbose
+  node build/scripts/provision-workos-users.js --verbose
 ```
 
 After running: log in via the staging site, confirm `adminAuth` passes on `GET /api/migration/status`, and verify migration status counts.
