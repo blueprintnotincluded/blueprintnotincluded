@@ -223,7 +223,39 @@ head -20 agent/TODO.md
 
 ## Database Migrations
 
-Migration scripts live in `app/api/batch/`. Validation script: `scripts/migration/validate-data-shape.ts`.
+Uses **migrate-mongo** — Rails-style versioned migrations tracked in the `migrations` collection.
+Migration files live in `migrations/` as plain CommonJS `.js` files (no compilation needed).
+Validation script: `scripts/migration/validate-data-shape.ts` (compiled to `build/`).
+
+### Commands
+```bash
+npm run migrate:status          # show applied / pending migrations
+npm run migrate:up              # run all pending migrations
+npm run migrate:down            # roll back the last applied migration
+npm run migrate:create -- <name>  # scaffold a new migration file
+npm run migrate:validate        # report collection shape (compare local vs prod)
+```
+
+### Authoring a migration
+Scaffold with `npm run migrate:create -- <name>`, then fill in `up` and `down`:
+
+```js
+'use strict';
+module.exports = {
+  async up(db) {
+    // db is the native MongoDB driver Db object
+  },
+  async down(db) {
+    // must fully reverse up — used for rollback
+  },
+};
+```
+
+Rules:
+- Both `up` and `down` must be idempotent (safe to re-run if interrupted).
+- Never `$unset` the old field in the same operation that reads it as a filter.
+- Set new fields first, verify counts, clean up old fields in a separate migration.
+- Leave orphaned old fields in place; they disappear naturally once removed from the Mongoose schema.
 
 ### Credential rules
 - Admin URI (`doadmin`) — DO app console env only. Never on local machine.
@@ -237,9 +269,10 @@ Migration scripts live in `app/api/batch/`. Validation script: `scripts/migratio
 # 1. Tests pass
 npm run test
 
-# 2. Smoke-test scripts run without errors (local DB is empty outside tests — that's fine)
-DB_URI=mongodb://localhost:27017/bpni npm run migrate:validate
-DB_URI=mongodb://localhost:27017/bpni npm run migrate:dry-run
+# 2. Check status and run against local DB
+npm run migrate:status
+npm run migrate:up
+npm run migrate:validate
 
 # 3. Dump prod using read-only credentials
 source .env.migration
@@ -249,27 +282,28 @@ mongodump --uri="$PROD_READONLY_URI" --out=./prod-dump
 mongorestore --uri="mongodb://localhost:27017" --db="bpni-prod" --drop ./prod-dump/blueprintnotincluded
 
 # 5. Run against real prod data — this is where you catch actual problems
+DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:status
+DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:up
 DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:validate
-DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:dry-run
-DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:run
-# Inspect results — validate counts match expectations before proceeding
+# Inspect results before proceeding
 ```
 
 ### Post-deploy execution (DO app console)
 ```bash
 # DO dashboard → prod cluster → Backups → Create backup now  (wait for completion)
-npm run migrate:dry-run   # one final check
-npm run migrate:run
-npm run migrate:validate  # confirm counts match expectations (deletedTrue == deletedAtSet, deletedFalse+deletedMissing == deletedAtNull, deletedAtMissing == 0)
+npm run migrate:status   # confirm which migrations are pending
+npm run migrate:up
+npm run migrate:validate
 ```
 
-### Rollback
-DO dashboard → Backups → restore pre-migration snapshot to a new cluster → update `DB_URI` env var in App Platform to point at restored cluster.
+**First deploy with migrate-mongo:** prod has no `migrations` tracking collection yet.
+`migrate:up` will run all migrations from the beginning. The ported Migration 1
+(`20260403000000_blueprint-deleted-to-deletedAt`) is idempotent — it filters on
+`{ deletedAt: { $exists: false } }` so it safely no-ops on already-migrated documents.
 
-### Migration script rules
-- Never `$unset` the old field in the same operation that reads it as a filter — the filter breaks once the field disappears. Set new fields first, verify, clean up old fields separately.
-- Always support `--dry-run` that reports counts without writing.
-- Leave orphaned old fields in place after migration; they disappear naturally once removed from the Mongoose schema.
+### Rollback
+`npm run migrate:down` rolls back the last migration via its `down` method.
+For a full restore: DO dashboard → Backups → restore the pre-deploy snapshot to a new cluster → update `DB_URI` env var in App Platform.
 
 ---
 
