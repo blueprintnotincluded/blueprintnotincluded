@@ -21,7 +21,7 @@ export interface TestBlueprint {
   isCopy?: boolean;
   copyOf?: Types.ObjectId;
   data: any;
-  deleted: boolean;
+  deletedAt?: Date | null;
 }
 
 export class TestDataFactory {
@@ -75,7 +75,7 @@ export class TestDataFactory {
           description: 'A test blueprint for automated testing',
         },
       },
-      deleted: false,
+      deletedAt: null,
       ...overrides,
     };
   }

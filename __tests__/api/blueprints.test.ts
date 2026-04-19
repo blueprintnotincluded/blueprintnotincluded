@@ -474,7 +474,7 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.deleteBlueprint).to.equal('OK');
 
       const updated = await BlueprintModel.model.findById(id);
-      expect(updated!.deleted).to.be.true;
+      expect(updated!.deletedAt).to.be.instanceOf(Date);
     });
 
     it('should not allow deleting another user\'s blueprint', async function () {
@@ -490,7 +490,7 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.errors).to.be.an('array');
 
       const unchanged = await BlueprintModel.model.findById(id);
-      expect(unchanged!.deleted).to.not.equal(true);
+      expect(unchanged!.deletedAt).to.be.null;
     });
 
     it('should return 400 when blueprintId is missing', async function () {
@@ -503,6 +503,24 @@ describe('Blueprint API (Mocha)', function () {
 
       expect(response.status).to.equal(400);
       expect(response.body.errors).to.be.an('array');
+    });
+
+    it('should exclude deleted blueprints from getblueprints listing', async function () {
+      const token = testData.users.user1.generateJwt();
+      const id = testData.blueprints.popularBlueprint._id.toString();
+
+      await TestSetup.request()
+        .post('/api/deleteblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ blueprintId: id });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now() });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names).to.not.include('Super Coal Generator Setup');
     });
   });
 });

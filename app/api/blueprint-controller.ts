@@ -47,7 +47,7 @@ export class BlueprintController {
         .find({ owner: ownerId, name: name })
         .then(blueprints => {
           if (blueprints.length > 0) {
-            if (overwrite || blueprints[0].deleted)
+            if (overwrite || blueprints[0].deletedAt != null)
               BlueprintController.saveBlueprint(
                 req,
                 res,
@@ -103,7 +103,7 @@ export class BlueprintController {
             if (blueprints.length > 0) {
               let blueprint = blueprints[0];
 
-              blueprint.deleted = true;
+              blueprint.deletedAt = new Date();
 
               blueprint
                 .save()
@@ -331,7 +331,7 @@ export class BlueprintController {
         return;
       }
 
-      let filter: any = { $and: [{ createdAt: { $lt: dateFilter } }, { deleted: { $ne: true } }] };
+      let filter: any = { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
 
       if (filterUserId != null) filter.$and.push({ owner: filterUserId });
       if (filterName != null) filter.$and.push({ name: { $regex: filterName, $options: 'i' } });
@@ -436,7 +436,7 @@ export class BlueprintController {
     blueprint.data = data;
     blueprint.markModified('data');
     blueprint.thumbnail = thumbnail;
-    blueprint.deleted = false;
+    blueprint.deletedAt = null;
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();
     blueprint.modifiedAt = new Date();
