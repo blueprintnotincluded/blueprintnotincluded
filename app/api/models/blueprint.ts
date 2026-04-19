@@ -10,7 +10,7 @@ export interface Blueprint extends Document {
   isCopy?: boolean;
   copyOf?: string;
   data: any;
-  deleted: boolean;
+  deletedAt?: Date | null;
 }
 
 export class BlueprintModel {
@@ -40,15 +40,21 @@ export class BlueprintModel {
         ref: 'Blueprint',
       },
       data: Object,
-      deleted: Boolean,
+      deletedAt: { type: Date, default: null },
     });
 
-    // Listing query: filter by createdAt range + deleted, sort by createdAt desc
+    // Listing query: filter by createdAt range, sort by createdAt desc
     blueprintSchema.index({ createdAt: -1 });
     // Listing query with owner filter
     blueprintSchema.index({ owner: 1, createdAt: -1 });
     // Upload duplicate-name check: find({ owner, name })
     blueprintSchema.index({ owner: 1, name: 1 });
+
+    // Discovery feed indexes (deletedAt: null = public)
+    blueprintSchema.index({ deletedAt: 1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, gameVersion: 1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, category: 1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, gameVersion: 1, category: 1, createdAt: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }
