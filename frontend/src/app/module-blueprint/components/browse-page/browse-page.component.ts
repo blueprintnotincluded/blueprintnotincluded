@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy, HostListener } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  HostListener,
+  ViewChild,
+} from "@angular/core";
 import {
   BlueprintListItem,
   BlueprintListResponse,
@@ -7,6 +13,12 @@ import { BlueprintService } from "src/app/module-blueprint/services/blueprint-se
 import { DatePipe } from "@angular/common";
 import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
+import {
+  MenuCommand,
+  MenuCommandType,
+} from "../component-menu/component-menu.component";
+import { DialogAboutComponent } from "../dialogs/dialog-about/dialog-about.component";
+import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dialog.component";
 
 const LOADING_STR = $localize`Loading...`;
 const NO_RESULTS_STR = $localize`:browse.noResults:No Results`;
@@ -18,6 +30,9 @@ const NO_RESULTS_STR = $localize`:browse.noResults:No Results`;
   standalone: false,
 })
 export class BrowsePageComponent implements OnInit, OnDestroy {
+  @ViewChild("aboutDialog") aboutDialog!: DialogAboutComponent;
+  @ViewChild("feedbackDialog") feedbackDialog!: FeedbackDialogComponent;
+
   blueprintListItems: BlueprintListItem[] = [];
   working = true;
   noMoreBlueprints = false;
@@ -124,6 +139,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   appendLoading() {
     for (let i = 0; i < 6; i++)
       this.blueprintListItems.push(this.loadingBlueprintItem);
+  }
+
+  menuCommand(command: MenuCommand) {
+    if (command.type === MenuCommandType.about) this.aboutDialog.toggleDialog();
+    else if (command.type === MenuCommandType.sendFeedback)
+      this.feedbackDialog.open();
   }
 
   reset() {
