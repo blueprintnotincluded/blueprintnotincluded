@@ -29,6 +29,7 @@ export class UserMenuComponent implements OnInit {
   @Output() myBlueprintsRequested = new EventEmitter<BrowseData>();
 
   userMenuItems!: MenuItem[];
+  isAdmin = false;
   private logoutSuccessMsg!: string;
 
   constructor(
@@ -39,8 +40,7 @@ export class UserMenuComponent implements OnInit {
 
   ngOnInit() {
     this.logoutSuccessMsg = $localize`Logout Successful`;
-    const isAdmin = this.authService.getUserDetails()?.role === "admin";
-    const isAlpha = this.authService.isAlpha();
+    this.isAdmin = this.authService.getUserDetails()?.role === "admin";
 
     this.userMenuItems = [
       {
@@ -63,13 +63,7 @@ export class UserMenuComponent implements OnInit {
         label: $localize`Admin Panel`,
         icon: "pi pi-shield",
         url: "/admin",
-        visible: isAdmin,
-      },
-      {
-        label: isAlpha ? $localize`Exit Alpha` : $localize`Enter Alpha`,
-        icon: "pi pi-star",
-        visible: isAdmin,
-        command: () => this.toggleAlpha(),
+        visible: this.isAdmin,
       },
       { separator: true },
       {
