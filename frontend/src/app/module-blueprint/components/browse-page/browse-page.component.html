@@ -1,6 +1,9 @@
 <p-toast position="top-center" [style]="{ marginTop: '40px' }"></p-toast>
 
-<app-component-menu (menuCommand)="menuCommand($event)"></app-component-menu>
+<app-site-nav
+  (about)="aboutDialog.toggleDialog()"
+  (sendFeedback)="feedbackDialog.open()"
+></app-site-nav>
 
 <app-dialog-about #aboutDialog></app-dialog-about>
 <app-feedback-dialog #feedbackDialog></app-feedback-dialog>

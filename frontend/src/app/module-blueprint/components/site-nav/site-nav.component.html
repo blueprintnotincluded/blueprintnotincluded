@@ -1,0 +1,25 @@
+<p-menubar [model]="navItems">
+  <ng-template pTemplate="start">
+    <ng-container *ngIf="authService.isAlpha()">
+      <a routerLink="/discover" class="site-logo">
+        <img
+          src="assets/images/ui/manual/Favicon_blueprint_oxygen-32x32.png"
+          alt="BNI"
+          height="28"
+        />
+      </a>
+      <a routerLink="/discover" routerLinkActive="active" class="nav-tab" i18n
+        >Discover</a
+      >
+      <a routerLink="/editor" routerLinkActive="active" class="nav-tab" i18n
+        >Editor</a
+      >
+    </ng-container>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <app-user-menu
+      (sendFeedback)="sendFeedback.emit()"
+      (myBlueprintsRequested)="myBlueprintsRequested.emit($event)"
+    ></app-user-menu>
+  </ng-template>
+</p-menubar>

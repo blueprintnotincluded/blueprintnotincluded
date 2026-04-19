@@ -1,28 +1,29 @@
-<!--<p-menubar [model]="menuItems" [baseZIndex]="2" [autoZIndex]="false" >
-<button type="button" pButton icon="pi pi-bars" label="Menu" (click)="menu.toggle($event)"></button>-->
-
 <p-menubar #menu [model]="menuItems">
-  <div class="menu-line">
-    <div *ngIf="authService.isLoggedIn()">
-      <p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
-      <button
-        pButton
-        type="button"
-        icon="pi pi-user"
-        [label]="authService.getUserDetails()!.username"
-        (click)="userMenu.toggle($event)"
-      ></button>
+  <ng-template pTemplate="start">
+    <ng-container *ngIf="authService.isAlpha()">
+      <a routerLink="/discover" class="site-logo">
+        <img
+          src="assets/images/ui/manual/Favicon_blueprint_oxygen-32x32.png"
+          alt="BNI"
+          height="28"
+        />
+      </a>
+      <a routerLink="/discover" routerLinkActive="active" class="nav-tab" i18n
+        >Discover</a
+      >
+      <a routerLink="/editor" routerLinkActive="active" class="nav-tab" i18n
+        >Editor</a
+      >
+    </ng-container>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <div class="menu-line">
+      <app-user-menu
+        (sendFeedback)="onUserMenuSendFeedback()"
+        (myBlueprintsRequested)="onMyBlueprintsRequested($event)"
+      ></app-user-menu>
     </div>
-
-    <button
-      *ngIf="!authService.isLoggedIn()"
-      pButton
-      icon="pi pi-sign-in"
-      i18n-label
-      label="Login"
-      (click)="login()"
-    ></button>
-  </div>
+  </ng-template>
 </p-menubar>
 
 <input

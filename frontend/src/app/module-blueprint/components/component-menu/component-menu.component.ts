@@ -5,10 +5,8 @@ import {
   LOCALE_ID,
   OnInit,
   Output,
-  ViewChild,
 } from "@angular/core";
-import { Menu } from "primeng/menu";
-import { MenuItem, MessageService } from "primeng/api";
+import { MenuItem } from "primeng/api";
 import {
   CameraService,
   Display,
@@ -17,13 +15,15 @@ import {
   Visualization,
 } from "../../../../../../lib/index";
 import { ToolType } from "../../common/tools/tool";
-import { Router } from "@angular/router";
-import { AuthenticationService } from "../../services/authentification-service";
 import {
   BlueprintFileType,
   BlueprintService,
 } from "../../services/blueprint-service";
 import { IObsToolChanged, ToolService } from "../../services/tool-service";
+import { AuthenticationService } from "../../services/authentification-service";
+import { BrowseData } from "../user-menu/user-menu.component";
+
+export { BrowseData } from "../user-menu/user-menu.component";
 
 const ALL_LANGUAGES = [
   {
@@ -55,10 +55,7 @@ export class ComponentMenuComponent
 {
   @Output() menuCommand = new EventEmitter<MenuCommand>();
 
-  @ViewChild("userMenu") userMenu!: Menu;
-
   menuItems!: MenuItem[];
-  userMenuItems!: MenuItem[];
   overlayMenuItems!: MenuItem[];
   displayMenuItems!: MenuItem[];
   visualizationMenuItems!: MenuItem[];
@@ -73,12 +70,9 @@ export class ComponentMenuComponent
   private cameraService: CameraService;
 
   constructor(
-    //TODO should not be public
     public authService: AuthenticationService,
-    private messageService: MessageService,
     private toolService: ToolService,
     private blueprintService: BlueprintService,
-    private router: Router,
     @Inject(LOCALE_ID) private locale: string
   ) {
     this.toolService.subscribeToolChanged(this);
@@ -86,7 +80,6 @@ export class ComponentMenuComponent
     if (this.cameraService) this.cameraService.subscribeCameraChange(this);
   }
 
-  // TODO this causes errors
   get dynamicMenuItems() {
     const bpGroup = this.menuItems.find((i) => i.id == "blueprint");
     const blueprintMenuItems = bpGroup?.items as MenuItem[] | undefined;
@@ -362,65 +355,6 @@ export class ComponentMenuComponent
           this.locale,
         items: this.languagesMenuItems,
       },
-
-      /*
-      // This is done on the node backend now
-      ,{
-        label: 'Technical',
-        items: [
-          {label: 'Fetch images',          icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.fetchIcons, data:null}); } },
-          {label: 'Add element tiles',     icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.addElementsTiles, data:null}); } },
-          {label: 'Download groups',       icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.downloadGroups, data:null}); } },
-          {label: 'Download icons',        icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.downloadIcons, data:null}); } },
-          {label: 'Download white',        icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.downloadUtility, data:null}); } },
-          {label: 'Repack textures',       icon:'pi pi-download', command: (_event: any) => { this.menuCommand.emit({type: MenuCommandType.repackTextures, data:null}); } }
-        ]
-      }
-      */
-    ];
-
-    const isAdmin = this.authService.getUserDetails()?.role === "admin";
-    const isAlpha = this.authService.isAlpha();
-
-    this.userMenuItems = [
-      {
-        label: $localize`My Blueprints`,
-        icon: "pi pi-images",
-        command: () => this.userProfile(),
-      },
-      {
-        label: $localize`Switch account`,
-        icon: "pi pi-refresh",
-        command: () => this.switchAccount(),
-      },
-      { separator: true },
-      {
-        label: $localize`Send Feedback`,
-        icon: "pi pi-comment",
-        command: () =>
-          this.menuCommand.emit({
-            type: MenuCommandType.sendFeedback,
-            data: null,
-          }),
-      },
-      {
-        label: $localize`Admin Panel`,
-        icon: "pi pi-shield",
-        url: "/admin",
-        visible: isAdmin,
-      },
-      {
-        label: isAlpha ? $localize`Exit Alpha` : $localize`Enter Alpha`,
-        icon: "pi pi-star",
-        visible: isAdmin,
-        command: () => this.toggleAlpha(),
-      },
-      { separator: true },
-      {
-        label: $localize`Log out`,
-        icon: "pi pi-sign-out",
-        command: () => this.logout(),
-      },
     ];
 
     this.clickOverlay({ item: { id: Overlay.Base } });
@@ -450,24 +384,6 @@ export class ComponentMenuComponent
 
   clickTool(toolType: ToolType) {
     this.toolService.changeTool(toolType);
-  }
-
-  userProfile() {
-    const user = this.authService.getUserDetails();
-    if (!user) {
-      return;
-    }
-
-    let userFilter: BrowseData = {
-      filterUserId: user._id,
-      filterUserName: user.username,
-      getDuplicates: true,
-    };
-
-    this.menuCommand.emit({
-      type: MenuCommandType.browseBlueprints,
-      data: userFilter,
-    });
   }
 
   cameraChanged(camera: CameraService) {
@@ -565,31 +481,12 @@ export class ComponentMenuComponent
     fileElem.value = "";
   }
 
-  login() {
-    this.router.navigate(["/login"]);
+  onUserMenuSendFeedback() {
+    this.menuCommand.emit({ type: MenuCommandType.sendFeedback, data: null });
   }
 
-  switchAccount() {
-    this.authService.logout();
-    this.router.navigate(["/login"]);
-  }
-
-  toggleAlpha() {
-    this.authService.toggleAlpha().subscribe({
-      next: (token: string) => {
-        this.authService.saveToken(token);
-        this.router.navigate(["/"]);
-      },
-    });
-  }
-
-  logout() {
-    this.authService.logout();
-    this.messageService.add({
-      severity: "success",
-      summary: $localize`Logout Successful`,
-      detail: undefined,
-    });
+  onMyBlueprintsRequested(data: BrowseData) {
+    this.menuCommand.emit({ type: MenuCommandType.browseBlueprints, data });
   }
 }
 
@@ -620,10 +517,4 @@ export enum MenuCommandType {
 export class MenuCommand {
   type!: MenuCommandType;
   data: any;
-}
-
-export interface BrowseData {
-  filterUserId: string;
-  filterUserName: string;
-  getDuplicates: boolean;
 }
