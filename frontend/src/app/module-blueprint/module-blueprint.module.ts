@@ -8,6 +8,8 @@ import {
 import { RouterModule } from "@angular/router";
 import { ComponentCanvasComponent } from "src/app/module-blueprint/components/component-canvas/component-canvas.component";
 import { ComponentMenuComponent } from "src/app/module-blueprint/components/component-menu/component-menu.component";
+import { UserMenuComponent } from "./components/user-menu/user-menu.component";
+import { SiteNavComponent } from "./components/site-nav/site-nav.component";
 import { ComponentBlueprintParentComponent } from "src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component";
 
 import { MouseWheelDirective } from "src/app/module-blueprint/directives/mousewheel.directive";
@@ -95,6 +97,8 @@ import { BrowsePageComponent } from "./components/browse-page/browse-page.compon
     MouseWheelDirective,
     DragAndDropDirective,
     KeyboardDirective,
+    UserMenuComponent,
+    SiteNavComponent,
     ComponentMenuComponent,
     ComponentBlueprintParentComponent,
     ComponentSaveDialogComponent,

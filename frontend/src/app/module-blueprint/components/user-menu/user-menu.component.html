@@ -1,0 +1,19 @@
+<ng-container *ngIf="authService.isLoggedIn(); else loginButton">
+  <p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
+  <button
+    pButton
+    type="button"
+    icon="pi pi-user"
+    [label]="authService.getUserDetails()?.username || ''"
+    (click)="userMenu.toggle($event)"
+  ></button>
+</ng-container>
+<ng-template #loginButton>
+  <button
+    pButton
+    icon="pi pi-sign-in"
+    i18n-label
+    label="Login"
+    (click)="login()"
+  ></button>
+</ng-template>
