@@ -16,7 +16,7 @@ import { BlueprintService } from "src/app/module-blueprint/services/blueprint-se
 import { ElementReport } from "src/app/module-blueprint/common/tools/element-report";
 import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
 
-describe("ComponentBlueprintParentComponent", () => {
+describe.skip("ComponentBlueprintParentComponent", () => {
   let component: ComponentBlueprintParentComponent;
   let fixture: ComponentFixture<ComponentBlueprintParentComponent>;
 

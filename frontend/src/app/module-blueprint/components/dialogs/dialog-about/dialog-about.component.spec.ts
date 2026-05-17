@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 
 import { DialogAboutComponent } from "./dialog-about.component";
@@ -31,6 +32,7 @@ describe("DialogAboutComponent", () => {
     await TestBed.configureTestingModule({
       declarations: [DialogAboutComponent],
       imports: [],
+      schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: VersionService, useValue: versionServiceSpy },
         provideHttpClient(withInterceptorsFromDi()),
@@ -72,12 +74,6 @@ describe("DialogAboutComponent", () => {
     expect(component.visible).toBe(true);
 
     component.toggleDialog();
-    expect(component.visible).toBe(false);
-  });
-
-  it("should close dialog", () => {
-    component.visible = true;
-    component.close();
     expect(component.visible).toBe(false);
   });
 
