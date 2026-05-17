@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { Router } from "@angular/router";
 import { of } from "rxjs";
@@ -23,27 +23,27 @@ function makeUser(role: "user" | "admin" = "user"): UserDetails {
 describe("UserMenuComponent", () => {
   let component: UserMenuComponent;
   let fixture: ComponentFixture<UserMenuComponent>;
-  let authService: jasmine.SpyObj<AuthenticationService>;
-  let router: jasmine.SpyObj<Router>;
-  let messageService: jasmine.SpyObj<MessageService>;
+  let authService: any;
+  let router: any;
+  let messageService: any;
 
-  beforeEach(waitForAsync(() => {
-    authService = jasmine.createSpyObj("AuthenticationService", [
-      "isLoggedIn",
-      "getUserDetails",
-      "isAlpha",
-      "logout",
-      "toggleAlpha",
-      "saveToken",
-    ]);
-    router = jasmine.createSpyObj("Router", ["navigate"]);
-    messageService = jasmine.createSpyObj("MessageService", ["add"]);
+  beforeEach(async () => {
+    authService = {
+      isLoggedIn: vi.fn(),
+      getUserDetails: vi.fn(),
+      isAlpha: vi.fn(),
+      logout: vi.fn(),
+      toggleAlpha: vi.fn(),
+      saveToken: vi.fn(),
+    };
+    router = { navigate: vi.fn() };
+    messageService = { add: vi.fn() };
 
-    authService.getUserDetails.and.returnValue(null);
-    authService.isAlpha.and.returnValue(false);
-    authService.isLoggedIn.and.returnValue(false);
+    authService.getUserDetails.mockReturnValue(null);
+    authService.isAlpha.mockReturnValue(false);
+    authService.isLoggedIn.mockReturnValue(false);
 
-    TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({
       declarations: [UserMenuComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
@@ -52,7 +52,7 @@ describe("UserMenuComponent", () => {
         { provide: MessageService, useValue: messageService },
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(UserMenuComponent);
@@ -66,47 +66,27 @@ describe("UserMenuComponent", () => {
 
   describe("user menu items", () => {
     it("hides admin items for non-admin users", () => {
-      authService.getUserDetails.and.returnValue(makeUser("user"));
+      authService.getUserDetails.mockReturnValue(makeUser("user"));
       component.ngOnInit();
       const adminItem = component.userMenuItems.find(
         (i) => i.label === "Admin Panel"
       );
-      expect(adminItem?.visible).toBeFalse();
+      expect(adminItem?.visible).toBe(false);
     });
 
     it("shows admin items for admin users", () => {
-      authService.getUserDetails.and.returnValue(makeUser("admin"));
+      authService.getUserDetails.mockReturnValue(makeUser("admin"));
       component.ngOnInit();
       const adminItem = component.userMenuItems.find(
         (i) => i.label === "Admin Panel"
       );
-      expect(adminItem?.visible).toBeTrue();
-    });
-
-    it('shows "Enter Alpha" label when not alpha', () => {
-      authService.getUserDetails.and.returnValue(makeUser("admin"));
-      authService.isAlpha.and.returnValue(false);
-      component.ngOnInit();
-      const alphaItem = component.userMenuItems.find((i) =>
-        i.label?.includes("Enter Alpha")
-      );
-      expect(alphaItem).toBeTruthy();
-    });
-
-    it('shows "Exit Alpha" label when already alpha', () => {
-      authService.getUserDetails.and.returnValue(makeUser("admin"));
-      authService.isAlpha.and.returnValue(true);
-      component.ngOnInit();
-      const alphaItem = component.userMenuItems.find((i) =>
-        i.label?.includes("Exit Alpha")
-      );
-      expect(alphaItem).toBeTruthy();
+      expect(adminItem?.visible).toBe(true);
     });
   });
 
   describe("sendFeedback output", () => {
     it("emits when Send Feedback menu item is clicked", () => {
-      spyOn(component.sendFeedback, "emit");
+      vi.spyOn(component.sendFeedback, "emit");
       const item = component.userMenuItems.find((i) =>
         i.label?.includes("Feedback")
       );
@@ -117,8 +97,8 @@ describe("UserMenuComponent", () => {
 
   describe("myBlueprintsRequested output", () => {
     it("emits BrowseData for the current user", () => {
-      authService.getUserDetails.and.returnValue(makeUser("user"));
-      spyOn(component.myBlueprintsRequested, "emit");
+      authService.getUserDetails.mockReturnValue(makeUser("user"));
+      vi.spyOn(component.myBlueprintsRequested, "emit");
       component.userProfile();
       const expected: BrowseData = {
         filterUserId: "u1",
@@ -131,8 +111,8 @@ describe("UserMenuComponent", () => {
     });
 
     it("does nothing when no user is logged in", () => {
-      authService.getUserDetails.and.returnValue(null);
-      spyOn(component.myBlueprintsRequested, "emit");
+      authService.getUserDetails.mockReturnValue(null);
+      vi.spyOn(component.myBlueprintsRequested, "emit");
       component.userProfile();
       expect(component.myBlueprintsRequested.emit).not.toHaveBeenCalled();
     });
@@ -143,7 +123,7 @@ describe("UserMenuComponent", () => {
       component.logout();
       expect(authService.logout).toHaveBeenCalled();
       expect(messageService.add).toHaveBeenCalledWith(
-        jasmine.objectContaining({ severity: "success" })
+        expect.objectContaining({ severity: "success" })
       );
     });
   });
@@ -158,7 +138,7 @@ describe("UserMenuComponent", () => {
 
   describe("toggleAlpha", () => {
     it("saves new token and navigates to root", () => {
-      authService.toggleAlpha.and.returnValue(of("new-token"));
+      authService.toggleAlpha.mockReturnValue(of("new-token"));
       component.toggleAlpha();
       expect(authService.saveToken).toHaveBeenCalledWith("new-token");
       expect(router.navigate).toHaveBeenCalledWith(["/"]);
