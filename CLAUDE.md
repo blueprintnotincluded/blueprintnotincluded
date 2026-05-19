@@ -109,7 +109,7 @@ Copy `.env.sample` to `.env` and configure:
 
 ## Database
 
-Uses MongoDB 4.2 with Mongoose models in `app/api/models/`:
+Uses MongoDB 7.0.34 (patch-pinned to match DigitalOcean production) with Mongoose models in `app/api/models/`:
 - `blueprint.ts` - Blueprint documents
 - `user.ts` - User accounts
 

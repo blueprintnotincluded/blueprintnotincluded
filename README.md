@@ -42,9 +42,9 @@ Build the image
 
 `docker build . -t bpni:latest`
 
-Run mongodb (mongoose version only allows mongo version 4.2)
+Run mongodb (matches DigitalOcean production)
 
-`docker run -d -p 27017:27017 mongo:4.2`
+`docker run -d -p 27017:27017 mongo:7.0.34`
 
 Run the image and backend
 

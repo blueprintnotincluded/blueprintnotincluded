@@ -37,7 +37,7 @@ test_backend() {
     
     # Start MongoDB in Docker
     print_status "Starting MongoDB container..."
-    docker run -d --name test-mongo -p 27017:27017 mongo:4.2
+    docker run -d --name test-mongo -p 27017:27017 mongo:7.0.34
     
     # Wait for MongoDB to be ready
     print_status "Waiting for MongoDB to be ready..."
