@@ -16,7 +16,7 @@ docker compose up -d database mailhog
 
 # Wait for MongoDB to be ready
 echo "⏳ Waiting for MongoDB to be ready..."
-until docker compose exec database mongo --eval "print('MongoDB is ready')" >/dev/null 2>&1; do
+until docker compose exec database mongosh --quiet --eval "db.adminCommand('ping').ok" >/dev/null 2>&1; do
   sleep 2
 done
 

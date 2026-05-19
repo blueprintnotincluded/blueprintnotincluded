@@ -21,11 +21,11 @@ jobs:
     
     services:
       mongodb:
-        image: mongo:4.2
+        image: mongo:7.0.34
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongo --eval 'db.adminCommand(\"ismaster\")'"
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok' | grep 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5

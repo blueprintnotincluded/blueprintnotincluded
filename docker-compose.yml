@@ -33,7 +33,7 @@ services:
       - "3000:3000"
 
   database:
-    image: mongo:4.2
+    image: mongo:7.0.34
     container_name: bpni-mongodb
     environment:
       - "MONGO_INITDB_DATABASE=blueprintnotincluded"
