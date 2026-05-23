@@ -37,7 +37,7 @@ chmod +x scripts/test-ci-locally.sh
 
 ```bash
 # Start MongoDB
-docker run -d --name test-mongo -p 27017:27017 mongo:7.0.34
+docker run -d --name test-mongo -p 27017:27017 mongo:8.0.23
 
 # Wait for it to be ready
 until nc -z localhost 27017; do echo "Waiting..."; sleep 2; done
