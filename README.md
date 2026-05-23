@@ -42,9 +42,9 @@ Build the image
 
 `docker build . -t bpni:latest`
 
-Run mongodb (matches DigitalOcean production)
+Run mongodb
 
-`docker run -d -p 27017:27017 mongo:7.0.34`
+`docker run -d -p 27017:27017 mongo:8.0.23`
 
 Run the image and backend
 
