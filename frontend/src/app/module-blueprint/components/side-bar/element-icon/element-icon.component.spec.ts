@@ -1,8 +1,9 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
 
+import { BuildableElement } from "../../../../../../../lib/index";
 import { ElementIconComponent } from "./element-icon.component";
 
-xdescribe("ElementIconComponent", () => {
+describe("ElementIconComponent", () => {
   let component: ElementIconComponent;
   let fixture: ComponentFixture<ElementIconComponent>;
 
@@ -15,6 +16,12 @@ xdescribe("ElementIconComponent", () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ElementIconComponent);
     component = fixture.componentInstance;
+    const element = new BuildableElement();
+    element.id = "None";
+    element.name = "None";
+    component.element = element;
+    component.width = "16px";
+    component.height = "16px";
     fixture.detectChanges();
   });
 
