@@ -1,8 +1,9 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
 
+import { BlueprintItem } from "../../../../../../../../lib/index";
 import { UiScreenContainerComponent } from "./ui-screen-container.component";
 
-xdescribe("UiScreenContainerComponent", () => {
+describe("UiScreenContainerComponent", () => {
   let component: UiScreenContainerComponent;
   let fixture: ComponentFixture<UiScreenContainerComponent>;
 
@@ -15,6 +16,9 @@ xdescribe("UiScreenContainerComponent", () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(UiScreenContainerComponent);
     component = fixture.componentInstance;
+    component.blueprintItem = {
+      oniItem: { uiScreens: [] },
+    } as unknown as BlueprintItem;
     fixture.detectChanges();
   });
 
