@@ -1,20 +1,16 @@
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
-import {
-  provideHttpClient,
-  withInterceptorsFromDi,
-} from "@angular/common/http";
 
+import { GameStringService } from "../../../services/game-string-service";
 import { TemperatureScaleComponent } from "./temperature-scale.component";
 
-xdescribe("TemperatureScaleComponent", () => {
+describe("TemperatureScaleComponent", () => {
   let component: TemperatureScaleComponent;
   let fixture: ComponentFixture<TemperatureScaleComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [TemperatureScaleComponent],
-      imports: [],
-      providers: [provideHttpClient(withInterceptorsFromDi())],
+      providers: [{ provide: GameStringService, useValue: { dict: {} } }],
     }).compileComponents();
   }));
 
