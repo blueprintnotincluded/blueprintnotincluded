@@ -1,30 +1,22 @@
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
-import {
-  provideHttpClient,
-  withInterceptorsFromDi,
-} from "@angular/common/http";
-import { RouterTestingModule } from "@angular/router/testing";
 
-import { BuildTool } from "src/app/module-blueprint/common/tools/build-tool";
-import { ElementReport } from "src/app/module-blueprint/common/tools/element-report";
+import { SameItemCollection } from "src/app/module-blueprint/common/tools/same-item-collection";
+import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
+import { ToolService } from "src/app/module-blueprint/services/tool-service";
 import { ItemCollectionInfoComponent } from "./item-collection-info.component";
-import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
-import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
 
-xdescribe("ItemCollectionInfoComponent", () => {
+describe("ItemCollectionInfoComponent", () => {
   let component: ItemCollectionInfoComponent;
   let fixture: ComponentFixture<ItemCollectionInfoComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ItemCollectionInfoComponent],
-      imports: [RouterTestingModule.withRoutes([])],
+      schemas: [NO_ERRORS_SCHEMA],
       providers: [
-        AuthenticationService,
-        BuildTool,
-        ElementReport,
-        SelectTool,
-        provideHttpClient(withInterceptorsFromDi()),
+        { provide: BlueprintService, useValue: {} },
+        { provide: ToolService, useValue: {} },
       ],
     }).compileComponents();
   }));
@@ -32,6 +24,21 @@ xdescribe("ItemCollectionInfoComponent", () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ItemCollectionInfoComponent);
     component = fixture.componentInstance;
+    // The template reads a wide slice of the collection; zIndex is kept
+    // off the conduit values so showPipeContent stays false.
+    component.itemCollection = {
+      items: [{ buildableElements: [{ hasTag: () => false }] }],
+      oniItem: {
+        isInfo: false,
+        iconUrl: null,
+        buildableElementsArray: [],
+        name: "Test",
+        zIndex: -1,
+      },
+      nbElements: 0,
+      temperatureWarning: false,
+      subscribeSelected: () => {},
+    } as unknown as SameItemCollection;
     fixture.detectChanges();
   });
 
