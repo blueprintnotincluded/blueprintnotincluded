@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/vitest",
+    "skipLibCheck": true,
+    "typeRoots": ["node_modules/@types", "node_modules"],
+    "types": ["vitest/globals", "node", "@angular/localize"]
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": false
+  },
+  "files": ["src/polyfills.ts", "src/test-setup.ts"],
+  "include": [
+    "src/**/*.pipe.spec.ts",
+    "src/**/component-canvas.component.spec.ts",
+    "src/**/module-blueprint.module.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}
