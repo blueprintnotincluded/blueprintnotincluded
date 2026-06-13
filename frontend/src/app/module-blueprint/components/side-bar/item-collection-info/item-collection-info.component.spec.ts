@@ -35,7 +35,7 @@ describe("ItemCollectionInfoComponent", () => {
         name: "Test",
         zIndex: -1,
       },
-      nbElements: 0,
+      nbElements: [0],
       temperatureWarning: false,
       subscribeSelected: () => {},
     } as unknown as SameItemCollection;
