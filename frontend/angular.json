@@ -133,6 +133,20 @@
             "scripts": ["node_modules/pixi.js-legacy/dist/pixi-legacy.min.js"]
           }
         },
+        "test-vitest": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "blueprintnotincluded:build",
+            "runner": "vitest",
+            "tsConfig": "tsconfig.vitest.json",
+            "setupFiles": ["src/test-setup.ts"],
+            "include": [
+              "src/**/*.pipe.spec.ts",
+              "src/**/component-canvas.component.spec.ts",
+              "src/**/module-blueprint.module.spec.ts"
+            ]
+          }
+        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {

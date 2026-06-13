@@ -1,4 +1,4 @@
-import { ElementRef } from "@angular/core";
+import { ElementRef, Injectable } from "@angular/core";
 import { ComponentCanvasComponent } from "../components/component-canvas/component-canvas.component";
 import {
   BlueprintItem,
@@ -12,6 +12,7 @@ import { ComponentMenuComponent } from "../components/component-menu/component-m
 import {} from "pixi.js-legacy";
 declare var PIXI: any;
 
+@Injectable()
 export class DrawPixi implements PixiUtil {
   getUtilityGraphicsBack() {
     return this.utilityGraphicsBack;

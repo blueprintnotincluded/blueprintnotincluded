@@ -45,6 +45,7 @@ declare var PIXI: any;
   templateUrl: "./component-canvas.component.html",
   styleUrls: ["./component-canvas.component.css"],
   standalone: false,
+  providers: [DrawPixi],
 })
 export class ComponentCanvasComponent
   implements OnInit, OnDestroy, IObsCameraChanged
@@ -75,9 +76,10 @@ export class ComponentCanvasComponent
   constructor(
     private ngZone: NgZone,
     private blueprintService: BlueprintService,
-    private toolService: ToolService
+    private toolService: ToolService,
+    drawPixi: DrawPixi
   ) {
-    this.drawPixi = new DrawPixi();
+    this.drawPixi = drawPixi;
     this.cameraService = new CameraService(this.drawPixi.getNewContainer());
     this.cameraService.subscribeCameraChange(this);
   }

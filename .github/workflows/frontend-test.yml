@@ -60,3 +60,35 @@ jobs:
           name: frontend-build
           path: frontend/dist/
           retention-days: 30
+
+  # Parallel runner being validated as a replacement for Karma (jsdom, no real
+  # browser — see spec/FRONTEND_TEST_RUNNER.md). Currently runs the migrated
+  # subset; the include scope grows as specs are ported off Jasmine/Karma.
+  frontend-test-vitest:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Backend for lib build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.4'
+          cache: 'npm'
+
+      - name: Install backend dependencies (for lib build)
+        run: npm ci
+
+      - name: Build shared library
+        run: npm run build:lib
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run frontend tests (Vitest / jsdom)
+        run: |
+          cd frontend
+          npm run test:vitest
