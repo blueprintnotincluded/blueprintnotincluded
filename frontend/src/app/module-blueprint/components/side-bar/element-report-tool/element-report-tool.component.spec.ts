@@ -1,30 +1,35 @@
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
-import {
-  provideHttpClient,
-  withInterceptorsFromDi,
-} from "@angular/common/http";
-import { RouterTestingModule } from "@angular/router/testing";
 
-import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
-import { BuildTool } from "src/app/module-blueprint/common/tools/build-tool";
-import { ElementReport } from "src/app/module-blueprint/common/tools/element-report";
+import { CameraService } from "../../../../../../../lib/index";
+import { ToolService } from "src/app/module-blueprint/services/tool-service";
+import { AddMassUnitPipe } from "src/app/module-blueprint/pipes/add-mass-unit.pipe";
+import { FilterElementGasPipe } from "src/app/module-blueprint/pipes/filter-element-gas.pipe";
+import { FilterElementLiquidPipe } from "src/app/module-blueprint/pipes/filter-element-liquid.pipe";
+import { FilterElementSolidPipe } from "src/app/module-blueprint/pipes/filter-element-solid.pipe";
 import { ElementReportToolComponent } from "./element-report-tool.component";
-import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
 
-xdescribe("ElementReportToolComponent", () => {
+describe("ElementReportToolComponent", () => {
   let component: ElementReportToolComponent;
   let fixture: ComponentFixture<ElementReportToolComponent>;
 
   beforeEach(waitForAsync(() => {
+    // The constructor reads the CameraService singleton.
+    new CameraService(null);
+
     TestBed.configureTestingModule({
-      declarations: [ElementReportToolComponent],
-      imports: [RouterTestingModule.withRoutes([])],
+      // The pipes the template uses must be declared even under
+      // NO_ERRORS_SCHEMA (schemas don't cover pipes).
+      declarations: [
+        ElementReportToolComponent,
+        AddMassUnitPipe,
+        FilterElementGasPipe,
+        FilterElementLiquidPipe,
+        FilterElementSolidPipe,
+      ],
+      schemas: [NO_ERRORS_SCHEMA],
       providers: [
-        AuthenticationService,
-        BuildTool,
-        ElementReport,
-        SelectTool,
-        provideHttpClient(withInterceptorsFromDi()),
+        { provide: ToolService, useValue: { elementReport: { data: [] } } },
       ],
     }).compileComponents();
   }));
