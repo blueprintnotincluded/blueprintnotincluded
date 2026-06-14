@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { LOCALE_ID, NO_ERRORS_SCHEMA } from "@angular/core";
 import { Router } from "@angular/router";
 import { MessageService } from "primeng/api";
@@ -13,12 +13,12 @@ describe("ComponentMenuComponent", () => {
   let component: ComponentMenuComponent;
   let fixture: ComponentFixture<ComponentMenuComponent>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(async () => {
     // The component subscribes to the CameraService singleton in its
     // constructor; instantiate one so the static accessor is populated.
     new CameraService(null);
 
-    TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({
       declarations: [ComponentMenuComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
@@ -40,7 +40,7 @@ describe("ComponentMenuComponent", () => {
         { provide: LOCALE_ID, useValue: "en-US" },
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ComponentMenuComponent);

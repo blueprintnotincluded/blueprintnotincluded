@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import {
   provideHttpClient,
   withInterceptorsFromDi,
@@ -12,8 +12,8 @@ describe("LikeWidgetComponent", () => {
   let component: LikeWidgetComponent;
   let fixture: ComponentFixture<LikeWidgetComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [LikeWidgetComponent],
       imports: [RouterTestingModule.withRoutes([])],
       providers: [
@@ -21,7 +21,7 @@ describe("LikeWidgetComponent", () => {
         provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(LikeWidgetComponent);

@@ -1,4 +1,5 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import {
   provideHttpClient,
   withInterceptorsFromDi,
@@ -15,9 +16,10 @@ describe("ComponentSideSelectionToolComponent", () => {
   let component: ComponentSideSelectionToolComponent;
   let fixture: ComponentFixture<ComponentSideSelectionToolComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ComponentSideSelectionToolComponent],
+      schemas: [NO_ERRORS_SCHEMA],
       imports: [RouterTestingModule.withRoutes([])],
       providers: [
         AuthenticationService,
@@ -27,7 +29,7 @@ describe("ComponentSideSelectionToolComponent", () => {
         provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ComponentSideSelectionToolComponent);

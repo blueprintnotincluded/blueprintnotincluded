@@ -140,11 +140,7 @@
             "runner": "vitest",
             "tsConfig": "tsconfig.vitest.json",
             "setupFiles": ["src/test-setup.ts"],
-            "include": [
-              "src/**/*.pipe.spec.ts",
-              "src/**/component-canvas.component.spec.ts",
-              "src/**/module-blueprint.module.spec.ts"
-            ]
+            "include": ["src/**/*.spec.ts"]
           }
         },
         "lint": {

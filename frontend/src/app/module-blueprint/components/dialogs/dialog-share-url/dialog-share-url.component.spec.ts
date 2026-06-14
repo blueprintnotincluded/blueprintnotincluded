@@ -1,4 +1,5 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import {
   provideHttpClient,
   withInterceptorsFromDi,
@@ -13,9 +14,10 @@ describe("DialogShareUrlComponent", () => {
   let component: DialogShareUrlComponent;
   let fixture: ComponentFixture<DialogShareUrlComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [DialogShareUrlComponent],
+      schemas: [NO_ERRORS_SCHEMA],
       imports: [RouterTestingModule.withRoutes([])],
       providers: [
         AuthenticationService,
@@ -23,7 +25,7 @@ describe("DialogShareUrlComponent", () => {
         provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DialogShareUrlComponent);

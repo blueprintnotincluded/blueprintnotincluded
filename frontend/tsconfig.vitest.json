@@ -10,10 +10,5 @@
     "strictTemplates": false
   },
   "files": ["src/polyfills.ts", "src/test-setup.ts"],
-  "include": [
-    "src/**/*.pipe.spec.ts",
-    "src/**/component-canvas.component.spec.ts",
-    "src/**/module-blueprint.module.spec.ts",
-    "src/**/*.d.ts"
-  ]
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }

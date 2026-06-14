@@ -8,25 +8,25 @@ import {
   withInterceptorsFromDi,
 } from "@angular/common/http";
 
+type VersionServiceSpy = {
+  getVersionString: ReturnType<typeof vi.fn>;
+  getDetailedVersionInfo: ReturnType<typeof vi.fn>;
+};
+
 describe("DialogAboutComponent", () => {
   let component: DialogAboutComponent;
   let fixture: ComponentFixture<DialogAboutComponent>;
-  let mockVersionService: jasmine.SpyObj<VersionService>;
+  let mockVersionService: VersionServiceSpy;
 
   beforeEach(async () => {
-    const versionServiceSpy = jasmine.createSpyObj("VersionService", [
-      "getVersionString",
-      "getDetailedVersionInfo",
-    ]);
-
-    versionServiceSpy.getVersionString.and.returnValue(
-      Promise.resolve("Version 1.2.3 (abc123d)")
-    );
-    versionServiceSpy.getDetailedVersionInfo.and.returnValue(
-      Promise.resolve(
-        "Version: 1.2.3\nEnvironment: production\nBuild Time: 1/15/2024\nCommit: abc123def4567890123456789012345678901234\nBranch: main\nNode.js: v20.18.0"
-      )
-    );
+    const versionServiceSpy: VersionServiceSpy = {
+      getVersionString: vi.fn().mockResolvedValue("Version 1.2.3 (abc123d)"),
+      getDetailedVersionInfo: vi
+        .fn()
+        .mockResolvedValue(
+          "Version: 1.2.3\nEnvironment: production\nBuild Time: 1/15/2024\nCommit: abc123def4567890123456789012345678901234\nBranch: main\nNode.js: v20.18.0"
+        ),
+    };
 
     await TestBed.configureTestingModule({
       declarations: [DialogAboutComponent],
@@ -42,7 +42,7 @@ describe("DialogAboutComponent", () => {
     component = fixture.componentInstance;
     mockVersionService = TestBed.inject(
       VersionService
-    ) as jasmine.SpyObj<VersionService>;
+    ) as unknown as VersionServiceSpy;
   });
 
   it("should create", () => {
@@ -82,11 +82,11 @@ describe("DialogAboutComponent", () => {
   });
 
   it("should handle version service errors gracefully", async () => {
-    mockVersionService.getVersionString.and.returnValue(
-      Promise.resolve("Version unknown (Error: Failed to fetch)")
+    mockVersionService.getVersionString.mockResolvedValue(
+      "Version unknown (Error: Failed to fetch)"
     );
-    mockVersionService.getDetailedVersionInfo.and.returnValue(
-      Promise.resolve("Version: unknown\nError: Failed to fetch")
+    mockVersionService.getDetailedVersionInfo.mockResolvedValue(
+      "Version: unknown\nError: Failed to fetch"
     );
 
     component.ngOnInit();
@@ -99,8 +99,8 @@ describe("DialogAboutComponent", () => {
   });
 
   it("should call loadVersionInfo on ngOnInit", () => {
-    spyOn(component as any, "loadVersionInfo");
+    const spy = vi.spyOn(component as any, "loadVersionInfo");
     component.ngOnInit();
-    expect((component as any).loadVersionInfo).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalled();
   });
 });

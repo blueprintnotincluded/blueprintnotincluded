@@ -1,6 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import { DialogModule } from "primeng/dialog";
 
@@ -12,8 +12,8 @@ describe("DialogBrowseComponent", () => {
   let component: DialogBrowseComponent;
   let fixture: ComponentFixture<DialogBrowseComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [DialogBrowseComponent],
       // DialogModule is real so the #browseDialog ViewChild (whose onShow
       // ngOnInit subscribes to) resolves; everything else is shallow.
@@ -28,7 +28,7 @@ describe("DialogBrowseComponent", () => {
         { provide: BlueprintService, useValue: {} },
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DialogBrowseComponent);

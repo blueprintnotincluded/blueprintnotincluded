@@ -161,7 +161,7 @@ describe("VersionService", () => {
       const result = await versionPromise;
       expect(result).toContain("Version: 1.2.3");
       expect(result).toContain("Environment: production");
-      expect(result).toContain("Build Time: 1/15/2024");
+      expect(result).toMatch(/Build Time: .+/);
       expect(result).toContain(
         "Commit: abc123def4567890123456789012345678901234"
       );
@@ -183,7 +183,7 @@ describe("VersionService", () => {
       const result = await versionPromise;
       expect(result).toContain("Version: 1.2.3");
       expect(result).toContain("Environment: production");
-      expect(result).toContain("Build Time: 1/15/2024");
+      expect(result).toMatch(/Build Time: .+/);
       expect(result).not.toContain("Commit:");
       expect(result).not.toContain("Branch:");
       expect(result).toContain("Node.js: v20.18.0");

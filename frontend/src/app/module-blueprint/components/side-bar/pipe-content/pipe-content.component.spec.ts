@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import { CheckboxModule } from "primeng/checkbox";
 import { PopoverModule } from "primeng/popover";
@@ -12,8 +12,8 @@ describe("PipeContentComponent", () => {
   let component: PipeContentComponent;
   let fixture: ComponentFixture<PipeContentComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [
         PipeContentComponent,
         ElementIconComponent,
@@ -21,7 +21,7 @@ describe("PipeContentComponent", () => {
       ],
       imports: [FormsModule, CheckboxModule, PopoverModule],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     BuildableElement.init();

@@ -1,4 +1,5 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 
 import {
   BActiveRangeSideScreen,
@@ -13,11 +14,12 @@ describe("ActiveRangeScreenComponent", () => {
   let component: ActiveRangeScreenComponent;
   let fixture: ComponentFixture<ActiveRangeScreenComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ActiveRangeScreenComponent],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ActiveRangeScreenComponent);

@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import { CheckboxModule } from "primeng/checkbox";
 import { InputTextModule } from "primeng/inputtext";
@@ -11,12 +11,12 @@ describe("CellElementPickerComponent", () => {
   let component: CellElementPickerComponent;
   let fixture: ComponentFixture<CellElementPickerComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [CellElementPickerComponent, ElementIconComponent],
       imports: [FormsModule, CheckboxModule, InputTextModule],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     BuildableElement.init();
