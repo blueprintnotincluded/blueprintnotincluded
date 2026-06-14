@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import { SliderModule } from "primeng/slider";
 
@@ -9,12 +9,12 @@ describe("TemperaturePickerComponent", () => {
   let component: TemperaturePickerComponent;
   let fixture: ComponentFixture<TemperaturePickerComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [TemperaturePickerComponent],
       imports: [FormsModule, SliderModule],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TemperaturePickerComponent);

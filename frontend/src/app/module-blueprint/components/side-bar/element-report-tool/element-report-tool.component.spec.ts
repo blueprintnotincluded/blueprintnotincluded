@@ -1,5 +1,5 @@
 import { NO_ERRORS_SCHEMA } from "@angular/core";
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
 import { CameraService } from "../../../../../../../lib/index";
 import { ToolService } from "src/app/module-blueprint/services/tool-service";
@@ -13,11 +13,11 @@ describe("ElementReportToolComponent", () => {
   let component: ElementReportToolComponent;
   let fixture: ComponentFixture<ElementReportToolComponent>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(async () => {
     // The constructor reads the CameraService singleton.
     new CameraService(null);
 
-    TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({
       // The pipes the template uses must be declared even under
       // NO_ERRORS_SCHEMA (schemas don't cover pipes).
       declarations: [
@@ -32,7 +32,7 @@ describe("ElementReportToolComponent", () => {
         { provide: ToolService, useValue: { elementReport: { data: [] } } },
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ElementReportToolComponent);

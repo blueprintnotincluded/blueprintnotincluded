@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import { ColorPickerModule } from "primeng/colorpicker";
 import { InputTextModule } from "primeng/inputtext";
@@ -12,12 +12,12 @@ describe("InfoInputComponent", () => {
   let component: InfoInputComponent;
   let fixture: ComponentFixture<InfoInputComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [InfoInputComponent, InfoInputIconComponent],
       imports: [FormsModule, ColorPickerModule, InputTextModule, PopoverModule],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(InfoInputComponent);

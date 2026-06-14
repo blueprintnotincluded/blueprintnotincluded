@@ -1,5 +1,5 @@
 import { NO_ERRORS_SCHEMA } from "@angular/core";
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
 import { SameItemCollection } from "src/app/module-blueprint/common/tools/same-item-collection";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
@@ -10,8 +10,8 @@ describe("ItemCollectionInfoComponent", () => {
   let component: ItemCollectionInfoComponent;
   let fixture: ComponentFixture<ItemCollectionInfoComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ItemCollectionInfoComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
@@ -19,7 +19,7 @@ describe("ItemCollectionInfoComponent", () => {
         { provide: ToolService, useValue: {} },
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ItemCollectionInfoComponent);

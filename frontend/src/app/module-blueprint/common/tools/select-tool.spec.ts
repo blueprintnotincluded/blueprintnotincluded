@@ -14,7 +14,7 @@ describe("SelectTool", () => {
       },
     };
     mockDrawPixi = {
-      drawTileRectangle: jasmine.createSpy("drawTileRectangle"),
+      drawTileRectangle: vi.fn(),
     };
     mockCamera = {
       cameraOffset: { x: 0, y: 0 },
@@ -33,7 +33,7 @@ describe("SelectTool", () => {
       tool.drag(new Vector2(1, 5), new Vector2(4, 2));
       tool.draw(mockDrawPixi, mockCamera);
       expect(mockDrawPixi.drawTileRectangle).toHaveBeenCalledTimes(1);
-      const args = mockDrawPixi.drawTileRectangle.calls.mostRecent().args;
+      const args = mockDrawPixi.drawTileRectangle.mock.calls.at(-1);
       const [
         camera,
         topLeft,
@@ -63,7 +63,7 @@ describe("SelectTool", () => {
       tool.drag(new Vector2(5, 1), new Vector2(1, 5));
       tool.draw(mockDrawPixi, mockCamera);
       const [, topLeft, bottomRight] =
-        mockDrawPixi.drawTileRectangle.calls.mostRecent().args;
+        mockDrawPixi.drawTileRectangle.mock.calls.at(-1);
       expect(topLeft.x).toBeLessThanOrEqual(bottomRight.x);
       expect(topLeft.y).toBeGreaterThanOrEqual(bottomRight.y);
     });

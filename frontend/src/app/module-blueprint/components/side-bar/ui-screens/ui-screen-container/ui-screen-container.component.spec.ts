@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
 import { BlueprintItem } from "../../../../../../../../lib/index";
 import { UiScreenContainerComponent } from "./ui-screen-container.component";
@@ -7,11 +7,11 @@ describe("UiScreenContainerComponent", () => {
   let component: UiScreenContainerComponent;
   let fixture: ComponentFixture<UiScreenContainerComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [UiScreenContainerComponent],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(UiScreenContainerComponent);

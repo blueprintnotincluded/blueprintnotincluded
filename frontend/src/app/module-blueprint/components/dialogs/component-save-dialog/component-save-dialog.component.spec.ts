@@ -1,11 +1,4 @@
-import {
-  waitForAsync,
-  ComponentFixture,
-  TestBed,
-  fakeAsync,
-  tick,
-  discardPeriodicTasks,
-} from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import {
   provideHttpClient,
   withInterceptorsFromDi,
@@ -27,8 +20,8 @@ describe("ComponentSaveDialogComponent", () => {
   let component: ComponentSaveDialogComponent;
   let fixture: ComponentFixture<ComponentSaveDialogComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ComponentSaveDialogComponent],
       imports: [
         CommonModule,
@@ -46,7 +39,7 @@ describe("ComponentSaveDialogComponent", () => {
         provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ComponentSaveDialogComponent);
@@ -58,15 +51,19 @@ describe("ComponentSaveDialogComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should render save button in dialog footer when opened", fakeAsync(() => {
-    component.showDialog();
-    fixture.detectChanges();
-    tick(500);
-    fixture.detectChanges();
-    discardPeriodicTasks();
+  it("should render save button in dialog footer when opened", async () => {
+    vi.useFakeTimers();
+    try {
+      component.showDialog();
+      fixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(500);
+      fixture.detectChanges();
 
-    // PrimeNG dialog appends to document.body as an overlay
-    const saveButton = document.body.querySelector("button[type='submit']");
-    expect(saveButton).not.toBeNull();
-  }));
+      // PrimeNG dialog appends to document.body as an overlay
+      const saveButton = document.body.querySelector("button[type='submit']");
+      expect(saveButton).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

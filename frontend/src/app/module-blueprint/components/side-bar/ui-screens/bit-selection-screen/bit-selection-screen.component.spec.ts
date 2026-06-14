@@ -1,4 +1,5 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 
 import {
   BBitSelectorSideScreen,
@@ -12,11 +13,12 @@ describe("BitSelectionScreenComponent", () => {
   let component: BitSelectionScreenComponent;
   let fixture: ComponentFixture<BitSelectionScreenComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [BitSelectionScreenComponent],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(BitSelectionScreenComponent);

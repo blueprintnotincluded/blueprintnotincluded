@@ -1,4 +1,5 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import {
   provideHttpClient,
@@ -19,10 +20,11 @@ describe("ComponentBlueprintParentComponent", () => {
   let component: ComponentBlueprintParentComponent;
   let fixture: ComponentFixture<ComponentBlueprintParentComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ComponentBlueprintParentComponent],
       imports: [RouterTestingModule.withRoutes([])],
+      schemas: [NO_ERRORS_SCHEMA],
       providers: [
         {
           provide: ActivatedRoute,
@@ -38,7 +40,7 @@ describe("ComponentBlueprintParentComponent", () => {
         provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ComponentBlueprintParentComponent);

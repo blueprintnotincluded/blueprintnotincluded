@@ -1,4 +1,4 @@
-import { waitForAsync, ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import { SliderModule } from "primeng/slider";
 
@@ -12,12 +12,12 @@ describe("SingleSliderScreenComponent", () => {
   let component: SingleSliderScreenComponent;
   let fixture: ComponentFixture<SingleSliderScreenComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [SingleSliderScreenComponent],
       imports: [FormsModule, SliderModule],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(SingleSliderScreenComponent);
