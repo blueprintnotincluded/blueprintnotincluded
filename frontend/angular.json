@@ -117,28 +117,11 @@
           }
         },
         "test": {
-          "builder": "@ngx-env/builder:karma",
-          "options": {
-            "main": "src/test.ts",
-            "polyfills": ["src/polyfills.ts"],
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "assets": ["src/favicon_blueprint_oxygen.png", "src/assets"],
-            "styles": [
-              "src/styles.css",
-              "node_modules/primeicons/primeicons.css",
-              "node_modules/primeflex/primeflex.css",
-              "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
-            ],
-            "scripts": ["node_modules/pixi.js-legacy/dist/pixi-legacy.min.js"]
-          }
-        },
-        "test-vitest": {
           "builder": "@angular/build:unit-test",
           "options": {
             "buildTarget": "blueprintnotincluded:build",
             "runner": "vitest",
-            "tsConfig": "tsconfig.vitest.json",
+            "tsConfig": "tsconfig.spec.json",
             "setupFiles": ["src/test-setup.ts"],
             "include": ["src/**/*.spec.ts"]
           }
