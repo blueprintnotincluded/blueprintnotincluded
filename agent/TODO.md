@@ -49,18 +49,20 @@ Deferred — no active sprint. Revisit when product direction is clearer.
 ## Future Test Coverage
 
 - **Asset Processing** — generateIcons, generateGroups pipeline tests
-- **Frontend** — `npm run test:coverage` shows the gaps. Priority areas by coverage delta:
-  - **Auth components** (~35–51%): `login-page`, `register-page`, `forgot-password`,
-    `reset-password`, `magic-request/callback`, `verify-email-callback` — form components
-    with submittable state; straightforward to test with mocked `AuthService`
-  - **Services** (~42–52%): `blueprint-service`, `authentification-service`, `tool-service`,
-    `feedback-service` — logic-heavy; add unit tests with mocked `HttpClient`
-  - **Tool logic** (~16–44%): `build-tool`, `select-tool`, `element-report`,
-    `same-item-collection` — pure logic that is testable without a renderer
-  - **Directives** (~31–55%): `draganddrop`, `mousewheel`, `custom-event-manager`,
-    `username-validation` — event-based; testable with synthetic DOM events
-  - **Drawing** (`draw-pixi`, `draw-mini-ui`): low coverage is expected and acceptable —
-    these require a full PIXI mock; defer until the mock patterns are established
+- **Frontend** — Coverage as of 2026-06-16: Statements 59.71%, Branches 88.5%, Functions 45%
+  - ✅ **Auth components**: `login-page`, `register-page`, `forgot-password`, `reset-password`,
+    `magic-request`, `magic-callback`, `verify-email-callback` — all spec'd with mocked `AuthService`
+  - ✅ **Services**: `authentification-service`, `tool-service`, `feedback-service` — spec'd
+  - ✅ **Tool logic**: `element-report`, `same-item-collection` — spec'd
+  - ✅ **Directives**: `draganddrop`, `mousewheel`, `username-validation` — spec'd
+  - **High-value deferred** (70% of uncovered code lives here — must crack these to move the needle):
+    - `component-canvas.component.ts` — 555 missed lines (80% uncovered); main draw pipeline, drags PIXI
+    - `component-blueprint-parent.component.ts` — 316 missed lines (56% uncovered)
+    - `build-tool.ts` — 251 missed lines (85% uncovered); pure logic, no PIXI — most tractable next target
+    - `blueprint-service.ts` — 221 missed lines; complex undo stack
+    - `select-tool.ts` — 180 missed lines; complex state machine
+    - `draw-pixi.ts` / `draw-mini-ui.ts` — 147/102 missed, 0 functions hit; defer — requires full PIXI mock
+  - **Remaining directives**: `custom-event-manager` — defer
 
 ---
 
