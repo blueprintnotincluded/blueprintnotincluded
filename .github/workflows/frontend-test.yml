@@ -2,6 +2,7 @@ name: Frontend Tests
 
 on:
   push:
+    branches: [master]
     paths:
       - 'frontend/**'
       - 'lib/**'
