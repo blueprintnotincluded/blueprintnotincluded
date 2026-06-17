@@ -55,10 +55,10 @@ Deferred — no active sprint. Revisit when product direction is clearer.
   - ✅ **Services**: `authentification-service`, `tool-service`, `feedback-service` — spec'd
   - ✅ **Tool logic**: `element-report`, `same-item-collection` — spec'd
   - ✅ **Directives**: `draganddrop`, `mousewheel`, `username-validation` — spec'd
+  - ✅ **Tool logic**: `build-tool.ts` — 48 tests; connectAToB bitmask, drag step logic, updateBuildCandidateResult, observer pattern
   - **High-value deferred** (70% of uncovered code lives here — must crack these to move the needle):
     - `component-canvas.component.ts` — 555 missed lines (80% uncovered); main draw pipeline, drags PIXI
     - `component-blueprint-parent.component.ts` — 316 missed lines (56% uncovered)
-    - `build-tool.ts` — 251 missed lines (85% uncovered); pure logic, no PIXI — most tractable next target
     - `blueprint-service.ts` — 221 missed lines; complex undo stack
     - `select-tool.ts` — 180 missed lines; complex state machine
     - `draw-pixi.ts` / `draw-mini-ui.ts` — 147/102 missed, 0 functions hit; defer — requires full PIXI mock

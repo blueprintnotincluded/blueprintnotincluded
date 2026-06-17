@@ -142,7 +142,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Date**: 2026-06-16
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ Backend 141 passing (Mocha + Chai) · Frontend Vitest/jsdom, all green
+- **Tests**: ✅ Backend 141 passing (Mocha + Chai) · Frontend 284 passing (Vitest/jsdom), all green
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 
 ### Session Management Files
