@@ -49,8 +49,18 @@ Deferred — no active sprint. Revisit when product direction is clearer.
 ## Future Test Coverage
 
 - **Asset Processing** — generateIcons, generateGroups pipeline tests
-- **Frontend** — 48 Angular tests exist (version service, dialogs, pipes); more component units,
-  service tests, and blueprint viewer integration tests needed
+- **Frontend** — `npm run test:coverage` shows the gaps. Priority areas by coverage delta:
+  - **Auth components** (~35–51%): `login-page`, `register-page`, `forgot-password`,
+    `reset-password`, `magic-request/callback`, `verify-email-callback` — form components
+    with submittable state; straightforward to test with mocked `AuthService`
+  - **Services** (~42–52%): `blueprint-service`, `authentification-service`, `tool-service`,
+    `feedback-service` — logic-heavy; add unit tests with mocked `HttpClient`
+  - **Tool logic** (~16–44%): `build-tool`, `select-tool`, `element-report`,
+    `same-item-collection` — pure logic that is testable without a renderer
+  - **Directives** (~31–55%): `draganddrop`, `mousewheel`, `custom-event-manager`,
+    `username-validation` — event-based; testable with synthetic DOM events
+  - **Drawing** (`draw-pixi`, `draw-mini-ui`): low coverage is expected and acceptable —
+    these require a full PIXI mock; defer until the mock patterns are established
 
 ---
 
