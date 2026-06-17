@@ -12,7 +12,9 @@ on:
 jobs:
   frontend-test:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    
+    permissions:
+      code-quality: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -48,6 +50,14 @@ jobs:
         run: |
           cd frontend
           npm run test:coverage
+
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: frontend/coverage/cobertura-coverage.xml
+          language: JavaScript
+          label: frontend
 
       - name: Build frontend
         run: |
