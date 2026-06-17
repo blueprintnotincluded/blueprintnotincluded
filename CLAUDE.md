@@ -132,6 +132,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 **Frontend**: Vitest with jsdom (no real browser). Runner: `@angular/build:unit-test`. Coverage via `@vitest/coverage-v8`.
 - All specs in `frontend/src/**/*.spec.ts`; run with `npm test` from `frontend/`
+- Run a single spec via the `--include` glob: `npm test -- --include='**/login-page.component.spec.ts'`. Do NOT run `vitest`/`ng test` against a bare file path — globals and the Angular TestBed are wired by the builder setup file, so plain `vitest run <file>` fails with `describe is not defined`
 - `npm run test:coverage` generates a text summary + lcov report
 - CI runs `test:coverage` so every PR shows a coverage table in the job log
 - Renderer (`DrawPixi`, PIXI) is always mocked in unit tests — never instantiate real PIXI in specs
