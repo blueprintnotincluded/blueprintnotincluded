@@ -49,14 +49,16 @@ Deferred — no active sprint. Revisit when product direction is clearer.
 ## Future Test Coverage
 
 - **Asset Processing** — generateIcons, generateGroups pipeline tests
-- **Frontend** — Coverage as of 2026-06-16: Statements 59.71%, Branches 88.5%, Functions 45%
+- **Frontend** — Coverage as of 2026-06-16: Statements 65.47%, Branches 89.56%, Functions 53.03%
   - ✅ **Auth components**: `login-page`, `register-page`, `forgot-password`, `reset-password`,
     `magic-request`, `magic-callback`, `verify-email-callback` — all spec'd with mocked `AuthService`
   - ✅ **Services**: `authentification-service`, `tool-service`, `feedback-service` — spec'd
   - ✅ **Tool logic**: `element-report`, `same-item-collection` — spec'd
   - ✅ **Directives**: `draganddrop`, `mousewheel`, `username-validation` — spec'd
   - ✅ **Tool logic**: `build-tool.ts` — 48 tests; connectAToB bitmask, drag step logic, updateBuildCandidateResult, observer pattern
-  - **High-value deferred** (70% of uncovered code lives here — must crack these to move the needle):
+  - ✅ **Services**: `blueprint-service.ts` — 28 tests; undo/redo stack, observer pattern, hashMdb, newBlueprint, handleGetBlueprint
+  - ✅ **Tool logic**: `select-tool.ts` — extended to 45 tests; showTool, deselectAll, currentMultipleSelectionIndex, itemGroupeNext/Previous, switchFrom/To, leftClick, rightClick, keyDown, buildingsDestroy, destroyAll, selectFromBox, selectAll, selectThis, selectEveryInfo
+  - **High-value deferred** (remaining uncovered code):
     - `component-canvas.component.ts` — 555 missed lines (80% uncovered); main draw pipeline, drags PIXI
     - `component-blueprint-parent.component.ts` — 316 missed lines (56% uncovered)
     - `blueprint-service.ts` — 221 missed lines; complex undo stack
