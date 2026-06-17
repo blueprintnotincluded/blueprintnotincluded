@@ -49,7 +49,7 @@ Deferred — no active sprint. Revisit when product direction is clearer.
 ## Future Test Coverage
 
 - **Asset Processing** — generateIcons, generateGroups pipeline tests
-- **Frontend** — Coverage as of 2026-06-16: Statements 68.36%, Branches 90.79%, Functions 56.16%
+- **Frontend** — Coverage as of 2026-06-17: Statements 70.40%, Branches 91.57%, Functions 60.46% (453 specs)
   - ✅ **Auth components**: `login-page`, `register-page`, `forgot-password`, `reset-password`,
     `magic-request`, `magic-callback`, `verify-email-callback` — all spec'd with mocked `AuthService`
   - ✅ **Services**: `authentification-service`, `tool-service`, `feedback-service` — spec'd
