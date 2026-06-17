@@ -50,7 +50,16 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Unit tests run on [Vitest](https://vitest.dev) with jsdom (no real browser) via the `@angular/build:unit-test` builder.
+
+- `npm test` — run the whole suite once (`ng test --no-watch`).
+- `npm run test:coverage` — run with a V8 coverage report.
+- Run a single spec file with the `--include` glob, e.g.
+  `npm test -- --include='**/login-page.component.spec.ts'`.
+
+Specs live in `src/**/*.spec.ts`. Run plain `vitest` directly will fail — the Angular
+TestBed and test globals are wired up by the builder's setup file, so always go through
+`ng test` / `npm test`.
 
 ## Running end-to-end tests
 
