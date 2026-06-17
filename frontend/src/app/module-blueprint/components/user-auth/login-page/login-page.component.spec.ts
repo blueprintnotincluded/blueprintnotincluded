@@ -3,7 +3,7 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Router, ActivatedRoute } from "@angular/router";
-import { of, throwError } from "rxjs";
+import { of, throwError, Subject } from "rxjs";
 import { MessageService } from "primeng/api";
 
 import { LoginPageComponent } from "./login-page.component";
@@ -76,14 +76,20 @@ describe("LoginPageComponent", () => {
       expect(mockAuth.loginWithPassword).not.toHaveBeenCalled();
     });
 
-    it("sets loading true while request is in flight", () => {
+    it("sets loading true while request is in flight, then false when it resolves", () => {
       component.email = "a@b.com";
       component.password = "pass";
-      mockAuth.loginWithPassword.mockReturnValue(
-        of({ kind: "success", token: "t" })
-      );
+      const response$ = new Subject<any>();
+      mockAuth.loginWithPassword.mockReturnValue(response$.asObservable());
+
       component.submit();
-      // loading is reset synchronously in next handler but we can verify saveToken was called
+      // request has not emitted yet — loading must stay true in flight
+      expect(component.loading).toBe(true);
+
+      response$.next({ kind: "success", token: "t" });
+      response$.complete();
+      // response handled — loading resets to false
+      expect(component.loading).toBe(false);
       expect(mockAuth.saveToken).toHaveBeenCalledWith("t");
     });
 
