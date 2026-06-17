@@ -49,15 +49,15 @@ Deferred — no active sprint. Revisit when product direction is clearer.
 ## Future Test Coverage
 
 - **Asset Processing** — generateIcons, generateGroups pipeline tests
-- **Frontend** — Coverage as of 2026-06-16: Statements 65.47%, Branches 89.56%, Functions 53.03%
+- **Frontend** — Coverage as of 2026-06-16: Statements 68.36%, Branches 90.79%, Functions 56.16%
   - ✅ **Auth components**: `login-page`, `register-page`, `forgot-password`, `reset-password`,
     `magic-request`, `magic-callback`, `verify-email-callback` — all spec'd with mocked `AuthService`
   - ✅ **Services**: `authentification-service`, `tool-service`, `feedback-service` — spec'd
   - ✅ **Tool logic**: `element-report`, `same-item-collection` — spec'd
   - ✅ **Directives**: `draganddrop`, `mousewheel`, `username-validation` — spec'd
   - ✅ **Tool logic**: `build-tool.ts` — 48 tests; connectAToB bitmask, drag step logic, updateBuildCandidateResult, observer pattern
-  - ✅ **Services**: `blueprint-service.ts` — 28 tests; undo/redo stack, observer pattern, hashMdb, newBlueprint, handleGetBlueprint
-  - ✅ **Tool logic**: `select-tool.ts` — extended to 45 tests; showTool, deselectAll, currentMultipleSelectionIndex, itemGroupeNext/Previous, switchFrom/To, leftClick, rightClick, keyDown, buildingsDestroy, destroyAll, selectFromBox, selectAll, selectThis, selectEveryInfo
+  - ✅ **Services**: `blueprint-service.ts` — 57 tests; undo/redo stack, observer pattern, hashMdb, newBlueprint, handleGetBlueprint, HTTP methods (getBlueprint, getBlueprints, saveBlueprint, deleteBlueprint, likeBlueprint, openBlueprintFromId), private loaders (loadJsonBlueprint, loadYamlBlueprint), openBlueprintFromUpload
+  - ✅ **Tool logic**: `select-tool.ts` — extended to 62 tests; all prior + reset, selectAllLike (non-element + element), selectEveryElement, addToCollection element grouping, stub no-ops (mouseOut/mouseDown/hover), dragStop null guard, keyDown 'b' with selected item
   - **High-value deferred** (remaining uncovered code):
     - `component-canvas.component.ts` — 555 missed lines (80% uncovered); main draw pipeline, drags PIXI
     - `component-blueprint-parent.component.ts` — 316 missed lines (56% uncovered)

@@ -1,5 +1,6 @@
-import { BlueprintService } from "./blueprint-service";
+import { BlueprintService, BlueprintFileType } from "./blueprint-service";
 import { Blueprint } from "../../../../../lib/index";
+import { of, throwError } from "rxjs";
 
 describe("BlueprintService", () => {
   let service: BlueprintService;
@@ -229,6 +230,352 @@ describe("BlueprintService", () => {
       service.blueprintChanged();
       service.handleGetBlueprint(new Blueprint());
       expect(service.undoStates.length).toBe(1);
+    });
+  });
+
+  describe("handleGetBlueprintError()", () => {
+    it("logs the error to console.error", () => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      service.handleGetBlueprintError("some-error");
+      expect(spy).toHaveBeenCalledWith("some-error");
+      spy.mockRestore();
+    });
+  });
+
+  describe("reloadUndoIndex()", () => {
+    it("does not throw when restoring a state", () => {
+      service.blueprintChanged();
+      service.undoIndex = 0;
+      expect(() => (service as any).reloadUndoIndex()).not.toThrow();
+    });
+
+    it("sets suppressChanges back to false after restoring", () => {
+      service.blueprintChanged();
+      service.undoIndex = 0;
+      (service as any).reloadUndoIndex();
+      expect(service.suppressChanges).toBe(false);
+    });
+  });
+
+  describe("getBlueprint()", () => {
+    it("calls http.get with the correct URL", () => {
+      mockHttp.get.mockReturnValue(of({ data: null }));
+      service.getBlueprint("test-id").subscribe(() => {});
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprint/test-id");
+    });
+
+    it("maps response fields onto the service when data is present", () => {
+      mockHttp.get.mockReturnValue(
+        of({
+          id: "bp-1",
+          name: "My Blueprint",
+          likedByMe: true,
+          nbLikes: 7,
+          data: { blueprintItems: [] },
+        })
+      );
+      let result: any;
+      service.getBlueprint("bp-1").subscribe((bp) => {
+        result = bp;
+      });
+      expect(result).toBeDefined();
+      expect(service.id).toBe("bp-1");
+      expect(service.name).toBe("My Blueprint");
+      expect(service.likedByMe).toBe(true);
+      expect(service.nbLikes).toBe(7);
+    });
+
+    it("returns undefined when response has no data", () => {
+      mockHttp.get.mockReturnValue(of({ data: null }));
+      let result: any = "sentinel";
+      service.getBlueprint("bp-1").subscribe((bp) => {
+        result = bp;
+      });
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("openBlueprintFromId()", () => {
+    it("calls replaceState with /b/<id>", () => {
+      mockHttp.get.mockReturnValue(
+        of({
+          id: "test-id",
+          name: "Test",
+          likedByMe: false,
+          nbLikes: 0,
+          data: { blueprintItems: [] },
+        })
+      );
+      service.openBlueprintFromId("test-id");
+      expect(mockLocation.replaceState).toHaveBeenCalledWith("/b/test-id");
+    });
+
+    it("notifies observers when blueprint loads successfully", () => {
+      const obs = { blueprintChanged: vi.fn() };
+      service.subscribeBlueprintChanged(obs);
+      mockHttp.get.mockReturnValue(
+        of({
+          id: "test-id",
+          name: "Test",
+          likedByMe: false,
+          nbLikes: 0,
+          data: { blueprintItems: [] },
+        })
+      );
+      obs.blueprintChanged.mockClear();
+      service.openBlueprintFromId("test-id");
+      expect(obs.blueprintChanged).toHaveBeenCalled();
+    });
+
+    it("calls handleGetBlueprintError on http error", () => {
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      mockHttp.get.mockReturnValue(
+        throwError(() => new Error("network error"))
+      );
+      service.openBlueprintFromId("bad-id");
+      expect(errorSpy).toHaveBeenCalled();
+      errorSpy.mockRestore();
+    });
+  });
+
+  describe("loadUrlBlueprint()", () => {
+    it("calls http.get with the given url", () => {
+      const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      mockHttp.get.mockReturnValue(of("response-value"));
+      service.loadUrlBlueprint("/some/url");
+      expect(mockHttp.get).toHaveBeenCalledWith("/some/url");
+      spy.mockRestore();
+    });
+
+    it("logs the response value to console.warn", () => {
+      const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      mockHttp.get.mockReturnValue(of("response-value"));
+      service.loadUrlBlueprint("/some/url");
+      expect(spy).toHaveBeenCalledWith("response-value");
+      spy.mockRestore();
+    });
+  });
+
+  describe("getBlueprints()", () => {
+    beforeEach(() => {
+      mockHttp.get.mockReturnValue(of([]));
+    });
+
+    it("includes olderthan in the query string", () => {
+      const date = new Date(1_000_000);
+      service.getBlueprints(date, null, null, false);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("olderthan=" + date.getTime());
+    });
+
+    it("includes filterUserId when provided", () => {
+      service.getBlueprints(new Date(), "user123", null, false);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("filterUserId=user123");
+    });
+
+    it("includes filterName when provided", () => {
+      service.getBlueprints(new Date(), null, "my-bp", false);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("filterName=my-bp");
+    });
+
+    it("includes getDuplicates when true", () => {
+      service.getBlueprints(new Date(), null, null, true);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("getDuplicates=true");
+    });
+
+    it("uses getblueprintsSecure when logged in", () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      service.getBlueprints(new Date(), null, null, false);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("getblueprintsSecure");
+    });
+
+    it("uses getblueprints when not logged in", () => {
+      mockAuth.isLoggedIn.mockReturnValue(false);
+      service.getBlueprints(new Date(), null, null, false);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("/api/getblueprints?");
+    });
+  });
+
+  describe("deleteBlueprint()", () => {
+    it("calls http.post with the correct URL and body", () => {
+      mockHttp.post.mockReturnValue(of({}));
+      service.deleteBlueprint("bp-to-delete").subscribe(() => {});
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/deleteblueprint",
+        { blueprintId: "bp-to-delete" },
+        expect.any(Object)
+      );
+    });
+
+    it("sets service.id from response.id when provided", () => {
+      mockHttp.post.mockReturnValue(of({ id: "deleted-id" }));
+      service.deleteBlueprint("bp-1").subscribe(() => {});
+      expect(service.id).toBe("deleted-id");
+    });
+
+    it("does not change service.id when response has no id", () => {
+      service.id = "original-id";
+      mockHttp.post.mockReturnValue(of({}));
+      service.deleteBlueprint("bp-1").subscribe(() => {});
+      expect(service.id).toBe("original-id");
+    });
+  });
+
+  describe("saveBlueprint()", () => {
+    it("calls http.post with the uploadblueprint URL", () => {
+      mockHttp.post.mockReturnValue(of({}));
+      service.saveBlueprint(false).subscribe(() => {});
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/uploadblueprint",
+        expect.any(Object),
+        expect.any(Object)
+      );
+    });
+
+    it("sets service.id and calls replaceState when response has id", () => {
+      mockHttp.post.mockReturnValue(of({ id: "new-saved-id" }));
+      service.saveBlueprint(true).subscribe(() => {});
+      expect(service.id).toBe("new-saved-id");
+      expect(mockLocation.replaceState).toHaveBeenCalledWith("/b/new-saved-id");
+    });
+
+    it("passes overwrite flag in the request body", () => {
+      mockHttp.post.mockReturnValue(of({}));
+      service.saveBlueprint(true).subscribe(() => {});
+      const body = mockHttp.post.mock.calls[0][1];
+      expect(body.overwrite).toBe(true);
+    });
+  });
+
+  describe("likeBlueprint()", () => {
+    beforeEach(() => {
+      mockHttp.post.mockReturnValue(of({}));
+    });
+
+    it("toggles likedByMe from false to true", () => {
+      service.likedByMe = false;
+      service.likeBlueprint("bp-1", true);
+      expect(service.likedByMe).toBe(true);
+    });
+
+    it("toggles likedByMe from true to false", () => {
+      service.likedByMe = true;
+      service.likeBlueprint("bp-1", false);
+      expect(service.likedByMe).toBe(false);
+    });
+
+    it("calls http.post with the likeblueprint endpoint and correct body", () => {
+      service.likeBlueprint("bp-1", true);
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/likeblueprint",
+        { blueprintId: "bp-1", like: true },
+        expect.any(Object)
+      );
+    });
+  });
+
+  describe("openBlueprintFromUpload()", () => {
+    it("does nothing when fileList is empty", () => {
+      const spy = vi.spyOn(service as any, "openYamlBlueprint");
+      service.openBlueprintFromUpload(BlueprintFileType.YAML, {
+        length: 0,
+      } as any);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it("calls openYamlBlueprint for YAML file type", () => {
+      const spy = vi
+        .spyOn(service as any, "openYamlBlueprint")
+        .mockImplementation(() => {});
+      const mockFile = {} as File;
+      service.openBlueprintFromUpload(BlueprintFileType.YAML, {
+        length: 1,
+        0: mockFile,
+      } as any);
+      expect(spy).toHaveBeenCalledWith(mockFile);
+    });
+
+    it("calls openJsonBlueprint for JSON file type", () => {
+      const spy = vi
+        .spyOn(service as any, "openJsonBlueprint")
+        .mockImplementation(() => {});
+      const mockFile = {} as File;
+      service.openBlueprintFromUpload(BlueprintFileType.JSON, {
+        length: 1,
+        0: mockFile,
+      } as any);
+      expect(spy).toHaveBeenCalledWith(mockFile);
+    });
+
+    it("calls openBsonBlueprint for BSON file type", () => {
+      const spy = vi
+        .spyOn(service as any, "openBsonBlueprint")
+        .mockImplementation(() => {});
+      const mockFile = {} as File;
+      service.openBlueprintFromUpload(BlueprintFileType.BSON, {
+        length: 1,
+        0: mockFile,
+      } as any);
+      expect(spy).toHaveBeenCalledWith(mockFile);
+    });
+
+    it("calls resetUndoStates after dispatching to the format handler", () => {
+      vi.spyOn(service as any, "openYamlBlueprint").mockImplementation(
+        () => {}
+      );
+      const resetSpy = vi.spyOn(service, "resetUndoStates");
+      service.openBlueprintFromUpload(BlueprintFileType.YAML, {
+        length: 1,
+        0: {} as File,
+      } as any);
+      expect(resetSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe("loadJsonBlueprint()", () => {
+    it("sets name from the BNI blueprint friendlyname", () => {
+      const json = JSON.stringify({
+        friendlyname: "My JSON Blueprint",
+        buildings: [],
+        digcommands: [],
+      });
+      (service as any).loadJsonBlueprint(json);
+      expect(service.name).toBe("My JSON Blueprint");
+    });
+
+    it("notifies observers with a Blueprint instance", () => {
+      const obs = { blueprintChanged: vi.fn() };
+      service.subscribeBlueprintChanged(obs);
+      obs.blueprintChanged.mockClear();
+      const json = JSON.stringify({
+        friendlyname: "Test",
+        buildings: [],
+        digcommands: [],
+      });
+      (service as any).loadJsonBlueprint(json);
+      expect(obs.blueprintChanged).toHaveBeenCalled();
+    });
+  });
+
+  describe("loadYamlBlueprint()", () => {
+    it("sets name from the ONI template name field", () => {
+      const yamlStr = "name: My YAML Blueprint\nbuildings: []\ncells: []";
+      (service as any).loadYamlBlueprint(yamlStr);
+      expect(service.name).toBe("My YAML Blueprint");
+    });
+
+    it("notifies observers with a Blueprint instance", () => {
+      const obs = { blueprintChanged: vi.fn() };
+      service.subscribeBlueprintChanged(obs);
+      obs.blueprintChanged.mockClear();
+      const yamlStr = "name: Test\nbuildings: []\ncells: []";
+      (service as any).loadYamlBlueprint(yamlStr);
+      expect(obs.blueprintChanged).toHaveBeenCalled();
     });
   });
 });
