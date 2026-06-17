@@ -123,7 +123,8 @@
             "runner": "vitest",
             "tsConfig": "tsconfig.spec.json",
             "setupFiles": ["src/test-setup.ts"],
-            "include": ["src/**/*.spec.ts"]
+            "include": ["src/**/*.spec.ts"],
+            "codeCoverageReporters": ["text-summary", "lcov", "html"]
           }
         },
         "lint": {
