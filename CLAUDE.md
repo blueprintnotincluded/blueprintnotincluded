@@ -53,7 +53,8 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 - `npm start` - Start Angular development server
 - `npm run build` - Build for production
 - `npm run lint` - Run Angular linting
-- `npm test -- --watch=false` - Run frontend tests (required before committing frontend changes)
+- `npm test` - Run frontend tests (required before committing frontend changes)
+- `npm run test:coverage` - Run tests with V8 coverage report
 
 ### Asset Processing
 The application processes game assets for blueprint visualization:
@@ -124,20 +125,24 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 ## Testing
 
-Uses Mocha with Chai and TypeScript support. Test files in `__tests__/` directory. The test database setup script creates a clean test environment.
-
-### Testing Framework Notes
+**Backend**: Mocha with Chai and TypeScript support. Test files in `__tests__/` directory. The test database setup script creates a clean test environment.
 - **Framework**: Mocha with Chai — do not introduce Jest
 - **Maintenance**: When removing large dependency sets, regenerate package-lock.json with `rm package-lock.json && npm install` to prevent corruption
 - **Email in tests**: `emailService.ts` skips SMTP when `NODE_ENV=test` — no mail server needed
 
+**Frontend**: Vitest with jsdom (no real browser). Runner: `@angular/build:unit-test`. Coverage via `@vitest/coverage-v8`.
+- All specs in `frontend/src/**/*.spec.ts`; run with `npm test` from `frontend/`
+- `npm run test:coverage` generates a text summary + lcov report
+- CI runs `test:coverage` so every PR shows a coverage table in the job log
+- Renderer (`DrawPixi`, PIXI) is always mocked in unit tests — never instantiate real PIXI in specs
+
 ## Current Status
 
 - **Phase**: Phase 6 - Final Optimization (all dependency upgrades complete)
-- **Date**: 2026-04-03
+- **Date**: 2026-06-16
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ 141 passing (Mocha + Chai — do not introduce Jest)
+- **Tests**: ✅ Backend 141 passing (Mocha + Chai) · Frontend Vitest/jsdom, all green
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 
 ### Session Management Files
