@@ -3,7 +3,7 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterTestingModule } from "@angular/router/testing";
 import { ActivatedRoute, Router } from "@angular/router";
-import { of, throwError } from "rxjs";
+import { of, throwError, Subject } from "rxjs";
 
 import { MagicCallbackComponent } from "./magic-callback.component";
 import { AuthenticationService } from "../../../services/authentification-service";
@@ -81,9 +81,18 @@ describe("MagicCallbackComponent", () => {
       expect(component.errorMessage).toBeTruthy();
     });
 
-    it("starts with loading=true", () => {
-      mockAuth.verifyMagicCode.mockReturnValue(of({ token: "t" }));
+    it("keeps loading=true while verifyMagicCode is in flight", () => {
+      const response$ = new Subject<any>();
+      mockAuth.verifyMagicCode.mockReturnValue(response$.asObservable());
+
+      component.ngOnInit();
+      // request has not emitted yet — loading must stay true in flight
+      expect(mockAuth.verifyMagicCode).toHaveBeenCalledWith(
+        "abc123",
+        "a@b.com"
+      );
       expect(component.loading).toBe(true);
+      expect(component.errorMessage).toBe("");
     });
   });
 });
