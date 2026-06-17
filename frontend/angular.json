@@ -124,7 +124,12 @@
             "tsConfig": "tsconfig.spec.json",
             "setupFiles": ["src/test-setup.ts"],
             "include": ["src/**/*.spec.ts"],
-            "codeCoverageReporters": ["text-summary", "lcov", "html"]
+            "codeCoverageReporters": [
+              "text-summary",
+              "lcov",
+              "html",
+              "cobertura"
+            ]
           }
         },
         "lint": {
