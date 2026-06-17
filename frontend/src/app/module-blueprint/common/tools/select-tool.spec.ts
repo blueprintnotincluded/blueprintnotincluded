@@ -1,6 +1,9 @@
 import { SelectTool } from "./select-tool";
-import { CameraService } from "../../../../../../lib/index";
-import { Vector2 } from "../../../../../../lib/index";
+import {
+  BlueprintHelpers,
+  CameraService,
+  Vector2,
+} from "../../../../../../lib/index";
 import { ToolType } from "./tool";
 
 const makeOniItem = (id: string, isElement = false, isInfo = false) => ({
@@ -520,6 +523,167 @@ describe("SelectTool", () => {
       tool.drag(new Vector2(0, 0), new Vector2(2, 2));
       tool.dragStop();
       expect(tool.beginSelection).toBeNull();
+    });
+
+    it("does nothing when beginSelection is already null", () => {
+      tool.beginSelection = null;
+      expect(() => tool.dragStop()).not.toThrow();
+      expect(tool.beginSelection).toBeNull();
+    });
+  });
+
+  describe("reset()", () => {
+    it("clears sameItemCollections to empty", () => {
+      tool.sameItemCollections = [makeMockCollection()] as any;
+      tool.reset();
+      expect(tool.sameItemCollections).toHaveLength(0);
+    });
+  });
+
+  describe("mouseOut() / mouseDown() / hover()", () => {
+    it("mouseOut does not throw", () => {
+      expect(() => tool.mouseOut()).not.toThrow();
+    });
+
+    it("mouseDown does not throw", () => {
+      expect(() => tool.mouseDown(new Vector2(0, 0))).not.toThrow();
+    });
+
+    it("hover does not throw", () => {
+      expect(() => tool.hover(new Vector2(0, 0))).not.toThrow();
+    });
+  });
+
+  describe("selectAllLike()", () => {
+    it("selects all items sharing the same oniItem (non-element)", () => {
+      const oniItem = makeOniItem("Wire", false, false);
+      const item1 = makeBlueprintItem(oniItem);
+      const item2 = makeBlueprintItem(oniItem);
+      const item3 = makeBlueprintItem(makeOniItem("Tile"));
+      mockBlueprintService.blueprint.blueprintItems = [item1, item2, item3];
+      tool.selectAllLike(item1 as any);
+      expect(tool.sameItemCollections).toHaveLength(1);
+      expect(tool.sameItemCollections[0].items).toHaveLength(2);
+    });
+
+    it("filters by oniItem AND buildableElement[0] for element items", () => {
+      const oniItem = makeOniItem("Element", true, false);
+      const elem1 = { id: "Water" };
+      const elem2 = { id: "Oxygen" };
+      const item1 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [elem1],
+      };
+      const item2 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [elem2],
+      };
+      const item3 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [elem1],
+      };
+      mockBlueprintService.blueprint.blueprintItems = [item1, item2, item3];
+      tool.selectAllLike(item1 as any);
+      expect(tool.sameItemCollections[0].items).toHaveLength(2);
+    });
+
+    it("emits selectionChanged", () => {
+      const obs = { selectionChanged: vi.fn() };
+      tool.subscribeSelectionChanged(obs);
+      mockBlueprintService.blueprint.blueprintItems = [];
+      obs.selectionChanged.mockClear();
+      tool.selectAllLike({
+        oniItem: makeOniItem("Wire"),
+        buildableElements: [],
+      } as any);
+      expect(obs.selectionChanged).toHaveBeenCalled();
+    });
+  });
+
+  describe("selectEveryElement()", () => {
+    it("selects items that contain the given BuildableElement", () => {
+      const oniItem = makeOniItem("Wire");
+      const target = { id: "elem-target" };
+      const item1 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [target],
+      };
+      const item2 = { ...makeBlueprintItem(oniItem), buildableElements: [] };
+      mockBlueprintService.blueprint.blueprintItems = [item1, item2];
+      tool.selectEveryElement(target as any);
+      expect(tool.sameItemCollections).toHaveLength(1);
+      expect(tool.sameItemCollections[0].items[0]).toBe(item1);
+    });
+
+    it("emits selectionChanged", () => {
+      const obs = { selectionChanged: vi.fn() };
+      tool.subscribeSelectionChanged(obs);
+      mockBlueprintService.blueprint.blueprintItems = [];
+      obs.selectionChanged.mockClear();
+      tool.selectEveryElement({ id: "x" } as any);
+      expect(obs.selectionChanged).toHaveBeenCalled();
+    });
+  });
+
+  describe("addToCollection() element grouping", () => {
+    it("groups element items with the same buildableElement[0] id into one collection", () => {
+      const oniItem = makeOniItem("Element", true, false);
+      const elem = { id: "Water" };
+      const item1 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [elem],
+      };
+      const item2 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [elem],
+      };
+      mockBlueprintService.blueprint.blueprintItems = [item1, item2];
+      tool.selectAllLike(item1 as any);
+      expect(tool.sameItemCollections).toHaveLength(1);
+      expect(tool.sameItemCollections[0].items).toHaveLength(2);
+    });
+
+    it("separates element items with different buildableElement[0] ids", () => {
+      const oniItem = makeOniItem("Element", true, false);
+      const item1 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [{ id: "Water" }],
+      };
+      const item2 = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [{ id: "Oxygen" }],
+      };
+      mockBlueprintService.blueprint.blueprintItems = [item1, item2];
+      tool.selectAllLike(item1 as any);
+      expect(tool.sameItemCollections).toHaveLength(1);
+      expect(tool.sameItemCollections[0].items).toHaveLength(1);
+    });
+  });
+
+  describe("keyDown() b key with item selected", () => {
+    it("calls changeTool(build) and changeItem with the cloned item", () => {
+      const mockClonedItem = { id: "Wire" };
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
+        mockClonedItem as any
+      );
+
+      const oniItem = makeOniItem("Wire");
+      const item = makeBlueprintItem(oniItem);
+      const col = { ...makeMockCollection(true, [item]), oniItem };
+      (col as any).items = [item];
+      tool.sameItemCollections = [col] as any;
+      tool.parent = {
+        changeTool: vi.fn(),
+        buildTool: { changeItem: vi.fn() },
+      } as any;
+
+      tool.keyDown("b");
+
+      expect(tool.parent.changeTool).toHaveBeenCalledWith(ToolType.build);
+      expect(tool.parent.buildTool.changeItem).toHaveBeenCalledWith(
+        mockClonedItem
+      );
+      vi.restoreAllMocks();
     });
   });
 });
