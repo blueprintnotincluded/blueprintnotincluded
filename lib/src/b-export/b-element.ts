@@ -1,5 +1,3 @@
-import { StringHelpers } from '../string-helpers';
-
 // Elements that buildings can be made of (Exported from the game)
 // TODO we don't currently handle "exotic" elements (ie reed fibers for paintings, or bleach stone for sanitation stations)
 export class BuildableElement {
@@ -27,7 +25,7 @@ export class BuildableElement {
     if (original.oreTags != null) for (let s of original.oreTags) this.oreTags.push(s);
 
     this.icon = original.icon;
-    this.iconUrl = StringHelpers.createUrl(this.icon, true);
+    this.iconUrl = this.icon ? 'assets/ui_image/' + this.icon + '.png' : '';
 
     this.buildMenuSort = original.buildMenuSort;
 

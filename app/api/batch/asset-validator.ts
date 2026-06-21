@@ -44,20 +44,17 @@ export class AssetValidator {
       const data = fs.readFileSync(databasePath, 'utf-8');
       const database = JSON.parse(data);
 
-      // Check required properties
-      const requiredProps = [
-        'elements',
-        'buildMenuCategories',
-        'buildMenuItems',
-        'uiSprites',
-        'spriteModifiers',
-        'buildings',
-      ];
+      // Check required properties (spriteModifiers may be empty in 2024 format)
+      const requiredProps = ['elements', 'buildMenuCategories', 'buildMenuItems', 'uiSprites', 'buildings'];
       for (const prop of requiredProps) {
         if (!database[prop] || !Array.isArray(database[prop])) {
           AssetLogger.error(`Database missing or invalid property: ${prop}`);
           return false;
         }
+      }
+      if (!Array.isArray(database['spriteModifiers'])) {
+        AssetLogger.error(`Database missing or invalid property: spriteModifiers`);
+        return false;
       }
 
       AssetLogger.info(
