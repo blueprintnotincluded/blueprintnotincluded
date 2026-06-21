@@ -310,6 +310,14 @@ export class BlueprintItem {
 
       drawPartIndex++;
     }
+
+    if (this.drawParts.length === 0 && this.oniItem.flatIconId) {
+      const flatPart = new DrawPart();
+      flatPart.flatIconId = this.oniItem.flatIconId;
+      flatPart.zIndex = 1.0;
+      flatPart.visible = false;
+      this.drawParts.push(flatPart);
+    }
   }
 
   public toMdbBuilding(): MdbBuilding {

@@ -13,6 +13,7 @@ import { SpriteModifier } from './drawing/sprite-modifier';
 import { BuildMenuItem, BuildMenuCategory } from './b-export/b-build-order';
 import { BuildLocationRule } from './enums/build-location-rule';
 import { ConnectionType } from './enums/connection-type';
+import { ImageSource } from './drawing/image-source';
 
 export class OniItem {
   static elementId = 'Element';
@@ -25,6 +26,7 @@ export class OniItem {
   // imageId here is used for some stuff (generating white background textures)
   imageId: string = '';
   iconUrl: string = '';
+  flatIconId: string = '';
   spriteModifierId: string = '';
   isWire: boolean = false;
   isTile: boolean = false;
@@ -105,7 +107,15 @@ export class OniItem {
     this.isTile = original.isTile;
 
     this.spriteModifierId = original.kanimPrefix;
-    this.iconUrl = StringHelpers.createUrl(original.kanimPrefix + 'ui_0', true);
+    if (original.uiImage) {
+      const flatUrl = 'assets/ui_image/' + original.uiImage + '.png';
+      this.iconUrl = flatUrl;
+      this.flatIconId = original.uiImage;
+      ImageSource.AddImagePixi(original.uiImage, flatUrl);
+    } else {
+      this.iconUrl = StringHelpers.createUrl(original.kanimPrefix + 'ui_0', true);
+      this.flatIconId = '';
+    }
     this.zIndex = original.sceneLayer;
     this.overlay = this.getRealOverlay(original.viewMode);
     this.backColor = original.backColor;
@@ -242,6 +252,7 @@ export class OniItem {
     if (this.secondaryMaterialCosts == null) this.secondaryMaterialCosts = [];
     if (this.uiScreens == null) this.uiScreens = [];
     if (this.spriteGroup == null) this.spriteGroup = new SpriteModifierGroup();
+    if (this.flatIconId == null) this.flatIconId = '';
     if (this.tileableLeftRight == null) this.tileableLeftRight = false;
     if (this.tileableTopBottom == null) this.tileableTopBottom = false;
     if (this.defaultElement == null || this.defaultElement.length == 0)

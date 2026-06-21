@@ -40,7 +40,19 @@ the multi-sprite atlas pipeline. Source export lives in `export/` (see
   Validation **all-zero**: 449 buildings, 212 elements, 365 menu items, 15 categories; 0
   missing icons / unmapped prefabs / unmapped categories / unknown viewMode hashes.
   `npm run tsc` clean.
-- ⏸ **Phases 3–6 deferred** by user decision (review before any render rewrite).
+- ✅ **Phase 3 done** — 1,241 PNGs copied to `assets/ui_image/` (backend Canvas) and
+  `frontend/src/assets/ui_image/` (browser). `BBuilding.uiImage` field added. In
+  `OniItem.copyFrom()`, when `uiImage` is set, `ImageSource` is registered at
+  `assets/ui_image/{key}.png` and `iconUrl` points there (sidebar icons work immediately).
+- ✅ **Phase 4 done** — Render collapse to flat icons. `OniItem.flatIconId` carries the
+  prefab key for 2024 buildings. `BlueprintItem.cleanUp()` creates one flat `DrawPart`
+  when `spriteGroup.spriteModifiers` is empty and `flatIconId` is set. `DrawPart` has a
+  new flat branch in `prepareSprite()`: full PNG loaded via `ImageSource`, sized to W×H
+  tiles (100 px/tile), bottom-center anchor — identical math to the atlas path so alignment
+  is correct for all building sizes. `hasTag()` returns `solid|place` for flat parts so
+  selection pulse and build-candidate red tinting work. Legacy atlas path unchanged.
+  All tests pass (194 backend, 453 frontend); `npm run tsc` + `npm run build` clean.
+- ⏸ **Phases 5–6 deferred** — awaiting loader/test cutover (user review gate).
 
 ### Decisions made
 - **Rotations:** render rotated/flipped placements as the **same upright icon, ignore

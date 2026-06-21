@@ -23,6 +23,7 @@ export class BBuilding {
 
   kanimPrefix: string = '';
   textureName: string = '';
+  uiImage: string = '';
 
   spriteInfos: BSpriteInfo[] = [];
   spriteModifiers: BSpriteModifier[] = [];

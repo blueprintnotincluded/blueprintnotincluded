@@ -5,6 +5,7 @@ import { Vector2 } from '../vector2';
 import { Display } from '../enums/display';
 import { SpriteTag } from '../enums/sprite-tag';
 import { PixiUtil } from './pixi-util';
+import { ImageSource } from './image-source';
 
 declare var PIXI: any;
 
@@ -12,6 +13,7 @@ export class DrawPart {
   spriteModifier!: SpriteModifier;
   spriteInfo!: SpriteInfo;
   sprite: any; // PIXI.Sprite | undefined;
+  flatIconId: string = '';
 
   private alpha_: number = 0;
   get alpha() {
@@ -56,6 +58,34 @@ export class DrawPart {
 
   public prepareSprite(container: any /*PIXI.Container*/, oniItem: OniItem, pixiUtil: PixiUtil) {
     if (!this.isReady) {
+      if (this.flatIconId) {
+        const baseTex = ImageSource.getBaseTexture(this.flatIconId, pixiUtil);
+        if (baseTex != null) {
+          const texture = pixiUtil.getNewTextureWhole(baseTex);
+          this.sprite = pixiUtil.getSpriteFrom(texture);
+
+          const w = oniItem.size.x || 1;
+          const h = oniItem.size.y || 1;
+
+          // Bottom-center anchor; same offset as the atlas path so flat icons
+          // align with the building's tile footprint.
+          this.sprite.anchor.set(0.5, 1.0);
+          this.sprite.x = w % 2 === 0 ? 50 : 0;
+          this.sprite.y = 50;
+          this.sprite.width = w * 100;
+          this.sprite.height = h * 100;
+
+          this.sprite.alpha = this.alpha;
+          this.sprite.tint = this.tint;
+          this.sprite.zIndex = this.zIndex;
+          this.sprite.visible = this.visible;
+
+          container.addChild(this.sprite);
+          this.isReady = true;
+        }
+        return;
+      }
+
       if (this.spriteModifier != null)
         this.spriteInfo = SpriteInfo.getSpriteInfo(this.spriteModifier.spriteInfoName);
 
@@ -98,10 +128,16 @@ export class DrawPart {
   }
 
   public hasTag(tag: SpriteTag) {
+    if (this.flatIconId) return tag === SpriteTag.solid || tag === SpriteTag.place;
     return this.spriteModifier.hasTag(tag);
   }
 
   prepareVisibilityBasedOnDisplay(newDisplay: Display) {
+    if (this.flatIconId) {
+      this.visible = true;
+      return;
+    }
+
     let tagFilter = newDisplay == Display.blueprint ? SpriteTag.place : SpriteTag.solid;
 
     if (this.spriteModifier == null) this.visible = false;
