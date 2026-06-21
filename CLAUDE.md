@@ -57,7 +57,22 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 - `npm run test:coverage` - Run tests with V8 coverage report
 
 ### Asset Processing
-The application processes game assets for blueprint visualization:
+**OniExtract2024 import (current pipeline):** after dropping a fresh export into
+`export/` (`export/database/`, `export/ui_image/`, `export/connection_sprites/`),
+run the single repeatable step:
+- `npm run import:2024` - Regenerate `assets/database/database-2024.json` + both
+  `database-2024.zip` files, sync `ui_image/` and `connection_sprites/` into both asset
+  roots (`assets/` + `frontend/src/assets/`), and print a validation report. Exits
+  non-zero if the import is incomplete (missing icons, incomplete connection dirs, etc.).
+- `npm run import:2024:dry-run` - Validate + report counts only; writes/copies nothing.
+- Each sprite sync **replaces** its target dir, so renamed/removed files don't linger.
+- `ui_image_facade/` is intentionally skipped (unused by the app); one-line flip in
+  `app/api/batch/convert-export-2024.ts` to enable.
+- After import: restart `npm run dev` (backend loads the DB at startup) and hard-refresh
+  the frontend. No lib rebuild needed for data/icon-only iterations.
+- `convert:2024` is a kept alias for `import:2024`.
+
+**Legacy 2020/2023 atlas scripts (retired — do not use for 2024 data):**
 - `npm run generateIcons` - Generate sprite icons from game assets
 - `npm run generateGroups` - Process sprite groupings
 - `npm run generateWhite` - Generate white-background variants
@@ -154,6 +169,12 @@ See `agent/EXPORT_2024_MIGRATION_PLAN.md` for full context and decisions.
 - ✅ Phase 4: Flat-icon render collapse — `OniItem.flatIconId`, `DrawPart.flatIconId`, no UV slice
 - ✅ Phase 5: Batch-script audit done; retire list in `agent/EXPORT_2024_MIGRATION_PLAN.md` (scripts not deleted yet)
 - ✅ Phase 6: Loader cutover — backend reads `database-2024.json`; frontend fetches `database-2024.zip`; converter updated to emit overlay sprites; all 194 + 453 tests green
+- ✅ Phase 8: Connection-state sprites — connectables (31 prefabs) render
+  `connection_sprites/{prefabId}/{bitmask}.png` per 4-bit neighbour mask (left=1,
+  right=2, up=4, down=8). `OniItem.connectionSprites` flag derived from dir presence;
+  `BlueprintItem` builds 16 tagged flat-icon draw-parts; `DrawPart` honours connection
+  tags. Converter (`import:2024`) syncs `ui_image/` + `connection_sprites/` and validates.
+  Build/select menu keeps the single canonical icon (`iconUrl`).
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:

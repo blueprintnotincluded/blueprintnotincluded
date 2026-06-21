@@ -54,6 +54,27 @@ the multi-sprite atlas pipeline. Source export lives in `export/` (see
   All tests pass (194 backend, 453 frontend); `npm run tsc` + `npm run build` clean.
 - ✅ **Phase 5 done** — batch script audit complete; retire list documented above (no code deleted yet).
 - ✅ **Phase 6 done** — loader cutover: backend reads `database-2024.json`; frontend fetches `database-2024.zip`; `database-2024.zip` created in both asset dirs. All 194 backend + 453 frontend tests green; `npm run tsc` + `npm run build` clean.
+- ✅ **Phase 8 done** — connection-state sprites. The 2024 export adds
+  `export/connection_sprites/{prefabId}/{0..15}.png` (4-bit neighbour mask: left=1,
+  right=2, up=4, down=8 — identical to the website's existing `tileConnections`/wire
+  `connections` convention, no remap). A building is connectable iff its dir exists
+  (`building.json` still omits `tileableLeftRight/tileableTopBottom`). Changes:
+  - `BBuilding.connectionSprites` + `OniItem.connectionSprites` (flag) and
+    `OniItem.connectionSpriteId(prefab, mask)`; `copyFrom()` registers 16 `ImageSource`s
+    at `assets/connection_sprites/{prefab}/{mask}.png` when set.
+  - `BlueprintItem.cleanUp()` builds 16 flat-icon `DrawPart`s (one per mask, tagged
+    `DrawHelpers.connectionTag[i]`) for connectables instead of one. The existing
+    wire/tile `updateDrawPartVisibilityBasedOnConnections()` shows exactly the matching one.
+  - `DrawPart` gains `connectionTag`; `hasTag()` + `makeEverythingButThisTagInvisible()`
+    honour it for flat icons (previously short-circuited).
+  - Build/select menu still uses the single canonical `iconUrl` — only placed-item
+    rendering gained the 16 states.
+  - Converter became the full import pipeline (`npm run import:2024`, alias `convert:2024`,
+    `import:2024:dry-run`): regenerates DB + zips, **syncs** `ui_image/` and
+    `connection_sprites/` into both asset roots (replacing targets), validates, and exits
+    non-zero on incomplete imports. `ui_image_facade/` skipped (unused).
+  - Verified: 31/31 connectables complete, 0 warnings; `npm run tsc` clean; 184 backend +
+    453 frontend tests green (184 is the current baseline; the "194" figure was stale).
 
 ### Decisions made
 - **Rotations:** render rotated/flipped placements as the **same upright icon, ignore

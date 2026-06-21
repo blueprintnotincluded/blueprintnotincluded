@@ -9,6 +9,7 @@ export declare class DrawPart {
     spriteInfo: SpriteInfo;
     sprite: any;
     flatIconId: string;
+    connectionTag: SpriteTag | null;
     private alpha_;
     get alpha(): number;
     set alpha(value: number);
