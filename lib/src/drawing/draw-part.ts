@@ -15,6 +15,10 @@ export class DrawPart {
   sprite: any; // PIXI.Sprite | undefined;
   flatIconId: string = '';
 
+  // For per-connection-state flat icons: the bitmask tag this part represents.
+  // null for plain (single) flat icons and for atlas-backed parts.
+  connectionTag: SpriteTag | null = null;
+
   private alpha_: number = 0;
   get alpha() {
     return this.alpha_;
@@ -128,7 +132,11 @@ export class DrawPart {
   }
 
   public hasTag(tag: SpriteTag) {
-    if (this.flatIconId) return tag === SpriteTag.solid || tag === SpriteTag.place;
+    if (this.flatIconId) {
+      if (this.connectionTag != null)
+        return tag === this.connectionTag || tag === SpriteTag.solid || tag === SpriteTag.place;
+      return tag === SpriteTag.solid || tag === SpriteTag.place;
+    }
     return this.spriteModifier.hasTag(tag);
   }
 
@@ -146,7 +154,13 @@ export class DrawPart {
   }
 
   makeEverythingButThisTagInvisible(tagFilter: SpriteTag) {
-    if (this.flatIconId) return; // flat icons have no per-connection variants; always leave visible
+    if (this.flatIconId) {
+      // Plain flat icons have no per-connection variants; always leave visible.
+      if (this.connectionTag == null) return;
+      // Connection-state parts: show only the one whose bitmask tag is requested.
+      this.visible = this.connectionTag === tagFilter;
+      return;
+    }
     if (this.spriteModifier == null) this.visible = false;
     else if (!this.hasTag(tagFilter)) this.visible = false;
     else this.visible = this.visible && true;

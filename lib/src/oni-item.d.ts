@@ -45,6 +45,9 @@ export declare class OniItem {
     spriteGroup: SpriteModifierGroup;
     tileableLeftRight: boolean;
     tileableTopBottom: boolean;
+    connectionSprites: boolean;
+    static connectionSpriteCount: number;
+    static connectionSpriteId(prefabId: string, bitmask: number): string;
     get isPartOfCircuit(): boolean;
     private permittedRotations_;
     get permittedRotations(): PermittedRotations;

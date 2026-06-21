@@ -54,6 +54,15 @@ export class OniItem {
   tileableLeftRight: boolean = false;
   tileableTopBottom: boolean = false;
 
+  // True when this building has per-connection-state sprites (16 PNGs, one per
+  // 4-bit neighbour bitmask). When set, the item renders connectionSpriteId(mask)
+  // instead of the single flat icon.
+  connectionSprites: boolean = false;
+  static connectionSpriteCount = 16;
+  public static connectionSpriteId(prefabId: string, bitmask: number): string {
+    return 'connection_' + prefabId + '_' + bitmask;
+  }
+
   get isPartOfCircuit(): boolean {
     for (let utility of this.utilityConnections)
       if (utility.type == ConnectionType.POWER_INPUT || utility.type == ConnectionType.POWER_OUTPUT)
@@ -115,6 +124,20 @@ export class OniItem {
     } else {
       this.iconUrl = StringHelpers.createUrl(original.kanimPrefix + 'ui_0', true);
       this.flatIconId = '';
+    }
+
+    // Per-connection-state sprites: register one image source per bitmask so the
+    // renderer can swap them based on neighbour connections. The build/select menu
+    // keeps using the single canonical iconUrl above.
+    this.connectionSprites = original.connectionSprites;
+    if (this.connectionSprites) {
+      for (let bitmask = 0; bitmask < OniItem.connectionSpriteCount; bitmask++) {
+        const id = OniItem.connectionSpriteId(this.id, bitmask);
+        ImageSource.AddImagePixi(
+          id,
+          'assets/connection_sprites/' + this.id + '/' + bitmask + '.png'
+        );
+      }
     }
     this.zIndex = original.sceneLayer;
     this.overlay = this.getRealOverlay(original.viewMode);
@@ -255,6 +278,7 @@ export class OniItem {
     if (this.flatIconId == null) this.flatIconId = '';
     if (this.tileableLeftRight == null) this.tileableLeftRight = false;
     if (this.tileableTopBottom == null) this.tileableTopBottom = false;
+    if (this.connectionSprites == null) this.connectionSprites = false;
     if (this.defaultElement == null || this.defaultElement.length == 0)
       this.defaultElement = [BuildableElement.getElement('Vacuum')];
     if (this.overlay == null) this.overlay = Overlay.Base;

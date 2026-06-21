@@ -1,20 +1,26 @@
-// Build-time converter: OniExtract2024 (13-file export) -> single consolidated
-// `database.json` in the website's internal shape.
+// Import pipeline: OniExtract2024 (13-file export) -> the website's consolidated
+// `database-2024.json` + all served sprite assets. This is the single repeatable
+// step to run after dropping a fresh export into ./export (see `npm run import:2024`).
+//
+// What it does, end to end:
+//   1. Reads the 13 JSONs from export/database/ and maps them to the website shape.
+//   2. Writes assets/database/database-2024.json and both database-2024.zip files
+//      (backend + frontend/src/assets).
+//   3. Syncs export/ui_image/ and export/connection_sprites/ into both asset roots,
+//      replacing the targets so renamed/removed files don't linger.
+//   4. Prints a validation report (missing icons, incomplete connection dirs, etc.).
 //
 // Rationale (see agent/EXPORT_2024_MIGRATION_PLAN.md): rather than rewrite the three
 // loaders to ingest 13 files, the heavy mapping lives here in one auditable script. The
 // 2024 export drops the multi-sprite atlas model in favour of a single flat pre-rendered
 // PNG per building (`export/ui_image/<prefabKey>.png`), so this converter collapses each
-// building to one flat icon and emits an empty `spriteModifiers` list (doc §4).
+// building to one flat icon, plus 16 per-connection-state sprites for connectables.
 //
 // Usage:
 //   ts-node app/api/batch/convert-export-2024.ts [options]
 //     --export-dir <dir>   root of the 2024 export (default: ./export)
 //     --out <file>         output path (default: ./assets/database/database-2024.json)
-//     --dry-run            run validation + report counts, write nothing
-//
-// This intentionally does NOT overwrite the live assets/database/database.json. Cutover
-// is a later phase.
+//     --dry-run            run validation + report counts, write/copy nothing
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -110,9 +116,61 @@ function readJson<T>(file: string): T {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
 }
 
+// Recursive directory copy (fs.cpSync is unavailable in the backend's @types/node).
+function copyDirRecursive(src: string, dest: string): void {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDirRecursive(srcPath, destPath);
+    else fs.copyFileSync(srcPath, destPath);
+  }
+}
+
+// Mirror an export sub-folder into each served asset root, replacing the target
+// so renamed/removed files don't linger across re-imports. No-op if src is absent.
+function syncAssetDir(src: string, targets: string[], label: string): void {
+  if (!fs.existsSync(src)) {
+    console.log('--- skipped', label, '(not in export) ---');
+    return;
+  }
+  for (const target of targets) {
+    fs.rmSync(target, { recursive: true, force: true });
+    copyDirRecursive(src, target);
+    console.log('--- synced', label, '->', path.normalize(target), '---');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Connection sprites: connection_sprites/<prefabId>/{0..15}.png. A building is
+// "connectable" iff its dir exists (the 2024 export omits tileableLeftRight/
+// tileableTopBottom — dir presence is the signal). Returns the set of prefabIds
+// plus any dirs missing one of the 16 bitmask PNGs.
+const CONNECTION_SPRITE_COUNT = 16;
+function readConnectablePrefabs(connectionDir: string): {
+  prefabs: Set<string>;
+  incomplete: { prefab: string; missing: number[] }[];
+} {
+  const prefabs = new Set<string>();
+  const incomplete: { prefab: string; missing: number[] }[] = [];
+  if (!fs.existsSync(connectionDir)) return { prefabs, incomplete };
+
+  for (const prefab of fs.readdirSync(connectionDir)) {
+    const dir = path.join(connectionDir, prefab);
+    if (!fs.statSync(dir).isDirectory()) continue;
+    prefabs.add(prefab);
+    const missing: number[] = [];
+    for (let bitmask = 0; bitmask < CONNECTION_SPRITE_COUNT; bitmask++)
+      if (!fs.existsSync(path.join(dir, bitmask + '.png'))) missing.push(bitmask);
+    if (missing.length) incomplete.push({ prefab, missing });
+  }
+  return { prefabs, incomplete };
+}
+
 export function convertExport2024(opts: ConvertOptions): void {
   const dbDir = path.join(opts.exportDir, 'database');
   const uiImageDir = path.join(opts.exportDir, 'ui_image');
+  const connectionDir = path.join(opts.exportDir, 'connection_sprites');
 
   const buildingFile = readJson<BBuildingFile2024>(path.join(dbDir, 'building.json'));
   const elementsFile = readJson<BElementsFile2024>(path.join(dbDir, 'elements.json'));
@@ -127,12 +185,17 @@ export function convertExport2024(opts: ConvertOptions): void {
 
   const uiSpriteInfos = uiSpriteFile.uiSpriteInfos;
 
+  const { prefabs: connectablePrefabs, incomplete: incompleteConnectionDirs } =
+    readConnectablePrefabs(connectionDir);
+
   // --- Validation accumulators ---
   const unknownViewModes = new Set<string>();
   const missingIcons: string[] = [];
   const missingUiSpriteInfo: string[] = [];
   const missingMenuBuildings: string[] = [];
   const missingCategories: string[] = [];
+  const connectablesNotTileOrUtility: string[] = [];
+  const connectablePrefabsSeen = new Set<string>();
 
   // --- Buildings + per-building flat-icon sprite metadata ---
   const buildings: any[] = [];
@@ -146,7 +209,16 @@ export function convertExport2024(opts: ConvertOptions): void {
     if (!uiImageFiles.has(iconKey)) missingIcons.push(b.name);
     if (!uiSpriteInfos[iconKey]) missingUiSpriteInfo.push(b.name);
 
-    buildings.push(buildingRecord(b, unknownViewModes));
+    const connectable = connectablePrefabs.has(b.name);
+    if (connectable) {
+      connectablePrefabsSeen.add(b.name);
+      // The editor instantiates connectables as BlueprintItemWire (isUtility) or
+      // BlueprintItemTile (isTile). Anything else has no per-mask render hook.
+      if (!b.isUtility && !(b.isFoundation || b.isKAnimTile))
+        connectablesNotTileOrUtility.push(b.name);
+    }
+
+    buildings.push(buildingRecord(b, unknownViewModes, connectable));
 
     const size = readPngSize(path.join(uiImageDir, iconKey + '.png')) ?? { x: 0, y: 0 };
     uiSprites.push({
@@ -267,6 +339,45 @@ export function convertExport2024(opts: ConvertOptions): void {
     unknownViewModes.size,
     unknownViewModes.size ? '(' + [...unknownViewModes].join(', ') + ')' : ''
   );
+  console.log('  connectable buildings (sprite dirs):', connectablePrefabsSeen.size);
+  const connectableDirsNoBuilding = [...connectablePrefabs].filter(
+    (p) => !connectablePrefabsSeen.has(p)
+  );
+  console.log(
+    '  connection dirs with no building   :',
+    connectableDirsNoBuilding.length,
+    connectableDirsNoBuilding.length ? '(' + connectableDirsNoBuilding.join(', ') + ')' : ''
+  );
+  console.log(
+    '  connectables not tile/utility      :',
+    connectablesNotTileOrUtility.length,
+    connectablesNotTileOrUtility.length ? '(' + connectablesNotTileOrUtility.join(', ') + ')' : ''
+  );
+  console.log(
+    '  connection dirs missing bitmasks   :',
+    incompleteConnectionDirs.length,
+    incompleteConnectionDirs.length
+      ? '(' +
+          incompleteConnectionDirs.map((d) => d.prefab + ':' + d.missing.join('/')).join(', ') +
+          ')'
+      : ''
+  );
+
+  // Signal incomplete imports with a non-zero exit so a re-import can be trusted
+  // (assets are still written below so you can inspect them).
+  const problems =
+    missingIcons.length +
+    missingUiSpriteInfo.length +
+    missingMenuBuildings.length +
+    missingCategories.length +
+    connectablesNotTileOrUtility.length +
+    incompleteConnectionDirs.length +
+    connectableDirsNoBuilding.length +
+    unknownViewModes.size;
+  if (problems > 0) {
+    console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
+    process.exitCode = 1;
+  }
 
   if (opts.dryRun) {
     console.log('--- dry-run: no file written ---');
@@ -291,9 +402,36 @@ export function convertExport2024(opts: ConvertOptions): void {
     z.writeZip(zipPath);
     console.log('--- wrote', path.normalize(zipPath), '---');
   }
+
+  // Sync sprites into the served asset dirs (backend + frontend). The DB references
+  // these by filename, so they must travel together with the regenerated JSON.
+  const assetDir = path.dirname(opts.out); // assets/database
+  syncAssetDir(
+    uiImageDir,
+    [
+      path.join(assetDir, '../ui_image'),
+      path.join(assetDir, '../../frontend/src/assets/ui_image'),
+    ],
+    'ui_image'
+  );
+  syncAssetDir(
+    connectionDir,
+    [
+      path.join(assetDir, '../connection_sprites'),
+      path.join(assetDir, '../../frontend/src/assets/connection_sprites'),
+    ],
+    'connection_sprites'
+  );
+  // ui_image_facade/ is intentionally NOT synced: 988 facade/permit PNGs that no
+  // current code path references. To enable, add a syncAssetDir call for
+  // path.join(opts.exportDir, 'ui_image_facade') -> assets/ui_image_facade (+ frontend).
 }
 
-function buildingRecord(b: BBuildingDef2024, unknownViewModes: Set<string>): any {
+function buildingRecord(
+  b: BBuildingDef2024,
+  unknownViewModes: Set<string>,
+  connectable: boolean
+): any {
   return {
     DefaultAnimState: b.defaultAnimState,
     name: b.nameString, // rich-text display name (legacy stored rich-text here too)
@@ -314,6 +452,7 @@ function buildingRecord(b: BBuildingDef2024, unknownViewModes: Set<string>): any
     viewMode: overlayFromViewMode(b.viewMode, unknownViewModes),
     tileableLeftRight: false,
     tileableTopBottom: false,
+    connectionSprites: connectable,
     buildLocationRule: b.buildLocationRule,
     utilities: [], // utility connection offsets are not in the 2024 export
     uiScreens: [],

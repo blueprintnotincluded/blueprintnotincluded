@@ -34,6 +34,7 @@ export declare class BBuilding {
     buildLocationRule: BuildLocationRule;
     tileableLeftRight: boolean;
     tileableTopBottom: boolean;
+    connectionSprites: boolean;
 }
 export declare class BSpriteGroup {
     groupName: string;

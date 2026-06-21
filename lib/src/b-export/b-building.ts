@@ -40,6 +40,11 @@ export class BBuilding {
 
   tileableLeftRight: boolean = false;
   tileableTopBottom: boolean = false;
+
+  // True when the export ships per-connection-state sprites for this building
+  // (assets/connection_sprites/<prefabId>/{0..15}.png). Derived from dir presence
+  // by the 2024 converter — the export omits tileableLeftRight/tileableTopBottom.
+  connectionSprites: boolean = false;
 }
 
 // All sprites for a building

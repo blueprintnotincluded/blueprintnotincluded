@@ -311,7 +311,19 @@ export class BlueprintItem {
       drawPartIndex++;
     }
 
-    if (this.drawParts.length === 0 && this.oniItem.flatIconId) {
+    if (this.drawParts.length === 0 && this.oniItem.connectionSprites) {
+      // One flat-icon draw-part per 4-bit neighbour bitmask. The wire/tile
+      // visibility code shows exactly the part whose connectionTag matches the
+      // current connections (mirrors the old 16-sprite atlas behaviour).
+      for (let bitmask = 0; bitmask < OniItem.connectionSpriteCount; bitmask++) {
+        const part = new DrawPart();
+        part.flatIconId = OniItem.connectionSpriteId(this.oniItem.id, bitmask);
+        part.connectionTag = DrawHelpers.connectionTag[bitmask];
+        part.zIndex = 1.0;
+        part.visible = false;
+        this.drawParts.push(part);
+      }
+    } else if (this.drawParts.length === 0 && this.oniItem.flatIconId) {
       const flatPart = new DrawPart();
       flatPart.flatIconId = this.oniItem.flatIconId;
       flatPart.zIndex = 1.0;
