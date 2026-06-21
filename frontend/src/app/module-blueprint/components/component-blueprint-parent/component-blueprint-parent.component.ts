@@ -217,7 +217,9 @@ export class ComponentBlueprintParentComponent
     let promise = new Promise((resolve, reject) => {
       // Start comment here
       this.http
-        .get("assets/database/database.zip", { responseType: "arraybuffer" })
+        .get("assets/database/database-2024.zip", {
+          responseType: "arraybuffer",
+        })
         .subscribe((data) => {
           JSZip.loadAsync(data)
             .then((zipped) => {

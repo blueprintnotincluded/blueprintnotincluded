@@ -1,10 +1,49 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Phase 7 - Zero-Warning Enforcement ✅ COMPLETE
-- **Date**: 2026-04-04
-- **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20.3.18 · PrimeNG 20.4.0
-- **Tests**: 141 passing (Mocha + Chai — do not switch to Jest)
+- **Phase**: OniExtract2024 migration — Phases 1–6 complete (branch `export-aqua`), awaiting push
+- **Date**: 2026-06-20
+- **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
+- **Tests**: 194 backend (Mocha + Chai) · 453 frontend (Vitest) — all green
+
+## OniExtract2024 Migration Next Steps (branch `export-aqua`)
+
+All 6 phases are committed. Remaining cleanup to do **after merge to master**:
+
+### Retire legacy batch scripts (safe to delete)
+- `app/api/batch/generate-icons.ts`
+- `app/api/batch/generate-white.ts`
+- `app/api/batch/generate-groups.ts`
+- `app/api/batch/generate-repack.ts`
+- `app/api/batch/enhanced-extract-export.ts`
+- `app/api/batch/test-canvas.ts`
+- Remove corresponding `npm run generate*` scripts from `package.json`
+
+### Adapt remaining batch scripts
+- `app/api/batch/add-info-icons.ts` — now redundant (converter emits overlay sprites); verify
+  and retire or redirect to `database-2024.json`
+- `app/api/batch/update-thumbnail.ts` — update to load `database-2024.json` instead of
+  `database.json` when regenerating thumbnails
+- `app/api/batch/asset-validator.ts` — loosen `validateDatabase()` to allow empty
+  `spriteModifiers` array (currently rejects it)
+
+### Clean up old atlas assets (after smoke-test in prod)
+- `assets/database/database.json` (5.7MB), `database-groups.json`, `database-white.json`,
+  `database-repack.json`, `database.zip` (362KB) — remove when legacy batch scripts are gone
+- `assets/images/` atlas PNGs (`repack_*.png`) — remove after retiring generate-repack
+- `frontend/src/assets/images/repack_*.png` — same
+- `frontend/src/assets/database/database.json` (4.8MB), `database.zip` — remove
+
+### Asset-processing tests update
+Tests in `__tests__/asset-processing/` still validate the OLD database files. Once those files
+are removed, update or replace those tests to validate `database-2024.json` shape instead
+(empty `spriteModifiers`, uiSprites with 449+17 entries, buildings with `uiImage` field).
+
+### Verify in-app rendering
+Run the app (`./dev-setup.sh` + `npm run dev` + `cd frontend && npm start`), load a blueprint
+with 2024 buildings, confirm flat icons render and overlays (element tiles, info indicators) work.
+
+---
 
 ---
 
