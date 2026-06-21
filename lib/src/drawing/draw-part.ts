@@ -146,6 +146,7 @@ export class DrawPart {
   }
 
   makeEverythingButThisTagInvisible(tagFilter: SpriteTag) {
+    if (this.flatIconId) return; // flat icons have no per-connection variants; always leave visible
     if (this.spriteModifier == null) this.visible = false;
     else if (!this.hasTag(tagFilter)) this.visible = false;
     else this.visible = this.visible && true;

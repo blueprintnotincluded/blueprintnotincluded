@@ -74,23 +74,22 @@ describe('Import Scripts Integration Tests', () => {
 
   describe('AssetValidator', () => {
     it('should validate database structure with existing files', () => {
-      // Use the actual project root path for tests
-      const databasePath = path.join(__dirname, '../../assets/database/database.json');
-      expect(fs.existsSync(databasePath), 'Main database should exist').to.be.true;
+      const databasePath = path.join(__dirname, '../../assets/database/database-2024.json');
+      expect(fs.existsSync(databasePath), 'database-2024.json should exist').to.be.true;
 
       const isValid = AssetValidator.validateDatabase(databasePath);
       expect(isValid, 'Database should pass validation').to.be.true;
     });
 
     it('should validate image files if they exist', () => {
-      const frontendImagesPath = path.join(__dirname, '../../frontend/src/assets/images');
-      if (fs.existsSync(frontendImagesPath)) {
-        const pngFiles = fs.readdirSync(frontendImagesPath)
+      const frontendUiImagePath = path.join(__dirname, '../../frontend/src/assets/ui_image');
+      if (fs.existsSync(frontendUiImagePath)) {
+        const pngFiles = fs.readdirSync(frontendUiImagePath)
           .filter(f => f.endsWith('.png'))
-          .slice(0, 3); // Test first 3 files to avoid long test times
+          .slice(0, 3);
 
         pngFiles.forEach(file => {
-          const filePath = path.join(frontendImagesPath, file);
+          const filePath = path.join(frontendUiImagePath, file);
           const isValid = AssetValidator.validateImageFile(filePath);
           expect(isValid, `Image ${file} should be valid`).to.be.true;
         });
@@ -122,19 +121,19 @@ describe('Import Scripts Integration Tests', () => {
     });
 
     it('should validate required database properties', () => {
-      const databasePath = path.join(__dirname, '../../assets/database/database.json');
+      const databasePath = path.join(__dirname, '../../assets/database/database-2024.json');
       const data = fs.readFileSync(databasePath, 'utf-8');
       const database: BExport = JSON.parse(data);
 
-      // Test that validator checks for all required properties
-      const requiredProps = ['elements', 'buildMenuCategories', 'buildMenuItems', 
-                           'uiSprites', 'spriteModifiers', 'buildings'];
-      
-      requiredProps.forEach(prop => {
+      // All required props must be arrays; spriteModifiers may be empty in 2024 format
+      const nonEmptyProps = ['elements', 'buildMenuCategories', 'buildMenuItems', 'uiSprites', 'buildings'];
+      nonEmptyProps.forEach(prop => {
         expect(database).to.have.property(prop);
         expect(database[prop as keyof BExport]).to.be.an('array');
         expect((database[prop as keyof BExport] as any[]).length).to.be.greaterThan(0);
       });
+      expect(database).to.have.property('spriteModifiers');
+      expect(database.spriteModifiers).to.be.an('array');
     });
   });
 
@@ -146,21 +145,19 @@ describe('Import Scripts Integration Tests', () => {
     });
 
     it('should resolve database paths correctly', () => {
-      const databasePath = path.join(__dirname, '../../assets/database/database.json');
+      const databasePath = path.join(__dirname, '../../assets/database/database-2024.json');
       expect(path.isAbsolute(databasePath)).to.be.true;
       expect(fs.existsSync(databasePath)).to.be.true;
-      expect(databasePath).to.include('assets/database/database.json');
+      expect(databasePath).to.include('assets/database/database-2024.json');
     });
 
-    it('should provide all expected database file paths', () => {
-      // Test actual database files that we know exist
+    it('should have the 2024 database files', () => {
       const databaseFiles = [
-        path.join(__dirname, '../../assets/database/database.json'),
-        path.join(__dirname, '../../assets/database/database-groups.json'),
-        path.join(__dirname, '../../assets/database/database-white.json'),
-        path.join(__dirname, '../../assets/database/database-repack.json'),
+        path.join(__dirname, '../../assets/database/database-2024.json'),
+        path.join(__dirname, '../../assets/database/database-2024.zip'),
+        path.join(__dirname, '../../frontend/src/assets/database/database-2024.zip'),
       ];
-      
+
       databaseFiles.forEach(filePath => {
         expect(path.isAbsolute(filePath)).to.be.true;
         expect(fs.existsSync(filePath), `Database file should exist: ${filePath}`).to.be.true;
@@ -265,107 +262,35 @@ describe('Import Scripts Integration Tests', () => {
   });
 
   describe('Database Processing Pipeline', () => {
-    it('should have consistent data across all database variants', () => {
-      const mainDb = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database.json'), 'utf-8'));
-      const groupsDb = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database-groups.json'), 'utf-8'));
-      const whiteDb = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database-white.json'), 'utf-8'));
-      const repackDb = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database-repack.json'), 'utf-8'));
+    let db: any;
 
-      // All databases should have core elements
-      expect(mainDb.elements).to.be.an('array');
-      expect(groupsDb.elements).to.be.an('array');
-      expect(whiteDb.elements).to.be.an('array');
-      expect(repackDb.elements).to.be.an('array');
-
-      // Element counts should be consistent
-      expect(groupsDb.elements.length).to.equal(mainDb.elements.length);
-      expect(whiteDb.elements.length).to.equal(mainDb.elements.length);
-      expect(repackDb.elements.length).to.equal(mainDb.elements.length);
+    before(() => {
+      db = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database-2024.json'), 'utf-8'));
     });
 
-    it('should have white variants in white database', () => {
-      const whiteDb = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database-white.json'), 'utf-8'));
-      
-      const whiteSprites = whiteDb.uiSprites.filter((sprite: any) => 
-        sprite.name && sprite.name.includes('_white')
-      );
-      expect(whiteSprites.length).to.be.greaterThan(0);
-
-      const whiteModifiers = whiteDb.spriteModifiers.filter((modifier: any) => 
-        modifier.name && modifier.name.includes('_white')
-      );
-      expect(whiteModifiers.length).to.be.greaterThan(0);
+    it('should have core arrays in database-2024.json', () => {
+      expect(db.elements).to.be.an('array').with.length.greaterThan(0);
+      expect(db.buildings).to.be.an('array').with.length.greaterThan(0);
+      expect(db.uiSprites).to.be.an('array').with.length.greaterThan(0);
+      expect(db.spriteModifiers).to.be.an('array');
     });
 
-    it('should have repack textures in repack database', () => {
-      const repackDb = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database-repack.json'), 'utf-8'));
-      
-      const repackSprites = repackDb.uiSprites.filter((sprite: any) => 
-        sprite.textureName && sprite.textureName.startsWith('repack_')
-      );
-      expect(repackSprites.length).to.be.greaterThan(0);
-    });
-
-    it('should maintain referential integrity across processing steps', () => {
-      const databases = [
-        { path: path.join(__dirname, '../../assets/database/database.json'), name: 'main', maxBroken: 10 },
-        { path: path.join(__dirname, '../../assets/database/database-white.json'), name: 'white', maxBroken: 50 },
-        { path: path.join(__dirname, '../../assets/database/database-repack.json'), name: 'repack', maxBroken: 1000 }
-      ];
-
-      databases.forEach(({ path: dbPath, name: dbName, maxBroken }) => {
-        const db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
-        
-        // Check sprite modifier references
-        const spriteInfoNames = new Set(db.uiSprites.map((si: any) => si.name));
-        
-        let brokenReferences = 0;
-        db.spriteModifiers.forEach((modifier: any) => {
-          if (modifier.spriteInfoName && !spriteInfoNames.has(modifier.spriteInfoName)) {
-            brokenReferences++;
-            if (brokenReferences <= 5) { // Only log first few to avoid spam
-              // console.warn removed
-            }
-          }
-        });
-
-        // Removed console.warn message
-
-        expect(brokenReferences, `Database ${dbName} should have less than ${maxBroken} broken sprite references`).to.be.lessThan(maxBroken);
-
-        // Check building sprite references - these should be clean
-        const spriteModifierNames = new Set(db.spriteModifiers.map((sm: any) => sm.name));
-        
-        let brokenBuildingRefs = 0;
-        db.buildings.forEach((building: any) => {
-          if (building.sprites && building.sprites.spriteNames) {
-            building.sprites.spriteNames.forEach((spriteName: string) => {
-              if (!spriteModifierNames.has(spriteName)) {
-                brokenBuildingRefs++;
-                if (brokenBuildingRefs <= 3) {
-                  // console.warn removed
-                }
-              }
-            });
-          }
-        });
-
-        expect(brokenBuildingRefs, `Database ${dbName} should have no broken building sprite references`).to.equal(0);
-      });
-
-      // Separately test groups database with more tolerance
-      const groupsDb = JSON.parse(fs.readFileSync(path.join(__dirname, '../../assets/database/database-groups.json'), 'utf-8'));
-      const groupsSpriteInfoNames = new Set(groupsDb.uiSprites.map((si: any) => si.name));
-      
-      let groupsBrokenReferences = 0;
-      groupsDb.spriteModifiers.forEach((modifier: any) => {
-        if (modifier.spriteInfoName && !groupsSpriteInfoNames.has(modifier.spriteInfoName)) {
-          groupsBrokenReferences++;
+    it('should have overlay spriteModifiers that reference valid uiSprites', () => {
+      const spriteInfoNames = new Set(db.uiSprites.map((si: any) => si.name));
+      let brokenReferences = 0;
+      db.spriteModifiers.forEach((modifier: any) => {
+        if (modifier.spriteInfoName && !spriteInfoNames.has(modifier.spriteInfoName)) {
+          brokenReferences++;
         }
       });
+      expect(brokenReferences, 'All overlay spriteModifiers should reference valid uiSprites').to.equal(0);
+    });
 
-      console.log(`Groups database has ${groupsBrokenReferences} broken sprite references (known processing artifact)`);
-      expect(groupsBrokenReferences, 'Groups database should have reasonable number of broken references').to.be.lessThan(100);
+    it('should have buildings with uiImage but no spriteNames references', () => {
+      db.buildings.forEach((building: any) => {
+        expect(building.uiImage, `Building ${building.prefabId} should have uiImage`).to.be.a('string').with.length.greaterThan(0);
+        expect(building.sprites.spriteNames, `Building ${building.prefabId} spriteNames should be empty in 2024 format`).to.be.an('array').with.length(0);
+      });
     });
   });
 
@@ -414,21 +339,17 @@ describe('Import Scripts Integration Tests', () => {
   describe('Performance and Memory', () => {
     it('should handle large database files efficiently', () => {
       const startTime = Date.now();
-      const databasePath = path.join(__dirname, '../../assets/database/database.json');
-      
-      // Read and parse the database
+      const databasePath = path.join(__dirname, '../../assets/database/database-2024.json');
+
       const data = fs.readFileSync(databasePath, 'utf-8');
       const database = JSON.parse(data);
-      
+
       const endTime = Date.now();
       const loadTime = endTime - startTime;
-      
-      // Should load within reasonable time (less than 5 seconds)
+
       expect(loadTime).to.be.lessThan(5000);
-      
-      // Verify we loaded substantial data
       expect(database.buildings.length).to.be.greaterThan(100);
-      expect(database.uiSprites.length).to.be.greaterThan(1000);
+      expect(database.uiSprites.length).to.be.greaterThan(100);
     });
 
     it('should track memory usage during operations', () => {

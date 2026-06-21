@@ -18,6 +18,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import AdmZip from 'adm-zip';
 import {
   BBuildingFile2024,
   BElementsFile2024,
@@ -170,7 +171,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     color: e.color,
     conduitColor: e.conduitColor,
     uiColor: e.uiColor,
-    icon: e.id + '_ui_0',
+    icon: e.id,
   }));
 
   // --- Build menu categories ---
@@ -273,8 +274,23 @@ export function convertExport2024(opts: ConvertOptions): void {
   }
 
   fs.mkdirSync(path.dirname(opts.out), { recursive: true });
-  fs.writeFileSync(opts.out, JSON.stringify(database));
+  const jsonBytes = Buffer.from(JSON.stringify(database));
+  fs.writeFileSync(opts.out, jsonBytes);
   console.log('--- wrote', opts.out, '---');
+
+  // Rebuild both zip files. The internal entry is always named "database.json"
+  // because the frontend reads zipped.files["database.json"].
+  const zipPaths = [
+    path.join(path.dirname(opts.out), 'database-2024.zip'),
+    path.join(path.dirname(opts.out), '../../frontend/src/assets/database/database-2024.zip'),
+  ];
+  for (const zipPath of zipPaths) {
+    fs.mkdirSync(path.dirname(zipPath), { recursive: true });
+    const z = new AdmZip();
+    z.addFile('database.json', jsonBytes);
+    z.writeZip(zipPath);
+    console.log('--- wrote', path.normalize(zipPath), '---');
+  }
 }
 
 function buildingRecord(b: BBuildingDef2024, unknownViewModes: Set<string>): any {
