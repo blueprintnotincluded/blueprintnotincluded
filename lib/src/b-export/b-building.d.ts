@@ -20,6 +20,7 @@ export declare class BBuilding {
     frontColor: number;
     kanimPrefix: string;
     textureName: string;
+    uiImage: string;
     spriteInfos: BSpriteInfo[];
     spriteModifiers: BSpriteModifier[];
     utilities: UtilityConnection[];

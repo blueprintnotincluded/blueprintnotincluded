@@ -18,6 +18,7 @@ export declare class OniItem {
     name: string;
     imageId: string;
     iconUrl: string;
+    flatIconId: string;
     spriteModifierId: string;
     isWire: boolean;
     isTile: boolean;

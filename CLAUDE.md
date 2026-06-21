@@ -139,12 +139,21 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 ## Current Status
 
-- **Phase**: Phase 6 - Final Optimization (all dependency upgrades complete)
-- **Date**: 2026-06-16
+- **Phase**: OniExtract2024 migration in progress (branch `export-aqua`)
+- **Date**: 2026-06-20
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ Backend 141 passing (Mocha + Chai) · Frontend 284 passing (Vitest/jsdom), all green
+- **Tests**: ✅ Backend 194 passing (Mocha + Chai) · Frontend 453 passing (Vitest/jsdom), all green
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
+
+### OniExtract2024 Migration (`export-aqua` branch)
+See `agent/EXPORT_2024_MIGRATION_PLAN.md` for full context and decisions.
+- ✅ Phase 1: `lib/src/b-export/b-export-2024.ts` — raw 2024 types
+- ✅ Phase 2: `app/api/batch/convert-export-2024.ts` — converter → `assets/database/database-2024.json`
+- ✅ Phase 3: 1,241 flat PNGs in `assets/ui_image/` + `frontend/src/assets/ui_image/`
+- ✅ Phase 4: Flat-icon render collapse — `OniItem.flatIconId`, `DrawPart.flatIconId`, no UV slice
+- ⏸ Phase 5: Remove `spriteModifiers` consumption from batch scripts (deferred)
+- ⏸ Phase 6: Swap loaders to `database-2024.json`; regenerate test fixtures (deferred)
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:

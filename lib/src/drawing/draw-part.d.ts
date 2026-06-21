@@ -8,6 +8,7 @@ export declare class DrawPart {
     spriteModifier: SpriteModifier;
     spriteInfo: SpriteInfo;
     sprite: any;
+    flatIconId: string;
     private alpha_;
     get alpha(): number;
     set alpha(value: number);
