@@ -28,7 +28,7 @@ class App {
 
   constructor() {
     // Read database
-    let rawdata = fs.readFileSync('assets/database/database.json').toString();
+    let rawdata = fs.readFileSync('assets/database/database-2024.json').toString();
     let json = JSON.parse(rawdata);
 
     ImageSource.init();

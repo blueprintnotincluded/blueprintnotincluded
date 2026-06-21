@@ -52,7 +52,8 @@ the multi-sprite atlas pipeline. Source export lives in `export/` (see
   is correct for all building sizes. `hasTag()` returns `solid|place` for flat parts so
   selection pulse and build-candidate red tinting work. Legacy atlas path unchanged.
   All tests pass (194 backend, 453 frontend); `npm run tsc` + `npm run build` clean.
-- ⏸ **Phases 5–6 deferred** — awaiting loader/test cutover (user review gate).
+- ✅ **Phase 5 done** — batch script audit complete; retire list documented above (no code deleted yet).
+- ✅ **Phase 6 done** — loader cutover: backend reads `database-2024.json`; frontend fetches `database-2024.zip`; `database-2024.zip` created in both asset dirs. All 194 backend + 453 frontend tests green; `npm run tsc` + `npm run build` clean.
 
 ### Decisions made
 - **Rotations:** render rotated/flipped placements as the **same upright icon, ignore
@@ -144,6 +145,22 @@ Reads `export/database/*.json` + scans `export/ui_image/`, emits `database.json`
 - Remove `spriteModifiers` consumption from the ~12 files that reference it (batch
   scripts + lib + frontend). Some batch scripts (`generate-icons`, `generate-white`,
   `generate-groups`, etc.) exist *to produce* the old atlas data and may be fully retired.
+
+**Phase 5 audit results (2026-06-20, post-cutover retire list):**
+
+| Script | Action | Reason |
+|---|---|---|
+| `app/api/batch/generate-icons.ts` | **Retire** | Generates icon sprites from atlas UV data; 2024 path serves flat PNGs from `assets/ui_image/` |
+| `app/api/batch/generate-white.ts` | **Retire** | Generates white-background sprite variants for the atlas pipeline; not needed with flat icons |
+| `app/api/batch/generate-groups.ts` | **Retire** | Builds group-sprite composite textures from `spriteModifiers`; obsolete with flat-icon render |
+| `app/api/batch/generate-repack.ts` | **Retire** | Repacks individual sprites into texture atlases (`repack_*.png`); atlas no longer needed |
+| `app/api/batch/test-canvas.ts` | **Retire** | Dev-only canvas test harness wired to spriteModifiers; superseded by Phase 4 draw path |
+| `app/api/batch/enhanced-extract-export.ts` | **Retire** | Extracts from old `export.zip` (ONI pre-2024 format); superseded by `convert-export-2024.ts` |
+| `app/api/batch/add-info-icons.ts` | **Keep / Adapt** | Adds in-code overlay info icons to the database; still needed but should target `database-2024.json` once old pipeline is gone |
+| `app/api/batch/update-thumbnail.ts` | **Keep / Adapt** | Regenerates blueprint thumbnails via Canvas + PIXI; must load `database-2024.json` (not `database.json`) when re-running post-cutover |
+| `app/api/batch/asset-validator.ts` | **Update** | `validateDatabase()` requires `spriteModifiers` to be a non-empty array; loosen to allow empty array once old-pipeline validation tests are updated |
+
+Files in `lib/` and `frontend/` that reference `spriteModifiers` at the type/load level can be cleaned up after the retire list above is executed (all loaders still accept an empty array without crashing).
 
 ### Phase 6 — Loaders & tests
 - Update the three loaders to the new consolidated `database.json` shape (or have them

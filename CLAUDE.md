@@ -152,8 +152,8 @@ See `agent/EXPORT_2024_MIGRATION_PLAN.md` for full context and decisions.
 - ✅ Phase 2: `app/api/batch/convert-export-2024.ts` — converter → `assets/database/database-2024.json`
 - ✅ Phase 3: 1,241 flat PNGs in `assets/ui_image/` + `frontend/src/assets/ui_image/`
 - ✅ Phase 4: Flat-icon render collapse — `OniItem.flatIconId`, `DrawPart.flatIconId`, no UV slice
-- ⏸ Phase 5: Remove `spriteModifiers` consumption from batch scripts (deferred)
-- ⏸ Phase 6: Swap loaders to `database-2024.json`; regenerate test fixtures (deferred)
+- ✅ Phase 5: Batch-script audit done; retire list in `agent/EXPORT_2024_MIGRATION_PLAN.md` (scripts not deleted yet)
+- ✅ Phase 6: Loader cutover — backend reads `database-2024.json`; frontend fetches `database-2024.zip`; converter updated to emit overlay sprites; all 194 + 453 tests green
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:

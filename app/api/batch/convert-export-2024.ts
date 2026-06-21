@@ -198,10 +198,37 @@ export function convertExport2024(opts: ConvertOptions): void {
     }
   }
 
+  // Overlay sprites: element tiles + info indicators. These are not from the game export —
+  // they are handcrafted additions that `OniItem.load()` requires for the element-tile and
+  // info-indicator overlays. The corresponding PNGs live in assets/images/ (not ui_image/).
+  // Tag values: element_back=27, element_gas_front=28, element_liquid_front=29,
+  //             element_vacuum_front=30, info_back=31, info_front=32.
+  const overlayUiSprites = [
+    { name: 'element_tile_back', textureName: 'element_tile_back', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
+    { name: 'gas_tile_front',    textureName: 'gas_tile_front',    isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
+    { name: 'liquid_tile_front', textureName: 'liquid_tile_front', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
+    { name: 'vacuum_tile_front', textureName: 'vacuum_tile_front', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
+    { name: 'info_back',         textureName: 'info_back',         isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      name: `info_front_${i}`, textureName: `info_front_${i}`, isIcon: false, isInputOutput: false,
+      uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 },
+    })),
+  ];
+  const overlayModifiers = [
+    { name: 'element_tile_back', spriteInfoName: 'element_tile_back', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [27] },
+    { name: 'gas_tile_front',    spriteInfoName: 'gas_tile_front',    translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [28] },
+    { name: 'liquid_tile_front', spriteInfoName: 'liquid_tile_front', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [29] },
+    { name: 'vacuum_tile_front', spriteInfoName: 'vacuum_tile_front', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [30] },
+    { name: 'info_back',         spriteInfoName: 'info_back',         translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [31] },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      name: `info_front_${i}`, spriteInfoName: `info_front_${i}`, translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [32],
+    })),
+  ];
+
   const database = {
     buildings,
-    uiSprites,
-    spriteModifiers: [], // dropped in 2024 (doc §4)
+    uiSprites: [...uiSprites, ...overlayUiSprites],
+    spriteModifiers: overlayModifiers,
     buildMenuCategories,
     buildMenuItems,
     elements,
