@@ -28,6 +28,7 @@
     "generateWhite": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/generate-white.ts",
     "generateRepack": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/generate-repack.ts",
     "fixHtmlLabels": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/fix-html-labels.ts",
+    "convert:2024": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts",
     "migrate:validate": "TS_NODE_TRANSPILE_ONLY=true ts-node scripts/migration/validate-data-shape.ts",
     "migrate:dry-run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/migrate-deleted-to-deletedAt.ts --dry-run",
     "migrate:run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/migrate-deleted-to-deletedAt.ts",

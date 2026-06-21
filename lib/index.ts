@@ -24,6 +24,7 @@ export * from './src/b-export/b-build-order';
 export * from './src/b-export/b-building';
 export * from './src/b-export/b-element';
 export * from './src/b-export/b-export';
+export * from './src/b-export/b-export-2024';
 export * from './src/b-export/b-sprite-modifier';
 export * from './src/b-export/b-sprite-info';
 export * from './src/b-export/b-ui-screen';
