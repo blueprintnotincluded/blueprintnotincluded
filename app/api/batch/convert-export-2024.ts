@@ -54,15 +54,18 @@ const VIEW_MODE_TO_OVERLAY: { [unsignedHex: string]: Overlay } = {
   '91EE10A1': Overlay.Unknown, // "Radiation" (no dedicated overlay)
 };
 
-function normalizeHash(viewMode: string): string {
+function normalizeHash(viewMode: string): string | null {
   // Accepts "0x1EDC6185" / "0x0" etc. -> "1EDC6185" / "0".
+  // Returns null for malformed input so callers can track it as unknown
+  // (NaN >>> 0 would otherwise coerce to "0" and silently map to Base).
   const n = parseInt(viewMode, 16);
+  if (Number.isNaN(n)) return null;
   return (n >>> 0).toString(16).toUpperCase();
 }
 
 function overlayFromViewMode(viewMode: string, unknown: Set<string>): Overlay {
   const key = normalizeHash(viewMode);
-  const mapped = VIEW_MODE_TO_OVERLAY[key];
+  const mapped = key === null ? undefined : VIEW_MODE_TO_OVERLAY[key];
   if (mapped === undefined) {
     unknown.add(viewMode);
     return Overlay.Base;
