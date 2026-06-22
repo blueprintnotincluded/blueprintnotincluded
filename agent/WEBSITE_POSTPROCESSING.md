@@ -99,11 +99,11 @@ footprint, the auto-sweeper looks squished. Higher resolution, but the geometry 
 placement data**. That only looks right when the image's opaque content equals the footprint.
 
 - The **old UI-sprite export** produced footprint-shaped icons, so the stretch was harmless.
-- The **animation/tight-crop export** crops to the art's true bounding box, which (a) has a
-  different aspect ratio than the footprint and (b) includes art that **overhangs** the
-  footprint. Stretching that into the footprint box squishes the aspect and crushes the
-  overhang. (Measured: new icons are tight-cropped, ~0 px padding; e.g. SteamTurbine2 art is
-  ar 1.30 but its footprint is 5×3 = ar 1.67.)
+- The **animation/tight-crop export** crops to the art's true bounding box, which is taller
+  and/or wider than the footprint because the art **overhangs** it. Stretching that into the
+  footprint box crushes the overhang and squishes the proportions. (Measured: new icons are
+  tight-cropped, ~0 px padding; SteamTurbine2's art is ~5×4.24 cells — over a cell taller than
+  its 5×3 footprint — so forcing it into 5×3 squashes the exhaust up instead of letting it hang.)
 
 **The website cannot fix this from the image alone** — a single cropped icon has no cell
 reference, so we can't infer the scale or where the footprint sits within the overhang. (This
@@ -126,14 +126,36 @@ Emit, per building, the rendered PNG's rectangle **in cell units, relative to th
 - `x, y` = bottom-left corner of the **image** in that space; `w, h` = image size in cells.
 - Overhang is expressed by going outside the footprint: `y` negative ⇒ art hangs **below**
   (steam turbine exhaust); `x+w > widthInCells` ⇒ art extends **right**; etc.
-- The PNG's pixels map linearly onto this rectangle, so its pixel aspect must equal `w:h`
-  (you already tight-crop, so `w = imgPxW / pxPerCell`, `h = imgPxH / pxPerCell`).
-- **Example:** SteamTurbine2, footprint 5×3, art 5 wide × 4 tall with 1 cell of exhaust below →
-  `{ x: 0, y: -1, w: 5, h: 4 }`. A normal footprint-filling icon → `{ x:0, y:0, w:W, h:H }`
-  (identical to omitting it).
+- The rect describes the **whole PNG** (not just its opaque pixels). The PNG maps linearly onto
+  the rectangle, so its pixel aspect must equal `w:h` — true automatically if you tight-crop.
+- **Values are real numbers, not whole cells** — do *not* round to integers.
+- **Example (verified in-editor):** SteamTurbine2, footprint 5×3, PNG 1033×876 at ~206 px/cell
+  → `{ x: 0, y: -1.24, w: 5, h: 4.24 }` (≈1.24 cells of exhaust hanging below). A footprint-
+  filling icon → `{ x:0, y:0, w:W, h:H }` (identical to omitting it).
 
-This is the same information the 2020/2023 atlas carried as `pivot` + `realSize` — your kanim
-renderer already knows it (the rendered art's world bounds vs the building's footprint).
+This is the same information the 2020/2023 atlas carried as `pivot` + `realSize`.
+
+#### How to compute it (export side)
+
+You render each building's kanim to a tight-cropped PNG, so in one world frame you know the
+**art's world bounding box** and the **footprint's position** (which cells it occupies). Let
+`ppc` = your render scale in **pixels per cell**, and take the footprint's **bottom-left corner**
+as the origin. Then:
+
+```
+w = imgPxW / ppc                      // image width in cells
+h = imgPxH / ppc                      // image height in cells
+x = (artLeft   - footprintLeft)   / cellSize   // cells the PNG's left edge sits right of the footprint's left
+y = (artBottom - footprintBottom) / cellSize   // cells the PNG's bottom sits ABOVE the footprint's bottom
+```
+
+- **Watch the Y sign.** Our `+y` is **up**. Game/image space is usually `+y` down — if you compute
+  in image space, flip the sign so a building whose art hangs *below* the footprint gets a
+  **negative** `y` (as SteamTurbine2 does). This is the single most likely place to get it wrong.
+- `x` is usually `0` and `w` usually equals the footprint width (most overhang is vertical), but
+  emit the real measured values either way — side overhang (`x < 0` and/or `x+w > W`) happens too.
+- Emit it for **every** building (even footprint-filling ones get their exact rect); omitting is
+  only the legacy fallback.
 
 **Website side is done and shipped:** the converter passes `uiImageRect` through to the DB, and
 the renderer draws the icon into that rectangle (unit-tested). Buildings **without** it keep the
