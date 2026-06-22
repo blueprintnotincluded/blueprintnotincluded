@@ -35,6 +35,7 @@ export declare class BBuilding {
     tileableLeftRight: boolean;
     tileableTopBottom: boolean;
     connectionSprites: boolean;
+    connectionScale: Vector2;
 }
 export declare class BSpriteGroup {
     groupName: string;

@@ -45,6 +45,13 @@ export class BBuilding {
   // (assets/connection_sprites/<prefabId>/{0..15}.png). Derived from dir presence
   // by the 2024 converter — the export omits tileableLeftRight/tileableTopBottom.
   connectionSprites: boolean = false;
+
+  // Canvas-to-cell scale for connection sprites (canvas px / cell px, per axis),
+  // measured per building by the converter from the all-connected (state 15) PNG.
+  // The PNGs frame one tile plus cap/overhang (tiles ~1.5x, utilities ~1.05-1.15x,
+  // RocketEnvelopeWindowTile 1.0x), so the renderer scales by this and center-anchors
+  // to make the cell map to one tile and tile flush. {1,1} for non-connectables.
+  connectionScale: Vector2 = new Vector2(1, 1);
 }
 
 // All sprites for a building

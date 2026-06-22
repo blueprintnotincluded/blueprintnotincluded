@@ -58,6 +58,8 @@ export class OniItem {
   // 4-bit neighbour bitmask). When set, the item renders connectionSpriteId(mask)
   // instead of the single flat icon.
   connectionSprites: boolean = false;
+  // canvas/cell scale per axis for connection sprites (see BBuilding.connectionScale)
+  connectionScale: Vector2 = new Vector2(1, 1);
   static connectionSpriteCount = 16;
   public static connectionSpriteId(prefabId: string, bitmask: number): string {
     return 'connection_' + prefabId + '_' + bitmask;
@@ -130,6 +132,9 @@ export class OniItem {
     // renderer can swap them based on neighbour connections. The build/select menu
     // keeps using the single canonical iconUrl above.
     this.connectionSprites = original.connectionSprites;
+    this.connectionScale = original.connectionScale
+      ? new Vector2(original.connectionScale.x, original.connectionScale.y)
+      : new Vector2(1, 1);
     if (this.connectionSprites) {
       for (let bitmask = 0; bitmask < OniItem.connectionSpriteCount; bitmask++) {
         const id = OniItem.connectionSpriteId(this.id, bitmask);
@@ -279,6 +284,7 @@ export class OniItem {
     if (this.tileableLeftRight == null) this.tileableLeftRight = false;
     if (this.tileableTopBottom == null) this.tileableTopBottom = false;
     if (this.connectionSprites == null) this.connectionSprites = false;
+    if (this.connectionScale == null) this.connectionScale = new Vector2(1, 1);
     if (this.defaultElement == null || this.defaultElement.length == 0)
       this.defaultElement = [BuildableElement.getElement('Vacuum')];
     if (this.overlay == null) this.overlay = Overlay.Base;

@@ -25,6 +25,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import AdmZip from 'adm-zip';
+import { createCanvas, Image } from 'canvas';
 import {
   BBuildingFile2024,
   BElementsFile2024,
@@ -167,6 +168,40 @@ function readConnectablePrefabs(connectionDir: string): {
   return { prefabs, incomplete };
 }
 
+// Canvas-to-cell scale for a connectable's sprites. The all-connected state (15) is flush
+// on every side, so its alpha bounding box is exactly one cell; canvas/cell gives the factor
+// the renderer must apply (with a center anchor) so the cell maps to one tile and tiles join
+// flush. Tiles measure ~1.5, utilities ~1.05-1.15, RocketEnvelopeWindowTile 1.0.
+function measureConnectionScale(
+  connectionDir: string,
+  prefab: string
+): { x: number; y: number } {
+  const file = path.join(connectionDir, prefab, '15.png');
+  if (!fs.existsSync(file)) return { x: 1, y: 1 };
+  const img = new Image();
+  img.src = fs.readFileSync(file);
+  const W = img.width;
+  const H = img.height;
+  if (!W || !H) return { x: 1, y: 1 };
+  const ctx = createCanvas(W, H).getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, W, H).data;
+  let minX = W;
+  let minY = H;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++)
+      if (data[(y * W + x) * 4 + 3] > 16) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+  if (maxX < 0) return { x: 1, y: 1 };
+  return { x: W / (maxX - minX + 1), y: H / (maxY - minY + 1) };
+}
+
 export function convertExport2024(opts: ConvertOptions): void {
   const dbDir = path.join(opts.exportDir, 'database');
   const uiImageDir = path.join(opts.exportDir, 'ui_image');
@@ -210,6 +245,9 @@ export function convertExport2024(opts: ConvertOptions): void {
     if (!uiSpriteInfos[iconKey]) missingUiSpriteInfo.push(b.name);
 
     const connectable = connectablePrefabs.has(b.name);
+    const connectionScale = connectable
+      ? measureConnectionScale(connectionDir, b.name)
+      : { x: 1, y: 1 };
     if (connectable) {
       connectablePrefabsSeen.add(b.name);
       // The editor instantiates connectables as BlueprintItemWire (isUtility) or
@@ -218,7 +256,7 @@ export function convertExport2024(opts: ConvertOptions): void {
         connectablesNotTileOrUtility.push(b.name);
     }
 
-    buildings.push(buildingRecord(b, unknownViewModes, connectable));
+    buildings.push(buildingRecord(b, unknownViewModes, connectable, connectionScale));
 
     const size = readPngSize(path.join(uiImageDir, iconKey + '.png')) ?? { x: 0, y: 0 };
     uiSprites.push({
@@ -430,7 +468,8 @@ export function convertExport2024(opts: ConvertOptions): void {
 function buildingRecord(
   b: BBuildingDef2024,
   unknownViewModes: Set<string>,
-  connectable: boolean
+  connectable: boolean,
+  connectionScale: { x: number; y: number }
 ): any {
   return {
     DefaultAnimState: b.defaultAnimState,
@@ -453,6 +492,7 @@ function buildingRecord(
     tileableLeftRight: false,
     tileableTopBottom: false,
     connectionSprites: connectable,
+    connectionScale,
     buildLocationRule: b.buildLocationRule,
     utilities: [], // utility connection offsets are not in the 2024 export
     uiScreens: [],

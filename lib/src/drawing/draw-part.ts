@@ -71,13 +71,26 @@ export class DrawPart {
           const w = oniItem.size.x || 1;
           const h = oniItem.size.y || 1;
 
-          // Bottom-center anchor; same offset as the atlas path so flat icons
-          // align with the building's tile footprint.
-          this.sprite.anchor.set(0.5, 1.0);
-          this.sprite.x = w % 2 === 0 ? 50 : 0;
-          this.sprite.y = 50;
-          this.sprite.width = w * 100;
-          this.sprite.height = h * 100;
+          if (this.connectionTag != null) {
+            // Connection sprite: the PNG frames one cell plus cap/overhang, centered.
+            // Scale so the cell maps to one tile (100 px) and center-anchor so the
+            // overhang bleeds symmetrically — adjacent cells then tile flush.
+            // (All connectables are 1x1.)
+            const s = oniItem.connectionScale;
+            this.sprite.anchor.set(0.5, 0.5);
+            this.sprite.x = w % 2 === 0 ? 50 : 0;
+            this.sprite.y = 0;
+            this.sprite.width = w * 100 * s.x;
+            this.sprite.height = h * 100 * s.y;
+          } else {
+            // Bottom-center anchor; same offset as the atlas path so flat icons
+            // align with the building's tile footprint.
+            this.sprite.anchor.set(0.5, 1.0);
+            this.sprite.x = w % 2 === 0 ? 50 : 0;
+            this.sprite.y = 50;
+            this.sprite.width = w * 100;
+            this.sprite.height = h * 100;
+          }
 
           this.sprite.alpha = this.alpha;
           this.sprite.tint = this.tint;
