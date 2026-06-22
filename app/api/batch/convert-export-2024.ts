@@ -377,6 +377,13 @@ export function convertExport2024(opts: ConvertOptions): void {
     unknownViewModes.size,
     unknownViewModes.size ? '(' + [...unknownViewModes].join(', ') + ')' : ''
   );
+  console.log(
+    '  buildings with uiImageRect placement:',
+    buildings.filter((b) => b.uiImageRect).length,
+    '/',
+    buildings.length,
+    '(rest stretch icon to footprint)'
+  );
   console.log('  connectable buildings (sprite dirs):', connectablePrefabsSeen.size);
   const connectableDirsNoBuilding = [...connectablePrefabs].filter(
     (p) => !connectablePrefabsSeen.has(p)
@@ -493,6 +500,9 @@ function buildingRecord(
     tileableTopBottom: false,
     connectionSprites: connectable,
     connectionScale,
+    // Optional flat-icon placement (cells, footprint-relative). Passed through from the
+    // export when present; absent ⇒ renderer stretches the icon to the footprint (legacy).
+    ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),
     buildLocationRule: b.buildLocationRule,
     utilities: [], // utility connection offsets are not in the 2024 export
     uiScreens: [],

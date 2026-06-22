@@ -82,6 +82,17 @@ export class DrawPart {
             this.sprite.y = 0;
             this.sprite.width = w * 100 * s.x;
             this.sprite.height = h * 100 * s.y;
+          } else if (oniItem.uiImageRect) {
+            // Placement metadata present: draw the icon into its cell rectangle relative to
+            // the footprint, so art that overhangs the footprint extends past it instead of
+            // being stretched to fit. For the default rect {0,0,w,h} this is identical to the
+            // footprint branch below.
+            const p = DrawPart.flatIconPlacement(w, oniItem.uiImageRect);
+            this.sprite.anchor.set(p.anchorX, p.anchorY);
+            this.sprite.x = p.x;
+            this.sprite.y = p.y;
+            this.sprite.width = p.width;
+            this.sprite.height = p.height;
           } else {
             // Bottom-center anchor; same offset as the atlas path so flat icons
             // align with the building's tile footprint.
@@ -142,6 +153,25 @@ export class DrawPart {
         this.isReady = true;
       }
     }
+  }
+
+  // Maps a flat-icon placement rectangle (cells, footprint-relative; origin bottom-left,
+  // +x right, +y up) to PIXI sprite geometry in the item's container space (100 px = 1 cell).
+  // Top-left anchored. The default rect {0,0,footprintW,footprintH} reproduces the legacy
+  // bottom-center footprint placement exactly. Pure + side-effect-free so it can be unit tested.
+  static flatIconPlacement(
+    footprintW: number,
+    rect: { x: number; y: number; w: number; h: number }
+  ): { anchorX: number; anchorY: number; x: number; y: number; width: number; height: number } {
+    const centerX = footprintW % 2 === 0 ? 50 : 0;
+    return {
+      anchorX: 0,
+      anchorY: 0,
+      x: centerX - footprintW * 50 + rect.x * 100,
+      y: 50 - (rect.y + rect.h) * 100,
+      width: rect.w * 100,
+      height: rect.h * 100,
+    };
   }
 
   public hasTag(tag: SpriteTag) {

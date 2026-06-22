@@ -25,6 +25,19 @@ export declare class DrawPart {
     isReady: boolean;
     constructor();
     prepareSprite(container: any, oniItem: OniItem, pixiUtil: PixiUtil): void;
+    static flatIconPlacement(footprintW: number, rect: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+    }): {
+        anchorX: number;
+        anchorY: number;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
     hasTag(tag: SpriteTag): boolean;
     prepareVisibilityBasedOnDisplay(newDisplay: Display): void;
     makeEverythingButThisTagInvisible(tagFilter: SpriteTag): void;

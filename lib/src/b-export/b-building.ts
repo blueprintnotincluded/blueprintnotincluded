@@ -52,6 +52,11 @@ export class BBuilding {
   // RocketEnvelopeWindowTile 1.0x), so the renderer scales by this and center-anchors
   // to make the cell map to one tile and tile flush. {1,1} for non-connectables.
   connectionScale: Vector2 = new Vector2(1, 1);
+
+  // OPTIONAL placement of the flat ui_image relative to the footprint, in cell units
+  // (see BBuildingDef2024.uiImageRect). When present the renderer draws the icon at this
+  // rectangle (allowing overhang) instead of stretching it to fill the footprint box.
+  uiImageRect?: { x: number; y: number; w: number; h: number };
 }
 
 // All sprites for a building
