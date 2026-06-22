@@ -107,9 +107,9 @@ describe('Database Asset Validation', () => {
       const database = readDatabase();
       const missingIcons: string[] = [];
       for (const building of database.buildings) {
-        const expectedPng = path.join(uiImagePath, `${building.prefabId}.png`);
+        const expectedPng = path.join(uiImagePath, `${building.uiImage}.png`);
         if (!fs.existsSync(expectedPng)) {
-          missingIcons.push(building.prefabId);
+          missingIcons.push(building.uiImage);
         }
       }
       expect(missingIcons, `Missing icons: ${missingIcons.join(', ')}`).to.be.empty;
