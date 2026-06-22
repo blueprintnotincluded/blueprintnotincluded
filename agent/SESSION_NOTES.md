@@ -1,48 +1,27 @@
-# Session Notes - 2026-06-20
+# Session Notes - 2026-06-22
 
 ## What We Accomplished ✅
 
-### OniExtract2024 Migration — Phases 5 & 6 (branch `export-aqua`)
+### OniExtract2024 flat-icon migration — wrapped up (branch `export-aqua`)
 
-#### Phase 5: Batch-script audit
-
-Identified which legacy batch scripts are safe to retire post-cutover vs. need adapting:
-
-| Script | Action |
-|---|---|
-| `generate-icons`, `generate-white`, `generate-groups`, `generate-repack` | **Retire** — atlas pipeline; replaced by flat PNGs |
-| `enhanced-extract-export`, `test-canvas` | **Retire** — superseded by `convert-export-2024.ts` |
-| `add-info-icons`, `update-thumbnail` | **Adapt** — still needed; must target `database-2024.json` |
-| `asset-validator` | **Update** — `validateDatabase()` must allow empty `spriteModifiers` array |
-
-Full table in `agent/EXPORT_2024_MIGRATION_PLAN.md`.
-
-#### Phase 6: Loader cutover
-
-Three loaders now read the 2024 database:
-
-- **Backend** (`app/app.ts:31`): `database.json` → `database-2024.json`
-- **Frontend** (`component-blueprint-parent.component.ts:220`): `database.zip` → `database-2024.zip` (42KB vs old 362KB)
-- Dead-code fallback at L286 was already commented out — left as-is.
-
-New `database-2024.zip` files placed in `assets/database/` and `frontend/src/assets/database/`; the file inside the zip is named `database.json` (unchanged from the JSZip extract key).
-
-#### Key fix: overlay sprite entries
-
-`OniItem.load()` unconditionally calls `SpriteModifier.getSpriteModifer()` for 17 in-code
-overlay items (element tiles + info indicators) **after** building data is loaded. These modifiers
-must exist in the `spriteModifiers` map, but the initial `database-2024.json` had an empty
-`spriteModifiers: []`.
-
-Fix: updated `convert-export-2024.ts` to always emit 17 hardcrafted overlay entries (not from
-the game export) and re-ran the converter. Entries match what `add-info-icons.ts` injected into
-the old database. The corresponding PNGs already live in `assets/images/` (not `ui_image/`).
-
-#### Test outcome
-
-No test fixture changes were needed: the asset-processing tests read `database.json` (old file,
-still present) directly from disk; the API tests exercise HTTP endpoints that don't inspect game
-object shape. 194 backend + 453 frontend tests pass; `npm run tsc` and `npm run build` clean.
+- **Import pipeline**: `convert-export-2024.ts` (`npm run import:2024`) reads the 13-file
+  export → `database-2024.json` + both `database-2024.zip`, syncs `ui_image/` and
+  `connection_sprites/` into both asset roots, validates. Backend loads
+  `database-2024.json`; frontend fetches `database-2024.zip`.
+- **Flat-icon render**: `OniItem.flatIconId` / `DrawPart.flatIconId`, no UV slice;
+  `uiImageRect` places overhanging art (342/449 buildings carry it), else stretch-to-footprint.
+- **Connection sprites**: 31 connectables render 16 per-state PNGs by neighbour bitmask;
+  per-building `connectionScale` measured from `15.png` at import.
+- **Overlay sprites**: converter emits the 17 in-code overlay `spriteModifiers`
+  (element tiles + info indicators) that `OniItem.load()` requires — formerly from
+  `add-info-icons.ts`.
+- **Legacy atlas pipeline removed**: deleted `generate-*`, `extract-export`,
+  `enhanced-extract-export`, `test-canvas`, `add-info-icons` scripts + their npm entries;
+  removed old `database*.json/.zip` and `repack_*.png` assets; adapted `update-thumbnail`
+  and `asset-validator` to the 2024 shape.
+- **Docs cleanup**: folded the migration journals into one factual script-side reference
+  (`app/api/batch/convert-export-2024.md`) and corrected the stale test counts.
+- **Tests**: 187 backend + 453 frontend green; `npm run tsc` and `npm run build` clean.
 
 ---
 

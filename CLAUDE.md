@@ -72,12 +72,12 @@ run the single repeatable step:
   the frontend. No lib rebuild needed for data/icon-only iterations.
 - `convert:2024` is a kept alias for `import:2024`.
 
-**Legacy 2020/2023 atlas scripts (retired — do not use for 2024 data):**
-- `npm run generateIcons` - Generate sprite icons from game assets
-- `npm run generateGroups` - Process sprite groupings
-- `npm run generateWhite` - Generate white-background variants
-- `npm run generateRepack` - Repack asset database
-- `npm run fixHtmlLabels` - Fix HTML formatting in labels
+Export contract + converter behaviour: `app/api/batch/convert-export-2024.md`.
+
+The legacy 2020/2023 atlas pipeline has been removed — the `generate-icons/white/groups/repack`,
+`enhanced-extract-export`, `extract-export`, `test-canvas`, and `add-info-icons` batch scripts
+and their `npm run generate*` / `seed` / `enhancedSeed` / `testCanvas` entries no longer exist.
+Remaining batch utility: `npm run fixHtmlLabels` - Fix HTML formatting in labels.
 
 ### Docker
 - `docker-compose up` - Full development environment with database
@@ -154,27 +154,29 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 ## Current Status
 
-- **Phase**: OniExtract2024 migration in progress (branch `export-aqua`)
-- **Date**: 2026-06-20
+- **Phase**: OniExtract2024 flat-icon rendering (current asset pipeline)
+- **Date**: 2026-06-22
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ Backend 194 passing (Mocha + Chai) · Frontend 453 passing (Vitest/jsdom), all green
+- **Tests**: ✅ Backend 187 passing (Mocha + Chai) · Frontend 453 passing (Vitest/jsdom), all green
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 
-### OniExtract2024 Migration (`export-aqua` branch)
-See `agent/EXPORT_2024_MIGRATION_PLAN.md` for full context and decisions.
-- ✅ Phase 1: `lib/src/b-export/b-export-2024.ts` — raw 2024 types
-- ✅ Phase 2: `app/api/batch/convert-export-2024.ts` — converter → `assets/database/database-2024.json`
-- ✅ Phase 3: 1,241 flat PNGs in `assets/ui_image/` + `frontend/src/assets/ui_image/`
-- ✅ Phase 4: Flat-icon render collapse — `OniItem.flatIconId`, `DrawPart.flatIconId`, no UV slice
-- ✅ Phase 5: Batch-script audit done; retire list in `agent/EXPORT_2024_MIGRATION_PLAN.md` (scripts not deleted yet)
-- ✅ Phase 6: Loader cutover — backend reads `database-2024.json`; frontend fetches `database-2024.zip`; converter updated to emit overlay sprites; all 194 + 453 tests green
-- ✅ Phase 8: Connection-state sprites — connectables (31 prefabs) render
-  `connection_sprites/{prefabId}/{bitmask}.png` per 4-bit neighbour mask (left=1,
-  right=2, up=4, down=8). `OniItem.connectionSprites` flag derived from dir presence;
-  `BlueprintItem` builds 16 tagged flat-icon draw-parts; `DrawPart` honours connection
-  tags. Converter (`import:2024`) syncs `ui_image/` + `connection_sprites/` and validates.
-  Build/select menu keeps the single canonical icon (`iconUrl`).
+### Asset rendering: OniExtract2024 flat icons
+Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas. Contract and
+converter details: `app/api/batch/convert-export-2024.md`.
+- **Types**: `lib/src/b-export/b-export-2024.ts` — raw 2024 export shapes (13 files).
+- **Import**: `app/api/batch/convert-export-2024.ts` (`npm run import:2024`) → consolidated
+  `assets/database/database-2024.json` + both `database-2024.zip`; syncs `ui_image/`
+  (1,241 flat PNGs) and `connection_sprites/` into both asset roots.
+- **Render**: each building is one flat icon — `OniItem.flatIconId`, `DrawPart.flatIconId`,
+  no UV slice. `uiImageRect` (when present) places overhanging art relative to the
+  footprint; otherwise the icon is stretched to the footprint.
+- **Connectables** (31 prefabs): render `connection_sprites/{prefabId}/{bitmask}.png` per
+  4-bit neighbour mask (left=1, right=2, up=4, down=8). `OniItem.connectionSprites` is
+  derived from dir presence; `BlueprintItem` builds 16 tagged flat-icon draw-parts;
+  per-building `connectionScale` is measured from `15.png` at import time. The build/select
+  menu keeps the single canonical icon (`iconUrl`).
+- **Loaders**: backend reads `database-2024.json`; frontend fetches `database-2024.zip`.
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:
@@ -187,7 +189,7 @@ Check these files in `agent/` directory for current status:
 ```bash
 # Environment verification
 node --version        # Should be 20.19.4
-npm run test         # Should pass 141 tests
+npm run test         # Should pass 187 backend tests
 npm run tsc          # Should compile without errors
 
 # GitHub CI status

@@ -10,7 +10,7 @@
 //      replacing the targets so renamed/removed files don't linger.
 //   4. Prints a validation report (missing icons, incomplete connection dirs, etc.).
 //
-// Rationale (see agent/EXPORT_2024_MIGRATION_PLAN.md): rather than rewrite the three
+// Rationale (see convert-export-2024.md beside this file): rather than rewrite the three
 // loaders to ingest 13 files, the heavy mapping lives here in one auditable script. The
 // 2024 export drops the multi-sprite atlas model in favour of a single flat pre-rendered
 // PNG per building (`export/ui_image/<prefabKey>.png`), so this converter collapses each

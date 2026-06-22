@@ -5,8 +5,8 @@
 //
 // Scope: the existing website feature set (buildings / elements / build menu / icons).
 // `entities`, `items`, `recipe`, `food`, `geyser`, `db`, etc. are new capabilities and
-// are intentionally not modeled here yet (see EXPORT_2024_MIGRATION_PLAN.md "Resolve
-// before coding").
+// are intentionally not modeled here yet (see app/api/batch/convert-export-2024.md
+// "Unused export files").
 //
 // The legacy `b-export.ts` types remain the *internal* shape consumed by the loaders;
 // the converter maps from these raw types into that internal shape.
@@ -76,7 +76,7 @@ export interface BBuildingDef2024 {
   // +x right, +y up. The PNG maps onto the rectangle [x, x+w] × [y, y+h]; x/y may be negative
   // and x+w / y+h may exceed the footprint where the art overhangs (e.g. SteamTurbine2's
   // exhaust hangs below → negative y). Absent ⇒ the website assumes image == footprint
-  // (legacy stretch-to-footprint). See agent/WEBSITE_POSTPROCESSING.md.
+  // (legacy stretch-to-footprint). See app/api/batch/convert-export-2024.md "uiImageRect".
   uiImageRect?: { x: number; y: number; w: number; h: number };
 
   // Domain payloads (kept opaque — not needed for rendering/build-menu).
