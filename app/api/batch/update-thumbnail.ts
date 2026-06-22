@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { Database } from '../db';
 import { BlueprintModel,} from '../models/blueprint';
-import * as fs from 'fs';
+import AdmZip from 'adm-zip';
 import {
   Blueprint as sharedBlueprint,
 //   Vector2,
@@ -32,8 +32,9 @@ export class UpdateThumbnail {
     dotenv.config();
     console.log(process.env.ENV_NAME);
 
-    // Read database
-    let rawdata = fs.readFileSync('./assets/database/database-2024.json').toString();
+    // Read database. The committed runtime artifact is the zip (entry
+    // "database.json"); the loose database-2024.json is a gitignored dev output.
+    let rawdata = new AdmZip('./assets/database/database-2024.zip').readAsText('database.json');
     let json = JSON.parse(rawdata);
 
     ImageSource.init();

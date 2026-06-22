@@ -6,7 +6,7 @@ import { Database } from './api/db';
 import requestIp from 'request-ip';
 import { Auth } from './api/auth';
 import passport from 'passport';
-import * as fs from 'fs';
+import AdmZip from 'adm-zip';
 import {
   BBuilding,
   BuildableElement,
@@ -27,8 +27,10 @@ class App {
   public routePrv: Routes = new Routes();
 
   constructor() {
-    // Read database
-    let rawdata = fs.readFileSync('assets/database/database-2024.json').toString();
+    // Read database. The committed runtime artifact is the zip (entry
+    // "database.json"), the same file the frontend fetches. The loose
+    // database-2024.json is a gitignored dev output of `npm run import:2024`.
+    let rawdata = new AdmZip('assets/database/database-2024.zip').readAsText('database.json');
     let json = JSON.parse(rawdata);
 
     ImageSource.init();
