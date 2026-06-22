@@ -75,6 +75,18 @@ the multi-sprite atlas pipeline. Source export lives in `export/` (see
     non-zero on incomplete imports. `ui_image_facade/` skipped (unused).
   - Verified: 31/31 connectables complete, 0 warnings; `npm run tsc` clean; 184 backend +
     453 frontend tests green (184 is the current baseline; the "194" figure was stale).
+- ✅ **DONE — connection-sprite render sizing.** The connection PNGs frame one cell plus
+  optional cap/overhang, so a PNG's canvas is NOT necessarily one cell. The factor varies **per
+  building AND per export framing** — no constant works (an early export measured tiles at 1.5×
+  and utilities ~1.05–1.15×; a later re-export tightened everything to ~1.0×). So the scale is
+  **measured per building** from the all-connected `15.png` alpha bbox (`canvas/cell`) at build
+  time and stored, which auto-adapts to whatever framing the current export uses. Changes:
+  `convert-export-2024.ts` `measureConnectionScale()` (uses `canvas`) → `connectionScale {x,y}`
+  in the DB; `BBuilding.connectionScale` + `OniItem.connectionScale`; `DrawPart.prepareSprite()`
+  flat-icon branch renders connection parts **center-anchored** at `100*connectionScale` (plain
+  `ui_image` icons keep bottom-anchored 100px). `tsc` clean; 184 backend + 453 frontend green.
+  No mod/export change needed — the scale is fully derivable from the exported PNGs and
+  re-measured on every `npm run import:2024`.
 
 ### Decisions made
 - **Rotations:** render rotated/flipped placements as the **same upright icon, ignore

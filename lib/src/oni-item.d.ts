@@ -46,6 +46,7 @@ export declare class OniItem {
     tileableLeftRight: boolean;
     tileableTopBottom: boolean;
     connectionSprites: boolean;
+    connectionScale: Vector2;
     static connectionSpriteCount: number;
     static connectionSpriteId(prefabId: string, bitmask: number): string;
     get isPartOfCircuit(): boolean;
