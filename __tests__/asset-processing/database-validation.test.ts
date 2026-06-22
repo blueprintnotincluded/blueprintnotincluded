@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import AdmZip from 'adm-zip';
 import {
   BuildableElement,
   BSpriteInfo,
@@ -10,15 +11,17 @@ import {
 
 describe('Database Asset Validation', () => {
   const assetPath = path.join(__dirname, '../../assets/database');
-  const database2024Path = path.join(assetPath, 'database-2024.json');
+  // The committed runtime artifact is the zip (entry "database.json"); the loose
+  // database-2024.json is a gitignored dev output, so tests read from the zip.
+  const databaseZipPath = path.join(assetPath, 'database-2024.zip');
+  const readDatabase = () => JSON.parse(new AdmZip(databaseZipPath).readAsText('database.json'));
   const uiImagePath = path.join(__dirname, '../../assets/ui_image');
 
   describe('Core Database Files', () => {
-    it('should have valid database-2024.json structure', () => {
-      expect(fs.existsSync(database2024Path), 'database-2024.json should exist').to.be.true;
+    it('should have valid database structure', () => {
+      expect(fs.existsSync(databaseZipPath), 'database-2024.zip should exist').to.be.true;
 
-      const data = fs.readFileSync(database2024Path, 'utf-8');
-      const database = JSON.parse(data);
+      const database = readDatabase();
 
       expect(database).to.have.property('elements');
       expect(database).to.have.property('buildMenuCategories');
@@ -46,7 +49,7 @@ describe('Database Asset Validation', () => {
     let database: any;
 
     before(() => {
-      database = JSON.parse(fs.readFileSync(database2024Path, 'utf-8'));
+      database = readDatabase();
     });
 
     it('should have 449 buildings and 212 elements', () => {
@@ -101,7 +104,7 @@ describe('Database Asset Validation', () => {
     });
 
     it('should have a ui_image PNG for every building', () => {
-      const database = JSON.parse(fs.readFileSync(database2024Path, 'utf-8'));
+      const database = readDatabase();
       const missingIcons: string[] = [];
       for (const building of database.buildings) {
         const expectedPng = path.join(uiImagePath, `${building.prefabId}.png`);

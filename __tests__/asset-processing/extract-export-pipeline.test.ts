@@ -1,22 +1,19 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import AdmZip from 'adm-zip';
 
 describe('Extract Export Pipeline Tests', () => {
   const assetDb = path.join(__dirname, '../../assets/database');
   const frontendDb = path.join(__dirname, '../../frontend/src/assets/database');
+  // The committed runtime artifact is the zip (entry "database.json"); the loose
+  // database-2024.json is a gitignored dev output, so tests read from the zip.
+  const databaseZipPath = path.join(assetDb, 'database-2024.zip');
 
   describe('Pipeline Output Files', () => {
-    it('should have database-2024.json and database-2024.zip in assets/database', () => {
-      const requiredFiles = [
-        path.join(assetDb, 'database-2024.json'),
-        path.join(assetDb, 'database-2024.zip'),
-      ];
-
-      requiredFiles.forEach(filePath => {
-        expect(fs.existsSync(filePath), `Required file should exist: ${filePath}`).to.be.true;
-        expect(fs.statSync(filePath).size, `File should not be empty: ${filePath}`).to.be.greaterThan(0);
-      });
+    it('should have database-2024.zip in assets/database', () => {
+      expect(fs.existsSync(databaseZipPath), `Required file should exist: ${databaseZipPath}`).to.be.true;
+      expect(fs.statSync(databaseZipPath).size, `File should not be empty: ${databaseZipPath}`).to.be.greaterThan(0);
     });
 
     it('should have database-2024.zip in frontend/src/assets/database', () => {
@@ -37,7 +34,7 @@ describe('Extract Export Pipeline Tests', () => {
     let db: any;
 
     before(() => {
-      db = JSON.parse(fs.readFileSync(path.join(assetDb, 'database-2024.json'), 'utf-8'));
+      db = JSON.parse(new AdmZip(databaseZipPath).readAsText('database.json'));
     });
 
     it('should have correct record counts', () => {
@@ -78,10 +75,10 @@ describe('Extract Export Pipeline Tests', () => {
   });
 
   describe('File Size Validation', () => {
-    it('should have reasonable database-2024.json size', () => {
-      const stats = fs.statSync(path.join(assetDb, 'database-2024.json'));
-      expect(stats.size).to.be.greaterThan(1024);
-      expect(stats.size).to.be.lessThan(20 * 1024 * 1024);
+    it('should have reasonable uncompressed database size', () => {
+      const size = Buffer.byteLength(new AdmZip(databaseZipPath).readAsText('database.json'));
+      expect(size).to.be.greaterThan(1024);
+      expect(size).to.be.lessThan(20 * 1024 * 1024);
     });
 
     it('should have reasonable database-2024.zip size', () => {
