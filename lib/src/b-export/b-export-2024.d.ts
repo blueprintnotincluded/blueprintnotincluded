@@ -38,6 +38,12 @@ export interface BBuildingDef2024 {
     viewMode: string;
     defaultAnimState: string;
     uiSpriteName: string | null;
+    uiImageRect?: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+    };
     energyGenerator?: unknown;
     conduitConsumer?: unknown;
     conduitDispenser?: unknown;

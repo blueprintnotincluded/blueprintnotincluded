@@ -71,6 +71,14 @@ export interface BBuildingDef2024 {
   // Almost always null in this export; icon comes from the prefab key instead.
   uiSpriteName: string | null;
 
+  // OPTIONAL placement of ui_image/<name>.png relative to the building footprint, in CELL
+  // units. The footprint occupies (0,0)–(widthInCells,heightInCells); origin bottom-left,
+  // +x right, +y up. The PNG maps onto the rectangle [x, x+w] × [y, y+h]; x/y may be negative
+  // and x+w / y+h may exceed the footprint where the art overhangs (e.g. SteamTurbine2's
+  // exhaust hangs below → negative y). Absent ⇒ the website assumes image == footprint
+  // (legacy stretch-to-footprint). See agent/WEBSITE_POSTPROCESSING.md.
+  uiImageRect?: { x: number; y: number; w: number; h: number };
+
   // Domain payloads (kept opaque — not needed for rendering/build-menu).
   energyGenerator?: unknown;
   conduitConsumer?: unknown;

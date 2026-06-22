@@ -60,6 +60,8 @@ export class OniItem {
   connectionSprites: boolean = false;
   // canvas/cell scale per axis for connection sprites (see BBuilding.connectionScale)
   connectionScale: Vector2 = new Vector2(1, 1);
+  // optional flat-icon placement rectangle in cells (see BBuilding.uiImageRect)
+  uiImageRect?: { x: number; y: number; w: number; h: number };
   static connectionSpriteCount = 16;
   public static connectionSpriteId(prefabId: string, bitmask: number): string {
     return 'connection_' + prefabId + '_' + bitmask;
@@ -135,6 +137,9 @@ export class OniItem {
     this.connectionScale = original.connectionScale
       ? new Vector2(original.connectionScale.x, original.connectionScale.y)
       : new Vector2(1, 1);
+    this.uiImageRect = original.uiImageRect
+      ? { ...original.uiImageRect }
+      : undefined;
     if (this.connectionSprites) {
       for (let bitmask = 0; bitmask < OniItem.connectionSpriteCount; bitmask++) {
         const id = OniItem.connectionSpriteId(this.id, bitmask);

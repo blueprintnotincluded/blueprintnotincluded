@@ -36,6 +36,12 @@ export declare class BBuilding {
     tileableTopBottom: boolean;
     connectionSprites: boolean;
     connectionScale: Vector2;
+    uiImageRect?: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+    };
 }
 export declare class BSpriteGroup {
     groupName: string;

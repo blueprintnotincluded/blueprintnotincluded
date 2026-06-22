@@ -107,21 +107,38 @@ placement data**. That only looks right when the image's opaque content equals t
 
 **The website cannot fix this from the image alone** — a single cropped icon has no cell
 reference, so we can't infer the scale or where the footprint sits within the overhang. (This
-differs from connection sprites, where the all-connected state gives us a 1-cell reference.)
+differs from connection sprites, where the all-connected state gives us a 1-cell reference.) We
+measured: ~150 of 449 icons deviate from their footprint by >15% (68 by >30%) — it is systemic,
+not a handful. The render scale clusters near ~208 px/cell but with a ±28% spread, so even the
+*size* can't be inferred reliably.
 
-**What we need the export to emit, per building, to use animation-framed icons** (this is the
-`pivot`/`realSize` data the 2023 atlas had and the 2024 flat-icon collapse dropped). Either form:
-- **(A) pixels-per-cell + pivot:** the render scale, and the pixel in the image that sits at the
-  building's placement anchor (e.g. bottom-left cell corner). We then render at
-  `imgPx / pixelsPerCell × 100` and position by the pivot; overhang extends naturally.
-- **(B) image bounds in cells:** the image's rectangle in cell units relative to the footprint
-  origin, e.g. `{ left, top, right, bottom }` where the footprint is `(0,0)–(w,h)` and the image
-  may exceed it (overhang). We render at `(right-left)×100 by (bottom-top)×100` at that offset.
+### The contract: `uiImageRect` (DECIDED — the website already consumes it)
 
-Either is a small, one-time website change on our side (swap the footprint-stretch for
-scale+offset). **Until that metadata exists, the only way to keep icons correct is the old
-framing: crop/pad `ui_image` to the footprint box (no overhang).** That keeps the turbine from
-squishing but also won't let it hang below — overhang requires the metadata above.
+Emit, per building, the rendered PNG's rectangle **in cell units, relative to the footprint**:
+
+```jsonc
+// on each building.json bBuildingDefList[] entry; OMIT it to mean "image == footprint"
+"uiImageRect": { "x": 0, "y": -1, "w": 5, "h": 4 }
+```
+
+- Coordinate space: the footprint occupies `(0,0)` (bottom-left) to `(widthInCells, heightInCells)`
+  (top-right). `+x` right, `+y` up. Units = cells.
+- `x, y` = bottom-left corner of the **image** in that space; `w, h` = image size in cells.
+- Overhang is expressed by going outside the footprint: `y` negative ⇒ art hangs **below**
+  (steam turbine exhaust); `x+w > widthInCells` ⇒ art extends **right**; etc.
+- The PNG's pixels map linearly onto this rectangle, so its pixel aspect must equal `w:h`
+  (you already tight-crop, so `w = imgPxW / pxPerCell`, `h = imgPxH / pxPerCell`).
+- **Example:** SteamTurbine2, footprint 5×3, art 5 wide × 4 tall with 1 cell of exhaust below →
+  `{ x: 0, y: -1, w: 5, h: 4 }`. A normal footprint-filling icon → `{ x:0, y:0, w:W, h:H }`
+  (identical to omitting it).
+
+This is the same information the 2020/2023 atlas carried as `pivot` + `realSize` — your kanim
+renderer already knows it (the rendered art's world bounds vs the building's footprint).
+
+**Website side is done and shipped:** the converter passes `uiImageRect` through to the DB, and
+the renderer draws the icon into that rectangle (unit-tested). Buildings **without** it keep the
+old stretch-to-footprint, so nothing regresses while you roll the field out. Watch the converter
+log line `buildings with uiImageRect placement: N / 449` to track coverage.
 
 ---
 
@@ -150,10 +167,9 @@ It's repeatable; re-running on the same export is safe (only the `.zip` bytes di
 3. **Connectable signal:** the `connection_sprites/<prefabId>/` directory exists.
 4. **Connection-sprite geometry:** the two framing rules in the resolution section above
    (shared canvas/registration across the 16; state 15 = one cell, centred).
-4b. **`ui_image` framing:** either keep icons framed to the footprint (content == footprint box,
-   like the old UI sprites), **or** ship per-building placement metadata (pixels-per-cell +
-   pivot, or image-bounds-in-cells) so we can place animation-framed art. You can't switch to
-   tight-cropped animation renders *without* the metadata — see the framing section.
+4b. **`ui_image` framing:** tight-cropped animation icons require a per-building **`uiImageRect`**
+   (cells, footprint-relative — see the framing section). Omit it only for icons whose art *is*
+   the footprint. The website already consumes it; you just need to emit it.
 5. **Building fields we read** keep their names/shapes: `name`, `nameString`, `isFoundation`,
    `isKAnimTile`, `isUtility`, `widthInCells`, `heightInCells`, `sceneLayer`, `objectLayer`,
    `viewMode`, `permittedRotations`, `dragBuild`, `buildLocationRule`, `materialCategory`,
@@ -174,8 +190,8 @@ We also inject a few overlay sprites of our own (`element_tile_back`, `*_tile_fr
   want, for i18n.)
 - **Higher-res `ui_image`:** if any icon will exceed ~5 MB, tell us so we raise the test bound
   ahead of time.
-- **`ui_image` framing (ACTIVE — blocking the high-res icons):** the animation-based render
-  tight-crops to true art bounds, which breaks our footprint-stretch (squish + lost overhang).
-  Decide: (A) emit per-building `pixels-per-cell` + `pivot` (or image-bounds-in-cells) and we
-  do the matching render change, or (B) keep framing icons to the footprint (high-res but no
-  overhang). (A) is the better long-term answer and revives the building's real geometry.
+- **`ui_image` framing (ACTIVE — your next export task):** decided to go with full per-building
+  placement. **Emit `uiImageRect` (cells, footprint-relative) for every building** (≈150 deviate,
+  the rest can omit it / set it to the footprint). Website consumption is already shipped and
+  unit-tested; the converter logs `buildings with uiImageRect placement: N / 449` so you can
+  track rollout. This revives the `pivot`/`realSize` your renderer already computes.
