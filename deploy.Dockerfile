@@ -6,7 +6,7 @@ COPY package*.json ./
 RUN npm ci --ignore-scripts && npm cache clean --force
 
 # TODO separate build build stage for asset extract
-COPY ./assets/database/database.json ./assets/database/database.json
+COPY ./assets/database/database-2024.json ./assets/database/database-2024.json
 
 FROM extract as build-backend
 WORKDIR /bpni
