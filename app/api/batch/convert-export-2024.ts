@@ -505,7 +505,10 @@ export function convertExport2024(opts: ConvertOptions): void {
   // the backend reads it directly at startup, and the frontend build/serve step zips
   // it into the gitignored database-2024.zip the Angular app fetches. No .zip is
   // emitted here (see frontend prebuild/prestart).
-  const jsonBytes = Buffer.from(JSON.stringify(database));
+  // Pretty-print (2-space) so git diffs are line-oriented: a small data change
+  // touches a few lines, not the whole file. Minifying would make every edit a
+  // full-file replace, defeating the point of committing JSON over the zip.
+  const jsonBytes = Buffer.from(JSON.stringify(database, null, 2) + '\n');
   const jsonTargets = [
     opts.out,
     path.join(path.dirname(opts.out), '../../frontend/src/assets/database/database-2024.json'),
