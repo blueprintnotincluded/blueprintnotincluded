@@ -4,10 +4,15 @@
 //
 // What it does, end to end:
 //   1. Reads the 13 JSONs from export/database/ and maps them to the website shape.
-//   2. Writes assets/database/database-2024.json and both database-2024.zip files
-//      (backend + frontend/src/assets).
+//   2. Writes the consolidated database-2024.json into BOTH asset roots (backend
+//      assets/database/ + frontend/src/assets/database/). The loose JSON is the only
+//      committed runtime DB artifact — readable diffs, no opaque zip churn. The
+//      frontend regenerates its database-2024.zip from this JSON at build/serve time
+//      (frontend prebuild/prestart); the backend reads the JSON directly. This script
+//      emits no .zip (both .zip paths are gitignored build derivatives).
 //   3. Syncs export/ui_image/ and export/connection_sprites/ into both asset roots,
-//      replacing the targets so renamed/removed files don't linger.
+//      content-aware: only files whose bytes actually changed are rewritten and only
+//      removed files are pruned, so unchanged icons keep their mtime (no churn).
 //   4. Prints a validation report (missing icons, incomplete connection dirs, etc.).
 //
 // Rationale (see convert-export-2024.md beside this file): rather than rewrite the three
@@ -24,7 +29,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import AdmZip from 'adm-zip';
 import { createCanvas, Image } from 'canvas';
 import {
   BBuildingFile2024,
@@ -120,29 +124,94 @@ function readJson<T>(file: string): T {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
 }
 
-// Recursive directory copy (fs.cpSync is unavailable in the backend's @types/node).
-function copyDirRecursive(src: string, dest: string): void {
+// True when dest is missing or its bytes differ from src. Size check first (cheap),
+// then a full byte compare. The export encoder is deterministic, so identical pixels
+// yield identical bytes — letting us skip the rewrite and preserve dest's mtime.
+function filesDiffer(src: string, dest: string): boolean {
+  let destSize: number;
+  try {
+    destSize = fs.statSync(dest).size;
+  } catch {
+    return true; // missing
+  }
+  if (fs.statSync(src).size !== destSize) return true;
+  return !fs.readFileSync(src).equals(fs.readFileSync(dest));
+}
+
+interface MirrorStats {
+  copied: number;
+  skipped: number;
+  removed: number;
+}
+
+// Mirror src -> dest content-aware (fs.cpSync is unavailable in the backend's
+// @types/node): write a file only when missing or its bytes differ, and delete
+// anything in dest no longer present in src. Unchanged files keep their mtime, so
+// re-imports don't churn the asset tree and mtime stays a reliable "changed" signal.
+function mirrorDir(src: string, dest: string, stats: MirrorStats): void {
   fs.mkdirSync(dest, { recursive: true });
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+  const srcEntries = fs.readdirSync(src, { withFileTypes: true });
+  const srcNames = new Set(srcEntries.map((e) => e.name));
+
+  // Prune dest entries the source no longer has.
+  for (const entry of fs.readdirSync(dest, { withFileTypes: true })) {
+    if (srcNames.has(entry.name)) continue;
+    fs.rmSync(path.join(dest, entry.name), { recursive: true, force: true });
+    stats.removed++;
+  }
+
+  for (const entry of srcEntries) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) copyDirRecursive(srcPath, destPath);
-    else fs.copyFileSync(srcPath, destPath);
+    if (entry.isDirectory()) {
+      // Clear a same-named file before descending (type changed src->dest).
+      if (fs.existsSync(destPath) && !fs.statSync(destPath).isDirectory())
+        fs.rmSync(destPath, { force: true });
+      mirrorDir(srcPath, destPath, stats);
+    } else {
+      // Clear a same-named dir before writing a file (type changed src->dest).
+      if (fs.existsSync(destPath) && fs.statSync(destPath).isDirectory())
+        fs.rmSync(destPath, { recursive: true, force: true });
+      if (filesDiffer(srcPath, destPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        stats.copied++;
+      } else {
+        stats.skipped++;
+      }
+    }
   }
 }
 
-// Mirror an export sub-folder into each served asset root, replacing the target
-// so renamed/removed files don't linger across re-imports. No-op if src is absent.
+// Mirror an export sub-folder into each served asset root. No-op if src is absent.
 function syncAssetDir(src: string, targets: string[], label: string): void {
   if (!fs.existsSync(src)) {
     console.log('--- skipped', label, '(not in export) ---');
     return;
   }
   for (const target of targets) {
-    fs.rmSync(target, { recursive: true, force: true });
-    copyDirRecursive(src, target);
-    console.log('--- synced', label, '->', path.normalize(target), '---');
+    const stats: MirrorStats = { copied: 0, skipped: 0, removed: 0 };
+    mirrorDir(src, target, stats);
+    console.log(
+      '--- synced',
+      label,
+      '->',
+      path.normalize(target),
+      `(updated ${stats.copied}, unchanged ${stats.skipped}, removed ${stats.removed}) ---`
+    );
   }
+}
+
+// Write bytes only when the target is missing or its content changed, so an
+// unchanged JSON keeps its mtime. Returns true if it actually wrote.
+function writeFileIfChanged(file: string, bytes: Buffer): boolean {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  try {
+    if (fs.readFileSync(file).equals(bytes)) return false;
+  } catch {
+    /* missing -> write */
+  }
+  fs.writeFileSync(file, bytes);
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -432,23 +501,18 @@ export function convertExport2024(opts: ConvertOptions): void {
     return;
   }
 
-  fs.mkdirSync(path.dirname(opts.out), { recursive: true });
+  // The committed runtime artifact is the loose JSON, written to BOTH asset roots:
+  // the backend reads it directly at startup, and the frontend build/serve step zips
+  // it into the gitignored database-2024.zip the Angular app fetches. No .zip is
+  // emitted here (see frontend prebuild/prestart).
   const jsonBytes = Buffer.from(JSON.stringify(database));
-  fs.writeFileSync(opts.out, jsonBytes);
-  console.log('--- wrote', opts.out, '---');
-
-  // Rebuild both zip files. The internal entry is always named "database.json"
-  // because the frontend reads zipped.files["database.json"].
-  const zipPaths = [
-    path.join(path.dirname(opts.out), 'database-2024.zip'),
-    path.join(path.dirname(opts.out), '../../frontend/src/assets/database/database-2024.zip'),
+  const jsonTargets = [
+    opts.out,
+    path.join(path.dirname(opts.out), '../../frontend/src/assets/database/database-2024.json'),
   ];
-  for (const zipPath of zipPaths) {
-    fs.mkdirSync(path.dirname(zipPath), { recursive: true });
-    const z = new AdmZip();
-    z.addFile('database.json', jsonBytes);
-    z.writeZip(zipPath);
-    console.log('--- wrote', path.normalize(zipPath), '---');
+  for (const target of jsonTargets) {
+    const changed = writeFileIfChanged(target, jsonBytes);
+    console.log('---', changed ? 'wrote' : 'unchanged', path.normalize(target), '---');
   }
 
   // Sync sprites into the served asset dirs (backend + frontend). The DB references

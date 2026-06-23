@@ -4,6 +4,9 @@
   "scripts": {
     "prepare": "cd ../ && husky install ./frontend/.husky",
     "ng": "ng",
+    "build:database-zip": "node scripts/build-database-zip.js",
+    "prestart": "node scripts/build-database-zip.js",
+    "prebuild": "node scripts/build-database-zip.js",
     "start": "ng serve blueprintnotincluded",
     "start:zh-Hans": "ng serve blueprintnotincluded --configuration=zh-Hans",
     "start:ru": "ng serve blueprintnotincluded --configuration=ru",

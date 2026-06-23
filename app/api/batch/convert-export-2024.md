@@ -17,17 +17,23 @@ npm run import:2024:dry-run    # validate + report counts, write/copy nothing
 Steps:
 1. Read `export/database/*.json`, map to the website's consolidated shape (field
    renames, `viewMode` hash → overlay, flat-icon model, build menu).
-2. Write `assets/database/database-2024.json` + both `database-2024.zip` files
-   (backend `assets/` + `frontend/src/assets/`).
+2. Write `database-2024.json` into **both** asset roots (backend `assets/database/` +
+   `frontend/src/assets/database/`). The loose JSON is the only committed runtime DB
+   artifact (readable diffs). The backend reads it directly at startup; the frontend
+   zips it into the gitignored `database-2024.zip` it fetches, via its `prebuild`/
+   `prestart` (`frontend/scripts/build-database-zip.js`). The converter emits no `.zip`.
 3. Detect connectables (a `connection_sprites/<prefabId>/` dir exists) and **measure**
    each one's render scale from its `15.png`.
-4. Mirror `ui_image/` and `connection_sprites/` into both asset roots, **replacing**
-   the targets so renamed/removed files don't linger. `ui_image_facade/` is skipped
-   (unused; one-line flip near the top of the converter to enable).
+4. Mirror `ui_image/` and `connection_sprites/` into both asset roots **content-aware**:
+   only files whose bytes changed are rewritten, only removed files are pruned, so
+   unchanged icons keep their mtime (no churn). `ui_image_facade/` is skipped (unused;
+   one-line flip near the top of the converter to enable).
 5. Validate; exit non-zero on an incomplete import (missing icon, a connection dir
    missing one of `0–15`, a connectable that's neither tile nor utility, etc.).
 
-Re-running on the same export is safe (only `.zip` bytes differ run-to-run).
+Re-running on the same export is a near no-op: the JSON and every sprite are written
+only when their content actually changed. The export encoder is deterministic, so
+unchanged pixels stay byte-identical and git shows only genuine changes.
 
 ## What the export ships / what we read
 
