@@ -1,25 +1,25 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import AdmZip from 'adm-zip';
 
 describe('Extract Export Pipeline Tests', () => {
   const assetDb = path.join(__dirname, '../../assets/database');
   const frontendDb = path.join(__dirname, '../../frontend/src/assets/database');
-  // The committed runtime artifact is the zip (entry "database.json"); the loose
-  // database-2024.json is a gitignored dev output, so tests read from the zip.
-  const databaseZipPath = path.join(assetDb, 'database-2024.zip');
+  // The committed runtime artifact is the loose database-2024.json (readable diffs),
+  // written into both asset roots. The .zip is a gitignored build derivative the
+  // frontend regenerates from this JSON, so tests read the JSON.
+  const databaseJsonPath = path.join(assetDb, 'database-2024.json');
 
   describe('Pipeline Output Files', () => {
-    it('should have database-2024.zip in assets/database', () => {
-      expect(fs.existsSync(databaseZipPath), `Required file should exist: ${databaseZipPath}`).to.be.true;
-      expect(fs.statSync(databaseZipPath).size, `File should not be empty: ${databaseZipPath}`).to.be.greaterThan(0);
+    it('should have database-2024.json in assets/database', () => {
+      expect(fs.existsSync(databaseJsonPath), `Required file should exist: ${databaseJsonPath}`).to.be.true;
+      expect(fs.statSync(databaseJsonPath).size, `File should not be empty: ${databaseJsonPath}`).to.be.greaterThan(0);
     });
 
-    it('should have database-2024.zip in frontend/src/assets/database', () => {
-      const zipPath = path.join(frontendDb, 'database-2024.zip');
-      expect(fs.existsSync(zipPath), 'Frontend database-2024.zip should exist').to.be.true;
-      expect(fs.statSync(zipPath).size).to.be.greaterThan(0);
+    it('should have database-2024.json in frontend/src/assets/database', () => {
+      const jsonPath = path.join(frontendDb, 'database-2024.json');
+      expect(fs.existsSync(jsonPath), 'Frontend database-2024.json should exist').to.be.true;
+      expect(fs.statSync(jsonPath).size).to.be.greaterThan(0);
     });
 
     it('should have frontend ui_image directory with flat icon PNGs', () => {
@@ -34,7 +34,7 @@ describe('Extract Export Pipeline Tests', () => {
     let db: any;
 
     before(() => {
-      db = JSON.parse(new AdmZip(databaseZipPath).readAsText('database.json'));
+      db = JSON.parse(fs.readFileSync(databaseJsonPath, 'utf8'));
     });
 
     it('should have correct record counts', () => {
@@ -76,15 +76,9 @@ describe('Extract Export Pipeline Tests', () => {
 
   describe('File Size Validation', () => {
     it('should have reasonable uncompressed database size', () => {
-      const size = Buffer.byteLength(new AdmZip(databaseZipPath).readAsText('database.json'));
+      const size = fs.statSync(databaseJsonPath).size;
       expect(size).to.be.greaterThan(1024);
       expect(size).to.be.lessThan(20 * 1024 * 1024);
-    });
-
-    it('should have reasonable database-2024.zip size', () => {
-      const stats = fs.statSync(path.join(assetDb, 'database-2024.zip'));
-      expect(stats.size).to.be.greaterThan(1024);
-      expect(stats.size).to.be.lessThan(10 * 1024 * 1024);
     });
   });
 

@@ -1,9 +1,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import AdmZip from 'adm-zip';
 import { AssetLogger } from '../../app/api/batch/asset-logger';
 import { AssetValidator } from '../../app/api/batch/asset-validator';
 import { AssetPaths } from '../../app/api/batch/asset-paths';
@@ -11,25 +9,14 @@ import { BatchUtils } from '../../app/api/batch/batch-utils';
 import { BExport } from '../../lib';
 
 describe('Import Scripts Integration Tests', () => {
-  // The committed runtime artifact is database-2024.zip (entry "database.json"),
-  // the same file the frontend fetches and the backend reads. The loose
-  // database-2024.json is a gitignored dev output of `npm run import:2024`, so
-  // tests must not depend on it. Extract the database from the zip into a temp
-  // file once and validate that — it is the data the app actually ships.
-  const databaseZipPath = path.join(__dirname, '../../assets/database/database-2024.zip');
+  // The committed runtime artifact is the loose database-2024.json (readable diffs),
+  // which the backend reads directly and the frontend zips at build time. The .zip is
+  // a gitignored build derivative, so tests read and validate the JSON directly.
+  const databaseJsonPath = path.join(__dirname, '../../assets/database/database-2024.json');
   let databaseText: string;
-  let databaseJsonPath: string;
 
   before(() => {
-    databaseText = new AdmZip(databaseZipPath).readAsText('database.json');
-    databaseJsonPath = path.join(os.tmpdir(), `database-2024.test.${process.pid}.json`);
-    fs.writeFileSync(databaseJsonPath, databaseText);
-  });
-
-  after(() => {
-    if (databaseJsonPath && fs.existsSync(databaseJsonPath)) {
-      fs.rmSync(databaseJsonPath, { force: true });
-    }
+    databaseText = fs.readFileSync(databaseJsonPath, 'utf8');
   });
   describe('AssetLogger', () => {
     let consoleLogStub: sinon.SinonStub;
@@ -96,7 +83,7 @@ describe('Import Scripts Integration Tests', () => {
 
   describe('AssetValidator', () => {
     it('should validate database structure with existing files', () => {
-      expect(fs.existsSync(databaseZipPath), 'database-2024.zip should exist').to.be.true;
+      expect(fs.existsSync(databaseJsonPath), 'database-2024.json should exist').to.be.true;
 
       const isValid = AssetValidator.validateDatabase(databaseJsonPath);
       expect(isValid, 'Database should pass validation').to.be.true;
@@ -164,17 +151,18 @@ describe('Import Scripts Integration Tests', () => {
     });
 
     it('should resolve database paths correctly', () => {
-      const databasePath = path.join(__dirname, '../../assets/database/database-2024.zip');
+      const databasePath = path.join(__dirname, '../../assets/database/database-2024.json');
       expect(path.isAbsolute(databasePath)).to.be.true;
       expect(fs.existsSync(databasePath)).to.be.true;
-      expect(databasePath).to.include('assets/database/database-2024.zip');
+      expect(databasePath).to.include('assets/database/database-2024.json');
     });
 
     it('should have the 2024 database files', () => {
-      // Only the committed zips are runtime artifacts; the loose .json is gitignored.
+      // The committed runtime artifact is the loose .json, written into both asset
+      // roots; the .zip is a gitignored build derivative the frontend regenerates.
       const databaseFiles = [
-        path.join(__dirname, '../../assets/database/database-2024.zip'),
-        path.join(__dirname, '../../frontend/src/assets/database/database-2024.zip'),
+        path.join(__dirname, '../../assets/database/database-2024.json'),
+        path.join(__dirname, '../../frontend/src/assets/database/database-2024.json'),
       ];
 
       databaseFiles.forEach(filePath => {
@@ -359,7 +347,7 @@ describe('Import Scripts Integration Tests', () => {
     it('should handle large database files efficiently', () => {
       const startTime = Date.now();
 
-      const data = new AdmZip(databaseZipPath).readAsText('database.json');
+      const data = fs.readFileSync(databaseJsonPath, 'utf8');
       const database = JSON.parse(data);
 
       const endTime = Date.now();

@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import AdmZip from 'adm-zip';
 import {
   BuildableElement,
   BSpriteInfo,
@@ -11,15 +10,16 @@ import {
 
 describe('Database Asset Validation', () => {
   const assetPath = path.join(__dirname, '../../assets/database');
-  // The committed runtime artifact is the zip (entry "database.json"); the loose
-  // database-2024.json is a gitignored dev output, so tests read from the zip.
-  const databaseZipPath = path.join(assetPath, 'database-2024.zip');
-  const readDatabase = () => JSON.parse(new AdmZip(databaseZipPath).readAsText('database.json'));
+  // The committed runtime artifact is the loose database-2024.json (readable diffs);
+  // the backend reads it directly and the frontend zips it at build time. The .zip is
+  // a gitignored build derivative, so tests read the JSON.
+  const databaseJsonPath = path.join(assetPath, 'database-2024.json');
+  const readDatabase = () => JSON.parse(fs.readFileSync(databaseJsonPath, 'utf8'));
   const uiImagePath = path.join(__dirname, '../../assets/ui_image');
 
   describe('Core Database Files', () => {
     it('should have valid database structure', () => {
-      expect(fs.existsSync(databaseZipPath), 'database-2024.zip should exist').to.be.true;
+      expect(fs.existsSync(databaseJsonPath), 'database-2024.json should exist').to.be.true;
 
       const database = readDatabase();
 
@@ -38,10 +38,13 @@ describe('Database Asset Validation', () => {
       expect(database.buildings).to.be.an('array').with.length.greaterThan(0);
     });
 
-    it('should have database-2024.zip for the frontend', () => {
-      const zipPath = path.join(assetPath, 'database-2024.zip');
-      expect(fs.existsSync(zipPath), 'database-2024.zip should exist').to.be.true;
-      expect(fs.statSync(zipPath).size).to.be.greaterThan(0);
+    it('should write database-2024.json into the frontend asset root', () => {
+      const frontendJson = path.join(
+        __dirname,
+        '../../frontend/src/assets/database/database-2024.json'
+      );
+      expect(fs.existsSync(frontendJson), 'frontend database-2024.json should exist').to.be.true;
+      expect(fs.statSync(frontendJson).size).to.be.greaterThan(0);
     });
   });
 

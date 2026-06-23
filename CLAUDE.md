@@ -60,16 +60,23 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 **OniExtract2024 import (current pipeline):** after dropping a fresh export into
 `export/` (`export/database/`, `export/ui_image/`, `export/connection_sprites/`),
 run the single repeatable step:
-- `npm run import:2024` - Regenerate `assets/database/database-2024.json` + both
-  `database-2024.zip` files, sync `ui_image/` and `connection_sprites/` into both asset
-  roots (`assets/` + `frontend/src/assets/`), and print a validation report. Exits
+- `npm run import:2024` - Regenerate `database-2024.json` into both asset roots
+  (`assets/database/` + `frontend/src/assets/database/`), content-aware sync `ui_image/`
+  and `connection_sprites/` into both roots, and print a validation report. Exits
   non-zero if the import is incomplete (missing icons, incomplete connection dirs, etc.).
 - `npm run import:2024:dry-run` - Validate + report counts only; writes/copies nothing.
-- Each sprite sync **replaces** its target dir, so renamed/removed files don't linger.
+- The committed runtime DB artifact is the loose `database-2024.json` (readable diffs).
+  The `database-2024.zip` (both roots) is a **gitignored** build derivative: the backend
+  reads the JSON directly, the frontend regenerates the zip from it via `prebuild`/
+  `prestart` (`frontend/scripts/build-database-zip.js`). The converter emits no `.zip`.
+- Sprite sync only rewrites files whose bytes changed and prunes removed ones, so
+  unchanged icons keep their mtime; the deterministic export means git shows only real
+  changes. Re-importing the same export is a near no-op.
 - `ui_image_facade/` is intentionally skipped (unused by the app); one-line flip in
   `app/api/batch/convert-export-2024.ts` to enable.
-- After import: restart `npm run dev` (backend loads the DB at startup) and hard-refresh
-  the frontend. No lib rebuild needed for data/icon-only iterations.
+- After import: restart `npm run dev` (backend reads `database-2024.json` at startup) and
+  restart the frontend (`cd frontend && npm start`) so its `prestart` regenerates the zip.
+  No lib rebuild needed for data/icon-only iterations.
 - `convert:2024` is a kept alias for `import:2024`.
 
 Export contract + converter behaviour: `app/api/batch/convert-export-2024.md`.
@@ -166,8 +173,9 @@ Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas. Con
 converter details: `app/api/batch/convert-export-2024.md`.
 - **Types**: `lib/src/b-export/b-export-2024.ts` — raw 2024 export shapes (13 files).
 - **Import**: `app/api/batch/convert-export-2024.ts` (`npm run import:2024`) → consolidated
-  `assets/database/database-2024.json` + both `database-2024.zip`; syncs `ui_image/`
-  (1,241 flat PNGs) and `connection_sprites/` into both asset roots.
+  `database-2024.json` written to both asset roots (committed; the `.zip` is a gitignored
+  build derivative); content-aware syncs `ui_image/` (1,241 flat PNGs) and
+  `connection_sprites/` into both asset roots.
 - **Render**: each building is one flat icon — `OniItem.flatIconId`, `DrawPart.flatIconId`,
   no UV slice. `uiImageRect` (when present) places overhanging art relative to the
   footprint; otherwise the icon is stretched to the footprint.
@@ -176,7 +184,8 @@ converter details: `app/api/batch/convert-export-2024.md`.
   derived from dir presence; `BlueprintItem` builds 16 tagged flat-icon draw-parts;
   per-building `connectionScale` is measured from `15.png` at import time. The build/select
   menu keeps the single canonical icon (`iconUrl`).
-- **Loaders**: backend reads `database-2024.json`; frontend fetches `database-2024.zip`.
+- **Loaders**: backend reads `database-2024.json` directly; frontend fetches
+  `database-2024.zip` (regenerated from the committed JSON by its `prebuild`/`prestart`).
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:
