@@ -44,6 +44,7 @@ export interface BBuildingDef2024 {
         w: number;
         h: number;
     };
+    utilities?: BUtilityConnection2024[];
     energyGenerator?: unknown;
     conduitConsumer?: unknown;
     conduitDispenser?: unknown;
@@ -53,6 +54,14 @@ export interface BBuildingDef2024 {
     passiveElementConsumers?: unknown[];
     storage?: unknown;
     battery?: unknown;
+}
+export interface BUtilityConnection2024 {
+    offset: {
+        x: number;
+        y: number;
+    };
+    type: string;
+    isSecondary: boolean;
 }
 export interface BBuildingSubcategoryPair2024 {
     Key: string;
