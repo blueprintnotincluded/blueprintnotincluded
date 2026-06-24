@@ -15,6 +15,7 @@ import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
 import { DialogAboutComponent } from "../dialogs/dialog-about/dialog-about.component";
 import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dialog.component";
+import { BrowseData } from "../user-menu/user-menu.component";
 
 const LOADING_STR = $localize`Loading...`;
 const NO_RESULTS_STR = $localize`:browse.noResults:No Results`;
@@ -32,8 +33,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   blueprintListItems: BlueprintListItem[] = [];
   working = true;
   noMoreBlueprints = false;
+  loadError = false;
   oldestDate = new Date();
   filterName = "";
+  filterUserId: string | null = null;
   remaining = 0;
 
   filterNameSubject = new Subject<string>();
@@ -104,15 +107,32 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   getBlueprints() {
     const name = this.filterName.trim() || null;
+    this.loadError = false;
     this.blueprintService
-      .getBlueprints(this.oldestDate, null, name, false)
+      .getBlueprints(this.oldestDate, this.filterUserId, name, false)
       .subscribe({
         next: (r: any) => this.handleGetBlueprints(r),
+        error: () => this.handleError(),
       });
+  }
+
+  showMyBlueprints(data: BrowseData) {
+    this.filterUserId = data.filterUserId;
+    this.reset();
+    this.getBlueprints();
+  }
+
+  handleError() {
+    this.working = false;
+    this.loadError = true;
+    this.blueprintListItems = this.blueprintListItems.filter(
+      (i) => i !== this.loadingBlueprintItem
+    );
   }
 
   handleGetBlueprints(response: BlueprintListResponse) {
     this.working = false;
+    this.loadError = false;
     this.oldestDate = new Date(response.oldest);
     this.remaining = response.remaining;
     if (this.remaining === 0) this.noMoreBlueprints = true;
