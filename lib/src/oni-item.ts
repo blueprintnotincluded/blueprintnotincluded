@@ -22,6 +22,7 @@ export class OniItem {
 
   id: string;
   name: string = '';
+  dlcIds: string[] = [];
 
   // imageId here is used for some stuff (generating white background textures)
   imageId: string = '';
@@ -114,6 +115,7 @@ export class OniItem {
   public copyFrom(original: BBuilding) {
     this.id = original.prefabId;
     this.name = original.name;
+    this.dlcIds = original.dlcIds ?? [];
     this.size = original.sizeInCells;
     this.isWire = original.isUtility;
     this.isBridge = original.isBridge;
@@ -286,6 +288,7 @@ export class OniItem {
     if (this.uiScreens == null) this.uiScreens = [];
     if (this.spriteGroup == null) this.spriteGroup = new SpriteModifierGroup();
     if (this.flatIconId == null) this.flatIconId = '';
+    if (this.dlcIds == null) this.dlcIds = [];
     if (this.tileableLeftRight == null) this.tileableLeftRight = false;
     if (this.tileableTopBottom == null) this.tileableTopBottom = false;
     if (this.connectionSprites == null) this.connectionSprites = false;

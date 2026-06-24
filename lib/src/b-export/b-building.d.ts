@@ -32,6 +32,7 @@ export declare class BBuilding {
     objectLayer: number;
     permittedRotations: PermittedRotations;
     buildLocationRule: BuildLocationRule;
+    dlcIds: string[];
     tileableLeftRight: boolean;
     tileableTopBottom: boolean;
     connectionSprites: boolean;

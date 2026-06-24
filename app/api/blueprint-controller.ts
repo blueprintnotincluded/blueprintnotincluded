@@ -81,9 +81,8 @@ export class BlueprintController {
       }
 
       const modded = req.body.modded != null ? Boolean(req.body.modded) : null;
-      const multiplayerSafe = req.body.multiplayerSafe != null ? Boolean(req.body.multiplayerSafe) : null;
 
-      const metadata = { gameVersion, category, subcategory, description, researchTier, modded, multiplayerSafe };
+      const metadata = { gameVersion, category, subcategory, description, researchTier, modded };
 
       BlueprintModel.model
         .find({ owner: ownerId, name: name })
@@ -259,7 +258,6 @@ export class BlueprintController {
               description: blueprint.description ?? null,
               researchTier: blueprint.researchTier ?? null,
               modded: blueprint.modded ?? null,
-              multiplayerSafe: blueprint.multiplayerSafe ?? null,
             };
             res.json(response);
           } else res.status(404).json(apiError(404, 'Blueprint not found'));
@@ -489,7 +487,6 @@ export class BlueprintController {
           subcategory: blueprint.subcategory ?? null,
           description: blueprint.description ?? null,
           modded: blueprint.modded ?? null,
-          multiplayerSafe: blueprint.multiplayerSafe ?? null,
         });
       }
 
@@ -515,7 +512,6 @@ export class BlueprintController {
       description: string | null;
       researchTier: string | null;
       modded: boolean | null;
-      multiplayerSafe: boolean | null;
     }
   ) {
     blueprint.owner = ownerId;
@@ -533,7 +529,6 @@ export class BlueprintController {
       blueprint.description = metadata.description;
       blueprint.researchTier = metadata.researchTier;
       blueprint.modded = metadata.modded;
-      blueprint.multiplayerSafe = metadata.multiplayerSafe;
     }
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();

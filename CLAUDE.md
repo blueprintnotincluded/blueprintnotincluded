@@ -87,7 +87,9 @@ Export contract + converter behaviour: `app/api/batch/convert-export-2024.md`.
 The legacy 2020/2023 atlas pipeline has been removed — the `generate-icons/white/groups/repack`,
 `enhanced-extract-export`, `extract-export`, `test-canvas`, and `add-info-icons` batch scripts
 and their `npm run generate*` / `seed` / `enhancedSeed` / `testCanvas` entries no longer exist.
-Remaining batch utility: `npm run fixHtmlLabels` - Fix HTML formatting in labels.
+Remaining batch utilities:
+- `npm run fixHtmlLabels` - Fix HTML formatting in labels.
+- `npm run derive-metadata` - Backfill `gameVersion` and `modded` on all blueprint documents from stored building IDs. Use `--dry-run` flag (`npm run derive-metadata:dry-run`) to preview counts without writing.
 
 ### Docker
 - `docker-compose up` - Full development environment with database
@@ -165,10 +167,10 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 ## Current Status
 
 - **Phase**: OniExtract2024 flat-icon rendering (current asset pipeline)
-- **Date**: 2026-06-22
+- **Date**: 2026-06-24
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ Backend 187 passing (Mocha + Chai) · Frontend 453 passing (Vitest/jsdom), all green
+- **Tests**: ✅ Backend 204 passing (Mocha + Chai) · Frontend 490 passing (Vitest/jsdom), all green
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 
 ### Asset rendering: OniExtract2024 flat icons
@@ -198,6 +200,24 @@ converter details: `app/api/batch/convert-export-2024.md`.
   Details: `app/api/batch/convert-export-2024.md`.
 - **Loaders**: backend reads `database-2024.json` directly; frontend fetches
   `database-2024.zip` (regenerated from the committed JSON by its `prebuild`/`prestart`).
+- **DLC data**: each building record now includes `dlcIds: string[]` (e.g. `['EXPANSION1_ID']`
+  for Spaced Out buildings). The converter (`import:2024`) populates this from the raw export's
+  `kPrefabID.requiredDlcIds`. Used by `BlueprintAnalyzer` to derive metadata.
+
+### Blueprint metadata auto-derivation
+`gameVersion` and `modded` are derived deterministically from the blueprint content — users
+no longer set these manually. `multiplayerSafe` has been removed entirely.
+
+- **`lib/src/blueprint/blueprint-analyzer.ts`** — pure functions (TDD-covered):
+  - `deriveGameVersion(buildingDlcIds: string[][]): GameVersion` — highest-priority DLC in blueprint
+    (`EXPANSION1_ID`→spacedOut, `DLC2_ID`→frostyPlanet, `DLC5_ID`→bionicBooster, none→base)
+  - `deriveModded(prefabIds: string[], knownIds: Set<string>): boolean` — true if any ID is absent
+    from the loaded database
+- **`Blueprint.hadUnknownBuildings`** — set during `importFromBni`/`importFromMdb` when a building
+  ID is not found; read by the save dialog to detect mods stripped during import.
+- **Save dialog** — `gameVersion` and `modded` are read-only disabled controls populated on open.
+  `researchTier` is hidden (no tech-tree data in current export; field kept in schema for future use).
+- **Backfill** — `npm run derive-metadata` re-derives both fields for all existing blueprints.
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:
@@ -210,7 +230,7 @@ Check these files in `agent/` directory for current status:
 ```bash
 # Environment verification
 node --version        # Should be 20.19.4
-npm run test         # Should pass 187 backend tests
+npm run test         # Should pass 204 backend tests
 npm run tsc          # Should compile without errors
 
 # GitHub CI status

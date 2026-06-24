@@ -21,7 +21,6 @@ export interface BlueprintListItem {
   subcategory?: string | null;
   description?: string | null;
   modded?: boolean | null;
-  multiplayerSafe?: boolean | null;
 }
 
 export interface BlueprintLike {
@@ -45,5 +44,4 @@ export interface BlueprintResponse {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
-  multiplayerSafe?: boolean | null;
 }

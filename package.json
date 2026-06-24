@@ -23,6 +23,8 @@
     "updatePositionCorrection": "tsc && node ./build/api/batch/update-position-correction.js",
     "updateThumbnail": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/update-thumbnail.ts",
     "fixHtmlLabels": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/fix-html-labels.ts",
+    "derive-metadata": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/derive-blueprint-metadata.ts",
+    "derive-metadata:dry-run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/derive-blueprint-metadata.ts --dry-run",
     "convert:2024": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts",
     "import:2024": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts",
     "import:2024:dry-run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts --dry-run",
