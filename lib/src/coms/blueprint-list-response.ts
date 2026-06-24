@@ -16,6 +16,12 @@ export interface BlueprintListItem {
   nbLikes: number;
   likedByMe: boolean;
   ownedByMe: boolean;
+  gameVersion?: string | null;
+  category?: string | null;
+  subcategory?: string | null;
+  description?: string | null;
+  modded?: boolean | null;
+  multiplayerSafe?: boolean | null;
 }
 
 export interface BlueprintLike {

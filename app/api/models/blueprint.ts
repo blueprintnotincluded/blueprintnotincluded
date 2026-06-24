@@ -1,4 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { GAME_VERSIONS, CATEGORIES, RESEARCH_TIERS } from '../../../lib/index';
+
 export interface Blueprint extends Document {
   owner: string;
   name: string;
@@ -13,6 +15,11 @@ export interface Blueprint extends Document {
   deletedAt?: Date | null;
   gameVersion?: string | null;
   category?: string | null;
+  subcategory?: string | null;
+  description?: string | null;
+  researchTier?: string | null;
+  modded?: boolean | null;
+  multiplayerSafe?: boolean | null;
 }
 
 export class BlueprintModel {
@@ -43,8 +50,13 @@ export class BlueprintModel {
       },
       data: Object,
       deletedAt: { type: Date, default: null },
-      gameVersion: { type: String, index: true },
-      category: { type: String, index: true },
+      gameVersion: { type: String, enum: [...GAME_VERSIONS, null], index: true },
+      category: { type: String, enum: [...CATEGORIES, null], index: true },
+      subcategory: { type: String, maxlength: 40 },
+      description: { type: String, maxlength: 500 },
+      researchTier: { type: String, enum: [...RESEARCH_TIERS, null] },
+      modded: { type: Boolean },
+      multiplayerSafe: { type: Boolean },
     });
 
     // Listing query: filter by createdAt range, sort by createdAt desc

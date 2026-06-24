@@ -1,10 +1,11 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: OniExtract2024 flat-icon pipeline (current); legacy atlas pipeline removed
-- **Date**: 2026-06-22
+- **Phase**: Social evolution — metadata loop complete; next: Migration 2 / forks / profiles
+- **Date**: 2026-06-24
+- **Branch**: `discover-home`
 - **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: 187 backend (Mocha + Chai) · 453 frontend (Vitest) — all green
+- **Tests**: 204 backend (Mocha + Chai) · 474 frontend (Vitest) — all green
 
 ## OniExtract2024 follow-ups
 
@@ -65,7 +66,7 @@ Deferred — no active sprint. Revisit when product direction is clearer.
 
 - **Asset Processing** — `__tests__/asset-processing/*` validate the `database-2024.json`
   shape + synced sprite assets; extend as the import pipeline grows
-- **Frontend** — Coverage as of 2026-06-17: Statements 70.40%, Branches 91.57%, Functions 60.46% (453 specs)
+- **Frontend** — 474 specs as of 2026-06-24 (last measured coverage: Statements 70.40%, Branches 91.57%, Functions 60.46%)
   - ✅ **Auth components**: `login-page`, `register-page`, `forgot-password`, `reset-password`,
     `magic-request`, `magic-callback`, `verify-email-callback` — all spec'd with mocked `AuthService`
   - ✅ **Services**: `authentification-service`, `tool-service`, `feedback-service` — spec'd

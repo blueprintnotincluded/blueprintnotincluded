@@ -292,7 +292,10 @@ export class BlueprintService implements IObsBlueprintChange {
     olderThan: Date,
     filterUserId: string | null,
     filterName: string | null,
-    getDuplicates: boolean
+    getDuplicates: boolean,
+    filterGameVersion?: string | null,
+    filterCategory?: string | null,
+    filterSubcategory?: string | null
   ) {
     let parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
 
@@ -307,11 +310,26 @@ export class BlueprintService implements IObsBlueprintChange {
     if (getDuplicates)
       parameterGetDuplicates = "&getDuplicates=" + getDuplicates;
 
+    let parameterGameVersion = "";
+    if (filterGameVersion != null)
+      parameterGameVersion = "&gameVersion=" + filterGameVersion;
+
+    let parameterCategory = "";
+    if (filterCategory != null)
+      parameterCategory = "&category=" + filterCategory;
+
+    let parameterSubcategory = "";
+    if (filterSubcategory != null)
+      parameterSubcategory = "&subcategory=" + filterSubcategory;
+
     let parameters =
       parameterOlderThan +
       parameterFilterUserId +
       parameterGetDuplicates +
-      parameterFilterName;
+      parameterFilterName +
+      parameterGameVersion +
+      parameterCategory +
+      parameterSubcategory;
 
     let request = this.authService.isLoggedIn()
       ? this.http.get("/api/getblueprintsSecure?" + parameters, {
@@ -348,6 +366,19 @@ export class BlueprintService implements IObsBlueprintChange {
     return request;
   }
 
+  metadata: Partial<
+    Pick<
+      SaveBlueprintMessage,
+      | "gameVersion"
+      | "category"
+      | "subcategory"
+      | "description"
+      | "researchTier"
+      | "modded"
+      | "multiplayerSafe"
+    >
+  > = {};
+
   saveBlueprint(overwrite: boolean) {
     let saveBlueprint = this.blueprint.toMdbBlueprint();
 
@@ -356,6 +387,7 @@ export class BlueprintService implements IObsBlueprintChange {
     body.name = this.name;
     body.blueprint = saveBlueprint;
     body.thumbnail = this.thumbnail;
+    Object.assign(body, this.metadata);
     const request = this.http
       .post("/api/uploadblueprint", body, {
         headers: { Authorization: `Bearer ${this.authService.getToken()}` },
@@ -397,6 +429,13 @@ export class SaveBlueprintMessage {
   tags?: string[];
   blueprint!: MdbBlueprint;
   thumbnail!: string;
+  gameVersion?: string | null;
+  category?: string | null;
+  subcategory?: string | null;
+  description?: string | null;
+  researchTier?: string | null;
+  modded?: boolean | null;
+  multiplayerSafe?: boolean | null;
 }
 
 export enum BlueprintFileType {

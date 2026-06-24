@@ -42,6 +42,7 @@ export * from './src/drawing/pixi-util';
 
 export * from './src/blueprint/blueprint';
 export * from './src/blueprint/blueprint-helpers';
+export * from './src/blueprint/blueprint-metadata';
 export * from './src/blueprint/blueprint-item';
 export * from './src/blueprint/blueprint-item-element';
 export * from './src/blueprint/blueprint-item-tile';

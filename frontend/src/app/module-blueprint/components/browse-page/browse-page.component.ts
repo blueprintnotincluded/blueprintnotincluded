@@ -8,9 +8,13 @@ import {
 import {
   BlueprintListItem,
   BlueprintListResponse,
+  GAME_VERSIONS,
+  CATEGORIES,
+  SUBCATEGORIES,
 } from "../../../../../../lib/index";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { DatePipe } from "@angular/common";
+import { ActivatedRoute, Router } from "@angular/router";
 import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
 import { DialogAboutComponent } from "../dialogs/dialog-about/dialog-about.component";
@@ -37,16 +41,41 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   oldestDate = new Date();
   filterName = "";
   filterUserId: string | null = null;
+  filterGameVersion: string | null = null;
+  filterCategory: string | null = null;
+  filterSubcategory: string | null = null;
   remaining = 0;
 
+  readonly gameVersionOptions = [
+    { label: "All versions", value: null },
+    ...GAME_VERSIONS.map((v) => ({ label: v, value: v })),
+  ];
+  readonly categoryOptions = [
+    { label: "All categories", value: null },
+    ...CATEGORIES.map((c) => ({ label: c, value: c })),
+  ];
+
+  get subcategoryOptions(): { label: string; value: string | null }[] {
+    if (!this.filterCategory) return [];
+    const subs =
+      SUBCATEGORIES[this.filterCategory as keyof typeof SUBCATEGORIES] ?? [];
+    return [
+      { label: "All", value: null },
+      ...(subs as readonly string[]).map((s) => ({ label: s, value: s })),
+    ];
+  }
+
   filterNameSubject = new Subject<string>();
+  filterFacetSubject = new Subject<void>();
 
   loadingBlueprintItem: BlueprintListItem;
   nothingBlueprintItem: BlueprintListItem;
 
   constructor(
     private blueprintService: BlueprintService,
-    public datepipe: DatePipe
+    public datepipe: DatePipe,
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     const tempDate = new Date();
     this.loadingBlueprintItem = {
@@ -77,19 +106,64 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       nbLikes: 0,
     };
 
-    this.filterNameSubject.pipe(debounceTime(1000)).subscribe(() => {
+    this.filterNameSubject.pipe(debounceTime(600)).subscribe(() => {
+      this.applyFiltersToUrl();
+      this.reset();
+      this.getBlueprints();
+    });
+
+    this.filterFacetSubject.pipe(debounceTime(0)).subscribe(() => {
+      this.applyFiltersToUrl();
       this.reset();
       this.getBlueprints();
     });
   }
 
   ngOnInit() {
+    const params = this.route.snapshot.queryParamMap;
+    this.filterName = params.get("name") ?? "";
+    this.filterGameVersion = params.get("gameVersion");
+    this.filterCategory = params.get("category");
+    this.filterSubcategory = params.get("subcategory");
     this.appendLoading();
     this.getBlueprints();
   }
 
   ngOnDestroy() {
     this.filterNameSubject.complete();
+    this.filterFacetSubject.complete();
+  }
+
+  onFacetChange() {
+    this.filterSubcategory = null;
+    this.filterFacetSubject.next();
+  }
+
+  onSubcategoryChange() {
+    this.applyFiltersToUrl();
+    this.reset();
+    this.getBlueprints();
+  }
+
+  private applyFiltersToUrl() {
+    const queryParams: Record<string, string | null> = {};
+    if (this.filterName) queryParams["name"] = this.filterName;
+    if (this.filterGameVersion)
+      queryParams["gameVersion"] = this.filterGameVersion;
+    if (this.filterCategory) queryParams["category"] = this.filterCategory;
+    if (this.filterSubcategory)
+      queryParams["subcategory"] = this.filterSubcategory;
+    this.router.navigate([], { queryParams, replaceUrl: true });
+  }
+
+  clearFilters() {
+    this.filterName = "";
+    this.filterGameVersion = null;
+    this.filterCategory = null;
+    this.filterSubcategory = null;
+    this.applyFiltersToUrl();
+    this.reset();
+    this.getBlueprints();
   }
 
   @HostListener("window:scroll")
@@ -109,7 +183,15 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     const name = this.filterName.trim() || null;
     this.loadError = false;
     this.blueprintService
-      .getBlueprints(this.oldestDate, this.filterUserId, name, false)
+      .getBlueprints(
+        this.oldestDate,
+        this.filterUserId,
+        name,
+        false,
+        this.filterGameVersion,
+        this.filterCategory,
+        this.filterSubcategory
+      )
       .subscribe({
         next: (r: any) => this.handleGetBlueprints(r),
         error: () => this.handleError(),
