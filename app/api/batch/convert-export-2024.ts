@@ -13,7 +13,11 @@
 //   3. Syncs export/ui_image/ and export/connection_sprites/ into both asset roots,
 //      content-aware: only files whose bytes actually changed are rewritten and only
 //      removed files are pruned, so unchanged icons keep their mtime (no churn).
-//   4. Prints a validation report (missing icons, incomplete connection dirs, etc.).
+//   4. Flattens export/database/po_string.json into the frontend's English game-string
+//      map (frontend/src/assets/strings/strings.json) — the display names the website
+//      resolves element/building/category ids against. Without this, freshly added
+//      elements render their raw `<link=...>` markup in the build menu.
+//   5. Prints a validation report (missing icons, incomplete connection dirs, etc.).
 //
 // Rationale (see convert-export-2024.md beside this file): rather than rewrite the three
 // loaders to ingest 13 files, the heavy mapping lives here in one auditable script. The
@@ -26,6 +30,8 @@
 //     --export-dir <dir>   root of the 2024 export (default: ./export)
 //     --out <file>         output path (default: ./assets/database/database-2024.json)
 //     --dry-run            run validation + report counts, write/copy nothing
+//     --strings-only       regenerate only frontend strings.json; skip the DB rebuild
+//                          and the ui_image/connection_sprites sync (leaves them untouched)
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -35,6 +41,7 @@ import {
   BElementsFile2024,
   BUiSpriteInfoFile2024,
   BBuildingDef2024,
+  BPoStringFile2024,
 } from '../../../lib';
 import { Overlay } from '../../../lib/src/enums/overlay';
 
@@ -103,6 +110,7 @@ interface ConvertOptions {
   exportDir: string;
   out: string;
   dryRun: boolean;
+  stringsOnly: boolean;
 }
 
 function parseArgs(argv: string[]): ConvertOptions {
@@ -110,10 +118,12 @@ function parseArgs(argv: string[]): ConvertOptions {
     exportDir: 'export',
     out: 'assets/database/database-2024.json',
     dryRun: false,
+    stringsOnly: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') opts.dryRun = true;
+    else if (a === '--strings-only') opts.stringsOnly = true;
     else if (a === '--export-dir') opts.exportDir = argv[++i];
     else if (a === '--out') opts.out = argv[++i];
   }
@@ -274,10 +284,68 @@ function measureConnectionScale(
   return { x: W / (maxX - minX + 1), y: H / (maxY - minY + 1) };
 }
 
+// English game strings: flatten po_string.json into the flat lookup the website's
+// GameStringService consumes. The export groups strings by top-level category
+// (ELEMENTS, BUILDINGS, UI, ...) and keys them by their full dotted id
+// (e.g. "ELEMENTS.MOLTENZINC.NAME"); the website queries them under a "STRINGS."
+// prefix (e.g. "STRINGS.ELEMENTS.MOLTENZINC.NAME"), so prepend it here. Values keep
+// their Klei rich-text markup (<link=...> etc.) — the service strips it at load time.
+// Object-valued entries are the category dicts; the BExport2024Meta scalars
+// (buildVersion, dlcs, ...) sit at the same level and are skipped.
+function buildEnglishStrings(poStringFile: string): Record<string, string> {
+  const raw = readJson<BPoStringFile2024>(poStringFile);
+  const strings: Record<string, string> = {};
+  for (const section of Object.values(raw)) {
+    if (section === null || typeof section !== 'object' || Array.isArray(section)) continue;
+    for (const [key, value] of Object.entries(section))
+      if (typeof value === 'string') strings['STRINGS.' + key] = value;
+  }
+  return strings;
+}
+
+// Write the English game strings -> frontend only (strings are not used server-side).
+// Pretty-print so git shows real string diffs. `outBase` is the --out database path; the
+// strings dir is resolved relative to it (../../frontend/src/assets/strings).
+function writeEnglishStrings(strings: Record<string, string>, outBase: string): void {
+  const stringsBytes = Buffer.from(JSON.stringify(strings, null, 2) + '\n');
+  const stringsTarget = path.join(
+    path.dirname(outBase),
+    '../../frontend/src/assets/strings/strings.json'
+  );
+  const changed = writeFileIfChanged(stringsTarget, stringsBytes);
+  console.log('---', changed ? 'wrote' : 'unchanged', path.normalize(stringsTarget), '---');
+}
+
 export function convertExport2024(opts: ConvertOptions): void {
   const dbDir = path.join(opts.exportDir, 'database');
   const uiImageDir = path.join(opts.exportDir, 'ui_image');
   const connectionDir = path.join(opts.exportDir, 'connection_sprites');
+
+  // English game strings (element/building/category names, overlay labels). The website
+  // resolves rich-text display names against this map at load time; without it, new
+  // elements fall back to their raw `<link=...>` markup in the build menu.
+  const poStringFile = path.join(dbDir, 'po_string.json');
+  const hasPoStrings = fs.existsSync(poStringFile);
+  const englishStrings = hasPoStrings ? buildEnglishStrings(poStringFile) : {};
+
+  // --strings-only: regenerate just strings.json. Skips the DB rebuild and the
+  // content-aware sprite sync entirely (no touching ui_image/ or connection_sprites/).
+  if (opts.stringsOnly) {
+    console.log('convert-export-2024 (strings only)');
+    console.log('  english strings        :', Object.keys(englishStrings).length);
+    console.log('  po_string.json present :', hasPoStrings);
+    if (!hasPoStrings) {
+      console.log('--- po_string.json missing — nothing written ---');
+      process.exitCode = 1;
+      return;
+    }
+    if (opts.dryRun) {
+      console.log('--- dry-run: no file written ---');
+      return;
+    }
+    writeEnglishStrings(englishStrings, opts.out);
+    return;
+  }
 
   const buildingFile = readJson<BBuildingFile2024>(path.join(dbDir, 'building.json'));
   const elementsFile = readJson<BElementsFile2024>(path.join(dbDir, 'elements.json'));
@@ -426,7 +494,9 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  buildMenuCategories:', buildMenuCategories.length);
   console.log('  buildMenuItems     :', buildMenuItems.length);
   console.log('  ui_image PNGs      :', uiImageFiles.size);
+  console.log('  english strings    :', Object.keys(englishStrings).length);
   console.log('--- validation ---');
+  console.log('  po_string.json present             :', hasPoStrings);
   console.log('  buildings missing ui_image PNG :', missingIcons.length);
   if (missingIcons.length) console.log('    ', missingIcons.slice(0, 30).join(', '));
   console.log('  buildings missing uiSpriteInfo :', missingUiSpriteInfo.length);
@@ -490,7 +560,8 @@ export function convertExport2024(opts: ConvertOptions): void {
     connectablesNotTileOrUtility.length +
     incompleteConnectionDirs.length +
     connectableDirsNoBuilding.length +
-    unknownViewModes.size;
+    unknownViewModes.size +
+    (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
     process.exitCode = 1;
@@ -517,6 +588,9 @@ export function convertExport2024(opts: ConvertOptions): void {
     const changed = writeFileIfChanged(target, jsonBytes);
     console.log('---', changed ? 'wrote' : 'unchanged', path.normalize(target), '---');
   }
+
+  // English game strings -> frontend only. Skipped when po_string.json is absent.
+  if (hasPoStrings) writeEnglishStrings(englishStrings, opts.out);
 
   // Sync sprites into the served asset dirs (backend + frontend). The DB references
   // these by filename, so they must travel together with the regenerated JSON.
