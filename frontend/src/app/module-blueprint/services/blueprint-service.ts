@@ -284,9 +284,7 @@ export class BlueprintService implements IObsBlueprintChange {
               category: response.category ?? null,
               subcategory: response.subcategory ?? null,
               description: response.description ?? null,
-              researchTier: response.researchTier ?? null,
               modded: response.modded ?? null,
-              multiplayerSafe: response.multiplayerSafe ?? null,
             };
             blueprint.importFromMdb(response.data);
             return blueprint;
@@ -379,13 +377,7 @@ export class BlueprintService implements IObsBlueprintChange {
   metadata: Partial<
     Pick<
       SaveBlueprintMessage,
-      | "gameVersion"
-      | "category"
-      | "subcategory"
-      | "description"
-      | "researchTier"
-      | "modded"
-      | "multiplayerSafe"
+      "gameVersion" | "category" | "subcategory" | "description" | "modded"
     >
   > = {};
 
@@ -443,9 +435,7 @@ export class SaveBlueprintMessage {
   category?: string | null;
   subcategory?: string | null;
   description?: string | null;
-  researchTier?: string | null;
   modded?: boolean | null;
-  multiplayerSafe?: boolean | null;
 }
 
 export enum BlueprintFileType {

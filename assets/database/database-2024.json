@@ -28,6 +28,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -70,6 +73,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.225,
         "y": -0.13,
@@ -127,6 +131,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.085,
@@ -184,6 +189,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.31,
         "y": -0.02,
@@ -232,6 +238,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.105,
@@ -313,6 +320,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.085,
@@ -370,6 +378,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -421,6 +430,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.005,
         "y": -0.24,
@@ -494,6 +504,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.165,
         "y": -0.145,
@@ -542,6 +553,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.19,
@@ -599,6 +611,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -650,6 +663,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.135,
         "y": -0.105,
@@ -707,6 +723,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -749,6 +768,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -800,6 +820,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -867,6 +888,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.06,
@@ -932,6 +954,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.08,
@@ -989,6 +1012,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.02,
         "y": -0.03,
@@ -1046,6 +1070,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -1097,6 +1124,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.035,
         "y": -0.065,
@@ -1162,6 +1190,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -1206,6 +1235,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -1248,6 +1278,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -1290,6 +1323,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.035,
@@ -1347,6 +1381,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.085,
         "y": -0.08,
@@ -1404,6 +1439,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.05,
         "y": -0.175,
@@ -1452,6 +1488,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.23,
         "y": 0.01,
@@ -1500,6 +1537,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.235,
         "y": -0.08,
@@ -1565,6 +1603,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -1607,6 +1646,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -1658,6 +1700,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.05,
@@ -1739,6 +1782,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "uiImageRect": {
         "x": -0.31,
         "y": -0.075,
@@ -1787,6 +1833,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.075,
         "y": 0.01,
@@ -1837,6 +1884,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.025,
         "y": 0.01,
@@ -1887,6 +1935,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.03,
         "y": -0.055,
@@ -1937,6 +1986,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -1981,6 +2031,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.1,
         "y": 0.05,
@@ -2038,6 +2089,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.17,
         "y": -0.095,
@@ -2103,6 +2155,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.055,
@@ -2186,6 +2239,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.28,
         "y": -0.1,
@@ -2251,6 +2305,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.12,
@@ -2308,6 +2363,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.17,
         "y": -0.145,
@@ -2365,6 +2421,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.01,
         "y": -0.04,
@@ -2422,6 +2481,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.295,
         "y": -0.105,
@@ -2487,6 +2549,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.58,
         "y": -0.05,
@@ -2552,6 +2615,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.11,
         "y": -0.175,
@@ -2600,6 +2664,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.01,
@@ -2659,6 +2724,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.05,
@@ -2718,6 +2784,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.01,
@@ -2775,6 +2842,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.05,
@@ -2832,6 +2900,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.01,
@@ -2889,6 +2958,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.05,
@@ -2946,6 +3016,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.1,
         "y": -0.1,
@@ -3011,6 +3082,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.11,
         "y": -0.09,
@@ -3068,6 +3140,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.115,
         "y": -0.02,
@@ -3116,6 +3189,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.16,
@@ -3173,6 +3247,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -3215,6 +3290,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.215,
         "y": -0.075,
@@ -3263,6 +3339,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -3305,6 +3382,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 12,
       "utilities": [
         {
@@ -3364,6 +3442,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.115,
@@ -3414,6 +3493,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.035,
@@ -3471,6 +3551,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.04,
@@ -3528,6 +3609,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.23,
         "y": 0.445,
@@ -3576,6 +3658,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.11,
@@ -3633,6 +3718,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.465,
         "y": -0.225,
@@ -3692,6 +3780,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.1,
@@ -3749,6 +3840,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -3797,6 +3889,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.1,
         "y": -0.79,
@@ -3854,6 +3949,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -3902,6 +3998,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.16,
@@ -3950,6 +4047,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -3998,6 +4096,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.165,
@@ -4055,6 +4154,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.165,
@@ -4112,6 +4212,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.17,
@@ -4169,6 +4270,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -4217,6 +4319,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.255,
         "y": -0.065,
@@ -4282,6 +4387,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -4324,6 +4430,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.125,
@@ -4372,6 +4479,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.13,
@@ -4429,6 +4537,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.085,
@@ -4486,6 +4595,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.065,
@@ -4543,6 +4653,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.11,
@@ -4616,6 +4727,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.02,
         "y": 0.01,
@@ -4681,6 +4793,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.195,
@@ -4746,6 +4859,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.14,
         "y": -0.05,
@@ -4794,6 +4910,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.01,
@@ -4842,6 +4959,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.04,
         "y": -0.075,
@@ -4915,6 +5033,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -4957,6 +5076,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.135,
@@ -5014,6 +5134,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -5062,6 +5183,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.155,
@@ -5135,6 +5257,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.04,
@@ -5183,6 +5306,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.13,
         "y": -1.045,
@@ -5240,6 +5364,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.68,
         "y": -2,
@@ -5288,6 +5413,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.13,
         "y": -1.045,
@@ -5345,6 +5471,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -5387,6 +5514,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.105,
@@ -5444,6 +5572,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -5501,6 +5630,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.11,
@@ -5549,6 +5679,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.05,
@@ -5597,6 +5728,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.005,
         "y": -0.045,
@@ -5645,6 +5777,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.02,
@@ -5693,6 +5826,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -5752,6 +5886,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -5796,6 +5931,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.135,
@@ -5863,6 +5999,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -5924,6 +6061,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -5966,6 +6104,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.125,
@@ -6031,6 +6170,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.035,
         "y": -0.125,
@@ -6088,6 +6228,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -6130,6 +6273,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -6172,6 +6318,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.2,
         "y": 0.095,
@@ -6237,6 +6384,7 @@
         "x": 1.0384615384615385,
         "y": 1.0285714285714285
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.225,
         "y": 0.21,
@@ -6285,6 +6433,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -6352,6 +6501,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -6419,6 +6569,7 @@
         "x": 1.0384615384615385,
         "y": 1.0285714285714285
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.225,
         "y": 0.21,
@@ -6467,6 +6618,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.085,
         "y": -0.055,
@@ -6548,6 +6700,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.32,
         "y": -0.045,
@@ -6639,6 +6792,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.23,
         "y": -0.11,
@@ -6720,6 +6874,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.01,
@@ -6793,6 +6948,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -6835,6 +6991,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.095,
@@ -6908,6 +7065,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": 0.015,
@@ -6981,6 +7139,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.2,
         "y": 0.005,
@@ -7046,6 +7205,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.075,
         "y": 0.005,
@@ -7111,6 +7271,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.155,
         "y": -0.08,
@@ -7178,6 +7339,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.195,
@@ -7243,6 +7405,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -7294,6 +7457,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.02,
         "y": -0.195,
@@ -7351,6 +7517,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.155,
@@ -7416,6 +7583,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": 0.005,
         "y": -0.33,
@@ -7473,6 +7643,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.01,
         "y": -0.01,
@@ -7521,6 +7694,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.145,
         "y": -0.01,
@@ -7586,6 +7760,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -7628,6 +7803,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.105,
@@ -7693,6 +7869,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.275,
         "y": -0.22,
@@ -7741,6 +7918,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -7783,6 +7961,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -7825,6 +8004,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -7867,6 +8047,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [
         {
@@ -7918,6 +8099,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 3,
       "utilities": [],
       "uiScreens": [],
@@ -7960,6 +8142,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8002,6 +8187,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.17,
         "y": -0.13,
@@ -8075,6 +8263,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.335,
         "y": -0.07,
@@ -8123,6 +8314,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -8174,6 +8368,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -8216,6 +8413,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -8258,6 +8458,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8300,6 +8501,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8342,6 +8544,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -8417,6 +8620,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.045,
@@ -8474,6 +8680,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.31,
         "y": -0.34,
@@ -8531,6 +8740,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8573,6 +8783,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -8642,6 +8853,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -8684,6 +8898,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.025,
         "y": -0.12,
@@ -8757,6 +8972,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -8814,6 +9030,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.015,
         "y": -0.04,
@@ -8862,6 +9079,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "uiImageRect": {
         "x": -0.09,
         "y": -0.045,
@@ -8910,6 +9130,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.005,
         "y": -0.025,
@@ -8967,6 +9188,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0,
         "y": -0.05,
@@ -9015,6 +9237,7 @@
         "x": 1.0384615384615385,
         "y": 1.0285714285714285
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.225,
         "y": 0.21,
@@ -9063,6 +9286,7 @@
         "x": 1.0188679245283019,
         "y": 1.0384615384615385
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.27,
         "y": 0.3,
@@ -9111,6 +9335,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -9153,6 +9378,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.18,
         "y": -0.14,
@@ -9201,6 +9427,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.27,
         "y": -0.05,
@@ -9266,6 +9493,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.46,
         "y": -0.045,
@@ -9323,6 +9551,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -9382,6 +9611,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -9424,6 +9656,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -9475,6 +9710,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.065,
         "y": -0.075,
@@ -9532,6 +9768,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 13,
       "utilities": [],
       "uiScreens": [],
@@ -9574,6 +9813,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.095,
@@ -9622,6 +9862,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.105,
@@ -9670,6 +9911,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.325,
         "y": -0.07,
@@ -9727,6 +9971,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.005,
         "y": -0.005,
@@ -9777,6 +10024,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -9844,6 +10094,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.03,
@@ -9909,6 +10162,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.03,
@@ -9966,6 +10222,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.13,
@@ -10023,6 +10280,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -10065,6 +10325,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -10107,6 +10370,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -10188,6 +10452,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.1,
         "y": 0.165,
@@ -10253,6 +10518,7 @@
         "x": 1.0188679245283019,
         "y": 1.0384615384615385
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.27,
         "y": 0.3,
@@ -10301,6 +10567,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -10368,6 +10635,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -10435,6 +10703,7 @@
         "x": 1.0188679245283019,
         "y": 1.0384615384615385
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.27,
         "y": 0.3,
@@ -10483,6 +10752,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -10525,6 +10795,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.175,
         "y": -0.185,
@@ -10606,6 +10877,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -10657,6 +10931,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.255,
         "y": -0.115,
@@ -10722,6 +10997,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.17,
         "y": -0.055,
@@ -10813,6 +11089,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.125,
@@ -10894,6 +11171,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.055,
@@ -10967,6 +11245,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.13,
         "y": -0.535,
@@ -11040,6 +11319,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.5,
         "y": -2,
@@ -11088,6 +11368,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.04,
         "y": -0.19,
@@ -11161,6 +11442,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.025,
@@ -11226,6 +11508,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.235,
@@ -11291,6 +11574,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.02,
@@ -11348,6 +11632,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -11399,6 +11686,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0,
         "y": -0.005,
@@ -11472,6 +11760,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.065,
         "y": -0.065,
@@ -11529,6 +11818,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.05,
         "y": -0.015,
@@ -11588,6 +11878,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.115,
         "y": -0.05,
@@ -11645,6 +11936,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.045,
@@ -11702,6 +11994,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.045,
@@ -11759,6 +12052,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.01,
         "y": -0.015,
@@ -11832,6 +12126,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0,
         "y": -0.015,
@@ -11905,6 +12200,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0,
         "y": -0.015,
@@ -11978,6 +12274,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.035,
@@ -12043,6 +12340,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.245,
         "y": -0.015,
@@ -12108,6 +12406,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.245,
         "y": -0.015,
@@ -12173,6 +12472,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.02,
@@ -12278,6 +12578,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.02,
@@ -12383,6 +12684,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": 0,
         "y": -0.005,
@@ -12440,6 +12744,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.165,
         "y": -0.025,
@@ -12505,6 +12810,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.03,
@@ -12562,6 +12870,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.01,
@@ -12619,6 +12930,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.375,
         "y": -0.11,
@@ -12678,6 +12990,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.135,
         "y": -0.065,
@@ -12751,6 +13064,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.04,
@@ -12808,6 +13122,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": 0.035,
@@ -12865,6 +13180,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.1,
@@ -12922,6 +13238,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.065,
         "y": -0.055,
@@ -12979,6 +13298,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.055,
         "y": 0.04,
@@ -13044,6 +13364,7 @@
         "x": 1.0192307692307692,
         "y": 1.029126213592233
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.24,
         "y": 0.235,
@@ -13092,6 +13413,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.085,
         "y": -0.015,
@@ -13157,6 +13479,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.225,
         "y": -0.01,
@@ -13222,6 +13545,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.035,
         "y": -0.03,
@@ -13279,6 +13603,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.11,
         "y": 0.01,
@@ -13336,6 +13661,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.035,
         "y": 0.015,
@@ -13393,6 +13719,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -13450,6 +13777,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.035,
@@ -13507,6 +13835,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.145,
         "y": 0.13,
@@ -13572,6 +13901,7 @@
         "x": 1.0196078431372548,
         "y": 1.0196078431372548
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.315,
         "y": 0.28,
@@ -13620,6 +13950,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -13671,6 +14002,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -13713,6 +14045,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -13755,6 +14088,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -13797,6 +14131,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.025,
@@ -13854,6 +14189,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.24,
         "y": -0.065,
@@ -13911,6 +14249,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.115,
@@ -13959,6 +14298,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.095,
         "y": -0.115,
@@ -14007,6 +14347,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.005,
         "y": -0.12,
@@ -14064,6 +14405,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -14115,6 +14457,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -14174,6 +14517,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.03,
         "y": -0.135,
@@ -14222,6 +14566,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -14273,6 +14618,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "uiImageRect": {
         "x": 0.02,
         "y": 0.045,
@@ -14338,6 +14686,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -14380,6 +14729,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.065,
@@ -14453,6 +14803,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.115,
@@ -14501,6 +14852,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -14543,6 +14895,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.215,
         "y": -0.12,
@@ -14624,6 +14977,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.175,
@@ -14681,6 +15035,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.315,
         "y": -0.08,
@@ -14754,6 +15109,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.02,
         "y": -0.075,
@@ -14821,6 +15177,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.205,
         "y": -0.09,
@@ -14886,6 +15243,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.395,
         "y": -0.1,
@@ -14953,6 +15311,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.04,
@@ -15018,6 +15377,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -15079,6 +15441,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.255,
         "y": -0.025,
@@ -15144,6 +15507,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.13,
         "y": -0.05,
@@ -15209,6 +15573,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.055,
@@ -15266,6 +15633,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.195,
         "y": -0.04,
@@ -15314,6 +15684,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.2,
         "y": -0.025,
@@ -15379,6 +15752,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.2,
         "y": -0.025,
@@ -15444,6 +15820,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.025,
@@ -15509,6 +15888,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.025,
@@ -15574,6 +15956,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.03,
@@ -15639,6 +16024,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.03,
@@ -15704,6 +16092,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.03,
@@ -15754,6 +16143,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.62,
         "y": -0.07,
@@ -15806,6 +16196,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -1.435,
         "y": -0.375,
@@ -15858,6 +16249,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -15925,6 +16317,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -15967,6 +16360,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -16009,6 +16403,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -16053,6 +16450,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -16097,6 +16497,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.095,
         "y": -0.08,
@@ -16162,6 +16565,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.14,
         "y": -0.12,
@@ -16227,6 +16633,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.145,
         "y": -0.1,
@@ -16292,6 +16699,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.07,
@@ -16365,6 +16773,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.13,
         "y": -0.78,
@@ -16438,6 +16847,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -16480,6 +16892,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -16531,6 +16946,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.36,
         "y": -0.08,
@@ -16588,6 +17004,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -16630,6 +17047,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -16672,6 +17092,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -16723,6 +17146,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.095,
         "y": -0.055,
@@ -16780,6 +17204,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.225,
         "y": -0.055,
@@ -16837,6 +17262,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -16888,6 +17314,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.01,
         "y": -0.14,
@@ -16963,6 +17390,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "uiImageRect": {
         "x": 0.1,
         "y": -0.04,
@@ -17011,6 +17441,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17053,6 +17484,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17095,6 +17527,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [
         {
@@ -17146,6 +17579,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17188,6 +17622,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.125,
         "y": -0.09,
@@ -17236,6 +17671,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.18,
@@ -17309,6 +17745,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -17360,6 +17797,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17402,6 +17842,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.045,
@@ -17469,6 +17910,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.205,
         "y": -0.1,
@@ -17517,6 +17959,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -17559,6 +18002,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.175,
         "y": -0.165,
@@ -17640,6 +18084,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.55,
         "y": -0.17,
@@ -17697,6 +18142,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.25,
         "y": -0.21,
@@ -17754,6 +18200,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.25,
         "y": -0.12,
@@ -17811,6 +18258,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.115,
@@ -17876,6 +18324,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17918,6 +18367,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17960,6 +18410,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -18004,6 +18457,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18046,6 +18500,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18088,6 +18543,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18130,6 +18588,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18172,6 +18631,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18214,6 +18674,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18256,6 +18717,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.035,
         "y": -1.08,
@@ -18313,6 +18777,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.185,
         "y": -0.2,
@@ -18386,6 +18853,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.21,
         "y": -0.075,
@@ -18443,6 +18913,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.165,
@@ -18500,6 +18971,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -18542,6 +19014,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.095,
         "y": 1.03,
@@ -18601,6 +19076,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -18660,6 +19136,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.095,
         "y": -0.15,
@@ -18717,6 +19194,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -18759,6 +19239,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.05,
@@ -18816,6 +19297,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.04,
         "y": -0.125,
@@ -18873,6 +19355,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -18924,6 +19409,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -18966,6 +19452,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.055,
@@ -19023,6 +19512,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19065,6 +19557,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.035,
@@ -19130,6 +19625,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19172,6 +19670,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.04,
@@ -19229,6 +19730,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19271,6 +19775,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.035,
@@ -19336,6 +19843,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19378,6 +19888,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 16,
       "utilities": [],
       "uiScreens": [],
@@ -19420,6 +19933,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.055,
@@ -19477,6 +19993,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.035,
@@ -19542,6 +20061,9 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19584,6 +20106,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -19626,6 +20149,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.11,
@@ -19699,6 +20225,9 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19741,6 +20270,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.33,
         "y": -0.09,
@@ -19806,6 +20336,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -19875,6 +20406,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -19919,6 +20453,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -19961,6 +20498,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.125,
@@ -20009,6 +20547,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.04,
@@ -20066,6 +20605,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.02,
         "y": -0.115,
@@ -20114,6 +20654,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -20173,6 +20714,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.12,
@@ -20238,6 +20782,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -20280,6 +20827,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.02,
         "y": -0.115,
@@ -20328,6 +20876,9 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -20370,6 +20921,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -20429,6 +20981,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.595,
         "y": -0.105,
@@ -20477,6 +21030,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -20519,6 +21075,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -20561,6 +21120,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -20603,6 +21165,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.48,
         "y": 0.03,
@@ -20668,6 +21231,7 @@
         "x": 1.029126213592233,
         "y": 1.0192307692307692
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.335,
         "y": 0.355,
@@ -20716,6 +21280,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.095,
@@ -20789,6 +21354,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.105,
@@ -20846,6 +21412,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -20905,6 +21472,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -20962,6 +21530,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -21019,6 +21588,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.015,
         "y": -0.275,
@@ -21100,6 +21670,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.155,
         "y": -0.055,
@@ -21191,6 +21762,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.065,
@@ -21272,6 +21844,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.295,
         "y": -0.085,
@@ -21337,6 +21910,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.215,
@@ -21402,6 +21976,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.135,
         "y": -0.17,
@@ -21467,6 +22042,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -21509,6 +22087,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.095,
         "y": -0.03,
@@ -21566,6 +22145,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 14,
       "utilities": [],
       "uiScreens": [],
@@ -21608,6 +22190,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 14,
       "utilities": [
         {
@@ -21659,6 +22244,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 14,
       "utilities": [
         {
@@ -21710,6 +22298,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -21761,6 +22352,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -1.295,
@@ -21820,6 +22412,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.09,
         "y": -2,
@@ -21887,6 +22480,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -21929,6 +22523,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -21988,6 +22583,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -22032,6 +22628,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.215,
         "y": -0.03,
@@ -22097,6 +22696,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -22139,6 +22741,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.095,
         "y": -0.15,
@@ -22196,6 +22799,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.26,
         "y": -0.135,
@@ -22261,6 +22865,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.24,
         "y": -0.175,
@@ -22318,6 +22923,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.995,
         "y": -0.035,
@@ -22377,6 +22983,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.635,
         "y": -0.11,
@@ -22434,6 +23041,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.07,
@@ -22482,6 +23092,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.24,
         "y": -0.07,
@@ -22539,6 +23150,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.005,
@@ -22587,6 +23199,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -22638,6 +23253,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -22729,6 +23345,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -22771,6 +23388,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -22822,6 +23442,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.205,
         "y": -0.2,
@@ -22870,6 +23491,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -22912,6 +23534,7 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -22954,6 +23577,7 @@
         "x": 1.00418410041841,
         "y": 1.0169491525423728
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.005,
         "y": -0.02,
@@ -23002,6 +23626,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.145,
         "y": -0.115,
@@ -23067,6 +23692,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.565,
         "y": -0.21,
@@ -23115,6 +23741,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.02,
         "y": -0.17,
@@ -23163,6 +23790,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": 0.14,
         "y": -0.14,
@@ -23228,6 +23858,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.065,
         "y": -2,
@@ -23295,6 +23926,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.37,
@@ -23362,6 +23996,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.445,
         "y": -0.255,
@@ -23419,6 +24056,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": 0.07,
         "y": -0.22,
@@ -23476,6 +24116,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.15,
         "y": 0.895,
@@ -23543,6 +24186,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "uiImageRect": {
         "x": -0.01,
         "y": -0.04,
@@ -23618,6 +24264,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -23669,6 +24316,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 17,
       "utilities": [
         {
@@ -23722,6 +24372,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -23789,6 +24442,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -23831,6 +24487,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.01,
         "y": -0.1,
@@ -23879,6 +24536,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -23938,6 +24596,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -23980,6 +24639,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.18,
         "y": -0.095,
@@ -24061,6 +24721,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC5_ID"
+      ],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.06,
@@ -24120,6 +24783,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.175,
         "y": -0.03,
@@ -24185,6 +24849,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.86,
         "y": -0.055,
@@ -24250,6 +24915,7 @@
         "x": 1.0192307692307692,
         "y": 1.0192307692307692
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.31,
         "y": 0.26,
@@ -24298,6 +24964,7 @@
         "x": 1.0192307692307692,
         "y": 1.029126213592233
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.285,
         "y": 0.27,
@@ -24346,6 +25013,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.14,
         "y": 0.155,
@@ -24411,6 +25079,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.925,
         "y": -0.055,
@@ -24476,6 +25145,7 @@
         "x": 1.029126213592233,
         "y": 1.0192307692307692
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.31,
         "y": 0.26,
@@ -24524,6 +25194,7 @@
         "x": 1.0192307692307692,
         "y": 1.029126213592233
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.28,
         "y": 0.27,
@@ -24572,6 +25243,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.145,
         "y": 0.22,
@@ -24639,6 +25311,7 @@
         "x": 1.029126213592233,
         "y": 1.0192307692307692
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": 0.36,
         "y": 0.27,
@@ -24689,6 +25362,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.585,
         "y": -0.045,
@@ -24754,6 +25428,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.12,
@@ -24802,6 +25479,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -24844,6 +25524,9 @@
         "x": 1.5,
         "y": 1.5
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -24886,6 +25569,9 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [
+        "DLC2_ID"
+      ],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.12,
@@ -24934,6 +25620,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.36,
         "y": -0.09,
@@ -24999,6 +25686,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.065,
         "y": -0.07,
@@ -25072,6 +25760,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.11,
@@ -25122,6 +25811,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.155,
         "y": -0.03,
@@ -25187,6 +25877,7 @@
         "x": 1,
         "y": 1
       },
+      "dlcIds": [],
       "uiImageRect": {
         "x": -0.225,
         "y": 0.255,

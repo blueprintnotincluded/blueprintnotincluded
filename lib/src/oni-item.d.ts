@@ -16,6 +16,7 @@ export declare class OniItem {
     static defaultColor: string;
     id: string;
     name: string;
+    dlcIds: string[];
     imageId: string;
     iconUrl: string;
     flatIconId: string;

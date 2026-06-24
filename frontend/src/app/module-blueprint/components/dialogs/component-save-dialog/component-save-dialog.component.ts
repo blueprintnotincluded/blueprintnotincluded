@@ -13,7 +13,9 @@ import {
   GAME_VERSIONS,
   CATEGORIES,
   SUBCATEGORIES,
-  RESEARCH_TIERS,
+  OniItem,
+  deriveGameVersion,
+  deriveModded,
 } from "../../../../../../../lib/index";
 
 @Component({
@@ -32,10 +34,6 @@ export class ComponentSaveDialogComponent {
     value: v,
   }));
   readonly categoryOptions = CATEGORIES.map((c) => ({ label: c, value: c }));
-  readonly researchTierOptions = RESEARCH_TIERS.map((t) => ({
-    label: t,
-    value: t,
-  }));
 
   get subcategoryOptions(): { label: string; value: string }[] {
     const cat = this.saveBlueprintForm.value.category;
@@ -55,12 +53,10 @@ export class ComponentSaveDialogComponent {
       BlueprintNameValidationDirective.validateBlueprintName,
     ]),
     description: new UntypedFormControl(null),
-    gameVersion: new UntypedFormControl(null),
+    gameVersion: new UntypedFormControl({ value: null, disabled: true }),
     category: new UntypedFormControl(null),
     subcategory: new UntypedFormControl(null),
-    researchTier: new UntypedFormControl(null),
-    modded: new UntypedFormControl(null),
-    multiplayerSafe: new UntypedFormControl(null),
+    modded: new UntypedFormControl({ value: null, disabled: true }),
   });
 
   get f() {
@@ -124,16 +120,35 @@ export class ComponentSaveDialogComponent {
   }
 
   private applyMetadataToService() {
-    const v = this.saveBlueprintForm.value;
+    const v = this.saveBlueprintForm.getRawValue();
     this.blueprintService.metadata = {
       gameVersion: v.gameVersion ?? null,
       category: v.category ?? null,
       subcategory: v.subcategory ?? null,
       description: v.description?.trim() || null,
-      researchTier: v.researchTier ?? null,
       modded: v.modded ?? null,
-      multiplayerSafe: v.multiplayerSafe ?? null,
     };
+  }
+
+  // Derives gameVersion and modded from the current blueprint content and
+  // patches the disabled form controls so users see what was computed.
+  private computeDerivedMetadata() {
+    const blueprint = this.blueprintService.blueprint;
+    // oniItemsMap may be null in unit tests before the database loads
+    if (!OniItem.oniItemsMap) return;
+
+    const buildingDlcIds = blueprint.blueprintItems.map(
+      (item) => item.oniItem.dlcIds
+    );
+    const gameVersion = deriveGameVersion(buildingDlcIds);
+
+    const knownIds = new Set(OniItem.oniItems.map((i) => i.id));
+    const mdbBlueprint = blueprint.toMdbBlueprint();
+    const prefabIds = mdbBlueprint.blueprintItems.map((b) => b.id);
+    const modded =
+      blueprint.hadUnknownBuildings || deriveModded(prefabIds, knownIds);
+
+    this.saveBlueprintForm.patchValue({ gameVersion, modded });
   }
 
   // TODO this is ugly, use pipe map instead
@@ -181,15 +196,13 @@ export class ComponentSaveDialogComponent {
       this._originalName = this.blueprintService.name ?? null;
       const m = this.blueprintService.metadata;
       this.saveBlueprintForm.patchValue({
-        gameVersion: m.gameVersion ?? null,
         category: m.category ?? null,
         subcategory: m.subcategory ?? null,
         description: m.description ?? null,
-        researchTier: m.researchTier ?? null,
-        modded: m.modded ?? null,
-        multiplayerSafe: m.multiplayerSafe ?? null,
       });
     }
+
+    this.computeDerivedMetadata();
   }
 
   tryClearInterval() {

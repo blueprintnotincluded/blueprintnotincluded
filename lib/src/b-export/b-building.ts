@@ -38,6 +38,10 @@ export class BBuilding {
   permittedRotations: PermittedRotations = PermittedRotations.Unrotatable;
   buildLocationRule: BuildLocationRule = BuildLocationRule.Anywhere;
 
+  // DLC IDs required to use this building (e.g. ['EXPANSION1_ID'] for Spaced Out).
+  // Empty array means base-game building (no DLC required).
+  dlcIds: string[] = [];
+
   tileableLeftRight: boolean = false;
   tileableTopBottom: boolean = false;
 

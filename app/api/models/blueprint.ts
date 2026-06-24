@@ -19,7 +19,6 @@ export interface Blueprint extends Document {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
-  multiplayerSafe?: boolean | null;
 }
 
 export class BlueprintModel {
@@ -56,7 +55,6 @@ export class BlueprintModel {
       description: { type: String, maxlength: 500 },
       researchTier: { type: String, enum: [...RESEARCH_TIERS, null] },
       modded: { type: Boolean },
-      multiplayerSafe: { type: Boolean },
     });
 
     // Listing query: filter by createdAt range, sort by createdAt desc

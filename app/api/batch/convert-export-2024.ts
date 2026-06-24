@@ -465,10 +465,10 @@ export function convertExport2024(opts: ConvertOptions): void {
   //             element_vacuum_front=30, info_back=31, info_front=32.
   const overlayUiSprites = [
     { name: 'element_tile_back', textureName: 'element_tile_back', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
-    { name: 'gas_tile_front',    textureName: 'gas_tile_front',    isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
+    { name: 'gas_tile_front', textureName: 'gas_tile_front', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
     { name: 'liquid_tile_front', textureName: 'liquid_tile_front', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
     { name: 'vacuum_tile_front', textureName: 'vacuum_tile_front', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
-    { name: 'info_back',         textureName: 'info_back',         isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
+    { name: 'info_back', textureName: 'info_back', isIcon: false, isInputOutput: false, uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 } },
     ...Array.from({ length: 12 }, (_, i) => ({
       name: `info_front_${i}`, textureName: `info_front_${i}`, isIcon: false, isInputOutput: false,
       uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 },
@@ -497,10 +497,10 @@ export function convertExport2024(opts: ConvertOptions): void {
 
   const overlayModifiers = [
     { name: 'element_tile_back', spriteInfoName: 'element_tile_back', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [27] },
-    { name: 'gas_tile_front',    spriteInfoName: 'gas_tile_front',    translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [28] },
+    { name: 'gas_tile_front', spriteInfoName: 'gas_tile_front', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [28] },
     { name: 'liquid_tile_front', spriteInfoName: 'liquid_tile_front', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [29] },
     { name: 'vacuum_tile_front', spriteInfoName: 'vacuum_tile_front', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [30] },
-    { name: 'info_back',         spriteInfoName: 'info_back',         translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [31] },
+    { name: 'info_back', spriteInfoName: 'info_back', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [31] },
     ...Array.from({ length: 12 }, (_, i) => ({
       name: `info_front_${i}`, spriteInfoName: `info_front_${i}`, translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [32],
     })),
@@ -589,8 +589,8 @@ export function convertExport2024(opts: ConvertOptions): void {
     incompleteConnectionDirs.length,
     incompleteConnectionDirs.length
       ? '(' +
-          incompleteConnectionDirs.map((d) => d.prefab + ':' + d.missing.join('/')).join(', ') +
-          ')'
+      incompleteConnectionDirs.map((d) => d.prefab + ':' + d.missing.join('/')).join(', ') +
+      ')'
       : ''
   );
 
@@ -682,6 +682,12 @@ export function convertExport2024(opts: ConvertOptions): void {
   // path.join(opts.exportDir, 'ui_image_facade') -> assets/ui_image_facade (+ frontend).
 }
 
+function normalizeDlcIds(raw: string[] | string | null | undefined): string[] {
+  if (!raw) return [];
+  if (typeof raw === 'string') return raw ? [raw] : [];
+  return raw.filter(Boolean);
+}
+
 // ConnectionType enum member name (as emitted by the U59 export) -> ConnectionType int
 // (lib/src/enums/connection-type.ts). The export omits NONE(10) and LogicControlInput(12);
 // MUX/DEMUX selector ports come through as plain "LogicInput". Offsets need no transform —
@@ -755,6 +761,7 @@ function buildingRecord(
     tileableTopBottom: false,
     connectionSprites: connectable,
     connectionScale,
+    dlcIds: normalizeDlcIds(b.kPrefabID?.requiredDlcIds),
     // Optional flat-icon placement (cells, footprint-relative). Passed through from the
     // export when present; absent ⇒ renderer stretches the icon to the footprint (legacy).
     ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),

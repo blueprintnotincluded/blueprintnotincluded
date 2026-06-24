@@ -47,17 +47,6 @@
       <div class="metadata-row metadata-row--inline">
         <span class="p-float-label">
           <p-select
-            formControlName="gameVersion"
-            [options]="gameVersionOptions"
-            [showClear]="true"
-            placeholder=" "
-            optionLabel="label"
-            optionValue="value"
-          ></p-select>
-          <label i18n>Game version</label>
-        </span>
-        <span class="p-float-label">
-          <p-select
             formControlName="category"
             [options]="categoryOptions"
             [showClear]="true"
@@ -83,25 +72,17 @@
       <div class="metadata-row metadata-row--inline">
         <span class="p-float-label">
           <p-select
-            formControlName="researchTier"
-            [options]="researchTierOptions"
-            [showClear]="true"
+            formControlName="gameVersion"
+            [options]="gameVersionOptions"
             placeholder=" "
             optionLabel="label"
             optionValue="value"
           ></p-select>
-          <label i18n>Research tier</label>
+          <label i18n>Game version (auto-detected)</label>
         </span>
         <label class="metadata-checkbox">
           <p-checkbox formControlName="modded" [binary]="true"></p-checkbox>
-          <span i18n>Modded</span>
-        </label>
-        <label class="metadata-checkbox">
-          <p-checkbox
-            formControlName="multiplayerSafe"
-            [binary]="true"
-          ></p-checkbox>
-          <span i18n>Multiplayer safe</span>
+          <span i18n>Modded (auto-detected)</span>
         </label>
       </div>
     </div>

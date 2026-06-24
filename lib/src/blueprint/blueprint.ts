@@ -16,6 +16,9 @@ import { UtilityConnectionTracker } from '../utility-connection';
 export class Blueprint {
   blueprintItems: BlueprintItem[];
   templateTiles: BlueprintItem[][] = [];
+  // Set to true when any building ID was not found in OniItem.oniItemsMap during
+  // import. Indicates the blueprint was created with mods installed.
+  hadUnknownBuildings: boolean = false;
 
   // We need a utility map because some objects have utilities outside of their size (HighWattageWireBridge)
   utilities: UtilityConnectionTracker[][] = [];
@@ -81,11 +84,15 @@ export class Blueprint {
 
   public importFromBni(bniBlueprint: BniBlueprint) {
     this.blueprintItems = [];
+    this.hadUnknownBuildings = false;
 
     for (let building of bniBlueprint.buildings) {
       try {
         let newTemplateItem = BlueprintHelpers.createInstance(building.buildingdef);
-        if (newTemplateItem == null) continue;
+        if (newTemplateItem == null) {
+          this.hadUnknownBuildings = true;
+          continue;
+        }
 
         newTemplateItem.importBniBuilding(building);
 
@@ -98,12 +105,16 @@ export class Blueprint {
 
   public importFromMdb(mdbBlueprint: MdbBlueprint) {
     this.blueprintItems = [];
+    this.hadUnknownBuildings = false;
 
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       let newTemplateItem = BlueprintHelpers.createInstance(originalTemplateItem.id);
 
       // Don't import buildings we don't recognise
-      if (newTemplateItem == null) continue;
+      if (newTemplateItem == null) {
+        this.hadUnknownBuildings = true;
+        continue;
+      }
 
       newTemplateItem.importMdbBuilding(originalTemplateItem);
       this.addBlueprintItem(newTemplateItem);

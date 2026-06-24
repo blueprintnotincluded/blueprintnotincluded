@@ -45,7 +45,6 @@ describe('Blueprint metadata API', function () {
           description: 'A great power setup',
           researchTier: 'advanced',
           modded: true,
-          multiplayerSafe: false,
         });
 
       expect(upload.status).to.equal(200);
@@ -58,7 +57,6 @@ describe('Blueprint metadata API', function () {
       expect(saved!.description).to.equal('A great power setup');
       expect(saved!.researchTier).to.equal('advanced');
       expect(saved!.modded).to.be.true;
-      expect(saved!.multiplayerSafe).to.be.false;
 
       const list = await TestSetup.request()
         .get('/api/getblueprints')

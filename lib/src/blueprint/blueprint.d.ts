@@ -8,6 +8,7 @@ import { UtilityConnectionTracker } from '../utility-connection';
 export declare class Blueprint {
     blueprintItems: BlueprintItem[];
     templateTiles: BlueprintItem[][];
+    hadUnknownBuildings: boolean;
     utilities: UtilityConnectionTracker[][];
     innerYaml: any;
     constructor();
