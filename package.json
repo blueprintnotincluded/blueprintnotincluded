@@ -26,6 +26,7 @@
     "convert:2024": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts",
     "import:2024": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts",
     "import:2024:dry-run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts --dry-run",
+    "import:2024:strings": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts --strings-only",
     "migrate:validate": "TS_NODE_TRANSPILE_ONLY=true ts-node scripts/migration/validate-data-shape.ts",
     "migrate:dry-run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/migrate-deleted-to-deletedAt.ts --dry-run",
     "migrate:run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/migrate-deleted-to-deletedAt.ts",

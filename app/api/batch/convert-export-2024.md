@@ -28,8 +28,16 @@ Steps:
    only files whose bytes changed are rewritten, only removed files are pruned, so
    unchanged icons keep their mtime (no churn). `ui_image_facade/` is skipped (unused;
    one-line flip near the top of the converter to enable).
-5. Validate; exit non-zero on an incomplete import (missing icon, a connection dir
-   missing one of `0–15`, a connectable that's neither tile nor utility, etc.).
+5. Flatten `database/po_string.json` into `frontend/src/assets/strings/strings.json` —
+   the English game-string map the website resolves display names against (element,
+   building, category names + overlay labels). Keys are prefixed with `STRINGS.` to match
+   what the frontend's `GameStringService` queries; values keep their `<link=…>` markup,
+   which the service strips at load. Frontend-only (strings aren't used server-side).
+   **Without this step, freshly added elements render their raw `<link=…>` markup in the
+   build menu** (the lookup misses and falls back to the raw DB name).
+6. Validate; exit non-zero on an incomplete import (missing icon, a connection dir
+   missing one of `0–15`, a connectable that's neither tile nor utility, `po_string.json`
+   absent, etc.).
 
 Re-running on the same export is a near no-op: the JSON and every sprite are written
 only when their content actually changed. The export encoder is deterministic, so
@@ -39,7 +47,7 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 
 | Export provides | We use it for |
 |---|---|
-| `database/*.json` (13 files) | building/element data — we read only `building.json`, `elements.json`, `uiSpriteInfo.json` |
+| `database/*.json` (13 files) | building/element data — we read `building.json`, `elements.json`, `uiSpriteInfo.json`, `po_string.json` |
 | `ui_image/<prefabId>.png` | the single flat icon per building (1,241 files) |
 | `connection_sprites/<prefabId>/<0..15>.png` | the 16 tiling states for connectables |
 | `ui_image_facade/` | nothing today (not copied) |
@@ -154,11 +162,12 @@ data:
 
 ## Unused export files (future capabilities, not wired up)
 
-10 of 13 JSONs are intentionally unread today; the schema unblocks them if/when we add
+9 of 13 JSONs are intentionally unread today; the schema unblocks them if/when we add
 the capability: `entities` (critters/plants), `items` (eggs/seeds/suits), `food`,
-`geyser`, `recipe`, `multiEntities` (space POIs), `tags`, `attribute`, `po_string`
-(English-only — note the site has zh/ru/ko, so i18n needs more here), `db` (duplicant DB,
-~20 MB, case-sensitive parse). `ui_image_facade/` (988 files) is also unused.
+`geyser`, `recipe`, `multiEntities` (space POIs), `tags`, `attribute`, `db` (duplicant DB,
+~20 MB, case-sensitive parse). `ui_image_facade/` (988 files) is also unused. `po_string`
+is read (English game strings → `strings.json`); the site is English-only, so the legacy
+per-locale `.po` files have been retired — non-English i18n would need translated sources.
 
 ## Open items to the export side
 
@@ -167,4 +176,4 @@ the capability: `entities` (critters/plants), `items` (eggs/seeds/suits), `food`
 - **`ui_image_facade/`:** drop it to shrink the handoff, or tell us what it's for.
 - **Higher-res `ui_image`:** one test asserts each flat-icon PNG is < 5 MB — flag ahead of
   time if any icon will exceed that.
-- **`po_string` / other JSONs:** trim if not coming, or confirm they're for future work.
+- **Other unread JSONs:** trim if not coming, or confirm they're for future work.

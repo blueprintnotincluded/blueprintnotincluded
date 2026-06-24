@@ -1,79 +1,50 @@
-import { getLocaleId } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
-import { Inject, Injectable, LOCALE_ID } from "@angular/core";
-import { po } from "gettext-parser";
+import { Injectable } from "@angular/core";
 
-const BASE_STRING_DIR = "assets/strings";
-const PO_FILES: Record<string, string> = {
-  ko: "strings_preinstalled_ko_klei.po",
-  ru: "strings_preinstalled_ru_klei.po",
-  "zh-Hans": "strings_preinstalled_zh_klei.po",
-};
+// English game strings, generated from the export's po_string.json by
+// `npm run import:2024` (app/api/batch/convert-export-2024.ts). The map is keyed by the
+// Klei string id under a "STRINGS." prefix (e.g. "STRINGS.ELEMENTS.MOLTENZINC.NAME") and
+// values still carry Klei rich-text markup, which is stripped on load. The site is
+// English-only; the legacy per-locale .po files have been retired.
+const STRINGS_FILE = "assets/strings/strings.json";
+
+// Klei rich-text tags to strip for display. Each removes the wrapper and keeps the inner
+// text. Applied once per value at load time.
+const MARKUP_PATTERNS: RegExp[] = [
+  /<color=#.+?>(.*?)<\/color>/i,
+  /<size=.+?>(.*?)<\/size>/i,
+  /<style=.+?>(.*?)<\/style>/i,
+  /<smallcaps>(.*?)<\/smallcaps>/i,
+  /<link=".+?">(.*?)<\/link>/i,
+  /<alpha=#.+?>((.|\n)*?)<\/color>/i,
+  /<indent=#.+?>((.|\n)*?)<\/indent>/i,
+];
+
+function stripMarkup(value: string): string {
+  if (!value) return value;
+  let result = value;
+  for (const pattern of MARKUP_PATTERNS) result = result.replace(pattern, "$1");
+  return result;
+}
 
 @Injectable({ providedIn: "root" })
 export class GameStringService {
-  private poFile: string;
-  private poData: Promise<Record<string, string>>;
+  private stringData: Promise<Record<string, string>>;
   public dict!: Record<string, string>;
 
-  constructor(
-    @Inject(LOCALE_ID) private locale: string,
-    private http: HttpClient
-  ) {
-    this.poFile = PO_FILES[this.locale] || PO_FILES[getLocaleId(this.locale)];
-    if (getLocaleId(this.locale) === "en") this.poFile = PO_FILES["zh-Hans"]; // use zh po file to get msgid
-    const ctx2str: Record<string, string> = {};
-
-    this.poData = new Promise(async (res) => {
-      this.http
-        .get(BASE_STRING_DIR + "/" + this.poFile, { responseType: "text" })
-        .subscribe((data) => {
-          Object.entries(po.parse(data).translations).forEach(
-            ([msgctxt, tr]) => {
-              let translated =
-                getLocaleId(this.locale) === "en"
-                  ? tr?.[Object.keys(tr)?.[0]]?.msgid
-                  : tr?.[Object.keys(tr)?.[0]]?.msgstr?.[0];
-              if (translated) {
-                translated = translated.replace(
-                  /<color=#.+?>(.*?)<\/color>/i,
-                  "$1"
-                );
-                translated = translated.replace(
-                  /<size=.+?>(.*?)<\/size>/i,
-                  "$1"
-                );
-                translated = translated.replace(
-                  /<style=.+?>(.*?)<\/style>/i,
-                  "$1"
-                );
-                translated = translated.replace(
-                  /<smallcaps>(.*?)<\/smallcaps>/i,
-                  "$1"
-                );
-                translated = translated.replace(
-                  /<link=".+?">(.*?)<\/link>/i,
-                  "$1"
-                );
-                translated = translated.replace(
-                  /<alpha=#.+?>((.|\n)*?)<\/color>/i,
-                  "$1"
-                );
-                translated = translated.replace(
-                  /<indent=#.+?>((.|\n)*?)<\/indent>/i,
-                  "$1"
-                );
-              }
-              ctx2str[msgctxt] = translated;
-            }
-          );
-          this.dict = ctx2str;
-          res(ctx2str);
-        });
+  constructor(private http: HttpClient) {
+    this.stringData = new Promise((resolve) => {
+      this.http.get<Record<string, string>>(STRINGS_FILE).subscribe((data) => {
+        const dict: Record<string, string> = {};
+        for (const [key, value] of Object.entries(data))
+          dict[key] = stripMarkup(value);
+        this.dict = dict;
+        resolve(dict);
+      });
     });
   }
 
   async getStr(msgctxt: string) {
-    return (await this.poData)[msgctxt];
+    return (await this.stringData)[msgctxt];
   }
 }

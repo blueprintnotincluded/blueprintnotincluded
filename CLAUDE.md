@@ -62,8 +62,11 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 run the single repeatable step:
 - `npm run import:2024` - Regenerate `database-2024.json` into both asset roots
   (`assets/database/` + `frontend/src/assets/database/`), content-aware sync `ui_image/`
-  and `connection_sprites/` into both roots, and print a validation report. Exits
-  non-zero if the import is incomplete (missing icons, incomplete connection dirs, etc.).
+  and `connection_sprites/` into both roots, flatten `po_string.json` into the frontend's
+  English game-string map (`frontend/src/assets/strings/strings.json` — the display names
+  the build menu resolves element/building/category ids against), and print a validation
+  report. Exits non-zero if the import is incomplete (missing icons, incomplete connection
+  dirs, `po_string.json` absent, etc.).
 - `npm run import:2024:dry-run` - Validate + report counts only; writes/copies nothing.
 - The committed runtime DB artifact is the loose `database-2024.json` (readable diffs).
   The `database-2024.zip` (both roots) is a **gitignored** build derivative: the backend

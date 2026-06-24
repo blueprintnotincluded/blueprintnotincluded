@@ -158,3 +158,19 @@ export interface BUiSpriteInfoFile2024 extends BExport2024Meta {
   // `ui_image/<key>.png` flat-icon filename (verified 1241/1241).
   uiSpriteInfos: { [prefabTag: string]: BUiSpriteInfo2024 };
 }
+
+// ---------------------------------------------------------------------------
+// po_string.json
+// ---------------------------------------------------------------------------
+
+// One top-level category (ELEMENTS, BUILDINGS, UI, ...). Keys are the full dotted
+// string id (e.g. "ELEMENTS.MOLTENZINC.NAME"); values are the English source text,
+// still carrying Klei rich-text markup (<link=...>, <style=...>, etc.).
+export type BPoStringSection2024 = { [stringId: string]: string };
+
+export interface BPoStringFile2024 extends BExport2024Meta {
+  // The localizable game strings, grouped by category. The metadata fields from
+  // BExport2024Meta sit alongside the category dicts at the same level, hence the
+  // union value type — iterate object-valued entries to get the sections.
+  [category: string]: BPoStringSection2024 | string | string[] | number;
+}

@@ -107,4 +107,10 @@ export interface BUiSpriteInfoFile2024 extends BExport2024Meta {
         [prefabTag: string]: BUiSpriteInfo2024;
     };
 }
+export type BPoStringSection2024 = {
+    [stringId: string]: string;
+};
+export interface BPoStringFile2024 extends BExport2024Meta {
+    [category: string]: BPoStringSection2024 | string | string[] | number;
+}
 //# sourceMappingURL=b-export-2024.d.ts.map
