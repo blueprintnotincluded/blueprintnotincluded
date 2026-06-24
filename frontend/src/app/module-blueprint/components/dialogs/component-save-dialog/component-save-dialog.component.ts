@@ -66,12 +66,23 @@ export class ComponentSaveDialogComponent {
   get f() {
     return this.saveBlueprintForm.controls;
   }
+  get isUpdate(): boolean {
+    return this.blueprintService.savedBlueprint;
+  }
+
+  get dialogHeader(): string {
+    return this.isUpdate
+      ? $localize`:dialogHeader:Update blueprint`
+      : $localize`:dialogHeader:Save blueprint to the cloud`;
+  }
+
   get icon() {
     return this.working || this.blueprintService.thumbnail == null
       ? "pi pi-spin pi-spinner"
       : "";
   }
   get saveLabel() {
+    if (this.isUpdate) return $localize`:saveLabel:Update`;
     return this.blueprintService.thumbnail == null
       ? $localize`:saveLabel:Generating thumbnail`
       : $localize`:saveLabel:Save`;
@@ -89,6 +100,7 @@ export class ComponentSaveDialogComponent {
   working: boolean = false;
   thumbnailReady: boolean = false;
   overwrite: boolean = false;
+  private _originalName: string | null = null;
 
   constructor(
     public blueprintService: BlueprintService,
@@ -100,9 +112,12 @@ export class ComponentSaveDialogComponent {
   onSubmit() {
     this.working = true;
 
-    this.blueprintService.name = this.saveBlueprintForm.value.name;
+    const formName = this.saveBlueprintForm.value.name;
+    const autoOverwrite =
+      this._originalName !== null && formName === this._originalName;
+    this.blueprintService.name = formName;
     this.applyMetadataToService();
-    this.blueprintService.saveBlueprint(false).subscribe({
+    this.blueprintService.saveBlueprint(autoOverwrite).subscribe({
       next: this.handleSaveNext.bind(this),
       error: this.handleSaveError.bind(this),
     });
@@ -161,6 +176,20 @@ export class ComponentSaveDialogComponent {
     this.saveBlueprintForm.patchValue({ thumbnailType: "Color" });
     if (this.blueprintService.name != null && this.blueprintService.name != "")
       this.saveBlueprintForm.patchValue({ name: this.blueprintService.name });
+
+    if (this.isUpdate) {
+      this._originalName = this.blueprintService.name ?? null;
+      const m = this.blueprintService.metadata;
+      this.saveBlueprintForm.patchValue({
+        gameVersion: m.gameVersion ?? null,
+        category: m.category ?? null,
+        subcategory: m.subcategory ?? null,
+        description: m.description ?? null,
+        researchTier: m.researchTier ?? null,
+        modded: m.modded ?? null,
+        multiplayerSafe: m.multiplayerSafe ?? null,
+      });
+    }
   }
 
   tryClearInterval() {
@@ -200,6 +229,7 @@ export class ComponentSaveDialogComponent {
     this.working = false;
     this.thumbnailReady = false;
     this.overwrite = false;
+    this._originalName = null;
     this.saveBlueprintForm.controls.name.enable();
     this.saveBlueprintForm.reset();
 

@@ -253,6 +253,13 @@ export class BlueprintController {
               data: blueprint.data,
               likedByMe: likedByMe,
               nbLikes: nbLikes,
+              gameVersion: blueprint.gameVersion ?? null,
+              category: blueprint.category ?? null,
+              subcategory: blueprint.subcategory ?? null,
+              description: blueprint.description ?? null,
+              researchTier: blueprint.researchTier ?? null,
+              modded: blueprint.modded ?? null,
+              multiplayerSafe: blueprint.multiplayerSafe ?? null,
             };
             res.json(response);
           } else res.status(404).json(apiError(404, 'Blueprint not found'));

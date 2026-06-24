@@ -35,5 +35,12 @@ export interface BlueprintResponse {
     data: any;
     likedByMe: boolean;
     nbLikes: number;
+    gameVersion?: string | null;
+    category?: string | null;
+    subcategory?: string | null;
+    description?: string | null;
+    researchTier?: string | null;
+    modded?: boolean | null;
+    multiplayerSafe?: boolean | null;
 }
 //# sourceMappingURL=blueprint-list-response.d.ts.map

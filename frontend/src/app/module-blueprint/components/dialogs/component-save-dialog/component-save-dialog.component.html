@@ -1,8 +1,7 @@
 <form [formGroup]="saveBlueprintForm" (ngSubmit)="onSubmit()">
   <p-dialog
     #saveDialog
-    i18n-header
-    header="Save blueprint to the cloud"
+    [header]="dialogHeader"
     [(visible)]="visible"
     [modal]="true"
     [dismissableMask]="true"
