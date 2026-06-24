@@ -23,6 +23,52 @@
     />
   </div>
 
+  <div class="filter-panel">
+    <p-select
+      [(ngModel)]="filterGameVersion"
+      [options]="gameVersionOptions"
+      optionLabel="label"
+      optionValue="value"
+      [showClear]="false"
+      (onChange)="onFacetChange()"
+      i18n-placeholder
+      placeholder="Version"
+    ></p-select>
+    <p-select
+      [(ngModel)]="filterCategory"
+      [options]="categoryOptions"
+      optionLabel="label"
+      optionValue="value"
+      [showClear]="false"
+      (onChange)="onFacetChange()"
+      i18n-placeholder
+      placeholder="Category"
+    ></p-select>
+    <p-select
+      *ngIf="subcategoryOptions.length > 0"
+      [(ngModel)]="filterSubcategory"
+      [options]="subcategoryOptions"
+      optionLabel="label"
+      optionValue="value"
+      [showClear]="false"
+      (onChange)="onSubcategoryChange()"
+      i18n-placeholder
+      placeholder="Subcategory"
+    ></p-select>
+    <button
+      *ngIf="
+        filterGameVersion || filterCategory || filterSubcategory || filterName
+      "
+      type="button"
+      pButton
+      icon="pi pi-times"
+      i18n-label
+      label="Clear filters"
+      class="p-button-text p-button-sm"
+      (click)="clearFilters()"
+    ></button>
+  </div>
+
   <div *ngIf="loadError" class="browse-error" role="alert">
     <span i18n>Couldn't load blueprints. Scroll to try again.</span>
   </div>
@@ -83,6 +129,20 @@
           <span class="card-date">{{
             datepipe.transform(item.createdAt, "yyyy-MM-dd")
           }}</span>
+        </div>
+        <div *ngIf="isReal(item.thumbnail)" class="card-badges">
+          <span *ngIf="item.category" class="badge badge--category">{{
+            item.category
+          }}</span>
+          <span *ngIf="!item.category" class="badge badge--untagged" i18n
+            >Untagged</span
+          >
+          <span *ngIf="item.gameVersion" class="badge badge--version">{{
+            item.gameVersion
+          }}</span>
+          <span *ngIf="item.modded" class="badge badge--modded" i18n
+            >Modded</span
+          >
         </div>
       </div>
     </div>

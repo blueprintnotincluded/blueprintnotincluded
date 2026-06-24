@@ -11,6 +11,10 @@ import {
 //   Overlay,
 //   ImageSource,
   BlueprintDelete,
+  GAME_VERSIONS,
+  CATEGORIES,
+  SUBCATEGORIES,
+  RESEARCH_TIERS,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint } from '../../lib/index';
 import { UserModel, UserJwt } from './models/user';
@@ -43,6 +47,44 @@ export class BlueprintController {
         return;
       }
 
+      const gameVersion = req.body.gameVersion ?? null;
+      if (gameVersion != null && !(GAME_VERSIONS as readonly string[]).includes(gameVersion)) {
+        res.status(400).json(apiError(400, `Invalid gameVersion: must be one of ${GAME_VERSIONS.join(', ')}`));
+        return;
+      }
+
+      const category = req.body.category ?? null;
+      if (category != null && !(CATEGORIES as readonly string[]).includes(category)) {
+        res.status(400).json(apiError(400, `Invalid category: must be one of ${CATEGORIES.join(', ')}`));
+        return;
+      }
+
+      const subcategory = req.body.subcategory ?? null;
+      if (subcategory != null && category != null) {
+        const allowed = SUBCATEGORIES[category as keyof typeof SUBCATEGORIES];
+        if (!allowed || !allowed.includes(subcategory)) {
+          res.status(400).json(apiError(400, `Invalid subcategory for category '${category}'`));
+          return;
+        }
+      }
+
+      const researchTier = req.body.researchTier ?? null;
+      if (researchTier != null && !(RESEARCH_TIERS as readonly string[]).includes(researchTier)) {
+        res.status(400).json(apiError(400, `Invalid researchTier: must be one of ${RESEARCH_TIERS.join(', ')}`));
+        return;
+      }
+
+      const description = req.body.description ?? null;
+      if (description != null && description.length > 500) {
+        res.status(400).json(apiError(400, 'description must be 500 characters or fewer'));
+        return;
+      }
+
+      const modded = req.body.modded != null ? Boolean(req.body.modded) : null;
+      const multiplayerSafe = req.body.multiplayerSafe != null ? Boolean(req.body.multiplayerSafe) : null;
+
+      const metadata = { gameVersion, category, subcategory, description, researchTier, modded, multiplayerSafe };
+
       BlueprintModel.model
         .find({ owner: ownerId, name: name })
         .then(blueprints => {
@@ -56,7 +98,8 @@ export class BlueprintController {
                 name,
                 data,
                 thumbnail,
-                false
+                false,
+                metadata
               );
             else res.json({ overwrite: true });
           } else {
@@ -70,7 +113,8 @@ export class BlueprintController {
               name,
               data,
               thumbnail,
-              true
+              true,
+              metadata
             );
           }
         })
@@ -290,6 +334,9 @@ export class BlueprintController {
       let filterUserId: string;
       let filterName: string;
       let getDuplicates: boolean;
+      let filterGameVersion: string | null = null;
+      let filterCategory: string | null = null;
+      let filterSubcategory: string | null = null;
       let dateFilter: Date = new Date();
 
       let userId = '';
@@ -325,6 +372,22 @@ export class BlueprintController {
         }
         filterName = rawFilterName;
         getDuplicates = req.query.getDuplicates as any;
+
+        const rawGameVersion = req.query.gameVersion as string | undefined;
+        if (rawGameVersion != null && !(GAME_VERSIONS as readonly string[]).includes(rawGameVersion)) {
+          res.status(400).json(apiError(400, `Invalid gameVersion: must be one of ${GAME_VERSIONS.join(', ')}`));
+          return;
+        }
+        filterGameVersion = rawGameVersion ?? null;
+
+        const rawCategory = req.query.category as string | undefined;
+        if (rawCategory != null && !(CATEGORIES as readonly string[]).includes(rawCategory)) {
+          res.status(400).json(apiError(400, `Invalid category: must be one of ${CATEGORIES.join(', ')}`));
+          return;
+        }
+        filterCategory = rawCategory ?? null;
+
+        filterSubcategory = req.query.subcategory as string ?? null;
       } catch (error) {
         console.log(error);
         res.status(400).json(apiError(400, 'Invalid query parameters'));
@@ -336,6 +399,9 @@ export class BlueprintController {
       if (filterUserId != null) filter.$and.push({ owner: filterUserId });
       if (filterName != null) filter.$and.push({ name: { $regex: filterName, $options: 'i' } });
       if (!getDuplicates) filter.$and.push({ $or: [{ isCopy: null }, { isCopy: false }] });
+      if (filterGameVersion != null) filter.$and.push({ gameVersion: filterGameVersion });
+      if (filterCategory != null) filter.$and.push({ category: filterCategory });
+      if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
 
       let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
       let query = BlueprintModel.model
@@ -411,6 +477,12 @@ export class BlueprintController {
           nbLikes: nbLikes,
           likedByMe: likedByMe,
           ownedByMe: ownedByMe,
+          gameVersion: blueprint.gameVersion ?? null,
+          category: blueprint.category ?? null,
+          subcategory: blueprint.subcategory ?? null,
+          description: blueprint.description ?? null,
+          modded: blueprint.modded ?? null,
+          multiplayerSafe: blueprint.multiplayerSafe ?? null,
         });
       }
 
@@ -428,7 +500,16 @@ export class BlueprintController {
     name: string,
     data: any,
     thumbnail: string,
-    overwriteCreateDate: boolean
+    overwriteCreateDate: boolean,
+    metadata?: {
+      gameVersion: string | null;
+      category: string | null;
+      subcategory: string | null;
+      description: string | null;
+      researchTier: string | null;
+      modded: boolean | null;
+      multiplayerSafe: boolean | null;
+    }
   ) {
     blueprint.owner = ownerId;
     blueprint.name = name;
@@ -437,6 +518,16 @@ export class BlueprintController {
     blueprint.markModified('data');
     blueprint.thumbnail = thumbnail;
     blueprint.deletedAt = null;
+
+    if (metadata) {
+      blueprint.gameVersion = metadata.gameVersion;
+      blueprint.category = metadata.category;
+      blueprint.subcategory = metadata.subcategory;
+      blueprint.description = metadata.description;
+      blueprint.researchTier = metadata.researchTier;
+      blueprint.modded = metadata.modded;
+      blueprint.multiplayerSafe = metadata.multiplayerSafe;
+    }
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();
     blueprint.modifiedAt = new Date();

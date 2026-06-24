@@ -6,3 +6,29 @@
 .radio-button {
   margin-left: 10px;
 }
+
+.metadata-fields {
+  margin-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.metadata-row {
+  width: 100%;
+}
+
+.metadata-row--inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.metadata-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  user-select: none;
+}

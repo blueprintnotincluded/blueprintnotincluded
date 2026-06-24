@@ -8,7 +8,13 @@ import { BlueprintService } from "../../../services/blueprint-service";
 import { MessageService } from "primeng/api";
 import { AuthenticationService } from "../../../services/authentification-service";
 import { BlueprintNameValidationDirective } from "src/app/module-blueprint/directives/blueprint-name-validation.directive";
-import { Display } from "../../../../../../../lib/index";
+import {
+  Display,
+  GAME_VERSIONS,
+  CATEGORIES,
+  SUBCATEGORIES,
+  RESEARCH_TIERS,
+} from "../../../../../../../lib/index";
 
 @Component({
   selector: "app-component-save-dialog",
@@ -21,12 +27,40 @@ export class ComponentSaveDialogComponent {
 
   @Output() updateThumbnail = new EventEmitter();
 
+  readonly gameVersionOptions = GAME_VERSIONS.map((v) => ({
+    label: v,
+    value: v,
+  }));
+  readonly categoryOptions = CATEGORIES.map((c) => ({ label: c, value: c }));
+  readonly researchTierOptions = RESEARCH_TIERS.map((t) => ({
+    label: t,
+    value: t,
+  }));
+
+  get subcategoryOptions(): { label: string; value: string }[] {
+    const cat = this.saveBlueprintForm.value.category;
+    if (!cat) return [];
+    const subs = SUBCATEGORIES[cat as keyof typeof SUBCATEGORIES] ?? [];
+    return (subs as readonly string[]).map((s) => ({ label: s, value: s }));
+  }
+
+  onCategoryChange() {
+    this.saveBlueprintForm.patchValue({ subcategory: null });
+  }
+
   saveBlueprintForm = new UntypedFormGroup({
     thumbnailType: new UntypedFormControl("Color", [Validators.required]),
     name: new UntypedFormControl("", [
       Validators.required,
       BlueprintNameValidationDirective.validateBlueprintName,
     ]),
+    description: new UntypedFormControl(null),
+    gameVersion: new UntypedFormControl(null),
+    category: new UntypedFormControl(null),
+    subcategory: new UntypedFormControl(null),
+    researchTier: new UntypedFormControl(null),
+    modded: new UntypedFormControl(null),
+    multiplayerSafe: new UntypedFormControl(null),
   });
 
   get f() {
@@ -67,10 +101,24 @@ export class ComponentSaveDialogComponent {
     this.working = true;
 
     this.blueprintService.name = this.saveBlueprintForm.value.name;
+    this.applyMetadataToService();
     this.blueprintService.saveBlueprint(false).subscribe({
       next: this.handleSaveNext.bind(this),
       error: this.handleSaveError.bind(this),
     });
+  }
+
+  private applyMetadataToService() {
+    const v = this.saveBlueprintForm.value;
+    this.blueprintService.metadata = {
+      gameVersion: v.gameVersion ?? null,
+      category: v.category ?? null,
+      subcategory: v.subcategory ?? null,
+      description: v.description?.trim() || null,
+      researchTier: v.researchTier ?? null,
+      modded: v.modded ?? null,
+      multiplayerSafe: v.multiplayerSafe ?? null,
+    };
   }
 
   // TODO this is ugly, use pipe map instead
@@ -172,6 +220,7 @@ export class ComponentSaveDialogComponent {
     this.working = true;
 
     this.blueprintService.name = this.saveBlueprintForm.getRawValue().name; // Use get raw Value because it can be disabled
+    this.applyMetadataToService();
     this.blueprintService.saveBlueprint(true).subscribe({
       next: this.handleSaveNext.bind(this),
       error: this.handleSaveError.bind(this),

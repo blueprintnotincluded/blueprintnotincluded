@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { DatePipe } from "@angular/common";
+import { ActivatedRoute, Router } from "@angular/router";
 import { of, throwError } from "rxjs";
+import { convertToParamMap } from "@angular/router";
 
 import { BrowsePageComponent } from "./browse-page.component";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
@@ -15,21 +17,31 @@ function makeResponse(blueprints: any[] = [], remaining = 0) {
   };
 }
 
+const EMPTY_PARAMS = convertToParamMap({});
+
 describe("BrowsePageComponent", () => {
   let component: BrowsePageComponent;
   let fixture: ComponentFixture<BrowsePageComponent>;
   let blueprintService: any;
+  let router: any;
 
   beforeEach(async () => {
     blueprintService = {
       getBlueprints: vi.fn().mockReturnValue(of(makeResponse())),
     };
 
+    router = { navigate: vi.fn() };
+
     await TestBed.configureTestingModule({
       declarations: [BrowsePageComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: BlueprintService, useValue: blueprintService },
+        { provide: Router, useValue: router },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: EMPTY_PARAMS } },
+        },
         DatePipe,
       ],
     }).compileComponents();
@@ -87,6 +99,60 @@ describe("BrowsePageComponent", () => {
       // second positional arg is filterUserId
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
       expect(lastCall[1]).toBe("user-123");
+    });
+  });
+
+  describe("facet filters", () => {
+    it("passes gameVersion filter to getBlueprints", () => {
+      component.filterGameVersion = "spacedOut";
+      component.getBlueprints();
+
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[4]).toBe("spacedOut");
+    });
+
+    it("passes category filter to getBlueprints", () => {
+      component.filterCategory = "power";
+      component.getBlueprints();
+
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[5]).toBe("power");
+    });
+
+    it("passes subcategory filter to getBlueprints", () => {
+      component.filterCategory = "power";
+      component.filterSubcategory = "generator";
+      component.getBlueprints();
+
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[6]).toBe("generator");
+    });
+
+    it("clearFilters resets all facets and refetches", () => {
+      component.filterGameVersion = "base";
+      component.filterCategory = "cooling";
+      component.filterSubcategory = "fan";
+      component.filterName = "test";
+      component.clearFilters();
+
+      expect(component.filterGameVersion).toBeNull();
+      expect(component.filterCategory).toBeNull();
+      expect(component.filterSubcategory).toBeNull();
+      expect(component.filterName).toBe("");
+      expect(blueprintService.getBlueprints).toHaveBeenCalled();
+    });
+
+    it("onFacetChange resets subcategory before refetching", () => {
+      component.filterCategory = "power";
+      component.filterSubcategory = "generator";
+
+      // Simulate category change
+      component.filterCategory = "cooling";
+      component.onFacetChange();
+
+      // The facetSubject fires asynchronously via debounceTime(0);
+      // test that the field is cleared on the next tick
+      expect(component.filterSubcategory).toBeNull();
     });
   });
 });

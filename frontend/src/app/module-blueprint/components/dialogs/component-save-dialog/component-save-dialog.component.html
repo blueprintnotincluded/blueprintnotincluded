@@ -31,6 +31,82 @@
         Blueprint name is too long
       </div>
     </div>
+
+    <div class="metadata-fields">
+      <div class="metadata-row">
+        <span class="p-float-label">
+          <textarea
+            rows="2"
+            formControlName="description"
+            pTextarea
+            maxlength="500"
+            style="width: 100%"
+          ></textarea>
+          <label i18n>Description (optional)</label>
+        </span>
+      </div>
+      <div class="metadata-row metadata-row--inline">
+        <span class="p-float-label">
+          <p-select
+            formControlName="gameVersion"
+            [options]="gameVersionOptions"
+            [showClear]="true"
+            placeholder=" "
+            optionLabel="label"
+            optionValue="value"
+          ></p-select>
+          <label i18n>Game version</label>
+        </span>
+        <span class="p-float-label">
+          <p-select
+            formControlName="category"
+            [options]="categoryOptions"
+            [showClear]="true"
+            placeholder=" "
+            optionLabel="label"
+            optionValue="value"
+            (onChange)="onCategoryChange()"
+          ></p-select>
+          <label i18n>Category</label>
+        </span>
+        <span class="p-float-label" *ngIf="subcategoryOptions.length > 0">
+          <p-select
+            formControlName="subcategory"
+            [options]="subcategoryOptions"
+            [showClear]="true"
+            placeholder=" "
+            optionLabel="label"
+            optionValue="value"
+          ></p-select>
+          <label i18n>Subcategory</label>
+        </span>
+      </div>
+      <div class="metadata-row metadata-row--inline">
+        <span class="p-float-label">
+          <p-select
+            formControlName="researchTier"
+            [options]="researchTierOptions"
+            [showClear]="true"
+            placeholder=" "
+            optionLabel="label"
+            optionValue="value"
+          ></p-select>
+          <label i18n>Research tier</label>
+        </span>
+        <label class="metadata-checkbox">
+          <p-checkbox formControlName="modded" [binary]="true"></p-checkbox>
+          <span i18n>Modded</span>
+        </label>
+        <label class="metadata-checkbox">
+          <p-checkbox
+            formControlName="multiplayerSafe"
+            [binary]="true"
+          ></p-checkbox>
+          <span i18n>Multiplayer safe</span>
+        </label>
+      </div>
+    </div>
+
     <div *ngIf="overwrite" class="error-red" i18n>
       You already have a blueprint with this name. Overwrite?
     </div>

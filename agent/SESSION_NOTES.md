@@ -1,3 +1,38 @@
+# Session Notes - 2026-06-24
+
+## What We Accomplished ✅
+
+### Metadata loop closed — Work items A, B, C (branch `discover-home`)
+
+Closed the gap where `gameVersion`/`category` existed on the schema but had no authoring path,
+no read path, and no filter. The entire vertical now works end-to-end.
+
+**Shared enums** (`lib/src/blueprint/blueprint-metadata.ts`): `GAME_VERSIONS`, `CATEGORIES`,
+`SUBCATEGORIES`, `RESEARCH_TIERS` — single source consumed by backend validation, frontend dropdowns.
+
+**Blueprint model** — added `description`, `subcategory`, `researchTier`, `modded`,
+`multiplayerSafe` (all additive/nullable; no migration). `gameVersion`/`category` already existed
+on the schema; now have enum constraints.
+
+**Upload controller** — validates enum fields and rejects unknown values with 400; persists all
+metadata; returns them in list responses via `BlueprintListItem`.
+
+**Save dialog** — optional description textarea (500-char cap), `gameVersion`/`category`/
+`subcategory` dropdowns (subcategory auto-clears on category change), `researchTier` dropdown,
+`modded`/`multiplayerSafe` checkboxes. All optional; untagged save still succeeds.
+
+**Browse page filter panel** — `gameVersion` + `category` dropdowns; `subcategory` appears when
+category is selected; active filters reflected in URL query string (back-button-safe); "Clear
+filters" button. The compound indexes `{ deletedAt, gameVersion, category, createdAt }` are now
+used by every filtered query — no longer speculative.
+
+**Card badges** — category, gameVersion, modded shown; "Untagged" badge when no category.
+Untagged blueprints fall out of any active facet filter naturally (no bulk backfill).
+
+**Tests**: backend 204 passing (+17), frontend 474 passing (+21). `npm run tsc` clean.
+
+---
+
 # Session Notes - 2026-06-22
 
 ## What We Accomplished ✅
