@@ -481,6 +481,17 @@ export function convertExport2024(opts: ConvertOptions): void {
     { name: 'logic_ribbon_all_in',    textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 1056, y: 1000 }, uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
     { name: 'logic_ribbon_all_out',   textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 1584, y: 1792 }, uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
   ];
+  // Verify that the legacy atlas pages referenced by the utility-overlay sprites
+  // actually exist in the frontend assets. These are not synced by the import —
+  // they are committed PNGs that must be present in the working tree. If any are
+  // missing the DB would reference non-existent textures, so we fail the import.
+  const imagesDir = path.join(path.dirname(opts.out), '../../frontend/src/assets/images');
+  const missingAtlasPages: string[] = [];
+  for (const sprite of overlayUiSprites.filter((s) => s.isInputOutput)) {
+    const p = path.join(imagesDir, sprite.textureName + '.png');
+    if (!fs.existsSync(p)) missingAtlasPages.push(sprite.textureName + ' (needed by ' + sprite.name + ')');
+  }
+
   const overlayModifiers = [
     { name: 'element_tile_back', spriteInfoName: 'element_tile_back', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [27] },
     { name: 'gas_tile_front',    spriteInfoName: 'gas_tile_front',    translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [28] },
@@ -513,6 +524,9 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  english strings    :', Object.keys(englishStrings).length);
   console.log('--- validation ---');
   console.log('  po_string.json present             :', hasPoStrings);
+  console.log('  legacy atlas pages missing         :', missingAtlasPages.length);
+  if (missingAtlasPages.length)
+    console.log('    missing (utility overlay sprites will be broken):', missingAtlasPages.join(', '));
   console.log('  buildings missing ui_image PNG :', missingIcons.length);
   if (missingIcons.length) console.log('    ', missingIcons.slice(0, 30).join(', '));
   console.log('  buildings missing uiSpriteInfo :', missingUiSpriteInfo.length);
@@ -589,6 +603,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     connectableDirsNoBuilding.length +
     unknownViewModes.size +
     unknownConnectionTypes.size +
+    missingAtlasPages.length +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
