@@ -165,6 +165,7 @@ export class BlueprintService implements IObsBlueprintChange {
   reset() {
     this.id = null;
     this.likedByMe = false;
+    this.metadata = {};
   }
 
   suppressChanges!: boolean;
@@ -278,6 +279,15 @@ export class BlueprintService implements IObsBlueprintChange {
             this.name = response.name;
             this.likedByMe = response.likedByMe;
             this.nbLikes = response.nbLikes;
+            this.metadata = {
+              gameVersion: response.gameVersion ?? null,
+              category: response.category ?? null,
+              subcategory: response.subcategory ?? null,
+              description: response.description ?? null,
+              researchTier: response.researchTier ?? null,
+              modded: response.modded ?? null,
+              multiplayerSafe: response.multiplayerSafe ?? null,
+            };
             blueprint.importFromMdb(response.data);
             return blueprint;
           }
