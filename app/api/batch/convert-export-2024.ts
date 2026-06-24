@@ -365,6 +365,7 @@ export function convertExport2024(opts: ConvertOptions): void {
 
   // --- Validation accumulators ---
   const unknownViewModes = new Set<string>();
+  const unknownConnectionTypes = new Set<string>();
   const missingIcons: string[] = [];
   const missingUiSpriteInfo: string[] = [];
   const missingMenuBuildings: string[] = [];
@@ -396,7 +397,9 @@ export function convertExport2024(opts: ConvertOptions): void {
         connectablesNotTileOrUtility.push(b.name);
     }
 
-    buildings.push(buildingRecord(b, unknownViewModes, connectable, connectionScale));
+    buildings.push(
+      buildingRecord(b, unknownViewModes, connectable, connectionScale, unknownConnectionTypes)
+    );
 
     const size = readPngSize(path.join(uiImageDir, iconKey + '.png')) ?? { x: 0, y: 0 };
     uiSprites.push({
@@ -464,6 +467,19 @@ export function convertExport2024(opts: ConvertOptions): void {
       name: `info_front_${i}`, textureName: `info_front_${i}`, isIcon: false, isInputOutput: false,
       uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 },
     })),
+    // Utility-overlay input/output port indicators drawn by ConnectionHelper.getConnectionSprite
+    // (resolved directly by id, no spriteModifier). The 2024 export ships no dedicated PNGs for
+    // these, but the legacy packed-atlas pages they slice are still committed under
+    // assets/images/ (frontend), so we register the original UV rects verbatim from the pre-2024
+    // DB rather than minting new art. Tints are applied at draw time, not baked here.
+    { name: 'input',                  textureName: 'hat_role_building1',    isIcon: true, isInputOutput: true, uvMin: { x: 1726, y: 11 },   uvSize: { x: 215, y: 213 }, realSize: { x: 215, y: 213 }, pivot: { x: 0.5116279, y: 0.5164319 } },
+    { name: 'output',                 textureName: '1bed_1toilet_locked',   isIcon: true, isInputOutput: true, uvMin: { x: 1726, y: 11 },   uvSize: { x: 215, y: 213 }, realSize: { x: 215, y: 213 }, pivot: { x: 0.5116279, y: 0.5164319 } },
+    { name: 'electrical_disconnected', textureName: 'action_follow_cam',    isIcon: true, isInputOutput: true, uvMin: { x: 528, y: 55 },    uvSize: { x: 215, y: 213 }, realSize: { x: 215, y: 213 }, pivot: { x: 0.5116279, y: 0.5164319 } },
+    { name: 'logicInput',             textureName: 'Animal_friends_locked', isIcon: true, isInputOutput: true, uvMin: { x: 264, y: 1528 },  uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
+    { name: 'logicOutput',            textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 528, y: 1264 },  uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
+    { name: 'logicResetUpdate',       textureName: 'Animal_friends_locked', isIcon: true, isInputOutput: true, uvMin: { x: 264, y: 1000 },  uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
+    { name: 'logic_ribbon_all_in',    textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 1056, y: 1000 }, uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
+    { name: 'logic_ribbon_all_out',   textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 1584, y: 1792 }, uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
   ];
   const overlayModifiers = [
     { name: 'element_tile_back', spriteInfoName: 'element_tile_back', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [27] },
@@ -520,6 +536,17 @@ export function convertExport2024(opts: ConvertOptions): void {
     unknownViewModes.size ? '(' + [...unknownViewModes].join(', ') + ')' : ''
   );
   console.log(
+    '  buildings with utility ports       :',
+    buildings.filter((b) => b.utilities && b.utilities.length).length,
+    '/',
+    buildings.length
+  );
+  console.log(
+    '  unknown connection types           :',
+    unknownConnectionTypes.size,
+    unknownConnectionTypes.size ? '(' + [...unknownConnectionTypes].join(', ') + ')' : ''
+  );
+  console.log(
     '  buildings with uiImageRect placement:',
     buildings.filter((b) => b.uiImageRect).length,
     '/',
@@ -561,6 +588,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     incompleteConnectionDirs.length +
     connectableDirsNoBuilding.length +
     unknownViewModes.size +
+    unknownConnectionTypes.size +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
@@ -616,11 +644,57 @@ export function convertExport2024(opts: ConvertOptions): void {
   // path.join(opts.exportDir, 'ui_image_facade') -> assets/ui_image_facade (+ frontend).
 }
 
+// ConnectionType enum member name (as emitted by the U59 export) -> ConnectionType int
+// (lib/src/enums/connection-type.ts). The export omits NONE(10) and LogicControlInput(12);
+// MUX/DEMUX selector ports come through as plain "LogicInput". Offsets need no transform —
+// the export's CellOffset convention already matches the website's internal coordinates.
+const CONNECTION_TYPE_BY_NAME: { [name: string]: number } = {
+  PowerInput: 0,
+  PowerOutput: 1,
+  GasInput: 2,
+  GasOutput: 3,
+  LiquidInput: 4,
+  LiquidOutput: 5,
+  LogicInput: 6,
+  LogicOutput: 7,
+  SolidInput: 8,
+  SolidOutput: 9,
+  LogicReset: 11,
+  LogicRibbonInput: 13,
+  LogicRibbonOutput: 14,
+};
+
+// Map the export's `utilities` array to the internal { type:int, offset, isSecondary } shape.
+// Drops any port whose type name is unrecognised (none in U59) or whose offset is missing
+// (none in U59 — null offsets were eliminated upstream), recording unknowns in the set.
+function utilitiesRecord(
+  b: BBuildingDef2024,
+  unknownConnectionTypes: Set<string>
+): { offset: { x: number; y: number }; type: number; isSecondary: boolean }[] {
+  if (!b.utilities) return [];
+  const result: { offset: { x: number; y: number }; type: number; isSecondary: boolean }[] = [];
+  for (const u of b.utilities) {
+    const type = CONNECTION_TYPE_BY_NAME[u.type];
+    if (type === undefined) {
+      unknownConnectionTypes.add(u.type);
+      continue;
+    }
+    if (!u.offset) continue;
+    result.push({
+      offset: { x: u.offset.x, y: u.offset.y },
+      type,
+      isSecondary: !!u.isSecondary,
+    });
+  }
+  return result;
+}
+
 function buildingRecord(
   b: BBuildingDef2024,
   unknownViewModes: Set<string>,
   connectable: boolean,
-  connectionScale: { x: number; y: number }
+  connectionScale: { x: number; y: number },
+  unknownConnectionTypes: Set<string>
 ): any {
   return {
     DefaultAnimState: b.defaultAnimState,
@@ -648,7 +722,7 @@ function buildingRecord(
     // export when present; absent ⇒ renderer stretches the icon to the footprint (legacy).
     ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),
     buildLocationRule: b.buildLocationRule,
-    utilities: [], // utility connection offsets are not in the 2024 export
+    utilities: utilitiesRecord(b, unknownConnectionTypes),
     uiScreens: [],
     sprites: { groupName: 'all sprites', spriteNames: [] }, // flat icon: no atlas sprites
     materialCategory: b.materialCategory ?? [],

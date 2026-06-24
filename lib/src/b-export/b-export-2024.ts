@@ -79,6 +79,14 @@ export interface BBuildingDef2024 {
   // (legacy stretch-to-footprint). See app/api/batch/convert-export-2024.md "uiImageRect".
   uiImageRect?: { x: number; y: number; w: number; h: number };
 
+  // Per-port utility connections (power/gas/liquid/automation/solid conduits). Added to the
+  // export in U59-737790-SCA (2026-06). `offset` uses the game's CellOffset convention, which
+  // matches the website's internal pre-rotation, y-up, footprint-relative coordinates exactly
+  // (verified field-by-field against the pre-2024 DB — no transform needed). `type` is the
+  // ConnectionType enum *member name* (e.g. "GasInput", "LogicReset"); the converter maps it
+  // to the ConnectionType int via CONNECTION_TYPE_BY_NAME. Absent on buildings with no ports.
+  utilities?: BUtilityConnection2024[];
+
   // Domain payloads (kept opaque — not needed for rendering/build-menu).
   energyGenerator?: unknown;
   conduitConsumer?: unknown;
@@ -89,6 +97,16 @@ export interface BBuildingDef2024 {
   passiveElementConsumers?: unknown[];
   storage?: unknown;
   battery?: unknown;
+}
+
+// One per-building utility port from `bBuildingDefList[].utilities`.
+export interface BUtilityConnection2024 {
+  offset: { x: number; y: number };
+  // ConnectionType enum member name, e.g. "PowerInput", "GasOutput", "LogicReset",
+  // "LogicRibbonInput". Mapped to the ConnectionType int by the converter.
+  type: string;
+  // Second port of the same conduit type on this building (filter bypass / overflow outlet).
+  isSecondary: boolean;
 }
 
 // One entry of `buildingAndSubcategoryDataPairs[<categoryName>]`.
