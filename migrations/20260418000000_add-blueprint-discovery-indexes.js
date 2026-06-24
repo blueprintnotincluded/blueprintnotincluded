@@ -15,9 +15,16 @@ module.exports = {
 
   async down(db) {
     const col = db.collection('blueprints');
-    await col.dropIndex('deletedAt_1_createdAt_-1');
-    await col.dropIndex('deletedAt_1_gameVersion_1_createdAt_-1');
-    await col.dropIndex('deletedAt_1_category_1_createdAt_-1');
-    await col.dropIndex('deletedAt_1_gameVersion_1_category_1_createdAt_-1');
+    const dropIfExists = async (name) => {
+      try {
+        await col.dropIndex(name);
+      } catch (err) {
+        if (err.codeName !== 'IndexNotFound') throw err;
+      }
+    };
+    await dropIfExists('deletedAt_1_createdAt_-1');
+    await dropIfExists('deletedAt_1_gameVersion_1_createdAt_-1');
+    await dropIfExists('deletedAt_1_category_1_createdAt_-1');
+    await dropIfExists('deletedAt_1_gameVersion_1_category_1_createdAt_-1');
   },
 };
