@@ -3,6 +3,7 @@
 <app-site-nav
   (about)="aboutDialog.toggleDialog()"
   (sendFeedback)="feedbackDialog.open()"
+  (myBlueprintsRequested)="showMyBlueprints($event)"
 ></app-site-nav>
 
 <app-dialog-about #aboutDialog></app-dialog-about>
@@ -20,6 +21,10 @@
       (ngModelChange)="filterNameSubject.next($event)"
       pInputText
     />
+  </div>
+
+  <div *ngIf="loadError" class="browse-error" role="alert">
+    <span i18n>Couldn't load blueprints. Scroll to try again.</span>
   </div>
 
   <div class="blueprint-grid">
