@@ -187,6 +187,14 @@ converter details: `app/api/batch/convert-export-2024.md`.
   derived from dir presence; `BlueprintItem` builds 16 tagged flat-icon draw-parts;
   per-building `connectionScale` is measured from `15.png` at import time. The build/select
   menu keeps the single canonical icon (`iconUrl`).
+- **Utility ports** (275/449 buildings): `BBuildingDef2024.utilities[]` carries each
+  input/output port as `{offset, type, isSecondary}`. The U59 export emits `type` as the
+  `ConnectionType` enum *name* (string); the converter maps it to the int via
+  `CONNECTION_TYPE_BY_NAME`. Offsets are pre-rotation/y-up/footprint-relative and already
+  match the website's internal convention (no transform). `BlueprintItem.drawPixiUtility`
+  draws the markers per overlay; the 8 indicator sprites (`input`/`output`/`logicInput`…)
+  are injected by the converter from legacy atlas pages still committed under
+  `frontend/src/assets/images/`. Details: `app/api/batch/convert-export-2024.md`.
 - **Loaders**: backend reads `database-2024.json` directly; frontend fetches
   `database-2024.zip` (regenerated from the committed JSON by its `prebuild`/`prestart`).
 
