@@ -53,7 +53,8 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 | `ui_image_facade/` | nothing today (not copied) |
 
 Current output (449 buildings): 212 elements, 365 build-menu items, 15 categories,
-466 uiSprites (449 building icons + 17 injected overlays), 31 connectables.
+474 uiSprites (449 building icons + 25 injected overlays — 17 element/info overlays +
+8 utility-port indicators), 31 connectables, 275 buildings with utility ports.
 
 ## Image model — two kinds, used differently
 
@@ -80,8 +81,8 @@ ratio (see below). What breaks rendering is changing **framing**, not pixel coun
    prefab tag, e.g. `FabricatedWood.png` — **not** the display name). Verified 1241/1241
    match by key.
 2. **`uiImageRect`** (per building, cells, footprint-relative): required for any icon whose
-   art overhangs its footprint; see next section. Currently emitted for 342/449 buildings;
-   the other 107 fall back to stretch-to-footprint.
+   art overhangs its footprint; see next section. Currently emitted for 308/449 buildings;
+   the other 141 fall back to stretch-to-footprint.
 3. **Connection sprites:** all 16 of `0–15` present, bitmask `left=1/right=2/up=4/down=8`.
 4. **Connectable signal:** the `connection_sprites/<prefabId>/` directory exists
    (`building.json` carries no `tileableLeftRight/tileableTopBottom`).
@@ -94,12 +95,16 @@ ratio (see below). What breaks rendering is changing **framing**, not pixel coun
 6. **Building fields we read** keep their names/shapes: `name`, `nameString`,
    `isFoundation`, `isKAnimTile`, `isUtility`, `widthInCells`, `heightInCells`,
    `sceneLayer`, `objectLayer`, `viewMode`, `permittedRotations`, `dragBuild`,
-   `buildLocationRule`, `materialCategory`, `materialMass`; plus top-level
+   `buildLocationRule`, `materialCategory`, `materialMass`, `utilities`; plus top-level
    `bBuildingDefList`, `buildMenuCategories`, `buildingAndSubcategoryDataPairs`. Adding
    fields is safe.
+7. **`utilities[].type`** values stay the `ConnectionType` enum *member name* (string,
+   e.g. `"GasInput"`, `"LogicReset"`) and `utilities[].offset` stays in the game's
+   CellOffset convention; see "Utility connection ports" below.
 
 We inject a few overlay sprites of our own (`element_tile_back`, `*_tile_front`,
-`info_back`, `info_front_0..11` — 17 entries) — **don't** provide these.
+`info_back`, `info_front_0..11`, plus the 8 utility-port indicators — 25 entries) —
+**don't** provide these.
 
 ## `uiImageRect` — flat-icon placement
 
@@ -142,6 +147,44 @@ therefore measures scale per building from the `15.png` alpha bbox (`canvas px �
 and stores `connectionScale {x,y}` in the DB; the renderer draws connection parts
 centre-anchored at `100 × connectionScale`. Re-measured every import, so it auto-adapts to
 new framing/resolution. No mod/export change needed.
+
+## Utility connection ports (plumbing / power / automation / shipping indicators)
+
+Each building carries `utilities[]` — the input/output ports the editor draws as little
+markers when you switch to the matching overlay (plumbing, ventilation, power, automation,
+shipping). One entry per port:
+
+```jsonc
+// building.json bBuildingDefList[].utilities[]
+{ "offset": { "x": -1, "y": 0 }, "type": "GasInput", "isSecondary": false }
+```
+
+- **`type`** — the `ConnectionType` enum **member name** as a string (added in U59;
+  earlier exports used the int). The converter maps it to the int via
+  `CONNECTION_TYPE_BY_NAME` (`PowerInput=0 … LogicRibbonOutput=14`). `NONE` and
+  `LogicControlInput` never appear; MUX/DEMUX selector ports come through as plain
+  `LogicInput`. An unrecognised name is dropped and counted in the import report
+  (`unknown connection types: N`), which also fails the import.
+- **`offset`** — cell offset, **pre-rotation, y-up, footprint-relative**. This is the
+  game's CellOffset convention and it matches the website's internal coordinates **exactly**
+  (verified field-by-field against the pre-2024 DB — LiquidPump/GasFilter/LogicGateAND/etc.
+  all identical), so the converter passes offsets through with **no transform**. The
+  renderer (`BlueprintItem.drawPixiUtility`) draws each marker at this offset and rotates it
+  with the building.
+- **`isSecondary`** — true for a building's second port of one conduit type (filter bypass
+  output, overflow-valve overflow outlet). The renderer tints these orange (`0xFBB03B`)
+  instead of white/green. U59 sets it reliably; earlier exports did not.
+
+**Indicator sprites.** The markers themselves (`input`, `output`,
+`electrical_disconnected`, `logicInput`, `logicOutput`, `logicResetUpdate`,
+`logic_ribbon_all_in`, `logic_ribbon_all_out`) are resolved by id in
+`ConnectionHelper.getConnectionSprite` (tint applied at draw time, no spriteModifier). The
+2024 export ships no PNGs for them, but the legacy packed-atlas pages they slice
+(`hat_role_building1`, `1bed_1toilet_locked`, `action_follow_cam`, `all_artifacts_locked`,
+`Animal_friends_locked`) are still committed under `frontend/src/assets/images/`, so the
+converter injects all 8 with their original UV rects (verbatim from the pre-2024 DB) rather
+than minting new art. If those atlas pages are ever removed, `getSpriteInfo` throws
+`Not found` and every utility overlay goes blank — keep them or re-cut standalone PNGs.
 
 ## `viewMode` mapping
 
