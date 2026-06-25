@@ -35395,12 +35395,12 @@
     },
     {
       "name": "input",
-      "textureName": "hat_role_building1",
+      "textureName": "input",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 1726,
-        "y": 11
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 215,
@@ -35411,18 +35411,18 @@
         "y": 213
       },
       "pivot": {
-        "x": 0.5116279,
-        "y": 0.5164319
+        "x": 0.5,
+        "y": 0.5
       }
     },
     {
       "name": "output",
-      "textureName": "1bed_1toilet_locked",
+      "textureName": "output",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 1726,
-        "y": 11
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 215,
@@ -35433,18 +35433,18 @@
         "y": 213
       },
       "pivot": {
-        "x": 0.5116279,
-        "y": 0.5164319
+        "x": 0.5,
+        "y": 0.5
       }
     },
     {
       "name": "electrical_disconnected",
-      "textureName": "action_follow_cam",
+      "textureName": "electrical_disconnected",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 528,
-        "y": 55
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 215,
@@ -35455,18 +35455,18 @@
         "y": 213
       },
       "pivot": {
-        "x": 0.5116279,
-        "y": 0.5164319
+        "x": 0.5,
+        "y": 0.5
       }
     },
     {
       "name": "logicInput",
-      "textureName": "Animal_friends_locked",
+      "textureName": "logicInput",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 264,
-        "y": 1528
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 256,
@@ -35483,12 +35483,12 @@
     },
     {
       "name": "logicOutput",
-      "textureName": "all_artifacts_locked",
+      "textureName": "logicOutput",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 528,
-        "y": 1264
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 256,
@@ -35505,12 +35505,12 @@
     },
     {
       "name": "logicResetUpdate",
-      "textureName": "Animal_friends_locked",
+      "textureName": "logicResetUpdate",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 264,
-        "y": 1000
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 256,
@@ -35527,12 +35527,12 @@
     },
     {
       "name": "logic_ribbon_all_in",
-      "textureName": "all_artifacts_locked",
+      "textureName": "logic_ribbon_all_in",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 1056,
-        "y": 1000
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 256,
@@ -35549,12 +35549,12 @@
     },
     {
       "name": "logic_ribbon_all_out",
-      "textureName": "all_artifacts_locked",
+      "textureName": "logic_ribbon_all_out",
       "isIcon": true,
       "isInputOutput": true,
       "uvMin": {
-        "x": 1584,
-        "y": 1792
+        "x": 0,
+        "y": 0
       },
       "uvSize": {
         "x": 256,
