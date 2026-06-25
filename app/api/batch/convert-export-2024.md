@@ -177,6 +177,18 @@ shipping). One entry per port:
   output, overflow-valve overflow outlet). The renderer tints these orange (`0xFBB03B`)
   instead of white/green. U59 sets it reliably; earlier exports did not.
 
+**Synthesized power-bridge ports (workaround for an export gap).** The U59 export ships the
+power/wire bridges with an **empty** `utilities[]`, even though every other conduit bridge
+emits `Input(-1,0)`+`Output(1,0)` (gas/liquid/solid/logic all do, verified). With no ports the
+editor draws no connection markers for them. The converter fills the gap for the three 3×1
+standard wire bridges — `WireBridge`, `WireRefinedBridge`, `WireRubberBridge` — synthesizing
+`PowerInput(-1,0)`+`PowerOutput(1,0)` (`SYNTHESIZED_BRIDGE_PORTS`), the exact offsets the 3×1
+conduit bridges use. It fills **only an empty array**, so a fixed future export takes
+precedence automatically; the import logs `synthesized power-bridge ports: N`. The two 1×1
+HighWattage bridges (`WireBridgeHighWattage`, `WireRefinedBridgeHighWattage`) are **not**
+covered — their port geometry isn't derivable from this export. The real fix is export-side
+(see "Open items").
+
 **Indicator sprites.** The markers themselves (`input`, `output`,
 `electrical_disconnected`, `logicInput`, `logicOutput`, `logicResetUpdate`,
 `logic_ribbon_all_in`, `logic_ribbon_all_out`) are resolved by id in
@@ -222,6 +234,11 @@ per-locale `.po` files have been retired — non-English i18n would need transla
 
 ## Open items to the export side
 
+- **Power-bridge `utilities[]`:** the wire bridges ship an empty `utilities[]` while every
+  other conduit bridge emits `Input(-1,0)`+`Output(1,0)`. Emit the power ports for
+  `WireBridge`/`WireRefinedBridge`/`WireRubberBridge` (and the 1×1 `*HighWattage` bridges,
+  whose offsets we can't derive) so the converter's `SYNTHESIZED_BRIDGE_PORTS` workaround can
+  be removed.
 - **`uiImageRect` rollout:** emit it for the remaining ~107 buildings whose art deviates
   from the footprint (the rest can omit it).
 - **`ui_image_facade/`:** drop it to shrink the handoff, or tell us what it's for.

@@ -372,6 +372,7 @@ export function convertExport2024(opts: ConvertOptions): void {
   // --- Validation accumulators ---
   const unknownViewModes = new Set<string>();
   const unknownConnectionTypes = new Set<string>();
+  const synthesizedBridges = new Set<string>();
   const missingIcons: string[] = [];
   const missingUiSpriteInfo: string[] = [];
   const missingMenuBuildings: string[] = [];
@@ -404,7 +405,14 @@ export function convertExport2024(opts: ConvertOptions): void {
     }
 
     buildings.push(
-      buildingRecord(b, unknownViewModes, connectable, connectionScale, unknownConnectionTypes)
+      buildingRecord(
+        b,
+        unknownViewModes,
+        connectable,
+        connectionScale,
+        unknownConnectionTypes,
+        synthesizedBridges
+      )
     );
 
     const size = readPngSize(path.join(uiImageDir, iconKey + '.png')) ?? { x: 0, y: 0 };
@@ -559,6 +567,13 @@ export function convertExport2024(opts: ConvertOptions): void {
     buildings.length
   );
   console.log(
+    '  synthesized power-bridge ports     :',
+    synthesizedBridges.size,
+    synthesizedBridges.size
+      ? '(' + [...synthesizedBridges].join(', ') + '; export ships these bridges port-less)'
+      : ''
+  );
+  console.log(
     '  unknown connection types           :',
     unknownConnectionTypes.size,
     unknownConnectionTypes.size ? '(' + [...unknownConnectionTypes].join(', ') + ')' : ''
@@ -702,16 +717,49 @@ const CONNECTION_TYPE_BY_NAME: { [name: string]: number } = {
   LogicRibbonOutput: 14,
 };
 
+// The U59 export ships the power/wire bridges with an EMPTY utilities[] — unlike every other
+// conduit bridge (GasConduitBridge/LiquidConduitBridge/SolidConduitBridge/LogicWireBridge all
+// emit Input(-1,0)+Output(1,0)). With no ports the editor can't draw their connection markers,
+// so we synthesize the matching power ports here using the exact offsets the 3x1 conduit bridges
+// use (verified in-app: ContactConductivePipeBridge et al. render their markers correctly with
+// these). Only the three 3-wide standard bridges are covered; the two 1x1 HighWattage bridges
+// (WireBridgeHighWattage / WireRefinedBridgeHighWattage) are intentionally omitted — their port
+// geometry isn't derivable from this export. This is a workaround for an export gap: it fills
+// only an EMPTY utilities[], so a future export that emits the ports takes precedence.
+const SYNTHESIZED_BRIDGE_PORTS: {
+  [prefab: string]: { offset: { x: number; y: number }; type: string; isSecondary: boolean }[];
+} = {
+  WireBridge: [
+    { offset: { x: -1, y: 0 }, type: 'PowerInput', isSecondary: false },
+    { offset: { x: 1, y: 0 }, type: 'PowerOutput', isSecondary: false },
+  ],
+  WireRefinedBridge: [
+    { offset: { x: -1, y: 0 }, type: 'PowerInput', isSecondary: false },
+    { offset: { x: 1, y: 0 }, type: 'PowerOutput', isSecondary: false },
+  ],
+  WireRubberBridge: [
+    { offset: { x: -1, y: 0 }, type: 'PowerInput', isSecondary: false },
+    { offset: { x: 1, y: 0 }, type: 'PowerOutput', isSecondary: false },
+  ],
+};
+
 // Map the export's `utilities` array to the internal { type:int, offset, isSecondary } shape.
 // Drops any port whose type name is unrecognised (none in U59) or whose offset is missing
 // (none in U59 — null offsets were eliminated upstream), recording unknowns in the set.
+// When the export's array is empty but the prefab is a known port-less power bridge, fall back
+// to the synthesized ports above and record the prefab in `synthesizedBridges` for the report.
 function utilitiesRecord(
   b: BBuildingDef2024,
-  unknownConnectionTypes: Set<string>
+  unknownConnectionTypes: Set<string>,
+  synthesizedBridges: Set<string>
 ): { offset: { x: number; y: number }; type: number; isSecondary: boolean }[] {
-  if (!b.utilities) return [];
+  let source = b.utilities ?? [];
+  if (source.length === 0 && SYNTHESIZED_BRIDGE_PORTS[b.name]) {
+    source = SYNTHESIZED_BRIDGE_PORTS[b.name];
+    synthesizedBridges.add(b.name);
+  }
   const result: { offset: { x: number; y: number }; type: number; isSecondary: boolean }[] = [];
-  for (const u of b.utilities) {
+  for (const u of source) {
     const type = CONNECTION_TYPE_BY_NAME[u.type];
     if (type === undefined) {
       unknownConnectionTypes.add(u.type);
@@ -732,7 +780,8 @@ function buildingRecord(
   unknownViewModes: Set<string>,
   connectable: boolean,
   connectionScale: { x: number; y: number },
-  unknownConnectionTypes: Set<string>
+  unknownConnectionTypes: Set<string>,
+  synthesizedBridges: Set<string>
 ): any {
   return {
     DefaultAnimState: b.defaultAnimState,
@@ -760,7 +809,7 @@ function buildingRecord(
     // export when present; absent ⇒ renderer stretches the icon to the footprint (legacy).
     ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),
     buildLocationRule: b.buildLocationRule,
-    utilities: utilitiesRecord(b, unknownConnectionTypes),
+    utilities: utilitiesRecord(b, unknownConnectionTypes, synthesizedBridges),
     uiScreens: [],
     sprites: { groupName: 'all sprites', spriteNames: [] }, // flat icon: no atlas sprites
     materialCategory: b.materialCategory ?? [],
