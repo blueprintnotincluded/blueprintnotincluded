@@ -46,37 +46,43 @@ import {
 import { Overlay } from '../../../lib/src/enums/overlay';
 
 // ---------------------------------------------------------------------------
-// viewMode (Klei HashedString hex) -> Overlay enum.
-// Hashes verified against Klei Hash.SDBMLower of the overlay-mode name strings.
-// Key is the unsigned hex with no leading zeros (see normalizeHash).
+// viewMode (game-native overlay name) -> Overlay enum.
+// U59 emits `viewMode` as the overlay's name string (e.g. "Power", "GasConduit")
+// or null when the building has no special overlay — NOT the old Klei HashedString
+// hex. Map each name to the website's Overlay enum; null/"" -> Base.
 // ---------------------------------------------------------------------------
-const VIEW_MODE_TO_OVERLAY: { [unsignedHex: string]: Overlay } = {
-  '0': Overlay.Base, // "" — no overlay
-  '1EDC6185': Overlay.Power, // "Power"
-  '4E663A02': Overlay.Liquid, // "LiquidConduit"
-  '9DB4F205': Overlay.Gas, // "GasConduit"
-  '74DEE5E': Overlay.Automation, // "Logic"
-  A4E0B340: Overlay.Oxygen, // "Oxygen"
-  '64E3C456': Overlay.Conveyor, // "SolidConveyor"
-  '14B49265': Overlay.Decor, // "Decor"
-  F02409B6: Overlay.Light, // "Light"
-  '18949A94': Overlay.Temperature, // "Temperature"
-  A2CCA578: Overlay.Room, // "Rooms"
-  '91EE10A1': Overlay.Unknown, // "Radiation" (no dedicated overlay)
+const VIEW_MODE_TO_OVERLAY: { [name: string]: Overlay } = {
+  Power: Overlay.Power,
+  LiquidConduit: Overlay.Liquid,
+  GasConduit: Overlay.Gas,
+  Logic: Overlay.Automation,
+  Oxygen: Overlay.Oxygen,
+  SolidConveyor: Overlay.Conveyor,
+  Decor: Overlay.Decor,
+  Light: Overlay.Light,
+  Temperature: Overlay.Temperature,
+  Rooms: Overlay.Room,
+  Radiation: Overlay.Unknown, // real game overlay, no dedicated website overlay
+  Disease: Overlay.Unknown, // mapping exists game-side; unseen in this build
+  Crop: Overlay.Unknown, // ditto
 };
 
-function normalizeHash(viewMode: string): string | null {
-  // Accepts "0x1EDC6185" / "0x0" etc. -> "1EDC6185" / "0".
-  // Returns null for malformed input so callers can track it as unknown
-  // (NaN >>> 0 would otherwise coerce to "0" and silently map to Base).
-  const n = parseInt(viewMode, 16);
-  if (Number.isNaN(n)) return null;
-  return (n >>> 0).toString(16).toUpperCase();
-}
+// The 8 utility-overlay port indicators, by id (== their ui_image/<name>.png filename and
+// the id ConnectionHelper.getConnectionSprite resolves). Shipped as flat PNGs since U59.
+const UTILITY_INDICATOR_NAMES = [
+  'input',
+  'output',
+  'electrical_disconnected',
+  'logicInput',
+  'logicOutput',
+  'logicResetUpdate',
+  'logic_ribbon_all_in',
+  'logic_ribbon_all_out',
+];
 
-function overlayFromViewMode(viewMode: string, unknown: Set<string>): Overlay {
-  const key = normalizeHash(viewMode);
-  const mapped = key === null ? undefined : VIEW_MODE_TO_OVERLAY[key];
+function overlayFromViewMode(viewMode: string | null, unknown: Set<string>): Overlay {
+  if (viewMode == null || viewMode === '') return Overlay.Base; // no special overlay
+  const mapped = VIEW_MODE_TO_OVERLAY[viewMode];
   if (mapped === undefined) {
     unknown.add(viewMode);
     return Overlay.Base;
@@ -467,30 +473,27 @@ export function convertExport2024(opts: ConvertOptions): void {
       name: `info_front_${i}`, textureName: `info_front_${i}`, isIcon: false, isInputOutput: false,
       uvMin: { x: 0, y: 0 }, uvSize: { x: 128, y: 128 }, realSize: { x: 100, y: 100 }, pivot: { x: 1, y: 0 },
     })),
-    // Utility-overlay input/output port indicators drawn by ConnectionHelper.getConnectionSprite
-    // (resolved directly by id, no spriteModifier). The 2024 export ships no dedicated PNGs for
-    // these, but the legacy packed-atlas pages they slice are still committed under
-    // assets/images/ (frontend), so we register the original UV rects verbatim from the pre-2024
-    // DB rather than minting new art. Tints are applied at draw time, not baked here.
-    { name: 'input',                  textureName: 'hat_role_building1',    isIcon: true, isInputOutput: true, uvMin: { x: 1726, y: 11 },   uvSize: { x: 215, y: 213 }, realSize: { x: 215, y: 213 }, pivot: { x: 0.5116279, y: 0.5164319 } },
-    { name: 'output',                 textureName: '1bed_1toilet_locked',   isIcon: true, isInputOutput: true, uvMin: { x: 1726, y: 11 },   uvSize: { x: 215, y: 213 }, realSize: { x: 215, y: 213 }, pivot: { x: 0.5116279, y: 0.5164319 } },
-    { name: 'electrical_disconnected', textureName: 'action_follow_cam',    isIcon: true, isInputOutput: true, uvMin: { x: 528, y: 55 },    uvSize: { x: 215, y: 213 }, realSize: { x: 215, y: 213 }, pivot: { x: 0.5116279, y: 0.5164319 } },
-    { name: 'logicInput',             textureName: 'Animal_friends_locked', isIcon: true, isInputOutput: true, uvMin: { x: 264, y: 1528 },  uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
-    { name: 'logicOutput',            textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 528, y: 1264 },  uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
-    { name: 'logicResetUpdate',       textureName: 'Animal_friends_locked', isIcon: true, isInputOutput: true, uvMin: { x: 264, y: 1000 },  uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
-    { name: 'logic_ribbon_all_in',    textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 1056, y: 1000 }, uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
-    { name: 'logic_ribbon_all_out',   textureName: 'all_artifacts_locked',  isIcon: true, isInputOutput: true, uvMin: { x: 1584, y: 1792 }, uvSize: { x: 256, y: 256 }, realSize: { x: 256, y: 256 }, pivot: { x: 0.5, y: 0.5 } },
   ];
-  // Verify that the legacy atlas pages referenced by the utility-overlay sprites
-  // actually exist in the frontend assets. These are not synced by the import —
-  // they are committed PNGs that must be present in the working tree. If any are
-  // missing the DB would reference non-existent textures, so we fail the import.
+
+  // Utility-overlay port indicators drawn by ConnectionHelper.getConnectionSprite (resolved
+  // directly by id, no spriteModifier; tint applied at draw time). U59 now ships these as their
+  // own flat PNGs in export/ui_image/, so we register each as a whole-image sprite (uvMin 0,0,
+  // uvSize = the PNG's real size) instead of slicing the legacy packed-atlas pages we used to
+  // depend on. drawPixiUtility forces a fixed 0.5×0.5-cell draw size, so the icons render exactly
+  // as before. The PNGs are copied into the SpriteInfo image root (frontend/src/assets/images/)
+  // below — SpriteInfo resolves textureName there, not in ui_image/.
+  const indicatorSprites = UTILITY_INDICATOR_NAMES.map((name) => {
+    const size = readPngSize(path.join(uiImageDir, name + '.png')) ?? { x: 0, y: 0 };
+    return {
+      name, textureName: name, isIcon: true, isInputOutput: true,
+      uvMin: { x: 0, y: 0 }, uvSize: { x: size.x, y: size.y },
+      realSize: { x: size.x, y: size.y }, pivot: { x: 0.5, y: 0.5 },
+    };
+  });
+  // Fail the import if the export is missing any indicator PNG — the DB would otherwise
+  // reference a texture that won't resolve and every utility overlay would go blank.
   const imagesDir = path.join(path.dirname(opts.out), '../../frontend/src/assets/images');
-  const missingAtlasPages: string[] = [];
-  for (const sprite of overlayUiSprites.filter((s) => s.isInputOutput)) {
-    const p = path.join(imagesDir, sprite.textureName + '.png');
-    if (!fs.existsSync(p)) missingAtlasPages.push(sprite.textureName + ' (needed by ' + sprite.name + ')');
-  }
+  const missingIndicatorPngs = UTILITY_INDICATOR_NAMES.filter((n) => !uiImageFiles.has(n));
 
   const overlayModifiers = [
     { name: 'element_tile_back', spriteInfoName: 'element_tile_back', translation: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, rotation: 0, tags: [27] },
@@ -505,7 +508,7 @@ export function convertExport2024(opts: ConvertOptions): void {
 
   const database = {
     buildings,
-    uiSprites: [...uiSprites, ...overlayUiSprites],
+    uiSprites: [...uiSprites, ...overlayUiSprites, ...indicatorSprites],
     spriteModifiers: overlayModifiers,
     buildMenuCategories,
     buildMenuItems,
@@ -524,9 +527,9 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  english strings    :', Object.keys(englishStrings).length);
   console.log('--- validation ---');
   console.log('  po_string.json present             :', hasPoStrings);
-  console.log('  legacy atlas pages missing         :', missingAtlasPages.length);
-  if (missingAtlasPages.length)
-    console.log('    missing (utility overlay sprites will be broken):', missingAtlasPages.join(', '));
+  console.log('  utility indicator PNGs missing     :', missingIndicatorPngs.length);
+  if (missingIndicatorPngs.length)
+    console.log('    missing from export/ui_image (utility overlays will be broken):', missingIndicatorPngs.join(', '));
   console.log('  buildings missing ui_image PNG :', missingIcons.length);
   if (missingIcons.length) console.log('    ', missingIcons.slice(0, 30).join(', '));
   console.log('  buildings missing uiSpriteInfo :', missingUiSpriteInfo.length);
@@ -545,7 +548,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     missingCategories.length ? '(' + missingCategories.join(', ') + ')' : ''
   );
   console.log(
-    '  unknown viewMode hashes            :',
+    '  unknown viewMode names             :',
     unknownViewModes.size,
     unknownViewModes.size ? '(' + [...unknownViewModes].join(', ') + ')' : ''
   );
@@ -603,7 +606,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     connectableDirsNoBuilding.length +
     unknownViewModes.size +
     unknownConnectionTypes.size +
-    missingAtlasPages.length +
+    missingIndicatorPngs.length +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
@@ -634,6 +637,26 @@ export function convertExport2024(opts: ConvertOptions): void {
 
   // English game strings -> frontend only. Skipped when po_string.json is absent.
   if (hasPoStrings) writeEnglishStrings(englishStrings, opts.out);
+
+  // Utility-overlay indicator PNGs -> the SpriteInfo image root (frontend/src/assets/images/).
+  // SpriteInfo resolves textureName under assets/images/, not ui_image/, so the indicator
+  // sprites registered above need their PNG here (the backend renderer reads the same root).
+  // Content-aware so unchanged icons keep their mtime.
+  fs.mkdirSync(imagesDir, { recursive: true });
+  let indicatorsCopied = 0;
+  for (const name of UTILITY_INDICATOR_NAMES) {
+    const src = path.join(uiImageDir, name + '.png');
+    const dest = path.join(imagesDir, name + '.png');
+    if (fs.existsSync(src) && filesDiffer(src, dest)) {
+      fs.copyFileSync(src, dest);
+      indicatorsCopied++;
+    }
+  }
+  console.log(
+    '--- synced utility indicators ->',
+    path.normalize(imagesDir),
+    `(updated ${indicatorsCopied}/${UTILITY_INDICATOR_NAMES.length}) ---`
+  );
 
   // Sync sprites into the served asset dirs (backend + frontend). The DB references
   // these by filename, so they must travel together with the regenerated JSON.

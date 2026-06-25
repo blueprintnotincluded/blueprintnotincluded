@@ -53,8 +53,9 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 | `ui_image_facade/` | nothing today (not copied) |
 
 Current output (449 buildings): 212 elements, 365 build-menu items, 15 categories,
-474 uiSprites (449 building icons + 25 injected overlays — 17 element/info overlays +
-8 utility-port indicators), 31 connectables, 275 buildings with utility ports.
+474 uiSprites (449 building icons + 17 injected element/info overlays + 8 utility-port
+indicators registered from the export's `ui_image/` PNGs), 31 connectables, 275 buildings
+with utility ports.
 
 ## Image model — two kinds, used differently
 
@@ -102,9 +103,10 @@ ratio (see below). What breaks rendering is changing **framing**, not pixel coun
    e.g. `"GasInput"`, `"LogicReset"`) and `utilities[].offset` stays in the game's
    CellOffset convention; see "Utility connection ports" below.
 
-We inject a few overlay sprites of our own (`element_tile_back`, `*_tile_front`,
-`info_back`, `info_front_0..11`, plus the 8 utility-port indicators — 25 entries) —
-**don't** provide these.
+We inject 17 element-tile / info overlay sprites of our own (`element_tile_back`,
+`*_tile_front`, `info_back`, `info_front_0..11`) — **don't** provide these. The 8
+utility-port indicators, by contrast, now come from the export: ship them as
+`ui_image/<name>.png` (see "Utility connection ports" below).
 
 ## `uiImageRect` — flat-icon placement
 
@@ -178,21 +180,27 @@ shipping). One entry per port:
 **Indicator sprites.** The markers themselves (`input`, `output`,
 `electrical_disconnected`, `logicInput`, `logicOutput`, `logicResetUpdate`,
 `logic_ribbon_all_in`, `logic_ribbon_all_out`) are resolved by id in
-`ConnectionHelper.getConnectionSprite` (tint applied at draw time, no spriteModifier). The
-2024 export ships no PNGs for them, but the legacy packed-atlas pages they slice
-(`hat_role_building1`, `1bed_1toilet_locked`, `action_follow_cam`, `all_artifacts_locked`,
-`Animal_friends_locked`) are still committed under `frontend/src/assets/images/`, so the
-converter injects all 8 with their original UV rects (verbatim from the pre-2024 DB) rather
-than minting new art. If those atlas pages are ever removed, `getSpriteInfo` throws
-`Not found` and every utility overlay goes blank — keep them or re-cut standalone PNGs.
+`ConnectionHelper.getConnectionSprite` (tint applied at draw time, no spriteModifier). Since
+U59 the export ships each as its own flat PNG in `ui_image/<name>.png`, so the converter
+registers all 8 as whole-image sprites (`uvMin 0,0`, `uvSize` = the PNG's real size) and
+copies the PNGs into the SpriteInfo image root (`frontend/src/assets/images/`) — `SpriteInfo`
+resolves `textureName` there, not under `ui_image/`. `drawPixiUtility` forces a fixed
+0.5×0.5-cell draw size, so the icons render the same regardless of PNG resolution. The import
+fails (`utility indicator PNGs missing: N`) if the export drops any of the 8. This replaces
+the old approach of slicing the legacy packed-atlas pages (`hat_role_building1`,
+`1bed_1toilet_locked`, `action_follow_cam`, `all_artifacts_locked`, `Animal_friends_locked`);
+nothing references those pages anymore.
 
 ## `viewMode` mapping
 
-`building.json` `viewMode` is a Klei `HashedString` hex (e.g. `0x1EDC6185`), not the old
-0–11 int or a name string. The 12 distinct hashes are reverse-engineered via
-`Hash.SDBMLower` and mapped to the `Overlay` enum in `VIEW_MODE_TO_OVERLAY` at the top of
-the converter (Power, Liquid, Gas, Automation, Conveyor, Oxygen, Temperature, Decor, Light,
-Room, Radiation→Unknown, `0x0`→Base).
+`building.json` `viewMode` is the game-native overlay **name** (e.g. `"Power"`,
+`"GasConduit"`, `"Logic"`) or `null` when the building has no special overlay. (U59 changed
+this from the old Klei `HashedString` hex; the converter no longer parses hex.) The names are
+mapped to the `Overlay` enum in `VIEW_MODE_TO_OVERLAY` at the top of the converter (Power,
+LiquidConduit→Liquid, GasConduit→Gas, Logic→Automation, SolidConveyor→Conveyor, Oxygen,
+Temperature, Decor, Light, Rooms→Room, Radiation/Disease/Crop→Unknown); `null`/`""`→Base. An
+unrecognised name is counted in the import report (`unknown viewMode names: N`) and fails the
+import.
 
 ## Schema-vs-actual caveats
 

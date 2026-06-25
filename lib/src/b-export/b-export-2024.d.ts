@@ -35,7 +35,7 @@ export interface BBuildingDef2024 {
     permittedRotations: number;
     sceneLayer: number;
     objectLayer: number;
-    viewMode: string;
+    viewMode: string | null;
     defaultAnimState: string;
     uiSpriteName: string | null;
     uiImageRect?: {

@@ -193,8 +193,9 @@ converter details: `app/api/batch/convert-export-2024.md`.
   `CONNECTION_TYPE_BY_NAME`. Offsets are pre-rotation/y-up/footprint-relative and already
   match the website's internal convention (no transform). `BlueprintItem.drawPixiUtility`
   draws the markers per overlay; the 8 indicator sprites (`input`/`output`/`logicInput`…)
-  are injected by the converter from legacy atlas pages still committed under
-  `frontend/src/assets/images/`. Details: `app/api/batch/convert-export-2024.md`.
+  are registered from the export's own `ui_image/<name>.png` flats (copied into
+  `frontend/src/assets/images/` at import) — they no longer slice the legacy atlas pages.
+  Details: `app/api/batch/convert-export-2024.md`.
 - **Loaders**: backend reads `database-2024.json` directly; frontend fetches
   `database-2024.zip` (regenerated from the committed JSON by its `prebuild`/`prestart`).
 

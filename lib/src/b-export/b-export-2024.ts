@@ -65,8 +65,9 @@ export interface BBuildingDef2024 {
   permittedRotations: number;
   sceneLayer: number;
   objectLayer: number;
-  // Klei HashedString hex (e.g. "0x1EDC6185" == "Power"); "0x0" == no overlay.
-  viewMode: string;
+  // Game-native overlay name (e.g. "Power", "GasConduit"), or null when the building has no
+  // special overlay. U59 switched this from the old Klei HashedString hex to the name string.
+  viewMode: string | null;
   defaultAnimState: string;
   // Almost always null in this export; icon comes from the prefab key instead.
   uiSpriteName: string | null;
