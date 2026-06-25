@@ -24127,7 +24127,24 @@
         "h": 0.975
       },
       "buildLocationRule": 10,
-      "utilities": [],
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24175,7 +24192,24 @@
         "h": 1.095
       },
       "buildLocationRule": 11,
-      "utilities": [],
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24319,7 +24353,24 @@
         "h": 0.865
       },
       "buildLocationRule": 10,
-      "utilities": [],
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24367,7 +24418,24 @@
         "h": 1.095
       },
       "buildLocationRule": 11,
-      "utilities": [],
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24511,7 +24579,24 @@
         "h": 0.675
       },
       "buildLocationRule": 10,
-      "utilities": [],
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
