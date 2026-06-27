@@ -334,6 +334,18 @@ For a full restore: DO dashboard → Backups → restore the pre-deploy snapshot
 
 ---
 
+## Committing
+
+Commit autonomously at every logical break point — do NOT pause to ask permission.
+A logical break point is: a feature complete, a refactor complete, tests passing, a migration applied, or any other self-contained unit of work.
+
+Commit message format:
+- Subject: conventional commits style (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`), ≤72 chars
+- Body (when the why is non-obvious): explain motivation and any constraints a future reader would need; skip if the subject is self-explanatory
+- Always append: `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
+
+Stage only relevant files — never `git add -A` blindly. Do not skip hooks (`--no-verify`).
+
 ## Important Instructions
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
