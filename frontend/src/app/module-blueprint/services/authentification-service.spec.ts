@@ -16,6 +16,15 @@ const makeJwt = (payload: object): string => {
   return `${header}.${body}.sig`;
 };
 
+const makeJwtUrl = (payload: object): string => {
+  const encode = (obj: object) =>
+    btoa(JSON.stringify(obj))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+  return `${encode({ alg: "HS256", typ: "JWT" })}.${encode(payload)}.sig`;
+};
+
 const FUTURE_EXP = Math.floor(Date.now() / 1000) + 3600;
 const PAST_EXP = Math.floor(Date.now() / 1000) - 3600;
 
@@ -89,6 +98,20 @@ describe("AuthenticationService", () => {
       };
       service.saveToken(makeJwt(payload));
       expect(service.getUserDetails()!.role).toBe("admin");
+    });
+
+    it("decodes a base64url-encoded JWT payload", () => {
+      const payload = {
+        _id: "u3",
+        email: "c@d.com",
+        username: "carol",
+        exp: FUTURE_EXP,
+      };
+      service.saveToken(makeJwtUrl(payload));
+      const details = service.getUserDetails();
+      expect(details).not.toBeNull();
+      expect(details!._id).toBe("u3");
+      expect(details!.username).toBe("carol");
     });
 
     it("returns null and clears localStorage when token is malformed", () => {
