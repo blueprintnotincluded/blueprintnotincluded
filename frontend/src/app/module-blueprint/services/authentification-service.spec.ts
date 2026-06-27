@@ -159,6 +159,38 @@ describe("AuthenticationService", () => {
     });
   });
 
+  describe("isAlpha", () => {
+    it("returns false when no token (guest)", () => {
+      expect(service.isAlpha()).toBe(false);
+    });
+
+    it("returns true for a logged-in alpha user", () => {
+      service.saveToken(
+        makeJwt({
+          _id: "u1",
+          email: "a@b.com",
+          username: "alice",
+          exp: FUTURE_EXP,
+          isAlpha: true,
+        })
+      );
+      expect(service.isAlpha()).toBe(true);
+    });
+
+    it("returns false for an expired alpha token (stale cookie)", () => {
+      service.saveToken(
+        makeJwt({
+          _id: "u1",
+          email: "a@b.com",
+          username: "alice",
+          exp: PAST_EXP,
+          isAlpha: true,
+        })
+      );
+      expect(service.isAlpha()).toBe(false);
+    });
+  });
+
   describe("logout", () => {
     it("clears in-memory token", () => {
       service.saveToken("token123");

@@ -65,6 +65,7 @@ export class AuthenticationService {
   }
 
   public isAlpha(): boolean {
+    if (!this.isLoggedIn()) return false;
     return this.getUserDetails()?.isAlpha === true;
   }
 
