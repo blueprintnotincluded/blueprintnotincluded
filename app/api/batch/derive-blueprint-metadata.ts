@@ -56,21 +56,22 @@ async function run(dryRun: boolean) {
 
     const buildingDlcIds = prefabIds.map(id => dlcIdsMap.get(id) ?? []);
     const gameVersion = deriveGameVersion(buildingDlcIds);
-    const modded = deriveModded(prefabIds, knownIds);
+    // Only trust a positive modded=true: unknown buildings were stripped at import,
+    // so false here means "no remaining IDs are unknown" — not "definitely vanilla".
+    const derivedModded = deriveModded(prefabIds, knownIds);
 
     processed++;
 
     const changed =
       doc.gameVersion !== gameVersion ||
-      doc.modded !== modded;
+      (derivedModded && doc.modded !== true);
 
     if (changed) {
       updated++;
       if (!dryRun) {
-        await BlueprintModel.model.updateOne(
-          { _id: doc._id },
-          { $set: { gameVersion, modded } }
-        );
+        const $set: Record<string, unknown> = { gameVersion };
+        if (derivedModded) $set.modded = true;
+        await BlueprintModel.model.updateOne({ _id: doc._id }, { $set });
       }
     }
   }
