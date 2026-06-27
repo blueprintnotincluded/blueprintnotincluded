@@ -90,6 +90,20 @@ describe("AuthenticationService", () => {
       service.saveToken(makeJwt(payload));
       expect(service.getUserDetails()!.role).toBe("admin");
     });
+
+    it("returns null and clears localStorage when token is malformed", () => {
+      localStorage.setItem("blueprintnotincluded-token", "not.a.valid.jwt");
+      (service as any).token = "not.a.valid.jwt";
+      expect(service.getUserDetails()).toBeNull();
+      expect(localStorage.getItem("blueprintnotincluded-token")).toBeNull();
+    });
+
+    it("isAlpha returns false instead of throwing on malformed token", () => {
+      localStorage.setItem("blueprintnotincluded-token", "bad-token");
+      (service as any).token = "bad-token";
+      expect(() => service.isAlpha()).not.toThrow();
+      expect(service.isAlpha()).toBe(false);
+    });
   });
 
   describe("isLoggedIn", () => {
