@@ -684,7 +684,7 @@ export function convertExport2024(opts: ConvertOptions): void {
 
 function normalizeDlcIds(raw: string[] | string | null | undefined): string[] {
   if (!raw) return [];
-  if (typeof raw === 'string') return raw ? [raw] : [];
+  if (typeof raw === 'string') return [raw];
   return raw.filter(Boolean);
 }
 
