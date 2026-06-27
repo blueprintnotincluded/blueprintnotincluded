@@ -76,6 +76,8 @@ export class BlueprintService implements IObsBlueprintChange {
 
   openBlueprintFromUpload(fileType: BlueprintFileType, fileList: FileList) {
     if (fileList.length > 0) {
+      this.reset();
+
       if (fileType == BlueprintFileType.YAML)
         this.openYamlBlueprint(fileList[0]);
       else if (fileType == BlueprintFileType.JSON)
