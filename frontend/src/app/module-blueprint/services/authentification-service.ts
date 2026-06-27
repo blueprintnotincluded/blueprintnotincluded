@@ -43,7 +43,10 @@ export class AuthenticationService {
     const token = this.getToken();
     if (!token) return null;
     try {
-      const payload = window.atob(token.split(".")[1]);
+      const segment = token.split(".")[1];
+      if (!segment) throw new Error("missing segment");
+      const base64 = segment.replace(/-/g, "+").replace(/_/g, "/");
+      const payload = window.atob(base64);
       return JSON.parse(payload);
     } catch {
       localStorage.removeItem(AuthenticationService.localStorage);
