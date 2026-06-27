@@ -7,6 +7,7 @@
     "tsc": "tsc -b",
     "typecheck": "tsc --noEmit --watch",
     "dev:full": "concurrently --names 'server,types' 'npm run dev' 'npm run typecheck'",
+    "predev": "npm run build:lib",
     "dev": "ts-node-dev --respawn --transpile-only ./app/server.ts",
     "prod": "tsc -b && node ./build/server.js",
     "test": "npm run test:db-setup && TS_NODE_TRANSPILE_ONLY=true mocha",
