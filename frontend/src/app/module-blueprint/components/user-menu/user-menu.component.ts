@@ -42,16 +42,25 @@ export class UserMenuComponent implements OnInit {
     this.logoutSuccessMsg = $localize`Logout Successful`;
     this.isAdmin = this.authService.getUserDetails()?.role === "admin";
 
+    const loggedIn = this.authService.isLoggedIn();
     this.userMenuItems = [
+      {
+        label: $localize`Sign in`,
+        icon: "pi pi-sign-in",
+        command: () => this.login(),
+        visible: !loggedIn,
+      },
       {
         label: $localize`My Blueprints`,
         icon: "pi pi-images",
         command: () => this.userProfile(),
+        visible: loggedIn,
       },
       {
         label: $localize`Switch account`,
         icon: "pi pi-refresh",
         command: () => this.switchAccount(),
+        visible: loggedIn,
       },
       { separator: true },
       {
@@ -70,6 +79,7 @@ export class UserMenuComponent implements OnInit {
         label: $localize`Log out`,
         icon: "pi pi-sign-out",
         command: () => this.logout(),
+        visible: loggedIn,
       },
     ];
   }
