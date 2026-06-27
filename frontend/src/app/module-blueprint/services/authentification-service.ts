@@ -41,12 +41,13 @@ export class AuthenticationService {
 
   public getUserDetails(): UserDetails | null {
     const token = this.getToken();
-    let payload;
-    if (token) {
-      payload = token.split(".")[1];
-      payload = window.atob(payload);
+    if (!token) return null;
+    try {
+      const payload = window.atob(token.split(".")[1]);
       return JSON.parse(payload);
-    } else {
+    } catch {
+      localStorage.removeItem(AuthenticationService.localStorage);
+      this.token = "";
       return null;
     }
   }
