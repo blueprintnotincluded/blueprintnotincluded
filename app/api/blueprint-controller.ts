@@ -60,7 +60,11 @@ export class BlueprintController {
       }
 
       const subcategory = req.body.subcategory ?? null;
-      if (subcategory != null && category != null) {
+      if (subcategory != null) {
+        if (category == null) {
+          res.status(400).json(apiError(400, 'subcategory requires category to be set'));
+          return;
+        }
         const allowed = SUBCATEGORIES[category as keyof typeof SUBCATEGORIES];
         if (!allowed || !allowed.includes(subcategory)) {
           res.status(400).json(apiError(400, `Invalid subcategory for category '${category}'`));

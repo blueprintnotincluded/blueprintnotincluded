@@ -119,6 +119,16 @@ describe('Blueprint metadata API', function () {
       expect(response.body.errors).to.be.an('array');
     });
 
+    it('rejects subcategory without category with 400', async function () {
+      const response = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, subcategory: 'generator' });
+
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+    });
+
     it('rejects unknown researchTier with 400', async function () {
       const response = await TestSetup.request()
         .post('/api/uploadblueprint')
