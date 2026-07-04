@@ -13,6 +13,15 @@ import { Injectable, ApplicationRef } from "@angular/core";
 import { ITool, IChangeTool, ToolType } from "./tool";
 import { DrawPixi } from "../../drawing/draw-pixi";
 
+// Bridges overlap other buildings freely; only their utility ports can conflict.
+const BRIDGE_LOCATION_RULES: ReadonlySet<BuildLocationRule> = new Set([
+  BuildLocationRule.Conduit,
+  BuildLocationRule.WireBridge,
+  BuildLocationRule.LogicBridge,
+  // U59: the conductive pipe bridge is a liquid bridge with an origin-cell rule
+  BuildLocationRule.NoLiquidConduitAtOrigin,
+]);
+
 @Injectable()
 export class BuildTool implements ITool {
   templateItemToBuild!: BlueprintItem;
@@ -49,13 +58,9 @@ export class BuildTool implements ITool {
 
     // First : iterate all the buildings on each tile of this building
 
-    let isBridge =
-      this.templateItemToBuild.oniItem.buildLocationRule ==
-        BuildLocationRule.Conduit ||
-      this.templateItemToBuild.oniItem.buildLocationRule ==
-        BuildLocationRule.WireBridge ||
-      this.templateItemToBuild.oniItem.buildLocationRule ==
-        BuildLocationRule.LogicBridge;
+    let isBridge = BRIDGE_LOCATION_RULES.has(
+      this.templateItemToBuild.oniItem.buildLocationRule
+    );
 
     for (let tileIndex of this.templateItemToBuild.tileIndexes) {
       for (let templateItem of this.blueprintService.blueprint.getBlueprintItemsAtIndex(

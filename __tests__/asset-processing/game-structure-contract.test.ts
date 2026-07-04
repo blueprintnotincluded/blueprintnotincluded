@@ -3,8 +3,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   BuildableElement,
+  BuildLocationRule,
   BuildMenuCategory,
   BuildMenuItem,
+  ConnectionType,
   SpriteInfo,
   SpriteModifier,
   ImageSource,
@@ -174,5 +176,59 @@ describe('Game structure contract (representative buildings)', () => {
       }
       expect(broken, `buildings with no selectable materials: ${broken.join('; ')}`).to.be.empty;
     });
+  });
+
+  // Every enum-valued field in the export must map to a defined member of the
+  // website's mirror enum. This is the broad detector: when Klei appends or
+  // reorders a game enum (as U59 did to SceneLayer and BuildLocationRule), a
+  // fresh import fails here naming the building and the unmapped value.
+  describe('enum coverage', () => {
+    it('every building uses defined ZIndex, Overlay, and BuildLocationRule members', () => {
+      const unmapped: string[] = [];
+      for (const b of database.buildings) {
+        if (ZIndex[b.sceneLayer] === undefined)
+          unmapped.push(`${b.prefabId}: sceneLayer ${b.sceneLayer}`);
+        if (Overlay[b.viewMode] === undefined)
+          unmapped.push(`${b.prefabId}: viewMode ${b.viewMode}`);
+        if (BuildLocationRule[b.buildLocationRule] === undefined)
+          unmapped.push(`${b.prefabId}: buildLocationRule ${b.buildLocationRule}`);
+        for (const u of b.utilities ?? [])
+          if (ConnectionType[u.type] === undefined)
+            unmapped.push(`${b.prefabId}: connection type ${u.type}`);
+      }
+      expect(unmapped, unmapped.join('; ')).to.be.empty;
+    });
+
+    it('every DLC id in the database is known to the blueprint analyzer', () => {
+      // Must stay in sync with DLC_TO_GAME_VERSION in lib/src/blueprint/blueprint-analyzer.ts.
+      // A failure here means a new DLC arrived: add its GameVersion mapping there first.
+      const knownDlcIds = new Set(['EXPANSION1_ID', 'DLC2_ID', 'DLC5_ID']);
+      const unknown = new Set<string>();
+      for (const b of database.buildings)
+        for (const dlcId of b.dlcIds ?? []) if (!knownDlcIds.has(dlcId)) unknown.add(dlcId);
+      expect([...unknown], `unknown DLC ids: ${[...unknown].join(', ')}`).to.be.empty;
+    });
+  });
+
+  // Placement rules for the buildings whose rules the site actually branches on
+  // (bridge detection in the frontend build tool) plus the U59 additions.
+  describe('build location rules', () => {
+    const rules: [string, BuildLocationRule][] = [
+      ['LiquidConduitBridge', BuildLocationRule.Conduit],
+      ['WireBridge', BuildLocationRule.WireBridge],
+      ['LogicWireBridge', BuildLocationRule.LogicBridge],
+      ['WireBridgeHighWattage', BuildLocationRule.HighWattBridgeTile],
+      ['ContactConductivePipeBridge', BuildLocationRule.NoLiquidConduitAtOrigin],
+      ['WallToilet', BuildLocationRule.WallFloor],
+      ['RocketInteriorGasInput', BuildLocationRule.OnRocketEnvelope],
+      ['UnderwaterMilkingStation', BuildLocationRule.Underwater],
+    ];
+    for (const [prefabId, rule] of rules) {
+      it(`${prefabId} is ${BuildLocationRule[rule]}`, () => {
+        const record = buildingsById.get(prefabId);
+        expect(record, `${prefabId} missing from database`).to.exist;
+        expect(record.buildLocationRule).to.equal(rule);
+      });
+    }
   });
 });

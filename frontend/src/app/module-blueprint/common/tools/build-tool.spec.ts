@@ -365,6 +365,16 @@ describe("BuildTool", () => {
       expect(templateItem.buildCandidateResult.canBuild).toBe(true);
     });
 
+    it("treats the conductive pipe bridge (NoLiquidConduitAtOrigin) as a bridge", () => {
+      const blocker = { oniItem: { objectLayer: 19, name: "Liquid Bridge" } };
+      mockBlueprint.getBlueprintItemsAtIndex.mockReturnValue([blocker]);
+      templateItem.oniItem.buildLocationRule =
+        BuildLocationRule.NoLiquidConduitAtOrigin;
+      templateItem.oniItem.objectLayer = 19;
+      tool.hover(new Vector2(0, 0));
+      expect(templateItem.buildCandidateResult.canBuild).toBe(true);
+    });
+
     it("calls appRef.tick when canBuild state changes", () => {
       templateItem.buildCandidateResult.canBuild = true;
       const blocker = { oniItem: { objectLayer: 1, name: "Blocker" } };
