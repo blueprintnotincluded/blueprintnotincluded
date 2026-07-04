@@ -13,6 +13,11 @@ export declare enum BuildLocationRule {
     HighWattBridgeTile = 11,
     BuildingAttachPoint = 12,
     OnFloorOrBuildingAttachPoint = 13,
-    OnFoundationRotatable = 14
+    OnFoundationRotatable = 14,
+    BelowRocketCeiling = 15,
+    OnRocketEnvelope = 16,
+    WallFloor = 17,
+    NoLiquidConduitAtOrigin = 18,
+    Underwater = 19
 }
 //# sourceMappingURL=build-location-rule.d.ts.map
