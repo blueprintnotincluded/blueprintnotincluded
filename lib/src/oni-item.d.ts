@@ -71,6 +71,7 @@ export declare class OniItem {
     static get oniItems(): OniItem[];
     static init(): void;
     static load(buildings: BBuilding[]): void;
+    static readonly objectLayerBuilding = 1;
     isOverlayPrimary(overlay: Overlay): boolean;
     isOverlaySecondary(overlay: Overlay): boolean;
     getCategoryFromItem(): BuildMenuCategory;

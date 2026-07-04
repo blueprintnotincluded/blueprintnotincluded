@@ -13,9 +13,10 @@ export enum ZIndex {
   Wires = 10,
   WireBridges = 11,
   WireBridgesFront = 12,
-  LogicGates = 13,
-  LogicGatesFront = 14,
-  LogicWires = 15,
+  // U59 ordering: logic wires draw behind gates (was Gates=13/GatesFront=14/Wires=15)
+  LogicWires = 13,
+  LogicGates = 14,
+  LogicGatesFront = 15,
   InteriorWall = 16,
   GasFront = 17,
   BuildingBack = 18,
