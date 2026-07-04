@@ -73,11 +73,18 @@ export class BuildableElement {
     // Treat these as non-selectable by returning an empty list.
     if (tag === 'BuildingFiber') return [];
 
+    // U59 emits union categories as '&'-joined tag lists (e.g. "Plumbable&Metal"
+    // on the liquid pipe): an element matching any part is a valid material.
+    const tagParts = tag.split('&');
+
+    // Gate on Solid, not BuildableAny: niche materials (WoodLog, Rubber, Snow,
+    // Fossil) carry their category tag but not the BuildableAny wildcard, while
+    // molten/gas metal phases carry Metal but are not Solid.
     for (let element of BuildableElement.elements)
       if (
         returnValue.indexOf(element) == -1 &&
-        (element.id == tag || element.oreTags.indexOf(tag) != -1) &&
-        element.oreTags.indexOf('BuildableAny') != -1
+        tagParts.some((part) => element.id == part || element.oreTags.indexOf(part) != -1) &&
+        element.oreTags.indexOf('Solid') != -1
       )
         returnValue.push(element);
 

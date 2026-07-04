@@ -13,6 +13,9 @@ import {
   ZIndex,
 } from '../../lib';
 
+const elementIds = (item: OniItem, slot: number) =>
+  item.buildableElementsArray[slot].map((e) => e.id);
+
 // Structural contract with the game export: one representative building per
 // render/overlay group. The database is *expected* to change on every import —
 // these tests pin only the structural facts the renderer depends on (scene
@@ -121,5 +124,55 @@ describe('Game structure contract (representative buildings)', () => {
         expect(solidIn).to.have.members(rep.solidIn);
       });
     }
+  });
+
+  // Construction materials. U59 introduced '&'-joined union categories
+  // ("Plumbable&Metal") and niche categories whose elements lack the
+  // BuildableAny wildcard tag (BuildingWood, Rubber, Snow, Fossil). When
+  // material resolution breaks, OniItem.cleanUp falls back to a Vacuum-only
+  // slot — which is exactly what these tests exist to catch.
+  describe('buildable materials', () => {
+    it('LiquidConduit (Plumbable&Metal union) offers both plumbable rocks and metal ores', () => {
+      const ids = elementIds(OniItem.getOniItem('LiquidConduit'), 0);
+      expect(ids).to.include('SandStone'); // Plumbable
+      expect(ids).to.include('IronOre'); // Metal
+      expect(ids).to.not.include('Vacuum');
+    });
+
+    it('GasConduit (BuildableRaw&Metal union) offers both raw minerals and metal ores', () => {
+      const ids = elementIds(OniItem.getOniItem('GasConduit'), 0);
+      expect(ids).to.include('SandStone'); // BuildableRaw
+      expect(ids).to.include('IronOre'); // Metal
+      expect(ids).to.not.include('Vacuum');
+    });
+
+    it('WoodenDoor offers wood even though WoodLog lacks the BuildableAny tag', () => {
+      expect(elementIds(OniItem.getOniItem('WoodenDoor'), 0)).to.include('WoodLog');
+    });
+
+    it('Wire (Metal) offers solid ores but never molten or gaseous metal phases', () => {
+      const ids = elementIds(OniItem.getOniItem('Wire'), 0);
+      expect(ids).to.include('IronOre');
+      expect(ids).to.not.include('MoltenIron');
+      expect(ids).to.not.include('IronGas');
+    });
+
+    it('no building with a material category falls back to the Vacuum-only slot', () => {
+      const broken: string[] = [];
+      for (const record of database.buildings) {
+        const categories: string[] = record.materialCategory.filter(
+          (c: string) => c !== 'BuildingFiber'
+        );
+        if (categories.length === 0) continue;
+
+        const item = OniItem.getOniItem(record.prefabId);
+        const vacuumFallback =
+          item.buildableElementsArray.length === 1 &&
+          item.buildableElementsArray[0].length === 1 &&
+          item.buildableElementsArray[0][0].id === 'Vacuum';
+        if (vacuumFallback) broken.push(`${record.prefabId} (${categories.join(', ')})`);
+      }
+      expect(broken, `buildings with no selectable materials: ${broken.join('; ')}`).to.be.empty;
+    });
   });
 });
