@@ -39,6 +39,7 @@ export declare class BlueprintItem {
     topLeft: Vector2;
     bottomRight: Vector2;
     drawParts: DrawPart[];
+    utilityConnectionOffsets: Vector2[];
     depth: number;
     alpha: number;
     visible: boolean;
@@ -55,6 +56,7 @@ export declare class BlueprintItem {
     importBniBuilding(building: BniBuilding): void;
     importMdbBuilding(original: MdbBuilding): void;
     private updateRotationScale;
+    private updateUtilityConnectionOffsets;
     nextOrientation(): void;
     changeOrientation(newOrientation: Orientation | undefined): void;
     cleanUp(): void;

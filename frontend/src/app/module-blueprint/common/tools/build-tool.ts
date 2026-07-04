@@ -79,24 +79,22 @@ export class BuildTool implements ITool {
       }
     }
 
-    for (let connectionToBuild of this.templateItemToBuild.oniItem
-      .utilityConnections) {
-      // We rotate and scale the offset, and add to the position
-      let connectionToBuildPosition = Vector2.cloneNullToZero(
-        connectionToBuild.offset
+    const utilityConnections =
+      this.templateItemToBuild.oniItem.utilityConnections;
+    for (
+      let connectionIndex = 0;
+      connectionIndex < utilityConnections.length;
+      connectionIndex++
+    ) {
+      let connectionToBuild = utilityConnections[connectionIndex];
+      // Rotation/scale are baked into this cache whenever the candidate's orientation changes;
+      // only the (cheap) position offset needs to happen per hover.
+      let cachedOffset =
+        this.templateItemToBuild.utilityConnectionOffsets[connectionIndex];
+      let connectionToBuildPosition = new Vector2(
+        cachedOffset.x + this.templateItemToBuild.position.x,
+        cachedOffset.y + this.templateItemToBuild.position.y
       );
-      connectionToBuildPosition = DrawHelpers.rotateVector2(
-        connectionToBuildPosition,
-        Vector2.Zero,
-        this.templateItemToBuild.rotation
-      );
-      connectionToBuildPosition = DrawHelpers.scaleVector2(
-        connectionToBuildPosition,
-        Vector2.Zero,
-        this.templateItemToBuild.scale
-      );
-      connectionToBuildPosition.x += this.templateItemToBuild.position.x;
-      connectionToBuildPosition.y += this.templateItemToBuild.position.y;
 
       let utilitiesAtIndex =
         this.blueprintService.blueprint.getUtilityConnectionsAtIndex(

@@ -87,6 +87,11 @@ export class BlueprintItem {
 
   drawParts: DrawPart[] = [];
 
+  // Rotated + scaled utility connection offsets (position-independent), indexed to match
+  // oniItem.utilityConnections. Recomputed only when rotation/scale change (updateRotationScale),
+  // instead of every frame in drawPixiUtility / every hover in BuildTool.updateBuildCandidateResult.
+  public utilityConnectionOffsets: Vector2[] = [];
+
   depth: number = 0;
   alpha: number = 0;
   visible: boolean = false;
@@ -247,7 +252,19 @@ export class BlueprintItem {
         break;
     }
 
+    this.updateUtilityConnectionOffsets();
     this.prepareBoundingBox();
+  }
+
+  private updateUtilityConnectionOffsets() {
+    this.utilityConnectionOffsets = this.oniItem.utilityConnections.map(connection => {
+      let offset = DrawHelpers.rotateVector2(
+        Vector2.cloneNullToZero(connection.offset),
+        Vector2.Zero,
+        this.rotation
+      );
+      return DrawHelpers.scaleVector2(offset, Vector2.Zero, this.scale);
+    });
   }
 
   nextOrientation() {
@@ -705,12 +722,7 @@ export class BlueprintItem {
       } else if (this.utilitySprites[connexionIndex] != null)
         this.utilitySprites[connexionIndex].visible = true;
 
-      let connectionPosition = DrawHelpers.rotateVector2(
-        connection.offset,
-        Vector2.Zero,
-        this.rotation
-      );
-      connectionPosition = DrawHelpers.scaleVector2(connectionPosition, Vector2.Zero, this.scale);
+      let connectionPosition = this.utilityConnectionOffsets[connexionIndex];
 
       let drawPos = new Vector2(
         (this.position.x + connectionPosition.x + camera.cameraOffset.x + 0.25) *
