@@ -363,7 +363,15 @@ export class OniItem {
     OniItem.oniItemsMap.set(infoOniItem.id, infoOniItem);
   }
 
+  // ObjectLayer.Building in the game's grid; buildings on this layer are physical
+  // structures even when their sceneLayer is a wire/conduit render layer.
+  static readonly objectLayerBuilding = 1;
+
   public isOverlayPrimary(overlay: Overlay): boolean {
+    // U59 moved the Heavi-Watt joint plates to the WireBridges/WireBridgesFront
+    // scene layers, but they occupy the Building object layer: solid in the Base
+    // overlay, and solid in their viewMode overlay via isOverlaySecondary.
+    if (this.objectLayer == OniItem.objectLayerBuilding) return overlay == Overlay.Base;
     return overlay == ConnectionHelper.getOverlayFromLayer(this.zIndex);
   }
 
