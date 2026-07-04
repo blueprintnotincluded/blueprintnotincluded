@@ -30,6 +30,7 @@ import {
 
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { DrawMiniUi } from "../../drawing/draw-mini-ui";
+import { GoogleAnalyticsService } from "ngx-google-analytics";
 import JSZip from "jszip";
 import {
   BlueprintService,
@@ -77,6 +78,7 @@ export class ComponentCanvasComponent
     private ngZone: NgZone,
     private blueprintService: BlueprintService,
     private toolService: ToolService,
+    private gaService: GoogleAnalyticsService,
     drawPixi: DrawPixi
   ) {
     this.drawPixi = drawPixi;
@@ -109,9 +111,100 @@ export class ComponentCanvasComponent
     this.running = false;
   }
 
+  // Render-time telemetry: how long it takes from "a blueprint is handed to the
+  // canvas" to "every item has a PIXI container", reported to GA so we have some
+  // real signal on client-side render performance in prod. Best-effort only -
+  // any failure here must never affect actual loading/rendering.
+  private pendingRenderMetric: {
+    startTime: number;
+    itemCount: number;
+    generation: number;
+  } | null = null;
+  private renderMetricGeneration = 0;
+
+  private startRenderMetric(source: Blueprint) {
+    try {
+      this.renderMetricGeneration++;
+      this.pendingRenderMetric = {
+        startTime: performance.now(),
+        itemCount: source.blueprintItems?.length ?? 0,
+        generation: this.renderMetricGeneration,
+      };
+    } catch (error) {
+      console.warn("startRenderMetric failed", error);
+      this.pendingRenderMetric = null;
+    }
+  }
+
+  private static readonly RENDER_METRIC_TIMEOUT_MS = 20000;
+  private checkRenderMetric() {
+    const pending = this.pendingRenderMetric;
+    if (pending == null) return;
+
+    try {
+      // A newer blueprint was loaded before this one finished rendering; drop it.
+      if (pending.generation !== this.renderMetricGeneration) {
+        this.pendingRenderMetric = null;
+        return;
+      }
+
+      const elapsedMs = performance.now() - pending.startTime;
+      const items = this.blueprint?.blueprintItems;
+      if (items == null) {
+        this.pendingRenderMetric = null;
+        return;
+      }
+
+      if (elapsedMs > ComponentCanvasComponent.RENDER_METRIC_TIMEOUT_MS) {
+        this.reportRenderMetric(
+          "blueprint_render_timeout",
+          pending.itemCount,
+          elapsedMs
+        );
+        this.pendingRenderMetric = null;
+        return;
+      }
+
+      const allReady = items.every((item) => item?.containerCreated);
+      if (allReady) {
+        this.reportRenderMetric(
+          "blueprint_render_complete",
+          pending.itemCount,
+          elapsedMs
+        );
+        this.pendingRenderMetric = null;
+      }
+    } catch (error) {
+      console.warn("checkRenderMetric failed", error);
+      this.pendingRenderMetric = null;
+    }
+  }
+
+  private reportRenderMetric(
+    action: string,
+    itemCount: number,
+    durationMs: number
+  ) {
+    try {
+      this.gaService?.event(
+        action,
+        "blueprint_performance",
+        undefined,
+        Math.round(durationMs),
+        false,
+        {
+          item_count: itemCount,
+        }
+      );
+    } catch (error) {
+      console.warn("reportRenderMetric failed", error);
+    }
+  }
+
   public loadNewBlueprint(source: Blueprint) {
     // TODO make sure nothing creates a "real  blueprint" before this
     // TODO fixme
+    this.startRenderMetric(source);
     this.blueprint.destroyAndCopyItems(source);
 
     this.cameraService.overlay = Overlay.Base;
@@ -928,6 +1021,8 @@ export class ComponentCanvasComponent
 
       this.toolService.draw(this.drawPixi, this.cameraService);
     }
+
+    if (this.pendingRenderMetric != null) this.checkRenderMetric();
 
     if (this.cameraService.triggerSortChildren) {
       this.drawPixi.sortChildren();
