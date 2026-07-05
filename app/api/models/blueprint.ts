@@ -6,6 +6,7 @@ export interface Blueprint extends Document {
   name: string;
   tags: string[];
   likes: string[];
+  likeCount: number;
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;
@@ -39,6 +40,7 @@ export class BlueprintModel {
       },
       tags: { type: [String] },
       likes: { type: [String] },
+      likeCount: { type: Number, default: 0 },
       createdAt: Date,
       modifiedAt: Date,
       thumbnail: String,
@@ -69,6 +71,8 @@ export class BlueprintModel {
     blueprintSchema.index({ deletedAt: 1, gameVersion: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, category: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, gameVersion: 1, category: 1, createdAt: -1 });
+    // "Most liked" sort on the public feed
+    blueprintSchema.index({ deletedAt: 1, likeCount: -1, createdAt: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }

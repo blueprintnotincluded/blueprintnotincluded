@@ -15,6 +15,7 @@ export interface TestBlueprint {
   name: string;
   tags: string[];
   likes: string[];
+  likeCount?: number;
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;
@@ -49,7 +50,7 @@ export class TestDataFactory {
     this.blueprintCounter++;
     const now = new Date();
 
-    return {
+    const blueprint: TestBlueprint = {
       _id: new Types.ObjectId(),
       owner,
       name: `Test Blueprint ${this.blueprintCounter}`,
@@ -78,6 +79,9 @@ export class TestDataFactory {
       deletedAt: null,
       ...overrides,
     };
+    // Keep the counter-cache consistent with the likes array unless a test overrides it
+    blueprint.likeCount = overrides.likeCount ?? blueprint.likes.length;
+    return blueprint;
   }
 
   static createPopularBlueprint(

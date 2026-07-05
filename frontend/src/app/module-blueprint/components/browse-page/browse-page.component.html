@@ -45,6 +45,16 @@
       placeholder="Category"
     ></p-select>
     <p-select
+      [(ngModel)]="sort"
+      [options]="sortOptions"
+      optionLabel="label"
+      optionValue="value"
+      [showClear]="false"
+      (onChange)="onSortChange()"
+      i18n-placeholder
+      placeholder="Sort"
+    ></p-select>
+    <p-select
       *ngIf="subcategoryOptions.length > 0"
       [(ngModel)]="filterSubcategory"
       [options]="subcategoryOptions"
@@ -144,6 +154,14 @@
             >Modded</span
           >
         </div>
+        <app-like-widget
+          *ngIf="isReal(item.thumbnail)"
+          class="card-likes"
+          [blueprintId]="item.id"
+          [nbLikes]="item.nbLikes"
+          [likedByMe]="item.likedByMe"
+          [disabled]="!loggedIn"
+        ></app-like-widget>
       </div>
     </div>
   </div>

@@ -13,6 +13,7 @@ import {
   SUBCATEGORIES,
 } from "../../../../../../lib/index";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
+import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { DatePipe } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject } from "rxjs";
@@ -45,6 +46,13 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
   remaining = 0;
+  sort: "recent" | "popular" = "recent";
+  skipCount = 0;
+
+  readonly sortOptions = [
+    { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
+    { label: $localize`:browse.sortMostLiked:Most liked`, value: "popular" },
+  ];
 
   readonly gameVersionOptions = [
     { label: "All versions", value: null },
@@ -73,6 +81,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   constructor(
     private blueprintService: BlueprintService,
+    private authService: AuthenticationService,
     public datepipe: DatePipe,
     private route: ActivatedRoute,
     private router: Router
@@ -125,6 +134,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterGameVersion = params.get("gameVersion");
     this.filterCategory = params.get("category");
     this.filterSubcategory = params.get("subcategory");
+    this.sort = params.get("sort") === "popular" ? "popular" : "recent";
     this.appendLoading();
     this.getBlueprints();
   }
@@ -145,6 +155,16 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.getBlueprints();
   }
 
+  onSortChange() {
+    this.applyFiltersToUrl();
+    this.reset();
+    this.getBlueprints();
+  }
+
+  get loggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
   private applyFiltersToUrl() {
     const queryParams: Record<string, string | null> = {};
     if (this.filterName) queryParams["name"] = this.filterName;
@@ -153,6 +173,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (this.filterCategory) queryParams["category"] = this.filterCategory;
     if (this.filterSubcategory)
       queryParams["subcategory"] = this.filterSubcategory;
+    if (this.sort === "popular") queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
 
@@ -190,7 +211,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         false,
         this.filterGameVersion,
         this.filterCategory,
-        this.filterSubcategory
+        this.filterSubcategory,
+        this.sort,
+        this.sort === "popular" ? this.skipCount : undefined
       )
       .subscribe({
         next: (r: any) => this.handleGetBlueprints(r),
@@ -216,6 +239,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.working = false;
     this.loadError = false;
     this.oldestDate = new Date(response.oldest);
+    // popular paginates by offset — advance past what we just received
+    this.skipCount += response.blueprints.length;
     this.remaining = response.remaining;
     if (this.remaining === 0) this.noMoreBlueprints = true;
 
@@ -242,6 +267,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   reset() {
     this.blueprintListItems = [];
     this.oldestDate = new Date();
+    this.skipCount = 0;
     this.noMoreBlueprints = false;
     this.working = true;
     this.remaining = 0;
