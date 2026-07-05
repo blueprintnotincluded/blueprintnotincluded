@@ -14,6 +14,11 @@ interface BuildMenuItemLike {
     buildingId: string;
 }
 export declare function buildCategoryLookup(buildMenuCategories: BuildMenuCategoryLike[], buildMenuItems: BuildMenuItemLike[]): CategoryLookup;
+interface SignatureVote {
+    category: Category;
+    weight: number;
+}
+export declare const SIGNATURE_PREFABS: Record<string, SignatureVote[]>;
 export declare function deriveCategory(prefabIds: string[], lookup: CategoryLookup): Category | null;
 export {};
 //# sourceMappingURL=blueprint-analyzer.d.ts.map
