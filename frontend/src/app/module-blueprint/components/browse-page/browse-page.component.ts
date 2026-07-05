@@ -48,6 +48,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   remaining = 0;
   sort: "recent" | "popular" = "recent";
   skipCount = 0;
+  private requestId = 0;
 
   readonly sortOptions = [
     { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
@@ -203,6 +204,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   getBlueprints() {
     const name = this.filterName.trim() || null;
     this.loadError = false;
+    const requestId = ++this.requestId;
     this.blueprintService
       .getBlueprints(
         this.oldestDate,
@@ -216,8 +218,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         this.sort === "popular" ? this.skipCount : undefined
       )
       .subscribe({
-        next: (r: any) => this.handleGetBlueprints(r),
-        error: () => this.handleError(),
+        next: (r: any) => {
+          if (requestId === this.requestId) this.handleGetBlueprints(r);
+        },
+        error: () => {
+          if (requestId === this.requestId) this.handleError();
+        },
       });
   }
 

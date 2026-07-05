@@ -13,7 +13,7 @@ export const SUBCATEGORIES: Record<Category, readonly string[]> = {
   ranching:  ['critter', 'egg', 'grooming'],
   automation: ['logic', 'sensor', 'switch'],
   transit:   ['rail', 'conveyor', 'pneumatic', 'ladder'],
-  refining:  ['oil', 'metal', 'food'],
+  refining:  ['oil', 'metal', 'foodProcessing'],
   rooms:     ['barracks', 'hospital', 'recreation'],
   decor:     ['sculpture', 'plant', 'lighting'],
 };

@@ -20,6 +20,7 @@ import {
   buildCategoryLookup,
   BuildMenuCategory,
   BuildMenuItem,
+  CategoryLookup,
 } from "../../../../../../../lib/index";
 
 @Component({
@@ -101,6 +102,7 @@ export class ComponentSaveDialogComponent {
   thumbnailReady: boolean = false;
   overwrite: boolean = false;
   private _originalName: string | null = null;
+  private _categoryLookup: CategoryLookup | null = null;
 
   constructor(
     public blueprintService: BlueprintService,
@@ -162,11 +164,11 @@ export class ComponentSaveDialogComponent {
       BuildMenuCategory.buildMenuCategories != null &&
       BuildMenuItem.buildMenuItems != null
     ) {
-      const lookup = buildCategoryLookup(
+      this._categoryLookup ??= buildCategoryLookup(
         BuildMenuCategory.buildMenuCategories,
         BuildMenuItem.buildMenuItems
       );
-      const category = deriveCategory(prefabIds, lookup);
+      const category = deriveCategory(prefabIds, this._categoryLookup);
       if (category != null) this.saveBlueprintForm.patchValue({ category });
     }
   }

@@ -84,7 +84,7 @@ interface SignatureVote {
 // Weight defaults to 3 (a strong signal on its own); weight 1 marks prefabs
 // shared with another category, or building types that appear in almost
 // every blueprint of that function but aren't unique to it.
-const SIGNATURE_PREFABS: Record<string, SignatureVote[]> = {
+export const SIGNATURE_PREFABS: Record<string, SignatureVote[]> = {
   // oxygenGen
   Electrolyzer: [{ category: 'oxygenGen', weight: 3 }],
   MineralDeoxidizer: [{ category: 'oxygenGen', weight: 3 }],

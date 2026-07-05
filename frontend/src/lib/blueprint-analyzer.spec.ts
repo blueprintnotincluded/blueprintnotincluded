@@ -7,6 +7,7 @@ import {
   buildCategoryLookup,
   CATEGORIES,
   CategoryLookup,
+  SIGNATURE_PREFABS,
 } from "../../../lib/index";
 
 describe("deriveGameVersion", () => {
@@ -112,17 +113,14 @@ describe("deriveCategory", () => {
     decor: ["FloorLamp", "CeilingLight"],
   };
 
-  it("every signature prefab referenced by the analyzer exists in the real database", () => {
-    // Re-derive every category with a single representative building and
-    // confirm it round-trips — this fails loudly if a prefab id was
-    // mistyped or renamed in a future export, per the spec's TDD directive.
-    for (const category of CATEGORIES) {
-      for (const id of FIXTURE_BY_CATEGORY[category]) {
-        expect(
-          buildingIds.has(id),
-          `${id} missing from database-2024.json`
-        ).toBe(true);
-      }
+  it("every signature prefab in the analyzer's table exists in the real database", () => {
+    // Covers the full SIGNATURE_PREFABS table (not just the fixture below) so
+    // a mistyped or renamed prefab id in a future export fails loudly here
+    // instead of silently dropping out of category scoring.
+    for (const id of Object.keys(SIGNATURE_PREFABS)) {
+      expect(buildingIds.has(id), `${id} missing from database-2024.json`).toBe(
+        true
+      );
     }
   });
 
