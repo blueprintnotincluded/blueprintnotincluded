@@ -454,19 +454,19 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.errors[0].status).to.equal('400');
     });
 
-    it('should not self-like a new upload', async function () {
+    it('should self-like a new upload with a consistent likeCount', async function () {
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
         .post('/api/uploadblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'No Self Like', blueprint: SAMPLE_BLUEPRINT_DATA, thumbnail: TINY_PNG });
+        .send({ name: 'Self Like', blueprint: SAMPLE_BLUEPRINT_DATA, thumbnail: TINY_PNG });
 
       expect(response.status).to.equal(200);
 
       const saved = await BlueprintModel.model.findById(response.body.id);
-      expect(saved!.likes).to.deep.equal([]);
-      expect(saved!.likeCount).to.equal(0);
+      expect(saved!.likes).to.deep.equal([testData.users.user1._id.toString()]);
+      expect(saved!.likeCount).to.equal(1);
     });
 
     it('should correct out-of-bounds building positions after upload', async function () {

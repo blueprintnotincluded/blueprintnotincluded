@@ -107,6 +107,9 @@ export class BlueprintController {
             else res.json({ overwrite: true });
           } else {
             let blueprint = new BlueprintModel.model();
+            // Every blueprint starts with the author's like (GitHub-star semantics)
+            blueprint.likes = [ownerId];
+            blueprint.likeCount = 1;
             BlueprintController.saveBlueprint(
               req,
               res,
