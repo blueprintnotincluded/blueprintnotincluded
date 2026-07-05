@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { deriveGameVersion, deriveModded } from "../../../lib/index";
+import db from "../assets/database/database-2024.json";
+import {
+  deriveGameVersion,
+  deriveModded,
+  deriveCategory,
+  buildCategoryLookup,
+  CATEGORIES,
+  CategoryLookup,
+} from "../../../lib/index";
 
 describe("deriveGameVersion", () => {
   it("returns base for an empty blueprint", () => {
@@ -76,5 +84,96 @@ describe("deriveModded", () => {
     expect(
       deriveModded(["LiquidPipe", "GasPipe", "Unknown123"], knownIds)
     ).toBe(true);
+  });
+});
+
+describe("deriveCategory", () => {
+  // Real database-2024.json — signature prefabs are verified against it below
+  // so a future export rename shows up as a failing test, not a silent miss.
+  const buildingIds = new Set<string>(db.buildings.map((b: any) => b.prefabId));
+  const lookup: CategoryLookup = buildCategoryLookup(
+    db.buildMenuCategories,
+    db.buildMenuItems
+  );
+
+  // Fixture: one signature building per category that has a signature entry,
+  // and two fallback-game-category buildings for the categories that don't
+  // (automation, decor — "fallback only" per the spec).
+  const FIXTURE_BY_CATEGORY: Record<(typeof CATEGORIES)[number], string[]> = {
+    oxygenGen: ["Electrolyzer"],
+    power: ["Generator"],
+    cooling: ["AirConditioner"],
+    food: ["CookingStation"],
+    ranching: ["RanchStation"],
+    automation: ["LogicSwitch", "LogicDuplicantSensor"],
+    transit: ["TravelTube"],
+    refining: ["MetalRefinery"],
+    rooms: ["Bed"],
+    decor: ["FloorLamp", "CeilingLight"],
+  };
+
+  it("every signature prefab referenced by the analyzer exists in the real database", () => {
+    // Re-derive every category with a single representative building and
+    // confirm it round-trips — this fails loudly if a prefab id was
+    // mistyped or renamed in a future export, per the spec's TDD directive.
+    for (const category of CATEGORIES) {
+      for (const id of FIXTURE_BY_CATEGORY[category]) {
+        expect(
+          buildingIds.has(id),
+          `${id} missing from database-2024.json`
+        ).toBe(true);
+      }
+    }
+  });
+
+  for (const category of CATEGORIES) {
+    it(`derives ${category} from its representative fixture`, () => {
+      expect(deriveCategory(FIXTURE_BY_CATEGORY[category], lookup)).toBe(
+        category
+      );
+    });
+  }
+
+  it("signature beats the fallback game-category vote", () => {
+    // Pipes carry no functional signal (plumbing isn't fallback-mapped);
+    // a single AirConditioner is the only real signal, and it's cooling
+    // even though the game files it under "utilities".
+    const prefabIds = ["GasPipe", "LiquidPipe", "GasPipe", "AirConditioner"];
+    expect(deriveCategory(prefabIds, lookup)).toBe("cooling");
+  });
+
+  it("dedupes repeated prefabs instead of inflating the score", () => {
+    const many = Array(4).fill("Electrolyzer");
+    const once = ["Electrolyzer"];
+    expect(deriveCategory(many, lookup)).toBe(deriveCategory(once, lookup));
+    expect(deriveCategory(many, lookup)).toBe("oxygenGen");
+  });
+
+  it("returns null for a tile/pipe-only blueprint with no signal", () => {
+    expect(
+      deriveCategory(["Tile", "GasPipe", "LiquidPipe"], lookup)
+    ).toBeNull();
+  });
+
+  it("returns null for an empty blueprint", () => {
+    expect(deriveCategory([], lookup)).toBeNull();
+  });
+
+  it("a single weak fallback vote alone is not enough to tag a blueprint", () => {
+    // LogicSwitch alone is one automation fallback vote (weight 1) — below
+    // the MIN_CATEGORY_SCORE threshold on its own.
+    expect(deriveCategory(["LogicSwitch", "Tile"], lookup)).toBeNull();
+  });
+
+  it("ranching signature overrides the game's food-tab placement", () => {
+    // EggIncubator/FishFeeder/etc. are filed under the game's "food" build
+    // tab but are unambiguously ranching buildings in blueprint terms.
+    expect(deriveCategory(["EggIncubator"], lookup)).toBe("ranching");
+  });
+
+  it("game category with no fallback mapping contributes nothing", () => {
+    // Ladder/Tile are "base"; RanchStation is equipment in-game but has a
+    // signature entry — the base-category building shouldn't sway the vote.
+    expect(deriveCategory(["Ladder", "RanchStation"], lookup)).toBe("ranching");
   });
 });

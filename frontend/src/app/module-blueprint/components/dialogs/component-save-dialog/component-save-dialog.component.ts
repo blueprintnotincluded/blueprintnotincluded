@@ -16,6 +16,10 @@ import {
   OniItem,
   deriveGameVersion,
   deriveModded,
+  deriveCategory,
+  buildCategoryLookup,
+  BuildMenuCategory,
+  BuildMenuItem,
 } from "../../../../../../../lib/index";
 
 @Component({
@@ -149,6 +153,22 @@ export class ComponentSaveDialogComponent {
       blueprint.hadUnknownBuildings || deriveModded(prefabIds, knownIds);
 
     this.saveBlueprintForm.patchValue({ gameVersion, modded });
+
+    // Pre-fill category only when the control is empty: a fresh save gets
+    // the suggestion, but the update flow in showDialog() restores the
+    // blueprint's stored category first and must not be clobbered here.
+    if (
+      !this.saveBlueprintForm.value.category &&
+      BuildMenuCategory.buildMenuCategories != null &&
+      BuildMenuItem.buildMenuItems != null
+    ) {
+      const lookup = buildCategoryLookup(
+        BuildMenuCategory.buildMenuCategories,
+        BuildMenuItem.buildMenuItems
+      );
+      const category = deriveCategory(prefabIds, lookup);
+      if (category != null) this.saveBlueprintForm.patchValue({ category });
+    }
   }
 
   // TODO this is ugly, use pipe map instead
