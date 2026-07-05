@@ -22,6 +22,8 @@ export interface User extends Document {
 
   isAlpha?: boolean;
 
+  bio?: string;
+
   setPassword(password: string): void;
   validPassword(password: string): boolean;
   generateJwt(role?: string): string;
@@ -65,6 +67,7 @@ export class UserModel {
       resetToken: String,
       resetTokenExpiration: Date,
       isAlpha: { type: Boolean, default: false },
+      bio: { type: String, maxlength: [500, 'Bio must be 500 characters or fewer'], default: '' },
     });
 
     // Password reset lookup: findOne({ resetToken, resetTokenExpiration: { $gt: ... } })

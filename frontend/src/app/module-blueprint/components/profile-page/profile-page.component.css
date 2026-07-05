@@ -1,0 +1,161 @@
+.profile-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.profile-loading,
+.profile-not-found {
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--p-text-muted-color);
+}
+
+.profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.avatar {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--p-primary-color, #007aff);
+  color: var(--p-primary-contrast-color, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-details h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.bio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.bio-empty {
+  color: var(--p-text-muted-color);
+  font-style: italic;
+}
+
+.bio-edit textarea {
+  width: 100%;
+  max-width: 500px;
+}
+
+.bio-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.bio-char-count {
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: var(--p-text-muted-color);
+}
+
+.profile-actions {
+  flex: none;
+}
+
+.blueprint-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.blueprint-card {
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-thumbnail img,
+.card-thumbnail .thumbnail-placeholder {
+  width: 100%;
+  height: 200px;
+  display: block;
+  background: #007aff;
+}
+
+.thumbnail-placeholder--empty {
+  background: #6b7280;
+}
+
+.card-info {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.card-title a {
+  font-weight: bold;
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-title a:hover {
+  text-decoration: underline;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge--category {
+  background: var(--p-primary-100, #dbeafe);
+  color: var(--p-primary-700, #1d4ed8);
+}
+
+.badge--version {
+  background: var(--p-surface-200, #e5e7eb);
+  color: var(--p-text-muted-color, #6b7280);
+}

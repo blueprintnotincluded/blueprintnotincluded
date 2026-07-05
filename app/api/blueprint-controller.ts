@@ -458,7 +458,7 @@ export class BlueprintController {
     }
   }
 
-  private static handleGetBlueprint(
+  public static handleGetBlueprint(
     _req: Request,
     res: Response,
     userId: string,

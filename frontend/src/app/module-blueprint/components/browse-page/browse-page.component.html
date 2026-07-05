@@ -23,7 +23,32 @@
     />
   </div>
 
-  <div class="filter-panel">
+  <div class="view-mode-tabs" *ngIf="loggedIn && followingCount > 0">
+    <button
+      type="button"
+      pButton
+      i18n-label
+      label="Discover"
+      [class]="
+        viewMode === 'discover'
+          ? 'p-button-sm'
+          : 'p-button-outlined p-button-sm'
+      "
+      (click)="setViewMode('discover')"
+    ></button>
+    <button
+      type="button"
+      pButton
+      i18n-label
+      label="From creators you follow"
+      [class]="
+        viewMode === 'feed' ? 'p-button-sm' : 'p-button-outlined p-button-sm'
+      "
+      (click)="setViewMode('feed')"
+    ></button>
+  </div>
+
+  <div class="filter-panel" *ngIf="viewMode === 'discover'">
     <p-select
       [(ngModel)]="filterGameVersion"
       [options]="gameVersionOptions"
@@ -135,7 +160,12 @@
           <span *ngIf="!isReal(item.thumbnail)">{{ item.name }}</span>
         </div>
         <div *ngIf="isReal(item.thumbnail)" class="card-meta">
-          <span i18n>by {{ item.ownerName }}</span>
+          <span i18n
+            >by
+            <a [routerLink]="['/profile', item.ownerName]">{{
+              item.ownerName
+            }}</a></span
+          >
           <span class="card-date">{{
             datepipe.transform(item.createdAt, "yyyy-MM-dd")
           }}</span>

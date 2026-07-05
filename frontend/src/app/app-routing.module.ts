@@ -9,6 +9,7 @@ import { MagicCallbackComponent } from "./module-blueprint/components/user-auth/
 import { ResetPasswordComponent } from "./module-blueprint/components/user-auth/reset-password/reset-password.component";
 import { VerifyEmailCallbackComponent } from "./module-blueprint/components/user-auth/verify-email-callback/verify-email-callback.component";
 import { BrowsePageComponent } from "./module-blueprint/components/browse-page/browse-page.component";
+import { ProfilePageComponent } from "./module-blueprint/components/profile-page/profile-page.component";
 import { homeRedirectGuard } from "./module-blueprint/guards/home-redirect.guard";
 
 const routes: Routes = [
@@ -20,6 +21,7 @@ const routes: Routes = [
   },
   { path: "editor", component: ComponentBlueprintParentComponent },
   { path: "discover", component: BrowsePageComponent },
+  { path: "profile/:username", component: ProfilePageComponent },
   { path: "b/:id", component: ComponentBlueprintParentComponent },
   {
     path: "b/:id/hideui/:width/:height",

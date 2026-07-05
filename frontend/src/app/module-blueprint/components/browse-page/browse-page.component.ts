@@ -14,6 +14,7 @@ import {
 } from "../../../../../../lib/index";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
+import { UserService } from "src/app/module-blueprint/services/user-service";
 import { DatePipe } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject } from "rxjs";
@@ -50,6 +51,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   skipCount = 0;
   private requestId = 0;
 
+  viewMode: "discover" | "feed" = "discover";
+  followingCount = 0;
+
   readonly sortOptions = [
     { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
     { label: $localize`:browse.sortMostLiked:Most liked`, value: "popular" },
@@ -83,6 +87,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   constructor(
     private blueprintService: BlueprintService,
     private authService: AuthenticationService,
+    private userService: UserService,
     public datepipe: DatePipe,
     private route: ActivatedRoute,
     private router: Router
@@ -137,6 +142,23 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterSubcategory = params.get("subcategory");
     this.sort = params.get("sort") === "popular" ? "popular" : "recent";
     this.appendLoading();
+    this.getBlueprints();
+
+    if (this.loggedIn) {
+      const me = this.authService.getUserDetails()?.username;
+      if (me) {
+        this.userService.getProfile(me).subscribe({
+          next: (profile) => (this.followingCount = profile.followingCount),
+          error: () => {},
+        });
+      }
+    }
+  }
+
+  setViewMode(mode: "discover" | "feed") {
+    if (this.viewMode === mode) return;
+    this.viewMode = mode;
+    this.reset();
     this.getBlueprints();
   }
 
@@ -202,29 +224,32 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   }
 
   getBlueprints() {
-    const name = this.filterName.trim() || null;
     this.loadError = false;
     const requestId = ++this.requestId;
-    this.blueprintService
-      .getBlueprints(
-        this.oldestDate,
-        this.filterUserId,
-        name,
-        false,
-        this.filterGameVersion,
-        this.filterCategory,
-        this.filterSubcategory,
-        this.sort,
-        this.sort === "popular" ? this.skipCount : undefined
-      )
-      .subscribe({
-        next: (r: any) => {
-          if (requestId === this.requestId) this.handleGetBlueprints(r);
-        },
-        error: () => {
-          if (requestId === this.requestId) this.handleError();
-        },
-      });
+
+    const request$ =
+      this.viewMode === "feed"
+        ? this.userService.getFeed(this.oldestDate)
+        : this.blueprintService.getBlueprints(
+            this.oldestDate,
+            this.filterUserId,
+            this.filterName.trim() || null,
+            false,
+            this.filterGameVersion,
+            this.filterCategory,
+            this.filterSubcategory,
+            this.sort,
+            this.sort === "popular" ? this.skipCount : undefined
+          );
+
+    request$.subscribe({
+      next: (r: any) => {
+        if (requestId === this.requestId) this.handleGetBlueprints(r);
+      },
+      error: () => {
+        if (requestId === this.requestId) this.handleError();
+      },
+    });
   }
 
   showMyBlueprints(data: BrowseData) {

@@ -88,6 +88,7 @@ import { VerifyEmailCallbackComponent } from "./components/user-auth/verify-emai
 import { FeedbackDialogComponent } from "./components/dialogs/feedback-dialog/feedback-dialog.component";
 import { FeedbackService } from "./services/feedback.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
+import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
 
 @NgModule({
   declarations: [
@@ -137,6 +138,7 @@ import { BrowsePageComponent } from "./components/browse-page/browse-page.compon
     VerifyEmailCallbackComponent,
     FeedbackDialogComponent,
     BrowsePageComponent,
+    ProfilePageComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [
