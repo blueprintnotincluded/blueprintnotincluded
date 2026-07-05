@@ -26,6 +26,7 @@ export * from './src/b-export/b-sprite-modifier';
 export * from './src/b-export/b-sprite-info';
 export * from './src/b-export/b-ui-screen';
 export * from './src/coms/blueprint-list-response';
+export * from './src/coms/social';
 export * from './src/drawing/sprite-modifier';
 export * from './src/drawing/sprite-modifier-group';
 export * from './src/drawing/sprite-info';

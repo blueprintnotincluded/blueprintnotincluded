@@ -10,6 +10,7 @@ import { By } from "@angular/platform-browser";
 import { BrowsePageComponent } from "./browse-page.component";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
+import { UserService } from "src/app/module-blueprint/services/user-service";
 import { BrowseData } from "../user-menu/user-menu.component";
 
 function makeResponse(blueprints: any[] = [], remaining = 0) {
@@ -27,6 +28,7 @@ describe("BrowsePageComponent", () => {
   let fixture: ComponentFixture<BrowsePageComponent>;
   let blueprintService: any;
   let authService: any;
+  let userService: any;
   let router: any;
 
   beforeEach(async () => {
@@ -34,7 +36,26 @@ describe("BrowsePageComponent", () => {
       getBlueprints: vi.fn().mockReturnValue(of(makeResponse())),
     };
 
-    authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
+    authService = {
+      isLoggedIn: vi.fn().mockReturnValue(true),
+      getUserDetails: vi.fn().mockReturnValue({ username: "alice" }),
+    };
+
+    userService = {
+      getProfile: vi.fn().mockReturnValue(
+        of({
+          id: "u1",
+          username: "alice",
+          bio: "",
+          memberSince: new Date(),
+          blueprintCount: 0,
+          followerCount: 0,
+          followingCount: 0,
+          followedByMe: false,
+        })
+      ),
+      getFeed: vi.fn().mockReturnValue(of(makeResponse())),
+    };
 
     router = { navigate: vi.fn() };
 
@@ -44,6 +65,7 @@ describe("BrowsePageComponent", () => {
       providers: [
         { provide: BlueprintService, useValue: blueprintService },
         { provide: AuthenticationService, useValue: authService },
+        { provide: UserService, useValue: userService },
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
@@ -208,6 +230,49 @@ describe("BrowsePageComponent", () => {
       };
       component.ngOnInit();
       expect(component.sort).toBe("popular");
+    });
+  });
+
+  describe("feed view mode", () => {
+    it("fetches following count on init when logged in", () => {
+      fixture.detectChanges();
+      expect(userService.getProfile).toHaveBeenCalledWith("alice");
+      expect(component.followingCount).toBe(0);
+    });
+
+    it("does not fetch following count when logged out", () => {
+      authService.isLoggedIn.mockReturnValue(false);
+      fixture.detectChanges();
+      expect(userService.getProfile).not.toHaveBeenCalled();
+    });
+
+    it("setViewMode('feed') resets the list and calls the feed endpoint", () => {
+      component.blueprintListItems = [{ name: "stale" } as any];
+      component.setViewMode("feed");
+
+      expect(component.viewMode).toBe("feed");
+      expect(userService.getFeed).toHaveBeenCalled();
+      expect(blueprintService.getBlueprints).not.toHaveBeenCalled();
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "stale")
+      ).toBe(false);
+    });
+
+    it("switching back to discover calls getBlueprints again", () => {
+      component.setViewMode("feed");
+      component.setViewMode("discover");
+
+      expect(component.viewMode).toBe("discover");
+      expect(blueprintService.getBlueprints).toHaveBeenCalled();
+    });
+
+    it("is a no-op when already in the requested mode", () => {
+      component.setViewMode("discover");
+      const callsBefore = blueprintService.getBlueprints.mock.calls.length;
+      component.setViewMode("discover");
+      expect(blueprintService.getBlueprints.mock.calls.length).toBe(
+        callsBefore
+      );
     });
   });
 

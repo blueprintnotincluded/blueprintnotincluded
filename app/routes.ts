@@ -12,6 +12,7 @@ import { MigrationController } from './api/migration-controller';
 import { HealthController } from './api/health-controller';
 import { FeedbackController } from './api/feedback-controller';
 import { AlphaController } from './api/alpha-controller';
+import { UserController } from './api/user-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
@@ -21,6 +22,7 @@ export class Routes {
   public healthController = new HealthController();
   public feedbackController = new FeedbackController();
   public alphaController = new AlphaController();
+  public userController = new UserController();
 
   public routes(app: Application): void {
     // Admin-only middleware: requires role === 'admin' in the JWT (set from WorkOS platform org membership)
@@ -71,6 +73,7 @@ export class Routes {
     app.route('/api/getblueprints').get(this.uploadBlueprintController.getBlueprints);
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
+    app.route('/api/users/:username/profile').get(this.userController.getProfile);
 
     // Logged in access
     app.route('/api/getblueprintsSecure').get(auth, this.uploadBlueprintController.getBlueprints);
@@ -78,6 +81,10 @@ export class Routes {
     app.route('/api/likeblueprint').post(auth, this.uploadBlueprintController.likeBlueprint);
     app.route('/api/deleteblueprint').post(auth, this.uploadBlueprintController.deleteBlueprint);
     app.route('/api/feedback').post(auth, this.feedbackController.submit);
+    app.route('/api/users/:username/profileSecure').get(auth, this.userController.getProfile);
+    app.route('/api/follow').post(auth, this.userController.follow);
+    app.route('/api/users/me').patch(auth, this.userController.updateBio);
+    app.route('/api/feed').get(auth, this.userController.getFeed);
 
     // Admin-only API
     app.route('/api/admin/feedback').get(auth, adminAuth, this.feedbackController.list);

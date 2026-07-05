@@ -77,6 +77,12 @@
   color: var(--p-red-700, #b91c1c);
 }
 
+.view-mode-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
 .filter-panel {
   display: flex;
   flex-wrap: wrap;

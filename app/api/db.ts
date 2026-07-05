@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { UserModel } from './models/user';
 import { BlueprintModel } from './models/blueprint';
 import { FeedbackModel } from './models/feedback';
+import { FollowModel } from './models/follow';
 
 export class Database {
   constructor() {
@@ -20,6 +21,7 @@ export class Database {
       UserModel.init();
       BlueprintModel.init();
       FeedbackModel.init();
+      FollowModel.init();
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {
