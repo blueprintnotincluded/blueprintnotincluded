@@ -6,7 +6,9 @@ export interface Blueprint extends Document {
   name: string;
   tags: string[];
   likes: string[];
-  likeCount: number;
+  // optional: documents predating the backfill migration lack this field —
+  // callers must fall back to likes?.length (see blueprint-controller)
+  likeCount?: number;
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;

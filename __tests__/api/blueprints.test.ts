@@ -279,6 +279,14 @@ describe('Blueprint API (Mocha)', function () {
       expect(nonNumeric.body.errors).to.be.an('array');
     });
 
+    it('should return 400 for skip above the maximum offset', async function () {
+      const tooLarge = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular', skip: 10001 });
+      expect(tooLarge.status).to.equal(400);
+      expect(tooLarge.body.errors).to.be.an('array');
+    });
+
     it('should combine popular sort with facet filters', async function () {
       await BlueprintModel.model.create({
         owner: testData.users.user1._id,
