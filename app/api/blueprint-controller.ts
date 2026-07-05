@@ -21,6 +21,8 @@ import { UserModel, UserJwt } from './models/user';
 import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
 
+const MAX_SKIP = 10000;
+
 export class BlueprintController {
   public uploadBlueprint(req: Request, res: Response) {
     console.log('uploadBlueprint' + req.clientIp);
@@ -346,7 +348,7 @@ export class BlueprintController {
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
       let dateFilter: Date = new Date();
-      let sort: 'recent' | 'popular' = 'recent';
+      let sort: 'recent' | 'popular';
       let skip = 0;
 
       let userId = '';
@@ -409,8 +411,10 @@ export class BlueprintController {
         const rawSkip = req.query.skip as string | undefined;
         if (rawSkip != null) {
           skip = parseInt(rawSkip);
-          if (isNaN(skip) || skip < 0 || String(skip) !== rawSkip) {
-            res.status(400).json(apiError(400, 'Invalid skip parameter: must be a non-negative integer'));
+          // cap skip: MongoDB scans and discards skipped documents server-side,
+          // so an unbounded offset is a cheap way to force slow queries
+          if (isNaN(skip) || skip < 0 || skip > MAX_SKIP || String(skip) !== rawSkip) {
+            res.status(400).json(apiError(400, `Invalid skip parameter: must be an integer between 0 and ${MAX_SKIP}`));
             return;
           }
         }
