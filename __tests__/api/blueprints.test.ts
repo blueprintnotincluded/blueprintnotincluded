@@ -7,7 +7,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 process.env.NODE_ENV = 'test';
 
-import { TestSetup } from '../setup/testSetup';
+import { TestSetup, TestDbHelper } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 
 const TINY_PNG =
@@ -201,6 +201,111 @@ describe('Blueprint API (Mocha)', function () {
     });
   });
 
+  describe('GET /api/getblueprints?sort=popular', function () {
+    it('should return blueprints in descending likeCount order', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular' });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      // Seeded: Super Coal (2 likes), Oxygen (1), Legacy (0)
+      expect(names.slice(0, 3)).to.deep.equal([
+        'Super Coal Generator Setup',
+        'Oxygen Production Line',
+        'Legacy Food System',
+      ]);
+      const likes = response.body.blueprints.map((bp: any) => bp.nbLikes);
+      expect(likes).to.deep.equal([...likes].sort((a, b) => b - a));
+    });
+
+    it('should break likeCount ties by createdAt descending', async function () {
+      // Second 0-like blueprint, newer than Legacy Food System (30 days old)
+      await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Fresh Zero Likes',
+        likes: [],
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular' });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names.indexOf('Fresh Zero Likes')).to.be.lessThan(
+        names.indexOf('Legacy Food System')
+      );
+    });
+
+    it('should paginate with skip', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular', skip: 1 });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints[0].name).to.equal('Oxygen Production Line');
+    });
+
+    it('should accept sort=recent explicitly', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'recent' });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints[0].name).to.equal('Oxygen Production Line'); // newest
+    });
+
+    it('should return 400 for an unknown sort value', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'bogus' });
+
+      expect(response.status).to.equal(400);
+      expect(response.body.errors).to.be.an('array');
+    });
+
+    it('should return 400 for negative or non-numeric skip', async function () {
+      const negative = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular', skip: -1 });
+      expect(negative.status).to.equal(400);
+      expect(negative.body.errors).to.be.an('array');
+
+      const nonNumeric = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular', skip: 'abc' });
+      expect(nonNumeric.status).to.equal(400);
+      expect(nonNumeric.body.errors).to.be.an('array');
+    });
+
+    it('should combine popular sort with facet filters', async function () {
+      await BlueprintModel.model.create({
+        owner: testData.users.user1._id,
+        name: 'Popular Power',
+        tags: [],
+        likes: ['a', 'b', 'c'],
+        likeCount: 3,
+        createdAt: new Date(Date.now() - 60 * 60 * 1000),
+        modifiedAt: new Date(),
+        thumbnail: TINY_PNG,
+        data: SAMPLE_BLUEPRINT_DATA,
+        deletedAt: null,
+        gameVersion: 'base',
+        category: 'power',
+      });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular', gameVersion: 'base' });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names).to.include('Popular Power');
+      expect(names).to.not.include('Super Coal Generator Setup'); // no gameVersion
+    });
+  });
+
   describe('GET /api/getblueprint/:id', function () {
     it('should return blueprint data for a valid id', async function () {
       const id = testData.blueprints.popularBlueprint._id.toString();
@@ -349,6 +454,21 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.errors[0].status).to.equal('400');
     });
 
+    it('should not self-like a new upload', async function () {
+      const token = testData.users.user1.generateJwt();
+
+      const response = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'No Self Like', blueprint: SAMPLE_BLUEPRINT_DATA, thumbnail: TINY_PNG });
+
+      expect(response.status).to.equal(200);
+
+      const saved = await BlueprintModel.model.findById(response.body.id);
+      expect(saved!.likes).to.deep.equal([]);
+      expect(saved!.likeCount).to.equal(0);
+    });
+
     it('should correct out-of-bounds building positions after upload', async function () {
       const token = testData.users.user1.generateJwt();
 
@@ -406,6 +526,27 @@ describe('Blueprint API (Mocha)', function () {
 
       const updated = await BlueprintModel.model.findById(id);
       expect(updated!.likes).to.include(testData.users.user3._id.toString());
+      expect(updated!.likeCount).to.equal(2); // seeded with 1 like from user1
+    });
+
+    it('should keep likeCount stable when liking twice (idempotent)', async function () {
+      const token = testData.users.user3.generateJwt();
+      const id = testData.blueprints.recentBlueprint._id.toString();
+
+      for (let i = 0; i < 2; i++) {
+        const response = await TestSetup.request()
+          .post('/api/likeblueprint')
+          .set('Authorization', `Bearer ${token}`)
+          .send({ blueprintId: id, like: true });
+        expect(response.status).to.equal(200);
+        expect(response.body.likeBlueprint).to.equal('OK');
+      }
+
+      const updated = await BlueprintModel.model.findById(id);
+      expect(updated!.likeCount).to.equal(2);
+      expect(
+        updated!.likes.filter(l => l === testData.users.user3._id.toString())
+      ).to.have.length(1);
     });
 
     it('should unlike a blueprint', async function () {
@@ -423,6 +564,24 @@ describe('Blueprint API (Mocha)', function () {
 
       const updated = await BlueprintModel.model.findById(id);
       expect(updated!.likes).to.not.include(testData.users.user2._id.toString());
+      expect(updated!.likeCount).to.equal(1); // seeded with 2 likes
+    });
+
+    it('should keep likeCount stable when unliking a blueprint not liked', async function () {
+      const token = testData.users.user1.generateJwt(); // user1 never liked recentBlueprint
+      const id = testData.blueprints.oldBlueprint._id.toString(); // 0 likes seeded
+
+      const response = await TestSetup.request()
+        .post('/api/likeblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ blueprintId: id, like: false });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.likeBlueprint).to.equal('OK');
+
+      const updated = await BlueprintModel.model.findById(id);
+      expect(updated!.likeCount).to.equal(0);
+      expect(updated!.likes).to.deep.equal([]);
     });
 
     it('should return 404 for a nonexistent blueprint id', async function () {

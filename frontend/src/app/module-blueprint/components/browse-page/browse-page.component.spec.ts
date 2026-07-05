@@ -5,8 +5,11 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { of, throwError } from "rxjs";
 import { convertToParamMap } from "@angular/router";
 
+import { By } from "@angular/platform-browser";
+
 import { BrowsePageComponent } from "./browse-page.component";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
+import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { BrowseData } from "../user-menu/user-menu.component";
 
 function makeResponse(blueprints: any[] = [], remaining = 0) {
@@ -23,12 +26,15 @@ describe("BrowsePageComponent", () => {
   let component: BrowsePageComponent;
   let fixture: ComponentFixture<BrowsePageComponent>;
   let blueprintService: any;
+  let authService: any;
   let router: any;
 
   beforeEach(async () => {
     blueprintService = {
       getBlueprints: vi.fn().mockReturnValue(of(makeResponse())),
     };
+
+    authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
 
     router = { navigate: vi.fn() };
 
@@ -37,6 +43,7 @@ describe("BrowsePageComponent", () => {
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: BlueprintService, useValue: blueprintService },
+        { provide: AuthenticationService, useValue: authService },
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
@@ -153,6 +160,99 @@ describe("BrowsePageComponent", () => {
       // The facetSubject fires asynchronously via debounceTime(0);
       // test that the field is cleared on the next tick
       expect(component.filterSubcategory).toBeNull();
+    });
+  });
+
+  describe("sort", () => {
+    it("calls the service with sort=popular and skip=0, resets the list, and updates the URL", () => {
+      component.blueprintListItems = [{ name: "stale" } as any];
+      component.skipCount = 42;
+
+      component.sort = "popular";
+      component.onSortChange();
+
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[7]).toBe("popular");
+      expect(lastCall[8]).toBe(0); // skip reset before refetch
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "stale")
+      ).toBe(false);
+      expect(router.navigate).toHaveBeenCalledWith([], {
+        queryParams: { sort: "popular" },
+        replaceUrl: true,
+      });
+    });
+
+    it("does not pass skip for the default recent sort", () => {
+      component.sort = "recent";
+      component.getBlueprints();
+
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[7]).toBe("recent");
+      expect(lastCall[8]).toBeUndefined();
+    });
+
+    it("advances skip by the number of blueprints received", () => {
+      component.sort = "popular";
+      component.skipCount = 0;
+      component.handleGetBlueprints(
+        makeResponse([{ name: "a" }, { name: "b" }], 5) as any
+      );
+      expect(component.skipCount).toBe(2);
+    });
+
+    it("initializes sort from the URL query param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.snapshot = {
+        queryParamMap: convertToParamMap({ sort: "popular" }),
+      };
+      component.ngOnInit();
+      expect(component.sort).toBe("popular");
+    });
+  });
+
+  describe("like widget", () => {
+    const realItem = {
+      id: "bp-1",
+      name: "Real Blueprint",
+      ownerId: "u1",
+      ownerName: "alice",
+      createdAt: new Date(),
+      modifiedAt: new Date(),
+      thumbnail: "data:image/png;base64,xyz",
+      tags: [],
+      nbLikes: 7,
+      likedByMe: true,
+      ownedByMe: false,
+    } as any;
+
+    function renderWithItem() {
+      fixture.detectChanges(); // ngOnInit
+      component.blueprintListItems = [realItem];
+      fixture.detectChanges();
+      return fixture.debugElement.query(By.css("app-like-widget"));
+    }
+
+    it("renders on cards with values from the list item", () => {
+      const widget = renderWithItem();
+      expect(widget).toBeTruthy();
+      expect(widget.properties["blueprintId"]).toBe("bp-1");
+      expect(widget.properties["nbLikes"]).toBe(7);
+      expect(widget.properties["likedByMe"]).toBe(true);
+      expect(widget.properties["disabled"]).toBe(false);
+    });
+
+    it("is disabled when logged out", () => {
+      authService.isLoggedIn.mockReturnValue(false);
+      const widget = renderWithItem();
+      expect(widget.properties["disabled"]).toBe(true);
+    });
+
+    it("is not rendered for placeholder items", () => {
+      fixture.detectChanges();
+      component.blueprintListItems = [component.loadingBlueprintItem];
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css("app-like-widget"))).toBeNull();
     });
   });
 });

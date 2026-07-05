@@ -107,7 +107,6 @@ export class BlueprintController {
             else res.json({ overwrite: true });
           } else {
             let blueprint = new BlueprintModel.model();
-            blueprint.likes = [ownerId];
             BlueprintController.saveBlueprint(
               req,
               res,
@@ -188,30 +187,27 @@ export class BlueprintController {
           return;
         }
 
-        BlueprintModel.model
-          .find({ _id: blueprintLike.blueprintId })
-          .then(blueprints => {
-            if (blueprints.length > 0) {
-              let blueprint = blueprints[0];
+        // Atomic toggle keyed on current membership: concurrent or repeated
+        // requests can't skew likeCount. matchedCount === 0 on an existing
+        // blueprint just means "already in desired state" — idempotent 200.
+        const userId = user._id;
+        const update = blueprintLike.like
+          ? BlueprintModel.model.updateOne(
+              { _id: blueprintLike.blueprintId, likes: { $ne: userId } },
+              { $push: { likes: userId }, $inc: { likeCount: 1 } }
+            )
+          : BlueprintModel.model.updateOne(
+              { _id: blueprintLike.blueprintId, likes: userId },
+              { $pull: { likes: userId }, $inc: { likeCount: -1 } }
+            );
 
-              if (blueprint.likes == null) blueprint.likes = [];
-              if (blueprintLike.like) {
-                if (blueprint.likes.indexOf(user._id) == -1) blueprint.likes.push(user._id);
-              } else {
-                let indexLike = blueprint.likes.indexOf(user._id);
-                if (indexLike != -1) blueprint.likes.splice(indexLike, 1);
-              }
-
-              blueprint
-                .save()
-                .then(() => {
-                  res.json({ likeBlueprint: 'OK' });
-                })
-                .catch(error => {
-                  console.log('likeBlueprint error');
-                  console.log(error);
-                  res.status(500).json(apiError(500, 'Failed to update like'));
-                });
+        update
+          .then(async result => {
+            if (
+              result.matchedCount > 0 ||
+              (await BlueprintModel.model.exists({ _id: blueprintLike.blueprintId })) != null
+            ) {
+              res.json({ likeBlueprint: 'OK' });
             } else res.status(404).json(apiError(404, 'Blueprint not found'));
           })
           .catch(err => {
@@ -247,8 +243,8 @@ export class BlueprintController {
             )
               likedByMe = true;
 
-            let nbLikes = 0;
-            if (blueprint.likes != null) nbLikes = blueprint.likes.length;
+            // Fallback covers docs the migration hasn't touched yet
+            let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
 
             let response: BlueprintResponse = {
               id: (blueprint._id as any).toString(),
@@ -347,6 +343,8 @@ export class BlueprintController {
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
       let dateFilter: Date = new Date();
+      let sort: 'recent' | 'popular' = 'recent';
+      let skip = 0;
 
       let userId = '';
       let userJwt = req.user as UserJwt;
@@ -397,13 +395,34 @@ export class BlueprintController {
         filterCategory = rawCategory ?? null;
 
         filterSubcategory = req.query.subcategory as string ?? null;
+
+        const rawSort = req.query.sort as string | undefined;
+        if (rawSort != null && rawSort !== 'recent' && rawSort !== 'popular') {
+          res.status(400).json(apiError(400, "Invalid sort: must be one of recent, popular"));
+          return;
+        }
+        sort = (rawSort as 'recent' | 'popular') ?? 'recent';
+
+        const rawSkip = req.query.skip as string | undefined;
+        if (rawSkip != null) {
+          skip = parseInt(rawSkip);
+          if (isNaN(skip) || skip < 0 || String(skip) !== rawSkip) {
+            res.status(400).json(apiError(400, 'Invalid skip parameter: must be a non-negative integer'));
+            return;
+          }
+        }
       } catch (error) {
         console.log(error);
         res.status(400).json(apiError(400, 'Invalid query parameters'));
         return;
       }
 
-      let filter: any = { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
+      // popular ignores the olderthan cursor (offset pagination via skip instead);
+      // the param stays accepted so the existing client call shape keeps working
+      let filter: any =
+        sort === 'popular'
+          ? { $and: [{ deletedAt: null }] }
+          : { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
 
       if (filterUserId != null) filter.$and.push({ owner: filterUserId });
       if (filterName != null) filter.$and.push({ name: { $regex: filterName, $options: 'i' } });
@@ -415,7 +434,8 @@ export class BlueprintController {
       let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
       let query = BlueprintModel.model
         .find(filter)
-        .sort({ createdAt: -1 })
+        .sort(sort === 'popular' ? { likeCount: -1, createdAt: -1 } : { createdAt: -1 })
+        .skip(sort === 'popular' ? skip : 0)
         .limit(browseIncrement * 2)
         .populate('owner');
 
@@ -471,8 +491,7 @@ export class BlueprintController {
         if (userId != null && ownerId == userId) ownedByMe = true;
         //console.log(userId + '_' + ownerId)
 
-        let nbLikes = 0;
-        if (blueprint.likes != null) nbLikes = blueprint.likes.length;
+        let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
 
         returnValue.blueprints.push({
           id: (blueprint._id as any).toString(),

@@ -305,7 +305,9 @@ export class BlueprintService implements IObsBlueprintChange {
     getDuplicates: boolean,
     filterGameVersion?: string | null,
     filterCategory?: string | null,
-    filterSubcategory?: string | null
+    filterSubcategory?: string | null,
+    sort?: "recent" | "popular",
+    skip?: number
   ) {
     let parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
 
@@ -332,6 +334,12 @@ export class BlueprintService implements IObsBlueprintChange {
     if (filterSubcategory != null)
       parameterSubcategory = "&subcategory=" + filterSubcategory;
 
+    let parameterSort = "";
+    if (sort != null && sort !== "recent") {
+      parameterSort = "&sort=" + sort;
+      if (skip != null) parameterSort += "&skip=" + skip;
+    }
+
     let parameters =
       parameterOlderThan +
       parameterFilterUserId +
@@ -339,7 +347,8 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterFilterName +
       parameterGameVersion +
       parameterCategory +
-      parameterSubcategory;
+      parameterSubcategory +
+      parameterSort;
 
     let request = this.authService.isLoggedIn()
       ? this.http.get("/api/getblueprintsSecure?" + parameters, {
