@@ -20,6 +20,11 @@ import { ComponentSaveDialogComponent } from "./component-save-dialog.component"
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { of } from "rxjs";
+import {
+  OniItem,
+  BuildMenuCategory,
+  BuildMenuItem,
+} from "../../../../../../../lib/index";
 
 describe("ComponentSaveDialogComponent", () => {
   let component: ComponentSaveDialogComponent;
@@ -120,6 +125,81 @@ describe("ComponentSaveDialogComponent", () => {
         description: "A power setup",
         modded: true,
       });
+    });
+  });
+
+  describe("computeDerivedMetadata category pre-fill", () => {
+    afterEach(() => {
+      (OniItem as any).oniItemsMap = undefined;
+      (BuildMenuCategory as any).buildMenuCategories = undefined;
+      (BuildMenuItem as any).buildMenuItems = undefined;
+    });
+
+    function loadFakeDatabase() {
+      OniItem.oniItemsMap = new Map([["Electrolyzer", {} as any]]);
+      BuildMenuCategory.buildMenuCategories = [
+        { category: 1, categoryName: "oxygen" } as any,
+      ];
+      BuildMenuItem.buildMenuItems = [
+        { category: 1, buildingId: "Electrolyzer" } as any,
+      ];
+    }
+
+    // Avoids constructing a real Blueprint/BlueprintItem (which would pull in
+    // PIXI) — computeDerivedMetadata only reads oniItem.dlcIds and the
+    // toMdbBlueprint() prefab ids.
+    function fakeBlueprint(prefabIds: string[]) {
+      return {
+        blueprintItems: prefabIds.map(() => ({ oniItem: { dlcIds: [] } })),
+        hadUnknownBuildings: false,
+        toMdbBlueprint: () => ({
+          blueprintItems: prefabIds.map((id) => ({ id })),
+        }),
+      } as any;
+    }
+
+    it("pre-fills category on a fresh save from blueprint content", () => {
+      loadFakeDatabase();
+      const blueprintService = TestBed.inject(BlueprintService);
+      blueprintService.blueprint = fakeBlueprint(["Electrolyzer"]);
+
+      component.showDialog();
+
+      expect(component.saveBlueprintForm.value.category).toBe("oxygenGen");
+    });
+
+    it("does not clobber a stored category on update", () => {
+      loadFakeDatabase();
+      const blueprintService = TestBed.inject(BlueprintService);
+      blueprintService.blueprint = fakeBlueprint(["Electrolyzer"]);
+      blueprintService.id = "existing-id"; // savedBlueprint / isUpdate = true
+      blueprintService.metadata = { category: "power" };
+
+      component.showDialog();
+
+      expect(component.saveBlueprintForm.value.category).toBe("power");
+    });
+
+    it("category control stays enabled after pre-fill", () => {
+      loadFakeDatabase();
+      const blueprintService = TestBed.inject(BlueprintService);
+      blueprintService.blueprint = fakeBlueprint(["Electrolyzer"]);
+
+      component.showDialog();
+
+      expect(component.saveBlueprintForm.controls.category.disabled).toBe(
+        false
+      );
+    });
+
+    it("leaves category null when there is no signal", () => {
+      loadFakeDatabase();
+      const blueprintService = TestBed.inject(BlueprintService);
+      blueprintService.blueprint = fakeBlueprint([]);
+
+      component.showDialog();
+
+      expect(component.saveBlueprintForm.value.category).toBeNull();
     });
   });
 

@@ -89,6 +89,28 @@ describe('Blueprint metadata API', function () {
       expect(item.category ?? null).to.be.null;
     });
 
+    it('accepts the food and rooms categories added for auto-classification', async function () {
+      const foodUpload = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Food Category Blueprint', category: 'food', subcategory: 'farm' });
+
+      expect(foodUpload.status).to.equal(200);
+      const foodSaved = await BlueprintModel.model.findById(foodUpload.body.id);
+      expect(foodSaved!.category).to.equal('food');
+      expect(foodSaved!.subcategory).to.equal('farm');
+
+      const roomsUpload = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Rooms Category Blueprint', category: 'rooms', subcategory: 'barracks' });
+
+      expect(roomsUpload.status).to.equal(200);
+      const roomsSaved = await BlueprintModel.model.findById(roomsUpload.body.id);
+      expect(roomsSaved!.category).to.equal('rooms');
+      expect(roomsSaved!.subcategory).to.equal('barracks');
+    });
+
     it('rejects unknown gameVersion with 400', async function () {
       const response = await TestSetup.request()
         .post('/api/uploadblueprint')
