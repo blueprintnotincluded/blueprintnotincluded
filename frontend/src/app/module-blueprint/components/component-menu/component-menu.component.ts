@@ -86,6 +86,10 @@ export class ComponentMenuComponent
     if (blueprintMenuItems) {
       const saveItem = blueprintMenuItems.find((i) => i.id == "save");
       if (saveItem) saveItem.disabled = !this.authService.isLoggedIn();
+      const commentsItem = blueprintMenuItems.find((i) => i.id == "comments");
+      // Comments only exist for saved blueprints
+      if (commentsItem)
+        commentsItem.disabled = this.blueprintService.id == null;
     }
     return this.menuItems;
   }
@@ -261,6 +265,17 @@ export class ComponentMenuComponent
             command: (_event: any) => {
               this.menuCommand.emit({
                 type: MenuCommandType.browseBlueprints,
+                data: null,
+              });
+            },
+          },
+          {
+            id: "comments",
+            label: $localize`Comments`,
+            icon: "pi pi-comments",
+            command: (_event: any) => {
+              this.menuCommand.emit({
+                type: MenuCommandType.showComments,
                 data: null,
               });
             },
@@ -512,6 +527,7 @@ export enum MenuCommandType {
   addElementsTiles,
 
   sendFeedback,
+  showComments,
 }
 
 export class MenuCommand {

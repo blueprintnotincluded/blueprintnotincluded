@@ -13,6 +13,7 @@ import { HealthController } from './api/health-controller';
 import { FeedbackController } from './api/feedback-controller';
 import { AlphaController } from './api/alpha-controller';
 import { UserController } from './api/user-controller';
+import { CommentController } from './api/comment-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
@@ -23,6 +24,7 @@ export class Routes {
   public feedbackController = new FeedbackController();
   public alphaController = new AlphaController();
   public userController = new UserController();
+  public commentController = new CommentController();
 
   public routes(app: Application): void {
     // Admin-only middleware: requires role === 'admin' in the JWT (set from WorkOS platform org membership)
@@ -74,6 +76,7 @@ export class Routes {
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
     app.route('/api/users/:username/profile').get(this.userController.getProfile);
+    app.route('/api/blueprints/:id/comments').get(this.commentController.list);
 
     // Logged in access
     app.route('/api/getblueprintsSecure').get(auth, this.uploadBlueprintController.getBlueprints);
@@ -85,6 +88,8 @@ export class Routes {
     app.route('/api/follow').post(auth, this.userController.follow);
     app.route('/api/users/me').patch(auth, this.userController.updateBio);
     app.route('/api/feed').get(auth, this.userController.getFeed);
+    app.route('/api/blueprints/:id/comments').post(auth, this.commentController.create);
+    app.route('/api/comments/:id').delete(auth, this.commentController.remove);
 
     // Admin-only API
     app.route('/api/admin/feedback').get(auth, adminAuth, this.feedbackController.list);

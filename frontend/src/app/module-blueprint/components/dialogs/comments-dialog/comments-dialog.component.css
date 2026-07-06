@@ -1,0 +1,103 @@
+.comments-status {
+  margin: 0.5rem 0;
+  opacity: 0.85;
+}
+
+.comments-error {
+  color: var(--p-red-500);
+  margin: 0.5rem 0;
+}
+
+.comment-thread {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid
+    var(--p-content-border-color, rgba(128, 128, 128, 0.25));
+}
+
+.comment-thread:last-child {
+  border-bottom: none;
+}
+
+.comment-replies {
+  margin-left: 1.5rem;
+}
+
+.comment {
+  padding: 0.35rem 0;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.comment-author {
+  font-weight: 600;
+}
+
+.comment-author-deleted,
+.comment-ref-deleted,
+.comment-removed {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.comment-date {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.comment-body {
+  margin: 0.15rem 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.comment-action-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--p-primary-color, inherit);
+  opacity: 0.8;
+}
+
+.comment-action-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.comment-action-delete {
+  color: var(--p-red-500);
+}
+
+.comment-new-form,
+.comment-reply-form {
+  width: 100%;
+}
+
+.comment-new-form textarea,
+.comment-reply-form textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.comment-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.comment-char-count {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}

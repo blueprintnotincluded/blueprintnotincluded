@@ -87,6 +87,8 @@ import { ResetPasswordComponent } from "./components/user-auth/reset-password/re
 import { VerifyEmailCallbackComponent } from "./components/user-auth/verify-email-callback/verify-email-callback.component";
 import { FeedbackDialogComponent } from "./components/dialogs/feedback-dialog/feedback-dialog.component";
 import { FeedbackService } from "./services/feedback.service";
+import { CommentsDialogComponent } from "./components/dialogs/comments-dialog/comments-dialog.component";
+import { CommentService } from "./services/comment.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
 import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
 
@@ -137,6 +139,7 @@ import { ProfilePageComponent } from "./components/profile-page/profile-page.com
     ResetPasswordComponent,
     VerifyEmailCallbackComponent,
     FeedbackDialogComponent,
+    CommentsDialogComponent,
     BrowsePageComponent,
     ProfilePageComponent,
   ],
@@ -176,6 +179,7 @@ import { ProfilePageComponent } from "./components/profile-page/profile-page.com
   providers: [
     AuthenticationService,
     FeedbackService,
+    CommentService,
     BlueprintService,
     ToolService,
     SelectTool,

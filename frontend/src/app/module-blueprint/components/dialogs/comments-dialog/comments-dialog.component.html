@@ -1,0 +1,181 @@
+<p-dialog
+  header="Comments"
+  i18n-header
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '560px' }"
+  [draggable]="false"
+  styleClass="comments-dialog"
+>
+  <p *ngIf="loading" class="comments-status" i18n>Loading comments…</p>
+  <p *ngIf="loadError" class="comments-status comments-error" i18n>
+    Could not load comments. Please try again.
+  </p>
+
+  <ng-container *ngIf="!loading && !loadError">
+    <p *ngIf="threads.length === 0" class="comments-status" i18n>
+      No comments yet. Be the first to give the author feedback!
+    </p>
+
+    <div class="comment-thread" *ngFor="let thread of threads">
+      <ng-container
+        [ngTemplateOutlet]="commentTpl"
+        [ngTemplateOutletContext]="{ comment: thread.comment, isReply: false }"
+      ></ng-container>
+
+      <div class="comment-replies">
+        <ng-container *ngFor="let reply of thread.replies">
+          <ng-container
+            [ngTemplateOutlet]="commentTpl"
+            [ngTemplateOutletContext]="{ comment: reply, isReply: true }"
+          ></ng-container>
+        </ng-container>
+
+        <div
+          class="comment-reply-form"
+          *ngIf="replyingTo === thread.comment.id"
+        >
+          <textarea
+            pTextarea
+            [(ngModel)]="replyText"
+            [rows]="3"
+            [maxlength]="maxLength"
+            placeholder="Write a reply…"
+            i18n-placeholder
+            [disabled]="posting"
+          ></textarea>
+          <div class="comment-form-actions">
+            <p-button
+              label="Cancel"
+              i18n-label
+              severity="secondary"
+              size="small"
+              (onClick)="cancelReply()"
+              [disabled]="posting"
+            ></p-button>
+            <p-button
+              label="Reply"
+              i18n-label
+              size="small"
+              [loading]="posting"
+              [disabled]="!replyText.trim()"
+              (onClick)="postReply()"
+            ></p-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <p *ngIf="postError" class="comments-error">{{ postError }}</p>
+
+  <ng-template pTemplate="footer">
+    <div class="comment-new-form" *ngIf="authService.isLoggedIn()">
+      <textarea
+        pTextarea
+        [(ngModel)]="newComment"
+        [rows]="3"
+        [maxlength]="maxLength"
+        placeholder="Give the author feedback — links to other blueprints and @mentions work, external links are removed"
+        i18n-placeholder
+        [disabled]="posting"
+      ></textarea>
+      <div class="comment-form-actions">
+        <span class="comment-char-count"
+          >{{ newComment.length }}/{{ maxLength }}</span
+        >
+        <p-button
+          label="Post comment"
+          i18n-label
+          [loading]="posting"
+          [disabled]="!newComment.trim()"
+          (onClick)="postTopLevel()"
+        ></p-button>
+      </div>
+    </div>
+    <p *ngIf="!authService.isLoggedIn()" class="comments-status">
+      <a routerLink="/login" (click)="visible = false" i18n>Log in</a
+      ><ng-container i18n> to join the conversation.</ng-container>
+    </p>
+  </ng-template>
+</p-dialog>
+
+<ng-template #commentTpl let-comment="comment" let-isReply="isReply">
+  <div class="comment" [class.comment-reply]="isReply">
+    <div class="comment-meta">
+      <ng-container *ngIf="!comment.deleted">
+        <a
+          *ngIf="comment.author"
+          class="comment-author"
+          [routerLink]="['/profile', comment.author.username]"
+          (click)="onLinkClicked()"
+          >{{ comment.author.username }}</a
+        >
+        <span *ngIf="!comment.author" class="comment-author-deleted" i18n
+          >[deleted user]</span
+        >
+        <span class="comment-date">{{
+          comment.createdAt | date : "medium"
+        }}</span>
+      </ng-container>
+    </div>
+
+    <div class="comment-body">
+      <em *ngIf="comment.deleted" class="comment-removed" i18n
+        >[comment removed]</em
+      >
+      <ng-container *ngIf="!comment.deleted">
+        <ng-container *ngFor="let segment of comment.segments">
+          <span *ngIf="segment.type === 'text'" class="comment-text">{{
+            segment.text
+          }}</span>
+          <a
+            *ngIf="segment.type === 'blueprint' && segment.name !== null"
+            [routerLink]="['/b', segment.id]"
+            (click)="onLinkClicked()"
+            >{{ segment.name }}</a
+          >
+          <span
+            *ngIf="segment.type === 'blueprint' && segment.name === null"
+            class="comment-ref-deleted"
+            i18n
+            >[deleted blueprint]</span
+          >
+          <a
+            *ngIf="segment.type === 'user' && segment.name !== null"
+            [routerLink]="['/profile', segment.name]"
+            (click)="onLinkClicked()"
+            >@{{ segment.name }}</a
+          >
+          <span
+            *ngIf="segment.type === 'user' && segment.name === null"
+            class="comment-ref-deleted"
+            i18n
+            >[deleted user]</span
+          >
+        </ng-container>
+      </ng-container>
+    </div>
+
+    <div class="comment-actions" *ngIf="!comment.deleted">
+      <button
+        *ngIf="!isReply && authService.isLoggedIn()"
+        type="button"
+        class="comment-action-link"
+        (click)="startReply(comment)"
+        i18n
+      >
+        Reply
+      </button>
+      <button
+        *ngIf="comment.canDelete"
+        type="button"
+        class="comment-action-link comment-action-delete"
+        (click)="delete(comment)"
+        i18n
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</ng-template>
