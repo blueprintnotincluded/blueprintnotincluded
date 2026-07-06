@@ -9,7 +9,7 @@ export function optionalViewer(req: Request): UserJwt | null {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) return null;
   try {
-    return jwt.verify(header.slice(7), process.env.JWT_SECRET as string) as UserJwt;
+    return jwt.verify(header.slice(7), process.env.JWT_SECRET as string, { algorithms: ['HS256'] }) as UserJwt;
   } catch {
     return null;
   }
