@@ -21,6 +21,11 @@ export interface BlueprintListItem {
     subcategory?: string | null;
     description?: string | null;
     modded?: boolean | null;
+    nbForks: number;
+    forkedFrom?: {
+        blueprintId: string;
+        blueprintName: string | null;
+    } | null;
 }
 export interface BlueprintDetailsResponse extends BlueprintListItem {
     researchTier?: string | null;

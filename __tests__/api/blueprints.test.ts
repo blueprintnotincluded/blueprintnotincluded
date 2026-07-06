@@ -94,7 +94,7 @@ describe('Blueprint API (Mocha)', function () {
       expect(popularBlueprint.nbLikes).to.equal(2);
     });
 
-    it('should exclude copied blueprints by default', async function () {
+    it('includes forks/copies — the silent isCopy hide was removed (issue #8: forks are now an explicit, visible relationship via forkCount/forkedFrom)', async function () {
       const response = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now() });
@@ -102,20 +102,7 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.status).to.equal(200);
 
       const blueprintNames = response.body.blueprints.map((bp: any) => bp.name);
-      expect(blueprintNames).to.not.include('Modified Coal Generator'); // This is a copy
-      expect(blueprintNames).to.include('Super Coal Generator Setup'); // Original should be included
-    });
-
-    it('should include copied blueprints when getDuplicates=true', async function () {
-      const response = await TestSetup.request().get('/api/getblueprints').query({
-        olderthan: Date.now(),
-        getDuplicates: true,
-      });
-
-      expect(response.status).to.equal(200);
-
-      const blueprintNames = response.body.blueprints.map((bp: any) => bp.name);
-      expect(blueprintNames).to.include('Modified Coal Generator'); // Copy should be included
+      expect(blueprintNames).to.include('Modified Coal Generator'); // Copy is now visible
       expect(blueprintNames).to.include('Super Coal Generator Setup'); // Original should still be included
     });
 
@@ -209,10 +196,12 @@ describe('Blueprint API (Mocha)', function () {
 
       expect(response.status).to.equal(200);
       const names = response.body.blueprints.map((bp: any) => bp.name);
-      // Seeded: Super Coal (2 likes), Oxygen (1), Legacy (0)
-      expect(names.slice(0, 3)).to.deep.equal([
+      // Seeded: Super Coal (2 likes), Oxygen (1), then 0-like ties broken by
+      // createdAt desc: Modified Coal Generator (2 days ago) before Legacy (30 days ago)
+      expect(names.slice(0, 4)).to.deep.equal([
         'Super Coal Generator Setup',
         'Oxygen Production Line',
+        'Modified Coal Generator',
         'Legacy Food System',
       ]);
       const likes = response.body.blueprints.map((bp: any) => bp.nbLikes);

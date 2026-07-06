@@ -22,6 +22,13 @@ export interface Blueprint extends Document {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
+  currentVersionId?: mongoose.Types.ObjectId | null;
+  forkedFrom?: {
+    blueprintId: mongoose.Types.ObjectId;
+    versionId: mongoose.Types.ObjectId;
+    forkedAt: Date;
+  } | null;
+  forkCount?: number;
 }
 
 export class BlueprintModel {
@@ -59,6 +66,23 @@ export class BlueprintModel {
       description: { type: String, maxlength: 500 },
       researchTier: { type: String, enum: [...RESEARCH_TIERS, null] },
       modded: { type: Boolean },
+      currentVersionId: {
+        type: Schema.Types.ObjectId,
+        ref: 'BlueprintVersion',
+        default: null,
+      },
+      forkedFrom: {
+        type: new Schema(
+          {
+            blueprintId: { type: Schema.Types.ObjectId, ref: 'Blueprint', required: true },
+            versionId: { type: Schema.Types.ObjectId, ref: 'BlueprintVersion', required: true },
+            forkedAt: { type: Date, required: true },
+          },
+          { _id: false }
+        ),
+        default: null,
+      },
+      forkCount: { type: Number, default: 0 },
     });
 
     // Listing query: filter by createdAt range, sort by createdAt desc
@@ -75,6 +99,8 @@ export class BlueprintModel {
     blueprintSchema.index({ deletedAt: 1, gameVersion: 1, category: 1, createdAt: -1 });
     // "Most liked" sort on the public feed
     blueprintSchema.index({ deletedAt: 1, likeCount: -1, createdAt: -1 });
+    // "Most forked" sort
+    blueprintSchema.index({ forkCount: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }

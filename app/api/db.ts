@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { UserModel } from './models/user';
 import { BlueprintModel } from './models/blueprint';
+import { BlueprintVersionModel } from './models/blueprint-version';
 import { FeedbackModel } from './models/feedback';
 import { FollowModel } from './models/follow';
 import { CommentModel } from './models/comment';
@@ -21,6 +22,7 @@ export class Database {
       }
       UserModel.init();
       BlueprintModel.init();
+      BlueprintVersionModel.init();
       FeedbackModel.init();
       FollowModel.init();
       CommentModel.init();
