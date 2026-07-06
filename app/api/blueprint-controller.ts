@@ -560,9 +560,16 @@ export class BlueprintController {
         ownerId = blueprint.owner.id as string;
       }
 
-      const commentCounts = await BlueprintController.getCommentCounts([
-        blueprint._id as mongoose.Types.ObjectId,
-      ]);
+      let commentCounts = new Map<string, number>();
+      try {
+        commentCounts = await BlueprintController.getCommentCounts([
+          blueprint._id as mongoose.Types.ObjectId,
+        ]);
+      } catch (err) {
+        // Counts are decoration on the details page — never fail the fetch for them
+        console.log('comment count aggregate error');
+        console.log(err);
+      }
 
       const response: BlueprintDetailsResponse = {
         id: (blueprint._id as any).toString(),
