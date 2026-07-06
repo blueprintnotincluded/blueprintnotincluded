@@ -536,6 +536,11 @@ export class BlueprintController {
   // fetches via /api/getblueprint/:id
   public async getBlueprintDetails(req: Request, res: Response): Promise<void> {
     try {
+      if (BlueprintModel.model == null) {
+        res.status(503).send();
+        return;
+      }
+
       const blueprintId = req.params.id;
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
