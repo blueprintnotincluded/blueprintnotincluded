@@ -14,7 +14,7 @@ function makeProfile(overrides: any = {}) {
     id: "owner-1",
     username: "alice",
     bio: "",
-    memberSince: new Date("2024-01-01"),
+    memberSince: new Date("2024-01-01").toISOString(),
     blueprintCount: 0,
     followerCount: 0,
     followingCount: 0,
@@ -58,7 +58,7 @@ describe("ProfilePageComponent", () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { paramMap: convertToParamMap({ username: "alice" }) },
+            paramMap: of(convertToParamMap({ username: "alice" })),
           },
         },
         DatePipe,

@@ -2,7 +2,7 @@ export interface ProfileResponse {
     id: string;
     username: string;
     bio: string;
-    memberSince: Date;
+    memberSince: string;
     blueprintCount: number;
     followerCount: number;
     followingCount: number;

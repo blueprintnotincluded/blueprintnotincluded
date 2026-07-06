@@ -6,6 +6,7 @@ import { BlueprintModel } from './models/blueprint';
 import { BlueprintController } from './blueprint-controller';
 import { ProfileResponse, FollowRequest, UpdateBioRequest } from '../../lib/index';
 import { apiError } from './utils/apiError';
+import { parseOlderThan } from './utils/pagination';
 
 export class UserController {
   constructor() {
@@ -43,7 +44,7 @@ export class UserController {
           id: (targetId as mongoose.Types.ObjectId).toString(),
           username: targetUser.username as string,
           bio: targetUser.bio ?? '',
-          memberSince: (targetId as mongoose.Types.ObjectId).getTimestamp(),
+          memberSince: (targetId as mongoose.Types.ObjectId).getTimestamp().toISOString(),
           blueprintCount,
           followerCount,
           followingCount,
@@ -144,30 +145,9 @@ export class UserController {
 
   public getFeed(req: Request, res: Response): void {
     const user = req.user as UserJwt;
-    let dateFilter = new Date();
 
-    try {
-      if (!req.query.olderthan || req.query.olderthan === '') {
-        res.status(400).json(apiError(400, 'Missing required parameter: olderthan'));
-        return;
-      }
-
-      const dateInt = parseInt(req.query.olderthan as string);
-      if (isNaN(dateInt)) {
-        res.status(400).json(apiError(400, 'Invalid olderthan parameter: must be a numeric timestamp'));
-        return;
-      }
-
-      dateFilter.setTime(dateInt);
-      if (isNaN(dateFilter.getTime())) {
-        res.status(400).json(apiError(400, 'Invalid olderthan parameter: timestamp out of range'));
-        return;
-      }
-    } catch (error) {
-      console.log(error);
-      res.status(400).json(apiError(400, 'Invalid query parameters'));
-      return;
-    }
+    const dateFilter = parseOlderThan(req, res);
+    if (dateFilter == null) return;
 
     FollowModel.model
       .find({ followerId: user._id })

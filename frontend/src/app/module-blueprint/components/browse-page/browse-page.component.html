@@ -29,6 +29,7 @@
       pButton
       i18n-label
       label="Discover"
+      [attr.aria-pressed]="viewMode === 'discover'"
       [class]="
         viewMode === 'discover'
           ? 'p-button-sm'
@@ -41,6 +42,7 @@
       pButton
       i18n-label
       label="From creators you follow"
+      [attr.aria-pressed]="viewMode === 'feed'"
       [class]="
         viewMode === 'feed' ? 'p-button-sm' : 'p-button-outlined p-button-sm'
       "
