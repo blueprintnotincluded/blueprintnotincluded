@@ -123,8 +123,6 @@ The GitHub repo is at https://github.com/blueprintnotincluded/blueprintnotinclud
 - `frontend-test.yml` — runs on push/PR to master touching frontend paths  
 - `publish.yml` — deploys to DigitalOcean on push to master only
 
-See `agent/CI_IMPROVEMENTS.md` for a prioritized list of known CI issues.
-
 ## Environment Configuration
 
 Copy `.env.sample` to `.env` and configure:
@@ -223,7 +221,7 @@ no longer set these manually. `multiplayerSafe` has been removed entirely.
 Check these files in `agent/` directory for current status:
 - `agent/TODO.md` - Improvement roadmap and remaining work
 - `agent/SESSION_NOTES.md` - Session-by-session progress
-- `agent/CI_IMPROVEMENTS.md` - GitHub Actions improvements (all complete)
+- `agent/WORKOS_PLAN.md` - WorkOS auth operational reference (env mapping, admin roles)
 - `UPGRADE_PLAN.md` - Upgrade history and strategy
 
 ### Quick Status Check Commands
