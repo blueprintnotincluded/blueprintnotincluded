@@ -1,5 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
+import { EMPTY, Observable } from "rxjs";
+import { catchError, switchMap } from "rxjs/operators";
 import { BlueprintDetailsResponse } from "../../../../../../lib/index";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
@@ -15,6 +17,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
   blueprintId: string | null = null;
   loading = true;
   notFound = false;
+  loadError = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -23,28 +26,36 @@ export class BlueprintDetailsPageComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get("id");
-      if (id != null) this.load(id);
-    });
-  }
-
-  private load(id: string) {
-    this.loading = true;
-    this.notFound = false;
-    this.details = null;
-    this.blueprintId = null;
-    this.blueprintService.getBlueprintDetails(id).subscribe({
-      next: (details) => {
+    this.route.paramMap
+      .pipe(switchMap((params) => this.load(params.get("id"))))
+      .subscribe((details) => {
+        if (details == null) return;
         this.details = details;
         this.blueprintId = details.id;
         this.loading = false;
-      },
-      error: () => {
-        this.notFound = true;
+      });
+  }
+
+  private load(id: string | null): Observable<BlueprintDetailsResponse | null> {
+    this.details = null;
+    this.blueprintId = null;
+    this.notFound = false;
+    this.loadError = false;
+
+    if (id == null) {
+      this.loading = false;
+      return EMPTY;
+    }
+
+    this.loading = true;
+    return this.blueprintService.getBlueprintDetails(id).pipe(
+      catchError((err) => {
+        if (err?.status === 404) this.notFound = true;
+        else this.loadError = true;
         this.loading = false;
-      },
-    });
+        return EMPTY;
+      })
+    );
   }
 
   get loggedIn() {
