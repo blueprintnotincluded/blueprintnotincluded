@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { HttpClient, HttpParams } from "@angular/common/http";
+import { Observable, throwError } from "rxjs";
 import { AuthenticationService } from "./authentification-service";
 import {
   ProfileResponse,
@@ -29,6 +29,9 @@ export class UserService {
   }
 
   follow(followeeId: string, follow: boolean): Observable<{ follow: string }> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Not authenticated"));
+    }
     const body: FollowRequest = { followeeId, follow };
     return this.http.post<{ follow: string }>("/api/follow", body, {
       headers: { Authorization: `Bearer ${this.authService.getToken()}` },
@@ -36,6 +39,9 @@ export class UserService {
   }
 
   updateBio(bio: string): Observable<{ bio: string }> {
+    if (!this.authService.isLoggedIn()) {
+      return throwError(() => new Error("Not authenticated"));
+    }
     const body: UpdateBioRequest = { bio };
     return this.http.patch<{ bio: string }>("/api/users/me", body, {
       headers: { Authorization: `Bearer ${this.authService.getToken()}` },
@@ -43,8 +49,12 @@ export class UserService {
   }
 
   getFeed(olderThan: Date): Observable<BlueprintListResponse> {
-    const params = "olderthan=" + olderThan.getTime().toString();
-    return this.http.get<BlueprintListResponse>(`/api/feed?${params}`, {
+    const params = new HttpParams().set(
+      "olderthan",
+      olderThan.getTime().toString()
+    );
+    return this.http.get<BlueprintListResponse>("/api/feed", {
+      params,
       headers: { Authorization: `Bearer ${this.authService.getToken()}` },
     });
   }

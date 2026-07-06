@@ -1,4 +1,5 @@
 import { UserService } from "./user-service";
+import { HttpParams } from "@angular/common/http";
 import { of } from "rxjs";
 
 describe("UserService", () => {
@@ -42,6 +43,7 @@ describe("UserService", () => {
 
   describe("follow", () => {
     it("posts followeeId and the desired follow state", () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
       service.follow("user-1", true).subscribe();
       expect(mockHttp.post).toHaveBeenCalledWith(
         "/api/follow",
@@ -51,10 +53,18 @@ describe("UserService", () => {
         })
       );
     });
+
+    it("errors without hitting the network when logged out", () => {
+      const onError = vi.fn();
+      service.follow("user-1", true).subscribe({ error: onError });
+      expect(onError).toHaveBeenCalled();
+      expect(mockHttp.post).not.toHaveBeenCalled();
+    });
   });
 
   describe("updateBio", () => {
     it("patches the bio", () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
       service.updateBio("hello").subscribe();
       expect(mockHttp.patch).toHaveBeenCalledWith(
         "/api/users/me",
@@ -64,6 +74,13 @@ describe("UserService", () => {
         })
       );
     });
+
+    it("errors without hitting the network when logged out", () => {
+      const onError = vi.fn();
+      service.updateBio("hello").subscribe({ error: onError });
+      expect(onError).toHaveBeenCalled();
+      expect(mockHttp.patch).not.toHaveBeenCalled();
+    });
   });
 
   describe("getFeed", () => {
@@ -71,8 +88,9 @@ describe("UserService", () => {
       const date = new Date("2024-01-01");
       service.getFeed(date).subscribe();
       expect(mockHttp.get).toHaveBeenCalledWith(
-        `/api/feed?olderthan=${date.getTime()}`,
+        "/api/feed",
         expect.objectContaining({
+          params: new HttpParams().set("olderthan", date.getTime().toString()),
           headers: { Authorization: "Bearer token123" },
         })
       );

@@ -23,6 +23,15 @@ export class FollowModel {
     // My followees, newest first — feed source
     followSchema.index({ followerId: 1, createdAt: -1 });
 
+    // Guards backfills/admin tools, not just the UserController.follow API path
+    followSchema.pre('validate', function (next) {
+      if (this.followerId.equals(this.followeeId)) {
+        next(new Error('Cannot follow yourself'));
+        return;
+      }
+      next();
+    });
+
     FollowModel.model = (mongoose.models['Follow'] as Model<Follow>) ?? mongoose.model<Follow>('Follow', followSchema);
   }
 }
