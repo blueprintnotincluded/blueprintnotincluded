@@ -44,6 +44,7 @@ export class BlueprintVersionController {
     this.listVersions = this.listVersions.bind(this);
     this.createVersion = this.createVersion.bind(this);
     this.deleteVersion = this.deleteVersion.bind(this);
+    this.restoreVersion = this.restoreVersion.bind(this);
   }
 
   public async fork(req: Request, res: Response): Promise<void> {
@@ -241,6 +242,50 @@ export class BlueprintVersionController {
       console.log('delete blueprint version error');
       console.log(err);
       res.status(500).json(apiError(500, 'Failed to delete version'));
+    }
+  }
+
+  // Points currentVersionId back at an earlier live version — the simpler of the
+  // two restore semantics floated in spec/FORKS.md (no new version is created).
+  public async restoreVersion(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as UserJwt;
+      const blueprintId = req.params.id;
+      const versionId = req.params.versionId;
+      if (!mongoose.Types.ObjectId.isValid(blueprintId) || !mongoose.Types.ObjectId.isValid(versionId)) {
+        res.status(400).json(apiError(400, 'Invalid blueprint or version id'));
+        return;
+      }
+
+      const blueprint = await BlueprintModel.model.findOne({ _id: blueprintId, deletedAt: null });
+      if (!blueprint) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
+      if (blueprint.owner.toString() !== user._id) {
+        res.status(403).json(apiError(403, 'Only the owner can restore a version'));
+        return;
+      }
+
+      const version = await BlueprintVersionModel.model.findOne({
+        _id: versionId,
+        blueprintId,
+        deletedAt: null,
+      });
+      if (!version) {
+        res.status(404).json(apiError(404, 'Version not found'));
+        return;
+      }
+
+      blueprint.currentVersionId = version._id as mongoose.Types.ObjectId;
+      await blueprint.save();
+
+      const response: CreateBlueprintVersionResponse = { version: toVersionDto(version) };
+      res.json(response);
+    } catch (err) {
+      console.log('restore blueprint version error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to restore version'));
     }
   }
 }

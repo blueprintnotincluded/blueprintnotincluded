@@ -33,7 +33,6 @@ export class DialogBrowseComponent implements OnInit {
   remaining!: number;
 
   filterUser!: boolean;
-  getDuplicates!: boolean;
   filterNameSubject = new Subject<string>();
   filterName!: string;
 
@@ -59,6 +58,7 @@ export class DialogBrowseComponent implements OnInit {
       ownedByMe: false,
       nbLikes: 0,
       commentCount: 0,
+      nbForks: 0,
     };
 
     this.nothingBlueprintItem = {
@@ -74,6 +74,7 @@ export class DialogBrowseComponent implements OnInit {
       ownedByMe: false,
       nbLikes: 0,
       commentCount: 0,
+      nbForks: 0,
     };
 
     this.filterNameSubject
@@ -98,12 +99,6 @@ export class DialogBrowseComponent implements OnInit {
     });
 
     this.reset();
-  }
-
-  duplicateChange() {
-    this.removeAll();
-    this.oldestDate = new Date();
-    this.getBlueprints();
   }
 
   // This is used when clicking on the checkbox
@@ -138,12 +133,7 @@ export class DialogBrowseComponent implements OnInit {
       filterName = this.filterName;
 
     this.blueprintService
-      .getBlueprints(
-        this.oldestDate,
-        this.filterUserId || null,
-        filterName,
-        this.getDuplicates
-      )
+      .getBlueprints(this.oldestDate, this.filterUserId || null, filterName)
       .subscribe({
         next: (r: any) => this.handleGetBlueprints(r),
       });
@@ -171,7 +161,6 @@ export class DialogBrowseComponent implements OnInit {
     this.filterUser = false;
     this.filterUserId = null as any;
     this.filterUserName = null as any;
-    this.getDuplicates = false;
     this.filterName = null as any;
 
     this.removeAll();
@@ -212,8 +201,7 @@ export class DialogBrowseComponent implements OnInit {
 
   showDialog(
     filterUserId: string | null = null,
-    filterUserName: string | null = null,
-    getDuplicates: boolean = false
+    filterUserName: string | null = null
   ) {
     this.reset();
     if (filterUserId != null) {
@@ -221,7 +209,6 @@ export class DialogBrowseComponent implements OnInit {
       this.filterUserName = filterUserName!;
       this.filterUser = true;
     }
-    this.getDuplicates = getDuplicates;
     this.getBlueprints();
     this.visible = true;
   }

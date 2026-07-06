@@ -67,6 +67,7 @@ export class ProfilePageComponent implements OnInit {
       ownedByMe: false,
       nbLikes: 0,
       commentCount: 0,
+      nbForks: 0,
     };
 
     this.nothingBlueprintItem = {
@@ -82,6 +83,7 @@ export class ProfilePageComponent implements OnInit {
       ownedByMe: false,
       nbLikes: 0,
       commentCount: 0,
+      nbForks: 0,
     };
   }
 
@@ -207,7 +209,7 @@ export class ProfilePageComponent implements OnInit {
   loadBlueprints() {
     if (!this.profile) return;
     this.blueprintService
-      .getBlueprints(this.oldestDate, this.profile.id, null, false)
+      .getBlueprints(this.oldestDate, this.profile.id, null)
       .subscribe({
         next: (r: any) => this.handleGetBlueprints(r),
         error: () => {

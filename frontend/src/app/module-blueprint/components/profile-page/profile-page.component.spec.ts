@@ -85,8 +85,7 @@ describe("ProfilePageComponent", () => {
     expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
       expect.any(Date),
       "owner-1",
-      null,
-      false
+      null
     );
   });
 

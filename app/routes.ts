@@ -100,6 +100,9 @@ export class Routes {
     app
       .route('/api/blueprints/:id/versions/:versionId')
       .delete(auth, this.blueprintVersionController.deleteVersion);
+    app
+      .route('/api/blueprints/:id/versions/:versionId/restore')
+      .post(auth, this.blueprintVersionController.restoreVersion);
 
     // Admin-only API
     app.route('/api/admin/feedback').get(auth, adminAuth, this.feedbackController.list);

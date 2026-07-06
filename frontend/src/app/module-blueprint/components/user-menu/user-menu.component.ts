@@ -13,7 +13,6 @@ import { AuthenticationService } from "../../services/authentification-service";
 export interface BrowseData {
   filterUserId: string;
   filterUserName: string;
-  getDuplicates: boolean;
 }
 
 @Component({
@@ -90,7 +89,6 @@ export class UserMenuComponent implements OnInit {
     this.myBlueprintsRequested.emit({
       filterUserId: user._id,
       filterUserName: user.username,
-      getDuplicates: true,
     });
   }
 

@@ -1,0 +1,56 @@
+.new-version-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.version-status {
+  opacity: 0.75;
+  margin: 1rem 0;
+}
+
+.version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.version-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: var(--p-surface-100, #f3f4f6);
+}
+
+.version-thumbnail {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+
+.version-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.version-name {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.version-date {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.version-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}

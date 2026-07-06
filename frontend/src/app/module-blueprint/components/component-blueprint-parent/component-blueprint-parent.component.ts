@@ -434,8 +434,7 @@ export class ComponentBlueprintParentComponent
     if (browseData != null)
       this.browseDialog.showDialog(
         browseData.filterUserId,
-        browseData.filterUserName,
-        browseData.getDuplicates
+        browseData.filterUserName
       );
     else this.browseDialog.showDialog();
   }

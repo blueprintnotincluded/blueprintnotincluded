@@ -120,7 +120,6 @@ describe("BrowsePageComponent", () => {
       const data: BrowseData = {
         filterUserId: "user-123",
         filterUserName: "alice",
-        getDuplicates: true,
       };
       component.showMyBlueprints(data);
 
@@ -137,7 +136,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[4]).toBe("spacedOut");
+      expect(lastCall[3]).toBe("spacedOut");
     });
 
     it("passes category filter to getBlueprints", () => {
@@ -145,7 +144,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[5]).toBe("power");
+      expect(lastCall[4]).toBe("power");
     });
 
     it("passes subcategory filter to getBlueprints", () => {
@@ -154,7 +153,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[6]).toBe("generator");
+      expect(lastCall[5]).toBe("generator");
     });
 
     it("clearFilters resets all facets and refetches", () => {
@@ -194,8 +193,8 @@ describe("BrowsePageComponent", () => {
       component.onSortChange();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[7]).toBe("popular");
-      expect(lastCall[8]).toBe(0); // skip reset before refetch
+      expect(lastCall[6]).toBe("popular");
+      expect(lastCall[7]).toBe(0); // skip reset before refetch
       expect(
         component.blueprintListItems.some((i: any) => i.name === "stale")
       ).toBe(false);
@@ -210,8 +209,8 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[7]).toBe("recent");
-      expect(lastCall[8]).toBeUndefined();
+      expect(lastCall[6]).toBe("recent");
+      expect(lastCall[7]).toBeUndefined();
     });
 
     it("advances skip by the number of blueprints received", () => {
@@ -230,6 +229,29 @@ describe("BrowsePageComponent", () => {
       };
       component.ngOnInit();
       expect(component.sort).toBe("popular");
+    });
+
+    it("calls the service with sort=mostForked and skip=0, and updates the URL", () => {
+      component.skipCount = 7;
+      component.sort = "mostForked";
+      component.onSortChange();
+
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[6]).toBe("mostForked");
+      expect(lastCall[7]).toBe(0);
+      expect(router.navigate).toHaveBeenCalledWith([], {
+        queryParams: { sort: "mostForked" },
+        replaceUrl: true,
+      });
+    });
+
+    it("initializes sort=mostForked from the URL query param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.snapshot = {
+        queryParamMap: convertToParamMap({ sort: "mostForked" }),
+      };
+      component.ngOnInit();
+      expect(component.sort).toBe("mostForked");
     });
   });
 
@@ -289,6 +311,7 @@ describe("BrowsePageComponent", () => {
       nbLikes: 7,
       likedByMe: true,
       ownedByMe: false,
+      nbForks: 3,
     } as any;
 
     function renderWithItem() {
@@ -318,6 +341,32 @@ describe("BrowsePageComponent", () => {
       component.blueprintListItems = [component.loadingBlueprintItem];
       fixture.detectChanges();
       expect(fixture.debugElement.query(By.css("app-like-widget"))).toBeNull();
+    });
+  });
+
+  describe("fork count", () => {
+    const realItem = {
+      id: "bp-1",
+      name: "Real Blueprint",
+      ownerId: "u1",
+      ownerName: "alice",
+      createdAt: new Date(),
+      modifiedAt: new Date(),
+      thumbnail: "data:image/png;base64,xyz",
+      tags: [],
+      nbLikes: 7,
+      likedByMe: true,
+      ownedByMe: false,
+      nbForks: 3,
+    } as any;
+
+    it("renders the fork count on cards", () => {
+      fixture.detectChanges();
+      component.blueprintListItems = [realItem];
+      fixture.detectChanges();
+
+      const forkLink = fixture.debugElement.query(By.css(".card-forks"));
+      expect(forkLink.nativeElement.textContent).toContain("3");
     });
   });
 });

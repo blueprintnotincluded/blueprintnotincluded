@@ -27,6 +27,8 @@ function makeDetails(overrides: any = {}) {
     description: "A tidy coal setup",
     researchTier: null,
     modded: false,
+    nbForks: 0,
+    forkedFrom: null,
     ...overrides,
   };
 }
@@ -103,5 +105,49 @@ describe("BlueprintDetailsPageComponent", () => {
     );
     expect(el.querySelector("app-comment-section")).toBeTruthy();
     expect(el.textContent).toContain("A tidy coal setup");
+  });
+
+  it("renders the forked-from link when forkedFrom is set", () => {
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(
+        makeDetails({
+          forkedFrom: {
+            blueprintId: "parent-1",
+            blueprintName: "Original Setup",
+          },
+        })
+      )
+    );
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.textContent).toContain("Forked from");
+    expect(el.textContent).toContain("Original Setup");
+  });
+
+  it("renders the removed-parent placeholder when the fork's parent is soft-deleted", () => {
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(
+        makeDetails({
+          forkedFrom: { blueprintId: "parent-1", blueprintName: null },
+        })
+      )
+    );
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.textContent).toContain("[original removed by author]");
+  });
+
+  it("opens the version history dialog with ownership passed through", () => {
+    fixture.detectChanges();
+    component.versionHistoryDialog = { showDialog: vi.fn() } as any;
+
+    component.openVersionHistory();
+
+    expect(component.versionHistoryDialog.showDialog).toHaveBeenCalledWith(
+      "bp1",
+      false
+    );
   });
 });

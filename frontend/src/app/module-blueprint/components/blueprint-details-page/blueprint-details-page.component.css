@@ -113,4 +113,16 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.details-forked-from {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-bottom: 0.5rem;
+}
+
+.details-fork-count {
+  font-size: 0.85rem;
+  opacity: 0.75;
 }

@@ -1,0 +1,75 @@
+<p-dialog
+  #versionHistoryDialog
+  i18n-header
+  header="Version History"
+  [(visible)]="visible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [closable]="true"
+  [focusOnShow]="false"
+  [maximizable]="false"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div *ngIf="isOwner" class="new-version-row">
+    <input
+      type="text"
+      size="30"
+      i18n-placeholder
+      placeholder="Name this snapshot (optional)"
+      [(ngModel)]="newVersionName"
+      pInputText
+    />
+    <button
+      pButton
+      type="button"
+      icon="pi pi-camera"
+      i18n-label
+      label="Save snapshot"
+      (click)="createVersion()"
+    ></button>
+  </div>
+
+  <div *ngIf="loading" class="version-status" i18n>Loading versions…</div>
+  <div *ngIf="!loading && versions.length === 0" class="version-status" i18n>
+    No saved versions yet.
+  </div>
+
+  <div class="version-list">
+    <div class="version-row" *ngFor="let version of versions">
+      <img
+        *ngIf="version.thumbnail"
+        class="version-thumbnail"
+        [src]="version.thumbnail"
+        alt=""
+      />
+      <div class="version-info">
+        <div class="version-name">{{ version.name ?? "(unnamed)" }}</div>
+        <div class="version-date">
+          {{ version.createdAt | date : "yyyy-MM-dd HH:mm" }}
+        </div>
+      </div>
+      <div *ngIf="isOwner" class="version-actions">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-history"
+          i18n-pTooltip
+          pTooltip="Restore this version"
+          [disabled]="busyVersionId === version.id"
+          (click)="restoreVersion(version)"
+        ></button>
+        <button
+          pButton
+          type="button"
+          class="p-button-danger"
+          icon="pi pi-trash"
+          i18n-pTooltip
+          pTooltip="Delete this version"
+          [disabled]="busyVersionId === version.id"
+          (click)="deleteVersion(version)"
+        ></button>
+      </div>
+    </div>
+  </div>
+</p-dialog>

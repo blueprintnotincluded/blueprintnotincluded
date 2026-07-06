@@ -1,10 +1,11 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, switchMap } from "rxjs/operators";
 import { BlueprintDetailsResponse } from "../../../../../../lib/index";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
+import { VersionHistoryDialogComponent } from "../dialogs/version-history-dialog/version-history-dialog.component";
 
 @Component({
   selector: "app-blueprint-details-page",
@@ -13,6 +14,9 @@ import { AuthenticationService } from "../../services/authentification-service";
   standalone: false,
 })
 export class BlueprintDetailsPageComponent implements OnInit {
+  @ViewChild("versionHistoryDialog")
+  versionHistoryDialog!: VersionHistoryDialogComponent;
+
   details: BlueprintDetailsResponse | null = null;
   blueprintId: string | null = null;
   loading = true;
@@ -67,6 +71,14 @@ export class BlueprintDetailsPageComponent implements OnInit {
       this.details != null &&
       this.details.thumbnail !== "svg" &&
       this.details.thumbnail !== "svg_nothing"
+    );
+  }
+
+  openVersionHistory() {
+    if (this.details == null) return;
+    this.versionHistoryDialog.showDialog(
+      this.details.id,
+      this.details.ownedByMe
     );
   }
 }
