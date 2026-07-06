@@ -434,7 +434,7 @@ export class BlueprintController {
 
       query
         .then(blueprints => {
-          BlueprintController.handleGetBlueprint(req, res, userId, blueprints);
+          return BlueprintController.handleGetBlueprint(req, res, userId, blueprints);
         })
         .catch(err => {
           console.log('Blueprint find error');

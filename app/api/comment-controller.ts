@@ -343,10 +343,6 @@ export class CommentController {
         res.status(404).json(apiError(404, 'Comment not found'));
         return;
       }
-      if (comment.deletedAt != null) {
-        res.json({ delete: 'OK' });
-        return;
-      }
 
       const blueprint = await BlueprintModel.model.findById(comment.blueprintId).select('owner').lean();
       const isAuthor = comment.authorId.toString() === user._id;
@@ -354,6 +350,11 @@ export class CommentController {
       const isAdmin = user.role === 'admin';
       if (!isAuthor && !isBlueprintOwner && !isAdmin) {
         res.status(403).json(apiError(403, 'Not allowed to delete this comment'));
+        return;
+      }
+
+      if (comment.deletedAt != null) {
+        res.json({ delete: 'OK' });
         return;
       }
 
