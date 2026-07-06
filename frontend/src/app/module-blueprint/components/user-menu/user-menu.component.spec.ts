@@ -103,7 +103,6 @@ describe("UserMenuComponent", () => {
       const expected: BrowseData = {
         filterUserId: "u1",
         filterUserName: "alice",
-        getDuplicates: true,
       };
       expect(component.myBlueprintsRequested.emit).toHaveBeenCalledWith(
         expected

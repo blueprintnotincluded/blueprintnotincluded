@@ -47,7 +47,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
   remaining = 0;
-  sort: "recent" | "popular" = "recent";
+  sort: "recent" | "popular" | "mostForked" = "recent";
   skipCount = 0;
   private requestId = 0;
 
@@ -57,6 +57,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   readonly sortOptions = [
     { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
     { label: $localize`:browse.sortMostLiked:Most liked`, value: "popular" },
+    {
+      label: $localize`:browse.sortMostForked:Most forked`,
+      value: "mostForked",
+    },
   ];
 
   readonly gameVersionOptions = [
@@ -106,6 +110,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       ownedByMe: false,
       nbLikes: 0,
       commentCount: 0,
+      nbForks: 0,
     };
 
     this.nothingBlueprintItem = {
@@ -121,6 +126,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       ownedByMe: false,
       nbLikes: 0,
       commentCount: 0,
+      nbForks: 0,
     };
 
     this.filterNameSubject.pipe(debounceTime(600)).subscribe(() => {
@@ -142,7 +148,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterGameVersion = params.get("gameVersion");
     this.filterCategory = params.get("category");
     this.filterSubcategory = params.get("subcategory");
-    this.sort = params.get("sort") === "popular" ? "popular" : "recent";
+    const rawSort = params.get("sort");
+    this.sort =
+      rawSort === "popular" || rawSort === "mostForked" ? rawSort : "recent";
     this.appendLoading();
     this.getBlueprints();
 
@@ -198,7 +206,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (this.filterCategory) queryParams["category"] = this.filterCategory;
     if (this.filterSubcategory)
       queryParams["subcategory"] = this.filterSubcategory;
-    if (this.sort === "popular") queryParams["sort"] = this.sort;
+    if (this.sort !== "recent") queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
 
@@ -236,12 +244,11 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.oldestDate,
             this.filterUserId,
             this.filterName.trim() || null,
-            false,
             this.filterGameVersion,
             this.filterCategory,
             this.filterSubcategory,
             this.sort,
-            this.sort === "popular" ? this.skipCount : undefined
+            this.sort !== "recent" ? this.skipCount : undefined
           );
 
     request$.subscribe({

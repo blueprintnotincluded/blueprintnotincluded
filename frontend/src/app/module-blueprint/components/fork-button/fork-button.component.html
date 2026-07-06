@@ -1,0 +1,11 @@
+<button
+  pButton
+  type="button"
+  icon="pi pi-copy"
+  i18n-label
+  label="Fork"
+  i18n-pTooltip
+  pTooltip="Create your own editable copy of this blueprint"
+  [disabled]="disabled || forking"
+  (click)="fork()"
+></button>

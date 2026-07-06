@@ -363,39 +363,47 @@ describe("BlueprintService", () => {
 
     it("includes olderthan in the query string", () => {
       const date = new Date(1_000_000);
-      service.getBlueprints(date, null, null, false);
+      service.getBlueprints(date, null, null);
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("olderthan=" + date.getTime());
     });
 
     it("includes filterUserId when provided", () => {
-      service.getBlueprints(new Date(), "user123", null, false);
+      service.getBlueprints(new Date(), "user123", null);
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("filterUserId=user123");
     });
 
     it("includes filterName when provided", () => {
-      service.getBlueprints(new Date(), null, "my-bp", false);
+      service.getBlueprints(new Date(), null, "my-bp");
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("filterName=my-bp");
     });
 
-    it("includes getDuplicates when true", () => {
-      service.getBlueprints(new Date(), null, null, true);
+    it("includes sort=mostForked when provided", () => {
+      service.getBlueprints(
+        new Date(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        "mostForked"
+      );
       const url: string = mockHttp.get.mock.calls[0][0];
-      expect(url).toContain("getDuplicates=true");
+      expect(url).toContain("sort=mostForked");
     });
 
     it("uses getblueprintsSecure when logged in", () => {
       mockAuth.isLoggedIn.mockReturnValue(true);
-      service.getBlueprints(new Date(), null, null, false);
+      service.getBlueprints(new Date(), null, null);
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("getblueprintsSecure");
     });
 
     it("uses getblueprints when not logged in", () => {
       mockAuth.isLoggedIn.mockReturnValue(false);
-      service.getBlueprints(new Date(), null, null, false);
+      service.getBlueprints(new Date(), null, null);
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("/api/getblueprints?");
     });

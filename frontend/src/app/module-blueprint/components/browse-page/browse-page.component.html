@@ -207,6 +207,15 @@
             <i class="pi pi-comments" aria-hidden="true"></i>
             {{ item.commentCount }}
           </a>
+          <a
+            class="card-forks"
+            [routerLink]="['/blueprint', item.id]"
+            i18n-title
+            title="Fork count"
+          >
+            <i class="pi pi-copy" aria-hidden="true"></i>
+            {{ item.nbForks }}
+          </a>
         </div>
       </div>
     </div>

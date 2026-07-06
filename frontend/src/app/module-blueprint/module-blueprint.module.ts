@@ -58,6 +58,8 @@ import { DialogBrowseComponent } from "./components/dialogs/dialog-browse/dialog
 import { DialogExportImagesComponent } from "./components/dialogs/dialog-export-images/dialog-export-images.component";
 import { BlueprintNameValidationDirective } from "./directives/blueprint-name-validation.directive";
 import { LikeWidgetComponent } from "./components/like-widget/like-widget.component";
+import { ForkButtonComponent } from "./components/fork-button/fork-button.component";
+import { VersionHistoryDialogComponent } from "./components/dialogs/version-history-dialog/version-history-dialog.component";
 import { BuildableElementPickerComponent } from "./components/side-bar/buildable-element-picker/buildable-element-picker.component";
 import { ElementReport } from "./common/tools/element-report";
 import { ElementReportToolComponent } from "./components/side-bar/element-report-tool/element-report-tool.component";
@@ -90,6 +92,7 @@ import { FeedbackService } from "./services/feedback.service";
 import { CommentSectionComponent } from "./components/comment-section/comment-section.component";
 import { BlueprintDetailsPageComponent } from "./components/blueprint-details-page/blueprint-details-page.component";
 import { CommentService } from "./services/comment.service";
+import { BlueprintVersionService } from "./services/blueprint-version.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
 import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
 
@@ -113,6 +116,8 @@ import { ProfilePageComponent } from "./components/profile-page/profile-page.com
     DialogBrowseComponent,
     DialogExportImagesComponent,
     LikeWidgetComponent,
+    ForkButtonComponent,
+    VersionHistoryDialogComponent,
     BuildableElementPickerComponent,
     ElementReportToolComponent,
     UiScreenContainerComponent,
@@ -182,6 +187,7 @@ import { ProfilePageComponent } from "./components/profile-page/profile-page.com
     AuthenticationService,
     FeedbackService,
     CommentService,
+    BlueprintVersionService,
     BlueprintService,
     ToolService,
     SelectTool,

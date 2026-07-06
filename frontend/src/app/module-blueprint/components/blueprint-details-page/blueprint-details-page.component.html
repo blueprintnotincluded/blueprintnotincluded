@@ -35,6 +35,20 @@
           }}</span>
         </div>
 
+        <div *ngIf="details.forkedFrom" class="details-forked-from">
+          <span i18n>Forked from</span>&nbsp;<a
+            *ngIf="
+              details.forkedFrom.blueprintName as parentName;
+              else removedParent
+            "
+            [routerLink]="['/blueprint', details.forkedFrom.blueprintId]"
+            >{{ parentName }}</a
+          >
+          <ng-template #removedParent
+            ><span i18n>[original removed by author]</span></ng-template
+          >
+        </div>
+
         <div class="details-badges">
           <span *ngIf="details.category" class="badge badge--category">{{
             details.category
@@ -72,10 +86,29 @@
             [likedByMe]="details.likedByMe"
             [disabled]="!loggedIn"
           ></app-like-widget>
+          <app-fork-button
+            [blueprintId]="details.id"
+            [disabled]="!loggedIn"
+          ></app-fork-button>
+          <span class="details-fork-count" i18n
+            >{{ details.nbForks }} forks</span
+          >
+          <button
+            pButton
+            type="button"
+            class="p-button-text"
+            icon="pi pi-clock"
+            i18n-label
+            label="Version History"
+            (click)="openVersionHistory()"
+          ></button>
         </div>
       </div>
     </div>
 
     <app-comment-section [blueprintId]="blueprintId"></app-comment-section>
+    <app-version-history-dialog
+      #versionHistoryDialog
+    ></app-version-history-dialog>
   </ng-container>
 </div>

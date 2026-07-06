@@ -26,14 +26,6 @@
   </div>
 
   <p-checkbox
-    [(ngModel)]="getDuplicates"
-    binary="true"
-    inputId="getDuplicates"
-    (onChange)="duplicateChange()"
-  ></p-checkbox>
-  <label for="getDuplicates" i18n>Show duplicate blueprints</label>
-  <br />
-  <p-checkbox
     *ngIf="filterUserName !== null"
     [(ngModel)]="filterUser"
     binary="true"

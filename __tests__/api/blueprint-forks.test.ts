@@ -267,6 +267,66 @@ describe('Fork + BlueprintVersion API', function () {
     });
   });
 
+  // ─── POST /api/blueprints/:id/versions/:versionId/restore ────────────────────
+
+  describe('POST /api/blueprints/:id/versions/:versionId/restore', function () {
+    it('returns 401 without a token and 403 for a non-owner', async function () {
+      const ownerToken = testData.users.user1.generateJwt();
+      const version = (
+        await TestSetup.request()
+          .post(`/api/blueprints/${popularId}/versions`)
+          .set('Authorization', `Bearer ${ownerToken}`)
+      ).body.version;
+
+      const anon = await TestSetup.request().post(
+        `/api/blueprints/${popularId}/versions/${version.id}/restore`
+      );
+      expect(anon.status).to.equal(401);
+
+      const otherToken = testData.users.user2.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${popularId}/versions/${version.id}/restore`)
+        .set('Authorization', `Bearer ${otherToken}`);
+      expect(response.status).to.equal(403);
+    });
+
+    it('returns 404 for an unknown version', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${popularId}/versions/${new Types.ObjectId().toString()}/restore`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).to.equal(404);
+    });
+
+    it('points currentVersionId back at an earlier live version without creating a new one', async function () {
+      const token = testData.users.user1.generateJwt();
+      const first = (
+        await TestSetup.request()
+          .post(`/api/blueprints/${popularId}/versions`)
+          .set('Authorization', `Bearer ${token}`)
+          .send({ name: 'first' })
+      ).body.version;
+      await TestSetup.request()
+        .post(`/api/blueprints/${popularId}/versions`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'second' });
+
+      const countBefore = await BlueprintVersionModel.model.countDocuments({ blueprintId: popularId });
+
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${popularId}/versions/${first.id}/restore`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).to.equal(200);
+      expect(response.body.version.id).to.equal(first.id);
+
+      const blueprint = await BlueprintModel.model.findById(popularId);
+      expect(blueprint!.currentVersionId!.toString()).to.equal(first.id);
+
+      const countAfter = await BlueprintVersionModel.model.countDocuments({ blueprintId: popularId });
+      expect(countAfter).to.equal(countBefore);
+    });
+  });
+
   // ─── Migration 2a/2b idempotency ──────────────────────────────────────────────
 
   describe('migration 20260707000000_blueprint-version-init', function () {

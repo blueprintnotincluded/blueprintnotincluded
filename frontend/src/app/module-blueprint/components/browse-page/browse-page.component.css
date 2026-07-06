@@ -149,6 +149,19 @@
   color: var(--p-primary-color, inherit);
 }
 
+.card-forks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--p-text-muted-color, #6b7280);
+}
+
+.card-forks:hover {
+  color: var(--p-primary-color, inherit);
+}
+
 .card-thumbnail a {
   display: block;
 }
