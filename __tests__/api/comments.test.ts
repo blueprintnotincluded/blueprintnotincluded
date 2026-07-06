@@ -365,6 +365,7 @@ describe('Comments API', function () {
         comment.id,
         `@${testData.users.user1.username} see /b/${otherBlueprintId}`
       );
+      expect(response.status).to.equal(200);
       const stored = await CommentModel.model.findById(comment.id);
       expect(stored!.body).to.equal(
         `{{user:${testData.users.user1._id.toString()}}} see {{blueprint:${otherBlueprintId}}}`

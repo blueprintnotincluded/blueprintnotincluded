@@ -145,7 +145,7 @@
           i18n-label
           size="small"
           [loading]="posting"
-          [disabled]="!editText.trim()"
+          [disabled]="posting || !editText.trim()"
           (onClick)="saveEdit()"
         ></p-button>
       </div>
