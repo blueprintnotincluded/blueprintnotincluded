@@ -165,10 +165,10 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 ## Current Status
 
 - **Phase**: OniExtract2024 flat-icon rendering (current asset pipeline)
-- **Date**: 2026-06-24
+- **Date**: 2026-07-06
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ Backend 204 passing (Mocha + Chai) · Frontend 490 passing (Vitest/jsdom), all green
+- **Tests**: ✅ Backend 315 passing (Mocha + Chai) · Frontend 561 passing (Vitest/jsdom), all green
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 
 ### Asset rendering: OniExtract2024 flat icons
@@ -332,7 +332,17 @@ For a full restore: DO dashboard → Backups → restore the pre-deploy snapshot
 
 ---
 
-## Committing
+## Work Session Lifecycle
+
+Every work session has a defined start and end. AI code review and CI run on pull
+requests, so a session that ends with only local commits is a dead session — the work
+sits invisible until someone comes back and pushes it. Do not stop at "committed".
+
+**Session start:**
+1. `git fetch origin master`
+2. Create a new branch based on `origin/master` (master is push-protected; never work on it)
+
+**During the session — committing:**
 
 Commit autonomously at every logical break point — do NOT pause to ask permission.
 A logical break point is: a feature complete, a refactor complete, tests passing, a migration applied, or any other self-contained unit of work.
@@ -340,9 +350,15 @@ A logical break point is: a feature complete, a refactor complete, tests passing
 Commit message format:
 - Subject: conventional commits style (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`), ≤72 chars
 - Body (when the why is non-obvious): explain motivation and any constraints a future reader would need; skip if the subject is self-explanatory
-- Always append: `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
+- Always append a `Co-Authored-By` trailer with the current model name, e.g. `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
 
 Stage only relevant files — never `git add -A` blindly. Do not skip hooks (`--no-verify`).
+
+**Session end — push and open a PR (autonomously, without asking):**
+1. Update any committed docs that describe shipped state (e.g. `spec/ROADMAP.md`, `agent/TODO.md`) so they reflect what this branch ships
+2. `git push -u origin <branch>`
+3. `gh pr create` with a real description: what shipped, design decisions and spec deviations, how it was verified (test counts, migrations run), and anything deferred
+4. Report the PR URL as the session's final output
 
 ## Important Instructions
 Do what has been asked; nothing more, nothing less.

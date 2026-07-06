@@ -1,11 +1,11 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Social evolution — likes, auto-derived metadata, profiles/follows/activity feed all shipped
-- **Date**: 2026-07-05
+- **Phase**: Social evolution — likes, auto-derived metadata, profiles/follows/activity feed, and blueprint comments all shipped
+- **Date**: 2026-07-06
 - **Branch**: `master`
 - **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: 275 backend (Mocha + Chai) · 547 frontend (Vitest, 2 skipped) — all green
+- **Tests**: 315 backend (Mocha + Chai) · 561 frontend (Vitest, 2 skipped) — all green
 - **Enforcement**: zero-warning flags enabled backend, lib, and frontend (`strict` + `strictTemplates`); CI improvements all complete (mongo:8.0.23 + mongosh health check)
 
 ## OniExtract2024 follow-ups
@@ -63,5 +63,7 @@ WorkOS in-app auth work; rate limiting is Cloudflare's job — do not add expres
 2. Export side: emit `uiImageRect` for the ~107 buildings still missing it.
 3. Monitor WorkOS legacy-user migration (`GET /api/migration/status`); retire the legacy
    migration path when counts hit zero — see `agent/WORKOS_PLAN.md`.
-4. Pick the next product increment: blueprint forks, or wiring one of the unread export
-   JSONs (critters/recipes/i18n).
+4. Pick the next product increment: blueprint forks (`spec/FORKS.md`), or wiring one of the
+   unread export JSONs (critters/recipes/i18n).
+5. Comment system follow-ups (deferred per `spec/COMMENT_SYSTEM.md`): tile-pinned comments,
+   edit window, in-app notifications, "hidden by author" state.
