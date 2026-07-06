@@ -1,0 +1,151 @@
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { of, throwError } from "rxjs";
+
+import { CommentsDialogComponent } from "./comments-dialog.component";
+import { CommentService } from "../../../services/comment.service";
+import { AuthenticationService } from "../../../services/authentification-service";
+import { BlueprintService } from "../../../services/blueprint-service";
+
+function makeComment(overrides: any = {}) {
+  return {
+    id: "c1",
+    parentId: null,
+    author: { id: "u1", username: "alice" },
+    segments: [{ type: "text", text: "nice build" }],
+    deleted: false,
+    createdAt: new Date("2026-07-01").toISOString(),
+    lastActivityAt: new Date("2026-07-01").toISOString(),
+    canDelete: false,
+    ...overrides,
+  };
+}
+
+describe("CommentsDialogComponent", () => {
+  let component: CommentsDialogComponent;
+  let fixture: ComponentFixture<CommentsDialogComponent>;
+  let commentService: any;
+  let authService: any;
+  let blueprintService: any;
+
+  beforeEach(async () => {
+    commentService = {
+      getComments: vi
+        .fn()
+        .mockReturnValue(
+          of({ threads: [{ comment: makeComment(), replies: [] }], total: 1 })
+        ),
+      postComment: vi.fn().mockReturnValue(of({ comment: makeComment() })),
+      deleteComment: vi.fn().mockReturnValue(of({ delete: "OK" })),
+    };
+    authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
+    blueprintService = { id: "bp1" };
+
+    await TestBed.configureTestingModule({
+      declarations: [CommentsDialogComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: CommentService, useValue: commentService },
+        { provide: AuthenticationService, useValue: authService },
+        { provide: BlueprintService, useValue: blueprintService },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(CommentsDialogComponent);
+    component = fixture.componentInstance;
+  });
+
+  it("creates", () => {
+    expect(component).toBeTruthy();
+  });
+
+  describe("open", () => {
+    it("loads comments for the current blueprint", () => {
+      component.open();
+
+      expect(component.visible).toBe(true);
+      expect(commentService.getComments).toHaveBeenCalledWith("bp1");
+      expect(component.threads).toHaveLength(1);
+      expect(component.total).toBe(1);
+      expect(component.loading).toBe(false);
+    });
+
+    it("does nothing when no blueprint is loaded", () => {
+      blueprintService.id = null;
+      component.open();
+
+      expect(component.visible).toBe(false);
+      expect(commentService.getComments).not.toHaveBeenCalled();
+    });
+
+    it("flags a load error on failure", () => {
+      commentService.getComments.mockReturnValue(
+        throwError(() => new Error("boom"))
+      );
+      component.open();
+
+      expect(component.loadError).toBe(true);
+      expect(component.loading).toBe(false);
+    });
+  });
+
+  describe("posting", () => {
+    beforeEach(() => component.open());
+
+    it("posts a top-level comment, clears the input, and reloads", () => {
+      component.newComment = "this breaks in Spaced Out";
+      component.postTopLevel();
+
+      expect(commentService.postComment).toHaveBeenCalledWith(
+        "bp1",
+        "this breaks in Spaced Out",
+        undefined
+      );
+      expect(component.newComment).toBe("");
+      expect(commentService.getComments).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not post blank comments", () => {
+      component.newComment = "   ";
+      component.postTopLevel();
+      expect(commentService.postComment).not.toHaveBeenCalled();
+    });
+
+    it("posts a reply to the thread being replied to and closes the reply form", () => {
+      component.startReply(makeComment({ id: "parent1" }) as any);
+      component.replyText = "works for me";
+      component.postReply();
+
+      expect(commentService.postComment).toHaveBeenCalledWith(
+        "bp1",
+        "works for me",
+        "parent1"
+      );
+      expect(component.replyingTo).toBe(null);
+      expect(component.replyText).toBe("");
+    });
+
+    it("surfaces the API error message when posting fails", () => {
+      commentService.postComment.mockReturnValue(
+        throwError(() => ({
+          error: { errors: [{ status: "429", title: "Too fast" }] },
+        }))
+      );
+      component.newComment = "spam spam";
+      component.postTopLevel();
+
+      expect(component.postError).toBe("Too fast");
+      expect(component.posting).toBe(false);
+    });
+  });
+
+  describe("delete", () => {
+    it("deletes and reloads", () => {
+      component.open();
+      component.delete(makeComment({ canDelete: true }) as any);
+
+      expect(commentService.deleteComment).toHaveBeenCalledWith("c1");
+      expect(commentService.getComments).toHaveBeenCalledTimes(2);
+    });
+  });
+});

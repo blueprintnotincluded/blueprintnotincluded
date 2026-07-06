@@ -49,6 +49,7 @@ import { DialogBrowseComponent } from "../dialogs/dialog-browse/dialog-browse.co
 import { DialogExportImagesComponent } from "../dialogs/dialog-export-images/dialog-export-images.component";
 import { DialogShareUrlComponent } from "../dialogs/dialog-share-url/dialog-share-url.component";
 import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dialog.component";
+import { CommentsDialogComponent } from "../dialogs/comments-dialog/comments-dialog.component";
 import { ComponentSideBuildToolComponent } from "../side-bar/build-tool/build-tool.component";
 import { ComponentSideSelectionToolComponent } from "../side-bar/selection-tool/selection-tool.component";
 var sanitize = require("sanitize-filename");
@@ -103,6 +104,9 @@ export class ComponentBlueprintParentComponent
 
   @ViewChild("feedbackDialog", { static: false })
   feedbackDialog!: FeedbackDialogComponent;
+
+  @ViewChild("commentsDialog", { static: false })
+  commentsDialog!: CommentsDialogComponent;
 
   // The left ui panel is not static, because when in a iframe we don't load it
   @ViewChild("sidePanelLeft", { static: false })
@@ -351,6 +355,8 @@ export class ComponentBlueprintParentComponent
       this.addElementsTiles();
     else if (menuCommand.type == MenuCommandType.sendFeedback)
       this.feedbackDialog.open();
+    else if (menuCommand.type == MenuCommandType.showComments)
+      this.commentsDialog.open();
   }
 
   saveImages(exportOptions: ExportImageOptions) {
