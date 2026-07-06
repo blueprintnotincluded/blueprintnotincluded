@@ -8,6 +8,10 @@ import { ProfileResponse, FollowRequest, UpdateBioRequest } from '../../lib/inde
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
 
+// Caps the $in list on the feed's blueprint query so an account following an
+// unusually large number of users can't force an unbounded lookup
+const MAX_FEED_FOLLOWEES = 500;
+
 export class UserController {
   constructor() {
     this.getProfile = this.getProfile.bind(this);
@@ -152,6 +156,8 @@ export class UserController {
     FollowModel.model
       .find({ followerId: user._id })
       .select('followeeId')
+      .sort({ createdAt: -1 })
+      .limit(MAX_FEED_FOLLOWEES)
       .lean()
       .then(follows => {
         const followeeIds = follows.map(f => f.followeeId);
