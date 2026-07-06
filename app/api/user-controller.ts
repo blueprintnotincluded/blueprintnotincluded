@@ -174,7 +174,7 @@ export class UserController {
           .limit(browseIncrement * 2)
           .populate('owner')
           .then(blueprints => {
-            BlueprintController.handleGetBlueprint(req, res, user._id, blueprints);
+            return BlueprintController.handleGetBlueprint(req, res, user._id, blueprints);
           })
           .catch(err => {
             console.log('getFeed blueprint find error');
