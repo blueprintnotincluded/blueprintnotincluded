@@ -24,6 +24,8 @@ export class CommentSectionComponent implements OnChanges {
   newComment = "";
   replyingTo: string | null = null;
   replyText = "";
+  editingId: string | null = null;
+  editText = "";
   posting = false;
   postError: string | null = null;
 
@@ -38,6 +40,8 @@ export class CommentSectionComponent implements OnChanges {
     this.newComment = "";
     this.replyingTo = null;
     this.replyText = "";
+    this.editingId = null;
+    this.editText = "";
     this.postError = null;
     this.reload();
   }
@@ -66,12 +70,44 @@ export class CommentSectionComponent implements OnChanges {
   startReply(comment: CommentDto) {
     this.replyingTo = comment.id;
     this.replyText = "";
+    this.cancelEdit();
     this.postError = null;
   }
 
   cancelReply() {
     this.replyingTo = null;
     this.replyText = "";
+  }
+
+  startEdit(comment: CommentDto) {
+    this.editingId = comment.id;
+    this.editText = comment.editSource ?? "";
+    this.cancelReply();
+    this.postError = null;
+  }
+
+  cancelEdit() {
+    this.editingId = null;
+    this.editText = "";
+  }
+
+  saveEdit() {
+    if (this.editingId == null || !this.editText.trim() || this.posting) return;
+    this.posting = true;
+    this.postError = null;
+    this.commentService.editComment(this.editingId, this.editText).subscribe({
+      next: () => {
+        this.posting = false;
+        this.cancelEdit();
+        this.reload();
+      },
+      error: (err) => {
+        this.posting = false;
+        this.postError =
+          err?.error?.errors?.[0]?.title ??
+          $localize`Could not save your edit. Please try again.`;
+      },
+    });
   }
 
   postReply() {

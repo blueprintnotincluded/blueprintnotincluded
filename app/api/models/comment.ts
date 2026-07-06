@@ -10,6 +10,9 @@ export interface Comment extends Document {
   createdAt: Date;
   // Bumped on each reply; equals createdAt while a comment has no replies
   lastActivityAt: Date;
+  // Set only when the author edits the body (drives the "(edited)" tag) —
+  // never touched by replies or soft-deletes, unlike a generic updatedAt
+  editedAt?: Date | null;
   deletedAt?: Date | null;
 }
 
@@ -24,6 +27,7 @@ export class CommentModel {
       body: { type: String, required: true, maxlength: 2000 },
       createdAt: { type: Date, default: Date.now },
       lastActivityAt: { type: Date, default: Date.now },
+      editedAt: { type: Date, default: null },
       deletedAt: { type: Date, default: null },
     });
 

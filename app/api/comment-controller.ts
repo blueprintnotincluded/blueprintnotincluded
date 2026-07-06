@@ -5,12 +5,18 @@ import { BlueprintModel } from './models/blueprint';
 import { UserModel, UserJwt } from './models/user';
 import { apiError } from './utils/apiError';
 import { optionalViewer } from './utils/optionalViewer';
-import { sanitizeCommentBody, extractTokenIds, segmentBody } from './services/comment-body';
+import {
+  sanitizeCommentBody,
+  extractTokenIds,
+  segmentBody,
+  toEditableText,
+} from './services/comment-body';
 import {
   CommentDto,
   CommentThread,
   ListCommentsResponse,
   PostCommentRequest,
+  EditCommentRequest,
   COMMENT_MAX_LENGTH,
 } from '../../lib/index';
 
@@ -86,6 +92,8 @@ function toDto(comment: Comment, context: RenderContext): CommentDto {
     !deleted &&
     viewerId != null &&
     (viewerId === authorId || viewerId === context.blueprintOwnerId || context.viewer?.role === 'admin');
+  // Editing is author-only: moderation (owner/admin) removes, it never rewrites
+  const canEdit = !deleted && viewerId != null && viewerId === authorId;
 
   return {
     id: (comment._id as mongoose.Types.ObjectId).toString(),
@@ -97,7 +105,10 @@ function toDto(comment: Comment, context: RenderContext): CommentDto {
     deleted,
     createdAt: comment.createdAt.toISOString(),
     lastActivityAt: comment.lastActivityAt.toISOString(),
+    editedAt: comment.editedAt != null ? comment.editedAt.toISOString() : null,
     canDelete,
+    canEdit,
+    ...(canEdit ? { editSource: toEditableText(comment.body, context.users) } : {}),
   };
 }
 
@@ -105,6 +116,7 @@ export class CommentController {
   constructor() {
     this.list = this.list.bind(this);
     this.create = this.create.bind(this);
+    this.edit = this.edit.bind(this);
     this.remove = this.remove.bind(this);
   }
 
@@ -254,6 +266,66 @@ export class CommentController {
       console.log('comment create error');
       console.log(err);
       res.status(500).json(apiError(500, 'Failed to post comment'));
+    }
+  }
+
+  // True edits: the body is replaced through the same parse pipeline as
+  // creation and only editedAt records that a change happened — no history
+  // is kept. Author-only; no time window.
+  public async edit(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as UserJwt;
+      const commentId = req.params.id;
+      const { body } = req.body as EditCommentRequest;
+
+      if (!mongoose.Types.ObjectId.isValid(commentId)) {
+        res.status(400).json(apiError(400, 'Invalid comment id'));
+        return;
+      }
+      if (typeof body !== 'string' || body.length === 0 || body.length > MAX_RAW_BODY_LENGTH) {
+        res.status(400).json(apiError(400, 'Comment body is required'));
+        return;
+      }
+
+      const comment = await CommentModel.model.findOne({ _id: commentId, deletedAt: null });
+      if (!comment) {
+        res.status(404).json(apiError(404, 'Comment not found'));
+        return;
+      }
+      if (comment.authorId.toString() !== user._id) {
+        res.status(403).json(apiError(403, 'Only the author can edit a comment'));
+        return;
+      }
+
+      const blueprint = await BlueprintModel.model
+        .findOne({ _id: comment.blueprintId, deletedAt: null })
+        .select('owner')
+        .lean();
+      if (!blueprint) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
+
+      const sanitized = await sanitizeCommentBody(body, resolveMentions);
+      if (sanitized.length === 0) {
+        res.status(400).json(apiError(400, 'Comment is empty after removing disallowed content'));
+        return;
+      }
+      if (sanitized.length > COMMENT_MAX_LENGTH) {
+        res.status(400).json(apiError(400, `Comment must be ${COMMENT_MAX_LENGTH} characters or fewer`));
+        return;
+      }
+
+      comment.body = sanitized;
+      comment.editedAt = new Date();
+      await comment.save();
+
+      const context = await buildRenderContext([comment], blueprint.owner.toString(), user);
+      res.json({ comment: toDto(comment, context) });
+    } catch (err) {
+      console.log('comment edit error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to edit comment'));
     }
   }
 

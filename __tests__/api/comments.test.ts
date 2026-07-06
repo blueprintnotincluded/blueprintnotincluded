@@ -293,6 +293,122 @@ describe('Comments API', function () {
     });
   });
 
+  // ─── PATCH /api/comments/:id ─────────────────────────────────────────────────
+
+  describe('PATCH /api/comments/:id', function () {
+    function patch(token: string, commentId: string, body: string) {
+      return TestSetup.request()
+        .patch(`/api/comments/${commentId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ body });
+    }
+
+    it('returns 401 without a token and 404 for unknown or deleted comments', async function () {
+      const anon = await TestSetup.request()
+        .patch(`/api/comments/${new Types.ObjectId()}`)
+        .send({ body: 'x' });
+      expect(anon.status).to.equal(401);
+
+      const token = testData.users.user2.generateJwt();
+      expect((await patch(token, new Types.ObjectId().toString(), 'x')).status).to.equal(404);
+
+      const comment = (await post(token, 'soon deleted')).body.comment;
+      await CommentModel.model.updateOne({ _id: comment.id }, { deletedAt: new Date() });
+      expect((await patch(token, comment.id, 'too late')).status).to.equal(404);
+    });
+
+    it('is author-only: blueprint owner and admin get 403', async function () {
+      const comment = (await post(testData.users.user2.generateJwt(), 'my words')).body.comment;
+
+      // user1 owns the blueprint — may delete, may not rewrite
+      const owner = await patch(testData.users.user1.generateJwt(), comment.id, 'rewritten');
+      expect(owner.status).to.equal(403);
+
+      const admin = await patch(testData.users.user3.generateJwt('admin'), comment.id, 'rewritten');
+      expect(admin.status).to.equal(403);
+
+      const stored = await CommentModel.model.findById(comment.id);
+      expect(stored!.body).to.equal('my words');
+      expect(stored!.editedAt).to.equal(null);
+    });
+
+    it('lets the author edit: body re-sanitized, editedAt set, lastActivityAt untouched', async function () {
+      const token = testData.users.user2.generateJwt();
+      const comment = (await post(token, 'original text')).body.comment;
+      const before = await CommentModel.model.findById(comment.id);
+
+      const response = await patch(
+        token,
+        comment.id,
+        'now with <b>markup</b> and https://spam.example.com stripped'
+      );
+      expect(response.status).to.equal(200);
+      expect(response.body.comment.editedAt).to.not.equal(null);
+      expect(response.body.comment.segments).to.deep.equal([
+        { type: 'text', text: 'now with markup and stripped' },
+      ]);
+
+      const stored = await CommentModel.model.findById(comment.id);
+      expect(stored!.body).to.equal('now with markup and stripped');
+      expect(stored!.editedAt).to.not.equal(null);
+      // editedAt is not a generic updatedAt: activity ordering must not move
+      expect(stored!.lastActivityAt.getTime()).to.equal(before!.lastActivityAt.getTime());
+    });
+
+    it('re-tokenizes mentions and blueprint links on edit', async function () {
+      const token = testData.users.user2.generateJwt();
+      const otherBlueprintId = testData.blueprints.recentBlueprint._id.toString();
+      const comment = (await post(token, 'plain')).body.comment;
+
+      const response = await patch(
+        token,
+        comment.id,
+        `@${testData.users.user1.username} see /b/${otherBlueprintId}`
+      );
+      const stored = await CommentModel.model.findById(comment.id);
+      expect(stored!.body).to.equal(
+        `{{user:${testData.users.user1._id.toString()}}} see {{blueprint:${otherBlueprintId}}}`
+      );
+      expect(response.body.comment.editSource).to.equal(
+        `@${testData.users.user1.username} see /b/${otherBlueprintId}`
+      );
+    });
+
+    it('rejects empty and oversized bodies', async function () {
+      const token = testData.users.user2.generateJwt();
+      const comment = (await post(token, 'fine')).body.comment;
+
+      expect((await patch(token, comment.id, '')).status).to.equal(400);
+      expect((await patch(token, comment.id, 'https://only.example.com')).status).to.equal(400);
+      expect((await patch(token, comment.id, 'x'.repeat(2001))).status).to.equal(400);
+
+      const stored = await CommentModel.model.findById(comment.id);
+      expect(stored!.body).to.equal('fine');
+    });
+
+    it('exposes editSource and canEdit only to the author in the list', async function () {
+      const token = testData.users.user2.generateJwt();
+      await post(token, `hey @${testData.users.user1.username}`);
+
+      const asAuthor = await TestSetup.request()
+        .get(`/api/blueprints/${blueprintId}/comments`)
+        .set('Authorization', `Bearer ${token}`);
+      const own = asAuthor.body.threads[0].comment;
+      expect(own.canEdit).to.equal(true);
+      expect(own.editSource).to.equal(`hey @${testData.users.user1.username}`);
+      expect(own.editedAt).to.equal(null);
+
+      const asOther = await TestSetup.request()
+        .get(`/api/blueprints/${blueprintId}/comments`)
+        .set('Authorization', `Bearer ${testData.users.user1.generateJwt()}`);
+      const theirs = asOther.body.threads[0].comment;
+      expect(theirs.canEdit).to.equal(false);
+      expect(theirs.editSource).to.equal(undefined);
+      // blueprint owner still holds the delete moderation right
+      expect(theirs.canDelete).to.equal(true);
+    });
+  });
+
   // ─── DELETE /api/comments/:id ────────────────────────────────────────────────
 
   describe('DELETE /api/comments/:id', function () {

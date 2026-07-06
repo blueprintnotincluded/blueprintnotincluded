@@ -32,6 +32,17 @@ export class CommentService {
     );
   }
 
+  public editComment(
+    commentId: string,
+    body: string
+  ): Observable<PostCommentResponse> {
+    return this.http.patch<PostCommentResponse>(
+      `/api/comments/${commentId}`,
+      { body },
+      { headers: this.authHeaders() }
+    );
+  }
+
   public deleteComment(commentId: string): Observable<{ delete: string }> {
     return this.http.delete<{ delete: string }>(`/api/comments/${commentId}`, {
       headers: this.authHeaders(),

@@ -93,6 +93,19 @@ export function extractTokenIds(bodies: string[]): { blueprintIds: string[]; use
 }
 
 /**
+ * Inverse of the parse step, for prefilling an edit box: reference tokens are
+ * rendered back to forms the parse pipeline will re-tokenize on save
+ * (/b/<id> for blueprints, @username for users). A mention whose target no
+ * longer resolves degrades to literal "@[deleted]" text.
+ */
+export function toEditableText(body: string, users: Map<string, string>): string {
+  TOKEN_PATTERN.lastIndex = 0;
+  return body.replace(TOKEN_PATTERN, (_match, kind: string, id: string) =>
+    kind === 'blueprint' ? `/b/${id.toLowerCase()}` : `@${users.get(id.toLowerCase()) ?? '[deleted]'}`
+  );
+}
+
+/**
  * Render pipeline: split a stored body into display segments. Reference names
  * come pre-resolved (id -> display name, or absent/null when the target is gone).
  */

@@ -16,7 +16,10 @@ export interface CommentDto {
     deleted: boolean;
     createdAt: string;
     lastActivityAt: string;
+    editedAt: string | null;
     canDelete: boolean;
+    canEdit: boolean;
+    editSource?: string;
 }
 export interface CommentThread {
     comment: CommentDto;
@@ -32,6 +35,9 @@ export interface PostCommentRequest {
 }
 export interface PostCommentResponse {
     comment: CommentDto;
+}
+export interface EditCommentRequest {
+    body: string;
 }
 export declare const COMMENT_MAX_LENGTH = 2000;
 //# sourceMappingURL=comments.d.ts.map
