@@ -16,11 +16,14 @@ import {
   SUBCATEGORIES,
   RESEARCH_TIERS,
 } from '../../lib/index';
-import { Blueprint as sharedBlueprint } from '../../lib/index';
+import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { UserModel, UserJwt } from './models/user';
+import { CommentModel } from './models/comment';
 import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
+import { optionalViewer } from './utils/optionalViewer';
+import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
 
@@ -441,7 +444,20 @@ export class BlueprintController {
     }
   }
 
-  public static handleGetBlueprint(
+  // Visible (non-deleted) comment counts for a page of blueprints, one aggregate.
+  // The {blueprintId, parentId, lastActivityAt} index covers the match prefix.
+  public static async getCommentCounts(
+    blueprintIds: mongoose.Types.ObjectId[]
+  ): Promise<Map<string, number>> {
+    if (blueprintIds.length === 0 || CommentModel.model == null) return new Map();
+    const rows: { _id: mongoose.Types.ObjectId; count: number }[] = await CommentModel.model.aggregate([
+      { $match: { blueprintId: { $in: blueprintIds }, deletedAt: null } },
+      { $group: { _id: '$blueprintId', count: { $sum: 1 } } },
+    ]);
+    return new Map(rows.map(row => [row._id.toString(), row.count]));
+  }
+
+  public static async handleGetBlueprint(
     _req: Request,
     res: Response,
     userId: string,
@@ -458,12 +474,20 @@ export class BlueprintController {
       returnValue.remaining = blueprints.length - browseIncrement;
       if (returnValue.remaining < 0) returnValue.remaining = 0;
 
-      for (
-        let indexBlueprint = 0;
-        indexBlueprint < Math.min(browseIncrement, blueprints.length);
-        indexBlueprint++
-      ) {
-        let blueprint = blueprints[indexBlueprint];
+      const page = blueprints.slice(0, Math.min(browseIncrement, blueprints.length));
+
+      let commentCounts = new Map<string, number>();
+      try {
+        commentCounts = await BlueprintController.getCommentCounts(
+          page.map(blueprint => blueprint._id as mongoose.Types.ObjectId)
+        );
+      } catch (err) {
+        // Counts are decoration on the list — never fail the browse for them
+        console.log('comment count aggregate error');
+        console.log(err);
+      }
+
+      for (const blueprint of page) {
         if (blueprint.createdAt < returnValue.oldest) returnValue.oldest = blueprint.createdAt;
 
         let ownerId = '';
@@ -479,7 +503,6 @@ export class BlueprintController {
 
         let ownedByMe = false;
         if (userId != null && ownerId == userId) ownedByMe = true;
-        //console.log(userId + '_' + ownerId)
 
         let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
 
@@ -495,6 +518,7 @@ export class BlueprintController {
           nbLikes: nbLikes,
           likedByMe: likedByMe,
           ownedByMe: ownedByMe,
+          commentCount: commentCounts.get((blueprint._id as any).toString()) ?? 0,
           gameVersion: blueprint.gameVersion ?? null,
           category: blueprint.category ?? null,
           subcategory: blueprint.subcategory ?? null,
@@ -503,10 +527,69 @@ export class BlueprintController {
         });
       }
 
-      // Long timeout for debug
-      //setTimeout(() => { res.json(returnValue); }, 2000)
       res.json(returnValue);
     } else res.json(returnValue);
+  }
+
+  // Meta-only payload for the details page: everything the card shows plus
+  // description/research tier, without the heavy blueprint `data` the editor
+  // fetches via /api/getblueprint/:id
+  public async getBlueprintDetails(req: Request, res: Response): Promise<void> {
+    try {
+      const blueprintId = req.params.id;
+      if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
+        res.status(400).json(apiError(400, 'Invalid blueprint id'));
+        return;
+      }
+
+      const blueprint = await BlueprintModel.model
+        .findOne({ _id: blueprintId, deletedAt: null })
+        .populate('owner');
+      if (!blueprint) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
+
+      const viewer = optionalViewer(req);
+      const viewerId = viewer?._id ?? null;
+
+      let ownerId = '';
+      let ownerName = '';
+      if (UserModel.isUser(blueprint.owner)) {
+        ownerName = blueprint.owner.username as string;
+        ownerId = blueprint.owner.id as string;
+      }
+
+      const commentCounts = await BlueprintController.getCommentCounts([
+        blueprint._id as mongoose.Types.ObjectId,
+      ]);
+
+      const response: BlueprintDetailsResponse = {
+        id: (blueprint._id as any).toString(),
+        name: blueprint.name,
+        ownerId,
+        ownerName,
+        tags: blueprint.tags,
+        createdAt: blueprint.createdAt,
+        modifiedAt: blueprint.modifiedAt,
+        thumbnail: blueprint.thumbnail,
+        nbLikes: blueprint.likeCount ?? blueprint.likes?.length ?? 0,
+        likedByMe: viewerId != null && (blueprint.likes ?? []).indexOf(viewerId) !== -1,
+        ownedByMe: viewerId != null && ownerId === viewerId,
+        commentCount: commentCounts.get((blueprint._id as any).toString()) ?? 0,
+        gameVersion: blueprint.gameVersion ?? null,
+        category: blueprint.category ?? null,
+        subcategory: blueprint.subcategory ?? null,
+        description: blueprint.description ?? null,
+        researchTier: blueprint.researchTier ?? null,
+        modded: blueprint.modded ?? null,
+      };
+      res.json(response);
+    } catch (err) {
+      console.log('getBlueprintDetails error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprint details'));
+    }
   }
 
   private static saveBlueprint(

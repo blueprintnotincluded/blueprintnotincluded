@@ -101,3 +101,20 @@
   font-size: 0.8rem;
   opacity: 0.6;
 }
+
+.comments-heading {
+  font-size: 1.15rem;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.comments-count {
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.comment-new-form {
+  margin-top: 0.75rem;
+}

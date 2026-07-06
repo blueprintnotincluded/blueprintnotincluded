@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import jwt from 'jsonwebtoken';
 import { CommentModel, Comment } from './models/comment';
 import { BlueprintModel } from './models/blueprint';
 import { UserModel, UserJwt } from './models/user';
 import { apiError } from './utils/apiError';
+import { optionalViewer } from './utils/optionalViewer';
 import { sanitizeCommentBody, extractTokenIds, segmentBody } from './services/comment-body';
 import {
   CommentDto,
@@ -27,18 +27,6 @@ function cooldownSeconds(): number {
     return parseInt(process.env.COMMENT_COOLDOWN_SECONDS, 10) || 0;
   }
   return process.env.NODE_ENV === 'test' ? 0 : 10;
-}
-
-// The list route is anonymous, so express-jwt never runs there; decode the
-// token opportunistically to compute per-comment canDelete for logged-in viewers
-function optionalViewer(req: Request): UserJwt | null {
-  const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) return null;
-  try {
-    return jwt.verify(header.slice(7), process.env.JWT_SECRET as string) as UserJwt;
-  } catch {
-    return null;
-  }
 }
 
 async function resolveMentions(usernames: string[]): Promise<Map<string, string>> {

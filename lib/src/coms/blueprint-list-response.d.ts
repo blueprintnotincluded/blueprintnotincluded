@@ -15,11 +15,15 @@ export interface BlueprintListItem {
     nbLikes: number;
     likedByMe: boolean;
     ownedByMe: boolean;
+    commentCount: number;
     gameVersion?: string | null;
     category?: string | null;
     subcategory?: string | null;
     description?: string | null;
     modded?: boolean | null;
+}
+export interface BlueprintDetailsResponse extends BlueprintListItem {
+    researchTier?: string | null;
 }
 export interface BlueprintLike {
     blueprintId: string;

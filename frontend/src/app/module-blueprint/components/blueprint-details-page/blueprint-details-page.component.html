@@ -1,0 +1,77 @@
+<div class="details-page">
+  <div *ngIf="loading" class="details-status" i18n>Loading blueprint…</div>
+
+  <div *ngIf="!loading && notFound" class="details-status" i18n>
+    Blueprint not found.
+  </div>
+
+  <ng-container *ngIf="!loading && details">
+    <div class="details-header">
+      <div class="details-thumbnail">
+        <img
+          *ngIf="hasRealThumbnail()"
+          [src]="details.thumbnail"
+          [alt]="details.name"
+        />
+        <div *ngIf="!hasRealThumbnail()" class="thumbnail-placeholder"></div>
+      </div>
+
+      <div class="details-meta">
+        <h1>{{ details.name }}</h1>
+
+        <div class="details-byline">
+          <span i18n
+            >by
+            <a [routerLink]="['/profile', details.ownerName]">{{
+              details.ownerName
+            }}</a></span
+          >
+          <span class="details-date">{{
+            details.createdAt | date : "yyyy-MM-dd"
+          }}</span>
+        </div>
+
+        <div class="details-badges">
+          <span *ngIf="details.category" class="badge badge--category">{{
+            details.category
+          }}</span>
+          <span *ngIf="details.subcategory" class="badge badge--category">{{
+            details.subcategory
+          }}</span>
+          <span *ngIf="details.gameVersion" class="badge badge--version">{{
+            details.gameVersion
+          }}</span>
+          <span *ngIf="details.modded" class="badge badge--modded" i18n
+            >Modded</span
+          >
+        </div>
+
+        <p *ngIf="details.description" class="details-description">
+          {{ details.description }}
+        </p>
+
+        <div *ngIf="details.tags.length > 0" class="details-tags">
+          <span class="tag" *ngFor="let tag of details.tags">{{ tag }}</span>
+        </div>
+
+        <div class="details-actions">
+          <a
+            pButton
+            i18n-label
+            label="Open in editor"
+            icon="pi pi-pencil"
+            [routerLink]="['/b', details.id]"
+          ></a>
+          <app-like-widget
+            [blueprintId]="details.id"
+            [nbLikes]="details.nbLikes"
+            [likedByMe]="details.likedByMe"
+            [disabled]="!loggedIn"
+          ></app-like-widget>
+        </div>
+      </div>
+    </div>
+
+    <app-comment-section [blueprintId]="blueprintId"></app-comment-section>
+  </ng-container>
+</div>

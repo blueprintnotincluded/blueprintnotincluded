@@ -15,6 +15,7 @@ import {
   BlueprintListItem,
   BlueprintLike,
   BlueprintResponse,
+  BlueprintDetailsResponse,
   BlueprintDelete,
 } from "../../../../../lib/index";
 import * as yaml from "js-yaml";
@@ -296,6 +297,21 @@ export class BlueprintService implements IObsBlueprintChange {
       );
 
     return request;
+  }
+
+  // Meta only (no blueprint data) — for the details page. Token is optional;
+  // the backend uses it to personalize likedByMe/ownedByMe.
+  getBlueprintDetails(id: string) {
+    return this.http.get<BlueprintDetailsResponse>(
+      `/api/blueprints/${id}`,
+      this.authService.isLoggedIn()
+        ? {
+            headers: {
+              Authorization: `Bearer ${this.authService.getToken()}`,
+            },
+          }
+        : {}
+    );
   }
 
   getBlueprints(

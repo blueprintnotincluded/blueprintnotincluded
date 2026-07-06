@@ -1,21 +1,21 @@
-import { Component } from "@angular/core";
+import { Component, Input, OnChanges } from "@angular/core";
 import {
   CommentDto,
   CommentThread,
   COMMENT_MAX_LENGTH,
-} from "../../../../../../../lib/index";
-import { CommentService } from "../../../services/comment.service";
-import { AuthenticationService } from "../../../services/authentification-service";
-import { BlueprintService } from "../../../services/blueprint-service";
+} from "../../../../../../lib/index";
+import { CommentService } from "../../services/comment.service";
+import { AuthenticationService } from "../../services/authentification-service";
 
 @Component({
-  selector: "app-comments-dialog",
-  templateUrl: "./comments-dialog.component.html",
-  styleUrls: ["./comments-dialog.component.css"],
+  selector: "app-comment-section",
+  templateUrl: "./comment-section.component.html",
+  styleUrls: ["./comment-section.component.css"],
   standalone: false,
 })
-export class CommentsDialogComponent {
-  visible = false;
+export class CommentSectionComponent implements OnChanges {
+  @Input() blueprintId: string | null = null;
+
   loading = false;
   loadError = false;
   threads: CommentThread[] = [];
@@ -29,18 +29,12 @@ export class CommentsDialogComponent {
 
   readonly maxLength = COMMENT_MAX_LENGTH;
 
-  private blueprintId: string | null = null;
-
   constructor(
     private commentService: CommentService,
-    public authService: AuthenticationService,
-    private blueprintService: BlueprintService
+    public authService: AuthenticationService
   ) {}
 
-  public open() {
-    this.blueprintId = this.blueprintService.id;
-    if (this.blueprintId == null) return;
-    this.visible = true;
+  ngOnChanges() {
     this.newComment = "";
     this.replyingTo = null;
     this.replyText = "";
@@ -112,11 +106,5 @@ export class CommentsDialogComponent {
       next: () => this.reload(),
       error: () => this.reload(),
     });
-  }
-
-  onLinkClicked() {
-    // Internal reference links navigate away; close so the dialog isn't
-    // stranded over the newly loaded blueprint
-    this.visible = false;
   }
 }

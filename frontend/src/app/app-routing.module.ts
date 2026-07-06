@@ -10,6 +10,7 @@ import { ResetPasswordComponent } from "./module-blueprint/components/user-auth/
 import { VerifyEmailCallbackComponent } from "./module-blueprint/components/user-auth/verify-email-callback/verify-email-callback.component";
 import { BrowsePageComponent } from "./module-blueprint/components/browse-page/browse-page.component";
 import { ProfilePageComponent } from "./module-blueprint/components/profile-page/profile-page.component";
+import { BlueprintDetailsPageComponent } from "./module-blueprint/components/blueprint-details-page/blueprint-details-page.component";
 import { homeRedirectGuard } from "./module-blueprint/guards/home-redirect.guard";
 
 const routes: Routes = [
@@ -22,6 +23,7 @@ const routes: Routes = [
   { path: "editor", component: ComponentBlueprintParentComponent },
   { path: "discover", component: BrowsePageComponent },
   { path: "profile/:username", component: ProfilePageComponent },
+  { path: "blueprint/:id", component: BlueprintDetailsPageComponent },
   { path: "b/:id", component: ComponentBlueprintParentComponent },
   {
     path: "b/:id/hideui/:width/:height",

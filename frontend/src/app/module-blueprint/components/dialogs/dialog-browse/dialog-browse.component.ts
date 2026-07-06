@@ -58,6 +58,7 @@ export class DialogBrowseComponent implements OnInit {
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
+      commentCount: 0,
     };
 
     this.nothingBlueprintItem = {
@@ -72,6 +73,7 @@ export class DialogBrowseComponent implements OnInit {
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
+      commentCount: 0,
     };
 
     this.filterNameSubject
