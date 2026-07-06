@@ -15,7 +15,9 @@ function makeComment(overrides: any = {}) {
     deleted: false,
     createdAt: new Date("2026-07-01").toISOString(),
     lastActivityAt: new Date("2026-07-01").toISOString(),
+    editedAt: null,
     canDelete: false,
+    canEdit: false,
     ...overrides,
   };
 }
@@ -39,6 +41,7 @@ describe("CommentSectionComponent", () => {
           of({ threads: [{ comment: makeComment(), replies: [] }], total: 1 })
         ),
       postComment: vi.fn().mockReturnValue(of({ comment: makeComment() })),
+      editComment: vi.fn().mockReturnValue(of({ comment: makeComment() })),
       deleteComment: vi.fn().mockReturnValue(of({ delete: "OK" })),
     };
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
@@ -143,6 +146,70 @@ describe("CommentSectionComponent", () => {
       component.postTopLevel();
 
       expect(component.postError).toBe("Too fast");
+      expect(component.posting).toBe(false);
+    });
+  });
+
+  describe("editing", () => {
+    beforeEach(() => bindBlueprint("bp1"));
+
+    it("prefills the edit box from editSource and saves through the service", () => {
+      component.startEdit(
+        makeComment({ canEdit: true, editSource: "hey @alice" }) as any
+      );
+      expect(component.editText).toBe("hey @alice");
+
+      component.editText = "hey @alice, updated";
+      component.saveEdit();
+
+      expect(commentService.editComment).toHaveBeenCalledWith(
+        "c1",
+        "hey @alice, updated"
+      );
+      expect(component.editingId).toBe(null);
+      expect(commentService.getComments).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not save a blank edit", () => {
+      component.startEdit(makeComment({ canEdit: true }) as any);
+      component.editText = "   ";
+      component.saveEdit();
+      expect(commentService.editComment).not.toHaveBeenCalled();
+    });
+
+    it("cancelling an edit restores the read view without saving", () => {
+      component.startEdit(
+        makeComment({ canEdit: true, editSource: "draft" }) as any
+      );
+      component.cancelEdit();
+
+      expect(component.editingId).toBe(null);
+      expect(component.editText).toBe("");
+      expect(commentService.editComment).not.toHaveBeenCalled();
+    });
+
+    it("starting a reply closes an open edit and vice versa", () => {
+      component.startEdit(makeComment({ id: "c1", canEdit: true }) as any);
+      component.startReply(makeComment({ id: "c2" }) as any);
+      expect(component.editingId).toBe(null);
+      expect(component.replyingTo).toBe("c2");
+
+      component.startEdit(makeComment({ id: "c1", canEdit: true }) as any);
+      expect(component.replyingTo).toBe(null);
+      expect(component.editingId).toBe("c1");
+    });
+
+    it("surfaces the API error message when saving fails", () => {
+      commentService.editComment.mockReturnValue(
+        throwError(() => ({
+          error: { errors: [{ status: "400", title: "Comment is empty" }] },
+        }))
+      );
+      component.startEdit(makeComment({ canEdit: true }) as any);
+      component.editText = "https://link.example.com";
+      component.saveEdit();
+
+      expect(component.postError).toBe("Comment is empty");
       expect(component.posting).toBe(false);
     });
   });

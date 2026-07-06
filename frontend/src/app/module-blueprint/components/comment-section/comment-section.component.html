@@ -113,10 +113,45 @@
         <span class="comment-date">{{
           comment.createdAt | date : "medium"
         }}</span>
+        <span
+          *ngIf="comment.editedAt"
+          class="comment-edited"
+          [title]="comment.editedAt | date : 'medium'"
+          i18n
+          >(edited)</span
+        >
       </ng-container>
     </div>
 
-    <div class="comment-body">
+    <div class="comment-edit-form" *ngIf="editingId === comment.id">
+      <textarea
+        pTextarea
+        [(ngModel)]="editText"
+        [rows]="3"
+        [maxlength]="maxLength"
+        [disabled]="posting"
+      ></textarea>
+      <div class="comment-form-actions">
+        <p-button
+          label="Cancel"
+          i18n-label
+          severity="secondary"
+          size="small"
+          (onClick)="cancelEdit()"
+          [disabled]="posting"
+        ></p-button>
+        <p-button
+          label="Save"
+          i18n-label
+          size="small"
+          [loading]="posting"
+          [disabled]="!editText.trim()"
+          (onClick)="saveEdit()"
+        ></p-button>
+      </div>
+    </div>
+
+    <div class="comment-body" *ngIf="editingId !== comment.id">
       <em *ngIf="comment.deleted" class="comment-removed" i18n
         >[comment removed]</em
       >
@@ -151,7 +186,10 @@
       </ng-container>
     </div>
 
-    <div class="comment-actions" *ngIf="!comment.deleted">
+    <div
+      class="comment-actions"
+      *ngIf="!comment.deleted && editingId !== comment.id"
+    >
       <button
         *ngIf="!isReply && authService.isLoggedIn()"
         type="button"
@@ -160,6 +198,15 @@
         i18n
       >
         Reply
+      </button>
+      <button
+        *ngIf="comment.canEdit"
+        type="button"
+        class="comment-action-link"
+        (click)="startEdit(comment)"
+        i18n
+      >
+        Edit
       </button>
       <button
         *ngIf="comment.canDelete"

@@ -24,8 +24,16 @@ export interface CommentDto {
   deleted: boolean;
   createdAt: string;
   lastActivityAt: string;
+  // Set when the author has edited the body at least once ("(edited)" tag,
+  // hover shows this date). Distinct from any document-level updated
+  // timestamp: replies and moderation never touch it.
+  editedAt: string | null;
   // Only meaningful when the request carried a valid token
   canDelete: boolean;
+  canEdit: boolean;
+  // Present when canEdit: the stored body with reference tokens rendered
+  // back to typeable forms (/b/<id>, @username) to prefill the edit box
+  editSource?: string;
 }
 
 export interface CommentThread {
@@ -47,6 +55,10 @@ export interface PostCommentRequest {
 
 export interface PostCommentResponse {
   comment: CommentDto;
+}
+
+export interface EditCommentRequest {
+  body: string;
 }
 
 export const COMMENT_MAX_LENGTH = 2000;

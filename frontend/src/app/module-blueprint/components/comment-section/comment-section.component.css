@@ -118,3 +118,19 @@
 .comment-new-form {
   margin-top: 0.75rem;
 }
+
+.comment-edited {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  font-style: italic;
+  cursor: help;
+}
+
+.comment-edit-form {
+  margin: 0.25rem 0;
+}
+
+.comment-edit-form textarea {
+  width: 100%;
+  resize: vertical;
+}

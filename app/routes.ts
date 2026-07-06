@@ -90,6 +90,7 @@ export class Routes {
     app.route('/api/users/me').patch(auth, this.userController.updateBio);
     app.route('/api/feed').get(auth, this.userController.getFeed);
     app.route('/api/blueprints/:id/comments').post(auth, this.commentController.create);
+    app.route('/api/comments/:id').patch(auth, this.commentController.edit);
     app.route('/api/comments/:id').delete(auth, this.commentController.remove);
 
     // Admin-only API

@@ -84,6 +84,18 @@ describe("CommentService", () => {
     });
   });
 
+  describe("editComment", () => {
+    it("issues an authenticated PATCH with the new body", () => {
+      service.editComment("c1", "better wording").subscribe();
+
+      const req = httpMock.expectOne("/api/comments/c1");
+      expect(req.request.method).toBe("PATCH");
+      expect(req.request.body).toEqual({ body: "better wording" });
+      expect(req.request.headers.get("Authorization")).toBe("Bearer test-jwt");
+      req.flush({ comment: {} });
+    });
+  });
+
   describe("deleteComment", () => {
     it("issues an authenticated DELETE", () => {
       service.deleteComment("c1").subscribe();
