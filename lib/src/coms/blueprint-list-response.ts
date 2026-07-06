@@ -16,11 +16,18 @@ export interface BlueprintListItem {
   nbLikes: number;
   likedByMe: boolean;
   ownedByMe: boolean;
+  commentCount: number;
   gameVersion?: string | null;
   category?: string | null;
   subcategory?: string | null;
   description?: string | null;
   modded?: boolean | null;
+}
+
+// Meta-only view for the blueprint details page — everything the list item
+// carries, without the heavy `data` payload the editor loads separately
+export interface BlueprintDetailsResponse extends BlueprintListItem {
+  researchTier?: string | null;
 }
 
 export interface BlueprintLike {

@@ -1,11 +1,11 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Social evolution — likes, auto-derived metadata, profiles/follows/activity feed, and blueprint comments all shipped
+- **Phase**: Social evolution — likes, auto-derived metadata, profiles/follows/activity feed, blueprint comments, and the blueprint details page all shipped
 - **Date**: 2026-07-06
 - **Branch**: `master`
 - **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: 315 backend (Mocha + Chai) · 561 frontend (Vitest, 2 skipped) — all green
+- **Tests**: 320 backend (Mocha + Chai) · 567 frontend (Vitest, 2 skipped) — all green
 - **Enforcement**: zero-warning flags enabled backend, lib, and frontend (`strict` + `strictTemplates`); CI improvements all complete (mongo:8.0.23 + mongosh health check)
 
 ## OniExtract2024 follow-ups

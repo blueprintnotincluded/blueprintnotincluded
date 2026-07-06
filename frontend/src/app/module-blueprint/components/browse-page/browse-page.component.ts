@@ -105,6 +105,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
+      commentCount: 0,
     };
 
     this.nothingBlueprintItem = {
@@ -119,6 +120,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
+      commentCount: 0,
     };
 
     this.filterNameSubject.pipe(debounceTime(600)).subscribe(() => {

@@ -66,6 +66,7 @@ export class ProfilePageComponent implements OnInit {
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
+      commentCount: 0,
     };
 
     this.nothingBlueprintItem = {
@@ -80,6 +81,7 @@ export class ProfilePageComponent implements OnInit {
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
+      commentCount: 0,
     };
   }
 

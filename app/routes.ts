@@ -76,6 +76,7 @@ export class Routes {
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
     app.route('/api/users/:username/profile').get(this.userController.getProfile);
+    app.route('/api/blueprints/:id').get(this.uploadBlueprintController.getBlueprintDetails);
     app.route('/api/blueprints/:id/comments').get(this.commentController.list);
 
     // Logged in access

@@ -2,10 +2,9 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { of, throwError } from "rxjs";
 
-import { CommentsDialogComponent } from "./comments-dialog.component";
-import { CommentService } from "../../../services/comment.service";
-import { AuthenticationService } from "../../../services/authentification-service";
-import { BlueprintService } from "../../../services/blueprint-service";
+import { CommentSectionComponent } from "./comment-section.component";
+import { CommentService } from "../../services/comment.service";
+import { AuthenticationService } from "../../services/authentification-service";
 
 function makeComment(overrides: any = {}) {
   return {
@@ -21,12 +20,16 @@ function makeComment(overrides: any = {}) {
   };
 }
 
-describe("CommentsDialogComponent", () => {
-  let component: CommentsDialogComponent;
-  let fixture: ComponentFixture<CommentsDialogComponent>;
+describe("CommentSectionComponent", () => {
+  let component: CommentSectionComponent;
+  let fixture: ComponentFixture<CommentSectionComponent>;
   let commentService: any;
   let authService: any;
-  let blueprintService: any;
+
+  function bindBlueprint(id: string | null) {
+    component.blueprintId = id;
+    component.ngOnChanges();
+  }
 
   beforeEach(async () => {
     commentService = {
@@ -39,19 +42,17 @@ describe("CommentsDialogComponent", () => {
       deleteComment: vi.fn().mockReturnValue(of({ delete: "OK" })),
     };
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
-    blueprintService = { id: "bp1" };
 
     await TestBed.configureTestingModule({
-      declarations: [CommentsDialogComponent],
+      declarations: [CommentSectionComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: CommentService, useValue: commentService },
         { provide: AuthenticationService, useValue: authService },
-        { provide: BlueprintService, useValue: blueprintService },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CommentsDialogComponent);
+    fixture = TestBed.createComponent(CommentSectionComponent);
     component = fixture.componentInstance;
   });
 
@@ -59,22 +60,18 @@ describe("CommentsDialogComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  describe("open", () => {
-    it("loads comments for the current blueprint", () => {
-      component.open();
+  describe("blueprintId binding", () => {
+    it("loads comments when the blueprint id is bound", () => {
+      bindBlueprint("bp1");
 
-      expect(component.visible).toBe(true);
       expect(commentService.getComments).toHaveBeenCalledWith("bp1");
       expect(component.threads).toHaveLength(1);
       expect(component.total).toBe(1);
       expect(component.loading).toBe(false);
     });
 
-    it("does nothing when no blueprint is loaded", () => {
-      blueprintService.id = null;
-      component.open();
-
-      expect(component.visible).toBe(false);
+    it("does nothing without a blueprint id", () => {
+      bindBlueprint(null);
       expect(commentService.getComments).not.toHaveBeenCalled();
     });
 
@@ -82,15 +79,26 @@ describe("CommentsDialogComponent", () => {
       commentService.getComments.mockReturnValue(
         throwError(() => new Error("boom"))
       );
-      component.open();
+      bindBlueprint("bp1");
 
       expect(component.loadError).toBe(true);
       expect(component.loading).toBe(false);
     });
+
+    it("resets in-progress form state when the blueprint changes", () => {
+      bindBlueprint("bp1");
+      component.newComment = "draft";
+      component.startReply(makeComment({ id: "parent1" }) as any);
+
+      bindBlueprint("bp2");
+      expect(component.newComment).toBe("");
+      expect(component.replyingTo).toBe(null);
+      expect(commentService.getComments).toHaveBeenLastCalledWith("bp2");
+    });
   });
 
   describe("posting", () => {
-    beforeEach(() => component.open());
+    beforeEach(() => bindBlueprint("bp1"));
 
     it("posts a top-level comment, clears the input, and reloads", () => {
       component.newComment = "this breaks in Spaced Out";
@@ -141,7 +149,7 @@ describe("CommentsDialogComponent", () => {
 
   describe("delete", () => {
     it("deletes and reloads", () => {
-      component.open();
+      bindBlueprint("bp1");
       component.delete(makeComment({ canDelete: true }) as any);
 
       expect(commentService.deleteComment).toHaveBeenCalledWith("c1");

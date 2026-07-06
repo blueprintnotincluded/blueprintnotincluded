@@ -1,12 +1,11 @@
-<p-dialog
-  header="Comments"
-  i18n-header
-  [(visible)]="visible"
-  [modal]="true"
-  [style]="{ width: '560px' }"
-  [draggable]="false"
-  styleClass="comments-dialog"
->
+<section class="comment-section">
+  <h2 class="comments-heading">
+    <ng-container i18n>Comments</ng-container>
+    <span class="comments-count" *ngIf="!loading && !loadError"
+      >({{ total }})</span
+    >
+  </h2>
+
   <p *ngIf="loading" class="comments-status" i18n>Loading comments…</p>
   <p *ngIf="loadError" class="comments-status comments-error" i18n>
     Could not load comments. Please try again.
@@ -69,36 +68,34 @@
 
   <p *ngIf="postError" class="comments-error">{{ postError }}</p>
 
-  <ng-template pTemplate="footer">
-    <div class="comment-new-form" *ngIf="authService.isLoggedIn()">
-      <textarea
-        pTextarea
-        [(ngModel)]="newComment"
-        [rows]="3"
-        [maxlength]="maxLength"
-        placeholder="Give the author feedback — links to other blueprints and @mentions work, external links are removed"
-        i18n-placeholder
-        [disabled]="posting"
-      ></textarea>
-      <div class="comment-form-actions">
-        <span class="comment-char-count"
-          >{{ newComment.length }}/{{ maxLength }}</span
-        >
-        <p-button
-          label="Post comment"
-          i18n-label
-          [loading]="posting"
-          [disabled]="!newComment.trim()"
-          (onClick)="postTopLevel()"
-        ></p-button>
-      </div>
+  <div class="comment-new-form" *ngIf="authService.isLoggedIn()">
+    <textarea
+      pTextarea
+      [(ngModel)]="newComment"
+      [rows]="3"
+      [maxlength]="maxLength"
+      placeholder="Give the author feedback — links to other blueprints and @mentions work, external links are removed"
+      i18n-placeholder
+      [disabled]="posting"
+    ></textarea>
+    <div class="comment-form-actions">
+      <span class="comment-char-count"
+        >{{ newComment.length }}/{{ maxLength }}</span
+      >
+      <p-button
+        label="Post comment"
+        i18n-label
+        [loading]="posting"
+        [disabled]="!newComment.trim()"
+        (onClick)="postTopLevel()"
+      ></p-button>
     </div>
-    <p *ngIf="!authService.isLoggedIn()" class="comments-status">
-      <a routerLink="/login" (click)="visible = false" i18n>Log in</a
-      ><ng-container i18n> to join the conversation.</ng-container>
-    </p>
-  </ng-template>
-</p-dialog>
+  </div>
+  <p *ngIf="!authService.isLoggedIn()" class="comments-status">
+    <a routerLink="/login" i18n>Log in</a
+    ><ng-container i18n> to join the conversation.</ng-container>
+  </p>
+</section>
 
 <ng-template #commentTpl let-comment="comment" let-isReply="isReply">
   <div class="comment" [class.comment-reply]="isReply">
@@ -108,7 +105,6 @@
           *ngIf="comment.author"
           class="comment-author"
           [routerLink]="['/profile', comment.author.username]"
-          (click)="onLinkClicked()"
           >{{ comment.author.username }}</a
         >
         <span *ngIf="!comment.author" class="comment-author-deleted" i18n
@@ -131,8 +127,7 @@
           }}</span>
           <a
             *ngIf="segment.type === 'blueprint' && segment.name !== null"
-            [routerLink]="['/b', segment.id]"
-            (click)="onLinkClicked()"
+            [routerLink]="['/blueprint', segment.id]"
             >{{ segment.name }}</a
           >
           <span
@@ -144,7 +139,6 @@
           <a
             *ngIf="segment.type === 'user' && segment.name !== null"
             [routerLink]="['/profile', segment.name]"
-            (click)="onLinkClicked()"
             >@{{ segment.name }}</a
           >
           <span
