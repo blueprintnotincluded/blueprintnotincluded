@@ -6,6 +6,7 @@ import { expressjwt as expressJwt } from 'express-jwt';
 
 import { StaticController } from './static-controller';
 import { BlueprintController } from './api/blueprint-controller';
+import { BlueprintVersionController } from './api/blueprint-version-controller';
 import { VersionController } from './api/version-controller';
 import { AuthController } from './api/auth-controller';
 import { MigrationController } from './api/migration-controller';
@@ -17,6 +18,7 @@ import { CommentController } from './api/comment-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
+  public blueprintVersionController = new BlueprintVersionController();
   public versionController = new VersionController();
   public authController = new AuthController();
   public migrationController = new MigrationController();
@@ -78,6 +80,7 @@ export class Routes {
     app.route('/api/users/:username/profile').get(this.userController.getProfile);
     app.route('/api/blueprints/:id').get(this.uploadBlueprintController.getBlueprintDetails);
     app.route('/api/blueprints/:id/comments').get(this.commentController.list);
+    app.route('/api/blueprints/:id/versions').get(this.blueprintVersionController.listVersions);
 
     // Logged in access
     app.route('/api/getblueprintsSecure').get(auth, this.uploadBlueprintController.getBlueprints);
@@ -92,6 +95,11 @@ export class Routes {
     app.route('/api/blueprints/:id/comments').post(auth, this.commentController.create);
     app.route('/api/comments/:id').patch(auth, this.commentController.edit);
     app.route('/api/comments/:id').delete(auth, this.commentController.remove);
+    app.route('/api/blueprints/:id/fork').post(auth, this.blueprintVersionController.fork);
+    app.route('/api/blueprints/:id/versions').post(auth, this.blueprintVersionController.createVersion);
+    app
+      .route('/api/blueprints/:id/versions/:versionId')
+      .delete(auth, this.blueprintVersionController.deleteVersion);
 
     // Admin-only API
     app.route('/api/admin/feedback').get(auth, adminAuth, this.feedbackController.list);

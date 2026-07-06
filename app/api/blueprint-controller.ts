@@ -23,6 +23,7 @@ import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
 import { optionalViewer } from './utils/optionalViewer';
+import { resolveCurrentData, syncCurrentVersion } from './services/blueprint-version-service';
 import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
@@ -230,82 +231,82 @@ export class BlueprintController {
     }
   }
 
-  public getBlueprint(req: Request, res: Response) {
+  public async getBlueprint(req: Request, res: Response): Promise<void> {
     console.log('getBlueprint' + req.clientIp);
-    if (BlueprintModel.model == null) res.status(503).send();
-    else {
-      // TODO checks here
-      let id = req.params.id;
-      let userId = req.query.userId;
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
+    }
+    // TODO checks here
+    let id = req.params.id;
+    let userId = req.query.userId;
 
-      BlueprintModel.model
-        .find({ _id: id })
-        .then(blueprints => {
-          if (blueprints.length > 0) {
-            let blueprint = blueprints[0];
+    try {
+      const blueprint = await BlueprintModel.model.findOne({ _id: id });
+      if (blueprint == null) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
 
-            let likedByMe = false;
-            if (
-              userId != null &&
-              blueprint.likes != null &&
-              blueprint.likes.indexOf(userId as string) != -1
-            )
-              likedByMe = true;
+      let likedByMe = false;
+      if (
+        userId != null &&
+        blueprint.likes != null &&
+        blueprint.likes.indexOf(userId as string) != -1
+      )
+        likedByMe = true;
 
-            // Fallback covers docs the migration hasn't touched yet
-            let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
+      // Fallback covers docs the migration hasn't touched yet
+      let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
 
-            let response: BlueprintResponse = {
-              id: (blueprint._id as any).toString(),
-              name: blueprint.name,
-              data: blueprint.data,
-              likedByMe: likedByMe,
-              nbLikes: nbLikes,
-              gameVersion: blueprint.gameVersion ?? null,
-              category: blueprint.category ?? null,
-              subcategory: blueprint.subcategory ?? null,
-              description: blueprint.description ?? null,
-              researchTier: blueprint.researchTier ?? null,
-              modded: blueprint.modded ?? null,
-            };
-            res.json(response);
-          } else res.status(404).json(apiError(404, 'Blueprint not found'));
-        })
-        .catch(err => {
-          console.log('Blueprint find error');
-          console.log(err);
-          res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
-        });
+      let response: BlueprintResponse = {
+        id: (blueprint._id as any).toString(),
+        name: blueprint.name,
+        data: await resolveCurrentData(blueprint),
+        likedByMe: likedByMe,
+        nbLikes: nbLikes,
+        gameVersion: blueprint.gameVersion ?? null,
+        category: blueprint.category ?? null,
+        subcategory: blueprint.subcategory ?? null,
+        description: blueprint.description ?? null,
+        researchTier: blueprint.researchTier ?? null,
+        modded: blueprint.modded ?? null,
+      };
+      res.json(response);
+    } catch (err) {
+      console.log('Blueprint find error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
     }
   }
 
-  public getBlueprintMod(req: Request, res: Response) {
+  public async getBlueprintMod(req: Request, res: Response): Promise<void> {
     console.log('getBlueprintMod' + req.clientIp);
-    if (BlueprintModel.model == null) res.status(503).send();
-    else {
-      // TODO checks here
-      let id = req.params.id;
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
+    }
+    // TODO checks here
+    let id = req.params.id;
 //       let _userId = req.query.userId;
 
-      BlueprintModel.model
-        .find({ _id: id })
-        .then(blueprints => {
-          if (blueprints.length > 0) {
-            let blueprint = blueprints[0];
+    try {
+      const blueprint = await BlueprintModel.model.findOne({ _id: id });
+      if (blueprint == null) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
 
-            let mdbBlueprint = blueprint.data as MdbBlueprint;
-            let angularBlueprint = new sharedBlueprint();
-            angularBlueprint.importFromMdb(mdbBlueprint);
-            let bniBlueprint = angularBlueprint.toBniBlueprint(blueprint.name);
+      let mdbBlueprint = (await resolveCurrentData(blueprint)) as MdbBlueprint;
+      let angularBlueprint = new sharedBlueprint();
+      angularBlueprint.importFromMdb(mdbBlueprint);
+      let bniBlueprint = angularBlueprint.toBniBlueprint(blueprint.name);
 
-            res.json(bniBlueprint);
-          } else res.status(404).json(apiError(404, 'Blueprint not found'));
-        })
-        .catch(err => {
-          console.log('Blueprint find error');
-          console.log(err);
-          res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
-        });
+      res.json(bniBlueprint);
+    } catch (err) {
+      console.log('Blueprint find error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
     }
   }
 
@@ -347,11 +348,10 @@ export class BlueprintController {
     else {
       let filterUserId: string;
       let filterName: string;
-      let getDuplicates: boolean;
       let filterGameVersion: string | null = null;
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
-      let sort: 'recent' | 'popular';
+      let sort: 'recent' | 'popular' | 'mostForked';
       let skip = 0;
 
       let userId = '';
@@ -369,7 +369,6 @@ export class BlueprintController {
           return;
         }
         filterName = rawFilterName;
-        getDuplicates = req.query.getDuplicates as any;
 
         const rawGameVersion = req.query.gameVersion as string | undefined;
         if (rawGameVersion != null && !(GAME_VERSIONS as readonly string[]).includes(rawGameVersion)) {
@@ -388,11 +387,11 @@ export class BlueprintController {
         filterSubcategory = req.query.subcategory as string ?? null;
 
         const rawSort = req.query.sort as string | undefined;
-        if (rawSort != null && rawSort !== 'recent' && rawSort !== 'popular') {
-          res.status(400).json(apiError(400, "Invalid sort: must be one of recent, popular"));
+        if (rawSort != null && rawSort !== 'recent' && rawSort !== 'popular' && rawSort !== 'mostForked') {
+          res.status(400).json(apiError(400, "Invalid sort: must be one of recent, popular, mostForked"));
           return;
         }
-        sort = (rawSort as 'recent' | 'popular') ?? 'recent';
+        sort = (rawSort as 'recent' | 'popular' | 'mostForked') ?? 'recent';
 
         const rawSkip = req.query.skip as string | undefined;
         if (rawSkip != null) {
@@ -410,25 +409,28 @@ export class BlueprintController {
         return;
       }
 
-      // popular ignores the olderthan cursor (offset pagination via skip instead);
+      // popular/mostForked ignore the olderthan cursor (offset pagination via skip instead);
       // the param stays accepted so the existing client call shape keeps working
-      let filter: any =
-        sort === 'popular'
-          ? { $and: [{ deletedAt: null }] }
-          : { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
+      const usesOffsetPagination = sort === 'popular' || sort === 'mostForked';
+      let filter: any = usesOffsetPagination
+        ? { $and: [{ deletedAt: null }] }
+        : { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
 
       if (filterUserId != null) filter.$and.push({ owner: filterUserId });
       if (filterName != null) filter.$and.push({ name: { $regex: filterName, $options: 'i' } });
-      if (!getDuplicates) filter.$and.push({ $or: [{ isCopy: null }, { isCopy: false }] });
       if (filterGameVersion != null) filter.$and.push({ gameVersion: filterGameVersion });
       if (filterCategory != null) filter.$and.push({ category: filterCategory });
       if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
 
+      let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
+      if (sort === 'popular') sortSpec = { likeCount: -1, createdAt: -1 };
+      else if (sort === 'mostForked') sortSpec = { forkCount: -1, createdAt: -1 };
+
       let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
       let query = BlueprintModel.model
         .find(filter)
-        .sort(sort === 'popular' ? { likeCount: -1, createdAt: -1 } : { createdAt: -1 })
-        .skip(sort === 'popular' ? skip : 0)
+        .sort(sortSpec)
+        .skip(usesOffsetPagination ? skip : 0)
         .limit(browseIncrement * 2)
         .populate('owner');
 
@@ -455,6 +457,24 @@ export class BlueprintController {
       { $group: { _id: '$blueprintId', count: { $sum: 1 } } },
     ]);
     return new Map(rows.map(row => [row._id.toString(), row.count]));
+  }
+
+  // Names (or soft-deleted status) of the parent blueprints referenced by forkedFrom
+  // for a page of blueprints, one batched query. null name = parent soft-deleted.
+  public static async getForkedFromNames(
+    blueprintIds: mongoose.Types.ObjectId[]
+  ): Promise<Map<string, string | null>> {
+    if (blueprintIds.length === 0) return new Map();
+    const parents = await BlueprintModel.model
+      .find({ _id: { $in: blueprintIds } })
+      .select('name deletedAt')
+      .lean();
+    return new Map(
+      parents.map(parent => [
+        (parent._id as mongoose.Types.ObjectId).toString(),
+        parent.deletedAt != null ? null : (parent.name as string),
+      ])
+    );
   }
 
   public static async handleGetBlueprint(
@@ -484,6 +504,19 @@ export class BlueprintController {
       } catch (err) {
         // Counts are decoration on the list — never fail the browse for them
         console.log('comment count aggregate error');
+        console.log(err);
+      }
+
+      let forkedFromNames = new Map<string, string | null>();
+      try {
+        forkedFromNames = await BlueprintController.getForkedFromNames(
+          page
+            .filter(blueprint => blueprint.forkedFrom != null)
+            .map(blueprint => blueprint.forkedFrom!.blueprintId)
+        );
+      } catch (err) {
+        // Decoration on the list — never fail the browse for it
+        console.log('forkedFrom name lookup error');
         console.log(err);
       }
 
@@ -524,6 +557,14 @@ export class BlueprintController {
           subcategory: blueprint.subcategory ?? null,
           description: blueprint.description ?? null,
           modded: blueprint.modded ?? null,
+          nbForks: blueprint.forkCount ?? 0,
+          forkedFrom:
+            blueprint.forkedFrom != null
+              ? {
+                  blueprintId: blueprint.forkedFrom.blueprintId.toString(),
+                  blueprintName: forkedFromNames.get(blueprint.forkedFrom.blueprintId.toString()) ?? null,
+                }
+              : null,
         });
       }
 
@@ -576,6 +617,17 @@ export class BlueprintController {
         console.log(err);
       }
 
+      let forkedFromName: string | null = null;
+      if (blueprint.forkedFrom != null) {
+        try {
+          const names = await BlueprintController.getForkedFromNames([blueprint.forkedFrom.blueprintId]);
+          forkedFromName = names.get(blueprint.forkedFrom.blueprintId.toString()) ?? null;
+        } catch (err) {
+          console.log('forkedFrom name lookup error');
+          console.log(err);
+        }
+      }
+
       const response: BlueprintDetailsResponse = {
         id: (blueprint._id as any).toString(),
         name: blueprint.name,
@@ -595,6 +647,11 @@ export class BlueprintController {
         description: blueprint.description ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
+        nbForks: blueprint.forkCount ?? 0,
+        forkedFrom:
+          blueprint.forkedFrom != null
+            ? { blueprintId: blueprint.forkedFrom.blueprintId.toString(), blueprintName: forkedFromName }
+            : null,
       };
       res.json(response);
     } catch (err) {
@@ -604,7 +661,7 @@ export class BlueprintController {
     }
   }
 
-  private static saveBlueprint(
+  private static async saveBlueprint(
     _req: Request,
     res: Response,
     blueprint: Blueprint,
@@ -621,7 +678,7 @@ export class BlueprintController {
       researchTier: string | null;
       modded: boolean | null;
     }
-  ) {
+  ): Promise<void> {
     blueprint.owner = ownerId;
     blueprint.name = name;
     // TODO tags
@@ -642,26 +699,28 @@ export class BlueprintController {
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();
     blueprint.modifiedAt = new Date();
 
-    blueprint
-      .save()
-      .then(newBlueprint => {
-        let id = newBlueprint.id;
-        res.json({ id: id });
+    try {
+      const newBlueprint = await blueprint.save();
+      // Keeps currentVersionId's data in sync with every save — the common read
+      // path (load blueprint -> render current data) must never see stale data.
+      await syncCurrentVersion(newBlueprint, data, thumbnail);
 
-        BatchUtils.UpdatePositionCorrection(newBlueprint);
+      let id = newBlueprint.id;
+      res.json({ id: id });
 
-        // TODO: duplicate detection
-        // The old approach (UpdateBasedOn) loaded every blueprint into memory on each upload — removed due to OOM crashes.
-        // Proper approach: at upload time, compute a stable hash of the canonical blueprint content
-        // (sorted blueprintItems by id+position, excluding metadata like name/thumbnail) and store it
-        // on the document. Duplicate detection then becomes a single indexed query: find({ owner, contentHash }).
-        // The batch script update-based-on.ts can be repurposed to backfill hashes on existing documents.
-      })
-      .catch(error => {
-        console.log('Blueprint save error');
-        console.log(error);
+      BatchUtils.UpdatePositionCorrection(newBlueprint);
 
-        res.status(500).json(apiError(500, 'Failed to save blueprint'));
-      });
+      // TODO: duplicate detection
+      // The old approach (UpdateBasedOn) loaded every blueprint into memory on each upload — removed due to OOM crashes.
+      // Proper approach: at upload time, compute a stable hash of the canonical blueprint content
+      // (sorted blueprintItems by id+position, excluding metadata like name/thumbnail) and store it
+      // on the document. Duplicate detection then becomes a single indexed query: find({ owner, contentHash }).
+      // The batch script update-based-on.ts can be repurposed to backfill hashes on existing documents.
+    } catch (error) {
+      console.log('Blueprint save error');
+      console.log(error);
+
+      res.status(500).json(apiError(500, 'Failed to save blueprint'));
+    }
   }
 }

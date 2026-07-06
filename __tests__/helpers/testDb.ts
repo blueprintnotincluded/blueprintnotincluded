@@ -1,5 +1,6 @@
 import { UserModel } from '../../app/api/models/user';
 import { BlueprintModel } from '../../app/api/models/blueprint';
+import { BlueprintVersionModel } from '../../app/api/models/blueprint-version';
 import { FeedbackModel } from '../../app/api/models/feedback';
 import { FollowModel } from '../../app/api/models/follow';
 import { CommentModel } from '../../app/api/models/comment';
@@ -123,6 +124,7 @@ export class TestDbHelper {
   static async cleanDatabase() {
     try {
       await BlueprintModel.model.deleteMany({});
+      await BlueprintVersionModel.model.deleteMany({});
       await UserModel.model.deleteMany({});
       await FeedbackModel.model.deleteMany({});
       await FollowModel.model.deleteMany({});

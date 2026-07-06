@@ -32,6 +32,7 @@ export * from './src/b-export/b-ui-screen';
 export * from './src/coms/blueprint-list-response';
 export * from './src/coms/social';
 export * from './src/coms/comments';
+export * from './src/coms/blueprint-version';
 
 export * from './src/drawing/sprite-modifier';
 export * from './src/drawing/sprite-modifier-group';

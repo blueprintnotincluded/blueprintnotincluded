@@ -22,6 +22,10 @@ export interface BlueprintListItem {
   subcategory?: string | null;
   description?: string | null;
   modded?: boolean | null;
+  nbForks: number;
+  // Present when this blueprint is a fork; null blueprintName means the
+  // parent has been soft-deleted ("[original removed by author]")
+  forkedFrom?: { blueprintId: string; blueprintName: string | null } | null;
 }
 
 // Meta-only view for the blueprint details page — everything the list item
