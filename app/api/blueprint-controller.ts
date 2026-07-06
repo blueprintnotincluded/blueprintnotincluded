@@ -20,6 +20,7 @@ import { Blueprint as sharedBlueprint } from '../../lib/index';
 import { UserModel, UserJwt } from './models/user';
 import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
+import { parseOlderThan } from './utils/pagination';
 
 const MAX_SKIP = 10000;
 
@@ -347,7 +348,6 @@ export class BlueprintController {
       let filterGameVersion: string | null = null;
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
-      let dateFilter: Date = new Date();
       let sort: 'recent' | 'popular';
       let skip = 0;
 
@@ -355,27 +355,10 @@ export class BlueprintController {
       let userJwt = req.user as UserJwt;
       if (userJwt != null) userId = userJwt._id;
 
+      const dateFilter = parseOlderThan(req, res);
+      if (dateFilter == null) return;
+
       try {
-        // Check if olderthan parameter exists and is not empty
-        if (!req.query.olderthan || req.query.olderthan === '') {
-          res.status(400).json(apiError(400, 'Missing required parameter: olderthan'));
-          return;
-        }
-
-        let dateInt = parseInt(req.query.olderthan as string);
-        if (isNaN(dateInt)) {
-          res.status(400).json(apiError(400, 'Invalid olderthan parameter: must be a numeric timestamp'));
-          return;
-        }
-
-        dateFilter.setTime(dateInt);
-
-        // Validate that the date is valid after setting time
-        if (isNaN(dateFilter.getTime())) {
-          res.status(400).json(apiError(400, 'Invalid olderthan parameter: timestamp out of range'));
-          return;
-        }
-
         filterUserId = req.query.filterUserId as string;
         const rawFilterName = req.query.filterName as string;
         if (rawFilterName != null && rawFilterName.length > 60) {

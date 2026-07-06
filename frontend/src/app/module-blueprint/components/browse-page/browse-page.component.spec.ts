@@ -47,7 +47,7 @@ describe("BrowsePageComponent", () => {
           id: "u1",
           username: "alice",
           bio: "",
-          memberSince: new Date(),
+          memberSince: new Date().toISOString(),
           blueprintCount: 0,
           followerCount: 0,
           followingCount: 0,

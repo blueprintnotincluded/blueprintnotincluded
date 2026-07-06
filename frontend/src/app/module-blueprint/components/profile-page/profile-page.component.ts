@@ -84,9 +84,27 @@ export class ProfilePageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.username = this.route.snapshot.paramMap.get("username") ?? "";
-    this.appendLoading();
-    this.loadProfile();
+    this.route.paramMap.subscribe((paramMap) => {
+      this.username = paramMap.get("username") ?? "";
+      this.resetProfileState();
+      this.appendLoading();
+      this.loadProfile();
+    });
+  }
+
+  private resetProfileState() {
+    this.profile = null;
+    this.loadingProfile = true;
+    this.notFound = false;
+    this.followWorking = false;
+    this.editingBio = false;
+    this.bioDraft = "";
+    this.savingBio = false;
+    this.blueprintListItems = [];
+    this.working = true;
+    this.noMoreBlueprints = false;
+    this.oldestDate = new Date();
+    this.remaining = 0;
   }
 
   get isOwnProfile(): boolean {
