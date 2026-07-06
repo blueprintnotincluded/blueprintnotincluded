@@ -5,6 +5,10 @@
     Blueprint not found.
   </div>
 
+  <div *ngIf="!loading && loadError" class="details-status" i18n>
+    Something went wrong loading this blueprint. Please try again.
+  </div>
+
   <ng-container *ngIf="!loading && details">
     <div class="details-header">
       <div class="details-thumbnail">
