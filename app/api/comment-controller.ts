@@ -306,6 +306,18 @@ export class CommentController {
         return;
       }
 
+      const cooldown = cooldownSeconds();
+      if (cooldown > 0) {
+        const recent = await CommentModel.model.exists({
+          authorId: user._id,
+          editedAt: { $gt: new Date(Date.now() - cooldown * 1000) },
+        });
+        if (recent) {
+          res.status(429).json(apiError(429, 'You are commenting too quickly — try again shortly'));
+          return;
+        }
+      }
+
       const sanitized = await sanitizeCommentBody(body, resolveMentions);
       if (sanitized.length === 0) {
         res.status(400).json(apiError(400, 'Comment is empty after removing disallowed content'));
@@ -316,8 +328,10 @@ export class CommentController {
         return;
       }
 
-      comment.body = sanitized;
-      comment.editedAt = new Date();
+      if (sanitized !== comment.body) {
+        comment.body = sanitized;
+        comment.editedAt = new Date();
+      }
       await comment.save();
 
       const context = await buildRenderContext([comment], blueprint.owner.toString(), user);

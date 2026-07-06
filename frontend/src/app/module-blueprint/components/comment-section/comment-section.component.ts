@@ -26,6 +26,7 @@ export class CommentSectionComponent implements OnChanges {
   replyText = "";
   editingId: string | null = null;
   editText = "";
+  editOriginalText = "";
   posting = false;
   postError: string | null = null;
 
@@ -42,6 +43,7 @@ export class CommentSectionComponent implements OnChanges {
     this.replyText = "";
     this.editingId = null;
     this.editText = "";
+    this.editOriginalText = "";
     this.postError = null;
     this.reload();
   }
@@ -82,6 +84,7 @@ export class CommentSectionComponent implements OnChanges {
   startEdit(comment: CommentDto) {
     this.editingId = comment.id;
     this.editText = comment.editSource ?? "";
+    this.editOriginalText = this.editText;
     this.cancelReply();
     this.postError = null;
   }
@@ -89,10 +92,17 @@ export class CommentSectionComponent implements OnChanges {
   cancelEdit() {
     this.editingId = null;
     this.editText = "";
+    this.editOriginalText = "";
   }
 
   saveEdit() {
-    if (this.editingId == null || !this.editText.trim() || this.posting) return;
+    if (
+      this.editingId == null ||
+      !this.editText.trim() ||
+      this.posting ||
+      this.editText === this.editOriginalText
+    )
+      return;
     this.posting = true;
     this.postError = null;
     this.commentService.editComment(this.editingId, this.editText).subscribe({
