@@ -5,6 +5,7 @@ import {
   ForkBlueprintResponse,
   ListBlueprintVersionsResponse,
   CreateBlueprintVersionResponse,
+  DeleteBlueprintVersionResponse,
 } from "../../../../../lib/index";
 import { AuthenticationService } from "./authentification-service";
 
@@ -53,8 +54,8 @@ export class BlueprintVersionService {
   public deleteVersion(
     blueprintId: string,
     versionId: string
-  ): Observable<{ deleteVersion: string }> {
-    return this.http.delete<{ deleteVersion: string }>(
+  ): Observable<DeleteBlueprintVersionResponse> {
+    return this.http.delete<DeleteBlueprintVersionResponse>(
       `/api/blueprints/${blueprintId}/versions/${versionId}`,
       { headers: this.authHeaders() }
     );

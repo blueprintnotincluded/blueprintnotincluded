@@ -1,3 +1,5 @@
+import { ForkedFromDto } from './blueprint-version';
+
 export interface BlueprintListResponse {
   blueprints: BlueprintListItem[];
   oldest: Date;
@@ -25,7 +27,7 @@ export interface BlueprintListItem {
   nbForks: number;
   // Present when this blueprint is a fork; null blueprintName means the
   // parent has been soft-deleted ("[original removed by author]")
-  forkedFrom?: { blueprintId: string; blueprintName: string | null } | null;
+  forkedFrom?: ForkedFromDto | null;
 }
 
 // Meta-only view for the blueprint details page — everything the list item
