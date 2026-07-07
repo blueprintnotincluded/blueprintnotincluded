@@ -6,6 +6,9 @@
 //          from its current `data` and point currentVersionId at it. `data` is left in
 //          place on Blueprint as a read cache during the transition (removed in a
 //          later, separate migration once all read paths go through currentVersionId).
+//          Retry-safe: if a prior run inserted the version but crashed before linking
+//          it (currentVersionId still null), the version lookup below finds and reuses
+//          it instead of inserting a duplicate.
 // Step 2b: for every Blueprint with isCopy:true and copyOf set (and no forkedFrom yet),
 //          set forkedFrom to the copyOf blueprint's initial version (created in 2a), and
 //          bump the parent's forkCount so legacy forks (predating the fork feature) are
@@ -32,18 +35,24 @@ module.exports = {
     );
     while (await cursor.hasNext()) {
       const blueprint = await cursor.next();
-      const version = await versions.insertOne({
-        blueprintId: blueprint._id,
-        name: null,
-        data: blueprint.data ?? null,
-        thumbnail: blueprint.thumbnail ?? null,
-        modVersion: null,
-        createdAt: blueprint.createdAt ?? new Date(),
-        deletedAt: null,
-      });
+      // A prior interrupted run may have inserted this blueprint's version already
+      // (currentVersionId is only set after insertOne, in a separate write below).
+      let versionId = (await versions.findOne({ blueprintId: blueprint._id }, { projection: { _id: 1 } }))?._id;
+      if (versionId == null) {
+        const inserted = await versions.insertOne({
+          blueprintId: blueprint._id,
+          name: null,
+          data: blueprint.data ?? null,
+          thumbnail: blueprint.thumbnail ?? null,
+          modVersion: null,
+          createdAt: blueprint.createdAt ?? new Date(),
+          deletedAt: null,
+        });
+        versionId = inserted.insertedId;
+      }
       await blueprints.updateOne(
         { _id: blueprint._id, currentVersionId: null },
-        { $set: { currentVersionId: version.insertedId } }
+        { $set: { currentVersionId: versionId } }
       );
     }
 
@@ -78,13 +87,11 @@ module.exports = {
     }
 
     // Indexes
+    // Backs listVersions/deleteVersion/restoreVersion: filter { blueprintId, deletedAt: null },
+    // sort/find-latest by createdAt desc — one compound index serves both.
     await versions.createIndex(
-      { blueprintId: 1, createdAt: -1 },
-      { name: 'blueprintId_1_createdAt_-1' }
-    );
-    await versions.createIndex(
-      { blueprintId: 1, deletedAt: 1 },
-      { name: 'blueprintId_1_deletedAt_1' }
+      { blueprintId: 1, deletedAt: 1, createdAt: -1 },
+      { name: 'blueprintId_1_deletedAt_1_createdAt_-1' }
     );
     // Index backing sort({ forkCount: -1, createdAt: -1 }) on the public feed
     await blueprints.createIndex(
