@@ -349,9 +349,19 @@ describe('Fork + BlueprintVersion API', function () {
       expect(copied!.forkedFrom).to.not.equal(null);
       expect(copied!.forkedFrom!.blueprintId.toString()).to.equal(popularId);
       expect(copied!.forkedFrom!.versionId.toString()).to.equal(popular!.currentVersionId!.toString());
+      expect(popular!.forkCount).to.equal(1);
     });
 
-    it('down removes currentVersionId/forkedFrom and drops the versions collection', async function () {
+    it('backfills the parent forkCount exactly once across re-runs', async function () {
+      await versionInitMigration.up(mongoose.connection.db!);
+      await versionInitMigration.up(mongoose.connection.db!);
+      await versionInitMigration.up(mongoose.connection.db!);
+
+      const popular = await BlueprintModel.model.findById(popularId);
+      expect(popular!.forkCount).to.equal(1);
+    });
+
+    it('down removes currentVersionId/forkedFrom, drops the versions collection, and reverts forkCount', async function () {
       const db = mongoose.connection.db!;
       await versionInitMigration.up(db);
       await versionInitMigration.down(db);
@@ -359,6 +369,7 @@ describe('Fork + BlueprintVersion API', function () {
       const popular = await db.collection('blueprints').findOne({ _id: new Types.ObjectId(popularId) });
       expect(popular).to.not.have.property('currentVersionId');
       expect(popular).to.not.have.property('forkedFrom');
+      expect(popular!.forkCount).to.equal(0);
 
       const versionCount = await BlueprintVersionModel.model.countDocuments({});
       expect(versionCount).to.equal(0);
