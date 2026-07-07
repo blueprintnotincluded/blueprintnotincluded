@@ -699,28 +699,34 @@ export class BlueprintController {
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();
     blueprint.modifiedAt = new Date();
 
+    let newBlueprint;
     try {
-      const newBlueprint = await blueprint.save();
+      newBlueprint = await blueprint.save();
       // Keeps currentVersionId's data in sync with every save — the common read
       // path (load blueprint -> render current data) must never see stale data.
       await syncCurrentVersion(newBlueprint, data, thumbnail);
-
-      let id = newBlueprint.id;
-      res.json({ id: id });
-
-      BatchUtils.UpdatePositionCorrection(newBlueprint);
-
-      // TODO: duplicate detection
-      // The old approach (UpdateBasedOn) loaded every blueprint into memory on each upload — removed due to OOM crashes.
-      // Proper approach: at upload time, compute a stable hash of the canonical blueprint content
-      // (sorted blueprintItems by id+position, excluding metadata like name/thumbnail) and store it
-      // on the document. Duplicate detection then becomes a single indexed query: find({ owner, contentHash }).
-      // The batch script update-based-on.ts can be repurposed to backfill hashes on existing documents.
     } catch (error) {
       console.log('Blueprint save error');
       console.log(error);
 
       res.status(500).json(apiError(500, 'Failed to save blueprint'));
+      return;
     }
+
+    res.json({ id: newBlueprint.id });
+
+    try {
+      BatchUtils.UpdatePositionCorrection(newBlueprint);
+    } catch (error) {
+      console.log('Position correction error');
+      console.log(error);
+    }
+
+    // TODO: duplicate detection
+    // The old approach (UpdateBasedOn) loaded every blueprint into memory on each upload — removed due to OOM crashes.
+    // Proper approach: at upload time, compute a stable hash of the canonical blueprint content
+    // (sorted blueprintItems by id+position, excluding metadata like name/thumbnail) and store it
+    // on the document. Duplicate detection then becomes a single indexed query: find({ owner, contentHash }).
+    // The batch script update-based-on.ts can be repurposed to backfill hashes on existing documents.
   }
 }
