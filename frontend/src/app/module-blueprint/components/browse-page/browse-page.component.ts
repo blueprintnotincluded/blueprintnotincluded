@@ -279,7 +279,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.working = false;
     this.loadError = false;
     this.oldestDate = new Date(response.oldest);
-    // popular paginates by offset — advance past what we just received
+    // non-"recent" sorts (popular, mostForked) paginate by offset — advance past what we just received
     this.skipCount += response.blueprints.length;
     this.remaining = response.remaining;
     if (this.remaining === 0) this.noMoreBlueprints = true;
