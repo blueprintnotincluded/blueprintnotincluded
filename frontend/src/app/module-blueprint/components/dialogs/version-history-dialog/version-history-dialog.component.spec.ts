@@ -1,7 +1,7 @@
 import { DatePipe } from "@angular/common";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { of, throwError } from "rxjs";
+import { of, throwError, Subject } from "rxjs";
 import { MessageService } from "primeng/api";
 
 import { VersionHistoryDialogComponent } from "./version-history-dialog.component";
@@ -33,6 +33,7 @@ describe("VersionHistoryDialogComponent", () => {
       deleteVersion: vi.fn().mockReturnValue(of({ deleteVersion: "OK" })),
     };
     messageService = { add: vi.fn() };
+    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     await TestBed.configureTestingModule({
       declarations: [VersionHistoryDialogComponent],
@@ -84,6 +85,49 @@ describe("VersionHistoryDialogComponent", () => {
     expect(versionService.createVersion).toHaveBeenCalledWith("bp-1", null);
   });
 
+  it("guards against a second createVersion call while one is in flight", () => {
+    component.blueprintId = "bp-1";
+    versionService.createVersion.mockReturnValue(new Subject());
+
+    component.createVersion();
+    expect(component.creatingVersion).toBe(true);
+    component.createVersion();
+
+    expect(versionService.createVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores a stale getVersions response from an earlier load", () => {
+    const first$ = new Subject<{ versions: any[] }>();
+    const second$ = new Subject<{ versions: any[] }>();
+    versionService.getVersions
+      .mockReturnValueOnce(first$)
+      .mockReturnValueOnce(second$);
+
+    component.showDialog("bp-1", true);
+    component.load();
+
+    second$.next({ versions: [makeVersion({ id: "v2" })] });
+    first$.next({ versions: [makeVersion({ id: "v1-stale" })] });
+
+    expect(component.versions).toEqual([makeVersion({ id: "v2" })]);
+  });
+
+  it("shows an error toast when loading versions fails", () => {
+    versionService.getVersions.mockReturnValue(
+      throwError(() => new Error("network"))
+    );
+
+    component.showDialog("bp-1", true);
+
+    expect(component.loading).toBe(false);
+    expect(messageService.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: "error",
+        detail: "Could not load version history",
+      })
+    );
+  });
+
   it("restores a version and reloads", () => {
     component.blueprintId = "bp-1";
     const version = makeVersion();
@@ -93,6 +137,15 @@ describe("VersionHistoryDialogComponent", () => {
     expect(versionService.restoreVersion).toHaveBeenCalledWith("bp-1", "v1");
     expect(component.busyVersionId).toBe(null);
     expect(versionService.getVersions).toHaveBeenCalledWith("bp-1");
+  });
+
+  it("does not call deleteVersion when the confirmation is declined", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    component.blueprintId = "bp-1";
+
+    component.deleteVersion(makeVersion());
+
+    expect(versionService.deleteVersion).not.toHaveBeenCalled();
   });
 
   it("shows a specific toast when deleting the only remaining version fails with 400", () => {

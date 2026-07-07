@@ -26,6 +26,7 @@
       icon="pi pi-camera"
       i18n-label
       label="Save snapshot"
+      [disabled]="creatingVersion"
       (click)="createVersion()"
     ></button>
   </div>
@@ -56,6 +57,8 @@
           icon="pi pi-history"
           i18n-pTooltip
           pTooltip="Restore this version"
+          i18n-aria-label
+          aria-label="Restore this version"
           [disabled]="busyVersionId === version.id"
           (click)="restoreVersion(version)"
         ></button>
@@ -66,6 +69,8 @@
           icon="pi pi-trash"
           i18n-pTooltip
           pTooltip="Delete this version"
+          i18n-aria-label
+          aria-label="Delete this version"
           [disabled]="busyVersionId === version.id"
           (click)="deleteVersion(version)"
         ></button>

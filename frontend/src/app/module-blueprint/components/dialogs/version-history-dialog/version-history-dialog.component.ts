@@ -21,6 +21,9 @@ export class VersionHistoryDialogComponent {
   versions: BlueprintVersionDto[] = [];
   newVersionName = "";
   busyVersionId: string | null = null;
+  creatingVersion = false;
+
+  private requestId = 0;
 
   constructor(
     private blueprintVersionService: BlueprintVersionService,
@@ -41,31 +44,42 @@ export class VersionHistoryDialogComponent {
 
   load() {
     this.loading = true;
+    const requestId = ++this.requestId;
     this.blueprintVersionService.getVersions(this.blueprintId).subscribe({
       next: (response) => {
+        if (requestId !== this.requestId) return;
         this.versions = response.versions;
         this.loading = false;
       },
       error: () => {
+        if (requestId !== this.requestId) return;
         this.loading = false;
+        this.showError(
+          $localize`:versionHistory.loadError:Could not load version history`
+        );
       },
     });
   }
 
   createVersion() {
+    if (this.creatingVersion) return;
     const name =
       this.newVersionName.trim().length > 0 ? this.newVersionName.trim() : null;
+    this.creatingVersion = true;
     this.blueprintVersionService
       .createVersion(this.blueprintId, name)
       .subscribe({
         next: () => {
+          this.creatingVersion = false;
           this.newVersionName = "";
           this.load();
         },
-        error: () =>
+        error: () => {
+          this.creatingVersion = false;
           this.showError(
             $localize`:versionHistory.createError:Could not create a version`
-          ),
+          );
+        },
       });
   }
 
@@ -88,6 +102,11 @@ export class VersionHistoryDialogComponent {
   }
 
   deleteVersion(version: BlueprintVersionDto) {
+    const confirmed = window.confirm(
+      $localize`:versionHistory.deleteConfirm:Delete this version? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
     this.busyVersionId = version.id;
     this.blueprintVersionService
       .deleteVersion(this.blueprintId, version.id)
