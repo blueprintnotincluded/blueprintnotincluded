@@ -25,10 +25,9 @@ export class BlueprintVersionModel {
       deletedAt: { type: Date, default: null },
     });
 
-    // Version history list, newest first
-    blueprintVersionSchema.index({ blueprintId: 1, createdAt: -1 });
-    // Find current version (latest where deletedAt is null)
-    blueprintVersionSchema.index({ blueprintId: 1, deletedAt: 1 });
+    // Backs listVersions/deleteVersion/restoreVersion: filter { blueprintId, deletedAt: null },
+    // sort/find-latest by createdAt desc — one compound index serves both.
+    blueprintVersionSchema.index({ blueprintId: 1, deletedAt: 1, createdAt: -1 });
 
     BlueprintVersionModel.model =
       (mongoose.models['BlueprintVersion'] as Model<BlueprintVersion>) ??
