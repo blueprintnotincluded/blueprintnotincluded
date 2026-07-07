@@ -29,6 +29,11 @@ export class BlueprintDetailsPageComponent implements OnInit {
     public authService: AuthenticationService
   ) {}
 
+  get nbForksString() {
+    const nbForks = this.details?.nbForks ?? 0;
+    return $localize`fork${nbForks !== 1 ? "s" : ""}`;
+  }
+
   ngOnInit() {
     this.route.paramMap
       .pipe(switchMap((params) => this.load(params.get("id"))))
