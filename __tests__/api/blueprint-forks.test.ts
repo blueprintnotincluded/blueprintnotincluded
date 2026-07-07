@@ -68,6 +68,8 @@ describe('Fork + BlueprintVersion API', function () {
       expect(fork!.name).to.equal('Super Coal Generator Setup fork');
       expect(fork!.currentVersionId).to.not.equal(null);
       expect(fork!.forkedFrom!.blueprintId.toString()).to.equal(popularId);
+      expect(fork!.likes).to.deep.equal([testData.users.user2._id.toString()]);
+      expect(fork!.likeCount).to.equal(1);
 
       const forkVersion = await BlueprintVersionModel.model.findById(fork!.currentVersionId);
       expect(forkVersion).to.not.equal(null);
@@ -218,6 +220,14 @@ describe('Fork + BlueprintVersion API', function () {
       expect(response.status).to.equal(404);
     });
 
+    it('returns 400 for a malformed version id', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .delete(`/api/blueprints/${popularId}/versions/not-an-object-id`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).to.equal(400);
+    });
+
     it('advances currentVersionId to the next non-deleted version when the current one is deleted', async function () {
       const token = testData.users.user1.generateJwt();
       const first = (
@@ -298,6 +308,14 @@ describe('Fork + BlueprintVersion API', function () {
       expect(response.status).to.equal(404);
     });
 
+    it('returns 400 for a malformed version id', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${popularId}/versions/not-an-object-id/restore`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).to.equal(400);
+    });
+
     it('points currentVersionId back at an earlier live version without creating a new one', async function () {
       const token = testData.users.user1.generateJwt();
       const first = (
@@ -333,9 +351,11 @@ describe('Fork + BlueprintVersion API', function () {
     it('is idempotent and migrates isCopy/copyOf fork provenance', async function () {
       const db = mongoose.connection.db!;
 
+      const blueprintCount = await BlueprintModel.model.countDocuments({});
+
       await versionInitMigration.up(db);
       const countAfterFirst = await BlueprintVersionModel.model.countDocuments({});
-      expect(countAfterFirst).to.equal(4); // one per seeded blueprint
+      expect(countAfterFirst).to.equal(blueprintCount); // one per seeded blueprint
 
       await versionInitMigration.up(db);
       const countAfterSecond = await BlueprintVersionModel.model.countDocuments({});
@@ -350,6 +370,30 @@ describe('Fork + BlueprintVersion API', function () {
       expect(copied!.forkedFrom!.blueprintId.toString()).to.equal(popularId);
       expect(copied!.forkedFrom!.versionId.toString()).to.equal(popular!.currentVersionId!.toString());
       expect(popular!.forkCount).to.equal(1);
+    });
+
+    it('reuses an orphaned version left by a crashed run instead of duplicating it', async function () {
+      const db = mongoose.connection.db!;
+      // Simulate a run that inserted the version but crashed before linking currentVersionId.
+      const orphan = await db.collection('blueprintversions').insertOne({
+        blueprintId: new Types.ObjectId(popularId),
+        name: null,
+        data: testData.blueprints.popularBlueprint.data,
+        thumbnail: null,
+        modVersion: null,
+        createdAt: new Date(),
+        deletedAt: null,
+      });
+
+      await versionInitMigration.up(db);
+
+      const versionCount = await BlueprintVersionModel.model.countDocuments({
+        blueprintId: new Types.ObjectId(popularId),
+      });
+      expect(versionCount).to.equal(1);
+
+      const popular = await BlueprintModel.model.findById(popularId);
+      expect(popular!.currentVersionId!.toString()).to.equal(orphan.insertedId.toString());
     });
 
     it('backfills the parent forkCount exactly once across re-runs', async function () {

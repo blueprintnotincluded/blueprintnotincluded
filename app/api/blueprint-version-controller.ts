@@ -15,6 +15,7 @@ import {
   CreateBlueprintVersionRequest,
   CreateBlueprintVersionResponse,
   ForkBlueprintResponse,
+  DeleteBlueprintVersionResponse,
 } from '../../lib/index';
 
 const NAME_MAX_LENGTH = 60;
@@ -69,8 +70,9 @@ export class BlueprintVersionController {
         owner: user._id,
         name: forkName(source.name),
         tags: source.tags ?? [],
-        likes: [],
-        likeCount: 0,
+        // Every blueprint starts with the author's like (GitHub-star semantics) — see uploadBlueprint
+        likes: [user._id],
+        likeCount: 1,
         data: sourceVersion.data,
         thumbnail: sourceVersion.thumbnail,
         createdAt: now,
@@ -237,7 +239,8 @@ export class BlueprintVersionController {
         await blueprint.save();
       }
 
-      res.json({ deleteVersion: 'OK' });
+      const response: DeleteBlueprintVersionResponse = { deleteVersion: 'OK' };
+      res.json(response);
     } catch (err) {
       console.log('delete blueprint version error');
       console.log(err);
