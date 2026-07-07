@@ -7,7 +7,11 @@
 //          place on Blueprint as a read cache during the transition (removed in a
 //          later, separate migration once all read paths go through currentVersionId).
 // Step 2b: for every Blueprint with isCopy:true and copyOf set (and no forkedFrom yet),
-//          set forkedFrom to the copyOf blueprint's initial version (created in 2a).
+//          set forkedFrom to the copyOf blueprint's initial version (created in 2a), and
+//          bump the parent's forkCount so legacy forks (predating the fork feature) are
+//          reflected in "most forked" sort/nbForks alongside forks made through the new
+//          fork endpoint. The forkCount bump is guarded on the forkedFrom update actually
+//          matching, so a re-run (forkedFrom already set) does not double-count.
 //          2a runs to completion for all documents before 2b starts, so every copyOf
 //          target already has currentVersionId by the time 2b reads it.
 //
@@ -56,7 +60,7 @@ module.exports = {
       );
       if (!parent || !parent.currentVersionId) continue;
 
-      await blueprints.updateOne(
+      const result = await blueprints.updateOne(
         { _id: blueprint._id, forkedFrom: null },
         {
           $set: {
@@ -68,6 +72,9 @@ module.exports = {
           },
         }
       );
+      if (result.modifiedCount > 0) {
+        await blueprints.updateOne({ _id: blueprint.copyOf }, { $inc: { forkCount: 1 } });
+      }
     }
 
     // Indexes
@@ -84,6 +91,19 @@ module.exports = {
 
   async down(db) {
     const blueprints = db.collection('blueprints');
+
+    const forkedCursor = blueprints.find(
+      { forkedFrom: { $ne: null } },
+      { projection: { 'forkedFrom.blueprintId': 1 } }
+    );
+    while (await forkedCursor.hasNext()) {
+      const blueprint = await forkedCursor.next();
+      await blueprints.updateOne(
+        { _id: blueprint.forkedFrom.blueprintId },
+        { $inc: { forkCount: -1 } }
+      );
+    }
+
     await blueprints.updateMany({}, { $unset: { currentVersionId: '', forkedFrom: '' } });
     try {
       await blueprints.dropIndex('forkCount_-1');
