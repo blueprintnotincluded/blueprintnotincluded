@@ -124,9 +124,16 @@ describe("BrowsePageComponent", () => {
       component.showMyBlueprints(data);
 
       expect(component.filterUserId).toBe("user-123");
-      // second positional arg is filterUserId
-      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[1]).toBe("user-123");
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        "user-123",
+        null,
+        null,
+        null,
+        null,
+        "recent",
+        undefined
+      );
     });
   });
 
@@ -135,16 +142,32 @@ describe("BrowsePageComponent", () => {
       component.filterGameVersion = "spacedOut";
       component.getBlueprints();
 
-      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[3]).toBe("spacedOut");
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        null,
+        null,
+        "spacedOut",
+        null,
+        null,
+        "recent",
+        undefined
+      );
     });
 
     it("passes category filter to getBlueprints", () => {
       component.filterCategory = "power";
       component.getBlueprints();
 
-      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[4]).toBe("power");
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        null,
+        null,
+        null,
+        "power",
+        null,
+        "recent",
+        undefined
+      );
     });
 
     it("passes subcategory filter to getBlueprints", () => {
@@ -152,8 +175,16 @@ describe("BrowsePageComponent", () => {
       component.filterSubcategory = "generator";
       component.getBlueprints();
 
-      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[5]).toBe("generator");
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        null,
+        null,
+        null,
+        "power",
+        "generator",
+        "recent",
+        undefined
+      );
     });
 
     it("clearFilters resets all facets and refetches", () => {
