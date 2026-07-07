@@ -90,8 +90,8 @@
             [blueprintId]="details.id"
             [disabled]="!loggedIn"
           ></app-fork-button>
-          <span class="details-fork-count" i18n
-            >{{ details.nbForks }} forks</span
+          <span class="details-fork-count"
+            >{{ details.nbForks }}&nbsp;{{ nbForksString }}</span
           >
           <button
             pButton
