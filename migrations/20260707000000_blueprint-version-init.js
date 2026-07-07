@@ -86,7 +86,11 @@ module.exports = {
       { blueprintId: 1, deletedAt: 1 },
       { name: 'blueprintId_1_deletedAt_1' }
     );
-    await blueprints.createIndex({ forkCount: -1 }, { name: 'forkCount_-1' });
+    // Index backing sort({ forkCount: -1, createdAt: -1 }) on the public feed
+    await blueprints.createIndex(
+      { deletedAt: 1, forkCount: -1, createdAt: -1 },
+      { name: 'deletedAt_1_forkCount_-1_createdAt_-1' }
+    );
   },
 
   async down(db) {
@@ -106,7 +110,7 @@ module.exports = {
 
     await blueprints.updateMany({}, { $unset: { currentVersionId: '', forkedFrom: '' } });
     try {
-      await blueprints.dropIndex('forkCount_-1');
+      await blueprints.dropIndex('deletedAt_1_forkCount_-1_createdAt_-1');
     } catch (err) {
       if (err.codeName !== 'IndexNotFound') throw err;
     }

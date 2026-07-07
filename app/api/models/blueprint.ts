@@ -100,7 +100,7 @@ export class BlueprintModel {
     // "Most liked" sort on the public feed
     blueprintSchema.index({ deletedAt: 1, likeCount: -1, createdAt: -1 });
     // "Most forked" sort
-    blueprintSchema.index({ forkCount: -1 });
+    blueprintSchema.index({ deletedAt: 1, forkCount: -1, createdAt: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }
