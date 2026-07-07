@@ -16,6 +16,9 @@ export interface CreateBlueprintVersionResponse {
 export interface ForkBlueprintResponse {
     id: string;
 }
+export interface DeleteBlueprintVersionResponse {
+    deleteVersion: string;
+}
 export interface ForkedFromDto {
     blueprintId: string;
     blueprintName: string | null;

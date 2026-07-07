@@ -25,6 +25,10 @@ export interface ForkBlueprintResponse {
   id: string;
 }
 
+export interface DeleteBlueprintVersionResponse {
+  deleteVersion: string;
+}
+
 // Provenance shown on the details page / card. `null` blueprintName means the
 // parent blueprint has been soft-deleted — render "[original removed by author]".
 export interface ForkedFromDto {
