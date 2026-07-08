@@ -108,7 +108,8 @@
           filterCategory ||
           filterSubcategory ||
           filterName ||
-          filterModded !== null
+          filterModded !== null ||
+          filterForkedFrom
         "
         type="button"
         class="clear-filters"
@@ -135,6 +136,10 @@
       <span *ngIf="!filterModded" i18n
         >Showing base-game (unmodded) blueprints only.</span
       >
+    </div>
+
+    <div *ngIf="filterForkedFrom" class="filter-context-banner" i18n>
+      Showing forks of this blueprint.
     </div>
 
     <div *ngIf="loadError" class="browse-error" role="alert">

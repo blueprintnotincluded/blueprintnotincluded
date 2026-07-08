@@ -133,6 +133,7 @@ describe("BrowsePageComponent", () => {
         null,
         "recent",
         undefined,
+        null,
         null
       );
     });
@@ -152,6 +153,7 @@ describe("BrowsePageComponent", () => {
         null,
         "recent",
         undefined,
+        null,
         null
       );
     });
@@ -169,6 +171,7 @@ describe("BrowsePageComponent", () => {
         null,
         "recent",
         undefined,
+        null,
         null
       );
     });
@@ -187,6 +190,7 @@ describe("BrowsePageComponent", () => {
         "generator",
         "recent",
         undefined,
+        null,
         null
       );
     });
@@ -204,22 +208,43 @@ describe("BrowsePageComponent", () => {
         null,
         "recent",
         undefined,
-        true
+        true,
+        null
       );
     });
 
-    it("clearFilters resets all facets (including modded) and refetches", () => {
+    it("passes forkedFrom filter to getBlueprints", () => {
+      component.filterForkedFrom = "parent-1";
+      component.getBlueprints();
+
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        null,
+        null,
+        null,
+        null,
+        null,
+        "recent",
+        undefined,
+        null,
+        "parent-1"
+      );
+    });
+
+    it("clearFilters resets all facets (including modded and forkedFrom) and refetches", () => {
       component.filterGameVersion = "base";
       component.filterCategory = "cooling";
       component.filterSubcategory = "fan";
       component.filterName = "test";
       component.filterModded = true;
+      component.filterForkedFrom = "parent-1";
       component.clearFilters();
 
       expect(component.filterGameVersion).toBeNull();
       expect(component.filterCategory).toBeNull();
       expect(component.filterSubcategory).toBeNull();
       expect(component.filterModded).toBeNull();
+      expect(component.filterForkedFrom).toBeNull();
       expect(component.filterName).toBe("");
       expect(blueprintService.getBlueprints).toHaveBeenCalled();
     });
@@ -231,6 +256,15 @@ describe("BrowsePageComponent", () => {
       };
       component.ngOnInit();
       expect(component.filterModded).toBe(true);
+    });
+
+    it("initializes forkedFrom from the URL query param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.snapshot = {
+        queryParamMap: convertToParamMap({ forkedFrom: "parent-1" }),
+      };
+      component.ngOnInit();
+      expect(component.filterForkedFrom).toBe("parent-1");
     });
 
     it("onFacetChange resets subcategory before refetching", () => {

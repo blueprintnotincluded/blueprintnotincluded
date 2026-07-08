@@ -297,4 +297,42 @@ describe('Blueprint metadata API', function () {
       expect(response.status).to.equal(400);
     });
   });
+
+  describe('GET /api/getblueprints — forkedFrom filter', function () {
+    it('returns only forks of the given blueprint', async function () {
+      const source = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Fork Source' });
+      const sourceId = source.body.id;
+
+      const forkResponse = await TestSetup.request()
+        .post(`/api/blueprints/${sourceId}/fork`)
+        .set('Authorization', `Bearer ${authToken}`);
+      expect(forkResponse.status).to.equal(200);
+
+      await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Unrelated Blueprint' });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), forkedFrom: sourceId });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names).to.include('Fork Source fork');
+      expect(names).to.not.include('Fork Source');
+      expect(names).to.not.include('Unrelated Blueprint');
+    });
+
+    it('returns 400 for a malformed forkedFrom id', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), forkedFrom: 'not-an-id' });
+
+      expect(response.status).to.equal(400);
+    });
+  });
 });

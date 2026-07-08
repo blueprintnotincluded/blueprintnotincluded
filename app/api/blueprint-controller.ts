@@ -352,6 +352,7 @@ export class BlueprintController {
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
       let filterModded: boolean | null = null;
+      let filterForkedFrom: string | null = null;
       let sort: 'recent' | 'popular' | 'mostForked';
       let skip = 0;
 
@@ -394,6 +395,13 @@ export class BlueprintController {
         }
         filterModded = rawModded != null ? rawModded === 'true' : null;
 
+        const rawForkedFrom = req.query.forkedFrom as string | undefined;
+        if (rawForkedFrom != null && !mongoose.Types.ObjectId.isValid(rawForkedFrom)) {
+          res.status(400).json(apiError(400, 'Invalid forkedFrom: must be a valid blueprint id'));
+          return;
+        }
+        filterForkedFrom = rawForkedFrom ?? null;
+
         const rawSort = req.query.sort as string | undefined;
         if (rawSort != null && rawSort !== 'recent' && rawSort !== 'popular' && rawSort !== 'mostForked') {
           res.status(400).json(apiError(400, "Invalid sort: must be one of recent, popular, mostForked"));
@@ -430,6 +438,7 @@ export class BlueprintController {
       if (filterCategory != null) filter.$and.push({ category: filterCategory });
       if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
       if (filterModded != null) filter.$and.push({ modded: filterModded });
+      if (filterForkedFrom != null) filter.$and.push({ 'forkedFrom.blueprintId': filterForkedFrom });
 
       let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
       if (sort === 'popular') sortSpec = { likeCount: -1, createdAt: -1 };

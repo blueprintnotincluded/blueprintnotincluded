@@ -141,8 +141,13 @@
               [blueprintId]="details.id"
               [disabled]="!loggedIn"
             ></app-fork-button>
-            <span class="details-fork-count"
-              >{{ details.nbForks }}&nbsp;{{ nbForksString }}</span
+            <a
+              class="details-fork-count"
+              [routerLink]="['/discover']"
+              [queryParams]="{ forkedFrom: details.id }"
+              i18n-title
+              title="See forks of this blueprint"
+              >{{ details.nbForks }}&nbsp;{{ nbForksString }}</a
             >
             <button
               pButton
