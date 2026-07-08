@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, before } from 'mocha';
+import { describe, it, beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import dotenv from 'dotenv';
 import path from 'path';
