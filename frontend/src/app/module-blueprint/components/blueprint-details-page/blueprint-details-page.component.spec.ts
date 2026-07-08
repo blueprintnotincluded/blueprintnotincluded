@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { By } from "@angular/platform-browser";
 import { Location } from "@angular/common";
 import { ActivatedRoute, convertToParamMap } from "@angular/router";
 import { of, throwError } from "rxjs";
@@ -137,6 +138,36 @@ describe("BlueprintDetailsPageComponent", () => {
     const el: HTMLElement = fixture.nativeElement;
 
     expect(el.textContent).toContain("[original removed by author]");
+  });
+
+  it("links the category, subcategory, gameVersion, and modded chips to filtered discover pages", () => {
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(makeDetails({ subcategory: "generator", modded: true }))
+    );
+    fixture.detectChanges();
+
+    const category = fixture.debugElement.query(By.css(".bni-chip--cat"));
+    expect(category.properties["routerLink"]).toEqual(["/discover"]);
+    expect(category.properties["queryParams"]).toEqual({ category: "power" });
+
+    const subcategory = fixture.debugElement.queryAll(
+      By.css(".bni-chip--cat")
+    )[1];
+    expect(subcategory.properties["routerLink"]).toEqual(["/discover"]);
+    expect(subcategory.properties["queryParams"]).toEqual({
+      category: "power",
+      subcategory: "generator",
+    });
+
+    const gameVersion = fixture.debugElement.query(
+      By.css("a.bni-chip:not(.bni-chip--cat):not(.bni-chip--modded)")
+    );
+    expect(gameVersion.properties["queryParams"]).toEqual({
+      gameVersion: "spacedOut",
+    });
+
+    const modded = fixture.debugElement.query(By.css(".bni-chip--modded"));
+    expect(modded.properties["queryParams"]).toEqual({ modded: "true" });
   });
 
   it("opens the version history dialog with ownership passed through", () => {

@@ -263,6 +263,11 @@
   background: transparent;
   color: var(--bni-muted);
   border: 1px solid var(--bni-line);
+  text-decoration: none;
+}
+
+a.bni-chip:hover {
+  border-color: var(--bni-muted);
 }
 
 .bni-chip--cat {

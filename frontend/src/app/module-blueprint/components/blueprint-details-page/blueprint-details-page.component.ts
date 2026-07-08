@@ -8,6 +8,12 @@ import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { VersionHistoryDialogComponent } from "../dialogs/version-history-dialog/version-history-dialog.component";
 import { BrowseData } from "../user-menu/user-menu.component";
+import {
+  categoryTooltip,
+  subcategoryTooltip,
+  gameVersionTooltip,
+  moddedTooltip,
+} from "../../utils/chip-tooltip";
 
 const BACK_TO_DISCOVER = $localize`:blueprintDetails.backToDiscover:Back to Discover`;
 const BACK_TO_PROFILE = $localize`:blueprintDetails.backToProfile:Back to Profile`;
@@ -30,6 +36,11 @@ export class BlueprintDetailsPageComponent implements OnInit {
 
   backLink: any[] = ["/discover"];
   backLabel = BACK_TO_DISCOVER;
+
+  readonly categoryTooltip = categoryTooltip;
+  readonly subcategoryTooltip = subcategoryTooltip;
+  readonly gameVersionTooltip = gameVersionTooltip;
+  readonly moddedTooltip = moddedTooltip;
 
   constructor(
     private route: ActivatedRoute,

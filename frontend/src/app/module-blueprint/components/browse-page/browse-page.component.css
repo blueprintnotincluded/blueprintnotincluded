@@ -90,6 +90,15 @@
   color: var(--bni-danger);
 }
 
+.filter-context-banner {
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--bni-panel2);
+  color: var(--bni-muted);
+  font-size: 0.9rem;
+}
+
 .blueprint-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

@@ -45,6 +45,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   filterGameVersion: string | null = null;
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
+  filterModded: boolean | null = null;
   remaining = 0;
   sort: "recent" | "popular" | "mostForked" = "recent";
   skipCount = 0;
@@ -144,6 +145,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterGameVersion = params.get("gameVersion");
     this.filterCategory = params.get("category");
     this.filterSubcategory = params.get("subcategory");
+    const rawModded = params.get("modded");
+    this.filterModded =
+      rawModded === "true" ? true : rawModded === "false" ? false : null;
     const rawSort = params.get("sort");
     this.sort =
       rawSort === "popular" || rawSort === "mostForked" ? rawSort : "recent";
@@ -202,6 +206,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (this.filterCategory) queryParams["category"] = this.filterCategory;
     if (this.filterSubcategory)
       queryParams["subcategory"] = this.filterSubcategory;
+    if (this.filterModded != null)
+      queryParams["modded"] = String(this.filterModded);
     if (this.sort !== "recent") queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
@@ -211,6 +217,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterGameVersion = null;
     this.filterCategory = null;
     this.filterSubcategory = null;
+    this.filterModded = null;
     this.applyFiltersToUrl();
     this.reset();
     this.getBlueprints();
@@ -244,7 +251,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.filterCategory,
             this.filterSubcategory,
             this.sort,
-            this.sort !== "recent" ? this.skipCount : undefined
+            this.sort !== "recent" ? this.skipCount : undefined,
+            this.filterModded
           );
 
     request$.subscribe({

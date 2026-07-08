@@ -351,6 +351,7 @@ export class BlueprintController {
       let filterGameVersion: string | null = null;
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
+      let filterModded: boolean | null = null;
       let sort: 'recent' | 'popular' | 'mostForked';
       let skip = 0;
 
@@ -385,6 +386,13 @@ export class BlueprintController {
         filterCategory = rawCategory ?? null;
 
         filterSubcategory = req.query.subcategory as string ?? null;
+
+        const rawModded = req.query.modded as string | undefined;
+        if (rawModded != null && rawModded !== 'true' && rawModded !== 'false') {
+          res.status(400).json(apiError(400, "Invalid modded: must be 'true' or 'false'"));
+          return;
+        }
+        filterModded = rawModded != null ? rawModded === 'true' : null;
 
         const rawSort = req.query.sort as string | undefined;
         if (rawSort != null && rawSort !== 'recent' && rawSort !== 'popular' && rawSort !== 'mostForked') {
@@ -421,6 +429,7 @@ export class BlueprintController {
       if (filterGameVersion != null) filter.$and.push({ gameVersion: filterGameVersion });
       if (filterCategory != null) filter.$and.push({ category: filterCategory });
       if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
+      if (filterModded != null) filter.$and.push({ modded: filterModded });
 
       let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
       if (sort === 'popular') sortSpec = { likeCount: -1, createdAt: -1 };

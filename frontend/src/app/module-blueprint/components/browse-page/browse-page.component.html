@@ -104,7 +104,11 @@
       ></p-select>
       <button
         *ngIf="
-          filterGameVersion || filterCategory || filterSubcategory || filterName
+          filterGameVersion ||
+          filterCategory ||
+          filterSubcategory ||
+          filterName ||
+          filterModded !== null
         "
         type="button"
         class="clear-filters"
@@ -124,6 +128,13 @@
         </svg>
         <ng-container i18n>Clear filters</ng-container>
       </button>
+    </div>
+
+    <div *ngIf="filterModded !== null" class="filter-context-banner">
+      <span *ngIf="filterModded" i18n>Showing modded blueprints only.</span>
+      <span *ngIf="!filterModded" i18n
+        >Showing base-game (unmodded) blueprints only.</span
+      >
     </div>
 
     <div *ngIf="loadError" class="browse-error" role="alert">
