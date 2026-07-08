@@ -13,7 +13,7 @@ export class StaticController {
 
   public getBlueprint(req: Request, res: Response) {
     const id = req.params.blueprintId;
-    const blueprintUrl = `${process.env.HOST}/b/${id}`;
+    const blueprintUrl = `${process.env.HOST}${req.path}`;
     const thumbnailUrl = `${process.env.HOST}/b/${id}/thumbnail`;
     return BlueprintModel.model
       .findById(id)
