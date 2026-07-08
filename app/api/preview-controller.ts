@@ -65,7 +65,8 @@ export class PreviewController {
 
       return res.status(404).send();
     } catch (err) {
-      console.error('Preview serve error', err);
+      console.log('Preview serve error');
+      console.log(err);
       return res.status(500).send();
     }
   }
