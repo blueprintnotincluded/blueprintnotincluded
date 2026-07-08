@@ -38,6 +38,7 @@ export class ProfilePageComponent implements OnInit {
   noMoreBlueprints = false;
   oldestDate = new Date();
   remaining = 0;
+  activeTab: "blueprints" | "liked" = "blueprints";
 
   loadingBlueprintItem: BlueprintListItem;
   nothingBlueprintItem: BlueprintListItem;
@@ -112,6 +113,7 @@ export class ProfilePageComponent implements OnInit {
     this.noMoreBlueprints = false;
     this.oldestDate = new Date();
     this.remaining = 0;
+    this.activeTab = "blueprints";
   }
 
   get isOwnProfile(): boolean {
@@ -205,16 +207,47 @@ export class ProfilePageComponent implements OnInit {
     }
   }
 
+  setTab(tab: "blueprints" | "liked") {
+    if (this.activeTab === tab) return;
+    this.activeTab = tab;
+    this.blueprintListItems = [];
+    this.working = true;
+    this.noMoreBlueprints = false;
+    this.oldestDate = new Date();
+    this.remaining = 0;
+    this.appendLoading();
+    this.loadBlueprints();
+  }
+
   loadBlueprints() {
     if (!this.profile) return;
-    this.blueprintService
-      .getBlueprints(this.oldestDate, this.profile.id, null)
-      .subscribe({
-        next: (r: any) => this.handleGetBlueprints(r),
-        error: () => {
-          this.working = false;
-        },
-      });
+    const request$ =
+      this.activeTab === "liked"
+        ? this.blueprintService.getBlueprints(
+            this.oldestDate,
+            null,
+            null,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            this.profile.id
+          )
+        : this.blueprintService.getBlueprints(
+            this.oldestDate,
+            this.profile.id,
+            null
+          );
+
+    request$.subscribe({
+      next: (r: any) => this.handleGetBlueprints(r),
+      error: () => {
+        this.working = false;
+      },
+    });
   }
 
   handleGetBlueprints(response: BlueprintListResponse) {

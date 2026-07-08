@@ -134,6 +134,27 @@
         </div>
       </div>
 
+      <div class="view-mode-tabs bni-seg" *ngIf="isOwnProfile">
+        <button
+          type="button"
+          [class.active]="activeTab === 'blueprints'"
+          [attr.aria-pressed]="activeTab === 'blueprints'"
+          (click)="setTab('blueprints')"
+          i18n
+        >
+          Blueprints
+        </button>
+        <button
+          type="button"
+          [class.active]="activeTab === 'liked'"
+          [attr.aria-pressed]="activeTab === 'liked'"
+          (click)="setTab('liked')"
+          i18n
+        >
+          Liked
+        </button>
+      </div>
+
       <div class="blueprint-grid">
         <app-blueprint-card
           *ngFor="let item of blueprintListItems"

@@ -97,6 +97,67 @@ describe("ProfilePageComponent", () => {
     expect(component.loadingProfile).toBe(false);
   });
 
+  describe("Liked tab", () => {
+    it("is only rendered on the viewer's own profile", () => {
+      authService.getUserDetails.mockReturnValue({ username: "bob" });
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css(".view-mode-tabs"))).toBeNull();
+
+      authService.getUserDetails.mockReturnValue({ username: "alice" });
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".view-mode-tabs"))
+      ).toBeTruthy();
+    });
+
+    it("switching to Liked resets the list and requests likedBy blueprints", () => {
+      fixture.detectChanges();
+      component.blueprintListItems = [{ name: "stale" } as any];
+      blueprintService.getBlueprints.mockClear();
+
+      component.setTab("liked");
+
+      expect(component.activeTab).toBe("liked");
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "stale")
+      ).toBe(false);
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        null,
+        null,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "owner-1"
+      );
+    });
+
+    it("switching back to Blueprints requests owner-filtered blueprints", () => {
+      fixture.detectChanges();
+      component.setTab("liked");
+      blueprintService.getBlueprints.mockClear();
+
+      component.setTab("blueprints");
+
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        "owner-1",
+        null
+      );
+    });
+
+    it("is a no-op when already on the requested tab", () => {
+      fixture.detectChanges();
+      blueprintService.getBlueprints.mockClear();
+      component.setTab("blueprints");
+      expect(blueprintService.getBlueprints).not.toHaveBeenCalled();
+    });
+  });
+
   it("makes the follower and following counts clickable buttons", () => {
     fixture.detectChanges();
     const buttons = fixture.debugElement.queryAll(By.css(".profile-meta-link"));

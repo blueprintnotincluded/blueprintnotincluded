@@ -20,10 +20,11 @@ const BASE_BODY = {
 
 describe('Blueprint metadata API', function () {
   let authToken: string;
+  let testData: any;
 
   beforeEach(async function () {
     this.timeout(15000);
-    const testData = await TestSetup.beforeEach();
+    testData = await TestSetup.beforeEach();
     authToken = testData.users.user1.generateJwt();
   });
 
@@ -331,6 +332,43 @@ describe('Blueprint metadata API', function () {
       const response = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now(), forkedFrom: 'not-an-id' });
+
+      expect(response.status).to.equal(400);
+    });
+  });
+
+  describe('GET /api/getblueprints — likedBy filter', function () {
+    it('returns only blueprints liked by the given user', async function () {
+      const otherToken = testData.users.user2.generateJwt();
+
+      const liked = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Liked By User2' });
+      await TestSetup.request()
+        .post('/api/likeblueprint')
+        .set('Authorization', `Bearer ${otherToken}`)
+        .send({ blueprintId: liked.body.id, like: true });
+
+      await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Not Liked By User2' });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), likedBy: testData.users.user2._id.toString() });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names).to.include('Liked By User2');
+      expect(names).to.not.include('Not Liked By User2');
+    });
+
+    it('returns 400 for a malformed likedBy id', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), likedBy: 'not-an-id' });
 
       expect(response.status).to.equal(400);
     });
