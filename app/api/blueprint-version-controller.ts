@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { BlueprintModel } from './models/blueprint';
 import { BlueprintVersionModel, BlueprintVersion } from './models/blueprint-version';
 import { UserJwt } from './models/user';
+import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
 import {
   ensureCurrentVersion,
@@ -102,6 +103,13 @@ export class BlueprintVersionController {
       await forked.save();
 
       await BlueprintModel.model.updateOne({ _id: source._id }, { $inc: { forkCount: 1 } });
+
+      await NotificationController.notify({
+        recipientId: source.owner,
+        actorId: user._id,
+        type: 'fork',
+        blueprintId: forked._id as mongoose.Types.ObjectId,
+      });
 
       const response: ForkBlueprintResponse = { id: forked.id };
       res.json(response);

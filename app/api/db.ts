@@ -5,6 +5,7 @@ import { BlueprintVersionModel } from './models/blueprint-version';
 import { FeedbackModel } from './models/feedback';
 import { FollowModel } from './models/follow';
 import { CommentModel } from './models/comment';
+import { NotificationModel } from './models/notification';
 
 export class Database {
   constructor() {
@@ -26,6 +27,7 @@ export class Database {
       FeedbackModel.init();
       FollowModel.init();
       CommentModel.init();
+      NotificationModel.init();
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {

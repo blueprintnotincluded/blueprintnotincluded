@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { CommentModel, Comment } from './models/comment';
 import { BlueprintModel } from './models/blueprint';
 import { UserModel, UserJwt } from './models/user';
+import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
 import { optionalViewer } from './utils/optionalViewer';
 import {
@@ -258,6 +259,21 @@ export class CommentController {
       if (parent != null) {
         // Active threads surface first in the feed
         await CommentModel.model.updateOne({ _id: parent._id }, { $max: { lastActivityAt: now } });
+        await NotificationController.notify({
+          recipientId: parent.authorId,
+          actorId: user._id,
+          type: 'reply',
+          blueprintId,
+          commentId: comment._id as mongoose.Types.ObjectId,
+        });
+      } else {
+        await NotificationController.notify({
+          recipientId: blueprint.owner,
+          actorId: user._id,
+          type: 'comment',
+          blueprintId,
+          commentId: comment._id as mongoose.Types.ObjectId,
+        });
       }
 
       const context = await buildRenderContext([comment], blueprint.owner.toString(), user);

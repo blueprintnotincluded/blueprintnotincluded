@@ -29,6 +29,9 @@
     </ng-container>
   </ng-template>
   <ng-template pTemplate="end">
+    <app-notification-bell
+      *ngIf="authService.isLoggedIn()"
+    ></app-notification-bell>
     <app-user-menu
       (sendFeedback)="sendFeedback.emit()"
       (myBlueprintsRequested)="myBlueprintsRequested.emit($event)"

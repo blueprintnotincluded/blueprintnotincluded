@@ -1,0 +1,75 @@
+.notification-bell-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--bni-ink);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--bni-accent2, #d95f4c);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+.notification-panel {
+  width: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-panel-header {
+  font-weight: 600;
+  padding: 4px 4px 10px;
+  color: var(--bni-ink);
+}
+
+.notification-empty,
+.notification-loading {
+  padding: 12px 4px;
+  color: var(--bni-muted);
+  text-align: center;
+}
+
+.notification-row {
+  display: block;
+  padding: 8px 4px;
+  text-decoration: none;
+  color: var(--bni-ink);
+  border-bottom: 1px solid var(--bni-line);
+  font-size: 13px;
+}
+
+.notification-row:hover {
+  background: var(--bni-panel2);
+}
+
+.notification-unread {
+  font-weight: 600;
+}
+
+.notification-load-more {
+  background: none;
+  border: none;
+  padding: 10px 4px;
+  color: var(--bni-accent);
+  cursor: pointer;
+  text-align: center;
+}

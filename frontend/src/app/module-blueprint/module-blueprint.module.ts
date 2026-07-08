@@ -97,6 +97,7 @@ import { BlueprintVersionService } from "./services/blueprint-version.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
 import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
 import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-list/dialog-follow-list.component";
+import { NotificationBellComponent } from "./components/notification-bell/notification-bell.component";
 
 @NgModule({
   declarations: [
@@ -153,6 +154,7 @@ import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-li
     BrowsePageComponent,
     ProfilePageComponent,
     DialogFollowListComponent,
+    NotificationBellComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [

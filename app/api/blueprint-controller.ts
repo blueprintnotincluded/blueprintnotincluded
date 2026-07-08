@@ -19,6 +19,7 @@ import {
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { UserModel, UserJwt } from './models/user';
 import { CommentModel } from './models/comment';
+import { NotificationController } from './notification-controller';
 import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
@@ -213,12 +214,26 @@ export class BlueprintController {
 
         update
           .then(async result => {
-            if (
-              result.matchedCount > 0 ||
-              (await BlueprintModel.model.exists({ _id: blueprintLike.blueprintId })) != null
-            ) {
-              res.json({ likeBlueprint: 'OK' });
-            } else res.status(404).json(apiError(404, 'Blueprint not found'));
+            if (result.matchedCount === 0) {
+              if ((await BlueprintModel.model.exists({ _id: blueprintLike.blueprintId })) != null) {
+                res.json({ likeBlueprint: 'OK' });
+              } else res.status(404).json(apiError(404, 'Blueprint not found'));
+              return;
+            }
+
+            if (blueprintLike.like) {
+              const liked = await BlueprintModel.model.findById(blueprintLike.blueprintId).select('owner').lean();
+              if (liked != null) {
+                await NotificationController.notify({
+                  recipientId: liked.owner,
+                  actorId: userId,
+                  type: 'like',
+                  blueprintId: blueprintLike.blueprintId,
+                });
+              }
+            }
+
+            res.json({ likeBlueprint: 'OK' });
           })
           .catch(err => {
             console.log('likeBlueprint error');

@@ -1,0 +1,54 @@
+<button
+  type="button"
+  class="notification-bell-button"
+  (click)="toggle($event)"
+  i18n-aria-label
+  aria-label="Notifications"
+>
+  <i class="pi pi-bell"></i>
+  <span *ngIf="unreadCount > 0" class="notification-badge">{{
+    unreadCount > 9 ? "9+" : unreadCount
+  }}</span>
+</button>
+
+<p-popover #notifPanel [appendTo]="'body'" (onShow)="onShow()">
+  <div class="notification-panel">
+    <div class="notification-panel-header" i18n>Notifications</div>
+
+    <div
+      *ngIf="!working && !loadError && notifications.length === 0"
+      class="notification-empty"
+      i18n
+    >
+      Nothing yet — activity on your blueprints will show up here.
+    </div>
+
+    <div *ngIf="loadError" class="notification-empty" i18n>
+      Couldn't load notifications.
+    </div>
+
+    <a
+      *ngFor="let n of notifications"
+      class="notification-row"
+      [class.notification-unread]="!n.read"
+      [routerLink]="link(n)"
+      [fragment]="fragment(n)"
+      (click)="hidePanel()"
+    >
+      {{ message(n) }}
+    </a>
+
+    <button
+      *ngIf="remaining > 0"
+      type="button"
+      class="notification-load-more"
+      (click)="loadMore()"
+      [disabled]="working"
+      i18n
+    >
+      Load more
+    </button>
+
+    <div *ngIf="working" class="notification-loading" i18n>Loading…</div>
+  </div>
+</p-popover>
