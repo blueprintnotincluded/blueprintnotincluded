@@ -158,6 +158,15 @@
               label="Version History"
               (click)="openVersionHistory()"
             ></button>
+            <button
+              pButton
+              type="button"
+              class="p-button-text"
+              icon="pi pi-share-alt"
+              i18n-label
+              label="Share"
+              (click)="shareDialog.showDialog()"
+            ></button>
           </div>
         </div>
       </div>
@@ -169,6 +178,11 @@
       <app-version-history-dialog
         #versionHistoryDialog
       ></app-version-history-dialog>
+      <app-dialog-share-url
+        #shareDialog
+        [blueprintId]="details.id"
+        [blueprintName]="details.name"
+      ></app-dialog-share-url>
     </ng-container>
   </div>
 </div>
