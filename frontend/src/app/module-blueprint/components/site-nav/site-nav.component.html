@@ -2,11 +2,23 @@
   <ng-template pTemplate="start">
     <ng-container *ngIf="authService.isAlpha()">
       <a routerLink="/discover" class="site-logo">
-        <img
-          src="assets/images/ui/manual/Favicon_blueprint_oxygen-32x32.png"
-          alt="BNI"
-          height="28"
-        />
+        <span class="site-logo-mark" aria-hidden="true">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M4 4h16v16H4z"></path>
+            <path d="M4 10h16M10 4v16"></path>
+          </svg>
+        </span>
+        <span class="site-wordmark"
+          >BLUEPRINT <em class="site-wordmark-not">NOT</em> INCLUDED</span
+        >
       </a>
       <a routerLink="/discover" routerLinkActive="active" class="nav-tab" i18n
         >Discover</a

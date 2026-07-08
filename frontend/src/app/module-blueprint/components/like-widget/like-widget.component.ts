@@ -12,9 +12,15 @@ export class LikeWidgetComponent implements OnInit {
   @Input() nbLikes: number = 0;
   @Input() likedByMe!: boolean;
   @Input() disabled!: boolean;
+  @Input() showLabel = false;
 
   get nbLikesString() {
     return $localize`like${this.nbLikes != 1 ? "s" : ""}`;
+  }
+
+  get likeTitle() {
+    if (this.disabled) return $localize`Log in to like`;
+    return this.likedByMe ? $localize`Unlike` : $localize`Like`;
   }
 
   constructor(private blueprintService: BlueprintService) {}

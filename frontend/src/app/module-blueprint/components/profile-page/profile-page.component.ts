@@ -1,5 +1,5 @@
 import { Component, HostListener, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { DatePipe } from "@angular/common";
 import { UserService } from "../../services/user-service";
 import { BlueprintService } from "../../services/blueprint-service";
@@ -48,6 +48,7 @@ export class ProfilePageComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private userService: UserService,
     private blueprintService: BlueprintService,
     public authService: AuthenticationService,
@@ -85,6 +86,10 @@ export class ProfilePageComponent implements OnInit {
       commentCount: 0,
       nbForks: 0,
     };
+  }
+
+  goToProfile(data: { filterUserName: string }) {
+    this.router.navigate(["/profile", data.filterUserName]);
   }
 
   ngOnInit() {

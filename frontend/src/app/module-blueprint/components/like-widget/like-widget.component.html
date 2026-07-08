@@ -1,21 +1,22 @@
-<div class="p-inputgroup">
-  <span class="p-inputgroup-addon">{{ nbLikes }}&nbsp;{{ nbLikesString }}</span>
-  <button
-    *ngIf="!likedByMe"
-    pButton
-    type="button"
-    icon="pi thumbs-up"
-    [disabled]="disabled"
-    class="p-button-danger"
-    (click)="like()"
-  ></button>
-  <button
-    *ngIf="likedByMe"
-    pButton
-    type="button"
-    icon="pi thumbs-up"
-    [disabled]="disabled"
-    class="p-button-warning"
-    (click)="like()"
-  ></button>
-</div>
+<button
+  type="button"
+  class="bni-like"
+  [class.bni-like--liked]="likedByMe"
+  [disabled]="disabled"
+  [title]="likeTitle"
+  (click)="like()"
+>
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      d="M2 10h4v12H2zM22 11c0-1.1-.9-2-2-2h-6.3l1-4.6c.1-.5-.1-1-.5-1.4L13 2 7.6 7.6c-.4.4-.6.9-.6 1.4v11c0 1.1.9 2 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7c.1-.2.2-.5.2-.8v-1z"
+    ></path>
+  </svg>
+  {{ nbLikes
+  }}<ng-container *ngIf="showLabel">&nbsp;{{ nbLikesString }}</ng-container>
+</button>

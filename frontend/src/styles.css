@@ -1,4 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
+@import "./bni-fonts.css";
+@import "./bni-skin.css";
 
 :root {
   --p-font-family: "Open Sans", "Helvetica Neue", sans-serif;

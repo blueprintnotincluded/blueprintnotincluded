@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, switchMap } from "rxjs/operators";
 import { BlueprintDetailsResponse } from "../../../../../../lib/index";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { VersionHistoryDialogComponent } from "../dialogs/version-history-dialog/version-history-dialog.component";
+import { BrowseData } from "../user-menu/user-menu.component";
 
 @Component({
   selector: "app-blueprint-details-page",
@@ -25,9 +26,14 @@ export class BlueprintDetailsPageComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private blueprintService: BlueprintService,
     public authService: AuthenticationService
   ) {}
+
+  goToProfile(data: BrowseData) {
+    this.router.navigate(["/profile", data.filterUserName]);
+  }
 
   get nbForksString() {
     const nbForks = this.details?.nbForks ?? 0;

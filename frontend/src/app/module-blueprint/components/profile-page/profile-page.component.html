@@ -1,143 +1,178 @@
-<div class="profile-page">
-  <div *ngIf="loadingProfile" class="profile-loading" i18n>
-    Loading profile…
-  </div>
+<div class="bni-skin bni-page">
+  <app-site-nav
+    (about)="aboutDialog.toggleDialog()"
+    (sendFeedback)="feedbackDialog.open()"
+    (myBlueprintsRequested)="goToProfile($event)"
+  ></app-site-nav>
 
-  <div *ngIf="!loadingProfile && notFound" class="profile-not-found" i18n>
-    User not found.
-  </div>
+  <app-dialog-about #aboutDialog></app-dialog-about>
+  <app-feedback-dialog #feedbackDialog></app-feedback-dialog>
 
-  <ng-container *ngIf="!loadingProfile && !notFound && profile">
-    <div class="profile-header">
-      <div class="avatar">{{ avatarLetter }}</div>
+  <div class="profile-page">
+    <a class="bni-back" routerLink="/discover">
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.6"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M15 5l-7 7 7 7"></path>
+      </svg>
+      <ng-container i18n>Back to Discover</ng-container>
+    </a>
 
-      <div class="profile-details">
-        <h1>{{ profile.username }}</h1>
+    <div *ngIf="loadingProfile" class="profile-loading" i18n>
+      Loading profile…
+    </div>
 
-        <div *ngIf="!editingBio" class="bio">
-          <span *ngIf="profile.bio">{{ profile.bio }}</span>
-          <span *ngIf="!profile.bio && !isOwnProfile" class="bio-empty" i18n
-            >No bio yet.</span
-          >
+    <div *ngIf="!loadingProfile && notFound" class="profile-not-found" i18n>
+      User not found.
+    </div>
+
+    <ng-container *ngIf="!loadingProfile && !notFound && profile">
+      <div class="profile-header bni-panel bni-rivets">
+        <div class="avatar">{{ avatarLetter }}</div>
+
+        <div class="profile-details">
+          <h1>{{ profile.username }}</h1>
+
+          <div *ngIf="!editingBio" class="bio">
+            <span *ngIf="profile.bio">{{ profile.bio }}</span>
+            <span *ngIf="!profile.bio && !isOwnProfile" class="bio-empty" i18n
+              >No bio yet.</span
+            >
+            <button
+              *ngIf="isOwnProfile"
+              type="button"
+              pButton
+              class="p-button-text p-button-sm"
+              icon="pi pi-pencil"
+              i18n-label
+              label="Edit bio"
+              (click)="startEditingBio()"
+            ></button>
+          </div>
+
+          <div *ngIf="editingBio" class="bio-edit">
+            <textarea
+              pTextarea
+              [(ngModel)]="bioDraft"
+              maxlength="500"
+              rows="3"
+            ></textarea>
+            <div class="bio-edit-actions">
+              <span class="bio-char-count">{{ bioDraft.length }}/500</span>
+              <button
+                type="button"
+                pButton
+                i18n-label
+                label="Cancel"
+                class="p-button-text p-button-sm"
+                [disabled]="savingBio"
+                (click)="cancelEditingBio()"
+              ></button>
+              <button
+                type="button"
+                pButton
+                i18n-label
+                label="Save"
+                class="p-button-sm"
+                [disabled]="savingBio"
+                (click)="saveBio()"
+              ></button>
+            </div>
+          </div>
+
+          <div class="profile-meta">
+            <span i18n
+              >Member since
+              <b>{{
+                datepipe.transform(profile.memberSince, "yyyy-MM-dd")
+              }}</b></span
+            >
+            <span
+              ><b>{{ profile.blueprintCount }}</b
+              >&nbsp;<ng-container i18n>blueprints</ng-container></span
+            >
+            <span
+              ><b>{{ profile.followerCount }}</b
+              >&nbsp;<ng-container i18n>followers</ng-container></span
+            >
+            <span
+              ><b>{{ profile.followingCount }}</b
+              >&nbsp;<ng-container i18n>following</ng-container></span
+            >
+          </div>
+        </div>
+
+        <div class="profile-actions" *ngIf="!isOwnProfile">
           <button
-            *ngIf="isOwnProfile"
             type="button"
             pButton
-            class="p-button-text p-button-sm"
-            icon="pi pi-pencil"
-            i18n-label
-            label="Edit bio"
-            (click)="startEditingBio()"
+            [class]="profile.followedByMe ? 'p-button-secondary' : ''"
+            [disabled]="!loggedIn || followWorking"
+            [pTooltip]="loggedIn ? '' : loginPromptText"
+            [label]="profile.followedByMe ? unfollowLabel : followLabel"
+            [icon]="
+              profile.followedByMe ? 'pi pi-user-minus' : 'pi pi-user-plus'
+            "
+            (click)="toggleFollow()"
           ></button>
         </div>
-
-        <div *ngIf="editingBio" class="bio-edit">
-          <textarea
-            pTextarea
-            [(ngModel)]="bioDraft"
-            maxlength="500"
-            rows="3"
-          ></textarea>
-          <div class="bio-edit-actions">
-            <span class="bio-char-count">{{ bioDraft.length }}/500</span>
-            <button
-              type="button"
-              pButton
-              i18n-label
-              label="Cancel"
-              class="p-button-text p-button-sm"
-              [disabled]="savingBio"
-              (click)="cancelEditingBio()"
-            ></button>
-            <button
-              type="button"
-              pButton
-              i18n-label
-              label="Save"
-              class="p-button-sm"
-              [disabled]="savingBio"
-              (click)="saveBio()"
-            ></button>
-          </div>
-        </div>
-
-        <div class="profile-meta">
-          <span i18n
-            >Member since
-            {{ datepipe.transform(profile.memberSince, "yyyy-MM-dd") }}</span
-          >
-          <span
-            >{{ profile.blueprintCount }}
-            <ng-container i18n>blueprints</ng-container></span
-          >
-          <span
-            >{{ profile.followerCount }}
-            <ng-container i18n>followers</ng-container></span
-          >
-          <span
-            >{{ profile.followingCount }}
-            <ng-container i18n>following</ng-container></span
-          >
-        </div>
       </div>
 
-      <div class="profile-actions" *ngIf="!isOwnProfile">
-        <button
-          type="button"
-          pButton
-          [disabled]="!loggedIn || followWorking"
-          [pTooltip]="loggedIn ? '' : loginPromptText"
-          [label]="profile.followedByMe ? unfollowLabel : followLabel"
-          [icon]="profile.followedByMe ? 'pi pi-user-minus' : 'pi pi-user-plus'"
-          (click)="toggleFollow()"
-        ></button>
-      </div>
-    </div>
+      <div class="blueprint-grid">
+        <div
+          class="blueprint-card bni-card bni-rivets"
+          *ngFor="let item of blueprintListItems"
+        >
+          <div
+            class="bni-card__thumb"
+            [class.thumb-empty]="!isReal(item.thumbnail)"
+          >
+            <a *ngIf="isReal(item.thumbnail)" [routerLink]="['/b', item.id]">
+              <img [src]="item.thumbnail" [alt]="item.name" />
+            </a>
+          </div>
 
-    <div class="blueprint-grid">
-      <div class="blueprint-card" *ngFor="let item of blueprintListItems">
-        <div class="card-thumbnail">
-          <img *ngIf="isReal(item.thumbnail)" [src]="item.thumbnail" />
-          <span
-            *ngIf="item.thumbnail === 'svg'"
-            class="thumbnail-placeholder"
-          ></span>
-          <span
-            *ngIf="item.thumbnail === 'svg_nothing'"
-            class="thumbnail-placeholder thumbnail-placeholder--empty"
-          ></span>
-        </div>
-
-        <div class="card-info">
-          <div class="card-title">
-            <a *ngIf="isReal(item.thumbnail)" [routerLink]="['/b', item.id]">{{
-              item.name
-            }}</a>
-            <span *ngIf="!isReal(item.thumbnail)">{{ item.name }}</span>
+          <div class="card-info">
+            <div class="card-title bni-card__title">
+              <a
+                *ngIf="isReal(item.thumbnail)"
+                [routerLink]="['/b', item.id]"
+                >{{ item.name }}</a
+              >
+              <span *ngIf="!isReal(item.thumbnail)">{{ item.name }}</span>
+            </div>
+            <div *ngIf="isReal(item.thumbnail)" class="card-meta">
+              <div class="card-badges">
+                <span *ngIf="item.category" class="bni-chip bni-chip--cat">{{
+                  item.category
+                }}</span>
+                <span *ngIf="item.gameVersion" class="bni-chip">{{
+                  item.gameVersion
+                }}</span>
+              </div>
+              <span class="card-date">{{
+                datepipe.transform(item.createdAt, "yyyy-MM-dd")
+              }}</span>
+            </div>
+            <div *ngIf="isReal(item.thumbnail)">
+              <app-like-widget
+                class="card-likes"
+                [blueprintId]="item.id"
+                [nbLikes]="item.nbLikes"
+                [likedByMe]="item.likedByMe"
+                [disabled]="!loggedIn"
+              ></app-like-widget>
+            </div>
           </div>
-          <div *ngIf="isReal(item.thumbnail)" class="card-meta">
-            <span class="card-date">{{
-              datepipe.transform(item.createdAt, "yyyy-MM-dd")
-            }}</span>
-          </div>
-          <div *ngIf="isReal(item.thumbnail)" class="card-badges">
-            <span *ngIf="item.category" class="badge badge--category">{{
-              item.category
-            }}</span>
-            <span *ngIf="item.gameVersion" class="badge badge--version">{{
-              item.gameVersion
-            }}</span>
-          </div>
-          <app-like-widget
-            *ngIf="isReal(item.thumbnail)"
-            class="card-likes"
-            [blueprintId]="item.id"
-            [nbLikes]="item.nbLikes"
-            [likedByMe]="item.likedByMe"
-            [disabled]="!loggedIn"
-          ></app-like-widget>
         </div>
       </div>
-    </div>
-  </ng-container>
+    </ng-container>
+  </div>
 </div>

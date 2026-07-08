@@ -16,6 +16,7 @@
   <button
     pButton
     type="button"
+    class="p-button-secondary"
     icon="pi pi-user"
     [label]="authService.getUserDetails()?.username || ''"
     (click)="userMenu.toggle($event)"
