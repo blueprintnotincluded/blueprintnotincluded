@@ -131,10 +131,6 @@ export class ProfilePageComponent implements OnInit {
     return this.username.charAt(0).toUpperCase();
   }
 
-  isReal(thumbnail: string): boolean {
-    return thumbnail !== "svg" && thumbnail !== "svg_nothing";
-  }
-
   loadProfile() {
     this.loadingProfile = true;
     this.notFound = false;

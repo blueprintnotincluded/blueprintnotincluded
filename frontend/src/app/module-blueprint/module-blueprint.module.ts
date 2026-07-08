@@ -59,6 +59,7 @@ import { DialogExportImagesComponent } from "./components/dialogs/dialog-export-
 import { BlueprintNameValidationDirective } from "./directives/blueprint-name-validation.directive";
 import { LikeWidgetComponent } from "./components/like-widget/like-widget.component";
 import { ForkButtonComponent } from "./components/fork-button/fork-button.component";
+import { BlueprintCardComponent } from "./components/blueprint-card/blueprint-card.component";
 import { VersionHistoryDialogComponent } from "./components/dialogs/version-history-dialog/version-history-dialog.component";
 import { BuildableElementPickerComponent } from "./components/side-bar/buildable-element-picker/buildable-element-picker.component";
 import { ElementReport } from "./common/tools/element-report";
@@ -117,6 +118,7 @@ import { ProfilePageComponent } from "./components/profile-page/profile-page.com
     DialogExportImagesComponent,
     LikeWidgetComponent,
     ForkButtonComponent,
+    BlueprintCardComponent,
     VersionHistoryDialogComponent,
     BuildableElementPickerComponent,
     ElementReportToolComponent,

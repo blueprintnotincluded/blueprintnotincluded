@@ -329,7 +329,7 @@ describe("BrowsePageComponent", () => {
     });
   });
 
-  describe("like widget", () => {
+  describe("blueprint card rendering", () => {
     const realItem = {
       id: "bp-1",
       name: "Real Blueprint",
@@ -349,55 +349,32 @@ describe("BrowsePageComponent", () => {
       fixture.detectChanges(); // ngOnInit
       component.blueprintListItems = [realItem];
       fixture.detectChanges();
-      return fixture.debugElement.query(By.css("app-like-widget"));
+      return fixture.debugElement.query(By.css("app-blueprint-card"));
     }
 
-    it("renders on cards with values from the list item", () => {
-      const widget = renderWithItem();
-      expect(widget).toBeTruthy();
-      expect(widget.properties["blueprintId"]).toBe("bp-1");
-      expect(widget.properties["nbLikes"]).toBe(7);
-      expect(widget.properties["likedByMe"]).toBe(true);
-      expect(widget.properties["disabled"]).toBe(false);
+    // Card rendering itself (like widget, fork count, chips, ...) is covered by
+    // BlueprintCardComponent's own spec; here we only verify the page wires the
+    // right data through to the shared card.
+    it("passes the list item and login state to the shared card", () => {
+      const card = renderWithItem();
+      expect(card).toBeTruthy();
+      expect(card.properties["item"]).toBe(realItem);
+      expect(card.properties["loggedIn"]).toBe(true);
     });
 
-    it("is disabled when logged out", () => {
+    it("marks cards logged-out when the user is not authenticated", () => {
       authService.isLoggedIn.mockReturnValue(false);
-      const widget = renderWithItem();
-      expect(widget.properties["disabled"]).toBe(true);
+      const card = renderWithItem();
+      expect(card.properties["loggedIn"]).toBe(false);
     });
 
-    it("is not rendered for placeholder items", () => {
+    it("renders a card for placeholder items too", () => {
       fixture.detectChanges();
       component.blueprintListItems = [component.loadingBlueprintItem];
       fixture.detectChanges();
-      expect(fixture.debugElement.query(By.css("app-like-widget"))).toBeNull();
-    });
-  });
-
-  describe("fork count", () => {
-    const realItem = {
-      id: "bp-1",
-      name: "Real Blueprint",
-      ownerId: "u1",
-      ownerName: "alice",
-      createdAt: new Date(),
-      modifiedAt: new Date(),
-      thumbnail: "data:image/png;base64,xyz",
-      tags: [],
-      nbLikes: 7,
-      likedByMe: true,
-      ownedByMe: false,
-      nbForks: 3,
-    } as any;
-
-    it("renders the fork count on cards", () => {
-      fixture.detectChanges();
-      component.blueprintListItems = [realItem];
-      fixture.detectChanges();
-
-      const forkLink = fixture.debugElement.query(By.css(".card-forks"));
-      expect(forkLink.nativeElement.textContent).toContain("3");
+      const cards = fixture.debugElement.queryAll(By.css("app-blueprint-card"));
+      expect(cards.length).toBe(1);
+      expect(cards[0].properties["item"]).toBe(component.loadingBlueprintItem);
     });
   });
 });

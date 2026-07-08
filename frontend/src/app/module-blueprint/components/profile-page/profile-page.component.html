@@ -126,52 +126,13 @@
       </div>
 
       <div class="blueprint-grid">
-        <div
-          class="blueprint-card bni-card bni-rivets"
+        <app-blueprint-card
           *ngFor="let item of blueprintListItems"
-        >
-          <div
-            class="bni-card__thumb"
-            [class.thumb-empty]="!isReal(item.thumbnail)"
-          >
-            <a *ngIf="isReal(item.thumbnail)" [routerLink]="['/b', item.id]">
-              <img [src]="item.thumbnail" [alt]="item.name" />
-            </a>
-          </div>
-
-          <div class="card-info">
-            <div class="card-title bni-card__title">
-              <a
-                *ngIf="isReal(item.thumbnail)"
-                [routerLink]="['/b', item.id]"
-                >{{ item.name }}</a
-              >
-              <span *ngIf="!isReal(item.thumbnail)">{{ item.name }}</span>
-            </div>
-            <div *ngIf="isReal(item.thumbnail)" class="card-meta">
-              <div class="card-badges">
-                <span *ngIf="item.category" class="bni-chip bni-chip--cat">{{
-                  item.category
-                }}</span>
-                <span *ngIf="item.gameVersion" class="bni-chip">{{
-                  item.gameVersion
-                }}</span>
-              </div>
-              <span class="card-date">{{
-                datepipe.transform(item.createdAt, "yyyy-MM-dd")
-              }}</span>
-            </div>
-            <div *ngIf="isReal(item.thumbnail)">
-              <app-like-widget
-                class="card-likes"
-                [blueprintId]="item.id"
-                [nbLikes]="item.nbLikes"
-                [likedByMe]="item.likedByMe"
-                [disabled]="!loggedIn"
-              ></app-like-widget>
-            </div>
-          </div>
-        </div>
+          [item]="item"
+          [loggedIn]="loggedIn"
+          [showOwner]="false"
+          [linkState]="{ fromProfile: username }"
+        ></app-blueprint-card>
       </div>
     </ng-container>
   </div>

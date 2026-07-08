@@ -1,0 +1,153 @@
+<article
+  *ngIf="isReal(item.thumbnail)"
+  class="blueprint-card bni-card bni-rivets"
+>
+  <a
+    class="bni-card__thumb"
+    [routerLink]="['/blueprint', item.id]"
+    [state]="linkState"
+  >
+    <img [src]="item.thumbnail" [alt]="item.name" />
+  </a>
+
+  <div class="card-info">
+    <a
+      class="bni-card__title"
+      [routerLink]="['/blueprint', item.id]"
+      [state]="linkState"
+      >{{ item.name }}</a
+    >
+    <div class="card-meta">
+      <span *ngIf="showOwner" i18n
+        >by
+        <a class="card-owner" [routerLink]="['/profile', item.ownerName]">{{
+          item.ownerName
+        }}</a></span
+      >
+      <span class="card-date">{{ item.createdAt | date : "yyyy-MM-dd" }}</span>
+    </div>
+    <div class="card-badges">
+      <span *ngIf="item.category" class="bni-chip bni-chip--cat">{{
+        item.category
+      }}</span>
+      <span *ngIf="!item.category" class="bni-chip bni-chip--untagged" i18n
+        >Untagged</span
+      >
+      <span *ngIf="item.gameVersion" class="bni-chip">{{
+        item.gameVersion
+      }}</span>
+      <span *ngIf="item.modded" class="bni-chip bni-chip--modded" i18n
+        >Modded</span
+      >
+    </div>
+    <div class="card-social">
+      <app-like-widget
+        class="card-likes"
+        [blueprintId]="item.id"
+        [nbLikes]="item.nbLikes"
+        [likedByMe]="item.likedByMe"
+        [disabled]="!loggedIn"
+      ></app-like-widget>
+      <a
+        class="card-comments bni-icon-link"
+        [routerLink]="['/blueprint', item.id]"
+        [state]="linkState"
+        i18n-title
+        title="View comments"
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M21 12c0 4-4 7-9 7-1 0-2-.1-2.9-.4L4 20l1.2-3.2C3.8 15.5 3 13.8 3 12c0-4 4-7 9-7s9 3 9 7z"
+          ></path>
+        </svg>
+        {{ item.commentCount }}
+      </a>
+      <a
+        class="card-forks bni-icon-link"
+        [routerLink]="['/blueprint', item.id]"
+        [state]="linkState"
+        i18n-title
+        title="Fork count"
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <circle cx="6" cy="5" r="2.6"></circle>
+          <circle cx="18" cy="5" r="2.6"></circle>
+          <circle cx="12" cy="19" r="2.6"></circle>
+          <path d="M6 8v2c0 2 1.5 3 3.5 3h5c2 0 3.5-1 3.5-3V8M12 13v3"></path>
+        </svg>
+        {{ item.nbForks }}
+      </a>
+    </div>
+  </div>
+</article>
+
+<div
+  *ngIf="item.thumbnail === 'svg'"
+  class="blueprint-card bni-card bni-skel"
+  aria-hidden="true"
+>
+  <div class="bni-card__thumb">
+    <svg
+      width="34"
+      height="34"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+    >
+      <path
+        d="M7 3h10M7 21h10M8 3c0 4 8 5 8 9s-8 5-8 9M16 3c0 4-8 5-8 9s8 5 8 9"
+      ></path>
+    </svg>
+  </div>
+  <div class="card-info skel-info">
+    <div class="bni-skel__bar"></div>
+    <div class="bni-skel__bar bni-skel__bar--dim"></div>
+    <div class="skel-chips">
+      <div class="bni-skel__chip"></div>
+      <div class="bni-skel__chip skel-chip--narrow"></div>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="item.thumbnail === 'svg_nothing'"
+  class="blueprint-card bni-card no-results-card"
+>
+  <div class="bni-card__thumb no-results-thumb">
+    <svg
+      width="34"
+      height="34"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+    >
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M6 6l12 12"></path>
+    </svg>
+  </div>
+  <div class="card-info">
+    <span class="bni-card__title">{{ item.name }}</span>
+  </div>
+</div>
