@@ -102,6 +102,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.blueprintId = null;
     this.notFound = false;
     this.loadError = false;
+    this.previewFailed = false;
 
     if (id == null) {
       this.loading = false;

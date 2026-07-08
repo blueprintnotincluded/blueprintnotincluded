@@ -3,7 +3,7 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { By } from "@angular/platform-browser";
 import { Location } from "@angular/common";
 import { ActivatedRoute, convertToParamMap } from "@angular/router";
-import { of, throwError } from "rxjs";
+import { of, throwError, Subject } from "rxjs";
 
 import { BlueprintDetailsPageComponent } from "./blueprint-details-page.component";
 import { BlueprintService } from "../../services/blueprint-service";
@@ -113,6 +113,38 @@ describe("BlueprintDetailsPageComponent", () => {
     img.triggerEventHandler("error", {});
     fixture.detectChanges();
     expect(img.properties["src"]).toBe("data:image/png;base64,xyz");
+  });
+
+  it("clears a previous preview failure when switching to a different blueprint", () => {
+    const route = TestBed.inject(ActivatedRoute) as any;
+    const paramMap$ = new Subject<ReturnType<typeof convertToParamMap>>();
+    route.paramMap = paramMap$;
+
+    fixture = TestBed.createComponent(BlueprintDetailsPageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    paramMap$.next(convertToParamMap({ id: "bp1" }));
+    fixture.detectChanges();
+
+    let img = fixture.debugElement.query(By.css(".details-thumbnail img"));
+    img.triggerEventHandler("error", {});
+    fixture.detectChanges();
+    expect(component.previewFailed).toBe(true);
+
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(makeDetails({ id: "bp2", name: "Other Setup" }))
+    );
+    paramMap$.next(convertToParamMap({ id: "bp2" }));
+    fixture.detectChanges();
+
+    expect(component.previewFailed).toBe(false);
+    img = fixture.debugElement.query(By.css(".details-thumbnail img"));
+    expect(img.properties["src"]).toBe(
+      `/api/blueprints/bp2/preview/hero.webp?v=${new Date(
+        "2026-07-01"
+      ).getTime()}`
+    );
   });
 
   it("renders the details and passes the blueprint id to the comment section", () => {

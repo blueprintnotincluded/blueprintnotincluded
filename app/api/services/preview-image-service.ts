@@ -259,10 +259,13 @@ export class PreviewImageService {
         this.pending.clear();
         this.worker = null;
         this.workerReady = null;
+        reject(new Error('preview render worker exited'));
       });
 
       worker.on('error', err => {
         clearTimeout(startTimer);
+        this.worker = null;
+        this.workerReady = null;
         reject(err);
       });
     });

@@ -35,7 +35,10 @@ export class PreviewController {
       const modifiedAt = blueprint.modifiedAt ?? null;
 
       const etag = `"${id}-${modifiedAt ? new Date(modifiedAt).getTime() : 0}-${variant}"`;
-      if (req.headers['if-none-match'] === etag) return res.status(304).send();
+      if (req.headers['if-none-match'] === etag) {
+        res.set({ ETag: etag });
+        return res.status(304).end();
+      }
 
       const result = await PreviewImageService.instance.getVariant(id, modifiedAt, variant, () =>
         BlueprintModel.model

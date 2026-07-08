@@ -172,6 +172,7 @@ export class DialogBrowseComponent implements OnInit {
     this.filterUserId = null as any;
     this.filterUserName = null as any;
     this.filterName = null as any;
+    this.previewFailed.clear();
 
     this.removeAll();
   }
