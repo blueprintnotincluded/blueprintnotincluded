@@ -170,5 +170,21 @@ describe("BlueprintDetailsPageComponent", () => {
       expect(component.backLink).toEqual(["/profile", "alice"]);
       expect(component.backLabel).toContain("Profile");
     });
+
+    it("still routes back to the profile when the blueprint 404s", () => {
+      const location = TestBed.inject(Location);
+      vi.spyOn(location, "getState").mockReturnValue({
+        fromProfile: "alice",
+      });
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        throwError(() => ({ status: 404 }))
+      );
+
+      fixture.detectChanges();
+
+      expect(component.notFound).toBe(true);
+      expect(component.backLink).toEqual(["/profile", "alice"]);
+      expect(component.backLabel).toContain("Profile");
+    });
   });
 });
