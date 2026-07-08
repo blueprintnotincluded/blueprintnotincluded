@@ -79,17 +79,41 @@
           </div>
 
           <div class="details-badges">
-            <span *ngIf="details.category" class="bni-chip bni-chip--cat">{{
-              details.category
-            }}</span>
-            <span *ngIf="details.subcategory" class="bni-chip bni-chip--cat">{{
-              details.subcategory
-            }}</span>
-            <span *ngIf="details.gameVersion" class="bni-chip">{{
-              details.gameVersion
-            }}</span>
-            <span *ngIf="details.modded" class="bni-chip bni-chip--modded" i18n
-              >Modded</span
+            <a
+              *ngIf="details.category"
+              class="bni-chip bni-chip--cat"
+              [routerLink]="['/discover']"
+              [queryParams]="{ category: details.category }"
+              [title]="categoryTooltip(details.category)"
+              >{{ details.category }}</a
+            >
+            <a
+              *ngIf="details.subcategory"
+              class="bni-chip bni-chip--cat"
+              [routerLink]="['/discover']"
+              [queryParams]="{
+                category: details.category,
+                subcategory: details.subcategory
+              }"
+              [title]="subcategoryTooltip(details.subcategory)"
+              >{{ details.subcategory }}</a
+            >
+            <a
+              *ngIf="details.gameVersion"
+              class="bni-chip"
+              [routerLink]="['/discover']"
+              [queryParams]="{ gameVersion: details.gameVersion }"
+              [title]="gameVersionTooltip(details.gameVersion)"
+              >{{ details.gameVersion }}</a
+            >
+            <a
+              *ngIf="details.modded"
+              class="bni-chip bni-chip--modded"
+              [routerLink]="['/discover']"
+              [queryParams]="{ modded: 'true' }"
+              [title]="moddedTooltip()"
+              i18n
+              >Modded</a
             >
           </div>
 

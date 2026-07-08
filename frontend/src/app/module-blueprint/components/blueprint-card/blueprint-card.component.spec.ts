@@ -75,6 +75,32 @@ describe("BlueprintCardComponent", () => {
     expect(fixture.nativeElement.textContent).toContain("Modded");
   });
 
+  it("links the category, gameVersion, and modded chips to filtered discover pages", () => {
+    component.item = makeItem({
+      category: "power",
+      gameVersion: "spacedOut",
+      modded: true,
+    });
+    fixture.detectChanges();
+
+    const category = fixture.debugElement.query(By.css(".bni-chip--cat"));
+    expect(category.properties["routerLink"]).toEqual(["/discover"]);
+    expect(category.properties["queryParams"]).toEqual({ category: "power" });
+    expect(category.properties["title"]).toContain("power");
+
+    const gameVersion = fixture.debugElement.query(
+      By.css("a.bni-chip:not(.bni-chip--cat):not(.bni-chip--modded)")
+    );
+    expect(gameVersion.properties["routerLink"]).toEqual(["/discover"]);
+    expect(gameVersion.properties["queryParams"]).toEqual({
+      gameVersion: "spacedOut",
+    });
+
+    const modded = fixture.debugElement.query(By.css(".bni-chip--modded"));
+    expect(modded.properties["routerLink"]).toEqual(["/discover"]);
+    expect(modded.properties["queryParams"]).toEqual({ modded: "true" });
+  });
+
   it("passes like state through to the like widget", () => {
     component.item = makeItem({ nbLikes: 7, likedByMe: true });
     component.loggedIn = false;

@@ -322,7 +322,8 @@ export class BlueprintService implements IObsBlueprintChange {
     filterCategory?: string | null,
     filterSubcategory?: string | null,
     sort?: "recent" | "popular" | "mostForked",
-    skip?: number
+    skip?: number,
+    filterModded?: boolean | null
   ) {
     let parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
 
@@ -351,6 +352,9 @@ export class BlueprintService implements IObsBlueprintChange {
       if (skip != null) parameterSort += "&skip=" + skip;
     }
 
+    let parameterModded = "";
+    if (filterModded != null) parameterModded = "&modded=" + filterModded;
+
     let parameters =
       parameterOlderThan +
       parameterFilterUserId +
@@ -358,7 +362,8 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterGameVersion +
       parameterCategory +
       parameterSubcategory +
-      parameterSort;
+      parameterSort +
+      parameterModded;
 
     let request = this.authService.isLoggedIn()
       ? this.http.get("/api/getblueprintsSecure?" + parameters, {

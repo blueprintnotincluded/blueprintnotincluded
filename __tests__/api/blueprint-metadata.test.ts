@@ -250,5 +250,51 @@ describe('Blueprint metadata API', function () {
       const names = response.body.blueprints.map((bp: any) => bp.name);
       expect(names).to.not.include('Untagged Blueprint');
     });
+
+    it('filters by modded=true', async function () {
+      await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Modded Blueprint', modded: true });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), modded: 'true' });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names).to.include('Modded Blueprint');
+      expect(names).to.not.include('Power Blueprint');
+      expect(names).to.not.include('Oxygen Blueprint');
+    });
+
+    it('filters by modded=false, excluding both modded=true and untagged (null) blueprints', async function () {
+      await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Modded Blueprint', modded: true });
+      await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Explicitly Unmodded Blueprint', modded: false });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), modded: 'false' });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names).to.include('Explicitly Unmodded Blueprint');
+      expect(names).to.not.include('Modded Blueprint');
+      expect(names).to.not.include('Power Blueprint'); // modded left null, not false
+    });
+
+    it('returns 400 for an invalid modded value', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), modded: 'yes' });
+
+      expect(response.status).to.equal(400);
+    });
   });
 });

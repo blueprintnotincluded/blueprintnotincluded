@@ -132,7 +132,8 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         "recent",
-        undefined
+        undefined,
+        null
       );
     });
   });
@@ -150,7 +151,8 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         "recent",
-        undefined
+        undefined,
+        null
       );
     });
 
@@ -166,7 +168,8 @@ describe("BrowsePageComponent", () => {
         "power",
         null,
         "recent",
-        undefined
+        undefined,
+        null
       );
     });
 
@@ -183,22 +186,51 @@ describe("BrowsePageComponent", () => {
         "power",
         "generator",
         "recent",
-        undefined
+        undefined,
+        null
       );
     });
 
-    it("clearFilters resets all facets and refetches", () => {
+    it("passes modded filter to getBlueprints", () => {
+      component.filterModded = true;
+      component.getBlueprints();
+
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        null,
+        null,
+        null,
+        null,
+        null,
+        "recent",
+        undefined,
+        true
+      );
+    });
+
+    it("clearFilters resets all facets (including modded) and refetches", () => {
       component.filterGameVersion = "base";
       component.filterCategory = "cooling";
       component.filterSubcategory = "fan";
       component.filterName = "test";
+      component.filterModded = true;
       component.clearFilters();
 
       expect(component.filterGameVersion).toBeNull();
       expect(component.filterCategory).toBeNull();
       expect(component.filterSubcategory).toBeNull();
+      expect(component.filterModded).toBeNull();
       expect(component.filterName).toBe("");
       expect(blueprintService.getBlueprints).toHaveBeenCalled();
+    });
+
+    it("initializes modded from the URL query param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.snapshot = {
+        queryParamMap: convertToParamMap({ modded: "true" }),
+      };
+      component.ngOnInit();
+      expect(component.filterModded).toBe(true);
     });
 
     it("onFacetChange resets subcategory before refetching", () => {

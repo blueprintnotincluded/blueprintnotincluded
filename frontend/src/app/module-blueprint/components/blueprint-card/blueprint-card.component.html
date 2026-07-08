@@ -27,17 +27,33 @@
       <span class="card-date">{{ item.createdAt | date : "yyyy-MM-dd" }}</span>
     </div>
     <div class="card-badges">
-      <span *ngIf="item.category" class="bni-chip bni-chip--cat">{{
-        item.category
-      }}</span>
+      <a
+        *ngIf="item.category"
+        class="bni-chip bni-chip--cat"
+        [routerLink]="['/discover']"
+        [queryParams]="{ category: item.category }"
+        [title]="categoryTooltip(item.category)"
+        >{{ item.category }}</a
+      >
       <span *ngIf="!item.category" class="bni-chip bni-chip--untagged" i18n
         >Untagged</span
       >
-      <span *ngIf="item.gameVersion" class="bni-chip">{{
-        item.gameVersion
-      }}</span>
-      <span *ngIf="item.modded" class="bni-chip bni-chip--modded" i18n
-        >Modded</span
+      <a
+        *ngIf="item.gameVersion"
+        class="bni-chip"
+        [routerLink]="['/discover']"
+        [queryParams]="{ gameVersion: item.gameVersion }"
+        [title]="gameVersionTooltip(item.gameVersion)"
+        >{{ item.gameVersion }}</a
+      >
+      <a
+        *ngIf="item.modded"
+        class="bni-chip bni-chip--modded"
+        [routerLink]="['/discover']"
+        [queryParams]="{ modded: 'true' }"
+        [title]="moddedTooltip()"
+        i18n
+        >Modded</a
       >
     </div>
     <div class="card-social">
