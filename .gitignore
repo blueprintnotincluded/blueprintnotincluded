@@ -22,3 +22,5 @@
 
 # Graphify knowledge-graph build artifacts (AI coding aid, not source)
 /graphify-out
+# Server-rendered blueprint preview image cache (regenerated on demand)
+/preview-cache
