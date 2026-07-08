@@ -15,7 +15,6 @@ import {
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { UserService } from "src/app/module-blueprint/services/user-service";
-import { DatePipe } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
@@ -92,7 +91,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     private blueprintService: BlueprintService,
     private authService: AuthenticationService,
     private userService: UserService,
-    public datepipe: DatePipe,
     private route: ActivatedRoute,
     private router: Router
   ) {
