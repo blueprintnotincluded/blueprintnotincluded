@@ -85,7 +85,7 @@
 .comment-body {
   margin: 3px 0 6px;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .comment-actions {

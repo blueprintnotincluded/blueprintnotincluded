@@ -477,7 +477,7 @@
 }
 
 /* ---- loading skeleton ---- */
-@keyframes bniPulse {
+@keyframes bni-pulse {
   0%,
   100% {
     opacity: 0.45;
@@ -488,7 +488,7 @@
 }
 
 .bni-skel {
-  animation: bniPulse 1.6s ease-in-out infinite;
+  animation: bni-pulse 1.6s ease-in-out infinite;
 }
 
 .bni-skel .bni-card__thumb {
