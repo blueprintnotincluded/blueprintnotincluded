@@ -117,7 +117,6 @@ const DEV_USERS: DevUserSpec[] = [
 interface SourceSpec {
   owner: string;
   name: string;
-  tags: string[];
   subcategory: string;
   description: string;
   prefabIds: string[];
@@ -129,7 +128,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_alpha',
     name: 'Lone Manual Generator',
-    tags: ['power', 'starter'],
     subcategory: 'generator',
     description: 'A single manual generator. Should categorize as power.',
     prefabIds: ['ManualGenerator'], // -> power / base
@@ -139,7 +137,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_alpha',
     name: 'Single Electrolyzer',
-    tags: ['oxygen'],
     subcategory: 'electrolyzer',
     description: 'One electrolyzer. Should categorize as oxygenGen.',
     prefabIds: ['Electrolyzer'], // -> oxygenGen / base
@@ -149,7 +146,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_beta',
     name: 'Just an Air Conditioner',
-    tags: ['cooling'],
     subcategory: 'thermo',
     description: 'AirConditioner sits in the game "utilities" tab but is a cooling signature prefab.',
     prefabIds: ['AirConditioner'], // -> cooling / base (signature, not game-category)
@@ -159,7 +155,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_beta',
     name: 'Metal Refinery Only',
-    tags: ['refining', 'metal'],
     subcategory: 'refinery',
     description: 'Single metal refinery. Should categorize as refining.',
     prefabIds: ['MetalRefinery'], // -> refining / base
@@ -169,7 +164,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_alpha',
     name: 'Solo Microbe Musher',
-    tags: ['food'],
     subcategory: 'kitchen',
     description: 'One microbe musher. Should categorize as food.',
     prefabIds: ['MicrobeMusher'], // -> food / base
@@ -179,7 +173,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_beta',
     name: 'One Ranch Station',
-    tags: ['ranching', 'critters'],
     subcategory: 'stable',
     description: 'Single ranch station. Should categorize as ranching.',
     prefabIds: ['RanchStation'], // -> ranching / base
@@ -189,7 +182,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_alpha',
     name: 'Bare Gas Pump',
-    tags: ['ventilation', 'gas'],
     subcategory: 'ventilation',
     description: 'A single gas pump. Ventilation/hvac is intentionally unmapped, so this should stay Untagged.',
     prefabIds: ['GasPump'], // -> Untagged / base (hvac deliberately not mapped)
@@ -199,7 +191,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_forker',
     name: 'Naked Wire Run',
-    tags: ['infrastructure'],
     subcategory: 'distribution',
     description: 'Just wires. No functional signal — should stay Untagged.',
     prefabIds: ['Wire', 'Wire'], // -> Untagged / base
@@ -209,7 +200,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_alpha',
     name: 'Spaced Out Oxygen',
-    tags: ['oxygen', 'dlc'],
     subcategory: 'electrolyzer',
     description: 'Electrolyzer + a Spaced Out battery module — category oxygenGen, gameVersion spacedOut.',
     prefabIds: ['Electrolyzer', 'BatteryModule'], // -> oxygenGen / spacedOut (BatteryModule = EXPANSION1_ID)
@@ -219,7 +209,6 @@ const SOURCE_SPECS: SourceSpec[] = [
   {
     owner: 'dev_creator_beta',
     name: 'Modded Widget',
-    tags: ['modded'],
     subcategory: 'misc',
     description: 'Contains a prefab ID absent from the database — should flag modded=true.',
     prefabIds: ['ManualGenerator', 'TotallyFakeModBuilding'], // -> power / base / modded=true
@@ -348,7 +337,6 @@ async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId
   const forked = new BlueprintModel.model({
     owner: ownerId,
     name: `${source.name} fork`,
-    tags: source.tags ?? [],
     likes: likedBy,
     likeCount: likedBy.length,
     data: sourceVersion.data,
@@ -470,7 +458,6 @@ async function run() {
     const blueprint = new BlueprintModel.model({
       owner: idOf(spec.owner),
       name: spec.name,
-      tags: spec.tags,
       likes,
       likeCount: likes.length,
       thumbnail: THUMBNAIL,
@@ -509,7 +496,6 @@ async function run() {
   const myBlueprint = new BlueprintModel.model({
     owner: idOf(PROTECTED_USER.username),
     name: 'My Test Base',
-    tags: ['power', 'wip'],
     likes: myLikers,
     likeCount: myLikers.length,
     thumbnail: THUMBNAIL,

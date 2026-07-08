@@ -544,7 +544,6 @@ export class BlueprintController {
           name: blueprint.name,
           ownerId: ownerId,
           ownerName: username,
-          tags: blueprint.tags,
           createdAt: blueprint.createdAt,
           modifiedAt: blueprint.modifiedAt,
           thumbnail: blueprint.thumbnail,
@@ -633,7 +632,6 @@ export class BlueprintController {
         name: blueprint.name,
         ownerId,
         ownerName,
-        tags: blueprint.tags,
         createdAt: blueprint.createdAt,
         modifiedAt: blueprint.modifiedAt,
         thumbnail: blueprint.thumbnail,
@@ -681,7 +679,6 @@ export class BlueprintController {
   ): Promise<void> {
     blueprint.owner = ownerId;
     blueprint.name = name;
-    // TODO tags
     blueprint.data = data;
     blueprint.markModified('data');
     blueprint.thumbnail = thumbnail;

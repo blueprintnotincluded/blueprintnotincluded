@@ -11,7 +11,6 @@ export interface BlueprintListItem {
   name: string;
   ownerId: string;
   ownerName: string;
-  tags: string[];
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;

@@ -69,7 +69,6 @@ export class BlueprintVersionController {
       const forked = new BlueprintModel.model({
         owner: user._id,
         name: forkName(source.name),
-        tags: source.tags ?? [],
         // Every blueprint starts with the author's like (GitHub-star semantics) — see uploadBlueprint
         likes: [user._id],
         likeCount: 1,

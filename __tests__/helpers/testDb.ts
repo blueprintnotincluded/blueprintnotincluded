@@ -40,7 +40,6 @@ export class TestDbHelper {
     const now = Date.now();
     const popularBlueprint = await this.createTestBlueprint(user1._id as Types.ObjectId, {
       name: 'Super Coal Generator Setup',
-      tags: ['power', 'coal', 'automation'],
       likes: [(user2._id as Types.ObjectId).toString(), (user3._id as Types.ObjectId).toString()],
       createdAt: new Date(now - 3 * 24 * 60 * 60 * 1000), // 3 days ago
       data: {
@@ -59,7 +58,6 @@ export class TestDbHelper {
 
     const recentBlueprint = await this.createTestBlueprint(user2._id as Types.ObjectId, {
       name: 'Oxygen Production Line',
-      tags: ['oxygen', 'life-support'],
       likes: [(user1._id as Types.ObjectId).toString()],
       createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
       data: {
@@ -77,7 +75,6 @@ export class TestDbHelper {
 
     const oldBlueprint = await this.createTestBlueprint(user3._id as Types.ObjectId, {
       name: 'Legacy Food System',
-      tags: ['food', 'farming', 'legacy'],
       likes: [],
       createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       data: {
@@ -95,7 +92,6 @@ export class TestDbHelper {
 
     const copiedBlueprint = await this.createTestBlueprint(user3._id as Types.ObjectId, {
       name: 'Modified Coal Generator',
-      tags: ['power', 'coal', 'modified'],
       likes: [],
       isCopy: true,
       copyOf: popularBlueprint._id as Types.ObjectId,

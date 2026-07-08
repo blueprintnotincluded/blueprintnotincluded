@@ -4,7 +4,6 @@ import { GAME_VERSIONS, CATEGORIES, RESEARCH_TIERS } from '../../../lib/index';
 export interface Blueprint extends Document {
   owner: string;
   name: string;
-  tags: string[];
   likes: string[];
   // optional: documents predating the backfill migration lack this field —
   // callers must fall back to likes?.length (see blueprint-controller)
@@ -47,7 +46,6 @@ export class BlueprintModel {
         maxlength: [60, 'Blueprint name must be 60 characters or fewer'],
         minlength: [1, 'Blueprint name is required'],
       },
-      tags: { type: [String] },
       likes: { type: [String] },
       likeCount: { type: Number, default: 0 },
       createdAt: Date,

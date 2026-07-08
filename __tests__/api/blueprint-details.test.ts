@@ -46,7 +46,6 @@ describe('Blueprint details API', function () {
       expect(response.body.name).to.equal('Super Coal Generator Setup');
       expect(response.body.ownerName).to.equal(testData.users.user1.username);
       expect(response.body.ownerId).to.equal(testData.users.user1._id.toString());
-      expect(response.body.tags).to.deep.equal(['power', 'coal', 'automation']);
       expect(response.body.nbLikes).to.equal(2);
       expect(response.body.likedByMe).to.equal(false);
       expect(response.body.ownedByMe).to.equal(false);

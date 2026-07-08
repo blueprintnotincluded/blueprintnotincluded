@@ -13,7 +13,6 @@ function makeItem(overrides: any = {}) {
     createdAt: new Date("2026-01-01"),
     modifiedAt: new Date("2026-01-01"),
     thumbnail: "data:image/png;base64,xyz",
-    tags: [],
     nbLikes: 7,
     likedByMe: true,
     ownedByMe: false,

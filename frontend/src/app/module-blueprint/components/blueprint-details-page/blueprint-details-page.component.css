@@ -129,13 +129,6 @@
   word-break: break-word;
 }
 
-.details-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 18px;
-}
-
 .details-actions {
   display: flex;
   align-items: center;

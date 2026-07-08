@@ -14,7 +14,6 @@ function makeDetails(overrides: any = {}) {
     name: "Super Coal Generator Setup",
     ownerId: "owner-1",
     ownerName: "alice",
-    tags: ["power", "coal"],
     createdAt: new Date("2026-07-01").toISOString(),
     modifiedAt: new Date("2026-07-01").toISOString(),
     thumbnail: "data:image/png;base64,xyz",

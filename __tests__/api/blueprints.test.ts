@@ -280,7 +280,6 @@ describe('Blueprint API (Mocha)', function () {
       await BlueprintModel.model.create({
         owner: testData.users.user1._id,
         name: 'Popular Power',
-        tags: [],
         likes: ['a', 'b', 'c'],
         likeCount: 3,
         createdAt: new Date(Date.now() - 60 * 60 * 1000),
