@@ -14,28 +14,34 @@ export class StaticController {
   public getBlueprint(req: Request, res: Response) {
     const id = req.params.blueprintId;
     const blueprintUrl = `${process.env.HOST}${req.path}`;
-    const thumbnailUrl = `${process.env.HOST}/b/${id}/thumbnail`;
     return BlueprintModel.model
       .findById(id)
-      .select('name')
+      .select('name modifiedAt')
       .then(blueprint => {
         if (!blueprint) return res.status(404).send();
+        // Server-rendered OG image at the real unfurl size; versioned by
+        // modifiedAt so crawlers re-fetch after edits.
+        const version = blueprint.modifiedAt ? new Date(blueprint.modifiedAt).getTime() : 0;
+        const ogImageUrl = `${process.env.HOST}/api/blueprints/${id}/preview/og.png?v=${version}`;
         const blueprintMeta = {
           'og:title': blueprint.name,
           'og:description': 'A blueprint for use in Oxygen Not Included.',
           'og:url': blueprintUrl,
           images: [
             {
-              'og:image:url': thumbnailUrl,
-              'og:image': thumbnailUrl,
+              'og:image:url': ogImageUrl,
+              'og:image': ogImageUrl,
               'og:image:alt': blueprint.name,
               'og:image:type': 'image/png',
-              'og:image:width': '200',
-              'og:image:height': '200',
+              'og:image:width': '1200',
+              'og:image:height': '630',
             },
           ],
         };
-        const metaTags = new WebsiteMeta(blueprintMeta).getHtmlTags();
+        const metaTags =
+          new WebsiteMeta(blueprintMeta).getHtmlTags() +
+          '<meta name="twitter:card" content="summary_large_image" />' +
+          `<meta name="twitter:image" content="${ogImageUrl}" />`;
         this.serveHtml(req, res, { metaTags });
         return;
       });

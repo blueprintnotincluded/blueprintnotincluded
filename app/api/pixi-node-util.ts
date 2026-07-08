@@ -82,7 +82,6 @@ export class PixiNodeUtil implements PixiUtil {
   }
 
   async getImageFromCanvas(path: string) {
-    console.log('loading image from file : ' + path);
     let image = await loadImage(path);
     let ressource = new NodeCanvasResource(image);
     let bt = new PIXI.BaseTexture(ressource);

@@ -1,0 +1,292 @@
+// Server-authoritative blueprint preview images (spec/social/preview-images.md,
+// Direction A). Renders a master PNG in a child worker process (see
+// preview-render-worker.ts) and derives the served variants with sharp:
+//
+//   card.webp  480x480   browse/profile cards
+//   hero.webp  1200x1200 details page hero
+//   og.png     1200x630  Open Graph unfurl (letterboxed on white)
+//
+// Derivatives are cached on disk keyed by blueprint id; a cached file is
+// fresh while it is newer than the blueprint's modifiedAt, so restores,
+// forks and any future server-side edit invalidate naturally. The disk is
+// treated purely as a cache (prod containers are ephemeral) — misses are
+// re-rendered on demand.
+import { fork, ChildProcess } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import sharp from 'sharp';
+
+export type PreviewVariant = 'card.webp' | 'hero.webp' | 'og.png';
+
+export const PREVIEW_VARIANTS: PreviewVariant[] = ['card.webp', 'hero.webp', 'og.png'];
+
+const MASTER_SIZE = 1200;
+const CARD_SIZE = 480;
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
+const OG_MARGIN = 30;
+
+const RENDER_TIMEOUT_MS = 30_000;
+const WORKER_START_TIMEOUT_MS = 60_000;
+
+export interface PreviewRenderResult {
+  buffer: Buffer;
+  contentType: string;
+}
+
+type RenderMasterFn = (mdb: unknown) => Promise<Buffer>;
+
+interface PendingRequest {
+  resolve: (pngBase64: string) => void;
+  reject: (err: Error) => void;
+  timer: NodeJS.Timeout;
+}
+
+export class PreviewImageService {
+  private static instance_: PreviewImageService | null = null;
+  public static get instance(): PreviewImageService {
+    if (this.instance_ == null) this.instance_ = new PreviewImageService();
+    return this.instance_;
+  }
+  /** Test hook: replace the singleton (e.g. with an injected renderMasterFn). */
+  public static setInstance(instance: PreviewImageService | null) {
+    this.instance_ = instance;
+  }
+
+  private worker: ChildProcess | null = null;
+  private workerReady: Promise<void> | null = null;
+  private nextRequestId = 1;
+  private pending = new Map<number, PendingRequest>();
+  private idleTimer: NodeJS.Timeout | null = null;
+  private inFlight = new Map<string, Promise<void>>();
+
+  private readonly cacheDir: string;
+  private readonly idleShutdownMs: number;
+  private readonly renderMasterFn: RenderMasterFn;
+  private readonly disabled: boolean;
+
+  constructor(options?: {
+    cacheDir?: string;
+    renderMasterFn?: RenderMasterFn;
+    idleShutdownMs?: number;
+    disabled?: boolean;
+  }) {
+    this.cacheDir =
+      options?.cacheDir ??
+      process.env.PREVIEW_CACHE_DIR ??
+      path.resolve(__dirname, '../../../preview-cache');
+    this.idleShutdownMs =
+      options?.idleShutdownMs ?? Number(process.env.PREVIEW_WORKER_IDLE_MS ?? 120_000);
+    this.renderMasterFn = options?.renderMasterFn ?? (mdb => this.renderMasterInWorker(mdb));
+    // Default off in tests (no canvas/PIXI in CI) and behind an env kill switch.
+    this.disabled =
+      options?.disabled ??
+      (process.env.PREVIEW_RENDER_DISABLED === '1' || process.env.NODE_ENV === 'test');
+  }
+
+  private variantPath(blueprintId: string, variant: PreviewVariant): string {
+    return path.join(this.cacheDir, blueprintId, variant);
+  }
+
+  private static contentType(variant: PreviewVariant): string {
+    return variant.endsWith('.png') ? 'image/png' : 'image/webp';
+  }
+
+  /**
+   * Serve a variant for the blueprint, rendering and caching all variants on
+   * a miss. `modifiedAt` drives freshness. Returns null when rendering is
+   * disabled or fails (callers fall back to the legacy stored thumbnail).
+   */
+  public async getVariant(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined,
+    variant: PreviewVariant,
+    loadMdb: () => Promise<unknown | null>
+  ): Promise<PreviewRenderResult | null> {
+    const filePath = this.variantPath(blueprintId, variant);
+
+    const cached = this.readIfFresh(filePath, modifiedAt);
+    if (cached) return { buffer: cached, contentType: PreviewImageService.contentType(variant) };
+
+    if (this.disabled) return null;
+
+    // Single-flight per blueprint: one master render produces every variant.
+    let render = this.inFlight.get(blueprintId);
+    if (!render) {
+      render = this.renderAllVariants(blueprintId, loadMdb).finally(() =>
+        this.inFlight.delete(blueprintId)
+      );
+      this.inFlight.set(blueprintId, render);
+    }
+
+    try {
+      await render;
+    } catch (e) {
+      console.error(`Preview render failed for ${blueprintId}:`, e);
+      return null;
+    }
+
+    try {
+      const buffer = await fs.promises.readFile(filePath);
+      return { buffer, contentType: PreviewImageService.contentType(variant) };
+    } catch {
+      return null;
+    }
+  }
+
+  private readIfFresh(filePath: string, modifiedAt: Date | null | undefined): Buffer | null {
+    try {
+      const stat = fs.statSync(filePath);
+      if (modifiedAt != null && stat.mtimeMs <= modifiedAt.getTime()) return null;
+      return fs.readFileSync(filePath);
+    } catch {
+      return null;
+    }
+  }
+
+  private async renderAllVariants(blueprintId: string, loadMdb: () => Promise<unknown | null>) {
+    const mdb = await loadMdb();
+    if (mdb == null) throw new Error('blueprint has no data');
+
+    const masterPng = await this.renderMasterFn(mdb);
+
+    const dir = path.join(this.cacheDir, blueprintId);
+    await fs.promises.mkdir(dir, { recursive: true });
+
+    const master = sharp(masterPng);
+    const card = master
+      .clone()
+      .resize(CARD_SIZE, CARD_SIZE, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .webp({ quality: 82 })
+      .toBuffer();
+    const hero = master.clone().webp({ quality: 82 }).toBuffer();
+    // OG: trim the transparent framing margins, letterbox onto white at the
+    // real unfurl aspect ratio.
+    const og = master
+      .clone()
+      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 1 })
+      .toBuffer()
+      .then(trimmed =>
+        sharp(trimmed)
+          .resize(OG_WIDTH - OG_MARGIN * 2, OG_HEIGHT - OG_MARGIN * 2, {
+            fit: 'contain',
+            background: { r: 255, g: 255, b: 255, alpha: 1 },
+          })
+          .extend({
+            top: OG_MARGIN,
+            bottom: OG_MARGIN,
+            left: OG_MARGIN,
+            right: OG_MARGIN,
+            background: { r: 255, g: 255, b: 255, alpha: 1 },
+          })
+          .flatten({ background: { r: 255, g: 255, b: 255 } })
+          .png()
+          .toBuffer()
+      );
+
+    const [cardBuf, heroBuf, ogBuf] = await Promise.all([card, hero, og]);
+    await Promise.all([
+      fs.promises.writeFile(path.join(dir, 'card.webp'), cardBuf),
+      fs.promises.writeFile(path.join(dir, 'hero.webp'), heroBuf),
+      fs.promises.writeFile(path.join(dir, 'og.png'), ogBuf),
+    ]);
+  }
+
+  // --- worker process management ---
+
+  private renderMasterInWorker(mdb: unknown): Promise<Buffer> {
+    return this.ensureWorker().then(
+      () =>
+        new Promise<Buffer>((resolve, reject) => {
+          const requestId = this.nextRequestId++;
+          const timer = setTimeout(() => {
+            this.pending.delete(requestId);
+            reject(new Error('preview render timed out'));
+          }, RENDER_TIMEOUT_MS);
+          this.pending.set(requestId, {
+            resolve: pngBase64 => resolve(Buffer.from(pngBase64, 'base64')),
+            reject,
+            timer,
+          });
+          this.worker!.send({ type: 'render', requestId, mdb, size: MASTER_SIZE });
+          this.scheduleIdleShutdown();
+        })
+    );
+  }
+
+  private ensureWorker(): Promise<void> {
+    if (this.worker && this.workerReady) return this.workerReady;
+
+    const workerModule = path.join(__dirname, 'preview-render-worker');
+    const isTs = __filename.endsWith('.ts');
+    const worker = fork(workerModule + (isTs ? '.ts' : '.js'), [], {
+      execArgv: isTs ? ['-r', 'ts-node/register/transpile-only'] : [],
+      env: { ...process.env, TS_NODE_TRANSPILE_ONLY: '1' },
+      stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
+    });
+    this.worker = worker;
+
+    this.workerReady = new Promise<void>((resolve, reject) => {
+      const startTimer = setTimeout(() => {
+        reject(new Error('preview render worker did not start in time'));
+        this.stopWorker();
+      }, WORKER_START_TIMEOUT_MS);
+
+      worker.on('message', (message: any) => {
+        if (message?.type === 'ready') {
+          clearTimeout(startTimer);
+          this.scheduleIdleShutdown();
+          resolve();
+          return;
+        }
+        if (message?.type === 'rendered' || message?.type === 'error') {
+          const pendingRequest = this.pending.get(message.requestId);
+          if (!pendingRequest) return;
+          this.pending.delete(message.requestId);
+          clearTimeout(pendingRequest.timer);
+          if (message.type === 'rendered') pendingRequest.resolve(message.pngBase64);
+          else pendingRequest.reject(new Error(message.message));
+        }
+      });
+
+      worker.on('exit', () => {
+        clearTimeout(startTimer);
+        for (const [, pendingRequest] of this.pending) {
+          clearTimeout(pendingRequest.timer);
+          pendingRequest.reject(new Error('preview render worker exited'));
+        }
+        this.pending.clear();
+        this.worker = null;
+        this.workerReady = null;
+      });
+
+      worker.on('error', err => {
+        clearTimeout(startTimer);
+        reject(err);
+      });
+    });
+
+    return this.workerReady;
+  }
+
+  private scheduleIdleShutdown() {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.idleTimer = setTimeout(() => {
+      if (this.pending.size === 0) this.stopWorker();
+      else this.scheduleIdleShutdown();
+    }, this.idleShutdownMs);
+    this.idleTimer.unref();
+  }
+
+  public stopWorker() {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+    if (this.worker) {
+      this.worker.kill();
+      this.worker = null;
+      this.workerReady = null;
+    }
+  }
+}
