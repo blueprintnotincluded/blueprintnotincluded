@@ -100,6 +100,21 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(component.hasRealThumbnail()).toBe(false);
   });
 
+  it("uses the server-rendered hero preview, falling back to the inline thumbnail on error", () => {
+    fixture.detectChanges();
+
+    const img = fixture.debugElement.query(By.css(".details-thumbnail img"));
+    expect(img.properties["src"]).toBe(
+      `/api/blueprints/bp1/preview/hero.webp?v=${new Date(
+        "2026-07-01"
+      ).getTime()}`
+    );
+
+    img.triggerEventHandler("error", {});
+    fixture.detectChanges();
+    expect(img.properties["src"]).toBe("data:image/png;base64,xyz");
+  });
+
   it("renders the details and passes the blueprint id to the comment section", () => {
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
