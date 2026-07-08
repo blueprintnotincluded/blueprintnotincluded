@@ -121,6 +121,10 @@
   z-index: 4;
 }
 
+.view-mode-tabs {
+  margin: 20px 0 14px;
+}
+
 .blueprint-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
