@@ -268,7 +268,8 @@ describe('Profile, Follow, Feed API', function () {
 
       const response = await TestSetup.request()
         .get(`/api/users/${testData.users.user1.username}/following`)
-        .query({ olderthan: Date.now() });
+        // Small future buffer so this can't race the Follow's default createdAt: Date.now()
+        .query({ olderthan: Date.now() + 1000 });
 
       expect(response.status).to.equal(200);
       const usernames = response.body.users.map((u: any) => u.username);

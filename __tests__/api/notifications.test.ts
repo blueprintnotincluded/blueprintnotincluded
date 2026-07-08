@@ -191,7 +191,8 @@ describe('Notifications API', function () {
       const token = testData.users.user1.generateJwt();
       const response = await TestSetup.request()
         .get('/api/notifications')
-        .query({ olderthan: Date.now() })
+        // Small future buffer so this can't race the second notification's createdAt: new Date()
+        .query({ olderthan: Date.now() + 1000 })
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).to.equal(200);
