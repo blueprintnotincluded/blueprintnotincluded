@@ -9,7 +9,7 @@
   <app-feedback-dialog #feedbackDialog></app-feedback-dialog>
 
   <div class="details-page">
-    <a class="bni-back" routerLink="/discover">
+    <a class="bni-back" [routerLink]="backLink">
       <svg
         width="12"
         height="12"
@@ -22,7 +22,7 @@
       >
         <path d="M15 5l-7 7 7 7"></path>
       </svg>
-      <ng-container i18n>Back to Discover</ng-container>
+      {{ backLabel }}
     </a>
 
     <div *ngIf="loading" class="details-status" i18n>Loading blueprint…</div>

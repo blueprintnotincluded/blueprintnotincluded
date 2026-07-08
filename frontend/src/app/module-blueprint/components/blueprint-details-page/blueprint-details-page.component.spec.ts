@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { Location } from "@angular/common";
 import { ActivatedRoute, convertToParamMap } from "@angular/router";
 import { of, throwError } from "rxjs";
 
@@ -149,5 +150,25 @@ describe("BlueprintDetailsPageComponent", () => {
       "bp1",
       false
     );
+  });
+
+  describe("back-link", () => {
+    it("defaults to Discover when there is no navigation state", () => {
+      fixture.detectChanges();
+      expect(component.backLink).toEqual(["/discover"]);
+      expect(component.backLabel).toContain("Discover");
+    });
+
+    it("routes back to the profile when navigation arrived from one", () => {
+      const location = TestBed.inject(Location);
+      vi.spyOn(location, "getState").mockReturnValue({
+        fromProfile: "alice",
+      });
+
+      fixture.detectChanges();
+
+      expect(component.backLink).toEqual(["/profile", "alice"]);
+      expect(component.backLabel).toContain("Profile");
+    });
   });
 });
