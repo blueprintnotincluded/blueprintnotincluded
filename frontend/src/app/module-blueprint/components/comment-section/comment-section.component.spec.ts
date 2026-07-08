@@ -73,6 +73,18 @@ describe("CommentSectionComponent", () => {
       expect(component.loading).toBe(false);
     });
 
+    it("gives each comment a stable anchor id and emits commentsLoaded", () => {
+      const emitSpy = vi.fn();
+      component.commentsLoaded.subscribe(emitSpy);
+
+      bindBlueprint("bp1");
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector("#comment-c1")).toBeTruthy();
+      expect(emitSpy).toHaveBeenCalled();
+    });
+
     it("does nothing without a blueprint id", () => {
       bindBlueprint(null);
       expect(commentService.getComments).not.toHaveBeenCalled();
