@@ -38,13 +38,14 @@
     <ng-container *ngIf="!loading && details">
       <div class="details-header">
         <div class="details-thumbnail">
+          <!-- No width/height attrs: the CSS only sets width + aspect-ratio,
+               so a height attribute would win over aspect-ratio and stretch
+               the box to the intrinsic pixel height. -->
           <img
             *ngIf="hasRealThumbnail()"
             [src]="previewFailed ? details.thumbnail : heroPreviewUrl()"
             (error)="previewFailed = true"
             [alt]="details.name"
-            width="1200"
-            height="1200"
           />
           <div *ngIf="!hasRealThumbnail()" class="thumbnail-placeholder"></div>
           <div class="schematic-corners" aria-hidden="true"></div>
