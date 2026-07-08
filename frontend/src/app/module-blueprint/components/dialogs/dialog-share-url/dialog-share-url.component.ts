@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { BlueprintService } from "../../../services/blueprint-service";
 import { MessageService } from "primeng/api";
 
@@ -9,6 +9,11 @@ import { MessageService } from "primeng/api";
   standalone: false,
 })
 export class DialogShareUrlComponent {
+  /** When set (e.g. from the details page), used instead of the editor-scoped BlueprintService.id. */
+  @Input() blueprintId?: string;
+  /** Used to prefill the Reddit share title; falls back to a generic title when unset. */
+  @Input() blueprintName?: string;
+
   visible: boolean = false;
 
   constructor(
@@ -16,10 +21,12 @@ export class DialogShareUrlComponent {
     private messageService: MessageService
   ) {}
 
+  private get id(): string | null {
+    return this.blueprintId ?? this.blueprintService.id;
+  }
+
   get url() {
-    return this.blueprintService.id != null
-      ? BlueprintService.baseUrl + "/b/" + this.blueprintService.id
-      : "";
+    return this.id != null ? BlueprintService.baseUrl + "/b/" + this.id : "";
   }
 
   showDialog() {
@@ -43,5 +50,17 @@ export class DialogShareUrlComponent {
 
   newTab() {
     window.open(this.url, Math.random().toString(36));
+  }
+
+  get redditShareUrl(): string {
+    const title =
+      this.blueprintName ??
+      $localize`Check out my Oxygen Not Included blueprint`;
+    const params = new URLSearchParams({ url: this.url, title });
+    return "https://www.reddit.com/submit?" + params.toString();
+  }
+
+  shareToReddit() {
+    window.open(this.redditShareUrl, Math.random().toString(36));
   }
 }

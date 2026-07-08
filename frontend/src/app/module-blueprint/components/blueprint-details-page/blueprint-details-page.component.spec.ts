@@ -230,6 +230,17 @@ describe("BlueprintDetailsPageComponent", () => {
     );
   });
 
+  it("passes the blueprint id and name to the share dialog", () => {
+    fixture.detectChanges();
+    const shareDialog = fixture.debugElement.query(
+      By.css("app-dialog-share-url")
+    );
+    expect(shareDialog.properties["blueprintId"]).toBe("bp1");
+    expect(shareDialog.properties["blueprintName"]).toBe(
+      "Super Coal Generator Setup"
+    );
+  });
+
   describe("back-link", () => {
     it("defaults to Discover when there is no navigation state", () => {
       fixture.detectChanges();

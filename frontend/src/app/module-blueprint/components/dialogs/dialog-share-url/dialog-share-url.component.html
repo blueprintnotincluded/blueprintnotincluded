@@ -19,7 +19,7 @@
     size="60"
     [ngModel]="url"
     pInputText
-    [disabled]="blueprintService.id === null"
+    [disabled]="url === ''"
   />
   <button
     pButton
@@ -29,7 +29,7 @@
     (click)="copyToClipboard(urlInput)"
     i18n-pTooltip
     pTooltip="Copy url to clipboard"
-    [disabled]="blueprintService.id === null"
+    [disabled]="url === ''"
   ></button>
   <button
     pButton
@@ -39,6 +39,16 @@
     (click)="newTab()"
     i18n-pTooltip
     pTooltip="Open in new tab"
-    [disabled]="blueprintService.id === null"
+    [disabled]="url === ''"
+  ></button>
+  <button
+    pButton
+    type="button"
+    class="ui-button copy-button"
+    icon="fab fa-reddit"
+    (click)="shareToReddit()"
+    i18n-pTooltip
+    pTooltip="Share to Reddit"
+    [disabled]="url === ''"
   ></button>
 </p-dialog>
