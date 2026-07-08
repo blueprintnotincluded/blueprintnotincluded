@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { Location } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
-import { catchError, switchMap } from "rxjs/operators";
+import { catchError, switchMap, tap } from "rxjs/operators";
 import { BlueprintDetailsResponse } from "../../../../../../lib/index";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
@@ -50,9 +50,11 @@ export class BlueprintDetailsPageComponent implements OnInit {
 
   ngOnInit() {
     this.route.paramMap
-      .pipe(switchMap((params) => this.load(params.get("id"))))
+      .pipe(
+        tap(() => this.updateBackLink()),
+        switchMap((params) => this.load(params.get("id")))
+      )
       .subscribe((details) => {
-        this.updateBackLink();
         if (details == null) return;
         this.details = details;
         this.blueprintId = details.id;
