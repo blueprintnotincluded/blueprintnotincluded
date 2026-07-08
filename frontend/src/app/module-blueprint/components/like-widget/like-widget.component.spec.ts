@@ -4,6 +4,7 @@ import {
   withInterceptorsFromDi,
 } from "@angular/common/http";
 import { RouterTestingModule } from "@angular/router/testing";
+import { TooltipModule } from "primeng/tooltip";
 
 import { LikeWidgetComponent } from "./like-widget.component";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
@@ -15,7 +16,7 @@ describe("LikeWidgetComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [LikeWidgetComponent],
-      imports: [RouterTestingModule.withRoutes([])],
+      imports: [RouterTestingModule.withRoutes([]), TooltipModule],
       providers: [
         AuthenticationService,
         provideHttpClient(withInterceptorsFromDi()),

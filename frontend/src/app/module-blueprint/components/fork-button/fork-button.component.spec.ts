@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
 import { of, throwError } from "rxjs";
 import { MessageService } from "primeng/api";
+import { TooltipModule } from "primeng/tooltip";
 
 import { ForkButtonComponent } from "./fork-button.component";
 import { BlueprintVersionService } from "src/app/module-blueprint/services/blueprint-version.service";
@@ -22,6 +23,7 @@ describe("ForkButtonComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [ForkButtonComponent],
+      imports: [TooltipModule],
       providers: [
         { provide: BlueprintVersionService, useValue: blueprintVersionService },
         { provide: Router, useValue: router },

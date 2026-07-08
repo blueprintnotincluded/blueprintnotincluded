@@ -1,7 +1,8 @@
 <button
   type="button"
   class="bni-btn"
-  [title]="forkTitle"
+  [pTooltip]="disabled ? forkTitle : ''"
+  [title]="disabled ? '' : forkTitle"
   [disabled]="disabled || forking"
   (click)="fork()"
 >
