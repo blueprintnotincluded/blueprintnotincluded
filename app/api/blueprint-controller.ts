@@ -423,6 +423,12 @@ export class BlueprintController {
           res.status(400).json(apiError(400, 'Invalid likedBy: must be a valid user id'));
           return;
         }
+        // Liked blueprints are private — only the owner can list their own likes (matches
+        // the profile page's "Liked" tab, which is only ever rendered on your own profile).
+        if (rawLikedBy != null && rawLikedBy !== userId) {
+          res.status(403).json(apiError(403, 'Cannot view another user\'s liked blueprints'));
+          return;
+        }
         filterLikedBy = rawLikedBy ?? null;
 
         const rawSort = req.query.sort as string | undefined;

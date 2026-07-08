@@ -338,7 +338,7 @@ describe('Blueprint metadata API', function () {
   });
 
   describe('GET /api/getblueprints — likedBy filter', function () {
-    it('returns only blueprints liked by the given user', async function () {
+    it('returns only blueprints liked by the given user, for that user themselves', async function () {
       const otherToken = testData.users.user2.generateJwt();
 
       const liked = await TestSetup.request()
@@ -355,8 +355,10 @@ describe('Blueprint metadata API', function () {
         .set('Authorization', `Bearer ${authToken}`)
         .send({ ...BASE_BODY, name: 'Not Liked By User2' });
 
+      // likedBy is private — only user2 themselves can list what user2 has liked
       const response = await TestSetup.request()
-        .get('/api/getblueprints')
+        .get('/api/getblueprintsSecure')
+        .set('Authorization', `Bearer ${otherToken}`)
         .query({ olderthan: Date.now(), likedBy: testData.users.user2._id.toString() });
 
       expect(response.status).to.equal(200);
@@ -371,6 +373,23 @@ describe('Blueprint metadata API', function () {
         .query({ olderthan: Date.now(), likedBy: 'not-an-id' });
 
       expect(response.status).to.equal(400);
+    });
+
+    it('returns 403 for an anonymous request', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), likedBy: testData.users.user2._id.toString() });
+
+      expect(response.status).to.equal(403);
+    });
+
+    it("returns 403 when a logged-in user requests another user's liked blueprints", async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprintsSecure')
+        .set('Authorization', `Bearer ${authToken}`) // user1
+        .query({ olderthan: Date.now(), likedBy: testData.users.user2._id.toString() });
+
+      expect(response.status).to.equal(403);
     });
   });
 });
