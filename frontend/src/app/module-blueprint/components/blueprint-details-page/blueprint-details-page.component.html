@@ -40,8 +40,11 @@
         <div class="details-thumbnail">
           <img
             *ngIf="hasRealThumbnail()"
-            [src]="details.thumbnail"
+            [src]="previewFailed ? details.thumbnail : heroPreviewUrl()"
+            (error)="previewFailed = true"
             [alt]="details.name"
+            width="1200"
+            height="1200"
           />
           <div *ngIf="!hasRealThumbnail()" class="thumbnail-placeholder"></div>
           <div class="schematic-corners" aria-hidden="true"></div>

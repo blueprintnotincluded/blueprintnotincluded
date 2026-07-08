@@ -7,7 +7,14 @@
     [routerLink]="['/blueprint', item.id]"
     [state]="linkState"
   >
-    <img [src]="item.thumbnail" [alt]="item.name" />
+    <img
+      [src]="previewFailed ? item.thumbnail : cardPreviewUrl()"
+      (error)="previewFailed = true"
+      [alt]="item.name"
+      loading="lazy"
+      width="480"
+      height="480"
+    />
   </a>
 
   <div class="card-info">

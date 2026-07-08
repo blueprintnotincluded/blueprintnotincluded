@@ -91,6 +91,18 @@ export class DialogBrowseComponent implements OnInit {
     return thumbnail != "svg" && thumbnail != "svg_nothing";
   }
 
+  /** Ids whose server-rendered preview failed; those fall back to the inline thumbnail. */
+  previewFailed = new Set<string>();
+
+  previewUrl(item: BlueprintListItem): string {
+    const version = item.modifiedAt ? new Date(item.modifiedAt).getTime() : 0;
+    return `/api/blueprints/${item.id}/preview/card.webp?v=${version}`;
+  }
+
+  onPreviewError(item: BlueprintListItem) {
+    if (item.id) this.previewFailed.add(item.id);
+  }
+
   ngOnInit() {
     this.browseDialog.onShow.subscribe({
       next: this.handleOnShow.bind(this),

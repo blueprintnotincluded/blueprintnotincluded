@@ -131,6 +131,16 @@ export class BlueprintDetailsPageComponent implements OnInit {
     );
   }
 
+  /** Falls back to the legacy inline thumbnail when the server render 404s/errors. */
+  previewFailed = false;
+
+  heroPreviewUrl(): string {
+    const version = this.details?.modifiedAt
+      ? new Date(this.details.modifiedAt).getTime()
+      : 0;
+    return `/api/blueprints/${this.details?.id}/preview/hero.webp?v=${version}`;
+  }
+
   openVersionHistory() {
     if (this.details == null) return;
     this.versionHistoryDialog.showDialog(

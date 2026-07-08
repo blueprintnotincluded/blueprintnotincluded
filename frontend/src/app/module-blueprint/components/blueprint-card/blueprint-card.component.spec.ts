@@ -58,6 +58,28 @@ describe("BlueprintCardComponent", () => {
     );
   });
 
+  it("uses the versioned server-rendered preview as the image source", () => {
+    component.item = makeItem({ modifiedAt: new Date(1700000000000) });
+    fixture.detectChanges();
+
+    const img = fixture.debugElement.query(By.css(".bni-card__thumb img"));
+    expect(img.properties["src"]).toBe(
+      "/api/blueprints/bp-1/preview/card.webp?v=1700000000000"
+    );
+    expect(img.attributes["loading"]).toBe("lazy");
+  });
+
+  it("falls back to the inline thumbnail when the server preview errors", () => {
+    component.item = makeItem();
+    fixture.detectChanges();
+
+    const img = fixture.debugElement.query(By.css(".bni-card__thumb img"));
+    img.triggerEventHandler("error", {});
+    fixture.detectChanges();
+
+    expect(img.properties["src"]).toBe("data:image/png;base64,xyz");
+  });
+
   it("shows the Untagged chip when there is no category, and the category chip when there is", () => {
     component.item = makeItem({ category: null });
     fixture.detectChanges();
