@@ -120,6 +120,7 @@ export class Routes {
     app.get('/', this.staticController.getHome);
     app.get('/b/:blueprintId', this.staticController.getBlueprint);
     app.get('/b/:blueprintId/thumbnail', this.staticController.getBlueprintThumbnail);
+    app.get('/blueprint/:blueprintId', this.staticController.getBlueprint);
     app.use(express.static(path.join(__dirname, 'public')));
     app.get('/*path', this.staticController.serveHtml);
   }
