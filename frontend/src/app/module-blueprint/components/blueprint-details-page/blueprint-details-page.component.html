@@ -97,12 +97,6 @@
             {{ details.description }}
           </p>
 
-          <div *ngIf="details.tags.length > 0" class="details-tags">
-            <span class="bni-tag" *ngFor="let tag of details.tags"
-              >#{{ tag }}</span
-            >
-          </div>
-
           <div class="details-actions">
             <a
               pButton

@@ -449,7 +449,6 @@ export class BlueprintService implements IObsBlueprintChange {
 export class SaveBlueprintMessage {
   overwrite!: boolean;
   name!: string;
-  tags?: string[];
   blueprint!: MdbBlueprint;
   thumbnail!: string;
   gameVersion?: string | null;

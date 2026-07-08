@@ -13,7 +13,6 @@ export interface TestBlueprint {
   _id?: Types.ObjectId;
   owner: Types.ObjectId;
   name: string;
-  tags: string[];
   likes: string[];
   likeCount?: number;
   createdAt: Date;
@@ -54,7 +53,6 @@ export class TestDataFactory {
       _id: new Types.ObjectId(),
       owner,
       name: `Test Blueprint ${this.blueprintCounter}`,
-      tags: ['test', 'automation'],
       likes: [],
       createdAt: new Date(now.getTime() - this.blueprintCounter * 1000 * 60 * 60), // Spread creation times
       modifiedAt: new Date(now.getTime() - this.blueprintCounter * 1000 * 60 * 30), // Modified more recently
@@ -90,7 +88,6 @@ export class TestDataFactory {
   ): TestBlueprint {
     return this.createBlueprint(owner, {
       name: `Popular Blueprint ${this.blueprintCounter}`,
-      tags: ['popular', 'power', 'automation'],
       likes,
       data: {
         version: '1.0',
@@ -115,7 +112,6 @@ export class TestDataFactory {
       name: `Old Blueprint ${this.blueprintCounter}`,
       createdAt: oldDate,
       modifiedAt: oldDate,
-      tags: ['old', 'legacy'],
     });
   }
 
@@ -124,7 +120,6 @@ export class TestDataFactory {
       name: `Copy of Blueprint ${this.blueprintCounter}`,
       isCopy: true,
       copyOf: originalId,
-      tags: ['copy', 'modified'],
     });
   }
 

@@ -282,16 +282,6 @@
   border-color: var(--bni-accent2-bd);
 }
 
-/* ---- tag pills (#spom etc.) ---- */
-.bni-tag {
-  font-size: 12px;
-  padding: 2px 11px;
-  border-radius: 999px;
-  background: var(--bni-inset);
-  color: var(--bni-muted);
-  border: 1px solid var(--bni-line);
-}
-
 /* ---- riveted panel ---- */
 .bni-panel {
   position: relative;
