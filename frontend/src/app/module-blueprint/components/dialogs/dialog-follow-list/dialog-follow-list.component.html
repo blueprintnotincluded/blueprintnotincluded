@@ -1,0 +1,41 @@
+<p-dialog
+  [header]="title"
+  [(visible)]="visible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '420px', maxHeight: '80vh' }"
+>
+  <div #scrollable class="follow-list-scrollable" (scroll)="onScroll()">
+    <div
+      *ngIf="entries.length === 0 && !working && !loadError"
+      class="follow-list-empty"
+      i18n
+    >
+      Nobody here yet.
+    </div>
+
+    <div *ngIf="loadError" class="follow-list-error" i18n>
+      Couldn't load this list. Scroll to try again.
+    </div>
+
+    <a
+      *ngFor="let entry of entries"
+      class="follow-list-row"
+      [routerLink]="['/profile', entry.username]"
+      (click)="hideDialog()"
+    >
+      <span class="follow-list-avatar">{{
+        entry.username.charAt(0).toUpperCase()
+      }}</span>
+      <span class="follow-list-username">{{ entry.username }}</span>
+      <span *ngIf="entry.followedByMe" class="follow-list-mutual" i18n
+        >Following</span
+      >
+    </a>
+
+    <div *ngIf="working" class="follow-list-loading" i18n>Loading…</div>
+  </div>
+</p-dialog>

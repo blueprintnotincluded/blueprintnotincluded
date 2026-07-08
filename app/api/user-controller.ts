@@ -4,9 +4,10 @@ import { UserModel, UserJwt } from './models/user';
 import { FollowModel } from './models/follow';
 import { BlueprintModel } from './models/blueprint';
 import { BlueprintController } from './blueprint-controller';
-import { ProfileResponse, FollowRequest, UpdateBioRequest } from '../../lib/index';
+import { ProfileResponse, FollowRequest, UpdateBioRequest, FollowListResponse } from '../../lib/index';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
+import { optionalViewer } from './utils/optionalViewer';
 
 // Caps the $in list on the feed's blueprint query so an account following an
 // unusually large number of users can't force an unbounded lookup
@@ -18,6 +19,8 @@ export class UserController {
     this.follow = this.follow.bind(this);
     this.updateBio = this.updateBio.bind(this);
     this.getFeed = this.getFeed.bind(this);
+    this.getFollowers = this.getFollowers.bind(this);
+    this.getFollowing = this.getFollowing.bind(this);
   }
 
   public getProfile(req: Request, res: Response): void {
@@ -187,5 +190,86 @@ export class UserController {
         console.log(err);
         res.status(500).json(apiError(500, 'Failed to retrieve feed'));
       });
+  }
+
+  public getFollowers(req: Request, res: Response): void {
+    this.getConnections(req, res, 'followers').catch(err => {
+      console.log('getFollowers error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve followers'));
+    });
+  }
+
+  public getFollowing(req: Request, res: Response): void {
+    this.getConnections(req, res, 'following').catch(err => {
+      console.log('getFollowing error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve following'));
+    });
+  }
+
+  // Shared implementation for the followers/following lists: same shape, only the
+  // side of the Follow relation being matched/populated differs.
+  private async getConnections(req: Request, res: Response, mode: 'followers' | 'following'): Promise<void> {
+    const username = req.params.username;
+    const viewer = optionalViewer(req);
+
+    const dateFilter = parseOlderThan(req, res);
+    if (dateFilter == null) return;
+
+    const targetUser = await UserModel.model.findOne({ username });
+    if (!targetUser) {
+      res.status(404).json(apiError(404, 'User not found'));
+      return;
+    }
+
+    const matchField = mode === 'followers' ? 'followeeId' : 'followerId';
+    const populateField = mode === 'followers' ? 'followerId' : 'followeeId';
+
+    const browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
+    const rows = await FollowModel.model
+      .find({ [matchField]: targetUser._id, createdAt: { $lt: dateFilter } })
+      .sort({ createdAt: -1 })
+      .limit(browseIncrement * 2)
+      .populate(populateField, 'username')
+      .lean();
+
+    const response: FollowListResponse = { users: [], oldest: new Date().toISOString(), remaining: 0 };
+
+    if (rows.length > 0) {
+      response.remaining = Math.max(0, rows.length - browseIncrement);
+      const page = rows.slice(0, Math.min(browseIncrement, rows.length));
+
+      let oldest = new Date();
+      const rowUserIds: mongoose.Types.ObjectId[] = [];
+      for (const row of page) {
+        const createdAt = row.createdAt as Date;
+        if (createdAt < oldest) oldest = createdAt;
+        const populated = row[populateField] as unknown as { _id: mongoose.Types.ObjectId; username: string } | null;
+        if (populated != null) rowUserIds.push(populated._id);
+      }
+      response.oldest = oldest.toISOString();
+
+      let followedByMeIds = new Set<string>();
+      if (viewer != null && rowUserIds.length > 0) {
+        const myFollows = await FollowModel.model
+          .find({ followerId: viewer._id, followeeId: { $in: rowUserIds } })
+          .select('followeeId')
+          .lean();
+        followedByMeIds = new Set(myFollows.map(f => (f.followeeId as mongoose.Types.ObjectId).toString()));
+      }
+
+      for (const row of page) {
+        const populated = row[populateField] as unknown as { _id: mongoose.Types.ObjectId; username: string } | null;
+        if (populated == null) continue; // referenced user was deleted
+        response.users.push({
+          id: populated._id.toString(),
+          username: populated.username,
+          followedByMe: followedByMeIds.has(populated._id.toString()),
+        });
+      }
+    }
+
+    res.json(response);
   }
 }

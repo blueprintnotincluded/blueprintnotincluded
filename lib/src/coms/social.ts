@@ -17,3 +17,15 @@ export interface FollowRequest {
 export interface UpdateBioRequest {
   bio: string;
 }
+
+export interface FollowListEntry {
+  id: string;
+  username: string;
+  followedByMe: boolean;
+}
+
+export interface FollowListResponse {
+  users: FollowListEntry[];
+  oldest: string;
+  remaining: number;
+}

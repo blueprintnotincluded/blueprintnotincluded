@@ -1,0 +1,52 @@
+.follow-list-scrollable {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.follow-list-empty,
+.follow-list-error,
+.follow-list-loading {
+  padding: 12px 4px;
+  color: var(--bni-muted);
+  text-align: center;
+}
+
+.follow-list-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--bni-line);
+}
+
+.follow-list-row:hover {
+  background: var(--bni-panel2);
+}
+
+.follow-list-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bni-panel2);
+  color: var(--bni-ink);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.follow-list-username {
+  flex: 1;
+  font-weight: 600;
+  color: var(--bni-ink);
+}
+
+.follow-list-mutual {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bni-muted);
+}

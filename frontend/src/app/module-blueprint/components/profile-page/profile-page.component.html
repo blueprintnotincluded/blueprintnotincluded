@@ -7,6 +7,7 @@
 
   <app-dialog-about #aboutDialog></app-dialog-about>
   <app-feedback-dialog #feedbackDialog></app-feedback-dialog>
+  <app-dialog-follow-list #followListDialog></app-dialog-follow-list>
 
   <div class="profile-page">
     <a class="bni-back" routerLink="/discover">
@@ -98,14 +99,22 @@
               ><b>{{ profile.blueprintCount }}</b
               >&nbsp;<ng-container i18n>blueprints</ng-container></span
             >
-            <span
-              ><b>{{ profile.followerCount }}</b
-              >&nbsp;<ng-container i18n>followers</ng-container></span
+            <button
+              type="button"
+              class="profile-meta-link"
+              (click)="followListDialog.showDialog(username, 'followers')"
             >
-            <span
-              ><b>{{ profile.followingCount }}</b
-              >&nbsp;<ng-container i18n>following</ng-container></span
+              <b>{{ profile.followerCount }}</b
+              >&nbsp;<ng-container i18n>followers</ng-container>
+            </button>
+            <button
+              type="button"
+              class="profile-meta-link"
+              (click)="followListDialog.showDialog(username, 'following')"
             >
+              <b>{{ profile.followingCount }}</b
+              >&nbsp;<ng-container i18n>following</ng-container>
+            </button>
           </div>
         </div>
 
