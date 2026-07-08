@@ -4,29 +4,34 @@
 // replies, edits, soft-deletes, @mentions and /b/ references), follows and feedback.
 //
 // Usage:
-//   npm run seed:dev-blueprints
+//   npm run seed:dev-blueprints   # full social-graph seed (destructive re-seed)
+//   npm run seed:dev-user         # ONLY ensure/restore the protected user + print its token
 //
-// Re-running is safe: it wipes everything it previously created (matched by the fixed
-// dev @bpni.local users below) before recreating it.
+// Re-running is safe: it wipes the disposable @bpni.local fixture and recreates it.
 //
-// --- Logging in as a seed user (WorkOS) ------------------------------------------
+// --- Logging in without WorkOS ---------------------------------------------------
 // The site authenticates through WorkOS (see agent/WORKOS_PLAN.md): a plain DB user
-// with a password CANNOT log in through the browser, because /api/auth/login proxies
-// to WorkOS and DB-only accounts come back as `legacy_account`. There is no dev
-// password bypass. Instead, this script mints a JWT for each seed user with the same
-// `generateJwt` + `JWT_SECRET` the real login endpoint uses, so the token validates
-// against the expressjwt middleware identically. The script prints a ready-to-paste
-// snippet per user; run it in the browser console (on the site origin) to "log in":
+// CANNOT log in through the browser, because /api/auth/login proxies to WorkOS and
+// DB-only accounts come back as `legacy_account`. There is no dev password bypass.
+// Instead this script MINTS a JWT signed with the same `JWT_SECRET` the real endpoint
+// uses, so it validates against the expressjwt middleware identically — no WorkOS
+// round-trip. Paste the printed snippet into the browser console on the site origin:
 //
 //   localStorage.setItem('blueprintnotincluded-token', '<jwt>'); location.reload();
 //
-// One seed user (dev_admin) gets an admin-role token so admin-only views (feedback
-// queue, comment moderation) can be exercised without touching WorkOS org membership.
+// --- The protected validation user -----------------------------------------------
+// `dev_you` is your durable validation identity. It has a DETERMINISTIC _id, so its
+// token stays valid no matter how many times the DB is reset — and it is the one
+// account the destructive cleanup never deletes. After ANY reset (a full `test`
+// db-setup, a manual drop, whatever), `npm run seed:dev-user` restores it in one
+// command with no WorkOS flow. Its token is admin + alpha and long-lived (30 days),
+// so a single paste gives you everything for a month of validation.
 
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import {
   deriveGameVersion,
   deriveModded,
@@ -59,6 +64,19 @@ interface DevUserSpec {
   isAlpha?: boolean;
   role?: Role;
 }
+
+// The durable validation identity. Its _id is HARDCODED (not random) so the minted
+// token keeps authenticating across DB resets, and cleanup never deletes this account.
+// Fixed ObjectId — arbitrary but stable. Do not change it, or old tokens break.
+const PROTECTED_USER = {
+  _id: new mongoose.Types.ObjectId('d0d0d0d0d0d0d0d0d0d0d0d0'),
+  username: 'dev_you',
+  email: 'dev_you@bpni.local',
+  bio: 'Durable dev validation account — survives DB resets.',
+  isAlpha: true,
+  role: 'admin' as Role,
+};
+const PROTECTED_TOKEN_DAYS = 30;
 
 const DEV_USERS: DevUserSpec[] = [
   {
@@ -231,6 +249,10 @@ const FOLLOWS: Array<[string, string]> = [
   ['dev_lurker', 'dev_forker'],
   ['dev_forker', 'dev_creator_alpha'],
   ['dev_creator_beta', 'dev_creator_alpha'],
+  // The protected user has followers and follows others, so its feed/profile populate.
+  ['dev_lurker', 'dev_you'],
+  ['dev_creator_beta', 'dev_you'],
+  ['dev_you', 'dev_creator_alpha'],
 ];
 
 function buildLookups(dbPath: string): {
@@ -281,6 +303,44 @@ async function seedUser(spec: DevUserSpec): Promise<UserDoc> {
   return user;
 }
 
+// Idempotent upsert of the protected user at its fixed _id. Never deleted by cleanup;
+// re-running restores the exact same identity (same _id => existing tokens still work).
+async function ensureProtectedUser(): Promise<UserDoc> {
+  await UserModel.model.updateOne(
+    { _id: PROTECTED_USER._id },
+    {
+      $set: {
+        username: PROTECTED_USER.username,
+        email: PROTECTED_USER.email,
+        bio: PROTECTED_USER.bio,
+        isAlpha: PROTECTED_USER.isAlpha,
+        authProvider: 'workos',
+      },
+    },
+    { upsert: true },
+  );
+  return (await UserModel.model.findById(PROTECTED_USER._id))!;
+}
+
+// Mint a long-lived dev JWT directly (bypassing generateJwt's 7d/24h prod policy),
+// signed with the same JWT_SECRET so the expressjwt middleware accepts it identically.
+function mintDevToken(user: UserDoc, opts: { days: number; role?: Role } = { days: 7 }): string {
+  const payload: Record<string, unknown> = {
+    _id: (user._id as mongoose.Types.ObjectId).toString(),
+    email: user.email,
+    username: user.username,
+    exp: Math.floor(Date.now() / 1000) + opts.days * 24 * 60 * 60,
+  };
+  if (opts.role) payload.role = opts.role;
+  if (user.isAlpha) payload.isAlpha = true;
+  return jwt.sign(payload, process.env.JWT_SECRET as string);
+}
+
+function printLogin(label: string, token: string): void {
+  console.log(`\n  # ${label}`);
+  console.log(`  localStorage.setItem('blueprintnotincluded-token', '${token}'); location.reload();`);
+}
+
 async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId, likedBy: string[]) {
   const sourceVersion = await ensureCurrentVersion(source);
   const now = new Date();
@@ -324,22 +384,55 @@ async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId
 
 async function cleanupPrior(): Promise<void> {
   const priorUsers = await UserModel.model.find({ email: { $in: DEV_USERS.map(u => u.email) } });
-  const priorUserIds = priorUsers.map(u => u._id);
-  if (!priorUserIds.length) return;
+  const disposableUserIds = priorUsers.map(u => u._id);
 
-  const priorBlueprints = await BlueprintModel.model.find({ owner: { $in: priorUserIds } });
+  // Content is scrubbed for the disposable fixture AND the protected user (so its
+  // seeded blueprints/interactions regenerate cleanly). The protected USER doc itself
+  // is deliberately excluded from the user delete below — it must survive.
+  const contentUserIds = [...disposableUserIds, PROTECTED_USER._id];
+
+  const priorBlueprints = await BlueprintModel.model.find({ owner: { $in: contentUserIds } });
   const priorBlueprintIds = priorBlueprints.map(b => b._id);
 
   await BlueprintVersionModel.model.deleteMany({ blueprintId: { $in: priorBlueprintIds } });
   await CommentModel.model.deleteMany({
-    $or: [{ blueprintId: { $in: priorBlueprintIds } }, { authorId: { $in: priorUserIds } }],
+    $or: [{ blueprintId: { $in: priorBlueprintIds } }, { authorId: { $in: contentUserIds } }],
   });
   await FollowModel.model.deleteMany({
-    $or: [{ followerId: { $in: priorUserIds } }, { followeeId: { $in: priorUserIds } }],
+    $or: [{ followerId: { $in: contentUserIds } }, { followeeId: { $in: contentUserIds } }],
   });
-  await FeedbackModel.model.deleteMany({ userId: { $in: priorUserIds } });
-  await BlueprintModel.model.deleteMany({ owner: { $in: priorUserIds } });
-  await UserModel.model.deleteMany({ _id: { $in: priorUserIds } });
+  await FeedbackModel.model.deleteMany({ userId: { $in: contentUserIds } });
+  await BlueprintModel.model.deleteMany({ owner: { $in: contentUserIds } });
+  // Only the disposable fixture users are removed — never the protected user.
+  if (disposableUserIds.length) {
+    await UserModel.model.deleteMany({ _id: { $in: disposableUserIds } });
+  }
+}
+
+function initModels(): void {
+  UserModel.init();
+  BlueprintModel.init();
+  BlueprintVersionModel.init();
+  CommentModel.init();
+  FollowModel.init();
+  FeedbackModel.init();
+}
+
+// `npm run seed:dev-user`: restore ONLY the protected user + reprint its token, with no
+// WorkOS flow and without touching any other data. Safe after any DB reset/drop.
+async function runUserOnly(): Promise<void> {
+  const mongoUri = process.env.DB_URI;
+  if (!mongoUri) throw new Error('DB_URI not set in environment');
+  if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not set — cannot mint dev login tokens');
+
+  await mongoose.connect(mongoUri);
+  initModels();
+  const user = await ensureProtectedUser();
+  const token = mintDevToken(user, { days: PROTECTED_TOKEN_DAYS, role: PROTECTED_USER.role });
+
+  console.log(`\nProtected user restored: ${PROTECTED_USER.username} (admin, ${PROTECTED_TOKEN_DAYS}-day token, no WorkOS).`);
+  printLogin(`${PROTECTED_USER.username} — your durable validation login`, token);
+  await mongoose.disconnect();
 }
 
 async function run() {
@@ -351,17 +444,15 @@ async function run() {
   const { dlcIdsMap, knownIds, categoryLookup } = buildLookups(dbPath);
 
   await mongoose.connect(mongoUri);
-  UserModel.init();
-  BlueprintModel.init();
-  BlueprintVersionModel.init();
-  CommentModel.init();
-  FollowModel.init();
-  FeedbackModel.init();
+  initModels();
 
   await cleanupPrior();
 
-  // Users
+  // Users — the protected `dev_you` participates in the graph like any other, but its
+  // identity persists across runs (fixed _id, never deleted).
   const usersByName = new Map<string, UserDoc>();
+  const protectedUser = await ensureProtectedUser();
+  usersByName.set(PROTECTED_USER.username, protectedUser);
   for (const spec of DEV_USERS) usersByName.set(spec.username, await seedUser(spec));
   const idOf = (username: string) => usersByName.get(username)!._id as mongoose.Types.ObjectId;
 
@@ -409,6 +500,32 @@ async function run() {
     const fork = await forkBlueprint(parentFork, idOf(forkerName), []);
     forksByName.set(fork.name, fork);
   }
+
+  // A blueprint OWNED by the protected user, so `dev_you`'s profile/feed isn't empty:
+  // it gets likes, and dev_forker forks it (so "someone forked my build" is testable).
+  const myPrefabs = ['ManualGenerator', 'Wire'];
+  const myLikers = [idOf('dev_lurker').toString(), idOf('dev_creator_alpha').toString()];
+  const myCreated = daysAgo(5);
+  const myBlueprint = new BlueprintModel.model({
+    owner: idOf(PROTECTED_USER.username),
+    name: 'My Test Base',
+    tags: ['power', 'wip'],
+    likes: myLikers,
+    likeCount: myLikers.length,
+    thumbnail: THUMBNAIL,
+    data: blueprintData(myPrefabs),
+    gameVersion: deriveGameVersion(myPrefabs.map(id => dlcIdsMap.get(id) ?? [])),
+    category: deriveCategory(myPrefabs, categoryLookup),
+    subcategory: 'generator',
+    description: 'Owned by the protected dev_you account — your validation sandbox.',
+    modded: deriveModded(myPrefabs, knownIds),
+    createdAt: myCreated,
+    modifiedAt: myCreated,
+    deletedAt: null,
+  });
+  await myBlueprint.save();
+  sourcesByName.set(myBlueprint.name, myBlueprint);
+  await forkBlueprint(myBlueprint, idOf('dev_forker'), [idOf('dev_forker').toString()]);
 
   // Mentions resolver over the seeded users (lowercased username -> userId)
   const resolveMentions = async (usernames: string[]): Promise<Map<string, string>> => {
@@ -496,6 +613,14 @@ async function run() {
     deleted: true,
   });
 
+  // A comment on the protected user's own blueprint, so its detail page has activity
+  await addComment({
+    blueprintId: myBlueprint._id as mongoose.Types.ObjectId,
+    author: 'dev_creator_alpha',
+    rawBody: 'Solid starting point @dev_you — mind if I fork it?',
+    daysAgo: 1,
+  });
+
   // Follows
   let followCount = 0;
   for (const [follower, followee] of FOLLOWS) {
@@ -521,28 +646,34 @@ async function run() {
   }).save();
 
   // --- Summary --------------------------------------------------------------
-  console.log(`\nSeeded ${DEV_USERS.length} users, ${SOURCE_SPECS.length} source blueprints, ` +
-    `${FORKS.length + FORK_OF_FORKS.length} forks, ${commentCount} comments, ${followCount} follows, 2 feedback items.`);
+  console.log(`\nSeeded ${DEV_USERS.length} disposable users + 1 protected (dev_you), ` +
+    `${SOURCE_SPECS.length + 1} blueprints, ${FORKS.length + FORK_OF_FORKS.length + 1} forks, ` +
+    `${commentCount} comments, ${followCount} follows, 2 feedback items.`);
 
   console.log('\nDerived metadata (verify categorization):');
   for (const r of derivedRows) {
     console.log(`  ${r.name.padEnd(24)} category=${r.category.padEnd(10)} gameVersion=${r.gameVersion.padEnd(11)} modded=${r.modded}`);
   }
 
-  console.log('\nDev login — paste into the browser console on the site origin, then reload:');
+  console.log('\n=== Dev login — paste into the browser console on the site origin, then reload ===');
+  console.log('(No WorkOS/password login exists for these accounts — a minted token is the only way in.)');
+
+  // The protected account first and highlighted — this is the durable one to use.
+  printLogin(
+    `${PROTECTED_USER.username}  ⟵ USE THIS (admin, ${PROTECTED_TOKEN_DAYS}-day token, survives resets; restore anytime via \`npm run seed:dev-user\`)`,
+    mintDevToken(protectedUser, { days: PROTECTED_TOKEN_DAYS, role: PROTECTED_USER.role }),
+  );
+
   for (const spec of DEV_USERS) {
     const user = usersByName.get(spec.username)!;
-    const token = user.generateJwt(spec.role);
-    const tag = spec.role ? ` (${spec.role})` : '';
-    console.log(`\n  # ${spec.username}${tag}`);
-    console.log(`  localStorage.setItem('blueprintnotincluded-token', '${token}'); location.reload();`);
+    printLogin(`${spec.username}${spec.role ? ` (${spec.role})` : ''}`, mintDevToken(user, { days: 7, role: spec.role }));
   }
-  console.log('\n(These accounts have no WorkOS/password login by design — the token above is the only way in.)');
 
   await mongoose.disconnect();
 }
 
-run().catch(err => {
+const userOnly = process.argv.includes('--user-only');
+(userOnly ? runUserOnly() : run()).catch(err => {
   console.error(err);
   process.exit(1);
 });
