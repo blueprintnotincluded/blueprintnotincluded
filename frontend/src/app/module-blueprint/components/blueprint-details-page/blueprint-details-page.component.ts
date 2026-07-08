@@ -42,6 +42,8 @@ export class BlueprintDetailsPageComponent implements OnInit {
   readonly gameVersionTooltip = gameVersionTooltip;
   readonly moddedTooltip = moddedTooltip;
 
+  private pendingFragment: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -71,6 +73,17 @@ export class BlueprintDetailsPageComponent implements OnInit {
         this.blueprintId = details.id;
         this.loading = false;
       });
+
+    this.route.fragment.subscribe((fragment) => {
+      this.pendingFragment = fragment;
+    });
+  }
+
+  scrollToFragment() {
+    if (this.pendingFragment == null) return;
+    const target = document.getElementById(this.pendingFragment);
+    if (target != null) target.scrollIntoView({ block: "center" });
+    this.pendingFragment = null;
   }
 
   private updateBackLink() {

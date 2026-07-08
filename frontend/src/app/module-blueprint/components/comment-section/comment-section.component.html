@@ -1,4 +1,4 @@
-<section class="comment-section">
+<section class="comment-section" id="comments">
   <h2 class="comments-heading">
     <ng-container i18n>Comments</ng-container>
     <span class="comments-count" *ngIf="!loading && !loadError"
@@ -98,7 +98,11 @@
 </section>
 
 <ng-template #commentTpl let-comment="comment" let-isReply="isReply">
-  <div class="comment" [class.comment-reply]="isReply">
+  <div
+    class="comment"
+    [class.comment-reply]="isReply"
+    [id]="'comment-' + comment.id"
+  >
     <div class="comment-meta">
       <ng-container *ngIf="!comment.deleted">
         <a

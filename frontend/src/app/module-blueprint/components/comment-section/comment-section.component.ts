@@ -1,4 +1,10 @@
-import { Component, Input, OnChanges } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+} from "@angular/core";
 import {
   CommentDto,
   CommentThread,
@@ -15,6 +21,7 @@ import { AuthenticationService } from "../../services/authentification-service";
 })
 export class CommentSectionComponent implements OnChanges {
   @Input() blueprintId: string | null = null;
+  @Output() commentsLoaded = new EventEmitter<void>();
 
   loading = false;
   loadError = false;
@@ -57,6 +64,7 @@ export class CommentSectionComponent implements OnChanges {
         this.threads = response.threads;
         this.total = response.total;
         this.loading = false;
+        this.commentsLoaded.emit();
       },
       error: () => {
         this.loading = false;

@@ -54,7 +54,10 @@ describe("BlueprintDetailsPageComponent", () => {
         { provide: AuthenticationService, useValue: authService },
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ id: "bp1" })) },
+          useValue: {
+            paramMap: of(convertToParamMap({ id: "bp1" })),
+            fragment: of(null),
+          },
         },
       ],
     }).compileComponents();
@@ -180,6 +183,39 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(forkCount.properties["routerLink"]).toEqual(["/discover"]);
     expect(forkCount.properties["queryParams"]).toEqual({ forkedFrom: "bp1" });
     expect(forkCount.nativeElement.textContent).toContain("5");
+  });
+
+  describe("scrollToFragment", () => {
+    it("scrolls to the fragment element once and clears the pending fragment", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.fragment = of("comments");
+
+      // re-create so ngOnInit subscribes to the updated fragment observable
+      fixture = TestBed.createComponent(BlueprintDetailsPageComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      const target = document.createElement("div");
+      target.id = "comments";
+      // jsdom does not implement scrollIntoView
+      const scrollSpy = vi.fn();
+      (target as any).scrollIntoView = scrollSpy;
+      document.body.appendChild(target);
+
+      component.scrollToFragment();
+      expect(scrollSpy).toHaveBeenCalled();
+
+      scrollSpy.mockClear();
+      component.scrollToFragment();
+      expect(scrollSpy).not.toHaveBeenCalled();
+
+      document.body.removeChild(target);
+    });
+
+    it("does nothing when there is no fragment", () => {
+      fixture.detectChanges();
+      expect(() => component.scrollToFragment()).not.toThrow();
+    });
   });
 
   it("opens the version history dialog with ownership passed through", () => {

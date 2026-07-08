@@ -162,7 +162,10 @@
         </div>
       </div>
 
-      <app-comment-section [blueprintId]="blueprintId"></app-comment-section>
+      <app-comment-section
+        [blueprintId]="blueprintId"
+        (commentsLoaded)="scrollToFragment()"
+      ></app-comment-section>
       <app-version-history-dialog
         #versionHistoryDialog
       ></app-version-history-dialog>
