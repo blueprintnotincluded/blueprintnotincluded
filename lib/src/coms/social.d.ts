@@ -25,4 +25,21 @@ export interface FollowListResponse {
     oldest: string;
     remaining: number;
 }
+export type NotificationType = 'comment' | 'reply' | 'like' | 'fork' | 'follow';
+export interface NotificationDto {
+    id: string;
+    type: NotificationType;
+    actorUsername: string;
+    blueprintId?: string | null;
+    blueprintName?: string | null;
+    commentId?: string | null;
+    createdAt: string;
+    read: boolean;
+}
+export interface NotificationListResponse {
+    notifications: NotificationDto[];
+    unreadCount: number;
+    oldest: string;
+    remaining: number;
+}
 //# sourceMappingURL=social.d.ts.map

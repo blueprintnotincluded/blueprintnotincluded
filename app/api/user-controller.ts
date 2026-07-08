@@ -5,6 +5,7 @@ import { FollowModel } from './models/follow';
 import { BlueprintModel } from './models/blueprint';
 import { BlueprintController } from './blueprint-controller';
 import { ProfileResponse, FollowRequest, UpdateBioRequest, FollowListResponse } from '../../lib/index';
+import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
 import { optionalViewer } from './utils/optionalViewer';
@@ -96,7 +97,14 @@ export class UserController {
         if (follow) {
           FollowModel.model
             .create({ followerId: user._id, followeeId })
-            .then(() => res.json({ follow: 'OK' }))
+            .then(async () => {
+              await NotificationController.notify({
+                recipientId: followeeId,
+                actorId: user._id,
+                type: 'follow',
+              });
+              res.json({ follow: 'OK' });
+            })
             .catch(err => {
               // Duplicate-key on the unique pair index just means "already following" — idempotent success
               if (err?.code === 11000) {

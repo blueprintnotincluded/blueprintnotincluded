@@ -15,6 +15,7 @@ import { FeedbackController } from './api/feedback-controller';
 import { AlphaController } from './api/alpha-controller';
 import { UserController } from './api/user-controller';
 import { CommentController } from './api/comment-controller';
+import { NotificationController } from './api/notification-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
@@ -27,6 +28,7 @@ export class Routes {
   public alphaController = new AlphaController();
   public userController = new UserController();
   public commentController = new CommentController();
+  public notificationController = new NotificationController();
 
   public routes(app: Application): void {
     // Admin-only middleware: requires role === 'admin' in the JWT (set from WorkOS platform org membership)
@@ -98,6 +100,8 @@ export class Routes {
     app.route('/api/comments/:id').patch(auth, this.commentController.edit);
     app.route('/api/comments/:id').delete(auth, this.commentController.remove);
     app.route('/api/blueprints/:id/fork').post(auth, this.blueprintVersionController.fork);
+    app.route('/api/notifications').get(auth, this.notificationController.list);
+    app.route('/api/notifications/mark-read').post(auth, this.notificationController.markAllRead);
     app.route('/api/blueprints/:id/versions').post(auth, this.blueprintVersionController.createVersion);
     app
       .route('/api/blueprints/:id/versions/:versionId')
