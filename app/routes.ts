@@ -78,6 +78,8 @@ export class Routes {
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
     app.route('/api/users/:username/profile').get(this.userController.getProfile);
+    app.route('/api/users/:username/followers').get(this.userController.getFollowers);
+    app.route('/api/users/:username/following').get(this.userController.getFollowing);
     app.route('/api/blueprints/:id').get(this.uploadBlueprintController.getBlueprintDetails);
     app.route('/api/blueprints/:id/comments').get(this.commentController.list);
     app.route('/api/blueprints/:id/versions').get(this.blueprintVersionController.listVersions);

@@ -179,6 +179,101 @@ describe('Profile, Follow, Feed API', function () {
     });
   });
 
+  // ─── GET /api/users/:username/followers, /following ──────────────────────────
+
+  describe('GET /api/users/:username/followers', function () {
+    it('returns 404 for an unknown username', async function () {
+      const response = await TestSetup.request()
+        .get('/api/users/no-such-user/followers')
+        .query({ olderthan: Date.now() });
+      expect(response.status).to.equal(404);
+    });
+
+    it('returns an empty list when nobody follows the user', async function () {
+      const response = await TestSetup.request()
+        .get(`/api/users/${testData.users.user1.username}/followers`)
+        .query({ olderthan: Date.now() });
+      expect(response.status).to.equal(200);
+      expect(response.body.users).to.deep.equal([]);
+      expect(response.body.remaining).to.equal(0);
+    });
+
+    it('lists followers newest first, with followedByMe reflecting the viewer', async function () {
+      // user2 and user3 both follow user1; the viewer (user2) also follows user3 back
+      await FollowModel.model.create({
+        followerId: testData.users.user2._id,
+        followeeId: testData.users.user1._id,
+        createdAt: new Date(Date.now() - 60 * 60 * 1000),
+      });
+      await FollowModel.model.create({
+        followerId: testData.users.user3._id,
+        followeeId: testData.users.user1._id,
+        createdAt: new Date(),
+      });
+      await FollowModel.model.create({
+        followerId: testData.users.user2._id,
+        followeeId: testData.users.user3._id,
+      });
+
+      const token = testData.users.user2.generateJwt();
+      const response = await TestSetup.request()
+        .get(`/api/users/${testData.users.user1.username}/followers`)
+        .query({ olderthan: Date.now() })
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).to.equal(200);
+      const usernames = response.body.users.map((u: any) => u.username);
+      expect(usernames).to.deep.equal([
+        testData.users.user3.username,
+        testData.users.user2.username,
+      ]);
+
+      const user3Row = response.body.users.find((u: any) => u.username === testData.users.user3.username);
+      expect(user3Row.followedByMe).to.equal(true); // viewer (user2) follows user3 back
+
+      const user2Row = response.body.users.find((u: any) => u.username === testData.users.user2.username);
+      expect(user2Row.followedByMe).to.equal(false); // viewer does not follow themselves
+    });
+
+    it('returns followedByMe false for an anonymous viewer', async function () {
+      await FollowModel.model.create({
+        followerId: testData.users.user2._id,
+        followeeId: testData.users.user1._id,
+      });
+
+      const response = await TestSetup.request()
+        .get(`/api/users/${testData.users.user1.username}/followers`)
+        .query({ olderthan: Date.now() });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.users[0].followedByMe).to.equal(false);
+    });
+  });
+
+  describe('GET /api/users/:username/following', function () {
+    it('returns 404 for an unknown username', async function () {
+      const response = await TestSetup.request()
+        .get('/api/users/no-such-user/following')
+        .query({ olderthan: Date.now() });
+      expect(response.status).to.equal(404);
+    });
+
+    it('lists who the user follows', async function () {
+      await FollowModel.model.create({
+        followerId: testData.users.user1._id,
+        followeeId: testData.users.user2._id,
+      });
+
+      const response = await TestSetup.request()
+        .get(`/api/users/${testData.users.user1.username}/following`)
+        .query({ olderthan: Date.now() });
+
+      expect(response.status).to.equal(200);
+      const usernames = response.body.users.map((u: any) => u.username);
+      expect(usernames).to.deep.equal([testData.users.user2.username]);
+    });
+  });
+
   // ─── PATCH /api/users/me ─────────────────────────────────────────────────────
 
   describe('PATCH /api/users/me', function () {

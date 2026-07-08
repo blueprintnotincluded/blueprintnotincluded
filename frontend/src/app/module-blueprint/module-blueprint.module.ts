@@ -96,6 +96,7 @@ import { CommentService } from "./services/comment.service";
 import { BlueprintVersionService } from "./services/blueprint-version.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
 import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
+import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-list/dialog-follow-list.component";
 
 @NgModule({
   declarations: [
@@ -151,6 +152,7 @@ import { ProfilePageComponent } from "./components/profile-page/profile-page.com
     BlueprintDetailsPageComponent,
     BrowsePageComponent,
     ProfilePageComponent,
+    DialogFollowListComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [

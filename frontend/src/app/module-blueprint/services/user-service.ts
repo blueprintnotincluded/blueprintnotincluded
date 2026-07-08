@@ -7,6 +7,7 @@ import {
   FollowRequest,
   UpdateBioRequest,
   BlueprintListResponse,
+  FollowListResponse,
 } from "../../../../../lib/index";
 
 @Injectable({ providedIn: "root" })
@@ -46,6 +47,37 @@ export class UserService {
     return this.http.patch<{ bio: string }>("/api/users/me", body, {
       headers: { Authorization: `Bearer ${this.authService.getToken()}` },
     });
+  }
+
+  private getConnections(
+    username: string,
+    mode: "followers" | "following",
+    olderThan: Date
+  ): Observable<FollowListResponse> {
+    const params = new HttpParams().set(
+      "olderthan",
+      olderThan.getTime().toString()
+    );
+    return this.http.get<FollowListResponse>(`/api/users/${username}/${mode}`, {
+      params,
+      headers: this.authService.isLoggedIn()
+        ? { Authorization: `Bearer ${this.authService.getToken()}` }
+        : {},
+    });
+  }
+
+  getFollowers(
+    username: string,
+    olderThan: Date
+  ): Observable<FollowListResponse> {
+    return this.getConnections(username, "followers", olderThan);
+  }
+
+  getFollowing(
+    username: string,
+    olderThan: Date
+  ): Observable<FollowListResponse> {
+    return this.getConnections(username, "following", olderThan);
   }
 
   getFeed(olderThan: Date): Observable<BlueprintListResponse> {

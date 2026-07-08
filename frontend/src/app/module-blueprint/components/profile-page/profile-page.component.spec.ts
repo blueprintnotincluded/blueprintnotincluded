@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { By } from "@angular/platform-browser";
 import { DatePipe } from "@angular/common";
 import { ActivatedRoute, convertToParamMap } from "@angular/router";
 import { of, throwError } from "rxjs";
@@ -94,6 +95,14 @@ describe("ProfilePageComponent", () => {
     fixture.detectChanges();
     expect(component.notFound).toBe(true);
     expect(component.loadingProfile).toBe(false);
+  });
+
+  it("makes the follower and following counts clickable buttons", () => {
+    fixture.detectChanges();
+    const buttons = fixture.debugElement.queryAll(By.css(".profile-meta-link"));
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0].nativeElement.textContent).toContain("followers");
+    expect(buttons[1].nativeElement.textContent).toContain("following");
   });
 
   describe("isOwnProfile", () => {

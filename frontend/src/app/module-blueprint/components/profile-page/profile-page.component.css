@@ -100,6 +100,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+.profile-meta-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.profile-meta-link:hover {
+  text-decoration: underline;
+}
+
 .profile-actions {
   flex: none;
   position: relative;
