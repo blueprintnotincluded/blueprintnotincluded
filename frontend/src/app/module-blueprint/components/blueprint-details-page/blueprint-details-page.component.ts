@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
+import { Location } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, switchMap } from "rxjs/operators";
@@ -7,6 +8,9 @@ import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { VersionHistoryDialogComponent } from "../dialogs/version-history-dialog/version-history-dialog.component";
 import { BrowseData } from "../user-menu/user-menu.component";
+
+const BACK_TO_DISCOVER = $localize`:blueprintDetails.backToDiscover:Back to Discover`;
+const BACK_TO_PROFILE = $localize`:blueprintDetails.backToProfile:Back to Profile`;
 
 @Component({
   selector: "app-blueprint-details-page",
@@ -24,9 +28,13 @@ export class BlueprintDetailsPageComponent implements OnInit {
   notFound = false;
   loadError = false;
 
+  backLink: any[] = ["/discover"];
+  backLabel = BACK_TO_DISCOVER;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private blueprintService: BlueprintService,
     public authService: AuthenticationService
   ) {}
@@ -44,11 +52,23 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.route.paramMap
       .pipe(switchMap((params) => this.load(params.get("id"))))
       .subscribe((details) => {
+        this.updateBackLink();
         if (details == null) return;
         this.details = details;
         this.blueprintId = details.id;
         this.loading = false;
       });
+  }
+
+  private updateBackLink() {
+    const state = this.location.getState() as { fromProfile?: string } | null;
+    if (state?.fromProfile) {
+      this.backLink = ["/profile", state.fromProfile];
+      this.backLabel = BACK_TO_PROFILE;
+    } else {
+      this.backLink = ["/discover"];
+      this.backLabel = BACK_TO_DISCOVER;
+    }
   }
 
   private load(id: string | null): Observable<BlueprintDetailsResponse | null> {
