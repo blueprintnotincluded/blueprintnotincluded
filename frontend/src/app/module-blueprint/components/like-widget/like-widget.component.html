@@ -3,7 +3,8 @@
   class="bni-like"
   [class.bni-like--liked]="likedByMe"
   [disabled]="disabled"
-  [title]="likeTitle"
+  [pTooltip]="disabled ? likeTitle : ''"
+  [title]="disabled ? '' : likeTitle"
   (click)="like()"
 >
   <svg
