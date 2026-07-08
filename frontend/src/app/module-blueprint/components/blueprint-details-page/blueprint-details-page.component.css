@@ -144,4 +144,9 @@
 .details-fork-count {
   font-size: 13px;
   color: var(--bni-muted);
+  text-decoration: none;
+}
+
+.details-fork-count:hover {
+  text-decoration: underline;
 }

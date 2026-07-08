@@ -46,6 +46,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
   filterModded: boolean | null = null;
+  filterForkedFrom: string | null = null;
   remaining = 0;
   sort: "recent" | "popular" | "mostForked" = "recent";
   skipCount = 0;
@@ -148,6 +149,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     const rawModded = params.get("modded");
     this.filterModded =
       rawModded === "true" ? true : rawModded === "false" ? false : null;
+    this.filterForkedFrom = params.get("forkedFrom");
     const rawSort = params.get("sort");
     this.sort =
       rawSort === "popular" || rawSort === "mostForked" ? rawSort : "recent";
@@ -208,6 +210,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       queryParams["subcategory"] = this.filterSubcategory;
     if (this.filterModded != null)
       queryParams["modded"] = String(this.filterModded);
+    if (this.filterForkedFrom)
+      queryParams["forkedFrom"] = this.filterForkedFrom;
     if (this.sort !== "recent") queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
@@ -218,6 +222,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterCategory = null;
     this.filterSubcategory = null;
     this.filterModded = null;
+    this.filterForkedFrom = null;
     this.applyFiltersToUrl();
     this.reset();
     this.getBlueprints();
@@ -252,7 +257,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.filterSubcategory,
             this.sort,
             this.sort !== "recent" ? this.skipCount : undefined,
-            this.filterModded
+            this.filterModded,
+            this.filterForkedFrom
           );
 
     request$.subscribe({

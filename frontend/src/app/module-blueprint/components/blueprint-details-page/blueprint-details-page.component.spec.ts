@@ -170,6 +170,18 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(modded.properties["queryParams"]).toEqual({ modded: "true" });
   });
 
+  it("links the fork count to a discover page filtered by forkedFrom", () => {
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(makeDetails({ nbForks: 5 }))
+    );
+    fixture.detectChanges();
+
+    const forkCount = fixture.debugElement.query(By.css(".details-fork-count"));
+    expect(forkCount.properties["routerLink"]).toEqual(["/discover"]);
+    expect(forkCount.properties["queryParams"]).toEqual({ forkedFrom: "bp1" });
+    expect(forkCount.nativeElement.textContent).toContain("5");
+  });
+
   it("opens the version history dialog with ownership passed through", () => {
     fixture.detectChanges();
     component.versionHistoryDialog = { showDialog: vi.fn() } as any;
