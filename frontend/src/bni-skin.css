@@ -1,0 +1,522 @@
+/*
+ * BNI "industrial blueprint" skin for the alpha-gated discover section
+ * (browse / blueprint details / profile). Source of truth for the visual
+ * language: spec/BNI Reskin - Standalone.html.
+ *
+ * Everything is scoped under .bni-skin so the editor and auth pages keep
+ * the stock PrimeNG look. PrimeNG components inside the skin are restyled
+ * by overriding their --p-* design tokens rather than fighting internals.
+ */
+
+.bni-skin {
+  /* palette (dark, the design default) */
+  --bni-bg: #1f1b18;
+  --bni-grid: rgba(237, 230, 218, 0.045);
+  --bni-panel: #2a2522;
+  --bni-panel2: #342e29;
+  --bni-inset: #241f1c;
+  --bni-line: #4a4238;
+  --bni-line2: #5c5346;
+  --bni-ink: #ede6da;
+  --bni-muted: #a99f92;
+  --bni-faint: #7a7164;
+  --bni-accent: #6fc7b4;
+  --bni-accent-dim: rgba(111, 199, 180, 0.16);
+  --bni-accent-bd: rgba(111, 199, 180, 0.45);
+  --bni-accent2: #e89a3c;
+  --bni-accent2-dim: rgba(232, 154, 60, 0.16);
+  --bni-accent2-bd: rgba(232, 154, 60, 0.5);
+  --bni-primary: #a6516b;
+  --bni-primary-bd: #c97b93;
+  --bni-primary-hi: #b95f7b;
+  --bni-btn: #3b424c;
+  --bni-btn-line: #79828e;
+  --bni-btn-hi: #4a525e;
+  --bni-btn-ink: #f2f4f6;
+  --bni-blue: #5e9bd6;
+  --bni-blue-hi: #82b4e4;
+  --bni-danger: #d95f4c;
+  --bni-rivet: rgba(237, 230, 218, 0.28);
+  --bni-schemline2: rgba(94, 155, 214, 0.8);
+  --bni-thumbbg: #8b8b8b;
+  --bni-thumbgrid: rgba(255, 255, 255, 0.35);
+  --bni-card-sh: 0 2px 0 rgba(0, 0, 0, 0.35);
+
+  /* typography */
+  --bni-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --p-font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+
+  /* PrimeNG token remap */
+  --p-text-color: var(--bni-ink);
+  --p-text-muted-color: var(--bni-muted);
+  --p-content-background: var(--bni-panel);
+  --p-content-border-color: var(--bni-line);
+  --p-content-hover-background: var(--bni-panel2);
+  --p-content-hover-color: var(--bni-ink);
+  --p-primary-color: var(--bni-primary);
+  --p-primary-contrast-color: #ffffff;
+  --p-primary-hover-color: var(--bni-primary-hi);
+  --p-focus-ring-color: var(--bni-accent);
+
+  /* form fields */
+  --p-inputtext-background: var(--bni-inset);
+  --p-inputtext-color: var(--bni-ink);
+  --p-inputtext-border-color: var(--bni-line);
+  --p-inputtext-hover-border-color: var(--bni-line2);
+  --p-inputtext-focus-border-color: var(--bni-accent);
+  --p-inputtext-placeholder-color: var(--bni-faint);
+  --p-inputtext-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  --p-textarea-background: var(--bni-inset);
+  --p-textarea-color: var(--bni-ink);
+  --p-textarea-border-color: var(--bni-line);
+  --p-textarea-hover-border-color: var(--bni-line2);
+  --p-textarea-focus-border-color: var(--bni-accent);
+  --p-textarea-placeholder-color: var(--bni-faint);
+
+  /* select */
+  --p-select-background: var(--bni-panel2);
+  --p-select-color: var(--bni-ink);
+  --p-select-border-color: var(--bni-line2);
+  --p-select-hover-border-color: var(--bni-btn-line);
+  --p-select-focus-border-color: var(--bni-accent);
+  --p-select-placeholder-color: var(--bni-muted);
+  --p-select-dropdown-color: var(--bni-muted);
+  --p-select-overlay-background: var(--bni-panel2);
+  --p-select-overlay-border-color: var(--bni-line2);
+  --p-select-option-color: var(--bni-ink);
+  --p-select-option-focus-background: var(--bni-btn);
+  --p-select-option-focus-color: var(--bni-btn-ink);
+  --p-select-option-selected-background: var(--bni-primary);
+  --p-select-option-selected-color: #ffffff;
+  --p-select-option-selected-focus-background: var(--bni-primary-hi);
+  --p-select-option-selected-focus-color: #ffffff;
+
+  /* buttons */
+  --p-button-primary-background: var(--bni-primary);
+  --p-button-primary-border-color: var(--bni-primary-bd);
+  --p-button-primary-color: #ffffff;
+  --p-button-primary-hover-background: var(--bni-primary-hi);
+  --p-button-primary-hover-border-color: var(--bni-primary-bd);
+  --p-button-primary-hover-color: #ffffff;
+  --p-button-primary-active-background: var(--bni-primary-hi);
+  --p-button-primary-active-border-color: var(--bni-primary-bd);
+  --p-button-secondary-background: var(--bni-btn);
+  --p-button-secondary-border-color: var(--bni-btn-line);
+  --p-button-secondary-color: var(--bni-btn-ink);
+  --p-button-secondary-hover-background: var(--bni-btn-hi);
+  --p-button-secondary-hover-border-color: var(--bni-btn-line);
+  --p-button-secondary-hover-color: var(--bni-btn-ink);
+  --p-button-danger-background: rgba(217, 95, 76, 0.14);
+  --p-button-danger-border-color: rgba(217, 95, 76, 0.5);
+  --p-button-danger-color: var(--bni-danger);
+  --p-button-danger-hover-background: rgba(217, 95, 76, 0.28);
+  --p-button-danger-hover-border-color: var(--bni-danger);
+  --p-button-danger-hover-color: var(--bni-danger);
+  --p-button-text-primary-color: var(--bni-blue);
+  --p-button-text-primary-hover-background: var(--bni-panel);
+  --p-button-text-secondary-color: var(--bni-muted);
+  --p-button-text-secondary-hover-background: var(--bni-panel2);
+  --p-button-outlined-primary-color: var(--bni-btn-ink);
+  --p-button-outlined-primary-border-color: var(--bni-btn-line);
+  --p-button-outlined-primary-hover-background: var(--bni-btn-hi);
+
+  /* dialog */
+  --p-dialog-background: var(--bni-panel);
+  --p-dialog-border-color: var(--bni-line2);
+  --p-dialog-color: var(--bni-ink);
+  --p-overlay-modal-background: rgba(12, 9, 7, 0.62);
+  --p-mask-background: rgba(12, 9, 7, 0.62);
+
+  /* menubar + popup menu */
+  --p-menubar-background: var(--bni-panel);
+  --p-menubar-border-color: var(--bni-line);
+  --p-menubar-color: var(--bni-ink);
+  --p-menubar-item-color: var(--bni-ink);
+  --p-menubar-item-focus-background: var(--bni-panel2);
+  --p-menubar-item-focus-color: var(--bni-ink);
+  --p-menubar-item-active-background: var(--bni-panel2);
+  --p-menubar-item-active-color: var(--bni-ink);
+  --p-menubar-submenu-background: var(--bni-panel2);
+  --p-menubar-submenu-border-color: var(--bni-line2);
+  --p-menu-background: var(--bni-panel2);
+  --p-menu-border-color: var(--bni-line2);
+  --p-menu-item-color: var(--bni-ink);
+  --p-menu-item-focus-background: var(--bni-btn);
+  --p-menu-item-focus-color: var(--bni-btn-ink);
+  --p-menu-item-icon-color: var(--bni-muted);
+  --p-menu-item-icon-focus-color: var(--bni-btn-ink);
+  --p-menu-separator-border-color: var(--bni-line);
+
+  --p-tooltip-background: var(--bni-panel2);
+  --p-tooltip-color: var(--bni-ink);
+
+  color: var(--bni-ink);
+  font-family: var(--p-font-family);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+/* full-bleed page background with the 48px drafting grid */
+.bni-page {
+  min-height: 100vh;
+  background-color: var(--bni-bg);
+  background-image: linear-gradient(var(--bni-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bni-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.bni-skin a {
+  color: var(--bni-blue);
+  text-decoration: none;
+}
+
+.bni-skin a:hover {
+  color: var(--bni-blue-hi);
+  text-decoration: underline;
+}
+
+/* display headings */
+.bni-skin h1,
+.bni-skin h2,
+.bni-skin h3 {
+  font-family: var(--bni-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---- industrial buttons (plain <button>/<a> elements) ---- */
+.bni-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--bni-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--bni-btn-ink);
+  background: var(--bni-btn);
+  border: 1px solid var(--bni-btn-line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.bni-btn:hover:not(:disabled) {
+  background: var(--bni-btn-hi);
+}
+
+.bni-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bni-btn--primary {
+  color: #fff;
+  background: var(--bni-primary);
+  border-color: var(--bni-primary-bd);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.bni-btn--primary:hover:not(:disabled) {
+  background: var(--bni-primary-hi);
+}
+
+/* PrimeNG buttons inside the skin pick up the industrial style too */
+.bni-skin .p-button {
+  font-family: var(--bni-display);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.bni-skin .p-button.p-button-text {
+  box-shadow: none;
+}
+
+/* anchors styled as buttons must not inherit link colors */
+.bni-skin a.p-button {
+  color: var(--p-button-primary-color);
+}
+
+.bni-skin a.p-button:hover {
+  color: var(--p-button-primary-hover-color);
+  text-decoration: none;
+}
+
+/* ---- chips / badges ---- */
+.bni-chip {
+  display: inline-block;
+  font-family: var(--bni-display);
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--bni-muted);
+  border: 1px solid var(--bni-line);
+}
+
+.bni-chip--cat {
+  background: var(--bni-accent-dim);
+  color: var(--bni-accent);
+  border-color: var(--bni-accent-bd);
+}
+
+.bni-chip--untagged {
+  font-style: italic;
+  color: var(--bni-faint);
+}
+
+.bni-chip--modded {
+  background: var(--bni-accent2-dim);
+  color: var(--bni-accent2);
+  border-color: var(--bni-accent2-bd);
+}
+
+/* ---- tag pills (#spom etc.) ---- */
+.bni-tag {
+  font-size: 12px;
+  padding: 2px 11px;
+  border-radius: 999px;
+  background: var(--bni-inset);
+  color: var(--bni-muted);
+  border: 1px solid var(--bni-line);
+}
+
+/* ---- riveted panel ---- */
+.bni-panel {
+  position: relative;
+  background: var(--bni-panel);
+  border: 2px solid var(--bni-line);
+  border-radius: 10px;
+  box-shadow: var(--bni-card-sh);
+}
+
+.bni-rivets::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  border-radius: inherit;
+  background-image: radial-gradient(
+      circle at 9px 9px,
+      var(--bni-rivet) 2.5px,
+      transparent 3.2px
+    ),
+    radial-gradient(
+      circle at calc(100% - 9px) 9px,
+      var(--bni-rivet) 2.5px,
+      transparent 3.2px
+    ),
+    radial-gradient(
+      circle at 9px calc(100% - 9px),
+      var(--bni-rivet) 2.5px,
+      transparent 3.2px
+    ),
+    radial-gradient(
+      circle at calc(100% - 9px) calc(100% - 9px),
+      var(--bni-rivet) 2.5px,
+      transparent 3.2px
+    );
+}
+
+/* ---- blueprint card ---- */
+.bni-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--bni-line);
+  background: var(--bni-panel);
+  border-radius: 10px;
+  box-shadow: var(--bni-card-sh);
+  overflow: hidden;
+}
+
+.bni-card__thumb {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background-color: var(--bni-thumbbg);
+  background-image: linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  border-bottom: 2px solid var(--bni-line);
+}
+
+.bni-card__thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bni-card__title {
+  font-family: var(--bni-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+}
+
+.bni-skin a.bni-card__title,
+.bni-skin .bni-card__title a {
+  color: var(--bni-ink);
+}
+
+.bni-skin a.bni-card__title:hover,
+.bni-skin .bni-card__title a:hover {
+  color: var(--bni-accent);
+  text-decoration: none;
+}
+
+/* ---- like button ---- */
+.bni-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--p-font-family);
+  font-weight: 600;
+  font-size: 12.5px;
+  border: 1px solid var(--bni-line);
+  background: transparent;
+  color: var(--bni-muted);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.bni-like.bni-like--liked {
+  border-color: var(--bni-accent2-bd);
+  background: var(--bni-accent2-dim);
+  color: var(--bni-accent2);
+}
+
+.bni-like:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ---- muted icon links (comments / forks counts) ---- */
+.bni-icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--bni-muted);
+}
+
+.bni-skin a.bni-icon-link {
+  color: var(--bni-muted);
+}
+
+.bni-skin a.bni-icon-link:hover {
+  color: var(--bni-accent);
+  text-decoration: none;
+}
+
+/* ---- back link ---- */
+.bni-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bni-skin a.bni-back {
+  color: var(--bni-muted);
+}
+
+.bni-skin a.bni-back:hover {
+  color: var(--bni-ink);
+  text-decoration: none;
+}
+
+/* ---- segmented control (Discover | From creators you follow) ---- */
+.bni-seg {
+  display: inline-flex;
+  border: 1px solid var(--bni-line2);
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.bni-seg button {
+  font-family: var(--bni-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  cursor: pointer;
+  border: none;
+  color: var(--bni-btn-ink);
+  background: var(--bni-btn);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.bni-seg button + button {
+  border-left: 1px solid var(--bni-line2);
+}
+
+.bni-seg button.active {
+  background: var(--bni-primary);
+  color: #fff;
+}
+
+/* ---- loading skeleton ---- */
+@keyframes bniPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.bni-skel {
+  animation: bniPulse 1.6s ease-in-out infinite;
+}
+
+.bni-skel .bni-card__thumb {
+  background-color: var(--bni-inset);
+  background-image: linear-gradient(var(--bni-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bni-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bni-skel__bar {
+  height: 15px;
+  width: 70%;
+  border-radius: 3px;
+  background: var(--bni-line);
+}
+
+.bni-skel__bar--dim {
+  height: 11px;
+  width: 45%;
+  background: var(--bni-inset);
+}
+
+.bni-skel__chip {
+  height: 16px;
+  width: 64px;
+  border-radius: 3px;
+  background: var(--bni-inset);
+}

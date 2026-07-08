@@ -1,114 +1,148 @@
-<div class="details-page">
-  <div *ngIf="loading" class="details-status" i18n>Loading blueprint…</div>
+<div class="bni-skin bni-page">
+  <app-site-nav
+    (about)="aboutDialog.toggleDialog()"
+    (sendFeedback)="feedbackDialog.open()"
+    (myBlueprintsRequested)="goToProfile($event)"
+  ></app-site-nav>
 
-  <div *ngIf="!loading && notFound" class="details-status" i18n>
-    Blueprint not found.
-  </div>
+  <app-dialog-about #aboutDialog></app-dialog-about>
+  <app-feedback-dialog #feedbackDialog></app-feedback-dialog>
 
-  <div *ngIf="!loading && loadError" class="details-status" i18n>
-    Something went wrong loading this blueprint. Please try again.
-  </div>
+  <div class="details-page">
+    <a class="bni-back" routerLink="/discover">
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.6"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M15 5l-7 7 7 7"></path>
+      </svg>
+      <ng-container i18n>Back to Discover</ng-container>
+    </a>
 
-  <ng-container *ngIf="!loading && details">
-    <div class="details-header">
-      <div class="details-thumbnail">
-        <img
-          *ngIf="hasRealThumbnail()"
-          [src]="details.thumbnail"
-          [alt]="details.name"
-        />
-        <div *ngIf="!hasRealThumbnail()" class="thumbnail-placeholder"></div>
-      </div>
+    <div *ngIf="loading" class="details-status" i18n>Loading blueprint…</div>
 
-      <div class="details-meta">
-        <h1>{{ details.name }}</h1>
-
-        <div class="details-byline">
-          <span i18n
-            >by
-            <a [routerLink]="['/profile', details.ownerName]">{{
-              details.ownerName
-            }}</a></span
-          >
-          <span class="details-date">{{
-            details.createdAt | date : "yyyy-MM-dd"
-          }}</span>
-        </div>
-
-        <div *ngIf="details.forkedFrom" class="details-forked-from">
-          <span i18n>Forked from</span>&nbsp;<a
-            *ngIf="
-              details.forkedFrom.blueprintName as parentName;
-              else removedParent
-            "
-            [routerLink]="['/blueprint', details.forkedFrom.blueprintId]"
-            >{{ parentName }}</a
-          >
-          <ng-template #removedParent
-            ><span i18n>[original removed by author]</span></ng-template
-          >
-        </div>
-
-        <div class="details-badges">
-          <span *ngIf="details.category" class="badge badge--category">{{
-            details.category
-          }}</span>
-          <span *ngIf="details.subcategory" class="badge badge--category">{{
-            details.subcategory
-          }}</span>
-          <span *ngIf="details.gameVersion" class="badge badge--version">{{
-            details.gameVersion
-          }}</span>
-          <span *ngIf="details.modded" class="badge badge--modded" i18n
-            >Modded</span
-          >
-        </div>
-
-        <p *ngIf="details.description" class="details-description">
-          {{ details.description }}
-        </p>
-
-        <div *ngIf="details.tags.length > 0" class="details-tags">
-          <span class="tag" *ngFor="let tag of details.tags">{{ tag }}</span>
-        </div>
-
-        <div class="details-actions">
-          <a
-            pButton
-            i18n-label
-            label="Open in editor"
-            icon="pi pi-pencil"
-            [routerLink]="['/b', details.id]"
-          ></a>
-          <app-like-widget
-            [blueprintId]="details.id"
-            [nbLikes]="details.nbLikes"
-            [likedByMe]="details.likedByMe"
-            [disabled]="!loggedIn"
-          ></app-like-widget>
-          <app-fork-button
-            [blueprintId]="details.id"
-            [disabled]="!loggedIn"
-          ></app-fork-button>
-          <span class="details-fork-count"
-            >{{ details.nbForks }}&nbsp;{{ nbForksString }}</span
-          >
-          <button
-            pButton
-            type="button"
-            class="p-button-text"
-            icon="pi pi-clock"
-            i18n-label
-            label="Version History"
-            (click)="openVersionHistory()"
-          ></button>
-        </div>
-      </div>
+    <div *ngIf="!loading && notFound" class="details-status" i18n>
+      Blueprint not found.
     </div>
 
-    <app-comment-section [blueprintId]="blueprintId"></app-comment-section>
-    <app-version-history-dialog
-      #versionHistoryDialog
-    ></app-version-history-dialog>
-  </ng-container>
+    <div *ngIf="!loading && loadError" class="details-status" i18n>
+      Something went wrong loading this blueprint. Please try again.
+    </div>
+
+    <ng-container *ngIf="!loading && details">
+      <div class="details-header">
+        <div class="details-thumbnail">
+          <img
+            *ngIf="hasRealThumbnail()"
+            [src]="details.thumbnail"
+            [alt]="details.name"
+          />
+          <div *ngIf="!hasRealThumbnail()" class="thumbnail-placeholder"></div>
+          <div class="schematic-corners" aria-hidden="true"></div>
+        </div>
+
+        <div class="details-meta">
+          <h1>{{ details.name }}</h1>
+
+          <div class="details-byline">
+            <span i18n
+              >by
+              <a
+                class="details-owner"
+                [routerLink]="['/profile', details.ownerName]"
+                >{{ details.ownerName }}</a
+              ></span
+            >
+            <span class="details-date">{{
+              details.createdAt | date : "yyyy-MM-dd"
+            }}</span>
+          </div>
+
+          <div *ngIf="details.forkedFrom" class="details-forked-from">
+            <span i18n>Forked from</span>&nbsp;<a
+              *ngIf="
+                details.forkedFrom.blueprintName as parentName;
+                else removedParent
+              "
+              [routerLink]="['/blueprint', details.forkedFrom.blueprintId]"
+              >{{ parentName }}</a
+            >
+            <ng-template #removedParent
+              ><span i18n>[original removed by author]</span></ng-template
+            >
+          </div>
+
+          <div class="details-badges">
+            <span *ngIf="details.category" class="bni-chip bni-chip--cat">{{
+              details.category
+            }}</span>
+            <span *ngIf="details.subcategory" class="bni-chip bni-chip--cat">{{
+              details.subcategory
+            }}</span>
+            <span *ngIf="details.gameVersion" class="bni-chip">{{
+              details.gameVersion
+            }}</span>
+            <span *ngIf="details.modded" class="bni-chip bni-chip--modded" i18n
+              >Modded</span
+            >
+          </div>
+
+          <p *ngIf="details.description" class="details-description">
+            {{ details.description }}
+          </p>
+
+          <div *ngIf="details.tags.length > 0" class="details-tags">
+            <span class="bni-tag" *ngFor="let tag of details.tags"
+              >#{{ tag }}</span
+            >
+          </div>
+
+          <div class="details-actions">
+            <a
+              pButton
+              i18n-label
+              label="Open in editor"
+              icon="pi pi-pencil"
+              [routerLink]="['/b', details.id]"
+            ></a>
+            <app-like-widget
+              [blueprintId]="details.id"
+              [nbLikes]="details.nbLikes"
+              [likedByMe]="details.likedByMe"
+              [disabled]="!loggedIn"
+              [showLabel]="true"
+              class="details-like"
+            ></app-like-widget>
+            <app-fork-button
+              [blueprintId]="details.id"
+              [disabled]="!loggedIn"
+            ></app-fork-button>
+            <span class="details-fork-count"
+              >{{ details.nbForks }}&nbsp;{{ nbForksString }}</span
+            >
+            <button
+              pButton
+              type="button"
+              class="p-button-text"
+              icon="pi pi-clock"
+              i18n-label
+              label="Version History"
+              (click)="openVersionHistory()"
+            ></button>
+          </div>
+        </div>
+      </div>
+
+      <app-comment-section [blueprintId]="blueprintId"></app-comment-section>
+      <app-version-history-dialog
+        #versionHistoryDialog
+      ></app-version-history-dialog>
+    </ng-container>
+  </div>
 </div>

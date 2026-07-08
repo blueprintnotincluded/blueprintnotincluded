@@ -1,223 +1,291 @@
-<p-toast position="top-center" [style]="{ marginTop: '40px' }"></p-toast>
+<div class="bni-skin bni-page">
+  <p-toast position="top-center" [style]="{ marginTop: '40px' }"></p-toast>
 
-<app-site-nav
-  (about)="aboutDialog.toggleDialog()"
-  (sendFeedback)="feedbackDialog.open()"
-  (myBlueprintsRequested)="showMyBlueprints($event)"
-></app-site-nav>
+  <app-site-nav
+    (about)="aboutDialog.toggleDialog()"
+    (sendFeedback)="feedbackDialog.open()"
+    (myBlueprintsRequested)="showMyBlueprints($event)"
+  ></app-site-nav>
 
-<app-dialog-about #aboutDialog></app-dialog-about>
-<app-feedback-dialog #feedbackDialog></app-feedback-dialog>
+  <app-dialog-about #aboutDialog></app-dialog-about>
+  <app-feedback-dialog #feedbackDialog></app-feedback-dialog>
 
-<div class="browse-page">
-  <div class="browse-header">
-    <h1 i18n>Browse Blueprints</h1>
-    <input
-      class="search-input"
-      type="text"
-      i18n-placeholder
-      placeholder="Search"
-      [(ngModel)]="filterName"
-      (ngModelChange)="filterNameSubject.next($event)"
-      pInputText
-    />
-  </div>
-
-  <div class="view-mode-tabs" *ngIf="loggedIn && followingCount > 0">
-    <button
-      type="button"
-      pButton
-      i18n-label
-      label="Discover"
-      [attr.aria-pressed]="viewMode === 'discover'"
-      [class]="
-        viewMode === 'discover'
-          ? 'p-button-sm'
-          : 'p-button-outlined p-button-sm'
-      "
-      (click)="setViewMode('discover')"
-    ></button>
-    <button
-      type="button"
-      pButton
-      i18n-label
-      label="From creators you follow"
-      [attr.aria-pressed]="viewMode === 'feed'"
-      [class]="
-        viewMode === 'feed' ? 'p-button-sm' : 'p-button-outlined p-button-sm'
-      "
-      (click)="setViewMode('feed')"
-    ></button>
-  </div>
-
-  <div class="filter-panel" *ngIf="viewMode === 'discover'">
-    <p-select
-      [(ngModel)]="filterGameVersion"
-      [options]="gameVersionOptions"
-      optionLabel="label"
-      optionValue="value"
-      [showClear]="false"
-      (onChange)="onFacetChange()"
-      i18n-placeholder
-      placeholder="Version"
-    ></p-select>
-    <p-select
-      [(ngModel)]="filterCategory"
-      [options]="categoryOptions"
-      optionLabel="label"
-      optionValue="value"
-      [showClear]="false"
-      (onChange)="onFacetChange()"
-      i18n-placeholder
-      placeholder="Category"
-    ></p-select>
-    <p-select
-      [(ngModel)]="sort"
-      [options]="sortOptions"
-      optionLabel="label"
-      optionValue="value"
-      [showClear]="false"
-      (onChange)="onSortChange()"
-      i18n-placeholder
-      placeholder="Sort"
-    ></p-select>
-    <p-select
-      *ngIf="subcategoryOptions.length > 0"
-      [(ngModel)]="filterSubcategory"
-      [options]="subcategoryOptions"
-      optionLabel="label"
-      optionValue="value"
-      [showClear]="false"
-      (onChange)="onSubcategoryChange()"
-      i18n-placeholder
-      placeholder="Subcategory"
-    ></p-select>
-    <button
-      *ngIf="
-        filterGameVersion || filterCategory || filterSubcategory || filterName
-      "
-      type="button"
-      pButton
-      icon="pi pi-times"
-      i18n-label
-      label="Clear filters"
-      class="p-button-text p-button-sm"
-      (click)="clearFilters()"
-    ></button>
-  </div>
-
-  <div *ngIf="loadError" class="browse-error" role="alert">
-    <span i18n>Couldn't load blueprints. Scroll to try again.</span>
-  </div>
-
-  <div class="blueprint-grid">
-    <div class="blueprint-card" *ngFor="let item of blueprintListItems">
-      <div class="card-thumbnail">
-        <a *ngIf="isReal(item.thumbnail)" [routerLink]="['/blueprint', item.id]"
-          ><img [src]="item.thumbnail"
-        /></a>
+  <div class="browse-page">
+    <div class="browse-header">
+      <h1 i18n>Browse Blueprints</h1>
+      <div class="search-box">
         <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <circle cx="10.5" cy="10.5" r="6.5"></circle>
+          <path d="M15.5 15.5L21 21"></path>
+        </svg>
+        <input
+          class="search-input"
+          type="text"
+          i18n-placeholder
+          placeholder="Search blueprints"
+          [(ngModel)]="filterName"
+          (ngModelChange)="filterNameSubject.next($event)"
+          pInputText
+        />
+      </div>
+    </div>
+
+    <div class="view-mode-tabs bni-seg" *ngIf="loggedIn && followingCount > 0">
+      <button
+        type="button"
+        [class.active]="viewMode === 'discover'"
+        [attr.aria-pressed]="viewMode === 'discover'"
+        (click)="setViewMode('discover')"
+        i18n
+      >
+        Discover
+      </button>
+      <button
+        type="button"
+        [class.active]="viewMode === 'feed'"
+        [attr.aria-pressed]="viewMode === 'feed'"
+        (click)="setViewMode('feed')"
+        i18n
+      >
+        From creators you follow
+      </button>
+    </div>
+
+    <div class="filter-panel" *ngIf="viewMode === 'discover'">
+      <p-select
+        [(ngModel)]="filterGameVersion"
+        [options]="gameVersionOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="false"
+        (onChange)="onFacetChange()"
+        i18n-placeholder
+        placeholder="Version"
+      ></p-select>
+      <p-select
+        [(ngModel)]="filterCategory"
+        [options]="categoryOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="false"
+        (onChange)="onFacetChange()"
+        i18n-placeholder
+        placeholder="Category"
+      ></p-select>
+      <p-select
+        [(ngModel)]="sort"
+        [options]="sortOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="false"
+        (onChange)="onSortChange()"
+        i18n-placeholder
+        placeholder="Sort"
+      ></p-select>
+      <p-select
+        *ngIf="subcategoryOptions.length > 0"
+        [(ngModel)]="filterSubcategory"
+        [options]="subcategoryOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="false"
+        (onChange)="onSubcategoryChange()"
+        i18n-placeholder
+        placeholder="Subcategory"
+      ></p-select>
+      <button
+        *ngIf="
+          filterGameVersion || filterCategory || filterSubcategory || filterName
+        "
+        type="button"
+        class="clear-filters"
+        (click)="clearFilters()"
+      >
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M5 5l14 14M19 5L5 19"></path>
+        </svg>
+        <ng-container i18n>Clear filters</ng-container>
+      </button>
+    </div>
+
+    <div *ngIf="loadError" class="browse-error" role="alert">
+      <span i18n>Couldn't load blueprints. Scroll to try again.</span>
+    </div>
+
+    <div class="blueprint-grid">
+      <ng-container *ngFor="let item of blueprintListItems">
+        <article
+          *ngIf="isReal(item.thumbnail)"
+          class="blueprint-card bni-card bni-rivets"
+        >
+          <a class="bni-card__thumb" [routerLink]="['/blueprint', item.id]">
+            <img [src]="item.thumbnail" [alt]="item.name" />
+          </a>
+
+          <div class="card-info">
+            <a class="bni-card__title" [routerLink]="['/blueprint', item.id]">{{
+              item.name
+            }}</a>
+            <div class="card-meta">
+              <span i18n
+                >by
+                <a
+                  class="card-owner"
+                  [routerLink]="['/profile', item.ownerName]"
+                  >{{ item.ownerName }}</a
+                ></span
+              >
+              <span class="card-date">{{
+                datepipe.transform(item.createdAt, "yyyy-MM-dd")
+              }}</span>
+            </div>
+            <div class="card-badges">
+              <span *ngIf="item.category" class="bni-chip bni-chip--cat">{{
+                item.category
+              }}</span>
+              <span
+                *ngIf="!item.category"
+                class="bni-chip bni-chip--untagged"
+                i18n
+                >Untagged</span
+              >
+              <span *ngIf="item.gameVersion" class="bni-chip">{{
+                item.gameVersion
+              }}</span>
+              <span *ngIf="item.modded" class="bni-chip bni-chip--modded" i18n
+                >Modded</span
+              >
+            </div>
+            <div class="card-social">
+              <app-like-widget
+                class="card-likes"
+                [blueprintId]="item.id"
+                [nbLikes]="item.nbLikes"
+                [likedByMe]="item.likedByMe"
+                [disabled]="!loggedIn"
+              ></app-like-widget>
+              <a
+                class="card-comments bni-icon-link"
+                [routerLink]="['/blueprint', item.id]"
+                i18n-title
+                title="View comments"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M21 12c0 4-4 7-9 7-1 0-2-.1-2.9-.4L4 20l1.2-3.2C3.8 15.5 3 13.8 3 12c0-4 4-7 9-7s9 3 9 7z"
+                  ></path>
+                </svg>
+                {{ item.commentCount }}
+              </a>
+              <a
+                class="card-forks bni-icon-link"
+                [routerLink]="['/blueprint', item.id]"
+                i18n-title
+                title="Fork count"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="6" cy="5" r="2.6"></circle>
+                  <circle cx="18" cy="5" r="2.6"></circle>
+                  <circle cx="12" cy="19" r="2.6"></circle>
+                  <path
+                    d="M6 8v2c0 2 1.5 3 3.5 3h5c2 0 3.5-1 3.5-3V8M12 13v3"
+                  ></path>
+                </svg>
+                {{ item.nbForks }}
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <div
           *ngIf="item.thumbnail === 'svg'"
-          width="200"
-          height="200"
-          viewBox="0 0 200 200"
-          xmlns="http://www.w3.org/2000/svg"
+          class="blueprint-card bni-card bni-skel"
+          aria-hidden="true"
         >
-          <rect width="200" height="200" fill="#007aff" />
-          <path
-            fill="#fff"
-            d="m114.92 91.943 9.4524-6.3017c4.671-3.1163 7.4625-8.3331 7.4625-13.944v-11.499c4.1094-1.4649 7.0755-5.355 7.0755-9.9637v-7.0755c0-1.9554-1.5823-3.5378-3.5378-3.5378h-70.755c-1.9554 0-3.5378 1.5823-3.5378 3.5378v7.0755c0 4.6087 2.966 8.4989 7.0755 9.9637v11.499c0 5.6106 2.7915 10.827 7.4625 13.944l9.4524 6.3017c2.7017 1.8033 4.3116 4.8161 4.3116 8.0566 0 3.2406-1.6099 6.2533-4.3116 8.0566l-9.4524 6.3017c-4.671 3.1163-7.4625 8.3331-7.4625 13.944v11.499c-4.1094 1.4649-7.0755 5.355-7.0755 9.9637v7.0755c0 1.9554 1.5823 3.5378 3.5378 3.5378h70.755c1.9554 0 3.5378-1.5823 3.5378-3.5378v-7.0755c0-4.6087-2.966-8.4988-7.0755-9.9637v-11.499c0-5.6106-2.7915-10.827-7.4625-13.944l-9.4524-6.3017c-2.7017-1.8033-4.3116-4.8161-4.3116-8.0566 0-3.2406 1.6099-6.2533 4.3116-8.0566zm-11.387 8.0566c0 5.6106 2.7915 10.827 7.4625 13.944l9.4524 6.3017c2.7017 1.8033 4.3116 4.8161 4.3116 8.0566v10.849h-49.529v-10.849c0-3.2406 1.6099-6.2533 4.3116-8.0566l9.4524-6.3017c4.671-3.1163 7.4625-8.333 7.4625-13.944 0-5.6106-2.7915-10.827-7.4625-13.944l-9.4524-6.3017c-2.7017-1.8033-4.3116-4.8161-4.3116-8.0566v-10.849h49.529v10.849c0 3.2406-1.6099 6.2533-4.3116 8.0566l-9.4524 6.3017c-4.671 3.1163-7.4625 8.3331-7.4625 13.944z"
-          />
-          <path
-            fill="#fff"
-            d="m102.12 118.39c-1.2576-0.93963-2.9849-0.93963-4.2425 0l-15.568 11.677v2.0047h35.378v-2.0047z"
-          />
-        </svg>
-        <svg
-          *ngIf="item.thumbnail === 'svg_nothing'"
-          width="200"
-          height="200"
-          viewBox="0 0 200 200"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect width="200" height="200" fill="#007aff" />
-          <path
-            d="m144.19 144.19a62.5 62.5 0 0 1-88.388 0 62.5 62.5 0 0 1 1e-6 -88.388 62.5 62.5 0 0 1 88.388 0 62.5 62.5 0 0 1 0 88.388z"
-            fill="none"
-            stroke="#fff"
-            stroke-width="20"
-          />
-          <path
-            d="m55.806 55.806 88.388 88.388"
-            fill="none"
-            stroke="#fff"
-            stroke-width="20"
-          />
-        </svg>
-      </div>
+          <div class="bni-card__thumb">
+            <svg
+              width="34"
+              height="34"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <path
+                d="M7 3h10M7 21h10M8 3c0 4 8 5 8 9s-8 5-8 9M16 3c0 4-8 5-8 9s8 5 8 9"
+              ></path>
+            </svg>
+          </div>
+          <div class="card-info skel-info">
+            <div class="bni-skel__bar"></div>
+            <div class="bni-skel__bar bni-skel__bar--dim"></div>
+            <div class="skel-chips">
+              <div class="bni-skel__chip"></div>
+              <div class="bni-skel__chip skel-chip--narrow"></div>
+            </div>
+          </div>
+        </div>
 
-      <div class="card-info">
-        <div class="card-title">
-          <a
-            *ngIf="isReal(item.thumbnail)"
-            [routerLink]="['/blueprint', item.id]"
-            >{{ item.name }}</a
-          >
-          <span *ngIf="!isReal(item.thumbnail)">{{ item.name }}</span>
+        <div
+          *ngIf="item.thumbnail === 'svg_nothing'"
+          class="blueprint-card bni-card no-results-card"
+        >
+          <div class="bni-card__thumb no-results-thumb">
+            <svg
+              width="34"
+              height="34"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M6 6l12 12"></path>
+            </svg>
+          </div>
+          <div class="card-info">
+            <span class="bni-card__title">{{ item.name }}</span>
+          </div>
         </div>
-        <div *ngIf="isReal(item.thumbnail)" class="card-meta">
-          <span i18n
-            >by
-            <a [routerLink]="['/profile', item.ownerName]">{{
-              item.ownerName
-            }}</a></span
-          >
-          <span class="card-date">{{
-            datepipe.transform(item.createdAt, "yyyy-MM-dd")
-          }}</span>
-        </div>
-        <div *ngIf="isReal(item.thumbnail)" class="card-badges">
-          <span *ngIf="item.category" class="badge badge--category">{{
-            item.category
-          }}</span>
-          <span *ngIf="!item.category" class="badge badge--untagged" i18n
-            >Untagged</span
-          >
-          <span *ngIf="item.gameVersion" class="badge badge--version">{{
-            item.gameVersion
-          }}</span>
-          <span *ngIf="item.modded" class="badge badge--modded" i18n
-            >Modded</span
-          >
-        </div>
-        <div *ngIf="isReal(item.thumbnail)" class="card-social">
-          <app-like-widget
-            class="card-likes"
-            [blueprintId]="item.id"
-            [nbLikes]="item.nbLikes"
-            [likedByMe]="item.likedByMe"
-            [disabled]="!loggedIn"
-          ></app-like-widget>
-          <a
-            class="card-comments"
-            [routerLink]="['/blueprint', item.id]"
-            i18n-title
-            title="View comments"
-          >
-            <i class="pi pi-comments" aria-hidden="true"></i>
-            {{ item.commentCount }}
-          </a>
-          <a
-            class="card-forks"
-            [routerLink]="['/blueprint', item.id]"
-            i18n-title
-            title="Fork count"
-          >
-            <i class="pi pi-copy" aria-hidden="true"></i>
-            {{ item.nbForks }}
-          </a>
-        </div>
-      </div>
+      </ng-container>
     </div>
   </div>
 </div>

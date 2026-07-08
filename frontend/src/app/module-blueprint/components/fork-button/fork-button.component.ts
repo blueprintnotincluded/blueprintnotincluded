@@ -15,6 +15,12 @@ export class ForkButtonComponent {
 
   forking = false;
 
+  get forkTitle() {
+    return this.disabled
+      ? $localize`Log in to fork`
+      : $localize`Create your own editable copy of this blueprint`;
+  }
+
   constructor(
     private blueprintVersionService: BlueprintVersionService,
     private router: Router,
