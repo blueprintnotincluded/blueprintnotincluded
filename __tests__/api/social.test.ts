@@ -218,7 +218,8 @@ describe('Profile, Follow, Feed API', function () {
       const token = testData.users.user2.generateJwt();
       const response = await TestSetup.request()
         .get(`/api/users/${testData.users.user1.username}/followers`)
-        .query({ olderthan: Date.now() })
+        // Small future buffer so this can't race the createdAt: new Date() follow just above
+        .query({ olderthan: Date.now() + 1000 })
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).to.equal(200);
@@ -243,7 +244,8 @@ describe('Profile, Follow, Feed API', function () {
 
       const response = await TestSetup.request()
         .get(`/api/users/${testData.users.user1.username}/followers`)
-        .query({ olderthan: Date.now() });
+        // Small future buffer so this can't race the Follow's default createdAt: Date.now()
+        .query({ olderthan: Date.now() + 1000 });
 
       expect(response.status).to.equal(200);
       expect(response.body.users[0].followedByMe).to.equal(false);
