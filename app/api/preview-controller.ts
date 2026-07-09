@@ -75,7 +75,8 @@ export class PreviewController {
   // one is set (a restore points currentVersionId at an older version without
   // rewriting the Blueprint's cached `data`), else the cached `data` for
   // documents predating versioning — the lean twin of resolveCurrentData.
-  private static async loadRenderData(id: string): Promise<unknown | null> {
+  // Public: the preview backfill script feeds the render queue with it too.
+  public static async loadRenderData(id: string): Promise<unknown | null> {
     const doc = await BlueprintModel.model.findById(id).select('data currentVersionId').lean();
     if (doc == null) return null;
     if (doc.currentVersionId != null) {

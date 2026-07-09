@@ -6,15 +6,19 @@
 //   hero.webp  1200x1200 details page hero
 //   og.png     1200x630  Open Graph unfurl (letterboxed on white)
 //
-// Derivatives are cached on disk keyed by blueprint id; a cached file is
-// fresh while it is newer than the blueprint's modifiedAt, so restores,
-// forks and any future server-side edit invalidate naturally. The disk is
-// treated purely as a cache (prod containers are ephemeral) — misses are
-// re-rendered on demand.
+// Storage is two-tier (spec/social/preview-images-perf-2.md Phase 3):
+//   L1 = local disk, keyed by blueprint id; fresh while the file is newer
+//        than the blueprint's modifiedAt. Ephemeral — redeploys discard it.
+//   L2 = Mongo (previewimages collection); fresh while the row's
+//        sourceModifiedAt >= the blueprint's modifiedAt. Survives redeploys.
+// Reads go disk → Mongo (hydrating disk) → render; renders write both, so
+// restores, forks and any future server-side edit invalidate naturally.
 import { fork, ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import mongoose from 'mongoose';
 import sharp from 'sharp';
+import { PreviewImageModel } from '../models/preview-image';
 
 export type PreviewVariant = 'card.webp' | 'hero.webp' | 'og.png';
 
@@ -128,19 +132,24 @@ export class PreviewImageService {
     const cached = this.readIfFresh(filePath, modifiedAt);
     if (cached) return { buffer: cached, contentType: PreviewImageService.contentType(variant) };
 
-    if (this.disabled) return null;
-
-    // Single-flight per blueprint: one master render produces every variant.
-    let render = this.inFlight.get(blueprintId);
-    if (!render) {
-      render = this.renderAllVariants(blueprintId, loadMdb).finally(() =>
-        this.inFlight.delete(blueprintId)
-      );
-      this.inFlight.set(blueprintId, render);
+    // L2: a durable row survives redeploys; hydrate the disk cache so the
+    // next request for this variant is an L1 hit. Serving from Mongo is not
+    // rendering, so this path stays live even when rendering is disabled.
+    const stored = await this.readFromMongo(blueprintId, variant, modifiedAt);
+    if (stored) {
+      try {
+        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.promises.writeFile(filePath, stored.buffer);
+      } catch {
+        // Hydration is an optimization; serving the bytes is what matters.
+      }
+      return stored;
     }
 
+    if (this.disabled) return null;
+
     try {
-      await render;
+      await this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
     } catch (e) {
       // console.log: the test harness fails any test touching console.error
       console.log(`Preview render failed for ${blueprintId}:`, e);
@@ -173,6 +182,92 @@ export class PreviewImageService {
     }
   }
 
+  // --- Mongo (L2) storage ---
+
+  /** The Mongo twin of the disk mtime rule. */
+  public static isRowFresh(
+    sourceModifiedAt: Date | null | undefined,
+    modifiedAt: Date | null | undefined
+  ): boolean {
+    if (modifiedAt == null) return true;
+    return sourceModifiedAt != null && sourceModifiedAt.getTime() >= modifiedAt.getTime();
+  }
+
+  private static mongoAvailable(): boolean {
+    return PreviewImageModel.model != null && mongoose.connection.readyState === 1;
+  }
+
+  private async readFromMongo(
+    blueprintId: string,
+    variant: PreviewVariant,
+    modifiedAt: Date | null | undefined
+  ): Promise<PreviewRenderResult | null> {
+    if (!PreviewImageService.mongoAvailable()) return null;
+    try {
+      const row = await PreviewImageModel.model.findOne({ blueprintId, variant }).lean();
+      if (!row || !PreviewImageService.isRowFresh(row.sourceModifiedAt, modifiedAt)) return null;
+      // lean() may surface the bytes as a driver Binary instead of a Buffer.
+      const bytes: any = row.bytes;
+      const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes.buffer);
+      return { buffer, contentType: row.contentType };
+    } catch (e) {
+      console.log(`preview Mongo read failed for ${blueprintId}/${variant}:`, e);
+      return null;
+    }
+  }
+
+  private async allFreshInMongo(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined
+  ): Promise<boolean> {
+    if (!PreviewImageService.mongoAvailable()) return false;
+    try {
+      const rows = await PreviewImageModel.model
+        .find({ blueprintId })
+        .select('variant sourceModifiedAt')
+        .lean();
+      const byVariant = new Map(rows.map(row => [row.variant, row.sourceModifiedAt]));
+      return PREVIEW_VARIANTS.every(
+        variant =>
+          byVariant.has(variant) &&
+          PreviewImageService.isRowFresh(byVariant.get(variant), modifiedAt)
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private async writeToMongo(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined,
+    buffers: { variant: PreviewVariant; buffer: Buffer }[]
+  ): Promise<void> {
+    if (!PreviewImageService.mongoAvailable()) return;
+    try {
+      const renderedAt = new Date();
+      await PreviewImageModel.model.bulkWrite(
+        buffers.map(({ variant, buffer }) => ({
+          updateOne: {
+            filter: { blueprintId, variant },
+            update: {
+              $set: {
+                bytes: buffer,
+                contentType: PreviewImageService.contentType(variant),
+                renderedAt,
+                sourceModifiedAt: modifiedAt ?? null,
+              },
+            },
+            upsert: true,
+          },
+        }))
+      );
+    } catch (e) {
+      // Durability is best-effort per render: the disk copy still serves,
+      // and the backfill script / next render retries the Mongo write.
+      console.log(`preview Mongo write failed for ${blueprintId}:`, e);
+    }
+  }
+
   /**
    * Render-on-write (spec/social/preview-images-perf-2.md Phase 2):
    * fire-and-forget render of every variant so the first browse view after a
@@ -192,14 +287,40 @@ export class PreviewImageService {
     );
     if (allFresh) return;
 
+    (async () => {
+      // Fresh durable rows mean the read path serves (and hydrates disk)
+      // without rendering — nothing to do.
+      if (await this.allFreshInMongo(blueprintId, modifiedAt)) return;
+      await this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
+    })().catch(e => console.log(`preview prerender failed for ${blueprintId}:`, e));
+  }
+
+  /**
+   * Render every variant and write them to disk + Mongo, deduplicating
+   * concurrent requests per blueprint (one master render produces every
+   * variant). Used by the read path, prerender and the backfill script.
+   */
+  public renderAndStore(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined,
+    loadMdb: () => Promise<unknown | null>
+  ): Promise<void> {
+    return this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
+  }
+
+  private renderSingleFlight(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined,
+    loadMdb: () => Promise<unknown | null>
+  ): Promise<void> {
     let render = this.inFlight.get(blueprintId);
     if (!render) {
-      render = this.renderAllVariants(blueprintId, loadMdb).finally(() =>
+      render = this.renderAllVariants(blueprintId, modifiedAt, loadMdb).finally(() =>
         this.inFlight.delete(blueprintId)
       );
       this.inFlight.set(blueprintId, render);
     }
-    render.catch(e => console.log(`preview prerender failed for ${blueprintId}:`, e));
+    return render;
   }
 
   /**
@@ -224,19 +345,33 @@ export class PreviewImageService {
       const startedAt = Date.now();
       const cold = this.worker == null;
       const master = await this.renderMasterFn(mdb);
-      return { master, queueWaitMs: startedAt - enqueuedAt, masterMs: Date.now() - startedAt, cold };
+      return {
+        master,
+        queueWaitMs: startedAt - enqueuedAt,
+        masterMs: Date.now() - startedAt,
+        cold,
+      };
     });
     this.renderQueueTail = render.catch(() => undefined);
     return render.finally(() => this.renderQueueDepth--);
   }
 
-  private async renderAllVariants(blueprintId: string, loadMdb: () => Promise<unknown | null>) {
+  private async renderAllVariants(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined,
+    loadMdb: () => Promise<unknown | null>
+  ) {
     const totalStart = Date.now();
     const mdb = await loadMdb();
     if (mdb == null) throw new Error('blueprint has no data');
     const loadMdbMs = Date.now() - totalStart;
 
-    const { master: masterImage, queueWaitMs, masterMs, cold } = await this.enqueueMasterRender(mdb);
+    const {
+      master: masterImage,
+      queueWaitMs,
+      masterMs,
+      cold,
+    } = await this.enqueueMasterRender(mdb);
     const derivativesStart = Date.now();
 
     const dir = path.join(this.cacheDir, blueprintId);
@@ -281,18 +416,26 @@ export class PreviewImageService {
       );
 
     const [cardBuf, heroBuf, ogBuf] = await Promise.all([card, hero, og]);
-    await Promise.all([
-      fs.promises.writeFile(path.join(dir, 'card.webp'), cardBuf),
-      fs.promises.writeFile(path.join(dir, 'hero.webp'), heroBuf),
-      fs.promises.writeFile(path.join(dir, 'og.png'), ogBuf),
-    ]);
+    const variantBuffers: { variant: PreviewVariant; buffer: Buffer }[] = [
+      { variant: 'card.webp', buffer: cardBuf },
+      { variant: 'hero.webp', buffer: heroBuf },
+      { variant: 'og.png', buffer: ogBuf },
+    ];
+    await Promise.all(
+      variantBuffers.map(({ variant, buffer }) =>
+        fs.promises.writeFile(path.join(dir, variant), buffer)
+      )
+    );
+    const mongoStart = Date.now();
+    await this.writeToMongo(blueprintId, modifiedAt, variantBuffers);
 
     // Phase timings (spec/social/preview-images-perf.md Phase 0). The worker
     // logs its own sub-phases (import/textures/rasterize/encode) per request.
     console.log(
       `preview render ${blueprintId}: loadMdb=${loadMdbMs}ms queueWait=${queueWaitMs}ms` +
         ` master=${masterMs}ms${cold ? ' (cold)' : ''}` +
-        ` derivatives=${Date.now() - derivativesStart}ms total=${Date.now() - totalStart}ms`
+        ` derivatives=${mongoStart - derivativesStart}ms` +
+        ` mongo=${Date.now() - mongoStart}ms total=${Date.now() - totalStart}ms`
     );
   }
 

@@ -13,7 +13,11 @@ process.env.NODE_ENV = 'test';
 import { TestSetup } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { BlueprintVersionModel } from '../../app/api/models/blueprint-version';
-import { PreviewImageService } from '../../app/api/services/preview-image-service';
+import { PreviewImageModel } from '../../app/api/models/preview-image';
+import {
+  PreviewImageService,
+  PREVIEW_VARIANTS,
+} from '../../app/api/services/preview-image-service';
 import { Types } from 'mongoose';
 
 // Waits for a fire-and-forget prerender to finish (or fail) by polling.
@@ -50,11 +54,8 @@ describe('Blueprint preview images', function () {
         (await TestSetup.request().get(`/api/blueprints/${blueprintId}/preview/nope.gif`)).status
       ).to.equal(404);
       expect(
-        (
-          await TestSetup.request().get(
-            `/api/blueprints/${new Types.ObjectId()}/preview/card.webp`
-          )
-        ).status
+        (await TestSetup.request().get(`/api/blueprints/${new Types.ObjectId()}/preview/card.webp`))
+          .status
       ).to.equal(404);
     });
 
@@ -105,7 +106,12 @@ describe('Blueprint preview images', function () {
       const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-test-'));
       let renderCount = 0;
       const fakeMaster = await sharp({
-        create: { width: 64, height: 64, channels: 4, background: { r: 10, g: 200, b: 10, alpha: 1 } },
+        create: {
+          width: 64,
+          height: 64,
+          channels: 4,
+          background: { r: 10, g: 200, b: 10, alpha: 1 },
+        },
       })
         .png()
         .toBuffer();
@@ -247,12 +253,7 @@ describe('Blueprint preview images', function () {
       });
       const loadMdb = async () => ({ items: [] });
 
-      const first = service.getVariant(
-        new Types.ObjectId().toString(),
-        null,
-        'card.webp',
-        loadMdb
-      );
+      const first = service.getVariant(new Types.ObjectId().toString(), null, 'card.webp', loadMdb);
       await new Promise(resolve => setImmediate(resolve));
 
       // Queue holds one render (the active one); the next request is shed
@@ -369,7 +370,11 @@ describe('Blueprint preview images', function () {
       const response = await TestSetup.request()
         .post('/api/uploadblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'Prerendered Blueprint', blueprint: data, thumbnail: 'data:image/png;base64,x' });
+        .send({
+          name: 'Prerendered Blueprint',
+          blueprint: data,
+          thumbnail: 'data:image/png;base64,x',
+        });
       expect(response.status).to.equal(200);
       const savedId = response.body.id;
 
@@ -436,6 +441,137 @@ describe('Blueprint preview images', function () {
       expect(response.status).to.equal(200);
       expect(renderCount).to.equal(1);
       expect(renderedMdbs[0]).to.deep.equal(versionData);
+    });
+  });
+
+  // ─── Durable Mongo storage (spec/social/preview-images-perf-2.md Phase 3) ───
+
+  describe('durable Mongo storage', function () {
+    let cacheDir: string;
+    let renderCount: number;
+
+    // Seeds the three durable rows the way a previous deploy's render would
+    // have (disk cache empty — the redeploy scenario).
+    async function seedMongoRows(sourceModifiedAt: Date | null) {
+      const renderedAt = new Date();
+      await PreviewImageModel.model.create(
+        PREVIEW_VARIANTS.map(variant => ({
+          blueprintId,
+          variant,
+          bytes: Buffer.from(`stored-${variant}`),
+          contentType: variant.endsWith('.png') ? 'image/png' : 'image/webp',
+          renderedAt,
+          sourceModifiedAt,
+        }))
+      );
+    }
+
+    function makeService(overrides?: { disabled?: boolean }) {
+      return new PreviewImageService({
+        cacheDir,
+        disabled: overrides?.disabled ?? false,
+        renderMasterFn: async () => {
+          renderCount++;
+          return await sharp({
+            create: {
+              width: 8,
+              height: 8,
+              channels: 4,
+              background: { r: 0, g: 0, b: 0, alpha: 1 },
+            },
+          })
+            .png()
+            .toBuffer();
+        },
+      });
+    }
+
+    beforeEach(function () {
+      cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-mongo-'));
+      renderCount = 0;
+    });
+
+    afterEach(function () {
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
+    it('renders write durable rows alongside the disk cache', async function () {
+      const service = makeService();
+      const modifiedAt = new Date(Date.now() - 60_000);
+      await service.renderAndStore(blueprintId, modifiedAt, async () => ({ items: [] }));
+      expect(renderCount).to.equal(1);
+
+      const rows = await PreviewImageModel.model.find({ blueprintId }).lean();
+      expect(rows.map(row => row.variant).sort()).to.deep.equal([...PREVIEW_VARIANTS].sort());
+      for (const row of rows) {
+        expect(row.contentType).to.equal(row.variant === 'og.png' ? 'image/png' : 'image/webp');
+        // lean() surfaces the bytes as a driver Binary, not a Buffer.
+        const bytes: any = row.bytes;
+        const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes.buffer);
+        expect(buffer.length).to.be.greaterThan(0);
+        expect(new Date(row.sourceModifiedAt!).getTime()).to.equal(modifiedAt.getTime());
+      }
+    });
+
+    it('serves a fresh durable row on a disk miss without rendering, and hydrates the disk', async function () {
+      const modifiedAt = new Date(Date.now() - 60_000);
+      await seedMongoRows(modifiedAt);
+      const service = makeService();
+
+      const result = await service.getVariant(blueprintId, modifiedAt, 'card.webp', async () => ({
+        items: [],
+      }));
+      expect(result).to.not.equal(null);
+      expect(result!.buffer.toString()).to.equal('stored-card.webp');
+      expect(result!.contentType).to.equal('image/webp');
+      expect(renderCount).to.equal(0);
+
+      // Hydrated: the next read is a disk (L1) hit.
+      expect(fs.existsSync(path.join(cacheDir, blueprintId, 'card.webp'))).to.equal(true);
+    });
+
+    it('re-renders when the durable rows are stale', async function () {
+      const staleSource = new Date(Date.now() - 120_000);
+      await seedMongoRows(staleSource);
+      const modifiedAt = new Date(Date.now() - 60_000); // blueprint modified after render
+      const service = makeService();
+
+      const result = await service.getVariant(blueprintId, modifiedAt, 'card.webp', async () => ({
+        items: [],
+      }));
+      expect(result).to.not.equal(null);
+      expect(renderCount).to.equal(1);
+
+      // The stale rows were replaced, not duplicated (unique index).
+      const rows = await PreviewImageModel.model.find({ blueprintId }).lean();
+      expect(rows.length).to.equal(PREVIEW_VARIANTS.length);
+      for (const row of rows) {
+        expect(new Date(row.sourceModifiedAt!).getTime()).to.equal(modifiedAt.getTime());
+      }
+    });
+
+    it('serves durable rows even when rendering is disabled (redeploy acceptance)', async function () {
+      const modifiedAt = new Date(Date.now() - 60_000);
+      await seedMongoRows(modifiedAt);
+      PreviewImageService.setInstance(makeService({ disabled: true }));
+
+      const response = await TestSetup.request().get(
+        `/api/blueprints/${blueprintId}/preview/hero.webp`
+      );
+      expect(response.status).to.equal(200);
+      expect(response.headers['content-type']).to.match(/image\/webp/);
+      expect(response.body.toString()).to.equal('stored-hero.webp');
+      expect(renderCount).to.equal(0);
+    });
+
+    it('prerender skips rendering when durable rows are fresh', async function () {
+      const modifiedAt = new Date(Date.now() - 60_000);
+      await seedMongoRows(modifiedAt);
+      const service = makeService();
+
+      service.prerender(blueprintId, modifiedAt, async () => ({ items: [] }));
+      await new Promise(resolve => setTimeout(resolve, 100));
+      expect(renderCount).to.equal(0);
     });
   });
 });
