@@ -250,16 +250,19 @@ export class PreviewImageService {
         }
       });
 
-      worker.on('exit', () => {
+      worker.on('exit', (code, signal) => {
         clearTimeout(startTimer);
+        // code/signal distinguish a crash (code>0), an OOM/external kill
+        // (signal, e.g. SIGKILL from the cgroup) and our own idle shutdown.
+        const reason = `preview render worker exited (code=${code}, signal=${signal})`;
         for (const [, pendingRequest] of this.pending) {
           clearTimeout(pendingRequest.timer);
-          pendingRequest.reject(new Error('preview render worker exited'));
+          pendingRequest.reject(new Error(reason));
         }
         this.pending.clear();
         this.worker = null;
         this.workerReady = null;
-        reject(new Error('preview render worker exited'));
+        reject(new Error(reason));
       });
 
       worker.on('error', err => {
