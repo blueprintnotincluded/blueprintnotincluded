@@ -440,7 +440,8 @@ export class PreviewImageService {
       `preview render ${blueprintId}: loadMdb=${loadMdbMs}ms queueWait=${queueWaitMs}ms` +
         ` master=${masterMs}ms${cold ? ' (cold)' : ''}` +
         ` derivatives=${mongoStart - derivativesStart}ms` +
-        ` mongo=${Date.now() - mongoStart}ms total=${Date.now() - totalStart}ms`
+        ` mongo=${Date.now() - mongoStart}ms total=${Date.now() - totalStart}ms` +
+        ` parentRss=${Math.round(process.memoryUsage().rss / (1024 * 1024))}MB`
     );
   }
 

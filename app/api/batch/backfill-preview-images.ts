@@ -40,10 +40,13 @@ async function run(dryRun: boolean) {
   if (!dryRun) service.warmUp();
 
   const total = await BlueprintModel.model.countDocuments({ deletedAt: null });
+  // Newest first: recent blueprints are the ones users actually browse, so an
+  // interrupted run still covers the highest-value slice of the corpus
+  // (index-backed by { deletedAt: 1, createdAt: -1 }).
   const cursor = BlueprintModel.model
     .find({ deletedAt: null })
     .select('modifiedAt')
-    .sort({ createdAt: 1 })
+    .sort({ createdAt: -1 })
     .cursor();
 
   let processed = 0;
