@@ -288,7 +288,10 @@ Rules:
 
 ### Credential rules
 - Admin URI (`doadmin`) — DO app console env only. Never on local machine.
-- `doctl` — not installed. Removed to eliminate a path to admin credentials.
+- `doctl` — installed; use it freely for reads (app logs, specs, deployments). The API
+  token is normally **read-only**; writes (`doctl apps update` etc.) fail by design. For
+  rare write tasks Kevin temporarily swaps in a full-access token and removes it after —
+  if a write fails on permissions, ask, don't work around it.
 - Read-only URI — `/.env.migration` (gitignored). Safe to store; cannot write to DB.
 - `/.env` — local dev only. Never put prod or staging credentials here.
 - `/prod-dump/` — gitignored. Real prod data; never commit.
