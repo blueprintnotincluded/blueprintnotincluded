@@ -59,6 +59,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
         
+      - name: Smoke test preview renderer
+        # Renders a fixture blueprint inside the deploy image under a
+        # prod-like memory cap: catches missing native bindings (canvas),
+        # broken asset layout and memory regressions before the push.
+        run: |
+          docker run --rm --memory=512m --memory-swap=512m bni-deploy \
+            node app/api/services/preview-render-worker.js --smoke
+
       - name: Verify version information
         run: |
           echo "Verifying version information in built image..."
