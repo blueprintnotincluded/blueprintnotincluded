@@ -10,6 +10,7 @@ import {
   resolveCurrentData,
   getCurrentVersion,
 } from './services/blueprint-version-service';
+import { PreviewImageService } from './services/preview-image-service';
 import {
   BlueprintVersionDto,
   ListBlueprintVersionsResponse,
@@ -103,6 +104,9 @@ export class BlueprintVersionController {
       await forked.save();
 
       await BlueprintModel.model.updateOne({ _id: source._id }, { $inc: { forkCount: 1 } });
+
+      // Render-on-write: warm the fork's preview cache (Phase 2).
+      PreviewImageService.instance.prerender(forked.id, now, async () => forkedVersion.data);
 
       await NotificationController.notify({
         recipientId: source.owner,
@@ -288,7 +292,13 @@ export class BlueprintVersionController {
       }
 
       blueprint.currentVersionId = version._id as mongoose.Types.ObjectId;
+      // The rendered content changed: bumping modifiedAt invalidates both the
+      // disk preview cache and the frontend's versioned (?v=) preview urls.
+      blueprint.modifiedAt = new Date();
       await blueprint.save();
+
+      // Render-on-write: warm the preview cache with the restored data (Phase 2).
+      PreviewImageService.instance.prerender(blueprint.id, blueprint.modifiedAt, async () => version.data);
 
       const response: CreateBlueprintVersionResponse = { version: toVersionDto(version) };
       res.json(response);

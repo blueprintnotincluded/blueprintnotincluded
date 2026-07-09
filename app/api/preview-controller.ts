@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { BlueprintModel } from './models/blueprint';
+import { BlueprintVersionModel } from './models/blueprint-version';
 import {
   PreviewImageService,
   PreviewVariant,
@@ -41,11 +42,7 @@ export class PreviewController {
       }
 
       const result = await PreviewImageService.instance.getVariant(id, modifiedAt, variant, () =>
-        BlueprintModel.model
-          .findById(id)
-          .select('data')
-          .lean()
-          .then(doc => doc?.data ?? null)
+        PreviewController.loadRenderData(id)
       );
 
       // Versioned urls (?v=<modifiedAt millis>) are immutable; bare urls
@@ -72,5 +69,22 @@ export class PreviewController {
       console.log(err);
       return res.status(500).send();
     }
+  }
+
+  // What the blueprint currently renders as: the current version's data when
+  // one is set (a restore points currentVersionId at an older version without
+  // rewriting the Blueprint's cached `data`), else the cached `data` for
+  // documents predating versioning — the lean twin of resolveCurrentData.
+  private static async loadRenderData(id: string): Promise<unknown | null> {
+    const doc = await BlueprintModel.model.findById(id).select('data currentVersionId').lean();
+    if (doc == null) return null;
+    if (doc.currentVersionId != null) {
+      const version = await BlueprintVersionModel.model
+        .findById(doc.currentVersionId)
+        .select('data')
+        .lean();
+      if (version?.data != null) return version.data;
+    }
+    return doc.data ?? null;
   }
 }
