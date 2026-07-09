@@ -8,10 +8,9 @@
     [state]="linkState"
   >
     <img
-      [src]="previewFailed ? item.thumbnail : cardPreviewUrl()"
-      (error)="previewFailed = true"
+      [appQueuedPreview]="cardPreviewUrl()"
+      [previewFallback]="item.thumbnail"
       [alt]="item.name"
-      loading="lazy"
       width="480"
       height="480"
     />

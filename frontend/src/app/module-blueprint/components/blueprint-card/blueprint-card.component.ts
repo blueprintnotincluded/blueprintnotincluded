@@ -23,9 +23,6 @@ export class BlueprintCardComponent {
   readonly gameVersionTooltip = gameVersionTooltip;
   readonly moddedTooltip = moddedTooltip;
 
-  /** Falls back to the legacy inline thumbnail when the server render 404s/errors. */
-  previewFailed = false;
-
   isReal(thumbnail: string): boolean {
     return thumbnail !== "svg" && thumbnail !== "svg_nothing";
   }

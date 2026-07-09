@@ -3,6 +3,7 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { By } from "@angular/platform-browser";
 
 import { BlueprintCardComponent } from "./blueprint-card.component";
+import { QueuedPreviewDirective } from "../../directives/queued-preview.directive";
 
 function makeItem(overrides: any = {}) {
   return {
@@ -32,6 +33,7 @@ describe("BlueprintCardComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [BlueprintCardComponent],
+      imports: [QueuedPreviewDirective],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
@@ -63,10 +65,9 @@ describe("BlueprintCardComponent", () => {
     fixture.detectChanges();
 
     const img = fixture.debugElement.query(By.css(".bni-card__thumb img"));
-    expect(img.properties["src"]).toBe(
+    expect(img.nativeElement.getAttribute("src")).toBe(
       "/api/blueprints/bp-1/preview/card.webp?v=1700000000000"
     );
-    expect(img.attributes["loading"]).toBe("lazy");
   });
 
   it("falls back to the inline thumbnail when the server preview errors", () => {
@@ -77,7 +78,9 @@ describe("BlueprintCardComponent", () => {
     img.triggerEventHandler("error", {});
     fixture.detectChanges();
 
-    expect(img.properties["src"]).toBe("data:image/png;base64,xyz");
+    expect(img.nativeElement.getAttribute("src")).toBe(
+      "data:image/png;base64,xyz"
+    );
   });
 
   it("shows the Untagged chip when there is no category, and the category chip when there is", () => {

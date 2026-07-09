@@ -57,6 +57,7 @@ import { ItemCollectionInfoComponent } from "./components/side-bar/item-collecti
 import { DialogBrowseComponent } from "./components/dialogs/dialog-browse/dialog-browse.component";
 import { DialogExportImagesComponent } from "./components/dialogs/dialog-export-images/dialog-export-images.component";
 import { BlueprintNameValidationDirective } from "./directives/blueprint-name-validation.directive";
+import { QueuedPreviewDirective } from "./directives/queued-preview.directive";
 import { LikeWidgetComponent } from "./components/like-widget/like-widget.component";
 import { ForkButtonComponent } from "./components/fork-button/fork-button.component";
 import { BlueprintCardComponent } from "./components/blueprint-card/blueprint-card.component";
@@ -159,6 +160,7 @@ import { NotificationBellComponent } from "./components/notification-bell/notifi
   exports: [ComponentBlueprintParentComponent],
   imports: [
     CommonModule,
+    QueuedPreviewDirective,
     RouterModule,
     FormsModule,
     ReactiveFormsModule,
