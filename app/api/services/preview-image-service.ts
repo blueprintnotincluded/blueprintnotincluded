@@ -59,16 +59,20 @@ export class PreviewImageService {
   private pending = new Map<number, PendingRequest>();
   private idleTimer: NodeJS.Timeout | null = null;
   private inFlight = new Map<string, Promise<void>>();
+  private renderQueueTail: Promise<unknown> = Promise.resolve();
+  private renderQueueDepth = 0;
 
   private readonly cacheDir: string;
   private readonly idleShutdownMs: number;
   private readonly renderMasterFn: RenderMasterFn;
+  private readonly renderQueueMax: number;
   private readonly disabled: boolean;
 
   constructor(options?: {
     cacheDir?: string;
     renderMasterFn?: RenderMasterFn;
     idleShutdownMs?: number;
+    renderQueueMax?: number;
     disabled?: boolean;
   }) {
     this.cacheDir =
@@ -78,6 +82,9 @@ export class PreviewImageService {
     this.idleShutdownMs =
       options?.idleShutdownMs ?? Number(process.env.PREVIEW_WORKER_IDLE_MS ?? 120_000);
     this.renderMasterFn = options?.renderMasterFn ?? (mdb => this.renderMasterInWorker(mdb));
+    const queueMaxRaw =
+      options?.renderQueueMax ?? Number(process.env.PREVIEW_RENDER_QUEUE_MAX ?? 8);
+    this.renderQueueMax = Number.isFinite(queueMaxRaw) && queueMaxRaw > 0 ? queueMaxRaw : 8;
     // Default off in tests (no canvas/PIXI in CI) and behind an env kill switch.
     this.disabled =
       options?.disabled ??
@@ -145,11 +152,31 @@ export class PreviewImageService {
     }
   }
 
+  /**
+   * Serialize master renders: the worker rasterizes one blueprint at a time,
+   * so dispatching concurrently only made every caller share one wall-clock
+   * timeout budget — a page of card requests would queue on the worker and
+   * then all time out together. The render timeout now covers only the
+   * active render. Depth is capped so a pile-up fails fast (callers serve the
+   * legacy thumbnail) instead of holding requests for minutes.
+   */
+  private enqueueMasterRender(mdb: unknown): Promise<Buffer> {
+    if (this.renderQueueDepth >= this.renderQueueMax) {
+      return Promise.reject(
+        new Error(`preview render queue full (${this.renderQueueDepth} waiting)`)
+      );
+    }
+    this.renderQueueDepth++;
+    const render = this.renderQueueTail.then(() => this.renderMasterFn(mdb));
+    this.renderQueueTail = render.catch(() => undefined);
+    return render.finally(() => this.renderQueueDepth--);
+  }
+
   private async renderAllVariants(blueprintId: string, loadMdb: () => Promise<unknown | null>) {
     const mdb = await loadMdb();
     if (mdb == null) throw new Error('blueprint has no data');
 
-    const masterPng = await this.renderMasterFn(mdb);
+    const masterPng = await this.enqueueMasterRender(mdb);
 
     const dir = path.join(this.cacheDir, blueprintId);
     await fs.promises.mkdir(dir, { recursive: true });
@@ -202,6 +229,10 @@ export class PreviewImageService {
           const requestId = this.nextRequestId++;
           const timer = setTimeout(() => {
             this.pending.delete(requestId);
+            // Renders are serialized, so a timeout means the worker is wedged
+            // on this render; recycle it so the next render forks fresh
+            // instead of waiting behind the stuck one.
+            this.stopWorker();
             reject(new Error('preview render timed out'));
           }, RENDER_TIMEOUT_MS);
           this.pending.set(requestId, {
