@@ -34,10 +34,20 @@ export interface PreviewRenderResult {
   contentType: string;
 }
 
-type RenderMasterFn = (mdb: unknown) => Promise<Buffer>;
+/** Raw RGBA pixels as produced by the render worker (sharp raw input). */
+export interface RawMaster {
+  raw: Buffer;
+  width: number;
+  height: number;
+}
+
+/** A master render: raw pixels from the worker, or an encoded image (tests). */
+export type MasterImage = Buffer | RawMaster;
+
+type RenderMasterFn = (mdb: unknown) => Promise<MasterImage>;
 
 interface PendingRequest {
-  resolve: (pngBase64: string) => void;
+  resolve: (master: RawMaster) => void;
   reject: (err: Error) => void;
   timer: NodeJS.Timeout;
 }
@@ -79,8 +89,11 @@ export class PreviewImageService {
       options?.cacheDir ??
       process.env.PREVIEW_CACHE_DIR ??
       path.resolve(__dirname, '../../../preview-cache');
+    // 0 disables idle shutdown (the default): the server idles most of the
+    // time and a resident warm worker (~200-380MB) is what keeps renders off
+    // the cold-start path. The RSS recycle remains the memory backstop.
     this.idleShutdownMs =
-      options?.idleShutdownMs ?? Number(process.env.PREVIEW_WORKER_IDLE_MS ?? 120_000);
+      options?.idleShutdownMs ?? Number(process.env.PREVIEW_WORKER_IDLE_MS ?? 0);
     this.renderMasterFn = options?.renderMasterFn ?? (mdb => this.renderMasterInWorker(mdb));
     const queueMaxRaw =
       options?.renderQueueMax ?? Number(process.env.PREVIEW_RENDER_QUEUE_MAX ?? 8);
@@ -160,28 +173,43 @@ export class PreviewImageService {
    * active render. Depth is capped so a pile-up fails fast (callers serve the
    * legacy thumbnail) instead of holding requests for minutes.
    */
-  private enqueueMasterRender(mdb: unknown): Promise<Buffer> {
+  private enqueueMasterRender(
+    mdb: unknown
+  ): Promise<{ master: MasterImage; queueWaitMs: number; masterMs: number; cold: boolean }> {
     if (this.renderQueueDepth >= this.renderQueueMax) {
       return Promise.reject(
         new Error(`preview render queue full (${this.renderQueueDepth} waiting)`)
       );
     }
     this.renderQueueDepth++;
-    const render = this.renderQueueTail.then(() => this.renderMasterFn(mdb));
+    const enqueuedAt = Date.now();
+    const render = this.renderQueueTail.then(async () => {
+      const startedAt = Date.now();
+      const cold = this.worker == null;
+      const master = await this.renderMasterFn(mdb);
+      return { master, queueWaitMs: startedAt - enqueuedAt, masterMs: Date.now() - startedAt, cold };
+    });
     this.renderQueueTail = render.catch(() => undefined);
     return render.finally(() => this.renderQueueDepth--);
   }
 
   private async renderAllVariants(blueprintId: string, loadMdb: () => Promise<unknown | null>) {
+    const totalStart = Date.now();
     const mdb = await loadMdb();
     if (mdb == null) throw new Error('blueprint has no data');
+    const loadMdbMs = Date.now() - totalStart;
 
-    const masterPng = await this.enqueueMasterRender(mdb);
+    const { master: masterImage, queueWaitMs, masterMs, cold } = await this.enqueueMasterRender(mdb);
+    const derivativesStart = Date.now();
 
     const dir = path.join(this.cacheDir, blueprintId);
     await fs.promises.mkdir(dir, { recursive: true });
 
-    const master = sharp(masterPng);
+    const master = Buffer.isBuffer(masterImage)
+      ? sharp(masterImage)
+      : sharp(masterImage.raw, {
+          raw: { width: masterImage.width, height: masterImage.height, channels: 4 },
+        });
     const card = master
       .clone()
       .resize(CARD_SIZE, CARD_SIZE, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
@@ -193,9 +221,12 @@ export class PreviewImageService {
     const og = master
       .clone()
       .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 1 })
-      .toBuffer()
-      .then(trimmed =>
-        sharp(trimmed)
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+      .then(({ data, info }) =>
+        sharp(data, {
+          raw: { width: info.width, height: info.height, channels: info.channels as 4 },
+        })
           .resize(OG_WIDTH - OG_MARGIN * 2, OG_HEIGHT - OG_MARGIN * 2, {
             fit: 'contain',
             background: { r: 255, g: 255, b: 255, alpha: 1 },
@@ -218,14 +249,22 @@ export class PreviewImageService {
       fs.promises.writeFile(path.join(dir, 'hero.webp'), heroBuf),
       fs.promises.writeFile(path.join(dir, 'og.png'), ogBuf),
     ]);
+
+    // Phase timings (spec/social/preview-images-perf.md Phase 0). The worker
+    // logs its own sub-phases (import/textures/rasterize/encode) per request.
+    console.log(
+      `preview render ${blueprintId}: loadMdb=${loadMdbMs}ms queueWait=${queueWaitMs}ms` +
+        ` master=${masterMs}ms${cold ? ' (cold)' : ''}` +
+        ` derivatives=${Date.now() - derivativesStart}ms total=${Date.now() - totalStart}ms`
+    );
   }
 
   // --- worker process management ---
 
-  private renderMasterInWorker(mdb: unknown): Promise<Buffer> {
+  private renderMasterInWorker(mdb: unknown): Promise<RawMaster> {
     return this.ensureWorker().then(
       () =>
-        new Promise<Buffer>((resolve, reject) => {
+        new Promise<RawMaster>((resolve, reject) => {
           const requestId = this.nextRequestId++;
           const timer = setTimeout(() => {
             this.pending.delete(requestId);
@@ -235,11 +274,7 @@ export class PreviewImageService {
             this.stopWorker();
             reject(new Error('preview render timed out'));
           }, RENDER_TIMEOUT_MS);
-          this.pending.set(requestId, {
-            resolve: pngBase64 => resolve(Buffer.from(pngBase64, 'base64')),
-            reject,
-            timer,
-          });
+          this.pending.set(requestId, { resolve, reject, timer });
           this.worker!.send({ type: 'render', requestId, mdb, size: MASTER_SIZE });
           this.scheduleIdleShutdown();
         })
@@ -255,6 +290,9 @@ export class PreviewImageService {
       execArgv: isTs ? ['-r', 'ts-node/register/transpile-only'] : [],
       env: { ...process.env, TS_NODE_TRANSPILE_ONLY: '1' },
       stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
+      // Structured clone instead of JSON: the rendered master crosses the
+      // channel as a Buffer, not a base64 string inside a JSON megastring.
+      serialization: 'advanced',
     });
     this.worker = worker;
 
@@ -276,8 +314,13 @@ export class PreviewImageService {
           if (!pendingRequest) return;
           this.pending.delete(message.requestId);
           clearTimeout(pendingRequest.timer);
-          if (message.type === 'rendered') pendingRequest.resolve(message.pngBase64);
-          else pendingRequest.reject(new Error(message.message));
+          if (message.type === 'rendered') {
+            pendingRequest.resolve({
+              raw: Buffer.isBuffer(message.raw) ? message.raw : Buffer.from(message.raw),
+              width: message.width,
+              height: message.height,
+            });
+          } else pendingRequest.reject(new Error(message.message));
         }
       });
 
@@ -297,6 +340,10 @@ export class PreviewImageService {
         this.worker = null;
         this.workerReady = null;
         reject(new Error(reason));
+        // A clean self-exit is the RSS recycle (the worker only does it
+        // between renders). Re-fork right away so the next render stays warm.
+        // Crashes (code>0) and signals stay lazy — no re-fork loop.
+        if (code === 0 && signal == null) setImmediate(() => this.warmUp());
       });
 
       worker.on('error', err => {
@@ -310,7 +357,18 @@ export class PreviewImageService {
     return this.workerReady;
   }
 
+  /**
+   * Fork the render worker ahead of the first request (server boot, or after
+   * an RSS recycle) so no request pays the ~10s cold start. No-op when
+   * rendering is disabled or a worker is already up.
+   */
+  public warmUp() {
+    if (this.disabled || this.worker) return;
+    this.ensureWorker().catch(e => console.log('preview render worker warm-up failed:', e));
+  }
+
   private scheduleIdleShutdown() {
+    if (this.idleShutdownMs <= 0) return;
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => {
       if (this.pending.size === 0) this.stopWorker();

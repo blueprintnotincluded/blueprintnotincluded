@@ -6,10 +6,13 @@
 // OOM-killed the whole container on small prod instances. Spawned lazily by
 // PreviewImageService and killed again after an idle period.
 //
-// IPC protocol (all messages JSON over process.send):
+// IPC protocol (advanced serialization — the parent forks with
+// serialization: 'advanced' so Buffers cross the channel natively, no base64).
+// The master crosses as raw RGBA pixels: no PNG encode here, no PNG decode in
+// the parent — sharp ingests the raw buffer directly.
 //   parent -> worker: { type: 'render', requestId, mdb, size }
 //   worker -> parent: { type: 'ready' }
-//                     { type: 'rendered', requestId, pngBase64 }
+//                     { type: 'rendered', requestId, raw: Buffer, width, height, timings }
 //                     { type: 'error', requestId, message }
 //
 // CLI: `node preview-render-worker.js --smoke` renders a built-in fixture and
@@ -131,6 +134,21 @@ async function ensureTextures(
   return missing;
 }
 
+interface RenderTimings {
+  importMs: number;
+  texturesMs: number;
+  rasterizeMs: number;
+  extractMs: number;
+}
+
+interface MasterPixels {
+  /** Non-premultiplied RGBA, size*size*4 bytes — sharp raw input format. */
+  raw: Buffer;
+  width: number;
+  height: number;
+  timings: RenderTimings;
+}
+
 // Deterministic fit-to-content framing — same camera rules as the historic
 // thumbnail path (~1.5 tiles padding, content centered on a square canvas)
 // but without the integer zoom flooring so framing is resolution-independent.
@@ -139,13 +157,16 @@ async function renderMaster(
   assetBaseDir: string,
   mdb: MdbBlueprint,
   size: number
-): Promise<string> {
+): Promise<MasterPixels> {
+  const importStart = Date.now();
   const blueprint = new SharedBlueprint();
   blueprint.importFromMdb(mdb);
   if (blueprint.blueprintItems.length === 0) throw new Error('empty blueprint');
 
+  const texturesStart = Date.now();
   await ensureTextures(pixi, assetBaseDir, collectImageIds(blueprint));
 
+  const rasterizeStart = Date.now();
   const [topLeft, bottomRight] = blueprint.getBoundingBox();
   const totalTileSize = new Vector2(
     bottomRight.x - topLeft.x + 3,
@@ -173,17 +194,31 @@ async function renderMaster(
   const baseRenderTexture = pixi.getNewBaseRenderTexture({ width: size, height: size });
   const renderTexture = pixi.getNewRenderTexture(baseRenderTexture);
   pixi.pixiApp.renderer.render(exportCamera.container, renderTexture, false);
-  const base64: string = pixi.pixiApp.renderer.plugins.extract
-    .canvas(renderTexture)
-    .toDataURL()
-    .replace(/^data:image\/png;base64,/, '');
+
+  // Raw RGBA straight out of getImageData (non-premultiplied): no PNG encode.
+  // The old toDataURL path (full zlib encode + base64 + JSON IPC + re-decode
+  // in the parent) was pure overhead — the master is consumed once and thrown
+  // away.
+  const extractStart = Date.now();
+  const pixels: Uint8ClampedArray = pixi.pixiApp.renderer.plugins.extract.pixels(renderTexture);
+  const raw = Buffer.from(pixels.buffer, pixels.byteOffset, pixels.byteLength);
 
   exportCamera.container.destroy({ children: true });
   baseRenderTexture.destroy();
   renderTexture.destroy();
   global.gc && global.gc();
 
-  return base64;
+  return {
+    raw,
+    width: size,
+    height: size,
+    timings: {
+      importMs: texturesStart - importStart,
+      texturesMs: rasterizeStart - texturesStart,
+      rasterizeMs: extractStart - rasterizeStart,
+      extractMs: Date.now() - extractStart,
+    },
+  };
 }
 
 // Minimal blueprint exercising every texture path: a flat-icon building
@@ -210,12 +245,15 @@ async function runSmokeTest(pixi: PixiNodeUtil, assetBaseDir: string) {
   const missing = await ensureTextures(pixi, assetBaseDir, collectImageIds(blueprint));
   if (missing > 0) throw new Error(`smoke: ${missing} fixture textures missing from asset root`);
 
-  const pngBase64 = await renderMaster(pixi, assetBaseDir, SMOKE_FIXTURE, 1200);
-  const pngBytes = Buffer.from(pngBase64, 'base64').length;
-  // A 1200px render of the fixture is far larger than this; placeholder-only
-  // output (near-empty PNG) is the failure this guards against.
-  if (pngBytes < 10_000) throw new Error(`smoke: render suspiciously small (${pngBytes} bytes)`);
-  logRss(`smoke render ok (${pngBytes} png bytes)`);
+  const { raw, width, height } = await renderMaster(pixi, assetBaseDir, SMOKE_FIXTURE, 1200);
+  // The fixture covers a meaningful share of the frame; an all-placeholder
+  // render (blank/transparent output) is the failure this guards against.
+  let opaque = 0;
+  for (let i = 3; i < raw.length; i += 4) if (raw[i] > 0) opaque++;
+  const coverage = opaque / (width * height);
+  if (coverage < 0.05)
+    throw new Error(`smoke: render suspiciously empty (${(coverage * 100).toFixed(2)}% coverage)`);
+  logRss(`smoke render ok (${(coverage * 100).toFixed(1)}% pixel coverage)`);
 }
 
 async function main() {
@@ -261,16 +299,20 @@ async function main() {
     rendersInFlight++;
     try {
       let reply: object;
+      let phases = '';
       try {
-        const pngBase64 = await renderMaster(pixi, assetBaseDir, mdb, size);
-        reply = { type: 'rendered', requestId, pngBase64 };
+        const { raw, width, height, timings } = await renderMaster(pixi, assetBaseDir, mdb, size);
+        reply = { type: 'rendered', requestId, raw, width, height, timings };
+        phases =
+          ` import=${timings.importMs}ms textures=${timings.texturesMs}ms` +
+          ` rasterize=${timings.rasterizeMs}ms extract=${timings.extractMs}ms`;
       } catch (e) {
         reply = { type: 'error', requestId, message: e instanceof Error ? e.message : String(e) };
       }
       // Wait for the IPC channel to flush the reply: process.exit in the
       // recycle check below would otherwise drop a still-queued message.
       await new Promise<void>(resolve => process.send!(reply, () => resolve()));
-      logRss(`handled request ${requestId}`);
+      logRss(`handled request ${requestId}${phases}`);
     } finally {
       rendersInFlight--;
     }
