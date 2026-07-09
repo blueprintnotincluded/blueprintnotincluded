@@ -140,6 +140,85 @@ describe('Blueprint preview images', function () {
       fs.rmSync(cacheDir, { recursive: true, force: true });
     });
 
+    it('renders one master at a time even when requests arrive together', async function () {
+      this.timeout(10000);
+      const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-queue-'));
+      const fakeMaster = await sharp({
+        create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+      let active = 0;
+      let maxActive = 0;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => {
+          active++;
+          maxActive = Math.max(maxActive, active);
+          await new Promise(resolve => setTimeout(resolve, 20));
+          active--;
+          return fakeMaster;
+        },
+      });
+
+      const ids = [new Types.ObjectId(), new Types.ObjectId(), new Types.ObjectId()];
+      const results = await Promise.all(
+        ids.map(id =>
+          service.getVariant(id.toString(), null, 'card.webp', async () => ({ items: [] }))
+        )
+      );
+
+      results.forEach(result => expect(result).to.not.be.null);
+      expect(maxActive).to.equal(1);
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
+    it('fails fast (fallback, not hang) when the render queue is full', async function () {
+      const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-queue-'));
+      const fakeMaster = await sharp({
+        create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+      let releaseFirst!: () => void;
+      const firstStarted = new Promise<void>(resolve => {
+        releaseFirst = resolve;
+      });
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderQueueMax: 1,
+        renderMasterFn: async () => {
+          await firstStarted;
+          return fakeMaster;
+        },
+      });
+      const loadMdb = async () => ({ items: [] });
+
+      const first = service.getVariant(
+        new Types.ObjectId().toString(),
+        null,
+        'card.webp',
+        loadMdb
+      );
+      await new Promise(resolve => setImmediate(resolve));
+
+      // Queue holds one render (the active one); the next request is shed
+      // immediately so the controller serves the legacy thumbnail.
+      const second = await service.getVariant(
+        new Types.ObjectId().toString(),
+        null,
+        'card.webp',
+        loadMdb
+      );
+      expect(second).to.be.null;
+
+      releaseFirst();
+      expect(await first).to.not.be.null;
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
     it('falls back to the legacy thumbnail when the renderer fails', async function () {
       const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-test-'));
       PreviewImageService.setInstance(
