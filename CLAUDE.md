@@ -90,6 +90,7 @@ and their `npm run generate*` / `seed` / `enhancedSeed` / `testCanvas` entries n
 Remaining batch utilities:
 - `npm run fixHtmlLabels` - Fix HTML formatting in labels.
 - `npm run derive-metadata` - Backfill `gameVersion` and `modded` on all blueprint documents from stored building IDs. Use `--dry-run` flag (`npm run derive-metadata:dry-run`) to preview counts without writing.
+- `npm run backfill-previews` - Render preview images for all non-deleted blueprints and store them durably in Mongo (`previewimages` collection). Skips blueprints whose durable rows are already fresh, so it's rerunnable/resumable. Use `--dry-run` (`npm run backfill-previews:dry-run`) to report the fresh/stale split without rendering or writing.
 
 ### Docker
 - `docker-compose up` - Full development environment with database

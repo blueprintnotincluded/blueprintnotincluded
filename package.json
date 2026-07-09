@@ -26,6 +26,8 @@
     "fixHtmlLabels": "ts-node-dev --expose_gc --max_old_space_size=4096 --transpile-only ./app/api/batch/fix-html-labels.ts",
     "derive-metadata": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/derive-blueprint-metadata.ts",
     "derive-metadata:dry-run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/derive-blueprint-metadata.ts --dry-run",
+    "backfill-previews": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/backfill-preview-images.ts",
+    "backfill-previews:dry-run": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/backfill-preview-images.ts --dry-run",
     "seed:dev-blueprints": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/seed-dev-blueprints.ts",
     "seed:dev-user": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/seed-dev-blueprints.ts --user-only",
     "convert:2024": "TS_NODE_TRANSPILE_ONLY=true ts-node app/api/batch/convert-export-2024.ts",

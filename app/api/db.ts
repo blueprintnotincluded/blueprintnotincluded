@@ -6,6 +6,7 @@ import { FeedbackModel } from './models/feedback';
 import { FollowModel } from './models/follow';
 import { CommentModel } from './models/comment';
 import { NotificationModel } from './models/notification';
+import { PreviewImageModel } from './models/preview-image';
 
 export class Database {
   constructor() {
@@ -28,6 +29,7 @@ export class Database {
       FollowModel.init();
       CommentModel.init();
       NotificationModel.init();
+      PreviewImageModel.init();
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {
