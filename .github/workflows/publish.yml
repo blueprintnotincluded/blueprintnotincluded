@@ -42,11 +42,16 @@ jobs:
           echo "GIT_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
           echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # Blacksmith sticky-disk layer cache instead of cache-from/to type=gha:
+      # on Blacksmith runners the GHA cache is a cross-provider transfer, and
+      # mode=max's ~400MB node_modules blobs kept the repo cache pinned at the
+      # 10GB cap — evictions made every build re-download blobs at <1MB/s
+      # (30+ min builds). The Blacksmith builder caches layers on local NVMe.
+      - name: Set up Docker builder
+        uses: useblacksmith/setup-docker-builder@v1
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6
+        uses: useblacksmith/build-push-action@v2
         with:
           context: .
           file: deploy.Dockerfile
@@ -56,8 +61,6 @@ jobs:
             BUILD_DATE=${{ env.BUILD_DATE }}
             GIT_COMMIT=${{ env.GIT_COMMIT }}
             GIT_BRANCH=${{ env.GIT_BRANCH }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
         
       - name: Smoke test preview renderer
         # Renders a fixture blueprint inside the deploy image under a
