@@ -41,13 +41,8 @@
       <div class="thumbnail">
         <img
           *ngIf="isReal(item.thumbnail)"
-          [src]="
-            item.id && !previewFailed.has(item.id)
-              ? previewUrl(item)
-              : item.thumbnail
-          "
-          (error)="onPreviewError(item)"
-          loading="lazy"
+          [appQueuedPreview]="previewUrl(item)"
+          [previewFallback]="item.thumbnail"
         />
         <svg
           *ngIf="item.thumbnail === 'svg'"
