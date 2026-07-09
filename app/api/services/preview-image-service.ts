@@ -216,7 +216,12 @@ export class PreviewImageService {
     }
   }
 
-  private async allFreshInMongo(
+  /**
+   * True when every variant has a fresh durable row. Errors (and an
+   * unavailable Mongo) read as stale — callers just render. Public for the
+   * backfill script, which uses it to skip already-stored blueprints.
+   */
+  public async allFreshInMongo(
     blueprintId: string,
     modifiedAt: Date | null | undefined
   ): Promise<boolean> {

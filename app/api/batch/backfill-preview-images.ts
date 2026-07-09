@@ -19,25 +19,10 @@ import * as dotenv from 'dotenv';
 import { BlueprintModel } from '../models/blueprint';
 import { BlueprintVersionModel } from '../models/blueprint-version';
 import { PreviewImageModel } from '../models/preview-image';
-import { PreviewImageService, PREVIEW_VARIANTS } from '../services/preview-image-service';
+import { PreviewImageService } from '../services/preview-image-service';
 import { PreviewController } from '../preview-controller';
 
 dotenv.config();
-
-async function allRowsFresh(
-  blueprintId: mongoose.Types.ObjectId,
-  modifiedAt: Date | null | undefined
-): Promise<boolean> {
-  const rows = await PreviewImageModel.model
-    .find({ blueprintId })
-    .select('variant sourceModifiedAt')
-    .lean();
-  const byVariant = new Map(rows.map(row => [row.variant, row.sourceModifiedAt]));
-  return PREVIEW_VARIANTS.every(
-    variant =>
-      byVariant.has(variant) && PreviewImageService.isRowFresh(byVariant.get(variant), modifiedAt)
-  );
-}
 
 async function run(dryRun: boolean) {
   if (process.env.PREVIEW_RENDER_DISABLED === '1' || process.env.NODE_ENV === 'test') {
@@ -72,7 +57,9 @@ async function run(dryRun: boolean) {
     const blueprintId = doc._id as mongoose.Types.ObjectId;
     const modifiedAt = doc.modifiedAt ?? null;
 
-    if (await allRowsFresh(blueprintId, modifiedAt)) {
+    // Errors read as stale (the service catches them), so a transient Mongo
+    // hiccup costs a re-render instead of aborting the run.
+    if (await service.allFreshInMongo(blueprintId.toString(), modifiedAt)) {
       fresh++;
     } else if (dryRun) {
       rendered++; // counts what a real run would render
