@@ -82,6 +82,53 @@ function logRss(label: string) {
   console.log(`preview-render-worker: ${label} rss=${rssMb}MB`);
 }
 
+// Container memory limit in MB from the cgroup (v2, then v1). Null when
+// unlimited or not in a container (dev machines, CI).
+function readCgroupMemoryLimitMb(): number | null {
+  const candidates = [
+    '/sys/fs/cgroup/memory.max',
+    '/sys/fs/cgroup/memory/memory.limit_in_bytes',
+  ];
+  for (const candidate of candidates) {
+    try {
+      const raw = fs.readFileSync(candidate, 'utf8').trim();
+      if (raw === 'max') return null;
+      const bytes = Number(raw);
+      // cgroup v1 reports "unlimited" as a huge number (~2^63); anything past
+      // 1TB is not a real app-container limit.
+      if (Number.isFinite(bytes) && bytes > 0 && bytes < 2 ** 40) {
+        return bytes / (1024 * 1024);
+      }
+    } catch {
+      // File absent — try the next cgroup layout.
+    }
+  }
+  return null;
+}
+
+// The recycle cap must leave room for the parent API process (~200MB Express +
+// sharp) plus render overshoot inside the same cgroup — the check runs between
+// renders, and a single render can add ~60MB before it fires. A flat 384MB
+// default OOM-killed 512MB containers (the worker never reached the cap before
+// the cgroup killed everything), so the default is derived from the container
+// limit; PREVIEW_WORKER_MAX_RSS_MB overrides it.
+const PARENT_HEADROOM_MB = 320;
+function resolveMaxRssMb(): number {
+  const fromEnv = Number(process.env.PREVIEW_WORKER_MAX_RSS_MB ?? NaN);
+  if (Number.isFinite(fromEnv) && fromEnv > 0) return fromEnv;
+  if (process.env.PREVIEW_WORKER_MAX_RSS_MB != null)
+    console.warn(
+      `preview-render-worker: invalid PREVIEW_WORKER_MAX_RSS_MB "${process.env.PREVIEW_WORKER_MAX_RSS_MB}", deriving from container limit`
+    );
+  const limitMb = readCgroupMemoryLimitMb();
+  if (limitMb == null) return 384;
+  const derived = Math.min(Math.max(limitMb - PARENT_HEADROOM_MB, 128), 384);
+  console.log(
+    `preview-render-worker: container limit ${Math.round(limitMb)}MB, rss cap ${Math.round(derived)}MB`
+  );
+  return derived;
+}
+
 // Every image id a render of this blueprint can request. Static walk of the
 // texture consumers (DrawPart.prepareSprite, SpriteInfo.getTexture,
 // drawPixiUtility) so only these files are decoded — preloading the full
@@ -283,14 +330,7 @@ async function main() {
   // toward the full-preload footprint. Once RSS crosses the cap, exit between
   // renders: the parent re-forks on the next request (~1s cold start) and the
   // container never approaches the cgroup memory limit.
-  const maxRssMbRaw = Number(process.env.PREVIEW_WORKER_MAX_RSS_MB ?? 384);
-  // An invalid value (NaN, zero, negative) would make the rssMb comparison
-  // below always false and silently disable recycling — fall back instead.
-  const maxRssMb = Number.isFinite(maxRssMbRaw) && maxRssMbRaw > 0 ? maxRssMbRaw : 384;
-  if (maxRssMb !== maxRssMbRaw)
-    console.warn(
-      `preview-render-worker: invalid PREVIEW_WORKER_MAX_RSS_MB "${process.env.PREVIEW_WORKER_MAX_RSS_MB}", using ${maxRssMb}`
-    );
+  const maxRssMb = resolveMaxRssMb();
   let rendersInFlight = 0;
 
   process.on('message', async (message: any) => {
