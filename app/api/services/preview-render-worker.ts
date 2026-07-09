@@ -245,7 +245,14 @@ async function main() {
   // toward the full-preload footprint. Once RSS crosses the cap, exit between
   // renders: the parent re-forks on the next request (~1s cold start) and the
   // container never approaches the cgroup memory limit.
-  const maxRssMb = Number(process.env.PREVIEW_WORKER_MAX_RSS_MB ?? 384);
+  const maxRssMbRaw = Number(process.env.PREVIEW_WORKER_MAX_RSS_MB ?? 384);
+  // An invalid value (NaN, zero, negative) would make the rssMb comparison
+  // below always false and silently disable recycling — fall back instead.
+  const maxRssMb = Number.isFinite(maxRssMbRaw) && maxRssMbRaw > 0 ? maxRssMbRaw : 384;
+  if (maxRssMb !== maxRssMbRaw)
+    console.warn(
+      `preview-render-worker: invalid PREVIEW_WORKER_MAX_RSS_MB "${process.env.PREVIEW_WORKER_MAX_RSS_MB}", using ${maxRssMb}`
+    );
   let rendersInFlight = 0;
 
   process.on('message', async (message: any) => {
@@ -253,11 +260,17 @@ async function main() {
     const { requestId, mdb, size } = message;
     rendersInFlight++;
     try {
-      const pngBase64 = await renderMaster(pixi, assetBaseDir, mdb, size);
-      process.send!({ type: 'rendered', requestId, pngBase64 });
-      logRss(`rendered request ${requestId}`);
-    } catch (e) {
-      process.send!({ type: 'error', requestId, message: e instanceof Error ? e.message : String(e) });
+      let reply: object;
+      try {
+        const pngBase64 = await renderMaster(pixi, assetBaseDir, mdb, size);
+        reply = { type: 'rendered', requestId, pngBase64 };
+      } catch (e) {
+        reply = { type: 'error', requestId, message: e instanceof Error ? e.message : String(e) };
+      }
+      // Wait for the IPC channel to flush the reply: process.exit in the
+      // recycle check below would otherwise drop a still-queued message.
+      await new Promise<void>(resolve => process.send!(reply, () => resolve()));
+      logRss(`handled request ${requestId}`);
     } finally {
       rendersInFlight--;
     }

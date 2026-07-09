@@ -252,6 +252,9 @@ export class PreviewImageService {
 
       worker.on('exit', (code, signal) => {
         clearTimeout(startTimer);
+        // Stale exit: this worker was already stopped/replaced (kill() fires
+        // 'exit' asynchronously). Don't touch the current worker's state.
+        if (this.worker !== worker) return;
         // code/signal distinguish a crash (code>0), an OOM/external kill
         // (signal, e.g. SIGKILL from the cgroup) and our own idle shutdown.
         const reason = `preview render worker exited (code=${code}, signal=${signal})`;
