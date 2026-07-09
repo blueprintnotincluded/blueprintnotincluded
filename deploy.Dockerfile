@@ -34,10 +34,16 @@ COPY ./frontend ./
 RUN npm run build -- --output-path=../build/app/public/
 RUN npm run build:admin -- --output-path=../build/app/public/admin/
 
-FROM --platform=amd64 node:20-alpine as serve-prod
+# Debian (glibc) base: node-canvas ships no musl prebuilds, and building it from
+# source on alpine needs the full cairo toolchain. The glibc prebuild is static.
+FROM --platform=amd64 node:20-slim as serve-prod
 WORKDIR /bpni
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+# --ignore-scripts skips canvas's install script (prebuild-install), which is what
+# fetches build/Release/canvas.node. Rebuild only canvas, then fail the build early
+# if the binding still can't load.
+RUN npm rebuild canvas && node -e "require('canvas')"
 COPY --from=build-backend /bpni/build /bpni/build
 COPY --from=build-frontend /bpni/build/app/public /bpni/build/app/public
 
