@@ -140,6 +140,47 @@ describe('Blueprint preview images', function () {
       fs.rmSync(cacheDir, { recursive: true, force: true });
     });
 
+    it('derives variants from a raw-pixel master (the render worker format)', async function () {
+      this.timeout(10000);
+      const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-raw-'));
+      // 64x64 opaque green RGBA — what the worker ships instead of a PNG.
+      const raw = Buffer.alloc(64 * 64 * 4);
+      for (let i = 0; i < raw.length; i += 4) {
+        raw[i + 1] = 200;
+        raw[i + 3] = 255;
+      }
+      PreviewImageService.setInstance(
+        new PreviewImageService({
+          cacheDir,
+          disabled: false,
+          renderMasterFn: async () => ({ raw, width: 64, height: 64 }),
+        })
+      );
+
+      const card = await TestSetup.request().get(
+        `/api/blueprints/${blueprintId}/preview/card.webp`
+      );
+      expect(card.status).to.equal(200);
+      expect(card.headers['content-type']).to.match(/image\/webp/);
+      const cardMeta = await sharp(card.body).metadata();
+      expect(cardMeta.width).to.equal(480);
+
+      const og = await TestSetup.request().get(`/api/blueprints/${blueprintId}/preview/og.png`);
+      expect(og.status).to.equal(200);
+      const ogMeta = await sharp(og.body).metadata();
+      expect(ogMeta.width).to.equal(1200);
+      expect(ogMeta.height).to.equal(630);
+      // Center pixel keeps the green channel — guards against channel swaps.
+      const center = await sharp(og.body)
+        .extract({ left: 600, top: 315, width: 1, height: 1 })
+        .raw()
+        .toBuffer();
+      expect(center[1]).to.be.greaterThan(center[0]);
+      expect(center[1]).to.be.greaterThan(center[2]);
+
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
     it('renders one master at a time even when requests arrive together', async function () {
       this.timeout(10000);
       const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-queue-'));
