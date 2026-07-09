@@ -25,6 +25,7 @@ import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
 import { optionalViewer } from './utils/optionalViewer';
 import { resolveCurrentData, syncCurrentVersion } from './services/blueprint-version-service';
+import { PreviewImageService } from './services/preview-image-service';
 import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
@@ -759,6 +760,10 @@ export class BlueprintController {
     }
 
     res.json({ id: newBlueprint.id });
+
+    // Render-on-write: warm the preview cache so the first browse view of
+    // this save doesn't pay the render (preview-images-perf-2.md Phase 2).
+    PreviewImageService.instance.prerender(newBlueprint.id, newBlueprint.modifiedAt, async () => data);
 
     try {
       BatchUtils.UpdatePositionCorrection(newBlueprint);

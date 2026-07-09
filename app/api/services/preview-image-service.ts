@@ -156,13 +156,50 @@ export class PreviewImageService {
   }
 
   private readIfFresh(filePath: string, modifiedAt: Date | null | undefined): Buffer | null {
+    if (!this.isFresh(filePath, modifiedAt)) return null;
     try {
-      const stat = fs.statSync(filePath);
-      if (modifiedAt != null && stat.mtimeMs <= modifiedAt.getTime()) return null;
       return fs.readFileSync(filePath);
     } catch {
       return null;
     }
+  }
+
+  private isFresh(filePath: string, modifiedAt: Date | null | undefined): boolean {
+    try {
+      const stat = fs.statSync(filePath);
+      return modifiedAt == null || stat.mtimeMs > modifiedAt.getTime();
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Render-on-write (spec/social/preview-images-perf-2.md Phase 2):
+   * fire-and-forget render of every variant so the first browse view after a
+   * save/fork/restore serves from cache. Skips when the cache is already
+   * fresh; shares the single-flight map and queue cap with getVariant, so a
+   * shed or failed render just means the lazy read path picks it up later —
+   * never a user-visible failure.
+   */
+  public prerender(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined,
+    loadMdb: () => Promise<unknown | null>
+  ): void {
+    if (this.disabled) return;
+    const allFresh = PREVIEW_VARIANTS.every(variant =>
+      this.isFresh(this.variantPath(blueprintId, variant), modifiedAt)
+    );
+    if (allFresh) return;
+
+    let render = this.inFlight.get(blueprintId);
+    if (!render) {
+      render = this.renderAllVariants(blueprintId, loadMdb).finally(() =>
+        this.inFlight.delete(blueprintId)
+      );
+      this.inFlight.set(blueprintId, render);
+    }
+    render.catch(e => console.log(`preview prerender failed for ${blueprintId}:`, e));
   }
 
   /**
