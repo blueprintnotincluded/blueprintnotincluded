@@ -40,6 +40,7 @@ import {
   Display,
 } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
+import { resolveMaxRssMb } from './render-memory';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
@@ -80,53 +81,6 @@ function initSharedLib() {
 function logRss(label: string) {
   const rssMb = Math.round(process.memoryUsage().rss / (1024 * 1024));
   console.log(`preview-render-worker: ${label} rss=${rssMb}MB`);
-}
-
-// Container memory limit in MB from the cgroup (v2, then v1). Null when
-// unlimited or not in a container (dev machines, CI).
-function readCgroupMemoryLimitMb(): number | null {
-  const candidates = [
-    '/sys/fs/cgroup/memory.max',
-    '/sys/fs/cgroup/memory/memory.limit_in_bytes',
-  ];
-  for (const candidate of candidates) {
-    try {
-      const raw = fs.readFileSync(candidate, 'utf8').trim();
-      if (raw === 'max') return null;
-      const bytes = Number(raw);
-      // cgroup v1 reports "unlimited" as a huge number (~2^63); anything past
-      // 1TB is not a real app-container limit.
-      if (Number.isFinite(bytes) && bytes > 0 && bytes < 2 ** 40) {
-        return bytes / (1024 * 1024);
-      }
-    } catch {
-      // File absent — try the next cgroup layout.
-    }
-  }
-  return null;
-}
-
-// The recycle cap must leave room for the parent API process (~200MB Express +
-// sharp) plus render overshoot inside the same cgroup — the check runs between
-// renders, and a single render can add ~60MB before it fires. A flat 384MB
-// default OOM-killed 512MB containers (the worker never reached the cap before
-// the cgroup killed everything), so the default is derived from the container
-// limit; PREVIEW_WORKER_MAX_RSS_MB overrides it.
-const PARENT_HEADROOM_MB = 320;
-function resolveMaxRssMb(): number {
-  const fromEnv = Number(process.env.PREVIEW_WORKER_MAX_RSS_MB ?? NaN);
-  if (Number.isFinite(fromEnv) && fromEnv > 0) return fromEnv;
-  if (process.env.PREVIEW_WORKER_MAX_RSS_MB != null)
-    console.warn(
-      `preview-render-worker: invalid PREVIEW_WORKER_MAX_RSS_MB "${process.env.PREVIEW_WORKER_MAX_RSS_MB}", deriving from container limit`
-    );
-  const limitMb = readCgroupMemoryLimitMb();
-  if (limitMb == null) return 384;
-  const derived = Math.min(Math.max(limitMb - PARENT_HEADROOM_MB, 128), 384);
-  console.log(
-    `preview-render-worker: container limit ${Math.round(limitMb)}MB, rss cap ${Math.round(derived)}MB`
-  );
-  return derived;
 }
 
 // Every image id a render of this blueprint can request. Static walk of the
@@ -308,6 +262,11 @@ async function main() {
   if (!smoke && !process.send)
     throw new Error('preview-render-worker must be forked with an IPC channel');
 
+  // Resolved (and logged) up front — including under --smoke, so the deploy
+  // image check in CI shows the cap the production container will run with.
+  const { maxRssMb, detail } = resolveMaxRssMb();
+  console.log(`preview-render-worker: ${detail}`);
+
   initSharedLib();
   const pixi = new PixiNodeUtil({ forceCanvas: true, preserveDrawingBuffer: true });
   const assetBaseDir = resolveAssetBaseDir();
@@ -330,7 +289,6 @@ async function main() {
   // toward the full-preload footprint. Once RSS crosses the cap, exit between
   // renders: the parent re-forks on the next request (~1s cold start) and the
   // container never approaches the cgroup memory limit.
-  const maxRssMb = resolveMaxRssMb();
   let rendersInFlight = 0;
 
   process.on('message', async (message: any) => {
