@@ -10,7 +10,6 @@ export interface UserDetails {
   username: string;
   exp: number;
   role?: string;
-  isAlpha?: boolean;
 }
 
 export type LoginResult =
@@ -62,23 +61,6 @@ export class AuthenticationService {
     } else {
       return false;
     }
-  }
-
-  public isAlpha(): boolean {
-    if (!this.isLoggedIn()) return false;
-    return this.getUserDetails()?.isAlpha === true;
-  }
-
-  public toggleAlpha(): Observable<string> {
-    return this.http
-      .post<{ token: string }>(
-        "/api/admin/alpha/toggle",
-        {},
-        {
-          headers: { Authorization: `Bearer ${this.getToken()}` },
-        }
-      )
-      .pipe(map((res) => res.token));
   }
 
   public logout(): void {

@@ -1,19 +1,6 @@
 <p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
 <ng-container *ngIf="authService.isLoggedIn(); else loginButton">
   <button
-    *ngIf="isAdmin"
-    pButton
-    type="button"
-    icon="pi pi-star"
-    [label]="authService.isAlpha() ? 'Exit Alpha' : 'Enter Alpha'"
-    [class]="
-      authService.isAlpha()
-        ? 'alpha-toggle alpha-active'
-        : 'alpha-toggle alpha-inactive'
-    "
-    (click)="toggleAlpha()"
-  ></button>
-  <button
     pButton
     type="button"
     class="p-button-secondary"

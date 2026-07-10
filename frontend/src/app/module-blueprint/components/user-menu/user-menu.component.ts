@@ -114,15 +114,6 @@ export class UserMenuComponent implements OnInit {
     this.router.navigate(["/login"]);
   }
 
-  toggleAlpha() {
-    this.authService.toggleAlpha().subscribe({
-      next: (token: string) => {
-        this.authService.saveToken(token);
-        this.router.navigate(["/"]);
-      },
-    });
-  }
-
   logout() {
     this.authService.logout();
     this.messageService.add({

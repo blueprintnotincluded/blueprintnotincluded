@@ -121,11 +121,11 @@ describe("AuthenticationService", () => {
       expect(localStorage.getItem("blueprintnotincluded-token")).toBeNull();
     });
 
-    it("isAlpha returns false instead of throwing on malformed token", () => {
+    it("isLoggedIn returns false instead of throwing on malformed token", () => {
       localStorage.setItem("blueprintnotincluded-token", "bad-token");
       (service as any).token = "bad-token";
-      expect(() => service.isAlpha()).not.toThrow();
-      expect(service.isAlpha()).toBe(false);
+      expect(() => service.isLoggedIn()).not.toThrow();
+      expect(service.isLoggedIn()).toBe(false);
     });
   });
 
@@ -156,38 +156,6 @@ describe("AuthenticationService", () => {
         })
       );
       expect(service.isLoggedIn()).toBe(false);
-    });
-  });
-
-  describe("isAlpha", () => {
-    it("returns false when no token (guest)", () => {
-      expect(service.isAlpha()).toBe(false);
-    });
-
-    it("returns true for a logged-in alpha user", () => {
-      service.saveToken(
-        makeJwt({
-          _id: "u1",
-          email: "a@b.com",
-          username: "alice",
-          exp: FUTURE_EXP,
-          isAlpha: true,
-        })
-      );
-      expect(service.isAlpha()).toBe(true);
-    });
-
-    it("returns false for an expired alpha token (stale cookie)", () => {
-      service.saveToken(
-        makeJwt({
-          _id: "u1",
-          email: "a@b.com",
-          username: "alice",
-          exp: PAST_EXP,
-          isAlpha: true,
-        })
-      );
-      expect(service.isAlpha()).toBe(false);
     });
   });
 

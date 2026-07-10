@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { Router } from "@angular/router";
-import { of } from "rxjs";
 import { MessageService } from "primeng/api";
 
 import { UserMenuComponent, BrowseData } from "./user-menu.component";
@@ -31,16 +30,12 @@ describe("UserMenuComponent", () => {
     authService = {
       isLoggedIn: vi.fn(),
       getUserDetails: vi.fn(),
-      isAlpha: vi.fn(),
       logout: vi.fn(),
-      toggleAlpha: vi.fn(),
-      saveToken: vi.fn(),
     };
     router = { navigate: vi.fn() };
     messageService = { add: vi.fn() };
 
     authService.getUserDetails.mockReturnValue(null);
-    authService.isAlpha.mockReturnValue(false);
     authService.isLoggedIn.mockReturnValue(false);
 
     await TestBed.configureTestingModule({
@@ -132,15 +127,6 @@ describe("UserMenuComponent", () => {
       component.switchAccount();
       expect(authService.logout).toHaveBeenCalled();
       expect(router.navigate).toHaveBeenCalledWith(["/login"]);
-    });
-  });
-
-  describe("toggleAlpha", () => {
-    it("saves new token and navigates to root", () => {
-      authService.toggleAlpha.mockReturnValue(of("new-token"));
-      component.toggleAlpha();
-      expect(authService.saveToken).toHaveBeenCalledWith("new-token");
-      expect(router.navigate).toHaveBeenCalledWith(["/"]);
     });
   });
 });

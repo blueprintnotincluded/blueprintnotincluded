@@ -24,7 +24,7 @@
 // token stays valid no matter how many times the DB is reset — and it is the one
 // account the destructive cleanup never deletes. After ANY reset (a full `test`
 // db-setup, a manual drop, whatever), `npm run seed:dev-user` restores it in one
-// command with no WorkOS flow. Its token is admin + alpha and long-lived (30 days),
+// command with no WorkOS flow. Its token is admin and long-lived (30 days),
 // so a single paste gives you everything for a month of validation.
 
 import * as fs from 'fs';
@@ -61,7 +61,6 @@ interface DevUserSpec {
   username: string;
   email: string;
   bio: string;
-  isAlpha?: boolean;
   role?: Role;
 }
 
@@ -73,7 +72,6 @@ const PROTECTED_USER = {
   username: 'dev_you',
   email: 'dev_you@bpni.local',
   bio: 'Durable dev validation account — survives DB resets.',
-  isAlpha: true,
   role: 'admin' as Role,
 };
 const PROTECTED_TOKEN_DAYS = 30;
@@ -83,15 +81,13 @@ const DEV_USERS: DevUserSpec[] = [
     username: 'dev_admin',
     email: 'dev_admin@bpni.local',
     bio: 'Platform admin — moderates comments and triages feedback.',
-    isAlpha: true,
     role: 'admin',
   },
   {
     username: 'dev_creator_alpha',
     email: 'dev_creator_alpha@bpni.local',
     bio: 'Prolific builder. Posts a lot of single-purpose reference builds.',
-    isAlpha: true,
-  },
+    },
   {
     username: 'dev_creator_beta',
     email: 'dev_creator_beta@bpni.local',
@@ -285,7 +281,6 @@ async function seedUser(spec: DevUserSpec): Promise<UserDoc> {
     username: spec.username,
     email: spec.email,
     bio: spec.bio,
-    isAlpha: spec.isAlpha ?? false,
     authProvider: 'workos',
   });
   await user.save();
@@ -302,7 +297,6 @@ async function ensureProtectedUser(): Promise<UserDoc> {
         username: PROTECTED_USER.username,
         email: PROTECTED_USER.email,
         bio: PROTECTED_USER.bio,
-        isAlpha: PROTECTED_USER.isAlpha,
         authProvider: 'workos',
       },
     },
@@ -321,7 +315,6 @@ function mintDevToken(user: UserDoc, opts: { days: number; role?: Role } = { day
     exp: Math.floor(Date.now() / 1000) + opts.days * 24 * 60 * 60,
   };
   if (opts.role) payload.role = opts.role;
-  if (user.isAlpha) payload.isAlpha = true;
   return jwt.sign(payload, process.env.JWT_SECRET as string);
 }
 
