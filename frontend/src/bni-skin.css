@@ -504,6 +504,25 @@ a.bni-chip:hover {
   overflow: hidden;
 }
 
+/* Draft cards read as work-in-progress: dashed primary border + faint
+   diagonal hatching, echoing the .bni-chip--draft treatment. Loud on
+   purpose — drafts should be impossible to forget, publishing clears it. */
+.bni-card--draft {
+  border: 2px dashed var(--bni-primary-bd);
+  background: repeating-linear-gradient(
+      -45deg,
+      transparent 0,
+      transparent 10px,
+      color-mix(in srgb, var(--bni-primary) 16%, transparent) 10px,
+      color-mix(in srgb, var(--bni-primary) 16%, transparent) 13px
+    ),
+    var(--bni-panel);
+}
+
+.bni-card--draft .bni-card__thumb img {
+  opacity: 0.85;
+}
+
 .bni-card__thumb {
   display: block;
   position: relative;

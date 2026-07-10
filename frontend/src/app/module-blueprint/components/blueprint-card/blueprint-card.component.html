@@ -1,6 +1,7 @@
 <article
   *ngIf="isReal(item.thumbnail)"
   class="blueprint-card bni-card bni-rivets"
+  [class.bni-card--draft]="item.isPublished === false"
 >
   <a
     class="bni-card__thumb"
