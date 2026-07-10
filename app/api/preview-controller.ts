@@ -7,6 +7,8 @@ import {
   PreviewVariant,
   PREVIEW_VARIANTS,
 } from './services/preview-image-service';
+import { optionalViewer } from './utils/optionalViewer';
+import { canViewBlueprint } from './utils/blueprint-visibility';
 
 // Serves the server-rendered preview derivatives:
 //   GET /api/blueprints/:id/preview/card.webp
@@ -29,9 +31,12 @@ export class PreviewController {
     try {
       const blueprint = await BlueprintModel.model
         .findOne({ _id: id, deletedAt: null })
-        .select('modifiedAt thumbnail')
+        .select('modifiedAt thumbnail owner isPublished')
         .lean();
-      if (!blueprint) return res.status(404).send();
+      if (!blueprint || !canViewBlueprint(blueprint, optionalViewer(req))) {
+        return res.status(404).send();
+      }
+      const isDraft = blueprint.isPublished === false;
 
       const modifiedAt = blueprint.modifiedAt ?? null;
 
@@ -47,9 +52,13 @@ export class PreviewController {
 
       // Versioned urls (?v=<modifiedAt millis>) are immutable; bare urls
       // stay revalidatable so edits show up promptly through Cloudflare.
-      const cacheControl = req.query.v
-        ? 'public, max-age=31536000, immutable'
-        : 'public, max-age=300';
+      // Draft previews are only ever served to owner/admin and must never be
+      // held by Cloudflare or any shared cache.
+      const cacheControl = isDraft
+        ? 'private, no-store'
+        : req.query.v
+          ? 'public, max-age=31536000, immutable'
+          : 'public, max-age=300';
 
       if (result) {
         res.set({ 'Content-Type': result.contentType, 'Cache-Control': cacheControl, ETag: etag });

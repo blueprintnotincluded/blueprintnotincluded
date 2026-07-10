@@ -7,6 +7,7 @@ import { FollowModel } from './models/follow';
 import { CommentModel } from './models/comment';
 import { NotificationModel } from './models/notification';
 import { PreviewImageModel } from './models/preview-image';
+import { BlueprintEventModel } from './models/blueprint-event';
 
 export class Database {
   constructor() {
@@ -30,6 +31,7 @@ export class Database {
       CommentModel.init();
       NotificationModel.init();
       PreviewImageModel.init();
+      BlueprintEventModel.init();
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {

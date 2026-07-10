@@ -24,6 +24,8 @@ import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
 import { optionalViewer } from './utils/optionalViewer';
+import { canViewBlueprint } from './utils/blueprint-visibility';
+import { BlueprintEventService } from './services/blueprint-event-service';
 import { resolveCurrentData, syncCurrentVersion } from './services/blueprint-version-service';
 import { PreviewImageService } from './services/preview-image-service';
 import mongoose from 'mongoose';
@@ -95,6 +97,10 @@ export class BlueprintController {
 
       const modded = req.body.modded != null ? Boolean(req.body.modded) : null;
 
+      // publish: true = publish as part of this save; absent = keep current
+      // state (new blueprints start as drafts via the schema default)
+      const publish = req.body.publish != null ? Boolean(req.body.publish) : null;
+
       const metadata = { gameVersion, category, subcategory, description, researchTier, modded };
 
       BlueprintModel.model
@@ -111,7 +117,8 @@ export class BlueprintController {
                 data,
                 thumbnail,
                 false,
-                metadata
+                metadata,
+                publish
               );
             else res.json({ overwrite: true });
           } else {
@@ -128,7 +135,8 @@ export class BlueprintController {
               data,
               thumbnail,
               true,
-              metadata
+              metadata,
+              publish
             );
           }
         })
@@ -167,6 +175,11 @@ export class BlueprintController {
                 .save()
                 .then(() => {
                   res.json({ deleteBlueprint: 'OK' });
+                  BlueprintEventService.log({
+                    blueprintId: blueprint.id,
+                    actorId: ownerId,
+                    type: 'deleted',
+                  });
                 })
                 .catch(error => {
                   console.log('deleteBlueprint error');
@@ -199,42 +212,18 @@ export class BlueprintController {
           return;
         }
 
-        // Atomic toggle keyed on current membership: concurrent or repeated
-        // requests can't skew likeCount. matchedCount === 0 on an existing
-        // blueprint just means "already in desired state" — idempotent 200.
-        const userId = user._id;
-        const update = blueprintLike.like
-          ? BlueprintModel.model.updateOne(
-              { _id: blueprintLike.blueprintId, likes: { $ne: userId } },
-              { $push: { likes: userId }, $inc: { likeCount: 1 } }
-            )
-          : BlueprintModel.model.updateOne(
-              { _id: blueprintLike.blueprintId, likes: userId },
-              { $pull: { likes: userId }, $inc: { likeCount: -1 } }
-            );
-
-        update
-          .then(async result => {
-            if (result.matchedCount === 0) {
-              if ((await BlueprintModel.model.exists({ _id: blueprintLike.blueprintId })) != null) {
-                res.json({ likeBlueprint: 'OK' });
-              } else res.status(404).json(apiError(404, 'Blueprint not found'));
-              return;
+        // Drafts are invisible to everyone but owner/admin — 404 (not 403) so
+        // draft ids can't be probed via the like endpoint.
+        BlueprintModel.model
+          .findById(blueprintLike.blueprintId)
+          .select('owner isPublished')
+          .lean()
+          .then(target => {
+            if (target == null || !canViewBlueprint(target, user)) {
+              res.status(404).json(apiError(404, 'Blueprint not found'));
+              return null;
             }
-
-            if (blueprintLike.like) {
-              const liked = await BlueprintModel.model.findById(blueprintLike.blueprintId).select('owner').lean();
-              if (liked != null) {
-                await NotificationController.notify({
-                  recipientId: liked.owner,
-                  actorId: userId,
-                  type: 'like',
-                  blueprintId: blueprintLike.blueprintId,
-                });
-              }
-            }
-
-            res.json({ likeBlueprint: 'OK' });
+            return BlueprintController.applyLike(res, user, blueprintLike);
           })
           .catch(err => {
             console.log('likeBlueprint error');
@@ -245,6 +234,44 @@ export class BlueprintController {
         res.status(500).json(apiError(500, 'Failed to update like'));
       }
     }
+  }
+
+  private static async applyLike(res: Response, user: UserJwt, blueprintLike: BlueprintLike) {
+    // Atomic toggle keyed on current membership: concurrent or repeated
+    // requests can't skew likeCount. matchedCount === 0 on an existing
+    // blueprint just means "already in desired state" — idempotent 200.
+    const userId = user._id;
+    const update = blueprintLike.like
+      ? BlueprintModel.model.updateOne(
+          { _id: blueprintLike.blueprintId, likes: { $ne: userId } },
+          { $push: { likes: userId }, $inc: { likeCount: 1 } }
+        )
+      : BlueprintModel.model.updateOne(
+          { _id: blueprintLike.blueprintId, likes: userId },
+          { $pull: { likes: userId }, $inc: { likeCount: -1 } }
+        );
+
+    const result = await update;
+    if (result.matchedCount === 0) {
+      if ((await BlueprintModel.model.exists({ _id: blueprintLike.blueprintId })) != null) {
+        res.json({ likeBlueprint: 'OK' });
+      } else res.status(404).json(apiError(404, 'Blueprint not found'));
+      return;
+    }
+
+    if (blueprintLike.like) {
+      const liked = await BlueprintModel.model.findById(blueprintLike.blueprintId).select('owner').lean();
+      if (liked != null) {
+        await NotificationController.notify({
+          recipientId: liked.owner,
+          actorId: userId,
+          type: 'like',
+          blueprintId: blueprintLike.blueprintId,
+        });
+      }
+    }
+
+    res.json({ likeBlueprint: 'OK' });
   }
 
   public async getBlueprint(req: Request, res: Response): Promise<void> {
@@ -259,7 +286,9 @@ export class BlueprintController {
 
     try {
       const blueprint = await BlueprintModel.model.findOne({ _id: id });
-      if (blueprint == null) {
+      // TODO: this endpoint (like getBlueprintMod/getBlueprintThumbnail) still
+      // serves soft-deleted blueprints — pre-existing behavior, left as is.
+      if (blueprint == null || !canViewBlueprint(blueprint, optionalViewer(req))) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }
@@ -287,6 +316,7 @@ export class BlueprintController {
         description: blueprint.description ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
+        isPublished: blueprint.isPublished !== false,
       };
       res.json(response);
     } catch (err) {
@@ -308,7 +338,9 @@ export class BlueprintController {
 
     try {
       const blueprint = await BlueprintModel.model.findOne({ _id: id });
-      if (blueprint == null) {
+      // Drafts 404 for anyone but owner/admin — the anonymous ONI mod cannot
+      // import a draft by id (by design).
+      if (blueprint == null || !canViewBlueprint(blueprint, optionalViewer(req))) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }
@@ -337,7 +369,7 @@ export class BlueprintController {
       BlueprintModel.model
         .find({ _id: id })
         .then(blueprints => {
-          if (blueprints.length > 0) {
+          if (blueprints.length > 0 && canViewBlueprint(blueprints[0], optionalViewer(req))) {
             let blueprint = blueprints[0];
 
             let mdbBlueprint = blueprint.data as MdbBlueprint;
@@ -461,6 +493,18 @@ export class BlueprintController {
       let filter: any = usesOffsetPagination
         ? { $and: [{ deletedAt: null }] }
         : { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
+
+      // Draft visibility: published blueprints for everyone, plus the viewer's
+      // own drafts. Admins browsing a specific user's list (filterUserId) see
+      // that user's drafts too, but drafts never leak into the general feed.
+      // $ne: false (not $eq: true) so docs predating the backfill migration
+      // stay visible in the deploy→migrate window.
+      const isAdmin = userJwt?.role === 'admin';
+      if (!(isAdmin && filterUserId != null)) {
+        const visibleTo: any[] = [{ isPublished: { $ne: false } }];
+        if (userId !== '') visibleTo.push({ owner: userId });
+        filter.$and.push({ $or: visibleTo });
+      }
 
       if (filterUserId != null) filter.$and.push({ owner: filterUserId });
       if (filterName != null) filter.$and.push({ name: { $regex: filterName, $options: 'i' } });
@@ -609,6 +653,7 @@ export class BlueprintController {
           subcategory: blueprint.subcategory ?? null,
           description: blueprint.description ?? null,
           modded: blueprint.modded ?? null,
+          isPublished: blueprint.isPublished !== false,
           nbForks: blueprint.forkCount ?? 0,
           forkedFrom:
             blueprint.forkedFrom != null
@@ -622,6 +667,71 @@ export class BlueprintController {
 
       res.json(returnValue);
     } else res.json(returnValue);
+  }
+
+  public publishBlueprint(req: Request, res: Response) {
+    BlueprintController.setPublished(req, res, true);
+  }
+
+  public unpublishBlueprint(req: Request, res: Response) {
+    BlueprintController.setPublished(req, res, false);
+  }
+
+  private static async setPublished(req: Request, res: Response, target: boolean): Promise<void> {
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
+    }
+    try {
+      const user = req.user as UserJwt;
+      const blueprintId = req.params.id;
+      if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
+        res.status(400).json(apiError(400, 'Invalid blueprint id'));
+        return;
+      }
+
+      const blueprint = await BlueprintModel.model
+        .findById(blueprintId)
+        .select('owner isPublished deletedAt')
+        .lean();
+      if (blueprint == null || blueprint.deletedAt != null) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
+
+      const isOwner = blueprint.owner.toString() === user._id;
+      if (!isOwner && user.role !== 'admin') {
+        // Hide draft existence from non-owners; published blueprints are
+        // visible so a plain 403 is fine there.
+        if (blueprint.isPublished === false) {
+          res.status(404).json(apiError(404, 'Blueprint not found'));
+        } else {
+          res.status(403).json(apiError(403, 'Not allowed to change publish state'));
+        }
+        return;
+      }
+
+      // State-guarded update: concurrent double-clicks match at most once, so
+      // exactly one event is logged per real transition. Already in the target
+      // state → idempotent 200, no event.
+      const result = await BlueprintModel.model.updateOne(
+        { _id: blueprintId, isPublished: { $ne: target } },
+        { $set: { isPublished: target } }
+      );
+      if (result.modifiedCount === 1) {
+        BlueprintEventService.log({
+          blueprintId,
+          // Admin actions are attributed to the admin, not the owner
+          actorId: user._id,
+          type: target ? 'published' : 'unpublished',
+        });
+      }
+      res.json({ isPublished: target });
+    } catch (err) {
+      console.log('setPublished error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to update publish state'));
+    }
   }
 
   // Meta-only payload for the details page: everything the card shows plus
@@ -643,12 +753,12 @@ export class BlueprintController {
       const blueprint = await BlueprintModel.model
         .findOne({ _id: blueprintId, deletedAt: null })
         .populate('owner');
-      if (!blueprint) {
+      const viewer = optionalViewer(req);
+      if (!blueprint || !canViewBlueprint(blueprint, viewer)) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }
 
-      const viewer = optionalViewer(req);
       const viewerId = viewer?._id ?? null;
 
       let ownerId = '';
@@ -698,6 +808,7 @@ export class BlueprintController {
         description: blueprint.description ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
+        isPublished: blueprint.isPublished !== false,
         nbForks: blueprint.forkCount ?? 0,
         forkedFrom:
           blueprint.forkedFrom != null
@@ -728,8 +839,17 @@ export class BlueprintController {
       description: string | null;
       researchTier: string | null;
       modded: boolean | null;
-    }
+    },
+    publish?: boolean | null
   ): Promise<void> {
+    // New blueprints start as drafts (set explicitly — see the schema comment
+    // on isPublished for why there is no schema default). Resurrect-via-
+    // overwrite (soft-deleted doc reused) keeps its prior publish state and
+    // logs 'updated' — the doc's history continues.
+    if (blueprint.isNew) blueprint.isPublished = false;
+    const wasPublished = blueprint.isPublished !== false;
+    if (publish === true && !wasPublished) blueprint.isPublished = true;
+
     blueprint.owner = ownerId;
     blueprint.name = name;
     blueprint.data = data;
@@ -764,6 +884,17 @@ export class BlueprintController {
     }
 
     res.json({ id: newBlueprint.id });
+
+    // Lifecycle event log (fire-and-forget). Version create/delete/restore
+    // intentionally do not log 'updated' — the log tracks overwrite saves.
+    BlueprintEventService.log({
+      blueprintId: newBlueprint.id,
+      actorId: ownerId,
+      type: overwriteCreateDate ? 'created' : 'updated',
+    });
+    if (publish === true && !wasPublished) {
+      BlueprintEventService.log({ blueprintId: newBlueprint.id, actorId: ownerId, type: 'published' });
+    }
 
     // Render-on-write: warm the preview cache so the first browse view of
     // this save doesn't pay the render (preview-images-perf-2.md Phase 2).

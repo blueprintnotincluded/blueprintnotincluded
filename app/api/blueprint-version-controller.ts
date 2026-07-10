@@ -5,6 +5,9 @@ import { BlueprintVersionModel, BlueprintVersion } from './models/blueprint-vers
 import { UserJwt } from './models/user';
 import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
+import { optionalViewer } from './utils/optionalViewer';
+import { canViewBlueprint } from './utils/blueprint-visibility';
+import { BlueprintEventService } from './services/blueprint-event-service';
 import {
   ensureCurrentVersion,
   resolveCurrentData,
@@ -60,7 +63,9 @@ export class BlueprintVersionController {
       }
 
       const source = await BlueprintModel.model.findOne({ _id: sourceId, deletedAt: null });
-      if (!source) {
+      // Drafts can only be forked by their owner or an admin (the fork below
+      // is itself a draft via the schema default).
+      if (!source || !canViewBlueprint(source, user)) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }
@@ -79,6 +84,8 @@ export class BlueprintVersionController {
         createdAt: now,
         modifiedAt: now,
         deletedAt: null,
+        // Forks start as drafts, like any new blueprint
+        isPublished: false,
         gameVersion: source.gameVersion ?? null,
         category: source.category ?? null,
         subcategory: source.subcategory ?? null,
@@ -108,6 +115,9 @@ export class BlueprintVersionController {
       // Render-on-write: warm the fork's preview cache (Phase 2).
       PreviewImageService.instance.prerender(forked.id, now, async () => forkedVersion.data);
 
+      // The fork is a brand-new (draft) blueprint — lifecycle log starts here
+      BlueprintEventService.log({ blueprintId: forked.id, actorId: user._id, type: 'created' });
+
       await NotificationController.notify({
         recipientId: source.owner,
         actorId: user._id,
@@ -132,8 +142,12 @@ export class BlueprintVersionController {
         return;
       }
 
-      const blueprint = await BlueprintModel.model.findOne({ _id: blueprintId }).select('_id').lean();
-      if (!blueprint) {
+      // Anonymous route: gate drafts so version names/thumbnails can't leak
+      const blueprint = await BlueprintModel.model
+        .findOne({ _id: blueprintId })
+        .select('owner isPublished')
+        .lean();
+      if (!blueprint || !canViewBlueprint(blueprint, optionalViewer(req))) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }

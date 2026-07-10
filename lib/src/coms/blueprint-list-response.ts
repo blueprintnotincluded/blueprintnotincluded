@@ -23,6 +23,7 @@ export interface BlueprintListItem {
   subcategory?: string | null;
   description?: string | null;
   modded?: boolean | null;
+  isPublished: boolean;
   nbForks: number;
   // Present when this blueprint is a fork; null blueprintName means the
   // parent has been soft-deleted ("[original removed by author]")
@@ -56,4 +57,5 @@ export interface BlueprintResponse {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
+  isPublished: boolean;
 }
