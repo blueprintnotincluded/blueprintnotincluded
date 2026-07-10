@@ -1,28 +1,72 @@
-.error-red {
-  color: var(--p-red-500);
-  margin-left: 0.5em;
-}
-
-.radio-button {
-  margin-left: 10px;
-}
-
-.metadata-fields {
-  margin-top: 1.2rem;
+/* Dialog width lives on the p-dialog [style] binding — the panel is appended
+   to document.body, out of reach of scoped styles. Everything below is
+   projected content, which keeps the component's scoping attribute. */
+.save-form {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.1rem;
 }
 
-.metadata-row {
+/* Label above field, full-width control */
+.save-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.save-field > label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--p-text-muted-color);
+}
+
+.save-field input,
+.save-field textarea,
+.save-field .p-select {
   width: 100%;
 }
 
-.metadata-row--inline {
-  display: flex;
-  flex-wrap: wrap;
+.save-field textarea {
+  resize: vertical;
+}
+
+/* Two equal columns; stacks on narrow screens */
+.save-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .save-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Auto-detected metadata: read-only, visually set apart */
+.save-detected {
+  border: 1px dashed var(--p-surface-600, var(--p-content-border-color));
+  border-radius: var(--p-content-border-radius, 6px);
+  padding: 0.75rem 0.9rem 0.9rem;
+}
+
+.save-detected-caption {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+  margin-bottom: 0.6rem;
+}
+
+.save-detected-fields {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.save-detected .metadata-checkbox {
+  padding-bottom: 0.55rem;
 }
 
 .metadata-checkbox {
@@ -31,4 +75,9 @@
   gap: 0.4rem;
   cursor: pointer;
   user-select: none;
+}
+
+.save-field-error {
+  color: var(--p-red-400);
+  font-size: 0.85rem;
 }
