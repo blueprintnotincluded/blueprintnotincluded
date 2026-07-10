@@ -538,6 +538,10 @@ export class BlueprintController {
     let returnValue = returnValueAny as BlueprintListResponse;
     returnValue.blueprints = [];
     returnValue.oldest = new Date();
+    // must be present even for an empty page: a missing value used to read as
+    // undefined on the client, which never matched the ===0 "done" check and
+    // kept infinite scroll requesting forever
+    returnValue.remaining = 0;
 
     if (blueprints.length) {
       returnValue.remaining = blueprints.length - browseIncrement;

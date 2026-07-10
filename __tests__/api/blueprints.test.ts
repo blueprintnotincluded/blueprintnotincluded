@@ -173,6 +173,18 @@ describe('Blueprint API (Mocha)', function () {
       expect(names).to.not.include('Super Coal Generator Setup');
     });
 
+    it('should return remaining: 0 (not undefined) for an empty filtered page', async function () {
+      // Regression: an omitted `remaining` reads as undefined on the client,
+      // never matches its ===0 done-check, and infinite scroll loops forever.
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), filterName: 'no-blueprint-matches-this' });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints).to.deep.equal([]);
+      expect(response.body.remaining).to.equal(0);
+    });
+
     it('should do case-insensitive name filtering', async function () {
       const lower = await TestSetup.request()
         .get('/api/getblueprints')

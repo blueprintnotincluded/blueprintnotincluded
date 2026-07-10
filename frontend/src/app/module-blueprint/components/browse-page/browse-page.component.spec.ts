@@ -118,6 +118,29 @@ describe("BrowsePageComponent", () => {
     });
   });
 
+  describe("empty page handling (infinite scroll end)", () => {
+    it("stops scrolling on an empty page even when remaining is missing", () => {
+      // Old server responses omitted `remaining` for empty pages; undefined
+      // never matched the ===0 check and infinite scroll looped forever.
+      component.handleGetBlueprints({
+        oldest: Date.now(),
+        blueprints: [],
+      } as any);
+      expect(component.noMoreBlueprints).toBe(true);
+    });
+
+    it("does not reset the pagination cursor on an empty page", () => {
+      const cursor = new Date("2024-01-01");
+      component.oldestDate = cursor;
+      component.handleGetBlueprints({
+        oldest: Date.now(),
+        blueprints: [],
+        remaining: 0,
+      } as any);
+      expect(component.oldestDate).toBe(cursor);
+    });
+  });
+
   describe("showMyBlueprints", () => {
     it("filters the feed by the requesting user's id", () => {
       const data: BrowseData = {

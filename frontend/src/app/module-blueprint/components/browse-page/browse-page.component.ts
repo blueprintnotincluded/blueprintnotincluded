@@ -327,11 +327,16 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   handleGetBlueprints(response: BlueprintListResponse) {
     this.working = false;
     this.loadError = false;
-    this.oldestDate = new Date(response.oldest);
+    // An empty page must not touch the cursor: the server dates `oldest` as
+    // "now" when it has nothing, and adopting that would restart pagination
+    // from the top and re-append the first page forever.
+    if (response.blueprints.length > 0)
+      this.oldestDate = new Date(response.oldest);
     // non-"recent" sorts (popular, mostForked) paginate by offset — advance past what we just received
     this.skipCount += response.blueprints.length;
-    this.remaining = response.remaining;
-    if (this.remaining === 0) this.noMoreBlueprints = true;
+    this.remaining = response.remaining ?? 0;
+    if (this.remaining === 0 || response.blueprints.length === 0)
+      this.noMoreBlueprints = true;
 
     this.blueprintListItems = this.blueprintListItems.filter(
       (i) => i !== this.loadingBlueprintItem
