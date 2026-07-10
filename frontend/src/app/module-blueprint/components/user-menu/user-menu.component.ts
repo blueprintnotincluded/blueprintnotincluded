@@ -24,6 +24,7 @@ export interface BrowseData {
 export class UserMenuComponent implements OnInit {
   @ViewChild("userMenu") userMenu!: Menu;
 
+  @Output() about = new EventEmitter<void>();
   @Output() sendFeedback = new EventEmitter<void>();
   @Output() myBlueprintsRequested = new EventEmitter<BrowseData>();
 
@@ -44,12 +45,6 @@ export class UserMenuComponent implements OnInit {
     const loggedIn = this.authService.isLoggedIn();
     this.userMenuItems = [
       {
-        label: $localize`Sign in`,
-        icon: "pi pi-sign-in",
-        command: () => this.login(),
-        visible: !loggedIn,
-      },
-      {
         label: $localize`My Blueprints`,
         icon: "pi pi-images",
         command: () => this.userProfile(),
@@ -61,7 +56,7 @@ export class UserMenuComponent implements OnInit {
         command: () => this.switchAccount(),
         visible: loggedIn,
       },
-      { separator: true },
+      { separator: true, visible: loggedIn },
       {
         label: $localize`Send Feedback`,
         icon: "pi pi-comment",
@@ -74,6 +69,24 @@ export class UserMenuComponent implements OnInit {
         visible: this.isAdmin,
       },
       { separator: true },
+      {
+        label: $localize`About`,
+        icon: "pi pi-info-circle",
+        command: () => this.about.emit(),
+      },
+      {
+        label: $localize`Discord`,
+        icon: "fab fa-discord",
+        url: "https://discord.gg/9gYwKaRujK",
+        target: "discord",
+      },
+      {
+        label: $localize`Github`,
+        icon: "fab fa-github",
+        url: "https://github.com/Sinetheta/blueprintnotincluded",
+        target: "github",
+      },
+      { separator: true, visible: loggedIn },
       {
         label: $localize`Log out`,
         icon: "pi pi-sign-out",

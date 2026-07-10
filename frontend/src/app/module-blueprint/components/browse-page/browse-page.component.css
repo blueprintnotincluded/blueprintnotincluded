@@ -57,6 +57,15 @@
   padding-left: 34px;
 }
 
+.create-cta {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.create-cta .pi {
+  font-size: 12px;
+}
+
 .view-mode-tabs {
   margin-bottom: 14px;
 }

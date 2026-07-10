@@ -1,4 +1,4 @@
-<p-menubar [model]="navItems">
+<p-menubar>
   <ng-template pTemplate="start">
     <a routerLink="/discover" class="bni-nav-logo">
       <img
@@ -12,24 +12,13 @@
         >BLUEPRINT <em class="bni-nav-not">NOT</em> INCLUDED</span
       >
     </a>
-    <ng-container *ngIf="authService.isAlpha()">
-      <a
-        routerLink="/discover"
-        routerLinkActive="active"
-        class="bni-nav-tab"
-        i18n
-        >Discover</a
-      >
-      <a routerLink="/editor" routerLinkActive="active" class="bni-nav-tab" i18n
-        >Editor</a
-      >
-    </ng-container>
   </ng-template>
   <ng-template pTemplate="end">
     <app-notification-bell
       *ngIf="authService.isLoggedIn()"
     ></app-notification-bell>
     <app-user-menu
+      (about)="about.emit()"
       (sendFeedback)="sendFeedback.emit()"
       (myBlueprintsRequested)="myBlueprintsRequested.emit($event)"
     ></app-user-menu>

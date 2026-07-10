@@ -12,21 +12,10 @@
         >BLUEPRINT <em class="bni-nav-not">NOT</em> INCLUDED</span
       >
     </a>
-    <ng-container *ngIf="authService.isAlpha()">
-      <a
-        routerLink="/discover"
-        routerLinkActive="active"
-        class="bni-nav-tab"
-        i18n
-        >Discover</a
-      >
-      <a routerLink="/editor" routerLinkActive="active" class="bni-nav-tab" i18n
-        >Editor</a
-      >
-    </ng-container>
   </ng-template>
   <ng-template pTemplate="end">
     <app-user-menu
+      (about)="onUserMenuAbout()"
       (sendFeedback)="onUserMenuSendFeedback()"
       (myBlueprintsRequested)="onMyBlueprintsRequested($event)"
     ></app-user-menu>

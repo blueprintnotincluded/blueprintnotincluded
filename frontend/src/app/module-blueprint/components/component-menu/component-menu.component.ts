@@ -481,6 +481,10 @@ export class ComponentMenuComponent
     fileElem.value = "";
   }
 
+  onUserMenuAbout() {
+    this.menuCommand.emit({ type: MenuCommandType.about, data: null });
+  }
+
   onUserMenuSendFeedback() {
     this.menuCommand.emit({ type: MenuCommandType.sendFeedback, data: null });
   }
