@@ -21,7 +21,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "compodoc": "npx compodoc -p tsconfig.app.json",
-    "extract-i18n": "ng extract-i18n --output-path src/i18n && xliffmerge --profile xliffmerge.json"
+    "extract-i18n": "ng extract-i18n blueprintnotincluded --output-path src/i18n && xliffmerge --profile xliffmerge.json"
   },
   "private": true,
   "dependencies": {

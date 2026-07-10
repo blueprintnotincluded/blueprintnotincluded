@@ -22,6 +22,7 @@ function makeItem(overrides: any = {}) {
     category: null,
     gameVersion: null,
     modded: false,
+    isPublished: true,
     ...overrides,
   };
 }
@@ -81,6 +82,18 @@ describe("BlueprintCardComponent", () => {
     expect(img.nativeElement.getAttribute("src")).toBe(
       "data:image/png;base64,xyz"
     );
+  });
+
+  it("shows the Draft chip only when the blueprint is unpublished", () => {
+    component.item = makeItem({ isPublished: false });
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).not.toBe(
+      null
+    );
+
+    component.item = makeItem({ isPublished: true });
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).toBe(null);
   });
 
   it("shows the Untagged chip when there is no category, and the category chip when there is", () => {

@@ -64,6 +64,7 @@ export class ProfilePageComponent implements OnInit {
       createdAt: tempDate,
       modifiedAt: tempDate,
       thumbnail: "svg",
+      isPublished: true,
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
@@ -79,6 +80,7 @@ export class ProfilePageComponent implements OnInit {
       createdAt: tempDate,
       modifiedAt: tempDate,
       thumbnail: "svg_nothing",
+      isPublished: true,
       likedByMe: false,
       ownedByMe: false,
       nbLikes: 0,
@@ -114,6 +116,13 @@ export class ProfilePageComponent implements OnInit {
     this.oldestDate = new Date();
     this.remaining = 0;
     this.activeTab = "blueprints";
+  }
+
+  // Loaded drafts on the blueprints tab — feeds the "waiting to be shared"
+  // publish nudge (own profile only; the API never returns others' drafts)
+  get draftCount(): number {
+    return this.blueprintListItems.filter((item) => item.isPublished === false)
+      .length;
   }
 
   get isOwnProfile(): boolean {

@@ -203,19 +203,104 @@ describe("ComponentSaveDialogComponent", () => {
     });
   });
 
-  it("should render save button in dialog footer when opened", async () => {
+  it("renders Save & Publish and Save as draft buttons on a first save", async () => {
     vi.useFakeTimers();
     try {
+      // Without a thumbnail the publish label reads "Generating thumbnail"
+      (TestBed.inject(BlueprintService) as any).thumbnail =
+        "data:image/png;base64,test";
       component.showDialog();
       fixture.detectChanges();
       await vi.advanceTimersByTimeAsync(500);
       fixture.detectChanges();
 
       // PrimeNG dialog appends to document.body as an overlay
-      const saveButton = document.body.querySelector("button[type='submit']");
-      expect(saveButton).not.toBeNull();
+      const publishButton = document.body.querySelector(
+        ".save-action--publish"
+      );
+      const draftButton = document.body.querySelector(".save-action--draft");
+      expect(publishButton).not.toBeNull();
+      expect(draftButton).not.toBeNull();
+      expect(publishButton!.textContent).toContain("Publish");
+      expect(draftButton!.textContent).toContain("draft");
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  describe("publish intent", () => {
+    function readyService() {
+      const blueprintService = TestBed.inject(BlueprintService);
+      blueprintService.saveBlueprint = vi
+        .fn()
+        .mockReturnValue(of({ id: "abc" }));
+      (blueprintService as any).thumbnail = "data:image/png;base64,test";
+      component.saveBlueprintForm.patchValue({ name: "Test Blueprint" });
+      return blueprintService;
+    }
+
+    it("submit(true) saves with publish", () => {
+      const blueprintService = readyService();
+
+      component.submit(true);
+
+      expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(false, true);
+      expect(component.pendingPublish).toBe(true);
+    });
+
+    it("submit(false) saves as draft", () => {
+      const blueprintService = readyService();
+
+      component.submit(false);
+
+      expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(false, false);
+    });
+
+    it("submit(null) keeps the current publish state (plain update)", () => {
+      const blueprintService = readyService();
+
+      component.submit(null);
+
+      expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(
+        false,
+        undefined
+      );
+    });
+
+    it("form submit (Enter) publishes on a first save", () => {
+      const blueprintService = readyService();
+
+      component.onSubmit();
+
+      expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(false, true);
+    });
+
+    it("form submit keeps state on an update of a published blueprint", () => {
+      const blueprintService = readyService();
+      blueprintService.id = "existing-id"; // isUpdate = true
+      blueprintService.isPublished = true;
+
+      component.onSubmit();
+
+      expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(
+        false,
+        undefined
+      );
+    });
+
+    it("doOverwrite reuses the publish intent from the originally clicked button", () => {
+      const blueprintService = readyService();
+      component.pendingPublish = true;
+
+      component.doOverwrite();
+
+      expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(true, true);
+    });
+
+    it("reset clears the pending publish intent", () => {
+      component.pendingPublish = true;
+      component.reset();
+      expect(component.pendingPublish).toBeNull();
+    });
   });
 });

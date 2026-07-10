@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, switchMap, tap } from "rxjs/operators";
 import { BlueprintDetailsResponse } from "../../../../../../lib/index";
+import { MessageService } from "primeng/api";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { VersionHistoryDialogComponent } from "../dialogs/version-history-dialog/version-history-dialog.component";
@@ -49,6 +50,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     private router: Router,
     private location: Location,
     private blueprintService: BlueprintService,
+    private messageService: MessageService,
     public authService: AuthenticationService
   ) {}
 
@@ -148,5 +150,40 @@ export class BlueprintDetailsPageComponent implements OnInit {
       this.details.id,
       this.details.ownedByMe
     );
+  }
+
+  get shareTitle(): string {
+    return this.details?.isPublished === false
+      ? $localize`:shareDraftHint:Publish to share`
+      : "";
+  }
+
+  publishWorking = false;
+
+  togglePublish(publish: boolean) {
+    if (this.details == null || this.publishWorking) return;
+    const details = this.details;
+    this.publishWorking = true;
+    this.blueprintService.setPublished(details.id, publish).subscribe({
+      next: (response) => {
+        details.isPublished = response.isPublished;
+        this.publishWorking = false;
+        this.messageService.add({
+          severity: "success",
+          summary: publish
+            ? $localize`:publishToast:${details.name} published! It's now visible to everyone`
+            : $localize`:unpublishToast:${details.name} moved back to drafts`,
+        });
+      },
+      error: () => {
+        this.publishWorking = false;
+        this.messageService.add({
+          severity: "error",
+          summary: publish
+            ? $localize`:publishError:Could not publish blueprint`
+            : $localize`:unpublishError:Could not unpublish blueprint`,
+        });
+      },
+    });
   }
 }

@@ -5,6 +5,8 @@ import { Location } from "@angular/common";
 import { ActivatedRoute, convertToParamMap } from "@angular/router";
 import { of, throwError, Subject } from "rxjs";
 
+import { MessageService } from "primeng/api";
+
 import { BlueprintDetailsPageComponent } from "./blueprint-details-page.component";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
@@ -28,6 +30,7 @@ function makeDetails(overrides: any = {}) {
     description: "A tidy coal setup",
     researchTier: null,
     modded: false,
+    isPublished: true,
     nbForks: 0,
     forkedFrom: null,
     ...overrides,
@@ -39,12 +42,15 @@ describe("BlueprintDetailsPageComponent", () => {
   let fixture: ComponentFixture<BlueprintDetailsPageComponent>;
   let blueprintService: any;
   let authService: any;
+  let messageService: any;
 
   beforeEach(async () => {
     blueprintService = {
       getBlueprintDetails: vi.fn().mockReturnValue(of(makeDetails())),
+      setPublished: vi.fn().mockReturnValue(of({ isPublished: true })),
     };
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
+    messageService = { add: vi.fn() };
 
     await TestBed.configureTestingModule({
       declarations: [BlueprintDetailsPageComponent],
@@ -52,6 +58,7 @@ describe("BlueprintDetailsPageComponent", () => {
       providers: [
         { provide: BlueprintService, useValue: blueprintService },
         { provide: AuthenticationService, useValue: authService },
+        { provide: MessageService, useValue: messageService },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -321,6 +328,104 @@ describe("BlueprintDetailsPageComponent", () => {
       expect(component.notFound).toBe(true);
       expect(component.backLink).toEqual(["/profile", "alice"]);
       expect(component.backLabel).toContain("Profile");
+    });
+  });
+
+  describe("publish / unpublish", () => {
+    it("shows the Draft chip and Publish button on an owned draft", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true, isPublished: false }))
+      );
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).not.toBe(
+        null
+      );
+      expect(fixture.debugElement.query(By.css(".details-publish"))).not.toBe(
+        null
+      );
+      expect(fixture.debugElement.query(By.css(".details-unpublish"))).toBe(
+        null
+      );
+    });
+
+    it("shows neither chip nor publish controls on someone else's draft-free blueprint", () => {
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).toBe(null);
+      expect(fixture.debugElement.query(By.css(".details-publish"))).toBe(null);
+      expect(fixture.debugElement.query(By.css(".details-unpublish"))).toBe(
+        null
+      );
+    });
+
+    it("shows Unpublish (but no chip) on an owned published blueprint", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true, isPublished: true }))
+      );
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).toBe(null);
+      expect(fixture.debugElement.query(By.css(".details-publish"))).toBe(null);
+      expect(fixture.debugElement.query(By.css(".details-unpublish"))).not.toBe(
+        null
+      );
+    });
+
+    it("publishes: calls the service, flips state, and toasts success", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true, isPublished: false }))
+      );
+      fixture.detectChanges();
+
+      component.togglePublish(true);
+
+      expect(blueprintService.setPublished).toHaveBeenCalledWith("bp1", true);
+      expect(component.details?.isPublished).toBe(true);
+      expect(component.publishWorking).toBe(false);
+      expect(messageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: "success" })
+      );
+    });
+
+    it("unpublishes and toasts", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true, isPublished: true }))
+      );
+      blueprintService.setPublished.mockReturnValue(of({ isPublished: false }));
+      fixture.detectChanges();
+
+      component.togglePublish(false);
+
+      expect(blueprintService.setPublished).toHaveBeenCalledWith("bp1", false);
+      expect(component.details?.isPublished).toBe(false);
+    });
+
+    it("keeps state and toasts an error when the call fails", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true, isPublished: false }))
+      );
+      blueprintService.setPublished.mockReturnValue(
+        throwError(() => new Error("boom"))
+      );
+      fixture.detectChanges();
+
+      component.togglePublish(true);
+
+      expect(component.details?.isPublished).toBe(false);
+      expect(component.publishWorking).toBe(false);
+      expect(messageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: "error" })
+      );
+    });
+
+    it("disables Share on a draft with a publish hint", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true, isPublished: false }))
+      );
+      fixture.detectChanges();
+
+      expect(component.shareTitle).toContain("Publish");
     });
   });
 });

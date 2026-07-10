@@ -7,7 +7,7 @@
         <target state="new">Can't build here : <x id="PH" equiv-text="templateItem.oniItem.name"/> is in the way</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/common/tools/build-tool.ts</context>
-          <context context-type="linenumber">51</context>
+          <context context-type="linenumber">77</context>
         </context-group>
       </trans-unit>
       <trans-unit id="565429901126688422" datatype="html">
@@ -15,7 +15,378 @@
         <target state="new">Can't build here : The <x id="PH" equiv-text="connection"/> from <x id="PH_1" equiv-text="itemName"/> is in the way</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/common/tools/build-tool.ts</context>
-          <context context-type="linenumber">71</context>
+          <context context-type="linenumber">115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4783563431061746037" datatype="html">
+        <source>by <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;card-owner&quot; [routerLink]=&quot;['/profile', item.ownerName]&quot;>"/><x id="INTERPOLATION" equiv-text="{{
+          item.ownerName
+        }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a>"/></source>
+        <target state="new">by <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;card-owner&quot; [routerLink]=&quot;['/profile', item.ownerName]&quot;>"/><x id="INTERPOLATION" equiv-text="{{
+          item.ownerName
+        }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a>"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
+          <context context-type="linenumber">29,32</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">60,65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2147166008226192664" datatype="html">
+        <source>Only you (and admins) can see this blueprint</source>
+        <target state="new">Only you (and admins) can see this blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
+          <context context-type="linenumber">40,45</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">90,94</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4808589666930368915" datatype="html">
+        <source>Draft</source>
+        <target state="new">Draft</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
+          <context context-type="linenumber">42,46</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">92,95</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2057462794608190902" datatype="html">
+        <source>Untagged</source>
+        <target state="new">Untagged</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
+          <context context-type="linenumber">53,57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3949221593948307993" datatype="html">
+        <source>Modded</source>
+        <target state="new">Modded</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
+          <context context-type="linenumber">70,74</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">128,132</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3758078190163790058" datatype="html">
+        <source>View comments</source>
+        <target state="new">View comments</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
+          <context context-type="linenumber">87,92</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9115031847067304339" datatype="html">
+        <source>Fork count</source>
+        <target state="new">Fork count</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
+          <context context-type="linenumber">110,115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="576885234514362755" datatype="html">
+        <source>Loading blueprint…</source>
+        <target state="new">Loading blueprint…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">28,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8045377009256262346" datatype="html">
+        <source> Blueprint not found. </source>
+        <target state="new"> Blueprint not found. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">31,34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6932940537025895371" datatype="html">
+        <source> Something went wrong loading this blueprint. Please try again. </source>
+        <target state="new"> Something went wrong loading this blueprint. Please try again. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">35,39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5915258800439599482" datatype="html">
+        <source>Forked from</source>
+        <target state="new">Forked from</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">72,74</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="400171856608344994" datatype="html">
+        <source>[original removed by author]</source>
+        <target state="new">[original removed by author]</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">81,85</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7430416142942514215" datatype="html">
+        <source>Publish</source>
+        <target state="new">Publish</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">145,146</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7079548184775636186" datatype="html">
+        <source>Open in editor</source>
+        <target state="new">Open in editor</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">151,153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="130573332680521737" datatype="html">
+        <source>See forks of this blueprint</source>
+        <target state="new">See forks of this blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">172,174</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3886525071917140827" datatype="html">
+        <source>Version History</source>
+        <target state="new">Version History</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">181,184</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">4,8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7419704019640008953" datatype="html">
+        <source>Share</source>
+        <target state="new">Share</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">191,192</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4530164283214234705" datatype="html">
+        <source>Unpublish</source>
+        <target state="new">Unpublish</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
+          <context context-type="linenumber">202,204</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5460786229359969666" datatype="html">
+        <source>Back to Discover</source>
+        <target state="new">Back to Discover</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">19</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">26,29</context>
+        </context-group>
+        <note priority="1" from="description">blueprintDetails.backToDiscover</note>
+      </trans-unit>
+      <trans-unit id="6500500494580002736" datatype="html">
+        <source>Back to Profile</source>
+        <target state="new">Back to Profile</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+        <note priority="1" from="description">blueprintDetails.backToProfile</note>
+      </trans-unit>
+      <trans-unit id="1882592156418572773" datatype="html">
+        <source>fork<x id="PH" equiv-text="nbForks !== 1 ? &quot;s&quot; : &quot;&quot;"/></source>
+        <target state="new">fork<x id="PH" equiv-text="nbForks !== 1 ? &quot;s&quot; : &quot;&quot;"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7379253243385314046" datatype="html">
+        <source>Publish to share</source>
+        <target state="new">Publish to share</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">157</context>
+        </context-group>
+        <note priority="1" from="description">shareDraftHint</note>
+      </trans-unit>
+      <trans-unit id="4392278733505760445" datatype="html">
+        <source><x id="PH" equiv-text="details.name"/> published! It's now visible to everyone</source>
+        <target state="new"><x id="PH" equiv-text="details.name"/> published! It's now visible to everyone</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">174</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">218</context>
+        </context-group>
+        <note priority="1" from="description">publishToast</note>
+      </trans-unit>
+      <trans-unit id="2882192988615559310" datatype="html">
+        <source><x id="PH" equiv-text="details.name"/> moved back to drafts</source>
+        <target state="new"><x id="PH" equiv-text="details.name"/> moved back to drafts</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">175</context>
+        </context-group>
+        <note priority="1" from="description">unpublishToast</note>
+      </trans-unit>
+      <trans-unit id="5444217940983587159" datatype="html">
+        <source>Could not publish blueprint</source>
+        <target state="new">Could not publish blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">183</context>
+        </context-group>
+        <note priority="1" from="description">publishError</note>
+      </trans-unit>
+      <trans-unit id="7575612643892164651" datatype="html">
+        <source>Could not unpublish blueprint</source>
+        <target state="new">Could not unpublish blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
+          <context context-type="linenumber">184</context>
+        </context-group>
+        <note priority="1" from="description">unpublishError</note>
+      </trans-unit>
+      <trans-unit id="5211582153543903121" datatype="html">
+        <source>Browse Blueprints</source>
+        <target state="translated">Browse Blueprints</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">15,19</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.html</context>
+          <context context-type="linenumber">4,8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9215825164949165081" datatype="html">
+        <source>Search blueprints</source>
+        <target state="new">Search blueprints</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">34,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7526733325925180571" datatype="html">
+        <source>Create a new blueprint</source>
+        <target state="new">Create a new blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">42,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8079809425373300592" datatype="html">
+        <source> Discover </source>
+        <target state="new"> Discover </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">54,58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5383218949876569916" datatype="html">
+        <source> From creators you follow </source>
+        <target state="new"> From creators you follow </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">63,67</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2724055831234181057" datatype="html">
+        <source>Version</source>
+        <target state="new">Version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">77,80</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1806667489382256324" datatype="html">
+        <source>Category</source>
+        <target state="new">Category</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">86,90</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">58,60</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5146398958364876914" datatype="html">
+        <source>Sort</source>
+        <target state="new">Sort</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">97,99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8950076974301590939" datatype="html">
+        <source>Subcategory</source>
+        <target state="new">Subcategory</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">107,111</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">69,72</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6559246822757089203" datatype="html">
+        <source>Clear filters</source>
+        <target state="new">Clear filters</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">134,138</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4455636867841763072" datatype="html">
+        <source>Showing modded blueprints only.</source>
+        <target state="new">Showing modded blueprints only.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">139,141</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5075485950373679288" datatype="html">
+        <source>Showing base-game (unmodded) blueprints only.</source>
+        <target state="new">Showing base-game (unmodded) blueprints only.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">141,145</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7818628990356198967" datatype="html">
+        <source> Showing forks of this blueprint. </source>
+        <target state="new"> Showing forks of this blueprint. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">146,149</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7274967517284418354" datatype="html">
+        <source>Couldn't load blueprints. Scroll to try again.</source>
+        <target state="new">Couldn't load blueprints. Scroll to try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.html</context>
+          <context context-type="linenumber">150,154</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4754074883891372294" datatype="html">
@@ -23,7 +394,7 @@
         <target state="new">Loaded blueprint: <x id="PH" equiv-text="this.blueprintService.name"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">308</context>
+          <context context-type="linenumber">368</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7054073769904641551" datatype="html">
@@ -31,7 +402,7 @@
         <target state="new"><x id="PH" equiv-text="template.blueprintItems.length"/> items loaded</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">309</context>
+          <context context-type="linenumber">369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7854578989283397034" datatype="html">
@@ -39,7 +410,7 @@
         <target state="new">Not logged in</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">316</context>
+          <context context-type="linenumber">377</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3669452499212372649" datatype="html">
@@ -47,7 +418,7 @@
         <target state="new">You must be logged in to be able to save blueprints</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">317</context>
+          <context context-type="linenumber">378</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7686566390568529651" datatype="html">
@@ -55,15 +426,15 @@
         <target state="new">Empty blueprint</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">321</context>
+          <context context-type="linenumber">383</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">333</context>
+          <context context-type="linenumber">396</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">447</context>
         </context-group>
       </trans-unit>
       <trans-unit id="148605656880584483" datatype="html">
@@ -71,11 +442,11 @@
         <target state="new">Add some buildings before trying to save</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">322</context>
+          <context context-type="linenumber">384</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">334</context>
+          <context context-type="linenumber">397</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3496172656658623147" datatype="html">
@@ -83,7 +454,7 @@
         <target state="new">Blueprint not saved</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">358</context>
+          <context context-type="linenumber">426</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5920762637805253446" datatype="html">
@@ -91,7 +462,7 @@
         <target state="new">Save this blueprint to share it with others</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">359</context>
+          <context context-type="linenumber">427</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1281457944193208248" datatype="html">
@@ -99,7 +470,16 @@
         <target state="new">Add some buildings before trying to export images</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-blueprint-parent/component-blueprint-parent.component.ts</context>
-          <context context-type="linenumber">375</context>
+          <context context-type="linenumber">448</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5052645005058166697" datatype="html">
+        <source> Your browser does not support canvas.
+</source>
+        <target state="translated"> Your browser does not support canvas. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/component-canvas/component-canvas.component.html</context>
+          <context context-type="linenumber">19,21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="249270185d8289080e258dd202da24711f82f768" datatype="html">
@@ -145,103 +525,103 @@
       <trans-unit id="1556414498849172636" datatype="html">
         <source>en-US</source>
         <target state="new">en-US</target>
+        <note priority="1" from="description">language name here</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">13</context>
+          <context context-type="linenumber">31</context>
         </context-group>
-        <note priority="1" from="description">language name here</note>
       </trans-unit>
       <trans-unit id="3220093296251627921" datatype="html">
         <source>zh-Hans</source>
         <target state="new">zh-Hans</target>
+        <note priority="1" from="description">language name here</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">17</context>
+          <context context-type="linenumber">35</context>
         </context-group>
-        <note priority="1" from="description">language name here</note>
       </trans-unit>
       <trans-unit id="3820189939640977147" datatype="html">
         <source>ru</source>
         <target state="new">ru</target>
+        <note priority="1" from="description">language name here</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">21</context>
+          <context context-type="linenumber">39</context>
         </context-group>
-        <note priority="1" from="description">language name here</note>
       </trans-unit>
       <trans-unit id="843277372905366667" datatype="html">
         <source>ko</source>
         <target state="new">ko</target>
+        <note priority="1" from="description">language name here</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">25</context>
+          <context context-type="linenumber">43</context>
         </context-group>
-        <note priority="1" from="description">language name here</note>
       </trans-unit>
       <trans-unit id="2739110767355255632" datatype="html">
         <source>Buildings</source>
         <target state="new">Buildings</target>
+        <note priority="1" from="description">overlay switch on the menu</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">75</context>
+          <context context-type="linenumber">97</context>
         </context-group>
-        <note priority="1" from="description">overlay switch on the menu</note>
       </trans-unit>
       <trans-unit id="5690241527890097775" datatype="html">
         <source>Power</source>
         <target state="new">Power</target>
+        <note priority="1" from="description">overlay switch on the menu</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">76</context>
+          <context context-type="linenumber">99</context>
         </context-group>
-        <note priority="1" from="description">overlay switch on the menu</note>
       </trans-unit>
       <trans-unit id="9082579204263109567" datatype="html">
         <source>Plumbing</source>
         <target state="new">Plumbing</target>
+        <note priority="1" from="description">overlay switch on the menu</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">77</context>
+          <context context-type="linenumber">102</context>
         </context-group>
-        <note priority="1" from="description">overlay switch on the menu</note>
       </trans-unit>
       <trans-unit id="80013287692085350" datatype="html">
         <source>Ventilation</source>
         <target state="new">Ventilation</target>
+        <note priority="1" from="description">overlay switch on the menu</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">78</context>
+          <context context-type="linenumber">106</context>
         </context-group>
-        <note priority="1" from="description">overlay switch on the menu</note>
       </trans-unit>
       <trans-unit id="6236514510816269149" datatype="html">
         <source>Automation</source>
         <target state="new">Automation</target>
+        <note priority="1" from="description">overlay switch on the menu</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">79</context>
+          <context context-type="linenumber">110</context>
         </context-group>
-        <note priority="1" from="description">overlay switch on the menu</note>
       </trans-unit>
       <trans-unit id="6283988996123974917" datatype="html">
         <source>Shipment</source>
         <target state="new">Shipment</target>
+        <note priority="1" from="description">overlay switch on the menu</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">80</context>
+          <context context-type="linenumber">114</context>
         </context-group>
-        <note priority="1" from="description">overlay switch on the menu</note>
       </trans-unit>
       <trans-unit id="4341675379036538127" datatype="html">
         <source>Blueprint</source>
         <target state="new">Blueprint</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">92</context>
+          <context context-type="linenumber">130</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">114</context>
+          <context context-type="linenumber">196</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9011959596901584887" datatype="html">
@@ -249,7 +629,7 @@
         <target state="new">Color</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">93</context>
+          <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6252070156626006029" datatype="html">
@@ -257,7 +637,7 @@
         <target state="new">None</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">96</context>
+          <context context-type="linenumber">146</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2592368582911584624" datatype="html">
@@ -265,7 +645,7 @@
         <target state="new">Temperature</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">97</context>
+          <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6856981935030444519" datatype="html">
@@ -273,7 +653,11 @@
         <target state="new">Elements</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">98</context>
+          <context context-type="linenumber">160</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/buildable-element-picker/buildable-element-picker.component.html</context>
+          <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3797570084942068182" datatype="html">
@@ -281,7 +665,7 @@
         <target state="new">Select</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">101</context>
+          <context context-type="linenumber">169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6924245241744002654" datatype="html">
@@ -289,7 +673,7 @@
         <target state="new">Build</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">102</context>
+          <context context-type="linenumber">176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5280218112746407598" datatype="html">
@@ -297,19 +681,83 @@
         <target state="new">New</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">116</context>
+          <context context-type="linenumber">199</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3768927257183755959" datatype="html">
         <source>Save</source>
         <target state="new">Save</target>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">149</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">117</context>
+          <context context-type="linenumber">210</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">92</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">84</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1414322779508321700" datatype="html">
+        <source>[comment removed]</source>
+        <target state="new">[comment removed]</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">160,163</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5164571415756606125" datatype="html">
+        <source>[deleted blueprint]</source>
+        <target state="new">[deleted blueprint]</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">176,179</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="226104558902258178" datatype="html">
+        <source> Reply </source>
+        <target state="translated">Reply</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">204,208</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5377078063439833222" datatype="html">
+        <source> Edit </source>
+        <target state="translated">Edit</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">213,217</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6660925946511264619" datatype="html">
+        <source> Delete </source>
+        <target state="new"> Delete </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">222,227</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7513596159345926827" datatype="html">
+        <source>Could not save your edit. Please try again.</source>
+        <target state="new">Could not save your edit. Please try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.ts</context>
+          <context context-type="linenumber">126</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5965034476955359846" datatype="html">
+        <source>Could not post your comment. Please try again.</source>
+        <target state="new">Could not post your comment. Please try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.ts</context>
+          <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6932865105766151309" datatype="html">
@@ -317,7 +765,7 @@
         <target state="new">Upload</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">119</context>
+          <context context-type="linenumber">220</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2234669536195515158" datatype="html">
@@ -325,7 +773,7 @@
         <target state="new">Game (yaml)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">120</context>
+          <context context-type="linenumber">224</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8938307798595091508" datatype="html">
@@ -333,11 +781,11 @@
         <target state="new">Blueprint (json)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">121</context>
+          <context context-type="linenumber">230</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">248</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2628317491606128407" datatype="html">
@@ -345,7 +793,7 @@
         <target state="new">Blueprint (binary)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">122</context>
+          <context context-type="linenumber">236</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3099741642167775297" datatype="html">
@@ -353,7 +801,7 @@
         <target state="new">Download</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">126</context>
+          <context context-type="linenumber">244</context>
         </context-group>
       </trans-unit>
       <trans-unit id="787163983066183218" datatype="html">
@@ -361,7 +809,7 @@
         <target state="new">Browse</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">259</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7327036354897610977" datatype="html">
@@ -369,7 +817,7 @@
         <target state="new">Get shareable Url</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">131</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7454278866457302323" datatype="html">
@@ -377,7 +825,7 @@
         <target state="new">Export images</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">132</context>
+          <context context-type="linenumber">279</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7585826646011739428" datatype="html">
@@ -385,7 +833,7 @@
         <target state="new">Edit</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">136</context>
+          <context context-type="linenumber">291</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5775346636203685655" datatype="html">
@@ -393,7 +841,7 @@
         <target state="new">Undo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">138</context>
+          <context context-type="linenumber">294</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4221042196936324014" datatype="html">
@@ -401,7 +849,7 @@
         <target state="new">Redo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">139</context>
+          <context context-type="linenumber">301</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1684734235599362204" datatype="html">
@@ -409,7 +857,7 @@
         <target state="new">Tools</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">143</context>
+          <context context-type="linenumber">310</context>
         </context-group>
       </trans-unit>
       <trans-unit id="684837893006065048" datatype="html">
@@ -417,7 +865,7 @@
         <target state="new">Overlay</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">147</context>
+          <context context-type="linenumber">314</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9098712055524516876" datatype="html">
@@ -425,7 +873,7 @@
         <target state="new">Visualization</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">151</context>
+          <context context-type="linenumber">318</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6812930637022637485" datatype="html">
@@ -433,47 +881,206 @@
         <target state="new">Display</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">155</context>
+          <context context-type="linenumber">322</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="8999716186073700440" datatype="html">
+        <source>Blueprint name</source>
+        <target state="translated">Blueprint name</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">17,20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3281322434056477205" datatype="html">
+        <source> Blueprint name is required. </source>
+        <target state="translated">Blueprint name is required.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">24,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6009141003392841020" datatype="html">
+        <source> Invalid characters in blueprint name </source>
+        <target state="translated">Invalid characters in blueprint name</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">27,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1640496358197449892" datatype="html">
+        <source> Blueprint name is too long </source>
+        <target state="translated">Blueprint name is too long</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">30,35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3327094637278066401" datatype="html">
+        <source>Description (optional)</source>
+        <target state="new">Description (optional)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">44,47</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6855222579294026681" datatype="html">
+        <source>Game version (auto-detected)</source>
+        <target state="new">Game version (auto-detected)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">81,84</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1626989597106686930" datatype="html">
+        <source>Modded (auto-detected)</source>
+        <target state="new">Modded (auto-detected)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">85,90</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5358986219013355526" datatype="html">
+        <source> You already have a blueprint with this name. Overwrite? </source>
+        <target state="translated">You already have a blueprint with this name. Overwrite?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">91,93</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="367187543003959893" datatype="html">
+        <source> You must be logged in to save a blueprint </source>
+        <target state="translated">You must be logged in to save a blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">94,98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3542042671420335679" datatype="html">
+        <source>No</source>
+        <target state="translated">No</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">138,141</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2807800733729323332" datatype="html">
+        <source>Yes</source>
+        <target state="translated">Yes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.html</context>
+          <context context-type="linenumber">148,150</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2913983523907169987" datatype="html">
+        <source>Update blueprint</source>
+        <target state="new">Update blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">79</context>
+        </context-group>
+        <note priority="1" from="description">dialogHeader</note>
+      </trans-unit>
+      <trans-unit id="8523792905138047299" datatype="html">
+        <source>Save blueprint to the cloud</source>
+        <target state="translated">Save blueprint to the cloud</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">80</context>
+        </context-group>
+        <note priority="1" from="description">dialogHeader</note>
+      </trans-unit>
+      <trans-unit id="4021752662928002901" datatype="html">
+        <source>Update</source>
+        <target state="new">Update</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">89</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">104</context>
+        </context-group>
+        <note priority="1" from="description">saveLabel</note>
       </trans-unit>
       <trans-unit id="5937251202465808296" datatype="html">
         <source>More</source>
         <target state="new">More</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">159</context>
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.html</context>
+          <context context-type="linenumber">27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1726363342938046830" datatype="html">
         <source>About</source>
         <target state="new">About</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">162</context>
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">73</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3400027835914346369" datatype="html">
         <source>Discord</source>
         <target state="new">Discord</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">166</context>
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">78</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3119797645194699699" datatype="html">
         <source>Github</source>
         <target state="new">Github</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">170</context>
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">84</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7507948636555938109" datatype="html">
+        <source>Log out</source>
+        <target state="new">Log out</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">91</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8311146654709043384" datatype="html">
         <source>Logout Successful</source>
         <target state="new">Logout Successful</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/module-blueprint/components/component-menu/component-menu.component.ts</context>
-          <context context-type="linenumber">309</context>
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4101828476228334759" datatype="html">
+        <source>My Blueprints</source>
+        <target state="translated">My Blueprints</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">48</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6011903511536779706" datatype="html">
+        <source>Switch account</source>
+        <target state="new">Switch account</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">54</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9059560719840598868" datatype="html">
+        <source>Send Feedback</source>
+        <target state="new">Send Feedback</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">61</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2584323826211532325" datatype="html">
+        <source>Admin Panel</source>
+        <target state="new">Admin Panel</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.ts</context>
+          <context context-type="linenumber">66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="152daa7cdeeee904ab0c0afe895b5fd580c62813" datatype="html">
@@ -551,18 +1158,57 @@
       <trans-unit id="2687911090712930839" datatype="html">
         <source>Generating thumbnail</source>
         <target state="new">Generating thumbnail</target>
+        <note priority="1" from="description">saveLabel</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">91</context>
         </context-group>
-        <note priority="1" from="description">saveLabel</note>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">97</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3336685470898749309" datatype="html">
+        <source>Update &amp; Publish</source>
+        <target state="new">Update &amp; Publish</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">99</context>
+        </context-group>
+        <note priority="1" from="description">publishLabel</note>
+      </trans-unit>
+      <trans-unit id="3121925390832888677" datatype="html">
+        <source>Save &amp; Publish</source>
+        <target state="new">Save &amp; Publish</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">100</context>
+        </context-group>
+        <note priority="1" from="description">publishLabel</note>
+      </trans-unit>
+      <trans-unit id="6567814263856352414" datatype="html">
+        <source>Save as draft</source>
+        <target state="new">Save as draft</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">105</context>
+        </context-group>
+        <note priority="1" from="description">draftLabel</note>
+      </trans-unit>
+      <trans-unit id="5037831319203043580" datatype="html">
+        <source><x id="PH" equiv-text="this.blueprintService.name"/> saved as draft</source>
+        <target state="new"><x id="PH" equiv-text="this.blueprintService.name"/> saved as draft</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
+          <context context-type="linenumber">220</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="6619888220476106019" datatype="html">
         <source><x id="PH" equiv-text="this.blueprintService.name"/> saved</source>
         <target state="new"><x id="PH" equiv-text="this.blueprintService.name"/> saved</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
-          <context context-type="linenumber">73</context>
+          <context context-type="linenumber">222</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3323859665921885692" datatype="html">
@@ -570,7 +1216,227 @@
         <target state="new">Error saving blueprint</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
-          <context context-type="linenumber">86</context>
+          <context context-type="linenumber">239</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6393140171048372924" datatype="html">
+        <source>About BlueprintNotIncluded</source>
+        <target state="translated">About BlueprintNotIncluded</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">3,6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="332725455354329909" datatype="html">
+        <source>What is this website ?</source>
+        <target state="translated">What is this website ?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">10,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4125422713775028248" datatype="html">
+        <source><x id="TAG_IMG" ctype="image" equiv-text="&lt;img
+        class=&quot;image-float-right&quot;
+        height=&quot;200px&quot;
+        src=&quot;assets/images/ui/manual/logo.png&quot;
+      />"/> Hi! I created this website after playing <x id="START_LINK" ctype="x-a" equiv-text="&lt;a href=&quot;https://www.klei.com/games/oxygen-not-included&quot; target=&quot;_blank&quot;
+        >"/>Oyxgen not included<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a
+          >"/> for a while, browsing the subreddits and forums for the game. One thing I noticed is that when sharing their builds, people usually share a bunch of imgur pictures with the different overlays. This is fine for simple builds, but you can't very well zoom in, switch overlays, look what the setting is on that buffer logic switch... So I decided to create a tool where players could either upload the builds they created in game, or create their build from scratch on the web page. Here are some current features of the website : <x id="START_UNORDERED_LIST" ctype="x-ul" equiv-text="&lt;ul>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> You can build your blueprint from scratch using the various tools <x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/>You can import templates from the game (more on that later)<x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> You can cycle between various overlays. each overlay will hightlight different buildings <x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/>You can save your blueprints<x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> You can share your blueprints, by exporting png images for each overlay <x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> Or by sharing a link that will directly open your blueprint! <x id="START_LINK_1" equiv-text="&lt;a
+            href=&quot;https://blueprintnotincluded.org/b/5de2666b7c0edb5515e65315&quot;
+            target=&quot;blueprint_link&quot;
+            >"/>click here to open my SPOM in a new tab!<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a
+          >"/><x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="CLOSE_UNORDERED_LIST" ctype="x-ul" equiv-text="&lt;/ul>"/></source>
+        <target state="new"><x id="TAG_IMG" ctype="image" equiv-text="&lt;img
+        class=&quot;image-float-right&quot;
+        height=&quot;200px&quot;
+        src=&quot;assets/images/ui/manual/logo.png&quot;
+      />"/> Hi! I created this website after playing <x id="START_LINK" ctype="x-a" equiv-text="&lt;a href=&quot;https://www.klei.com/games/oxygen-not-included&quot; target=&quot;_blank&quot;
+        >"/>Oyxgen not included<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a
+          >"/> for a while, browsing the subreddits and forums for the game. One thing I noticed is that when sharing their builds, people usually share a bunch of imgur pictures with the different overlays. This is fine for simple builds, but you can't very well zoom in, switch overlays, look what the setting is on that buffer logic switch... So I decided to create a tool where players could either upload the builds they created in game, or create their build from scratch on the web page. Here are some current features of the website : <x id="START_UNORDERED_LIST" ctype="x-ul" equiv-text="&lt;ul>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> You can build your blueprint from scratch using the various tools <x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/>You can import templates from the game (more on that later)<x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> You can cycle between various overlays. each overlay will hightlight different buildings <x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/>You can save your blueprints<x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> You can share your blueprints, by exporting png images for each overlay <x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="START_LIST_ITEM" ctype="x-li" equiv-text="&lt;li>"/> Or by sharing a link that will directly open your blueprint! <x id="START_LINK_1" equiv-text="&lt;a
+            href=&quot;https://blueprintnotincluded.org/b/5de2666b7c0edb5515e65315&quot;
+            target=&quot;blueprint_link&quot;
+            >"/>click here to open my SPOM in a new tab!<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a
+          >"/><x id="CLOSE_LIST_ITEM" ctype="x-li" equiv-text="&lt;/li>"/><x id="CLOSE_UNORDERED_LIST" ctype="x-ul" equiv-text="&lt;/ul>"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">13,55</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2348040847528975404" datatype="html">
+        <source>Controls</source>
+        <target state="translated">Controls</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">55,58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4803775022150663008" datatype="html">
+        <source>Camera controls :</source>
+        <target state="translated">Camera controls :</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">62,65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5186218857169621305" datatype="html">
+        <source> To move the camera with the mouse, press and hold the right mouse button, and drag the camera around </source>
+        <target state="translated">To move the camera with the mouse, press and hold the right mouse button, and drag the camera around</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">65,69</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5117849126623402976" datatype="html">
+        <source> Alternatively, you can use the arrow keys to move the camera by one tile in the direction of the arrow </source>
+        <target state="translated">Alternatively, you can use the arrow keys to move the camera by one tile in the direction of the arrow</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">69,73</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5554658418092118824" datatype="html">
+        <source> To zoom in / out, you can either use the mouse wheel, or use the "+" or "-" keys on your keypad </source>
+        <target state="translated">To zoom in / out, you can either use the mouse wheel, or use the "+" or "-" keys on your keypad</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">73,77</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6933819659192936645" datatype="html">
+        <source>Other Controls :</source>
+        <target state="translated">Other Controls :</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">77,80</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6496568805731638629" datatype="html">
+        <source> Ctrl-Z and Ctrl-Y will "undo" / "redo" any action you just made. These are also available in the "Edit" menu </source>
+        <target state="translated">Ctrl-Z and Ctrl-Y will "undo" / "redo" any action you just made. These are also available in the "Edit" menu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">80,84</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3054756499728074636" datatype="html">
+        <source> The "B" key will open the build tool. You can also get there with the "Tool : Build" menu </source>
+        <target state="translated">The "B" key will open the build tool. You can also get there with the "Tool : Build" menu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">84,90</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8404682829108771338" datatype="html">
+        <source>Version Information</source>
+        <target state="new">Version Information</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">92,93</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5250714467599198713" datatype="html">
+        <source> Show detailed information </source>
+        <target state="new"> Show detailed information </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-about/dialog-about.component.html</context>
+          <context context-type="linenumber">96,98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4580988005648117665" datatype="html">
+        <source>Search</source>
+        <target state="translated">Search</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.html</context>
+          <context context-type="linenumber">22,23</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/cell-element-picker/cell-element-picker.component.html</context>
+          <context context-type="linenumber">8,9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="264273402314956492" datatype="html">
+        <source>Show only blueprints by <x id="INTERPOLATION" equiv-text="{{ filterUserName }}"/></source>
+        <target state="translated">Show only blueprints by <x id="INTERPOLATION" equiv-text="{{filterUserName}}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.html</context>
+          <context context-type="linenumber">36,39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8896307863128344165" datatype="html">
+        <source>Delete this blueprint</source>
+        <target state="translated">Delete this blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.html</context>
+          <context context-type="linenumber">111,115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8669179901720691199" datatype="html">
+        <source> Author : <x id="START_LINK" ctype="x-a" equiv-text="&lt;a
+            [routerLink]=&quot;&quot;
+            (click)=&quot;filterOwner(item.ownerId, item.ownerName)&quot;
+            >"/><x id="INTERPOLATION" equiv-text="{{ item.ownerName }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a
+          >"/></source>
+        <target state="translated">Author : <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;&quot; (click)=&quot;filterOwner(item.ownerId, item.ownerName)&quot;>"/><x id="INTERPOLATION" equiv-text="{{item.ownerName}}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a>"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.html</context>
+          <context context-type="linenumber">126,131</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8757365398002680214" datatype="html">
+        <source> Created : <x id="INTERPOLATION" equiv-text="{{ this.datepipe.transform(item.createdAt, &quot;yyyy-MM-dd&quot;) }}"/> </source>
+        <target state="translated">Created : <x id="INTERPOLATION" equiv-text="{{this.datepipe.transform(item.createdAt, 'yyyy-MM-dd')}}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.html</context>
+          <context context-type="linenumber">133,135</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5617261856213081219" datatype="html">
+        <source> Modified : <x id="INTERPOLATION" equiv-text="{{ this.datepipe.transform(item.modifiedAt, &quot;yyyy-MM-dd&quot;) }}"/> </source>
+        <target state="translated">Modified : <x id="INTERPOLATION" equiv-text="{{this.datepipe.transform(item.modifiedAt, 'yyyy-MM-dd')}}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.html</context>
+          <context context-type="linenumber">136,139</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5645156754014603448" datatype="html">
+        <source>Export options</source>
+        <target state="translated">Export options</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-export-images/dialog-export-images.component.html</context>
+          <context context-type="linenumber">4,8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4770089584786578558" datatype="html">
+        <source>Export with grid lines</source>
+        <target state="translated">Export with grid lines</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-export-images/dialog-export-images.component.html</context>
+          <context context-type="linenumber">19,22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2715913397592682742" datatype="html">
+        <source>Image size: <x id="INTERPOLATION" equiv-text="{{ finalSize }}"/></source>
+        <target state="translated">Image size: <x id="INTERPOLATION" equiv-text="{{finalSize}}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-export-images/dialog-export-images.component.html</context>
+          <context context-type="linenumber">29,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="836459470714325078" datatype="html">
+        <source>About <x id="INTERPOLATION" equiv-text="{{ finalSizeMb | number : &quot;1.2-2&quot; }}"/>Mb</source>
+        <target state="translated">About <x id="INTERPOLATION" equiv-text="{{finalSizeMb | number:'1.2-2'}}"/>Mb</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-export-images/dialog-export-images.component.html</context>
+          <context context-type="linenumber">32,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2778307992172050296" datatype="html">
+        <source>Download images</source>
+        <target state="translated">Download images</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-export-images/dialog-export-images.component.html</context>
+          <context context-type="linenumber">66,69</context>
         </context-group>
       </trans-unit>
       <trans-unit id="79290682954f8c5bfc4367dbbbabd384f66b87f0" datatype="html">
@@ -733,18 +1599,173 @@
         <source>Loading...</source>
         <target state="new">Loading...</target>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.ts</context>
+          <context context-type="linenumber">25</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.ts</context>
-          <context context-type="linenumber">11</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.ts</context>
+          <context context-type="linenumber">13</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8161264306826042917" datatype="html">
         <source>No Results</source>
         <target state="new">No Results</target>
+        <note priority="1" from="description">browse.noResults</note>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.ts</context>
+          <context context-type="linenumber">26</context>
+        </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-browse/dialog-browse.component.ts</context>
-          <context context-type="linenumber">64</context>
+          <context context-type="linenumber">66</context>
         </context-group>
-        <note priority="1" from="description">nothingBlueprintItem.name</note>
+      </trans-unit>
+      <trans-unit id="5423991647761194551" datatype="html">
+        <source>Newest</source>
+        <target state="new">Newest</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.ts</context>
+          <context context-type="linenumber">59</context>
+        </context-group>
+        <note priority="1" from="description">browse.sortNewest</note>
+      </trans-unit>
+      <trans-unit id="5156054760968694274" datatype="html">
+        <source>Most liked</source>
+        <target state="new">Most liked</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.ts</context>
+          <context context-type="linenumber">60</context>
+        </context-group>
+        <note priority="1" from="description">browse.sortMostLiked</note>
+      </trans-unit>
+      <trans-unit id="6036718753235029895" datatype="html">
+        <source>Most forked</source>
+        <target state="new">Most forked</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/browse-page/browse-page.component.ts</context>
+          <context context-type="linenumber">62</context>
+        </context-group>
+        <note priority="1" from="description">browse.sortMostForked</note>
+      </trans-unit>
+      <trans-unit id="3807699453257291879" datatype="html">
+        <source>Comments</source>
+        <target state="new">Comments</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">3,4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3451919271631054293" datatype="html">
+        <source>Loading comments…</source>
+        <target state="new">Loading comments…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">9,11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7499051430025358595" datatype="html">
+        <source> Could not load comments. Please try again. </source>
+        <target state="new"> Could not load comments. Please try again. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">11,15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7448249877529483252" datatype="html">
+        <source> No comments yet. Be the first to give the author feedback! </source>
+        <target state="new"> No comments yet. Be the first to give the author feedback! </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">16,19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1484871774821555819" datatype="html">
+        <source>Write a reply…</source>
+        <target state="new">Write a reply…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">42,45</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2159130950882492111" datatype="html">
+        <source>Cancel</source>
+        <target state="new">Cancel</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">49,51</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">141,143</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">75,76</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4502286564339177240" datatype="html">
+        <source>Reply</source>
+        <target state="new">Reply</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">57,59</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8678322813551122231" datatype="html">
+        <source>Give the author feedback — links to other blueprints and @mentions work, external links are removed</source>
+        <target state="new">Give the author feedback — links to other blueprints and @mentions work, external links are removed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">77,81</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7415920250035426401" datatype="html">
+        <source>Post comment</source>
+        <target state="new">Post comment</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">86,89</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2336550011721758066" datatype="html">
+        <source>Log in</source>
+        <target state="new">Log in</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">95,97</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6676180116090091305" datatype="html">
+        <source> to join the conversation.</source>
+        <target state="new"> to join the conversation.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">96,100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2657252865906081592" datatype="html">
+        <source>[deleted user]</source>
+        <target state="new">[deleted user]</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">115,118</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">187,191</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3981371971991105705" datatype="html">
+        <source>(edited)</source>
+        <target state="new">(edited)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/comment-section/comment-section.component.html</context>
+          <context context-type="linenumber">125,130</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="adf785f6ae69c0bdaeb629c5f090acdcda8f7832" datatype="html">
         <source>Export options</source>
@@ -791,7 +1812,96 @@
         <target state="new"><x id="PH" equiv-text="px"/> pixels per tile</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-export-images/dialog-export-images.component.ts</context>
-          <context context-type="linenumber">36</context>
+          <context context-type="linenumber">51</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2868628504467954946" datatype="html">
+        <source> Nobody here yet. </source>
+        <target state="new"> Nobody here yet. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-follow-list/dialog-follow-list.component.html</context>
+          <context context-type="linenumber">17,20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5720639657055826890" datatype="html">
+        <source> Couldn't load this list. Scroll to try again. </source>
+        <target state="new"> Couldn't load this list. Scroll to try again. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-follow-list/dialog-follow-list.component.html</context>
+          <context context-type="linenumber">21,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8726138323871139597" datatype="html">
+        <source>Following</source>
+        <target state="new">Following</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-follow-list/dialog-follow-list.component.html</context>
+          <context context-type="linenumber">35,39</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-follow-list/dialog-follow-list.component.ts</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2369742814572661392" datatype="html">
+        <source>Loading…</source>
+        <target state="new">Loading…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-follow-list/dialog-follow-list.component.html</context>
+          <context context-type="linenumber">39,42</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.html</context>
+          <context context-type="linenumber">52,55</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4914577418256256836" datatype="html">
+        <source>Followers</source>
+        <target state="new">Followers</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-follow-list/dialog-follow-list.component.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+        <note priority="1" from="description">followList.followersTitle</note>
+      </trans-unit>
+      <trans-unit id="6349489749391457695" datatype="html">
+        <source>Get shareable url</source>
+        <target state="translated">Get shareable url</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.html</context>
+          <context context-type="linenumber">4,8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2321435971013503517" datatype="html">
+        <source>Use the following url to share this blueprint :</source>
+        <target state="translated">Use the following url to share this blueprint : </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.html</context>
+          <context context-type="linenumber">14,19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5054711234283647145" datatype="html">
+        <source>Copy url to clipboard</source>
+        <target state="translated">Copy url to clipboard</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.html</context>
+          <context context-type="linenumber">31,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6371588679924903737" datatype="html">
+        <source>Open in new tab</source>
+        <target state="translated">Open in new tab</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.html</context>
+          <context context-type="linenumber">41,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7893986649157215887" datatype="html">
+        <source>Share to Reddit</source>
+        <target state="new">Share to Reddit</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.html</context>
+          <context context-type="linenumber">51,55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="b3bb50d45f56bb9206171cfa319656df41de8373" datatype="html">
@@ -831,7 +1941,7 @@
         <target state="new">Shareable url copied</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.ts</context>
-          <context context-type="linenumber">39</context>
+          <context context-type="linenumber">45</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6598065843481646588" datatype="html">
@@ -839,15 +1949,459 @@
         <target state="new">Paste it into a new tab to try it!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.ts</context>
-          <context context-type="linenumber">40</context>
+          <context context-type="linenumber">46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2843239324642079904" datatype="html">
+        <source>Check out my Oxygen Not Included blueprint</source>
+        <target state="new">Check out my Oxygen Not Included blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/dialog-share-url/dialog-share-url.component.ts</context>
+          <context context-type="linenumber">58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3136221677945889260" datatype="html">
+        <source>Name this snapshot (optional)</source>
+        <target state="new">Name this snapshot (optional)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">19,24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6404158797870485570" datatype="html">
+        <source>Save snapshot</source>
+        <target state="new">Save snapshot</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">29,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="409805688666723338" datatype="html">
+        <source>Loading versions…</source>
+        <target state="new">Loading versions…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">35,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7734779176408062043" datatype="html">
+        <source> No saved versions yet. </source>
+        <target state="new"> No saved versions yet. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">37,41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4655283754161670601" datatype="html">
+        <source>Restore this version</source>
+        <target state="new">Restore this version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">61,64</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">63,65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3359374442595470718" datatype="html">
+        <source>Delete this version</source>
+        <target state="new">Delete this version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">73,76</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.html</context>
+          <context context-type="linenumber">75,77</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4271614971765609245" datatype="html">
+        <source>Could not load version history</source>
+        <target state="new">Could not load version history</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.ts</context>
+          <context context-type="linenumber">58</context>
+        </context-group>
+        <note priority="1" from="description">versionHistory.loadError</note>
+      </trans-unit>
+      <trans-unit id="2461329789723573695" datatype="html">
+        <source>Could not create a version</source>
+        <target state="new">Could not create a version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.ts</context>
+          <context context-type="linenumber">80</context>
+        </context-group>
+        <note priority="1" from="description">versionHistory.createError</note>
+      </trans-unit>
+      <trans-unit id="8433050595351035980" datatype="html">
+        <source>Could not restore this version</source>
+        <target state="new">Could not restore this version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.ts</context>
+          <context context-type="linenumber">98</context>
+        </context-group>
+        <note priority="1" from="description">versionHistory.restoreError</note>
+      </trans-unit>
+      <trans-unit id="2461710924420656002" datatype="html">
+        <source>Delete this version? This cannot be undone.</source>
+        <target state="new">Delete this version? This cannot be undone.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.ts</context>
+          <context context-type="linenumber">106</context>
+        </context-group>
+        <note priority="1" from="description">versionHistory.deleteConfirm</note>
+      </trans-unit>
+      <trans-unit id="6889492407641348925" datatype="html">
+        <source>Cannot delete the only remaining version</source>
+        <target state="new">Cannot delete the only remaining version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.ts</context>
+          <context context-type="linenumber">122</context>
+        </context-group>
+        <note priority="1" from="description">versionHistory.lastVersionError</note>
+      </trans-unit>
+      <trans-unit id="4659299028209655483" datatype="html">
+        <source>Could not delete this version</source>
+        <target state="new">Could not delete this version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.ts</context>
+          <context context-type="linenumber">126</context>
+        </context-group>
+        <note priority="1" from="description">versionHistory.deleteError</note>
+      </trans-unit>
+      <trans-unit id="3640373857486272611" datatype="html">
+        <source>Version history</source>
+        <target state="new">Version history</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/version-history-dialog/version-history-dialog.component.ts</context>
+          <context context-type="linenumber">136</context>
+        </context-group>
+        <note priority="1" from="description">versionHistory.errorSummary</note>
+      </trans-unit>
+      <trans-unit id="6780164167937494915" datatype="html">
+        <source>Fork</source>
+        <target state="new">Fork</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/fork-button/fork-button.component.html</context>
+          <context context-type="linenumber">24,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="835828352336070413" datatype="html">
+        <source>Log in to fork</source>
+        <target state="new">Log in to fork</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/fork-button/fork-button.component.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2308662396433657935" datatype="html">
+        <source>Create your own editable copy of this blueprint</source>
+        <target state="new">Create your own editable copy of this blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/fork-button/fork-button.component.ts</context>
+          <context context-type="linenumber">21</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5185407757354389467" datatype="html">
+        <source>Could not fork this blueprint</source>
+        <target state="new">Could not fork this blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/fork-button/fork-button.component.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+        <note priority="1" from="description">forkButton.error</note>
+      </trans-unit>
+      <trans-unit id="3492217654631121151" datatype="html">
+        <source>Please try again.</source>
+        <target state="new">Please try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/fork-button/fork-button.component.ts</context>
+          <context context-type="linenumber">43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6338014948132404016" datatype="html">
-        <source>like<x id="PH" equiv-text="this.nbLikes != 1 ? 's':''"/></source>
+        <source>like<x id="PH" equiv-text="this.nbLikes != 1 ? &quot;s&quot; : &quot;&quot;"/></source>
         <target state="new">like<x id="PH" equiv-text="this.nbLikes != 1 ? 's':''"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/like-widget/like-widget.component.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6149108365397578102" datatype="html">
+        <source>Log in to like</source>
+        <target state="new">Log in to like</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/like-widget/like-widget.component.ts</context>
+          <context context-type="linenumber">22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1167934451596016159" datatype="html">
+        <source>Unlike</source>
+        <target state="new">Unlike</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/like-widget/like-widget.component.ts</context>
+          <context context-type="linenumber">23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6218566719637714212" datatype="html">
+        <source>Like</source>
+        <target state="new">Like</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/like-widget/like-widget.component.ts</context>
+          <context context-type="linenumber">23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5851560788527570644" datatype="html">
+        <source>Notifications</source>
+        <target state="new">Notifications</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.html</context>
+          <context context-type="linenumber">6,9</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.html</context>
+          <context context-type="linenumber">16,19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2997294469602480531" datatype="html">
+        <source> Nothing yet — activity on your blueprints will show up here. </source>
+        <target state="new"> Nothing yet — activity on your blueprints will show up here. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.html</context>
+          <context context-type="linenumber">23,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3945167791905271229" datatype="html">
+        <source> Couldn't load notifications. </source>
+        <target state="new"> Couldn't load notifications. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.html</context>
+          <context context-type="linenumber">27,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5688462374174490321" datatype="html">
+        <source> Load more </source>
+        <target state="new"> Load more </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.html</context>
+          <context context-type="linenumber">49,52</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6775956627730544544" datatype="html">
+        <source><x id="PH" equiv-text="n.actorUsername"/> commented on your blueprint</source>
+        <target state="new"><x id="PH" equiv-text="n.actorUsername"/> commented on your blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.ts</context>
+          <context context-type="linenumber">98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8034437429584855279" datatype="html">
+        <source><x id="PH" equiv-text="n.actorUsername"/> replied to your comment</source>
+        <target state="new"><x id="PH" equiv-text="n.actorUsername"/> replied to your comment</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.ts</context>
+          <context context-type="linenumber">100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2120513159287271941" datatype="html">
+        <source><x id="PH" equiv-text="n.actorUsername"/> liked your blueprint</source>
+        <target state="new"><x id="PH" equiv-text="n.actorUsername"/> liked your blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.ts</context>
+          <context context-type="linenumber">102</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1132072099158363591" datatype="html">
+        <source><x id="PH" equiv-text="n.actorUsername"/> forked your blueprint</source>
+        <target state="new"><x id="PH" equiv-text="n.actorUsername"/> forked your blueprint</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.ts</context>
+          <context context-type="linenumber">104</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5396106967010251044" datatype="html">
+        <source><x id="PH" equiv-text="n.actorUsername"/> started following you</source>
+        <target state="new"><x id="PH" equiv-text="n.actorUsername"/> started following you</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/notification-bell/notification-bell.component.ts</context>
+          <context context-type="linenumber">106</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2735969048472295444" datatype="html">
+        <source> Loading profile… </source>
+        <target state="new"> Loading profile… </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">30,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7122936805673332101" datatype="html">
+        <source> User not found. </source>
+        <target state="new"> User not found. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">34,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5630547500077781036" datatype="html">
+        <source>No bio yet.</source>
+        <target state="new">No bio yet.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">47,50</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1058111733803782867" datatype="html">
+        <source>Edit bio</source>
+        <target state="new">Edit bio</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">56,59</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8922366192268961347" datatype="html">
+        <source>Member since <x id="START_BOLD_TEXT" ctype="x-b" equiv-text="&lt;b>"/><x id="INTERPOLATION" equiv-text="{{
+                datepipe.transform(profile.memberSince, &quot;yyyy-MM-dd&quot;)
+              }}"/><x id="CLOSE_BOLD_TEXT" ctype="x-b" equiv-text="&lt;/b>"/></source>
+        <target state="new">Member since <x id="START_BOLD_TEXT" ctype="x-b" equiv-text="&lt;b>"/><x id="INTERPOLATION" equiv-text="{{
+                datepipe.transform(profile.memberSince, &quot;yyyy-MM-dd&quot;)
+              }}"/><x id="CLOSE_BOLD_TEXT" ctype="x-b" equiv-text="&lt;/b>"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">93,97</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2121679282590427807" datatype="html">
+        <source>blueprints</source>
+        <target state="new">blueprints</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">100,103</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3541687134897970106" datatype="html">
+        <source>followers</source>
+        <target state="new">followers</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">108,111</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6751995972535426095" datatype="html">
+        <source>following</source>
+        <target state="new">following</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">116,121</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8155096119046067076" datatype="html">
+        <source> Blueprints </source>
+        <target state="new"> Blueprints </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">145,149</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5783542731453865447" datatype="html">
+        <source> Liked </source>
+        <target state="new"> Liked </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">154,159</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="802922559764379179" datatype="html">
+        <source>{VAR_PLURAL, plural, =1 {1 draft waiting to be shared} other {<x id="INTERPOLATION"/> drafts waiting to be shared}}</source>
+        <target state="new">{VAR_PLURAL, plural, =1 {1 draft waiting to be shared} other {<x id="INTERPOLATION"/> drafts waiting to be shared}}</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">164,168</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="660028299248489223" datatype="html">
+        <source>Open one and hit Publish to share it with the community</source>
+        <target state="new">Open one and hit Publish to share it with the community</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
+          <context context-type="linenumber">168,173</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6624322148991155245" datatype="html">
+        <source>No blueprints yet</source>
+        <target state="new">No blueprints yet</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+        <note priority="1" from="description">profile.noResults</note>
+      </trans-unit>
+      <trans-unit id="6018246591673612412" datatype="html">
+        <source>Follow</source>
+        <target state="new">Follow</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+        <note priority="1" from="description">profile.follow</note>
+      </trans-unit>
+      <trans-unit id="9160510009013134726" datatype="html">
+        <source>Unfollow</source>
+        <target state="new">Unfollow</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.ts</context>
           <context context-type="linenumber">16</context>
+        </context-group>
+        <note priority="1" from="description">profile.unfollow</note>
+      </trans-unit>
+      <trans-unit id="4624756572717799401" datatype="html">
+        <source>Log in to follow</source>
+        <target state="new">Log in to follow</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.ts</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+        <note priority="1" from="description">profile.loginToFollow</note>
+      </trans-unit>
+      <trans-unit id="1074558198547146204" datatype="html">
+        <source>Build Tool</source>
+        <target state="translated">Build Tool</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/build-tool/build-tool.component.html</context>
+          <context context-type="linenumber">2,5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3878831646281404316" datatype="html">
+        <source> Press "O" to change item orientation </source>
+        <target state="translated">Press "O" to change item orientation</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/build-tool/build-tool.component.html</context>
+          <context context-type="linenumber">29,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7540378469815142923" datatype="html">
+        <source>Additional Costs</source>
+        <target state="new">Additional Costs</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/build-tool/build-tool.component.html</context>
+          <context context-type="linenumber">58,60</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1707612829510769188" datatype="html">
+        <source>Add info tip</source>
+        <target state="translated">Add info tip</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/build-tool/build-tool.component.html</context>
+          <context context-type="linenumber">141,146</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7082943552703527601" datatype="html">
+        <source>Paint Element</source>
+        <target state="translated">Paint Element</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/build-tool/build-tool.component.html</context>
+          <context context-type="linenumber">154,158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="945b52f918f7c6ecc060e94b857f6531c6eb2a97" datatype="html">
@@ -885,20 +2439,100 @@
       <trans-unit id="7618280416108842340" datatype="html">
         <source>Element</source>
         <target state="new">Element</target>
+        <note priority="1" from="description">special item</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/build-tool/build-tool.component.ts</context>
-          <context context-type="linenumber">88</context>
+          <context context-type="linenumber">104</context>
         </context-group>
-        <note priority="1" from="description">special item</note>
       </trans-unit>
       <trans-unit id="314315645942131479" datatype="html">
         <source>Info</source>
         <target state="new">Info</target>
+        <note priority="1" from="description">special item</note>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/build-tool/build-tool.component.ts</context>
-          <context context-type="linenumber">89</context>
+          <context context-type="linenumber">105</context>
         </context-group>
-        <note priority="1" from="description">special item</note>
+      </trans-unit>
+      <trans-unit id="1856619816333014710" datatype="html">
+        <source>Gas</source>
+        <target state="translated">Gas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/cell-element-picker/cell-element-picker.component.html</context>
+          <context context-type="linenumber">21,24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1136007879590304640" datatype="html">
+        <source>Liquid</source>
+        <target state="translated">Liquid</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/cell-element-picker/cell-element-picker.component.html</context>
+          <context context-type="linenumber">31,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6624440771396371459" datatype="html">
+        <source>Element report</source>
+        <target state="translated">Element report</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/element-report-tool/element-report-tool.component.html</context>
+          <context context-type="linenumber">3,5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9104513816967700803" datatype="html">
+        <source>Solids :</source>
+        <target state="translated">Solids :</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/element-report-tool/element-report-tool.component.html</context>
+          <context context-type="linenumber">9,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2922983452022090266" datatype="html">
+        <source>Liquids :</source>
+        <target state="translated">Liquids :</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/element-report-tool/element-report-tool.component.html</context>
+          <context context-type="linenumber">41,44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="566380158043356075" datatype="html">
+        <source>Gases :</source>
+        <target state="translated">Gases :</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/element-report-tool/element-report-tool.component.html</context>
+          <context context-type="linenumber">72,73</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5701618810648052610" datatype="html">
+        <source>Title</source>
+        <target state="translated">Title</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/info-input/info-input.component.html</context>
+          <context context-type="linenumber">28,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5608719284112567346" datatype="html">
+        <source>Build this type of building</source>
+        <target state="translated">Build this type of building</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/item-collection-info/item-collection-info.component.html</context>
+          <context context-type="linenumber">78,81</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2424846400378341707" datatype="html">
+        <source>Select every <x id="INTERPOLATION" equiv-text="{{ itemCollection.oniItem.name }}"/></source>
+        <target state="translated">Select every <x id="INTERPOLATION" equiv-text="{{itemCollection.oniItem.name}}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/item-collection-info/item-collection-info.component.html</context>
+          <context context-type="linenumber">88,90</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1068135205233479194" datatype="html">
+        <source>Destroy these buildings (Delete key)</source>
+        <target state="translated">Destroy these buildings (Delete key)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/item-collection-info/item-collection-info.component.html</context>
+          <context context-type="linenumber">98,100</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="cdb1d7b065a59509471520408d8bd80892f544a9" datatype="html">
         <source>Elements</source>
@@ -989,11 +2623,75 @@
         </context-group>
       </trans-unit>
       <trans-unit id="7941215017291318765" datatype="html">
-        <source><x id="PH" equiv-text="numItems"/> item<x id="PH_1" equiv-text="numItems > 1 ? 's' : ''"/> selected</source>
+        <source><x id="PH" equiv-text="numItems"/> item<x id="PH_1" equiv-text="numItems > 1 ? &quot;s&quot; : &quot;&quot;"/> selected</source>
         <target state="new"><x id="PH" equiv-text="numItems"/> item<x id="PH_1" equiv-text="numItems > 1 ? 's' : ''"/> selected</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/item-collection-info/item-collection-info.component.ts</context>
-          <context context-type="linenumber">48</context>
+          <context context-type="linenumber">72</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5111728745594525885" datatype="html">
+        <source>Pipe Contents</source>
+        <target state="translated">Pipe Contents</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/pipe-content/pipe-content.component.html</context>
+          <context context-type="linenumber">8,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1712309486311537669" datatype="html">
+        <source>Select Tool</source>
+        <target state="translated">Select Tool</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/selection-tool/selection-tool.component.html</context>
+          <context context-type="linenumber">2,6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1768282584635748514" datatype="html">
+        <source>Select next item group</source>
+        <target state="translated">Select next item group</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/selection-tool/selection-tool.component.html</context>
+          <context context-type="linenumber">11,16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3053074208691128605" datatype="html">
+        <source>Select previous item group</source>
+        <target state="translated">Select previous item group</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/selection-tool/selection-tool.component.html</context>
+          <context context-type="linenumber">20,25</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7265500497903885664" datatype="html">
+        <source>Destroy every item group</source>
+        <target state="translated">Destroy every item group</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/selection-tool/selection-tool.component.html</context>
+          <context context-type="linenumber">29,34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1003770157833571713" datatype="html">
+        <source>Temperature: <x id="INTERPOLATION" equiv-text="{{ temperatureLabel }}"/></source>
+        <target state="translated">Temperature: <x id="INTERPOLATION" equiv-text="{{temperatureLabel}}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/temperature-picker/temperature-picker.component.html</context>
+          <context context-type="linenumber">9,11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1169176520079067529" datatype="html">
+        <source> Warning : Not every selected building has the same temperature </source>
+        <target state="translated"> Warning : Not every selected building has the same temperature </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/temperature-picker/temperature-picker.component.html</context>
+          <context context-type="linenumber">86,91</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="179798457097953193" datatype="html">
+        <source>Temperature scale</source>
+        <target state="translated">Temperature scale</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/temperature-scale/temperature-scale.component.html</context>
+          <context context-type="linenumber">3,5</context>
         </context-group>
       </trans-unit>
       <trans-unit id="02fa09142bac43095fcbe4fe52a929ac87ccd2e2" datatype="html">
@@ -1065,7 +2763,7 @@
         <target state="new">(Above <x id="PH" equiv-text="celsius"/>°C)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/temperature-scale/temperature-scale.component.ts</context>
-          <context context-type="linenumber">36</context>
+          <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8109946779315555845" datatype="html">
@@ -1073,7 +2771,39 @@
         <target state="new">(<x id="PH" equiv-text="celsius"/>°C ~ <x id="PH_1" equiv-text="celsiusNext"/>°C)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/temperature-scale/temperature-scale.component.ts</context>
-          <context context-type="linenumber">39</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8855063948479856431" datatype="html">
+        <source>Bit <x id="INTERPOLATION" equiv-text="{{ index + 1 }}"/></source>
+        <target state="translated">Bit <x id="INTERPOLATION" equiv-text="{{index + 1}}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/ui-screens/bit-selection-screen/bit-selection-screen.component.html</context>
+          <context context-type="linenumber">7,8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5164393925919873687" datatype="html">
+        <source>Above</source>
+        <target state="translated">Above</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/ui-screens/threshold-switch-screen/threshold-switch-screen.component.html</context>
+          <context context-type="linenumber">11,15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3997535574762859215" datatype="html">
+        <source>Below</source>
+        <target state="translated">Below</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/ui-screens/threshold-switch-screen/threshold-switch-screen.component.html</context>
+          <context context-type="linenumber">18,22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4930506384627295710" datatype="html">
+        <source>Settings</source>
+        <target state="translated">Settings</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/components/side-bar/ui-screens/ui-screen-container/ui-screen-container.component.html</context>
+          <context context-type="linenumber">9,12</context>
         </context-group>
       </trans-unit>
       <trans-unit id="76d585e98f73b5cea9622e06df89d1e42e933d7d" datatype="html">
@@ -1112,8 +2842,8 @@
         <source>Login</source>
         <target state="new">Login</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/module-blueprint/components/user-auth/login-dialog/login-dialog.component.ts</context>
-          <context context-type="linenumber">22</context>
+          <context context-type="sourcefile">src/app/module-blueprint/components/user-menu/user-menu.component.html</context>
+          <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3301086086650990787" datatype="html">
@@ -1347,6 +3077,63 @@
           <context context-type="sourcefile">src/app/module-blueprint/pipes/add-mass-unit.pipe.ts</context>
           <context context-type="linenumber">11</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="259903629850193800" datatype="html">
+        <source>Base game — no DLC required</source>
+        <target state="new">Base game — no DLC required</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/utils/chip-tooltip.ts</context>
+          <context context-type="linenumber">2</context>
+        </context-group>
+        <note priority="1" from="description">chipTooltip.base</note>
+      </trans-unit>
+      <trans-unit id="9207101581855643661" datatype="html">
+        <source>Spaced Out — requires the Spaced Out! DLC</source>
+        <target state="new">Spaced Out — requires the Spaced Out! DLC</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/utils/chip-tooltip.ts</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+        <note priority="1" from="description">chipTooltip.spacedOut</note>
+      </trans-unit>
+      <trans-unit id="2581451202688503790" datatype="html">
+        <source>Frosty Planet — requires the Frosty Planet DLC</source>
+        <target state="new">Frosty Planet — requires the Frosty Planet DLC</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/utils/chip-tooltip.ts</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+        <note priority="1" from="description">chipTooltip.frostyPlanet</note>
+      </trans-unit>
+      <trans-unit id="656188225842176514" datatype="html">
+        <source>Bionic Booster — requires the Bionic Booster DLC</source>
+        <target state="new">Bionic Booster — requires the Bionic Booster DLC</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/utils/chip-tooltip.ts</context>
+          <context context-type="linenumber">5</context>
+        </context-group>
+        <note priority="1" from="description">chipTooltip.bionicBooster</note>
+      </trans-unit>
+      <trans-unit id="8805371006663972398" datatype="html">
+        <source>Browse <x id="PH" equiv-text="category"/> blueprints</source>
+        <target state="new">Browse <x id="PH" equiv-text="category"/> blueprints</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/utils/chip-tooltip.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/utils/chip-tooltip.ts</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="335467580951394493" datatype="html">
+        <source>Uses mods not included in the base game</source>
+        <target state="new">Uses mods not included in the base game</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/module-blueprint/utils/chip-tooltip.ts</context>
+          <context context-type="linenumber">21</context>
+        </context-group>
+        <note priority="1" from="description">chipTooltip.modded</note>
       </trans-unit>
     </body>
   </file>

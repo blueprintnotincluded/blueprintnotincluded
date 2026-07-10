@@ -282,6 +282,7 @@ export class BlueprintService implements IObsBlueprintChange {
             this.name = response.name;
             this.likedByMe = response.likedByMe;
             this.nbLikes = response.nbLikes;
+            this.isPublished = response.isPublished;
             this.metadata = {
               gameVersion: response.gameVersion ?? null,
               category: response.category ?? null,
@@ -418,7 +419,7 @@ export class BlueprintService implements IObsBlueprintChange {
     >
   > = {};
 
-  saveBlueprint(overwrite: boolean) {
+  saveBlueprint(overwrite: boolean, publish?: boolean | null) {
     let saveBlueprint = this.blueprint.toMdbBlueprint();
 
     let body = new SaveBlueprintMessage();
@@ -426,6 +427,9 @@ export class BlueprintService implements IObsBlueprintChange {
     body.name = this.name;
     body.blueprint = saveBlueprint;
     body.thumbnail = this.thumbnail;
+    // publish: true publishes in the same save; null/undefined keeps the
+    // current state (new blueprints start as drafts server-side)
+    if (publish != null) body.publish = publish;
     Object.assign(body, this.metadata);
     const request = this.http
       .post("/api/uploadblueprint", body, {
@@ -434,14 +438,38 @@ export class BlueprintService implements IObsBlueprintChange {
       .pipe(
         map((response: any) => {
           if (response.id) {
+            const isNewBlueprint = this.id == null;
             this.id = response.id;
             this.location.replaceState(`/b/${this.id}`);
+            if (publish === true) this.isPublished = true;
+            else if (isNewBlueprint) this.isPublished = false;
           }
           return response;
         })
       );
 
     return request;
+  }
+
+  // Publish state of the currently loaded blueprint (undefined until loaded)
+  isPublished?: boolean;
+
+  // Returns the observable: callers need success/error to update their UI
+  // (unlike the fire-and-forget likeBlueprint)
+  setPublished(blueprintId: string, publish: boolean) {
+    const action = publish ? "publish" : "unpublish";
+    return this.http
+      .post<{ isPublished: boolean }>(
+        `/api/blueprints/${blueprintId}/${action}`,
+        {},
+        { headers: { Authorization: `Bearer ${this.authService.getToken()}` } }
+      )
+      .pipe(
+        map((response) => {
+          if (blueprintId === this.id) this.isPublished = response.isPublished;
+          return response;
+        })
+      );
   }
 
   nbLikes!: number;
@@ -467,6 +495,8 @@ export class SaveBlueprintMessage {
   name!: string;
   blueprint!: MdbBlueprint;
   thumbnail!: string;
+  // true = publish with this save; omitted = keep current publish state
+  publish?: boolean;
   gameVersion?: string | null;
   category?: string | null;
   subcategory?: string | null;
