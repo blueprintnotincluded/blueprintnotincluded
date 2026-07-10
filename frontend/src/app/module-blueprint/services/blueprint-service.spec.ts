@@ -261,7 +261,20 @@ describe("BlueprintService", () => {
     it("calls http.get with the correct URL", () => {
       mockHttp.get.mockReturnValue(of({ data: null }));
       service.getBlueprint("test-id").subscribe(() => {});
-      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprint/test-id");
+      expect(mockHttp.get).toHaveBeenCalledWith(
+        "/api/getblueprint/test-id",
+        {}
+      );
+    });
+
+    it("sends the auth token when logged in, so owners can open their own drafts", () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      mockAuth.getToken.mockReturnValue("tok-123");
+      mockHttp.get.mockReturnValue(of({ data: null }));
+      service.getBlueprint("test-id").subscribe(() => {});
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprint/test-id", {
+        headers: { Authorization: "Bearer tok-123" },
+      });
     });
 
     it("maps response fields onto the service when data is present", () => {
