@@ -165,6 +165,58 @@
   background-size: 48px 48px;
 }
 
+/* ---- cave backdrop ----
+ * Full-viewport illustration behind floating content panels. The art is
+ * intentionally busy at the edges and plain in the middle, so the content
+ * column sits over the calm center while a vignette sinks the edges into
+ * shadow. Layers (bottom to top): page bg color -> blurred illustration
+ * (::before) -> vignette (::after) -> content (z-index: 1).
+ */
+.bni-cave::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: url("/assets/images/bni-background.webp");
+  background-size: cover;
+  background-position: center;
+  filter: blur(2px) brightness(0.8) saturate(0.85);
+  /* blur samples past the viewport edge; overscan hides the fringe */
+  transform: scale(1.02);
+}
+
+.bni-cave::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 75% at 50% 42%,
+    transparent 0%,
+    rgba(15, 11, 9, 0.35) 55%,
+    rgba(15, 11, 9, 0.8) 100%
+  );
+}
+
+.bni-cave > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- floating content panel over the cave backdrop ---- */
+.bni-float {
+  background-color: rgba(31, 27, 24, 0.85);
+  background-image: linear-gradient(var(--bni-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bni-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--bni-line);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
 .bni-skin a {
   color: var(--bni-blue);
   text-decoration: none;
