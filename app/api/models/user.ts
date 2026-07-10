@@ -20,7 +20,6 @@ export interface User extends Document {
   resetToken?: string;
   resetTokenExpiration?: Date;
 
-  isAlpha?: boolean;
 
   bio?: string;
 
@@ -66,7 +65,6 @@ export class UserModel {
       migratedToWorkosAt: Date,
       resetToken: String,
       resetTokenExpiration: Date,
-      isAlpha: { type: Boolean, default: false },
       bio: { type: String, maxlength: [500, 'Bio must be 500 characters or fewer'], default: '' },
     });
 
@@ -107,7 +105,6 @@ export class UserModel {
         username: (this as any).username!,
         exp: expiry.getTime() / 1000,
         ...(role ? { role } : {}),
-        ...((this as any).isAlpha ? { isAlpha: true } : {}),
       };
       return jwt.sign(userJwt, process.env.JWT_SECRET as string); // DO NOT KEEP YOUR SECRET IN THE CODE!
     };
@@ -126,5 +123,4 @@ export interface UserJwt {
   username: string;
   exp: number;
   role?: string; // 'admin' | undefined — sourced from WorkOS platform org membership
-  isAlpha?: boolean;
 }

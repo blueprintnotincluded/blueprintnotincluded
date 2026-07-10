@@ -3,30 +3,3 @@
   align-items: center;
   gap: 0.5rem;
 }
-
-.alpha-toggle {
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.alpha-active {
-  background: var(--p-yellow-500) !important;
-  border-color: var(--p-yellow-500) !important;
-  color: #000 !important;
-}
-
-.alpha-active:hover {
-  background: var(--p-yellow-400) !important;
-  border-color: var(--p-yellow-400) !important;
-}
-
-.alpha-inactive {
-  background: transparent !important;
-  border-color: var(--p-yellow-500) !important;
-  color: var(--p-yellow-500) !important;
-}
-
-.alpha-inactive:hover {
-  background: var(--p-yellow-500) !important;
-  color: #000 !important;
-}
