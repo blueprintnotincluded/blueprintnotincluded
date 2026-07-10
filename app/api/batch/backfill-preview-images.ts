@@ -39,15 +39,19 @@ async function run(dryRun: boolean) {
   const service = PreviewImageService.instance;
   if (!dryRun) service.warmUp();
 
-  const total = await BlueprintModel.model.countDocuments({ deletedAt: null });
-  // Newest first: recent blueprints are the ones users actually browse, so an
-  // interrupted run still covers the highest-value slice of the corpus
-  // (index-backed by { deletedAt: 1, createdAt: -1 }).
-  const cursor = BlueprintModel.model
+  // The whole worklist upfront (id + modifiedAt, ~50 bytes/doc) instead of a
+  // server-side cursor: at ~2.5s per render, consuming one default-sized
+  // cursor batch takes ~40 minutes of server-side silence, and Mongo reaps
+  // cursors idle past 10 minutes (CursorNotFound, observed ~1,100 documents
+  // into a staging run). Newest first: recent blueprints are the ones users
+  // actually browse, so an interrupted run still covers the highest-value
+  // slice of the corpus (index-backed by { deletedAt: 1, createdAt: -1 }).
+  const docs = await BlueprintModel.model
     .find({ deletedAt: null })
     .select('modifiedAt')
     .sort({ createdAt: -1 })
-    .cursor();
+    .lean();
+  const total = docs.length;
 
   let processed = 0;
   let fresh = 0;
@@ -55,7 +59,7 @@ async function run(dryRun: boolean) {
   let failed = 0;
   const startedAt = Date.now();
 
-  for await (const doc of cursor) {
+  for (const doc of docs) {
     processed++;
     const blueprintId = doc._id as mongoose.Types.ObjectId;
     const modifiedAt = doc.modifiedAt ?? null;
