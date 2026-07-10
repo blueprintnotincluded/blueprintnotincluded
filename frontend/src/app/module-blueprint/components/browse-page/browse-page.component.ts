@@ -15,8 +15,8 @@ import {
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { UserService } from "src/app/module-blueprint/services/user-service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { Subject } from "rxjs";
+import { ActivatedRoute, ParamMap, Router } from "@angular/router";
+import { Subject, Subscription } from "rxjs";
 import { debounceTime } from "rxjs/operators";
 import { DialogAboutComponent } from "../dialogs/dialog-about/dialog-about.component";
 import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dialog.component";
@@ -140,21 +140,26 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     });
   }
 
+  private initialized = false;
+  private paramsSub?: Subscription;
+
   ngOnInit() {
-    const params = this.route.snapshot.queryParamMap;
-    this.filterName = params.get("name") ?? "";
-    this.filterGameVersion = params.get("gameVersion");
-    this.filterCategory = params.get("category");
-    this.filterSubcategory = params.get("subcategory");
-    const rawModded = params.get("modded");
-    this.filterModded =
-      rawModded === "true" ? true : rawModded === "false" ? false : null;
-    this.filterForkedFrom = params.get("forkedFrom");
-    const rawSort = params.get("sort");
-    this.sort =
-      rawSort === "popular" || rawSort === "mostForked" ? rawSort : "recent";
-    this.appendLoading();
-    this.getBlueprints();
+    // Subscribe (not snapshot): badge links on cards navigate to /discover
+    // with new params while this component is already active, so the same
+    // instance must react. Our own applyFiltersToUrl writes come back
+    // through here too — readFiltersFromParams reports them as unchanged,
+    // which prevents a duplicate fetch.
+    this.paramsSub = this.route.queryParamMap.subscribe((params) => {
+      const changed = this.readFiltersFromParams(params);
+      if (!this.initialized) {
+        this.initialized = true;
+        this.appendLoading();
+        this.getBlueprints();
+      } else if (changed) {
+        this.reset();
+        this.getBlueprints();
+      }
+    });
 
     if (this.loggedIn) {
       const me = this.authService.getUserDetails()?.username;
@@ -175,8 +180,42 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.paramsSub?.unsubscribe();
     this.filterNameSubject.complete();
     this.filterFacetSubject.complete();
+  }
+
+  /** Sync filter state from URL params; true if anything changed. */
+  private readFiltersFromParams(params: ParamMap): boolean {
+    const name = params.get("name") ?? "";
+    const gameVersion = params.get("gameVersion");
+    const category = params.get("category");
+    const subcategory = params.get("subcategory");
+    const rawModded = params.get("modded");
+    const modded =
+      rawModded === "true" ? true : rawModded === "false" ? false : null;
+    const forkedFrom = params.get("forkedFrom");
+    const rawSort = params.get("sort");
+    const sort: "recent" | "popular" | "mostForked" =
+      rawSort === "popular" || rawSort === "mostForked" ? rawSort : "recent";
+
+    const changed =
+      name !== this.filterName ||
+      gameVersion !== this.filterGameVersion ||
+      category !== this.filterCategory ||
+      subcategory !== this.filterSubcategory ||
+      modded !== this.filterModded ||
+      forkedFrom !== this.filterForkedFrom ||
+      sort !== this.sort;
+
+    this.filterName = name;
+    this.filterGameVersion = gameVersion;
+    this.filterCategory = category;
+    this.filterSubcategory = subcategory;
+    this.filterModded = modded;
+    this.filterForkedFrom = forkedFrom;
+    this.sort = sort;
+    return changed;
   }
 
   onFacetChange() {

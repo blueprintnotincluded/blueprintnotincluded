@@ -69,7 +69,10 @@ describe("BrowsePageComponent", () => {
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { queryParamMap: EMPTY_PARAMS } },
+          useValue: {
+            queryParamMap: of(EMPTY_PARAMS),
+            snapshot: { queryParamMap: EMPTY_PARAMS },
+          },
         },
         DatePipe,
       ],
@@ -251,18 +254,14 @@ describe("BrowsePageComponent", () => {
 
     it("initializes modded from the URL query param", () => {
       const route = TestBed.inject(ActivatedRoute) as any;
-      route.snapshot = {
-        queryParamMap: convertToParamMap({ modded: "true" }),
-      };
+      route.queryParamMap = of(convertToParamMap({ modded: "true" }));
       component.ngOnInit();
       expect(component.filterModded).toBe(true);
     });
 
     it("initializes forkedFrom from the URL query param", () => {
       const route = TestBed.inject(ActivatedRoute) as any;
-      route.snapshot = {
-        queryParamMap: convertToParamMap({ forkedFrom: "parent-1" }),
-      };
+      route.queryParamMap = of(convertToParamMap({ forkedFrom: "parent-1" }));
       component.ngOnInit();
       expect(component.filterForkedFrom).toBe("parent-1");
     });
@@ -321,9 +320,7 @@ describe("BrowsePageComponent", () => {
 
     it("initializes sort from the URL query param", () => {
       const route = TestBed.inject(ActivatedRoute) as any;
-      route.snapshot = {
-        queryParamMap: convertToParamMap({ sort: "popular" }),
-      };
+      route.queryParamMap = of(convertToParamMap({ sort: "popular" }));
       component.ngOnInit();
       expect(component.sort).toBe("popular");
     });
@@ -344,9 +341,7 @@ describe("BrowsePageComponent", () => {
 
     it("initializes sort=mostForked from the URL query param", () => {
       const route = TestBed.inject(ActivatedRoute) as any;
-      route.snapshot = {
-        queryParamMap: convertToParamMap({ sort: "mostForked" }),
-      };
+      route.queryParamMap = of(convertToParamMap({ sort: "mostForked" }));
       component.ngOnInit();
       expect(component.sort).toBe("mostForked");
     });
