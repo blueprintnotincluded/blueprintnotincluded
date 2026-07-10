@@ -323,33 +323,6 @@ export class ComponentMenuComponent
         items: this.displayMenuItems,
       },
       {
-        label: $localize`More`,
-        items: [
-          {
-            label: $localize`About`,
-            icon: "pi pi-info-circle",
-            command: (_event: any) => {
-              this.menuCommand.emit({
-                type: MenuCommandType.about,
-                data: null,
-              });
-            },
-          },
-          {
-            label: $localize`Discord`,
-            icon: "fab fa-discord",
-            url: "https://discord.gg/9gYwKaRujK",
-            target: "discord",
-          },
-          {
-            label: $localize`Github`,
-            icon: "fab fa-github",
-            url: "https://github.com/Sinetheta/blueprintnotincluded",
-            target: "github",
-          },
-        ],
-      },
-      {
         label:
           ALL_LANGUAGES.find((l) => l.code === this.locale)?.name ||
           this.locale,
