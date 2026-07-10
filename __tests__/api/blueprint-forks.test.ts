@@ -96,7 +96,10 @@ describe('Fork + BlueprintVersion API', function () {
         .send({ blueprintId: popularId });
       expect(deleteResponse.status).to.equal(200);
 
-      const getFork = await TestSetup.request().get(`/api/getblueprint/${forkId}`);
+      // Forks start as drafts, so load it as the fork's owner
+      const getFork = await TestSetup.request()
+        .get(`/api/getblueprint/${forkId}`)
+        .set('Authorization', `Bearer ${token}`);
       expect(getFork.status).to.equal(200);
       expect(getFork.body.data).to.deep.equal(testData.blueprints.popularBlueprint.data);
     });

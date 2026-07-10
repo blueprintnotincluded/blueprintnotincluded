@@ -16,6 +16,9 @@ const BASE_BODY = {
   name: 'Meta Test Blueprint',
   blueprint: { version: '1.0', buildings: [] },
   thumbnail: TINY_PNG,
+  // These tests exercise the public list/filter API — uploads must be
+  // published to appear there (new uploads default to draft)
+  publish: true,
 };
 
 describe('Blueprint metadata API', function () {
@@ -311,6 +314,11 @@ describe('Blueprint metadata API', function () {
         .post(`/api/blueprints/${sourceId}/fork`)
         .set('Authorization', `Bearer ${authToken}`);
       expect(forkResponse.status).to.equal(200);
+
+      // Forks start as drafts — publish so it shows in the public list
+      await TestSetup.request()
+        .post(`/api/blueprints/${forkResponse.body.id}/publish`)
+        .set('Authorization', `Bearer ${authToken}`);
 
       await TestSetup.request()
         .post('/api/uploadblueprint')
