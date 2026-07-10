@@ -46,6 +46,16 @@
   --bni-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --p-font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
 
+  /* z-index scale — every page-level layer sits on this ladder. Layering
+   * that is purely internal to one component (e.g. rivets over a card
+   * thumbnail) may use small local values, but anything that competes
+   * across components must use a token. PrimeNG overlays (menus, selects,
+   * dialogs, toasts) auto-assign from ~1000 up; nothing here may exceed
+   * that, or dropdowns/dialogs start rendering behind our chrome. */
+  --bni-z-backdrop: -1; /* cave art + vignette, behind an isolated page */
+  --bni-z-raised: 4; /* content raised above page siblings */
+  --bni-z-nav: 40; /* sticky site nav, above all page content */
+
   /* PrimeNG token remap */
   --p-text-color: var(--bni-ink);
   --p-text-muted-color: var(--bni-muted);
@@ -170,13 +180,22 @@
  * intentionally busy at the edges and plain in the middle, so the content
  * column sits over the calm center while a vignette sinks the edges into
  * shadow. Layers (bottom to top): page bg color -> blurred illustration
- * (::before) -> vignette (::after) -> content (z-index: 1).
+ * (::before) -> vignette (::after) -> content.
+ *
+ * isolation creates a stacking context so the negative-z pseudos paint
+ * above this element's own background but below ALL in-flow content —
+ * without forcing stacking contexts onto children (which would flatten
+ * the nav's z-index and put its dropdowns behind the content panel).
  */
+.bni-cave {
+  isolation: isolate;
+}
+
 .bni-cave::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: var(--bni-z-backdrop);
   background-image: url("/assets/images/bni-background.webp");
   background-size: cover;
   background-position: center;
@@ -189,7 +208,7 @@
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: var(--bni-z-backdrop);
   pointer-events: none;
   background: radial-gradient(
     ellipse 80% 75% at 50% 42%,
@@ -197,11 +216,6 @@
     rgba(15, 11, 9, 0.35) 55%,
     rgba(15, 11, 9, 0.8) 100%
   );
-}
-
-.bni-cave > * {
-  position: relative;
-  z-index: 1;
 }
 
 /* ---- floating content panel over the cave backdrop ---- */

@@ -1,7 +1,7 @@
 :host ::ng-deep .p-menubar {
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: var(--bni-z-nav, 40);
   gap: 10px;
   padding: 10px 22px;
   border-width: 0 0 2px;
