@@ -1,7 +1,22 @@
 .browse-page {
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 28px 22px 40px;
+  margin: 28px auto 56px;
+  padding: 28px 26px 40px;
+}
+
+@media (max-width: 1260px) {
+  .browse-page {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .browse-page {
+    margin: 10px 8px 24px;
+    padding: 20px 14px 28px;
+    border-radius: 8px;
+  }
 }
 
 .browse-header {
