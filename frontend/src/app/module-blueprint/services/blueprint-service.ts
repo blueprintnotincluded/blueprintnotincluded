@@ -271,8 +271,19 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   getBlueprint(id: string) {
+    // Token is optional but required to open your own drafts — the backend
+    // 404s draft blueprints for anonymous viewers
     const request = this.http
-      .get<BlueprintResponse>(`/api/getblueprint/${id}`)
+      .get<BlueprintResponse>(
+        `/api/getblueprint/${id}`,
+        this.authService.isLoggedIn()
+          ? {
+              headers: {
+                Authorization: `Bearer ${this.authService.getToken()}`,
+              },
+            }
+          : {}
+      )
       .pipe(
         map((response: BlueprintResponse) => {
           if (response.data) {
