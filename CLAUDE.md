@@ -170,7 +170,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Date**: 2026-07-06
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ Backend 315 passing (Mocha + Chai) · Frontend 561 passing (Vitest/jsdom), all green
+- **Tests**: ✅ Backend 427 passing (Mocha + Chai; 2 workos-provision specs flake locally, green in CI) · Frontend 670 passing (Vitest/jsdom)
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 
 ### Asset rendering: OniExtract2024 flat icons
