@@ -118,7 +118,7 @@
 .profile-actions {
   flex: none;
   position: relative;
-  z-index: 4;
+  z-index: var(--bni-z-raised, 4);
 }
 
 .view-mode-tabs {
