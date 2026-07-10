@@ -1,5 +1,5 @@
+<p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
 <ng-container *ngIf="authService.isLoggedIn(); else loginButton">
-  <p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
   <button
     *ngIf="isAdmin"
     pButton
@@ -29,5 +29,14 @@
     i18n-label
     label="Login"
     (click)="login()"
+  ></button>
+  <button
+    pButton
+    type="button"
+    class="p-button-secondary p-button-text"
+    icon="pi pi-ellipsis-v"
+    i18n-aria-label
+    aria-label="More"
+    (click)="userMenu.toggle($event)"
   ></button>
 </ng-template>

@@ -37,6 +37,10 @@
           pInputText
         />
       </div>
+      <a routerLink="/editor" class="bni-btn bni-btn--primary create-cta">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <ng-container i18n>Create a new blueprint</ng-container>
+      </a>
     </div>
 
     <div class="view-mode-tabs bni-seg" *ngIf="loggedIn && followingCount > 0">
