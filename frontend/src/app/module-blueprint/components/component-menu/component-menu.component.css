@@ -1,35 +1,3 @@
-.menu-line {
-  display: flex;
-  flex-flow: row;
-}
-
-.site-logo {
-  display: flex;
-  align-items: center;
-  margin-right: 8px;
-  opacity: 0.9;
-}
-
-.site-logo:hover {
-  opacity: 1;
-}
-
-.nav-tab {
-  padding: 6px 12px;
-  border-radius: 4px;
-  color: var(--p-menubar-item-color);
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: background 0.15s;
-}
-
-.nav-tab:hover {
-  background: var(--p-menubar-item-focus-background);
-  color: var(--p-menubar-item-focus-color);
-}
-
-.nav-tab.active {
-  background: var(--p-menubar-item-active-background);
-  color: var(--p-menubar-item-active-color);
-  font-weight: 600;
-}
+/* Nav chrome (logo, tabs, end-slot layout) comes from the shared
+ * bni-nav-* classes in bni-skin.css; the menubar opts into the skin via
+ * styleClass="bni-skin" so both navs stay visually in sync. */

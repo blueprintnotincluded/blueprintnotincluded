@@ -1,28 +1,42 @@
-<p-menubar #menu [model]="menuItems">
+<p-menubar #menu [model]="menuItems" styleClass="bni-skin">
   <ng-template pTemplate="start">
+    <a routerLink="/discover" class="bni-nav-logo">
+      <span class="bni-nav-mark" aria-hidden="true">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M4 4h16v16H4z"></path>
+          <path d="M4 10h16M10 4v16"></path>
+        </svg>
+      </span>
+      <span class="bni-nav-wordmark"
+        >BLUEPRINT <em class="bni-nav-not">NOT</em> INCLUDED</span
+      >
+    </a>
     <ng-container *ngIf="authService.isAlpha()">
-      <a routerLink="/discover" class="site-logo">
-        <img
-          src="assets/images/ui/manual/Favicon_blueprint_oxygen-32x32.png"
-          alt="BNI"
-          height="28"
-        />
-      </a>
-      <a routerLink="/discover" routerLinkActive="active" class="nav-tab" i18n
+      <a
+        routerLink="/discover"
+        routerLinkActive="active"
+        class="bni-nav-tab"
+        i18n
         >Discover</a
       >
-      <a routerLink="/editor" routerLinkActive="active" class="nav-tab" i18n
+      <a routerLink="/editor" routerLinkActive="active" class="bni-nav-tab" i18n
         >Editor</a
       >
     </ng-container>
   </ng-template>
   <ng-template pTemplate="end">
-    <div class="menu-line">
-      <app-user-menu
-        (sendFeedback)="onUserMenuSendFeedback()"
-        (myBlueprintsRequested)="onMyBlueprintsRequested($event)"
-      ></app-user-menu>
-    </div>
+    <app-user-menu
+      (sendFeedback)="onUserMenuSendFeedback()"
+      (myBlueprintsRequested)="onMyBlueprintsRequested($event)"
+    ></app-user-menu>
   </ng-template>
 </p-menubar>
 
