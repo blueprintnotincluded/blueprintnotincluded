@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { Location } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
-import { catchError, switchMap, tap } from "rxjs/operators";
+import { catchError, finalize, switchMap, tap } from "rxjs/operators";
 import { BlueprintDetailsResponse } from "../../../../../../lib/index";
 import { MessageService } from "primeng/api";
 import { BlueprintService } from "../../services/blueprint-service";
@@ -105,6 +105,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.notFound = false;
     this.loadError = false;
     this.previewFailed = false;
+    this.publishWorking = false;
 
     if (id == null) {
       this.loading = false;
@@ -164,26 +165,27 @@ export class BlueprintDetailsPageComponent implements OnInit {
     if (this.details == null || this.publishWorking) return;
     const details = this.details;
     this.publishWorking = true;
-    this.blueprintService.setPublished(details.id, publish).subscribe({
-      next: (response) => {
-        details.isPublished = response.isPublished;
-        this.publishWorking = false;
-        this.messageService.add({
-          severity: "success",
-          summary: publish
-            ? $localize`:publishToast:${details.name} published! It's now visible to everyone`
-            : $localize`:unpublishToast:${details.name} moved back to drafts`,
-        });
-      },
-      error: () => {
-        this.publishWorking = false;
-        this.messageService.add({
-          severity: "error",
-          summary: publish
-            ? $localize`:publishError:Could not publish blueprint`
-            : $localize`:unpublishError:Could not unpublish blueprint`,
-        });
-      },
-    });
+    this.blueprintService
+      .setPublished(details.id, publish)
+      .pipe(finalize(() => (this.publishWorking = false)))
+      .subscribe({
+        next: (response) => {
+          details.isPublished = response.isPublished;
+          this.messageService.add({
+            severity: "success",
+            summary: publish
+              ? $localize`:publishToast:${details.name} published! It's now visible to everyone`
+              : $localize`:unpublishToast:${details.name} moved back to drafts`,
+          });
+        },
+        error: () => {
+          this.messageService.add({
+            severity: "error",
+            summary: publish
+              ? $localize`:publishError:Could not publish blueprint`
+              : $localize`:unpublishError:Could not unpublish blueprint`,
+          });
+        },
+      });
   }
 }

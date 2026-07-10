@@ -399,6 +399,12 @@ describe("BlueprintDetailsPageComponent", () => {
 
       expect(blueprintService.setPublished).toHaveBeenCalledWith("bp1", false);
       expect(component.details?.isPublished).toBe(false);
+      expect(messageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          severity: "success",
+          summary: expect.stringContaining("moved back to drafts"),
+        })
+      );
     });
 
     it("keeps state and toasts an error when the call fails", () => {
@@ -425,6 +431,8 @@ describe("BlueprintDetailsPageComponent", () => {
       );
       fixture.detectChanges();
 
+      const shareButton = fixture.debugElement.query(By.css(".details-share"));
+      expect(shareButton.nativeElement.disabled).toBe(true);
       expect(component.shareTitle).toContain("Publish");
     });
   });

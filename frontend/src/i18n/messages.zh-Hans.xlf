@@ -36,7 +36,7 @@
       </trans-unit>
       <trans-unit id="2147166008226192664" datatype="html">
         <source>Only you (and admins) can see this blueprint</source>
-        <target state="new">Only you (and admins) can see this blueprint</target>
+        <target state="translated">只有你（和管理员）能看到此蓝图</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
           <context context-type="linenumber">40,45</context>
@@ -48,7 +48,7 @@
       </trans-unit>
       <trans-unit id="4808589666930368915" datatype="html">
         <source>Draft</source>
-        <target state="new">Draft</target>
+        <target state="translated">草稿</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-card/blueprint-card.component.html</context>
           <context context-type="linenumber">42,46</context>
@@ -136,7 +136,7 @@
       </trans-unit>
       <trans-unit id="7430416142942514215" datatype="html">
         <source>Publish</source>
-        <target state="new">Publish</target>
+        <target state="translated">发布</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
           <context context-type="linenumber">145,146</context>
@@ -180,7 +180,7 @@
       </trans-unit>
       <trans-unit id="4530164283214234705" datatype="html">
         <source>Unpublish</source>
-        <target state="new">Unpublish</target>
+        <target state="translated">取消发布</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.html</context>
           <context context-type="linenumber">202,204</context>
@@ -218,7 +218,7 @@
       </trans-unit>
       <trans-unit id="7379253243385314046" datatype="html">
         <source>Publish to share</source>
-        <target state="new">Publish to share</target>
+        <target state="translated">发布后即可分享</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
           <context context-type="linenumber">157</context>
@@ -227,7 +227,7 @@
       </trans-unit>
       <trans-unit id="4392278733505760445" datatype="html">
         <source><x id="PH" equiv-text="details.name"/> published! It's now visible to everyone</source>
-        <target state="new"><x id="PH" equiv-text="details.name"/> published! It's now visible to everyone</target>
+        <target state="translated"><x id="PH" equiv-text="details.name"/> 已发布！现在所有人都能看到</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
           <context context-type="linenumber">174</context>
@@ -240,7 +240,7 @@
       </trans-unit>
       <trans-unit id="2882192988615559310" datatype="html">
         <source><x id="PH" equiv-text="details.name"/> moved back to drafts</source>
-        <target state="new"><x id="PH" equiv-text="details.name"/> moved back to drafts</target>
+        <target state="translated"><x id="PH" equiv-text="details.name"/> 已移回草稿</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
           <context context-type="linenumber">175</context>
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="5444217940983587159" datatype="html">
         <source>Could not publish blueprint</source>
-        <target state="new">Could not publish blueprint</target>
+        <target state="translated">无法发布蓝图</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
           <context context-type="linenumber">183</context>
@@ -258,7 +258,7 @@
       </trans-unit>
       <trans-unit id="7575612643892164651" datatype="html">
         <source>Could not unpublish blueprint</source>
-        <target state="new">Could not unpublish blueprint</target>
+        <target state="translated">无法取消发布蓝图</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/blueprint-details-page/blueprint-details-page.component.ts</context>
           <context context-type="linenumber">184</context>
@@ -1170,7 +1170,7 @@
       </trans-unit>
       <trans-unit id="3336685470898749309" datatype="html">
         <source>Update &amp; Publish</source>
-        <target state="new">Update &amp; Publish</target>
+        <target state="translated">更新并发布</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
           <context context-type="linenumber">99</context>
@@ -1179,7 +1179,7 @@
       </trans-unit>
       <trans-unit id="3121925390832888677" datatype="html">
         <source>Save &amp; Publish</source>
-        <target state="new">Save &amp; Publish</target>
+        <target state="translated">保存并发布</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
           <context context-type="linenumber">100</context>
@@ -1188,7 +1188,7 @@
       </trans-unit>
       <trans-unit id="6567814263856352414" datatype="html">
         <source>Save as draft</source>
-        <target state="new">Save as draft</target>
+        <target state="translated">保存为草稿</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
           <context context-type="linenumber">105</context>
@@ -1197,7 +1197,7 @@
       </trans-unit>
       <trans-unit id="5037831319203043580" datatype="html">
         <source><x id="PH" equiv-text="this.blueprintService.name"/> saved as draft</source>
-        <target state="new"><x id="PH" equiv-text="this.blueprintService.name"/> saved as draft</target>
+        <target state="translated"><x id="PH" equiv-text="this.blueprintService.name"/> 已保存为草稿</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/dialogs/component-save-dialog/component-save-dialog.component.ts</context>
           <context context-type="linenumber">220</context>
@@ -2452,7 +2452,7 @@
       </trans-unit>
       <trans-unit id="802922559764379179" datatype="html">
         <source>{VAR_PLURAL, plural, =1 {1 draft waiting to be shared} other {<x id="INTERPOLATION"/> drafts waiting to be shared}}</source>
-        <target state="new">{VAR_PLURAL, plural, =1 {1 draft waiting to be shared} other {<x id="INTERPOLATION"/> drafts waiting to be shared}}</target>
+        <target state="translated">{VAR_PLURAL, plural, =1 {1 个草稿等待分享} other {<x id="INTERPOLATION"/> 个草稿等待分享}}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
           <context context-type="linenumber">164,168</context>
@@ -2460,7 +2460,7 @@
       </trans-unit>
       <trans-unit id="660028299248489223" datatype="html">
         <source>Open one and hit Publish to share it with the community</source>
-        <target state="new">Open one and hit Publish to share it with the community</target>
+        <target state="translated">打开一个并点击“发布”，与社区分享</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/module-blueprint/components/profile-page/profile-page.component.html</context>
           <context context-type="linenumber">168,173</context>
