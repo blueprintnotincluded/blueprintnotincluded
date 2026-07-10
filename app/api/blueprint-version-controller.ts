@@ -142,9 +142,10 @@ export class BlueprintVersionController {
         return;
       }
 
-      // Anonymous route: gate drafts so version names/thumbnails can't leak
+      // Anonymous route: gate drafts so version names/thumbnails can't leak,
+      // and treat soft-deleted blueprints as not found
       const blueprint = await BlueprintModel.model
-        .findOne({ _id: blueprintId })
+        .findOne({ _id: blueprintId, deletedAt: null })
         .select('owner isPublished')
         .lean();
       if (!blueprint || !canViewBlueprint(blueprint, optionalViewer(req))) {

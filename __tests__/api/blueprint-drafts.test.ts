@@ -103,14 +103,24 @@ describe('Blueprint drafts (Mocha)', function () {
     });
 
     it('admin can publish and unpublish another user\'s blueprint, attributed to the admin', async function () {
-      const response = await TestSetup.request()
+      const publishResponse = await TestSetup.request()
         .post(`/api/blueprints/${draft._id}/publish`)
         .set('Authorization', `Bearer ${adminToken}`);
 
-      expect(response.status).to.equal(200);
+      expect(publishResponse.status).to.equal(200);
       const published = await events(draft._id, 'published');
       expect(published).to.have.length(1);
       expect(published[0].actorId.toString()).to.equal(testData.users.user3._id.toString());
+
+      const unpublishResponse = await TestSetup.request()
+        .post(`/api/blueprints/${draft._id}/unpublish`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(unpublishResponse.status).to.equal(200);
+      expect(unpublishResponse.body.isPublished).to.equal(false);
+      const unpublished = await events(draft._id, 'unpublished');
+      expect(unpublished).to.have.length(1);
+      expect(unpublished[0].actorId.toString()).to.equal(testData.users.user3._id.toString());
     });
 
     it('another user gets 404 for a draft (existence hidden) and 403 for a published blueprint', async function () {

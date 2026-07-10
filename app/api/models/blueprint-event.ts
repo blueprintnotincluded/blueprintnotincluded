@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export type BlueprintEventType = 'created' | 'updated' | 'published' | 'unpublished' | 'deleted';
+export const EVENT_TYPES = ['created', 'updated', 'published', 'unpublished', 'deleted'] as const;
+export type BlueprintEventType = (typeof EVENT_TYPES)[number];
 
 export interface BlueprintEvent extends Document {
   blueprintId: mongoose.Types.ObjectId;
@@ -18,7 +19,7 @@ export class BlueprintEventModel {
       actorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
       type: {
         type: String,
-        enum: ['created', 'updated', 'published', 'unpublished', 'deleted'],
+        enum: EVENT_TYPES,
         required: true,
       },
       createdAt: { type: Date, default: Date.now },
