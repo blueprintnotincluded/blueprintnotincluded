@@ -22,6 +22,7 @@ export interface TestBlueprint {
   copyOf?: Types.ObjectId;
   data: any;
   deletedAt?: Date | null;
+  isPublished?: boolean;
 }
 
 export class TestDataFactory {
@@ -75,6 +76,9 @@ export class TestDataFactory {
         },
       },
       deletedAt: null,
+      // Fixtures represent pre-existing public blueprints (matches the backfill
+      // migration); draft tests override with isPublished: false
+      isPublished: true,
       ...overrides,
     };
     // Keep the counter-cache consistent with the likes array unless a test overrides it

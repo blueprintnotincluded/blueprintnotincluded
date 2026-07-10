@@ -6,6 +6,7 @@ import { UserModel, UserJwt } from './models/user';
 import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
 import { optionalViewer } from './utils/optionalViewer';
+import { canViewBlueprint } from './utils/blueprint-visibility';
 import {
   sanitizeCommentBody,
   extractTokenIds,
@@ -131,9 +132,10 @@ export class CommentController {
 
       const blueprint = await BlueprintModel.model
         .findOne({ _id: blueprintId, deletedAt: null })
-        .select('owner')
+        .select('owner isPublished')
         .lean();
-      if (!blueprint) {
+      // Comments on a draft (e.g. unpublished after discussion) must not leak
+      if (!blueprint || !canViewBlueprint(blueprint, optionalViewer(req))) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }
@@ -203,9 +205,9 @@ export class CommentController {
 
       const blueprint = await BlueprintModel.model
         .findOne({ _id: blueprintId, deletedAt: null })
-        .select('owner')
+        .select('owner isPublished')
         .lean();
-      if (!blueprint) {
+      if (!blueprint || !canViewBlueprint(blueprint, user)) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }

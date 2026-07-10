@@ -15,6 +15,10 @@ export interface Blueprint extends Document {
   copyOf?: string;
   data: any;
   deletedAt?: Date | null;
+  // Draft state: false = draft (owner/admin only). Docs predating the backfill
+  // migration lack the field — doc-level checks must treat missing as published
+  // (isPublished !== false); feed queries use exact { isPublished: true }.
+  isPublished?: boolean;
   gameVersion?: string | null;
   category?: string | null;
   subcategory?: string | null;
@@ -58,6 +62,11 @@ export class BlueprintModel {
       },
       data: Object,
       deletedAt: { type: Date, default: null },
+      // No schema default on purpose: mongoose applies defaults on query
+      // hydration too, so `default: false` would make every pre-migration doc
+      // read as a draft in the deploy→migrate window (migrations run
+      // post-deploy here). Creation sites set false explicitly instead.
+      isPublished: Boolean,
       gameVersion: { type: String, enum: [...GAME_VERSIONS, null], index: true },
       category: { type: String, enum: [...CATEGORIES, null], index: true },
       subcategory: { type: String, maxlength: 40 },
@@ -90,15 +99,15 @@ export class BlueprintModel {
     // Upload duplicate-name check: find({ owner, name })
     blueprintSchema.index({ owner: 1, name: 1 });
 
-    // Discovery feed indexes (deletedAt: null = public)
-    blueprintSchema.index({ deletedAt: 1, createdAt: -1 });
-    blueprintSchema.index({ deletedAt: 1, gameVersion: 1, createdAt: -1 });
-    blueprintSchema.index({ deletedAt: 1, category: 1, createdAt: -1 });
-    blueprintSchema.index({ deletedAt: 1, gameVersion: 1, category: 1, createdAt: -1 });
+    // Discovery feed indexes (deletedAt: null AND isPublished: true = public)
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, category: 1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, category: 1, createdAt: -1 });
     // "Most liked" sort on the public feed
-    blueprintSchema.index({ deletedAt: 1, likeCount: -1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, likeCount: -1, createdAt: -1 });
     // "Most forked" sort
-    blueprintSchema.index({ deletedAt: 1, forkCount: -1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, forkCount: -1, createdAt: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }

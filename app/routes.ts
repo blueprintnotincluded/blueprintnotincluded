@@ -92,6 +92,8 @@ export class Routes {
     app.route('/api/uploadblueprint').post(auth, this.uploadBlueprintController.uploadBlueprint);
     app.route('/api/likeblueprint').post(auth, this.uploadBlueprintController.likeBlueprint);
     app.route('/api/deleteblueprint').post(auth, this.uploadBlueprintController.deleteBlueprint);
+    app.route('/api/blueprints/:id/publish').post(auth, this.uploadBlueprintController.publishBlueprint);
+    app.route('/api/blueprints/:id/unpublish').post(auth, this.uploadBlueprintController.unpublishBlueprint);
     app.route('/api/feedback').post(auth, this.feedbackController.submit);
     app.route('/api/users/:username/profileSecure').get(auth, this.userController.getProfile);
     app.route('/api/follow').post(auth, this.userController.follow);

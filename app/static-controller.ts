@@ -16,9 +16,16 @@ export class StaticController {
     const blueprintUrl = `${process.env.HOST}${req.path}`;
     return BlueprintModel.model
       .findById(id)
-      .select('name modifiedAt')
+      .select('name modifiedAt isPublished')
       .then(blueprint => {
         if (!blueprint) return res.status(404).send();
+        // Drafts: serve the SPA shell with generic meta — the owner's page
+        // still renders (the API gates per-viewer), but crawlers/unfurlers
+        // never see the draft's name or preview image.
+        if (blueprint.isPublished === false) {
+          this.serveHtml(req, res);
+          return;
+        }
         // Server-rendered OG image at the real unfurl size; versioned by
         // modifiedAt so crawlers re-fetch after edits.
         const version = blueprint.modifiedAt ? new Date(blueprint.modifiedAt).getTime() : 0;
@@ -52,7 +59,8 @@ export class StaticController {
     return BlueprintModel.model
       .findById(id)
       .then(blueprint => {
-        if (!blueprint) return res.status(404).send();
+        // Anonymous crawler endpoint — drafts 404 (no viewer concept here)
+        if (!blueprint || blueprint.isPublished === false) return res.status(404).send();
         var base64Data = blueprint.thumbnail.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
         var img = Buffer.from(base64Data, 'base64');
         res.writeHead(200, {
