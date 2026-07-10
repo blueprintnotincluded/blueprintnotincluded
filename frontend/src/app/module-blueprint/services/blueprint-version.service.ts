@@ -24,8 +24,11 @@ export class BlueprintVersionService {
   public getVersions(
     blueprintId: string
   ): Observable<ListBlueprintVersionsResponse> {
+    // Token is optional but required to list versions of your own drafts —
+    // the backend 404s draft blueprints for anonymous viewers
     return this.http.get<ListBlueprintVersionsResponse>(
-      `/api/blueprints/${blueprintId}/versions`
+      `/api/blueprints/${blueprintId}/versions`,
+      this.auth.isLoggedIn() ? { headers: this.authHeaders() } : {}
     );
   }
 
