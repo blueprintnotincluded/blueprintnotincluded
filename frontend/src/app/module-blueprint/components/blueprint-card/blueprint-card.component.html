@@ -33,6 +33,14 @@
       <span class="card-date">{{ item.createdAt | date : "yyyy-MM-dd" }}</span>
     </div>
     <div class="card-badges">
+      <span
+        *ngIf="item.isPublished === false"
+        class="bni-chip bni-chip--draft"
+        i18n-title
+        title="Only you (and admins) can see this blueprint"
+        i18n
+        >Draft</span
+      >
       <a
         *ngIf="item.category"
         class="bni-chip bni-chip--cat"

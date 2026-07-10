@@ -420,6 +420,40 @@ a.bni-chip:hover {
   border-color: var(--bni-accent2-bd);
 }
 
+/* Draft = work in progress: dashed outline, primary tint so it pops on
+   the owner's own cards without reading as a filter chip */
+.bni-chip--draft {
+  background: transparent;
+  color: var(--bni-primary-bd);
+  border: 1px dashed var(--bni-primary-bd);
+}
+
+/* ---- publish nudge (profile) ---- */
+.drafts-nudge {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border: 1px dashed var(--bni-primary-bd);
+  border-radius: 6px;
+  color: var(--bni-primary-bd);
+  font-family: var(--bni-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.drafts-nudge .pi {
+  align-self: center;
+}
+
+.drafts-nudge-hint {
+  color: var(--bni-muted);
+  font-family: inherit;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
 /* ---- riveted panel ---- */
 .bni-panel {
   position: relative;

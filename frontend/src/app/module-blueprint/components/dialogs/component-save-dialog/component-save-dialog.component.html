@@ -95,13 +95,38 @@
     </div>
 
     <ng-template pTemplate="footer">
-      <p-button
-        *ngIf="!overwrite"
-        type="submit"
+      <!-- Already published: a single plain Update keeps the state -->
+      <button
+        *ngIf="!overwrite && isUpdate && !isDraft"
+        type="button"
+        pButton
         [label]="saveLabel"
         [icon]="icon"
+        (click)="submit(null)"
         [disabled]="disabledSaveButton"
-      ></p-button>
+        class="save-action"
+      ></button>
+      <!-- New save or draft update: publish is the primary, fun path;
+           keeping it as a draft stays one click away -->
+      <ng-container *ngIf="!overwrite && (!isUpdate || isDraft)">
+        <button
+          type="button"
+          pButton
+          [label]="draftLabel"
+          (click)="submit(isUpdate ? null : false)"
+          [disabled]="disabledSaveButton"
+          class="p-button-text save-action save-action--draft"
+        ></button>
+        <button
+          type="button"
+          pButton
+          [label]="publishLabel"
+          [icon]="icon || 'pi pi-send'"
+          (click)="submit(true)"
+          [disabled]="disabledSaveButton"
+          class="save-action save-action--publish"
+        ></button>
+      </ng-container>
       <button
         *ngIf="overwrite"
         type="button"

@@ -83,6 +83,14 @@
           </div>
 
           <div class="details-badges">
+            <span
+              *ngIf="details.isPublished === false"
+              class="bni-chip bni-chip--draft"
+              i18n-title
+              title="Only you (and admins) can see this blueprint"
+              i18n
+              >Draft</span
+            >
             <a
               *ngIf="details.category"
               class="bni-chip bni-chip--cat"
@@ -126,6 +134,17 @@
           </p>
 
           <div class="details-actions">
+            <button
+              *ngIf="details.ownedByMe && details.isPublished === false"
+              pButton
+              type="button"
+              class="details-publish"
+              icon="pi pi-send"
+              i18n-label
+              label="Publish"
+              [loading]="publishWorking"
+              (click)="togglePublish(true)"
+            ></button>
             <a
               pButton
               i18n-label
@@ -169,7 +188,20 @@
               icon="pi pi-share-alt"
               i18n-label
               label="Share"
+              [disabled]="details.isPublished === false"
+              [title]="shareTitle"
               (click)="shareDialog.showDialog()"
+            ></button>
+            <button
+              *ngIf="details.ownedByMe && details.isPublished !== false"
+              pButton
+              type="button"
+              class="p-button-text details-unpublish"
+              icon="pi pi-eye-slash"
+              i18n-label
+              label="Unpublish"
+              [loading]="publishWorking"
+              (click)="togglePublish(false)"
             ></button>
           </div>
         </div>

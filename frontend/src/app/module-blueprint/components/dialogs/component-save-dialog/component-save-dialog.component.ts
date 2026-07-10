@@ -70,6 +70,9 @@ export class ComponentSaveDialogComponent {
   get isUpdate(): boolean {
     return this.blueprintService.savedBlueprint;
   }
+  get isDraft(): boolean {
+    return this.blueprintService.isPublished === false;
+  }
 
   get dialogHeader(): string {
     return this.isUpdate
@@ -88,6 +91,19 @@ export class ComponentSaveDialogComponent {
       ? $localize`:saveLabel:Generating thumbnail`
       : $localize`:saveLabel:Save`;
   }
+  // The fun path: publish right from the save dialog
+  get publishLabel() {
+    if (this.blueprintService.thumbnail == null)
+      return $localize`:saveLabel:Generating thumbnail`;
+    return this.isUpdate
+      ? $localize`:publishLabel:Update & Publish`
+      : $localize`:publishLabel:Save & Publish`;
+  }
+  get draftLabel() {
+    return this.isUpdate
+      ? $localize`:saveLabel:Update`
+      : $localize`:draftLabel:Save as draft`;
+  }
   get disabledSaveButton() {
     return (
       !this.saveBlueprintForm.valid ||
@@ -101,6 +117,10 @@ export class ComponentSaveDialogComponent {
   working: boolean = false;
   thumbnailReady: boolean = false;
   overwrite: boolean = false;
+  // Publish intent for the in-flight save: true = publish with this save,
+  // false/null = keep as draft / keep current state. Reused by the
+  // overwrite-confirm flow so "Yes" honors the originally clicked button.
+  pendingPublish: boolean | null = null;
   private _originalName: string | null = null;
   private _categoryLookup: CategoryLookup | null = null;
 
@@ -111,7 +131,14 @@ export class ComponentSaveDialogComponent {
     public authService: AuthenticationService
   ) {}
 
+  // Enter key / form submit triggers the primary action: publish for a new
+  // save or a draft update, plain update for an already-published blueprint
   onSubmit() {
+    this.submit(!this.isUpdate || this.isDraft ? true : null);
+  }
+
+  submit(publish: boolean | null) {
+    this.pendingPublish = publish;
     this.working = true;
 
     const formName = this.saveBlueprintForm.value.name;
@@ -119,10 +146,12 @@ export class ComponentSaveDialogComponent {
       this._originalName !== null && formName === this._originalName;
     this.blueprintService.name = formName;
     this.applyMetadataToService();
-    this.blueprintService.saveBlueprint(autoOverwrite).subscribe({
-      next: this.handleSaveNext.bind(this),
-      error: this.handleSaveError.bind(this),
-    });
+    this.blueprintService
+      .saveBlueprint(autoOverwrite, publish ?? undefined)
+      .subscribe({
+        next: this.handleSaveNext.bind(this),
+        error: this.handleSaveError.bind(this),
+      });
   }
 
   private applyMetadataToService() {
@@ -184,7 +213,14 @@ export class ComponentSaveDialogComponent {
       this.hideDialog();
 
       // TODO move this to the service ?
-      let summary: string = $localize`${this.blueprintService.name} saved`;
+      let summary: string;
+      if (this.pendingPublish === true) {
+        summary = $localize`${this.blueprintService.name} published! It's now visible to everyone`;
+      } else if (this.blueprintService.isPublished === false) {
+        summary = $localize`${this.blueprintService.name} saved as draft`;
+      } else {
+        summary = $localize`${this.blueprintService.name} saved`;
+      }
       let detail: string = "";
 
       this.messageService.add({
@@ -264,6 +300,7 @@ export class ComponentSaveDialogComponent {
     this.working = false;
     this.thumbnailReady = false;
     this.overwrite = false;
+    this.pendingPublish = null;
     this._originalName = null;
     this.saveBlueprintForm.controls.name.enable();
     this.saveBlueprintForm.reset();
@@ -286,10 +323,12 @@ export class ComponentSaveDialogComponent {
 
     this.blueprintService.name = this.saveBlueprintForm.getRawValue().name; // Use get raw Value because it can be disabled
     this.applyMetadataToService();
-    this.blueprintService.saveBlueprint(true).subscribe({
-      next: this.handleSaveNext.bind(this),
-      error: this.handleSaveError.bind(this),
-    });
+    this.blueprintService
+      .saveBlueprint(true, this.pendingPublish ?? undefined)
+      .subscribe({
+        next: this.handleSaveNext.bind(this),
+        error: this.handleSaveError.bind(this),
+      });
   }
 
   hideDialog() {
