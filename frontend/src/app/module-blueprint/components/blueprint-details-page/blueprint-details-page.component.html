@@ -214,6 +214,17 @@
         </div>
       </div>
 
+      <div *ngIf="relatedBlueprints.length" class="details-related">
+        <h2 i18n>You might also like</h2>
+        <div class="related-grid">
+          <app-blueprint-card
+            *ngFor="let item of relatedBlueprints"
+            [item]="item"
+            [loggedIn]="loggedIn"
+          ></app-blueprint-card>
+        </div>
+      </div>
+
       <app-comment-section
         [blueprintId]="blueprintId"
         (commentsLoaded)="scrollToFragment()"

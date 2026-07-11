@@ -39,6 +39,11 @@ export interface BlueprintDetailsResponse extends BlueprintListItem {
   researchTier?: string | null;
 }
 
+// "You might also like" shelf on the details page
+export interface RelatedBlueprintsResponse {
+  blueprints: BlueprintListItem[];
+}
+
 export interface BlueprintLike {
   blueprintId: string;
   like: boolean;

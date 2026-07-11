@@ -156,3 +156,20 @@
 .details-fork-count:hover {
   text-decoration: underline;
 }
+
+.details-related {
+  margin-top: 36px;
+}
+
+.details-related h2 {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin: 0 0 14px;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
