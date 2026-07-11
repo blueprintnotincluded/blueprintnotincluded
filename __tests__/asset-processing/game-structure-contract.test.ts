@@ -212,41 +212,50 @@ describe('Game structure contract (representative buildings)', () => {
     });
   });
 
-  // PixelPack (a wall-plane decal, ObjectLayer.Backwall) and the Portrait Canvas
-  // (ObjectLayer.Building) both sit at the InteriorWall scene layer, so at rest
-  // they tie on sceneLayer alone. PixelPack is architecturally "behind the wall"
-  // (like drywall) and must never exactly tie with - let alone render in front
-  // of - a portrait mounted on it. Before the objectLayerBackwall depth offset,
-  // both got the exact same computed `depth` in Base, and PIXI's
-  // Container.sortChildren() breaks such ties using an index it re-stamps from
-  // current array position on every call - so a real, temporary depth
-  // divergence (this pair diverges under the Automation overlay, since
-  // PixelPack has an automation viewMode) permanently reordered them even after
-  // returning to Base, where they tie again.
+  // PixelPack is a wall-plane decal (ObjectLayer.Backwall) that sits flush in the
+  // wall - like drywall - behind whatever building is placed against it. Since the
+  // game forbids buildings from overlapping each other, the only render-order
+  // comparison that is ever visually observed is "some buildable vs a decal on the
+  // same wall", never buildable-vs-buildable: so the decal must lose that
+  // comparison unconditionally, regardless of its own scene layer/overlay boost or
+  // the other building's. A relative per-tier offset (e.g. nudging just enough to
+  // beat buildings sharing PixelPack's own InteriorWall tier) is not enough - it
+  // silently fails against a building on any *higher* tier that also gets a
+  // boost, such as a Building-layer light fixture in the Base overlay (their tier
+  // gap alone already separates them; the boost widens it further in the wrong
+  // direction only for pairs living below PixelPack's own tier). This pins the
+  // absolute, tier-independent invariant instead of re-deriving it per pair.
   describe('render depth ordering (BlueprintItem.cameraChanged)', () => {
-    it('PixelPack (Backwall) never ties with Canvas (Building) at rest, and reverts deterministically', () => {
-      const pixelPack = new BlueprintItem('PixelPack');
-      const canvas = new BlueprintItem('Canvas');
+    const expectAlwaysBehind = (packId: string, buildingId: string) => {
+      const pack = new BlueprintItem(packId);
+      const building = new BlueprintItem(buildingId);
       const camera = new CameraService({});
 
-      // Base (both before and after the Automation round-trip): both are
-      // "primary" at the InteriorWall tier - PixelPack must lose the tie,
-      // and must do so identically each time (no hysteresis from the switch).
-      for (const _ of [0, 1]) {
-        camera.overlay = Overlay.Base;
-        pixelPack.cameraChanged(camera);
-        canvas.cameraChanged(camera);
-        expect(pixelPack.depth, 'PixelPack.depth in Base').to.be.lessThan(canvas.depth);
-
-        // Automation: PixelPack has a wire connection and is meant to highlight
-        // forward (like wires popping above tiles in the Power overlay) while
-        // the unrelated Canvas dims to alpha 0.3 - intentional, not the bug.
-        camera.overlay = Overlay.Automation;
-        pixelPack.cameraChanged(camera);
-        canvas.cameraChanged(camera);
-        expect(pixelPack.depth, 'PixelPack.depth in Automation').to.be.greaterThan(canvas.depth);
-        expect(canvas.isOpaque, 'Canvas.isOpaque in Automation').to.equal(false);
+      for (const overlay of [Overlay.Base, Overlay.Automation, Overlay.Base]) {
+        camera.overlay = overlay;
+        pack.cameraChanged(camera);
+        building.cameraChanged(camera);
+        expect(
+          pack.depth,
+          `${packId}.depth vs ${buildingId}.depth in ${Overlay[overlay]}`
+        ).to.be.lessThan(building.depth);
       }
+    };
+
+    it('PixelPack stays behind the Portrait Canvas (same InteriorWall scene layer)', () => {
+      expectAlwaysBehind('PixelPack', 'Canvas');
+    });
+
+    it('PixelPack stays behind a Mercury Ceiling Light (higher Building scene layer)', () => {
+      expectAlwaysBehind('PixelPack', 'MercuryCeilingLight');
+    });
+
+    it('PixelPack still highlights as opaque in the Automation overlay (alpha, not depth, signals relevance)', () => {
+      const pixelPack = new BlueprintItem('PixelPack');
+      const camera = new CameraService({});
+      camera.overlay = Overlay.Automation;
+      pixelPack.cameraChanged(camera);
+      expect(pixelPack.isOpaque).to.equal(true);
     });
   });
 

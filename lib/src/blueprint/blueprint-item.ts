@@ -23,6 +23,15 @@ export class BlueprintItem {
   static defaultScale = Vector2.One;
   static defaultTemperature = 30 + 273.15;
 
+  // Buildings never overlap each other (the game's placement rules forbid it), so the
+  // only render-order comparison that can ever be visually observed is "some buildable
+  // vs a wall-plane decal placed on the same wall" - never buildable-vs-buildable. Decals
+  // (PixelPack, ...) must always lose that comparison, unconditionally, regardless of
+  // their own scene layer or overlay boost. A fixed sentinel below every real depth
+  // (zIndex range ~-2..34, plus at most a +100 overlay boost) is simpler and more robust
+  // than trying to out-rank every other buildable's tier case by case.
+  static readonly backwallDepth = -1000;
+
   public id: string;
   public temperature: number = BlueprintItem.defaultTemperature;
   public get temperatureCelcius() {
@@ -515,10 +524,10 @@ export class BlueprintItem {
     else if (this.oniItem.isOverlaySecondary(camera.overlay)) this.depth = this.oniItem.zIndex + 50;
     else this.depth = this.oniItem.zIndex;
 
-    // Wall-plane props (PixelPack, ...) render flush in the wall, so they must
-    // always sit behind Building-layer items sharing the same tier (e.g. a
-    // portrait mounted on the wall) - never left to tie/insertion order.
-    if (this.oniItem.objectLayer == OniItem.objectLayerBackwall) this.depth -= 0.5;
+    // Wall-plane decals always render behind whatever they're placed against -
+    // see BlueprintItem.backwallDepth above.
+    if (this.oniItem.objectLayer == OniItem.objectLayerBackwall)
+      this.depth = BlueprintItem.backwallDepth;
 
     if (this.isBuildCandidate) this.depth = 199;
 

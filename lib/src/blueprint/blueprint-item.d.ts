@@ -14,6 +14,7 @@ export declare class BlueprintItem {
     static defaultRotation: number;
     static defaultScale: Vector2;
     static defaultTemperature: number;
+    static readonly backwallDepth = -1000;
     id: string;
     temperature: number;
     get temperatureCelcius(): number;
