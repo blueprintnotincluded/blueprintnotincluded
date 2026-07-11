@@ -39,6 +39,7 @@
       label="Scissors"
       i18n-label
       [active]="toolService.scissorsTool.visible"
+      [disabled]="scissorsDisabled"
       (buttonClick)="toolService.changeTool(ToolType.scissors)"
     ></app-toolbar-button>
   </div>

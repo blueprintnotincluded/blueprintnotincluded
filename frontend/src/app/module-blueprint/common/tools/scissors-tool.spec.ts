@@ -1,9 +1,13 @@
 import { ScissorsTool } from "./scissors-tool";
-import { Vector2 } from "../../../../../../lib/index";
+import { CameraService, Overlay, Vector2 } from "../../../../../../lib/index";
 import { ToolType } from "./tool";
 
 const makeWireItem = (overrides: any = {}) => ({
-  oniItem: { isWire: true, objectLayer: 1 },
+  oniItem: {
+    isWire: true,
+    objectLayer: 1,
+    isOverlayPrimary: vi.fn().mockReturnValue(true),
+  },
   connections: 0,
   position: new Vector2(0, 0),
   updateTileables: vi.fn(),
@@ -14,6 +18,7 @@ describe("ScissorsTool", () => {
   let tool: ScissorsTool;
   let mockBlueprintService: any;
   let mockBlueprint: any;
+  let mockCameraService: any;
 
   beforeEach(() => {
     mockBlueprint = {
@@ -22,7 +27,15 @@ describe("ScissorsTool", () => {
       resumeChangeEvents: vi.fn(),
     };
     mockBlueprintService = { blueprint: mockBlueprint };
+    mockCameraService = { overlay: Overlay.Power };
+    vi.spyOn(CameraService, "cameraService", "get").mockReturnValue(
+      mockCameraService as any
+    );
     tool = new ScissorsTool(mockBlueprintService as any);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("static properties", () => {
@@ -169,15 +182,27 @@ describe("ScissorsTool", () => {
       const powerWire = makeWireItem({
         position: new Vector2(2, 3),
         connections: 8,
-        oniItem: { isWire: true, objectLayer: 1 },
+        oniItem: {
+          isWire: true,
+          objectLayer: 1,
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
+        },
       });
       const gasPipe = makeWireItem({
         position: new Vector2(2, 3),
         connections: 8,
-        oniItem: { isWire: true, objectLayer: 5 },
+        oniItem: {
+          isWire: true,
+          objectLayer: 5,
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
+        },
       });
       const nonWireDecoration = {
-        oniItem: { isWire: false, objectLayer: 9 },
+        oniItem: {
+          isWire: false,
+          objectLayer: 9,
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
+        },
         connections: 8,
         position: new Vector2(2, 3),
         updateTileables: vi.fn(),
@@ -203,17 +228,29 @@ describe("ScissorsTool", () => {
       const wireAtClick = makeWireItem({
         position: new Vector2(2, 3),
         connections: 8,
-        oniItem: { isWire: true, objectLayer: 1 },
+        oniItem: {
+          isWire: true,
+          objectLayer: 1,
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
+        },
       });
       const sameLayerNeighbor = makeWireItem({
         position: new Vector2(2, 2),
         connections: 4,
-        oniItem: { isWire: true, objectLayer: 1 },
+        oniItem: {
+          isWire: true,
+          objectLayer: 1,
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
+        },
       });
       const otherLayerNeighbor = makeWireItem({
         position: new Vector2(2, 2),
         connections: 4,
-        oniItem: { isWire: true, objectLayer: 2 },
+        oniItem: {
+          isWire: true,
+          objectLayer: 2,
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
+        },
       });
 
       mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
@@ -228,6 +265,90 @@ describe("ScissorsTool", () => {
 
       expect(sameLayerNeighbor.connections & 4).toBe(0);
       expect(otherLayerNeighbor.connections & 4).toBe(4);
+    });
+  });
+
+  describe("overlay filtering", () => {
+    it("only cuts connectables belonging to the currently viewed overlay", () => {
+      const powerWire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 8,
+        oniItem: {
+          isWire: true,
+          objectLayer: 1,
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
+        },
+      });
+      const gasPipe = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 8,
+        oniItem: {
+          isWire: true,
+          objectLayer: 5,
+          isOverlayPrimary: vi.fn().mockReturnValue(false),
+        },
+      });
+
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [powerWire, gasPipe];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.dragStop();
+
+      expect(powerWire.connections & 8).toBe(0);
+      // Not on the active (Power) overlay -> left untouched
+      expect(gasPipe.connections).toBe(8);
+      expect(gasPipe.updateTileables).not.toHaveBeenCalled();
+    });
+
+    it("passes the active overlay through to isOverlayPrimary", () => {
+      mockCameraService.overlay = Overlay.Gas;
+      const gasPipe = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 8,
+      });
+
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [gasPipe];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.dragStop();
+
+      expect(gasPipe.oniItem.isOverlayPrimary).toHaveBeenCalledWith(
+        Overlay.Gas
+      );
+    });
+
+    it("passes undefined to isOverlayPrimary (and thus cuts nothing) when no camera is available", () => {
+      vi.spyOn(CameraService, "cameraService", "get").mockReturnValue(
+        undefined as any
+      );
+      const wireAtClick = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 8,
+        oniItem: {
+          isWire: true,
+          objectLayer: 1,
+          isOverlayPrimary: vi.fn().mockReturnValue(false),
+        },
+      });
+
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [wireAtClick];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.dragStop();
+
+      expect(wireAtClick.oniItem.isOverlayPrimary).toHaveBeenCalledWith(
+        undefined
+      );
+      expect(wireAtClick.connections).toBe(8);
     });
   });
 

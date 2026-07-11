@@ -40,3 +40,16 @@
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+.toolbar-button:disabled {
+  cursor: not-allowed;
+}
+
+.toolbar-button:disabled .toolbar-button-background,
+.toolbar-button:disabled .toolbar-button-icon {
+  filter: grayscale(1) brightness(0.6);
+}
+
+.toolbar-button:disabled:hover .toolbar-button-background {
+  filter: grayscale(1) brightness(0.6);
+}

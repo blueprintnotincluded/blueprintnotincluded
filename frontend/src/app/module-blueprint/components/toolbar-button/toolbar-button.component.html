@@ -2,6 +2,7 @@
   type="button"
   class="toolbar-button"
   [class.active]="active"
+  [disabled]="disabled"
   [pTooltip]="label"
   tooltipPosition="left"
   (click)="buttonClick.emit()"
