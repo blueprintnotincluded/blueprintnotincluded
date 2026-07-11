@@ -134,6 +134,14 @@ export class ComponentBlueprintParentComponent
     else return CameraService.cameraService.showTemperatureScale;
   }
 
+  // Scissors only makes sense while looking at a connectable overlay
+  // (Power/Plumbing/Ventilation/etc) — there's nothing to cut on Buildings/None.
+  get scissorsDisabled() {
+    if (CameraService.cameraService == null) return true;
+    let overlay = CameraService.cameraService.overlay;
+    return overlay == Overlay.Base || overlay == Overlay.None;
+  }
+
   forceSize: boolean = false;
   forcedSize: Vector2 = Vector2.zero();
 

@@ -10,5 +10,6 @@ export class ToolbarButtonComponent {
   @Input() iconUrl!: string;
   @Input() label!: string;
   @Input() active: boolean = false;
+  @Input() disabled: boolean = false;
   @Output() buttonClick = new EventEmitter<void>();
 }

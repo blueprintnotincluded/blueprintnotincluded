@@ -82,6 +82,10 @@ export class ScissorsTool implements ITool {
   }
 
   private cutBox(begin: Vector2, end: Vector2) {
+    // Only cut connections belonging to the overlay currently being viewed
+    // (Power/Plumbing/Ventilation/etc), same as build-tool restricts placement.
+    let currentOverlay = CameraService.cameraService?.overlay;
+
     let xMin = Math.min(begin.x, end.x);
     let xMax = Math.max(begin.x, end.x);
     let yMin = Math.min(begin.y, end.y);
@@ -103,7 +107,10 @@ export class ScissorsTool implements ITool {
 
         let wireItems = this.blueprintService.blueprint
           .getBlueprintItemsAt(new Vector2(tileX, tileY))
-          .filter((i) => i.oniItem.isWire) as BlueprintItemWire[];
+          .filter(
+            (i) =>
+              i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay)
+          ) as BlueprintItemWire[];
 
         for (let wireItem of wireItems) {
           let connectionsArray = DrawHelpers.getConnectionArray(
