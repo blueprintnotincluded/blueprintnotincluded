@@ -40,6 +40,14 @@
   margin-left: 20px;
 }
 
+@media (max-width: 500px) {
+  .image-float-right {
+    float: none;
+    display: block;
+    margin: 0 auto 12px;
+  }
+}
+
 .content {
   text-align: justify;
 }

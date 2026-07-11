@@ -628,6 +628,8 @@ a.bni-chip:hover {
 /* ---- segmented control (Discover | From creators you follow) ---- */
 .bni-seg {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   border: 1px solid var(--bni-line2);
   border-radius: 5px;
   overflow: hidden;

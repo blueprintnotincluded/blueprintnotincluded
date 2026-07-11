@@ -17,6 +17,16 @@
     padding: 20px 14px 28px;
     border-radius: 8px;
   }
+
+  .browse-header h1 {
+    font-size: 24px;
+    white-space: normal;
+    flex: 1 1 100%;
+  }
+
+  .create-cta {
+    margin-left: 0;
+  }
 }
 
 .browse-header {

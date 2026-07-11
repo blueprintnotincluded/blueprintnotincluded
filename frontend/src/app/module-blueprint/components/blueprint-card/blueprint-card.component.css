@@ -35,8 +35,9 @@
 
 .card-social {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 14px;
+  gap: 8px 14px;
   margin-top: 2px;
 }
 

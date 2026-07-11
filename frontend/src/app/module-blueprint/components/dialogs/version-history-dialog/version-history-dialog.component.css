@@ -8,12 +8,14 @@
 
 .new-version-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 14px;
 }
 
 .new-version-row input {
   flex: 1;
+  min-width: 0;
 }
 
 .version-status {
@@ -31,6 +33,7 @@
 
 .version-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding: 9px 10px;

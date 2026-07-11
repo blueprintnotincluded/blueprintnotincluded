@@ -28,7 +28,7 @@
 }
 
 .notification-panel {
-  width: 320px;
+  width: min(320px, calc(100vw - 24px));
   max-height: 60vh;
   overflow-y: auto;
   display: flex;

@@ -10,13 +10,14 @@
   [maximizable]="false"
   [draggable]="false"
   [resizable]="false"
+  [style]="{ width: '480px' }"
+  [breakpoints]="{ '560px': '92vw' }"
 >
   <div i18n>Use the following url to share this blueprint :</div>
   <input
     #urlInput
     class="float-input"
     type="text"
-    size="60"
     [ngModel]="url"
     pInputText
     [disabled]="url === ''"
