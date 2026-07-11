@@ -116,6 +116,39 @@ describe('Game structure contract (representative buildings)', () => {
     }
   });
 
+  // Room detection reads isFoundation (NOT isTile: that's also true for
+  // kanim-tiled wires/pipes) and roomTags. If a fresh export breaks these,
+  // rooms would silently seal on wires or lose building roles.
+  describe('room detection contract (isFoundation / roomTags)', () => {
+    const foundationFacts: [string, boolean, boolean][] = [
+      // [prefab, isTile, isFoundation]
+      ['Tile', true, true],
+      ['MeshTile', true, true], // gas-permeable, still bounds rooms
+      ['FarmTile', true, true],
+      ['Wire', true, false], // kanim tile render-wise, never bounds rooms
+      ['LiquidConduit', true, false],
+      ['Door', false, false], // pneumatic door bounds via the curated door list
+      ['Bed', false, false],
+    ];
+    for (const [id, isTile, isFoundation] of foundationFacts) {
+      it(`${id}: isTile=${isTile}, isFoundation=${isFoundation}`, () => {
+        const item = OniItem.getOniItem(id);
+        expect(item.isTile, 'isTile').to.equal(isTile);
+        expect(item.isFoundation, 'isFoundation').to.equal(isFoundation);
+      });
+    }
+
+    it('key room roles carry their tags', () => {
+      expect(OniItem.getOniItem('FlushToilet').roomTags).to.include.members([
+        'ToiletType',
+        'FlushToiletType',
+      ]);
+      expect(OniItem.getOniItem('Generator').roomTags).to.include('IndustrialMachinery');
+      expect(OniItem.getOniItem('MachineShop').roomTags).to.include('MachineShopType');
+      expect(OniItem.getOniItem('Tile').roomTags).to.deep.equal([]);
+    });
+  });
+
   describe('overlay solidity (isOverlayPrimary/isOverlaySecondary)', () => {
     for (const rep of representatives) {
       it(`${rep.id} is solid in [${rep.solidIn.map((o) => Overlay[o]).join(', ')}] only`, () => {

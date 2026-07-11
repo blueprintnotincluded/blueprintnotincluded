@@ -44,6 +44,10 @@ import {
   BPoStringFile2024,
 } from '../../../lib';
 import { Overlay } from '../../../lib/src/enums/overlay';
+import {
+  ROOM_BOUNDARY_DOORS,
+  ROOM_TAGS_USED,
+} from '../../../lib/src/blueprint/rooms/room-definitions';
 
 // ---------------------------------------------------------------------------
 // viewMode (game-native overlay name) -> Overlay enum.
@@ -379,6 +383,9 @@ export function convertExport2024(opts: ConvertOptions): void {
   const connectablesNotTileOrUtility: string[] = [];
   const connectablePrefabsSeen = new Set<string>();
 
+  // Room-system tag vocabulary — the same list the game's RoomProber uses.
+  const roomTagVocabulary = new Set((buildingFile.roomConstraintTags ?? []).map((t) => t.Name));
+
   // --- Buildings + per-building flat-icon sprite metadata ---
   const buildings: any[] = [];
   const uiSprites: any[] = [];
@@ -404,7 +411,14 @@ export function convertExport2024(opts: ConvertOptions): void {
     }
 
     buildings.push(
-      buildingRecord(b, unknownViewModes, connectable, connectionScale, unknownConnectionTypes)
+      buildingRecord(
+        b,
+        unknownViewModes,
+        connectable,
+        connectionScale,
+        unknownConnectionTypes,
+        roomTagVocabulary
+      )
     );
 
     const size = readPngSize(path.join(uiImageDir, iconKey + '.png')) ?? { x: 0, y: 0 };
@@ -570,6 +584,38 @@ export function convertExport2024(opts: ConvertOptions): void {
     buildings.length,
     '(rest stretch icon to footprint)'
   );
+  // Room detection contract: every tag the rule table references must map to at
+  // least one building, and every curated boundary door must exist — otherwise a
+  // future export silently breaks room detection (e.g. Klei renames a tag).
+  const roomTagBuildingCounts = new Map<string, number>(ROOM_TAGS_USED.map((t) => [t, 0]));
+  for (const b of buildings)
+    for (const tag of b.roomTags)
+      if (roomTagBuildingCounts.has(tag))
+        roomTagBuildingCounts.set(tag, roomTagBuildingCounts.get(tag)! + 1);
+  const roomTagsUnmatched = ROOM_TAGS_USED.filter((t) => roomTagBuildingCounts.get(t) === 0);
+  const roomTagsNotInVocabulary = ROOM_TAGS_USED.filter((t) => !roomTagVocabulary.has(t));
+  const roomDoorsMissing = [...ROOM_BOUNDARY_DOORS].filter((d) => !buildingPrefabs.has(d));
+  console.log(
+    '  buildings with room tags           :',
+    buildings.filter((b) => b.roomTags.length).length,
+    '/',
+    buildings.length
+  );
+  console.log(
+    '  room tags with no building         :',
+    roomTagsUnmatched.length,
+    roomTagsUnmatched.length ? '(' + roomTagsUnmatched.join(', ') + ')' : ''
+  );
+  console.log(
+    '  room tags missing from vocabulary  :',
+    roomTagsNotInVocabulary.length,
+    roomTagsNotInVocabulary.length ? '(' + roomTagsNotInVocabulary.join(', ') + ')' : ''
+  );
+  console.log(
+    '  room boundary doors missing        :',
+    roomDoorsMissing.length,
+    roomDoorsMissing.length ? '(' + roomDoorsMissing.join(', ') + ')' : ''
+  );
   console.log('  connectable buildings (sprite dirs):', connectablePrefabsSeen.size);
   const connectableDirsNoBuilding = [...connectablePrefabs].filter(
     (p) => !connectablePrefabsSeen.has(p)
@@ -607,6 +653,9 @@ export function convertExport2024(opts: ConvertOptions): void {
     unknownViewModes.size +
     unknownConnectionTypes.size +
     missingIndicatorPngs.length +
+    roomTagsUnmatched.length +
+    roomTagsNotInVocabulary.length +
+    roomDoorsMissing.length +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
@@ -732,12 +781,23 @@ function utilitiesRecord(
   return result;
 }
 
+// Intersection of the building's game tags with the export's roomConstraintTags
+// vocabulary — the building's role(s) in the game's room system. Sorted so the
+// committed JSON is deterministic.
+function roomTagsRecord(b: BBuildingDef2024, roomTagVocabulary: Set<string>): string[] {
+  return (b.tags ?? [])
+    .map((t) => t.Name)
+    .filter((name) => roomTagVocabulary.has(name))
+    .sort();
+}
+
 function buildingRecord(
   b: BBuildingDef2024,
   unknownViewModes: Set<string>,
   connectable: boolean,
   connectionScale: { x: number; y: number },
-  unknownConnectionTypes: Set<string>
+  unknownConnectionTypes: Set<string>,
+  roomTagVocabulary: Set<string>
 ): any {
   return {
     DefaultAnimState: b.defaultAnimState,
@@ -747,6 +807,9 @@ function buildingRecord(
     textureName: b.name, // flat-icon key -> ui_image/<key>.png
     uiImage: b.name, // explicit flat-icon reference for the render-collapse phase
     isTile: b.isFoundation || b.isKAnimTile,
+    // Kept separate from the render-oriented isTile: only true foundations bound
+    // rooms (isKAnimTile alone marks wires/pipes, which must not).
+    isFoundation: b.isFoundation,
     isUtility: b.isUtility,
     isBridge: false, // not present in 2024 export
     drawSolid: false,
@@ -762,6 +825,7 @@ function buildingRecord(
     connectionSprites: connectable,
     connectionScale,
     dlcIds: normalizeDlcIds(b.kPrefabID?.requiredDlcIds),
+    roomTags: roomTagsRecord(b, roomTagVocabulary),
     // Optional flat-icon placement (cells, footprint-relative). Passed through from the
     // export when present; absent ⇒ renderer stretches the icon to the footprint (legacy).
     ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),

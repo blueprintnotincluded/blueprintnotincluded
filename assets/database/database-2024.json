@@ -8,6 +8,7 @@
       "textureName": "AdvancedApothecary",
       "uiImage": "AdvancedApothecary",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -31,6 +32,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -53,6 +55,7 @@
       "textureName": "AdvancedDoctorStation",
       "uiImage": "AdvancedDoctorStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -74,6 +77,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Clinic"
+      ],
       "uiImageRect": {
         "x": -0.225,
         "y": -0.13,
@@ -111,6 +117,7 @@
       "textureName": "AdvancedResearchCenter",
       "uiImage": "AdvancedResearchCenter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -132,6 +139,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "ScienceBuilding"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.085,
@@ -169,6 +179,7 @@
       "textureName": "AirBorneCritterCondo",
       "uiImage": "AirBorneCritterCondo",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -190,6 +201,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RanchStationType"
+      ],
       "uiImageRect": {
         "x": 0.31,
         "y": -0.02,
@@ -218,6 +232,7 @@
       "textureName": "AirConditioner",
       "uiImage": "AirConditioner",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -239,6 +254,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.105,
@@ -300,6 +316,7 @@
       "textureName": "AirFilter",
       "uiImage": "AirFilter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -321,6 +338,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.085,
@@ -358,6 +376,7 @@
       "textureName": "AirborneCreatureLure",
       "uiImage": "AirborneCreatureLure",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -379,6 +398,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -410,6 +430,7 @@
       "textureName": "AlgaeDistillery",
       "uiImage": "AlgaeDistillery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -431,6 +452,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.005,
         "y": -0.24,
@@ -484,6 +508,7 @@
       "textureName": "AlgaeHabitat",
       "uiImage": "AlgaeHabitat",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -505,6 +530,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.165,
         "y": -0.145,
@@ -533,6 +561,7 @@
       "textureName": "Apothecary",
       "uiImage": "Apothecary",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -554,6 +583,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.19,
@@ -591,6 +621,7 @@
       "textureName": "ArcadeMachine",
       "uiImage": "ArcadeMachine",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -612,6 +643,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -643,6 +677,7 @@
       "textureName": "ArtifactAnalysisStation",
       "uiImage": "ArtifactAnalysisStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -666,6 +701,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.135,
         "y": -0.105,
@@ -703,6 +739,7 @@
       "textureName": "ArtifactCargoBay",
       "uiImage": "ArtifactCargoBay",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -726,6 +763,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -748,6 +789,7 @@
       "textureName": "AstronautTrainingCenter",
       "uiImage": "AstronautTrainingCenter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -769,6 +811,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -800,6 +843,7 @@
       "textureName": "AtomicGarden",
       "uiImage": "AtomicGarden",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -821,6 +865,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -868,6 +913,7 @@
       "textureName": "AutoMiner",
       "uiImage": "AutoMiner",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -889,6 +935,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.06,
@@ -934,6 +984,7 @@
       "textureName": "Battery",
       "uiImage": "Battery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -955,6 +1006,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.08,
@@ -992,6 +1046,7 @@
       "textureName": "BatteryMedium",
       "uiImage": "BatteryMedium",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1013,6 +1068,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": 0.02,
         "y": -0.03,
@@ -1050,6 +1108,7 @@
       "textureName": "BatteryModule",
       "uiImage": "BatteryModule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1072,6 +1131,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -1104,6 +1167,7 @@
       "textureName": "BatterySmart",
       "uiImage": "BatterySmart",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1125,6 +1189,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": 0.035,
         "y": -0.065,
@@ -1170,6 +1237,7 @@
       "textureName": "BeachChair",
       "uiImage": "BeachChair",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1191,6 +1259,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -1215,6 +1286,7 @@
       "textureName": "Bed",
       "uiImage": "Bed",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1236,6 +1308,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "BedType"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -1258,6 +1333,7 @@
       "textureName": "BiodieselEngineCluster",
       "uiImage": "BiodieselEngineCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1281,6 +1357,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -1303,6 +1383,7 @@
       "textureName": "BottleEmptierConduitGas",
       "uiImage": "BottleEmptierConduitGas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1324,6 +1405,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.035,
@@ -1361,6 +1446,7 @@
       "textureName": "BottleEmptierConduitLiquid",
       "uiImage": "BottleEmptierConduitLiquid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1382,6 +1468,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.085,
         "y": -0.08,
@@ -1419,6 +1509,7 @@
       "textureName": "BottleEmptier",
       "uiImage": "BottleEmptier",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1440,6 +1531,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.05,
         "y": -0.175,
@@ -1468,6 +1562,7 @@
       "textureName": "BottleEmptierGas",
       "uiImage": "BottleEmptierGas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1489,6 +1584,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.23,
         "y": 0.01,
@@ -1517,6 +1615,7 @@
       "textureName": "BunkerDoor",
       "uiImage": "BunkerDoor",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1538,6 +1637,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.235,
         "y": -0.08,
@@ -1583,6 +1683,7 @@
       "textureName": "BunkerTile",
       "uiImage": "BunkerTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1604,6 +1705,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -1626,6 +1728,7 @@
       "textureName": "CO2Engine",
       "uiImage": "CO2Engine",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1648,6 +1751,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -1680,6 +1787,7 @@
       "textureName": "CO2Scrubber",
       "uiImage": "CO2Scrubber",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1701,6 +1809,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.05,
@@ -1762,6 +1873,7 @@
       "textureName": "Campfire",
       "uiImage": "Campfire",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1784,6 +1896,10 @@
       },
       "dlcIds": [
         "DLC2_ID"
+      ],
+      "roomTags": [
+        "Decoration",
+        "WarmingStation"
       ],
       "uiImageRect": {
         "x": -0.31,
@@ -1813,6 +1929,7 @@
       "textureName": "Canvas",
       "uiImage": "Canvas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1834,6 +1951,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.075,
         "y": 0.01,
@@ -1864,6 +1985,7 @@
       "textureName": "CanvasTall",
       "uiImage": "CanvasTall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1885,6 +2007,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.025,
         "y": 0.01,
@@ -1915,6 +2041,7 @@
       "textureName": "CanvasWide",
       "uiImage": "CanvasWide",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1936,6 +2063,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.03,
         "y": -0.055,
@@ -1966,6 +2097,7 @@
       "textureName": "CarpetTile",
       "uiImage": "CarpetTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -1987,6 +2119,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -2011,6 +2144,7 @@
       "textureName": "CeilingLight",
       "uiImage": "CeilingLight",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2032,6 +2166,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.1,
         "y": 0.05,
@@ -2069,6 +2204,7 @@
       "textureName": "Checkpoint",
       "uiImage": "Checkpoint",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2090,6 +2226,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.17,
         "y": -0.095,
@@ -2135,6 +2274,7 @@
       "textureName": "ChemicalRefinery",
       "uiImage": "ChemicalRefinery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2156,6 +2296,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.055,
@@ -2219,6 +2360,7 @@
       "textureName": "Chlorinator",
       "uiImage": "Chlorinator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2240,6 +2382,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.28,
         "y": -0.1,
@@ -2285,6 +2430,7 @@
       "textureName": "ClothingAlterationStation",
       "uiImage": "ClothingAlterationStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2306,6 +2452,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.12,
@@ -2343,6 +2490,7 @@
       "textureName": "ClothingFabricator",
       "uiImage": "ClothingFabricator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2364,6 +2512,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.17,
         "y": -0.145,
@@ -2401,6 +2550,7 @@
       "textureName": "ClusterTelescope",
       "uiImage": "ClusterTelescope",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2423,6 +2573,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "ScienceBuilding"
       ],
       "uiImageRect": {
         "x": -0.01,
@@ -2461,6 +2614,7 @@
       "textureName": "ClusterTelescopeEnclosed",
       "uiImage": "ClusterTelescopeEnclosed",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2483,6 +2637,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "ScienceBuilding"
       ],
       "uiImageRect": {
         "x": -0.295,
@@ -2529,6 +2686,7 @@
       "textureName": "CometDetector",
       "uiImage": "CometDetector",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2550,6 +2708,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.58,
         "y": -0.05,
@@ -2595,6 +2756,7 @@
       "textureName": "Compost",
       "uiImage": "Compost",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2616,6 +2778,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.11,
         "y": -0.175,
@@ -2644,6 +2807,7 @@
       "textureName": "GasConduitDiseaseSensor",
       "uiImage": "GasConduitDiseaseSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2665,6 +2829,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.01,
@@ -2704,6 +2871,7 @@
       "textureName": "LiquidConduitDiseaseSensor",
       "uiImage": "LiquidConduitDiseaseSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2725,6 +2893,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.05,
@@ -2764,6 +2935,7 @@
       "textureName": "GasConduitElementSensor",
       "uiImage": "GasConduitElementSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2785,6 +2957,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.01,
@@ -2822,6 +2997,7 @@
       "textureName": "LiquidConduitElementSensor",
       "uiImage": "LiquidConduitElementSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2843,6 +3019,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.05,
@@ -2880,6 +3059,7 @@
       "textureName": "GasConduitTemperatureSensor",
       "uiImage": "GasConduitTemperatureSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2901,6 +3081,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.01,
@@ -2938,6 +3121,7 @@
       "textureName": "LiquidConduitTemperatureSensor",
       "uiImage": "LiquidConduitTemperatureSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -2959,6 +3143,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.05,
@@ -2996,6 +3183,7 @@
       "textureName": "ContactConductivePipeBridge",
       "uiImage": "ContactConductivePipeBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3017,6 +3205,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.1,
         "y": -0.1,
@@ -3062,6 +3253,7 @@
       "textureName": "CookingStation",
       "uiImage": "CookingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3083,6 +3275,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "CookTop"
+      ],
       "uiImageRect": {
         "x": -0.11,
         "y": -0.09,
@@ -3120,6 +3315,7 @@
       "textureName": "CornerMoulding",
       "uiImage": "CornerMoulding",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3141,6 +3337,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.115,
         "y": -0.02,
@@ -3169,6 +3369,7 @@
       "textureName": "CraftingTable",
       "uiImage": "CraftingTable",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3190,6 +3391,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.16,
@@ -3227,6 +3429,7 @@
       "textureName": "CreatureDeliveryPoint",
       "uiImage": "CreatureDeliveryPoint",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3248,6 +3451,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -3270,6 +3474,7 @@
       "textureName": "CreatureFeeder",
       "uiImage": "CreatureFeeder",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3291,6 +3496,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.215,
         "y": -0.075,
@@ -3319,6 +3525,7 @@
       "textureName": "CreatureTrap",
       "uiImage": "CreatureTrap",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3340,6 +3547,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -3362,6 +3572,7 @@
       "textureName": "CrewCapsule",
       "uiImage": "CrewCapsule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3383,6 +3594,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 12,
       "utilities": [
         {
@@ -3422,6 +3636,7 @@
       "textureName": "CritterCondo",
       "uiImage": "CritterCondo",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3443,6 +3658,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RanchStationType"
+      ],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.115,
@@ -3473,6 +3691,7 @@
       "textureName": "CritterDropOff",
       "uiImage": "CritterDropOff",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3494,6 +3713,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.035,
@@ -3531,6 +3751,7 @@
       "textureName": "CritterPickUp",
       "uiImage": "CritterPickUp",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3552,6 +3773,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.04,
@@ -3589,6 +3811,7 @@
       "textureName": "CrownMoulding",
       "uiImage": "CrownMoulding",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3610,6 +3833,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.23,
         "y": 0.445,
@@ -3638,6 +3865,7 @@
       "textureName": "DLC1CosmicResearchCenter",
       "uiImage": "DLC1CosmicResearchCenter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3660,6 +3888,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "ScienceBuilding"
       ],
       "uiImageRect": {
         "x": -0.035,
@@ -3698,6 +3929,7 @@
       "textureName": "DecontaminationShower",
       "uiImage": "DecontaminationShower",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3721,6 +3953,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.465,
         "y": -0.225,
@@ -3760,6 +3993,7 @@
       "textureName": "Deepfryer",
       "uiImage": "Deepfryer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3782,6 +4016,9 @@
       },
       "dlcIds": [
         "DLC2_ID"
+      ],
+      "roomTags": [
+        "CookTop"
       ],
       "uiImageRect": {
         "x": -0.045,
@@ -3820,6 +4057,7 @@
       "textureName": "DevGenerator",
       "uiImage": "DevGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3841,6 +4079,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -3878,6 +4119,7 @@
       "textureName": "DevHEPSpawner",
       "uiImage": "DevHEPSpawner",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3900,6 +4142,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.1,
@@ -3938,6 +4183,7 @@
       "textureName": "DevHeater",
       "uiImage": "DevHeater",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -3959,6 +4205,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -3987,6 +4236,7 @@
       "textureName": "DevLifeSupport",
       "uiImage": "DevLifeSupport",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4008,6 +4258,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.16,
@@ -4036,6 +4289,7 @@
       "textureName": "DevLightGenerator",
       "uiImage": "DevLightGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4057,6 +4311,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -4085,6 +4342,7 @@
       "textureName": "DevPumpGas",
       "uiImage": "DevPumpGas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4106,6 +4364,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.165,
@@ -4143,6 +4405,7 @@
       "textureName": "DevPumpLiquid",
       "uiImage": "DevPumpLiquid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4164,6 +4427,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.165,
@@ -4201,6 +4468,7 @@
       "textureName": "DevPumpSolid",
       "uiImage": "DevPumpSolid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4222,6 +4490,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.17,
@@ -4259,6 +4531,7 @@
       "textureName": "DevRadiationGenerator",
       "uiImage": "DevRadiationGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4280,6 +4553,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.145,
@@ -4308,6 +4584,7 @@
       "textureName": "DiamondPress",
       "uiImage": "DiamondPress",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4330,6 +4607,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery"
       ],
       "uiImageRect": {
         "x": -0.255,
@@ -4376,6 +4656,7 @@
       "textureName": "DiningTable",
       "uiImage": "DiningTable",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4397,6 +4678,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "DiningTableType"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -4419,6 +4703,7 @@
       "textureName": "DoctorStation",
       "uiImage": "DoctorStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4440,6 +4725,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Clinic"
+      ],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.125,
@@ -4468,6 +4756,7 @@
       "textureName": "Door",
       "uiImage": "Door",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4489,6 +4778,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.13,
@@ -4526,6 +4818,7 @@
       "textureName": "EggCracker",
       "uiImage": "EggCracker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4547,6 +4840,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.085,
@@ -4584,6 +4878,7 @@
       "textureName": "EggIncubator",
       "uiImage": "EggIncubator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4605,6 +4900,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.065,
@@ -4642,6 +4938,7 @@
       "textureName": "Electrolyzer",
       "uiImage": "Electrolyzer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4663,6 +4960,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.11,
@@ -4716,6 +5016,7 @@
       "textureName": "EspressoMachine",
       "uiImage": "EspressoMachine",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4737,6 +5038,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "uiImageRect": {
         "x": -0.02,
         "y": 0.01,
@@ -4782,6 +5086,7 @@
       "textureName": "EthanolDistillery",
       "uiImage": "EthanolDistillery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4803,6 +5108,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.195,
@@ -4848,6 +5156,7 @@
       "textureName": "ExobaseHeadquarters",
       "uiImage": "ExobaseHeadquarters",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4870,6 +5179,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.14,
@@ -4899,6 +5211,7 @@
       "textureName": "ExteriorWall",
       "uiImage": "ExteriorWall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4920,6 +5233,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.01,
@@ -4948,6 +5264,7 @@
       "textureName": "FabricatedWoodMaker",
       "uiImage": "FabricatedWoodMaker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -4969,6 +5286,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.04,
         "y": -0.075,
@@ -5022,6 +5342,7 @@
       "textureName": "FacilityBackWallWindow",
       "uiImage": "FacilityBackWallWindow",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5043,6 +5364,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -5065,6 +5389,7 @@
       "textureName": "FarmStation",
       "uiImage": "FarmStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5086,6 +5411,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "FarmStationType"
+      ],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.135,
@@ -5123,6 +5451,7 @@
       "textureName": "FarmTile",
       "uiImage": "FarmTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5144,6 +5473,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -5172,6 +5502,7 @@
       "textureName": "FertilizerMaker",
       "uiImage": "FertilizerMaker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5193,6 +5524,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.155,
@@ -5246,6 +5580,7 @@
       "textureName": "FirePole",
       "uiImage": "FirePole",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5267,6 +5602,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.04,
@@ -5295,6 +5631,7 @@
       "textureName": "FishDeliveryPoint",
       "uiImage": "FishDeliveryPoint",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5316,6 +5653,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.13,
         "y": -1.045,
@@ -5353,6 +5693,7 @@
       "textureName": "FishFeeder",
       "uiImage": "FishFeeder",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5374,6 +5715,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.68,
         "y": -2,
@@ -5402,6 +5746,7 @@
       "textureName": "FishPickUp",
       "uiImage": "FishPickUp",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5423,6 +5768,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.13,
         "y": -1.045,
@@ -5460,6 +5808,7 @@
       "textureName": "FishTrap",
       "uiImage": "FishTrap",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5481,6 +5830,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -5503,6 +5855,7 @@
       "textureName": "FloorLamp",
       "uiImage": "FloorLamp",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5524,6 +5877,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.105,
@@ -5561,6 +5915,7 @@
       "textureName": "FloorSwitch",
       "uiImage": "FloorSwitch",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5582,6 +5937,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -5619,6 +5975,7 @@
       "textureName": "FlowerVase",
       "uiImage": "FlowerVase",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5640,6 +5997,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.11,
@@ -5668,6 +6029,7 @@
       "textureName": "FlowerVaseHanging",
       "uiImage": "FlowerVaseHanging",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5689,6 +6051,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.05,
@@ -5717,6 +6083,7 @@
       "textureName": "FlowerVaseHangingFancy",
       "uiImage": "FlowerVaseHangingFancy",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5738,6 +6105,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.005,
         "y": -0.045,
@@ -5766,6 +6137,7 @@
       "textureName": "FlowerVaseWall",
       "uiImage": "FlowerVaseWall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5787,6 +6159,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.02,
@@ -5815,6 +6191,7 @@
       "textureName": "FlushToilet",
       "uiImage": "FlushToilet",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5836,6 +6213,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "FlushToiletType",
+        "ToiletType"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -5875,6 +6256,7 @@
       "textureName": "FlyingCreatureBait",
       "uiImage": "FlyingCreatureBait",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5896,6 +6278,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -5920,6 +6303,7 @@
       "textureName": "FoodDehydrator",
       "uiImage": "FoodDehydrator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -5941,6 +6325,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.135,
@@ -5988,6 +6375,7 @@
       "textureName": "FoodRehydrator",
       "uiImage": "FoodRehydrator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6009,6 +6397,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -6050,6 +6441,7 @@
       "textureName": "FossilDig",
       "uiImage": "FossilDig",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6071,6 +6463,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -6093,6 +6486,7 @@
       "textureName": "Gantry",
       "uiImage": "Gantry",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6114,6 +6508,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.19,
         "y": -0.125,
@@ -6159,6 +6554,7 @@
       "textureName": "GasBottler",
       "uiImage": "GasBottler",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6180,6 +6576,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.035,
         "y": -0.125,
@@ -6217,6 +6616,7 @@
       "textureName": "GasCargoBayCluster",
       "uiImage": "GasCargoBayCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6240,6 +6640,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -6262,6 +6666,7 @@
       "textureName": "GasCargoBaySmall",
       "uiImage": "GasCargoBaySmall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6285,6 +6690,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -6307,6 +6716,7 @@
       "textureName": "GasConduitBridge",
       "uiImage": "GasConduitBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6328,6 +6738,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.2,
         "y": 0.095,
@@ -6373,6 +6786,7 @@
       "textureName": "GasConduit",
       "uiImage": "GasConduit",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -6394,6 +6808,7 @@
         "y": 1.0285714285714285
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.225,
         "y": 0.21,
@@ -6422,6 +6837,7 @@
       "textureName": "GasConduitOverflow",
       "uiImage": "GasConduitOverflow",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6443,6 +6859,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -6490,6 +6909,7 @@
       "textureName": "GasConduitPreferentialFlow",
       "uiImage": "GasConduitPreferentialFlow",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6511,6 +6931,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -6558,6 +6981,7 @@
       "textureName": "GasConduitRadiant",
       "uiImage": "GasConduitRadiant",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -6579,6 +7003,7 @@
         "y": 1.0285714285714285
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.225,
         "y": 0.21,
@@ -6607,6 +7032,7 @@
       "textureName": "GasFilter",
       "uiImage": "GasFilter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6628,6 +7054,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.085,
         "y": -0.055,
@@ -6689,6 +7119,7 @@
       "textureName": "GasLimitValve",
       "uiImage": "GasLimitValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6710,6 +7141,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.32,
         "y": -0.045,
@@ -6781,6 +7215,7 @@
       "textureName": "GasLogicValve",
       "uiImage": "GasLogicValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6802,6 +7237,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.23,
         "y": -0.11,
@@ -6863,6 +7301,7 @@
       "textureName": "GasMiniPump",
       "uiImage": "GasMiniPump",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6884,6 +7323,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.01,
@@ -6937,6 +7379,7 @@
       "textureName": "GasPermeableMembrane",
       "uiImage": "GasPermeableMembrane",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -6958,6 +7401,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -6980,6 +7424,7 @@
       "textureName": "GasPump",
       "uiImage": "GasPump",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7001,6 +7446,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.095,
@@ -7054,6 +7502,7 @@
       "textureName": "GasReservoir",
       "uiImage": "GasReservoir",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7075,6 +7524,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.035,
         "y": 0.015,
@@ -7128,6 +7580,7 @@
       "textureName": "GasValve",
       "uiImage": "GasValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7149,6 +7602,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.2,
         "y": 0.005,
@@ -7194,6 +7650,7 @@
       "textureName": "GasVent",
       "uiImage": "GasVent",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7215,6 +7672,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.075,
         "y": 0.005,
@@ -7260,6 +7720,7 @@
       "textureName": "GasVentHighPressure",
       "uiImage": "GasVentHighPressure",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7281,6 +7742,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.155,
         "y": -0.08,
@@ -7328,6 +7793,7 @@
       "textureName": "Generator",
       "uiImage": "Generator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7349,6 +7815,12 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.195,
@@ -7394,6 +7866,7 @@
       "textureName": "GenericFabricator",
       "uiImage": "GenericFabricator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7415,6 +7888,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -7446,6 +7920,7 @@
       "textureName": "GeneticAnalysisStation",
       "uiImage": "GeneticAnalysisStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7468,6 +7943,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "ScienceBuilding"
       ],
       "uiImageRect": {
         "x": -0.02,
@@ -7506,6 +7984,7 @@
       "textureName": "GeoTuner",
       "uiImage": "GeoTuner",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7527,6 +8006,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "ScienceBuilding"
+      ],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.155,
@@ -7572,6 +8054,7 @@
       "textureName": "GlassCeilingLight",
       "uiImage": "GlassCeilingLight",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7594,6 +8077,9 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": 0.005,
@@ -7632,6 +8118,7 @@
       "textureName": "GlassExteriorWall",
       "uiImage": "GlassExteriorWall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7654,6 +8141,9 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.01,
@@ -7683,6 +8173,7 @@
       "textureName": "GlassForge",
       "uiImage": "GlassForge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7704,6 +8195,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.145,
         "y": -0.01,
@@ -7749,6 +8241,7 @@
       "textureName": "GlassTile",
       "uiImage": "GlassTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7770,6 +8263,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -7792,6 +8286,7 @@
       "textureName": "GourmetCookingStation",
       "uiImage": "GourmetCookingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7813,6 +8308,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "CookTop"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.105,
@@ -7858,6 +8356,7 @@
       "textureName": "Grave",
       "uiImage": "Grave",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7879,6 +8378,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.275,
         "y": -0.22,
@@ -7907,6 +8409,7 @@
       "textureName": "GravitasBathroomStall",
       "uiImage": "GravitasBathroomStall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7928,6 +8431,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -7950,6 +8456,7 @@
       "textureName": "GravitasContainer",
       "uiImage": "GravitasContainer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -7971,6 +8478,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -7993,6 +8503,7 @@
       "textureName": "GravitasCreatureManipulator",
       "uiImage": "GravitasCreatureManipulator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8014,6 +8525,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8036,6 +8551,7 @@
       "textureName": "GravitasDoor",
       "uiImage": "GravitasDoor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8057,6 +8573,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 6,
       "utilities": [
         {
@@ -8088,6 +8607,7 @@
       "textureName": "GravitasLabLight",
       "uiImage": "GravitasLabLight",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8109,6 +8629,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 3,
       "utilities": [],
       "uiScreens": [],
@@ -8131,6 +8654,7 @@
       "textureName": "GravitasPedestal",
       "uiImage": "GravitasPedestal",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8154,6 +8678,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8176,6 +8704,7 @@
       "textureName": "HEPBattery",
       "uiImage": "HEPBattery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8198,6 +8727,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.17,
@@ -8252,6 +8784,7 @@
       "textureName": "HEPBridgeTile",
       "uiImage": "HEPBridgeTile",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8274,6 +8807,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.335,
@@ -8303,6 +8839,7 @@
       "textureName": "HEPEngine",
       "uiImage": "HEPEngine",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8325,6 +8862,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -8357,6 +8898,7 @@
       "textureName": "HabitatModuleMedium",
       "uiImage": "HabitatModuleMedium",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8380,6 +8922,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -8402,6 +8948,7 @@
       "textureName": "HabitatModuleSmall",
       "uiImage": "HabitatModuleSmall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8425,6 +8972,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -8447,6 +8998,7 @@
       "textureName": "HandSanitizer",
       "uiImage": "HandSanitizer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8468,6 +9020,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "AdvancedWashStation",
+        "WashStation"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8490,6 +9046,7 @@
       "textureName": "Headquarters",
       "uiImage": "Headquarters",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8511,6 +9068,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8533,6 +9093,7 @@
       "textureName": "HeatCompressor",
       "uiImage": "HeatCompressor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8554,6 +9115,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -8609,6 +9173,7 @@
       "textureName": "HighEnergyParticleRedirector",
       "uiImage": "HighEnergyParticleRedirector",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8631,6 +9196,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.04,
@@ -8669,6 +9237,7 @@
       "textureName": "HighEnergyParticleSpawner",
       "uiImage": "HighEnergyParticleSpawner",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8691,6 +9260,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.31,
@@ -8729,6 +9301,7 @@
       "textureName": "HijackedHeadquarters",
       "uiImage": "HijackedHeadquarters",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8750,6 +9323,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -8772,6 +9349,7 @@
       "textureName": "HotTub",
       "uiImage": "HotTub",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8793,6 +9371,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -8842,6 +9423,7 @@
       "textureName": "HydrogenEngineCluster",
       "uiImage": "HydrogenEngineCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8865,6 +9447,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -8887,6 +9473,7 @@
       "textureName": "HydrogenGenerator",
       "uiImage": "HydrogenGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8908,6 +9495,12 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": 0.025,
         "y": -0.12,
@@ -8961,6 +9554,7 @@
       "textureName": "HydroponicFarm",
       "uiImage": "HydroponicFarm",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -8982,6 +9576,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -9019,6 +9614,7 @@
       "textureName": "IceCooledFan",
       "uiImage": "IceCooledFan",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9040,6 +9636,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.015,
         "y": -0.04,
@@ -9068,6 +9665,7 @@
       "textureName": "IceKettle",
       "uiImage": "IceKettle",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9090,6 +9688,9 @@
       },
       "dlcIds": [
         "DLC2_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.09,
@@ -9119,6 +9720,7 @@
       "textureName": "IceMachine",
       "uiImage": "IceMachine",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9140,6 +9742,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.005,
         "y": -0.025,
@@ -9177,6 +9780,7 @@
       "textureName": "IceSculpture",
       "uiImage": "IceSculpture",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9198,6 +9802,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0,
         "y": -0.05,
@@ -9226,6 +9834,7 @@
       "textureName": "InsulatedGasConduit",
       "uiImage": "InsulatedGasConduit",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -9247,6 +9856,7 @@
         "y": 1.0285714285714285
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.225,
         "y": 0.21,
@@ -9275,6 +9885,7 @@
       "textureName": "InsulatedLiquidConduit",
       "uiImage": "InsulatedLiquidConduit",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -9296,6 +9907,7 @@
         "y": 1.0384615384615385
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.27,
         "y": 0.3,
@@ -9324,6 +9936,7 @@
       "textureName": "InsulationTile",
       "uiImage": "InsulationTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9345,6 +9958,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -9367,6 +9981,7 @@
       "textureName": "ItemPedestal",
       "uiImage": "ItemPedestal",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9388,6 +10003,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.18,
         "y": -0.14,
@@ -9416,6 +10035,7 @@
       "textureName": "JetSuitLocker",
       "uiImage": "JetSuitLocker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9437,6 +10057,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.27,
         "y": -0.05,
@@ -9482,6 +10103,7 @@
       "textureName": "JetSuitMarker",
       "uiImage": "JetSuitMarker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9503,6 +10125,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.46,
         "y": -0.045,
@@ -9540,6 +10163,7 @@
       "textureName": "Juicer",
       "uiImage": "Juicer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9561,6 +10185,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -9600,6 +10227,7 @@
       "textureName": "KeroseneEngineCluster",
       "uiImage": "KeroseneEngineCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9623,6 +10251,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -9645,6 +10277,7 @@
       "textureName": "KeroseneEngineClusterSmall",
       "uiImage": "KeroseneEngineClusterSmall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9667,6 +10300,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -9699,6 +10336,7 @@
       "textureName": "Kiln",
       "uiImage": "Kiln",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9720,6 +10358,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.065,
         "y": -0.075,
@@ -9757,6 +10398,7 @@
       "textureName": "LadderBed",
       "uiImage": "LadderBed",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9780,6 +10422,9 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "BedType"
+      ],
       "buildLocationRule": 13,
       "utilities": [],
       "uiScreens": [],
@@ -9802,6 +10447,7 @@
       "textureName": "Ladder",
       "uiImage": "Ladder",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9823,6 +10469,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.095,
@@ -9851,6 +10498,7 @@
       "textureName": "LadderFast",
       "uiImage": "LadderFast",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9872,6 +10520,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.105,
@@ -9900,6 +10549,7 @@
       "textureName": "LandingBeacon",
       "uiImage": "LandingBeacon",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9922,6 +10572,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.325,
@@ -9960,6 +10614,7 @@
       "textureName": "LargeBackwallFarm",
       "uiImage": "LargeBackwallFarm",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -9982,6 +10637,9 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.005,
@@ -10013,6 +10671,7 @@
       "textureName": "LaunchPad",
       "uiImage": "LaunchPad",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10035,6 +10694,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -10083,6 +10746,7 @@
       "textureName": "LeadSuitLocker",
       "uiImage": "LeadSuitLocker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10106,6 +10770,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.03,
@@ -10151,6 +10816,7 @@
       "textureName": "LeadSuitMarker",
       "uiImage": "LeadSuitMarker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10174,6 +10840,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.055,
         "y": -0.03,
@@ -10211,6 +10878,7 @@
       "textureName": "LiquidBottler",
       "uiImage": "LiquidBottler",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10232,6 +10900,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.035,
         "y": -0.13,
@@ -10269,6 +10940,7 @@
       "textureName": "LiquidCargoBayCluster",
       "uiImage": "LiquidCargoBayCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10292,6 +10964,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -10314,6 +10990,7 @@
       "textureName": "LiquidCargoBaySmall",
       "uiImage": "LiquidCargoBaySmall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10337,6 +11014,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -10359,6 +11040,7 @@
       "textureName": "LiquidConditioner",
       "uiImage": "LiquidConditioner",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10380,6 +11062,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -10441,6 +11126,7 @@
       "textureName": "LiquidConduitBridge",
       "uiImage": "LiquidConduitBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10462,6 +11148,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.1,
         "y": 0.165,
@@ -10507,6 +11196,7 @@
       "textureName": "LiquidConduit",
       "uiImage": "LiquidConduit",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -10528,6 +11218,7 @@
         "y": 1.0384615384615385
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.27,
         "y": 0.3,
@@ -10556,6 +11247,7 @@
       "textureName": "LiquidConduitOverflow",
       "uiImage": "LiquidConduitOverflow",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10577,6 +11269,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -10624,6 +11319,7 @@
       "textureName": "LiquidConduitPreferentialFlow",
       "uiImage": "LiquidConduitPreferentialFlow",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10645,6 +11341,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 8,
       "utilities": [
         {
@@ -10692,6 +11391,7 @@
       "textureName": "LiquidConduitRadiant",
       "uiImage": "LiquidConduitRadiant",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -10713,6 +11413,7 @@
         "y": 1.0384615384615385
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.27,
         "y": 0.3,
@@ -10741,6 +11442,7 @@
       "textureName": "LiquidCooledFan",
       "uiImage": "LiquidCooledFan",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10762,6 +11464,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -10784,6 +11487,7 @@
       "textureName": "LiquidFilter",
       "uiImage": "LiquidFilter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10805,6 +11509,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.175,
         "y": -0.185,
@@ -10866,6 +11574,7 @@
       "textureName": "LiquidFuelTankCluster",
       "uiImage": "LiquidFuelTankCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10888,6 +11597,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -10920,6 +11633,7 @@
       "textureName": "LiquidHeater",
       "uiImage": "LiquidHeater",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -10941,6 +11655,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.255,
         "y": -0.115,
@@ -10986,6 +11703,7 @@
       "textureName": "LiquidLimitValve",
       "uiImage": "LiquidLimitValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11007,6 +11725,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.17,
         "y": -0.055,
@@ -11078,6 +11799,7 @@
       "textureName": "LiquidLogicValve",
       "uiImage": "LiquidLogicValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11099,6 +11821,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.05,
         "y": -0.125,
@@ -11160,6 +11885,7 @@
       "textureName": "LiquidMiniPump",
       "uiImage": "LiquidMiniPump",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11181,6 +11907,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.055,
@@ -11234,6 +11964,7 @@
       "textureName": "LiquidPump",
       "uiImage": "LiquidPump",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11255,6 +11986,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.13,
         "y": -0.535,
@@ -11308,6 +12043,7 @@
       "textureName": "LiquidPumpingStation",
       "uiImage": "LiquidPumpingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11329,6 +12065,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.5,
         "y": -2,
@@ -11357,6 +12096,7 @@
       "textureName": "LiquidReservoir",
       "uiImage": "LiquidReservoir",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11378,6 +12118,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.04,
         "y": -0.19,
@@ -11431,6 +12174,7 @@
       "textureName": "LiquidValve",
       "uiImage": "LiquidValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11452,6 +12196,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.025,
@@ -11497,6 +12244,7 @@
       "textureName": "LiquidVent",
       "uiImage": "LiquidVent",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11518,6 +12266,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.235,
@@ -11563,6 +12314,7 @@
       "textureName": "LogicAlarm",
       "uiImage": "LogicAlarm",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11584,6 +12336,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.02,
@@ -11621,6 +12376,7 @@
       "textureName": "LogicClusterLocationSensor",
       "uiImage": "LogicClusterLocationSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11643,6 +12399,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -11675,6 +12434,7 @@
       "textureName": "LogicCounter",
       "uiImage": "LogicCounter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11696,6 +12456,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0,
         "y": -0.005,
@@ -11749,6 +12512,7 @@
       "textureName": "LogicCritterCountSensor",
       "uiImage": "LogicCritterCountSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11770,6 +12534,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.065,
         "y": -0.065,
@@ -11807,6 +12574,7 @@
       "textureName": "LogicDiseaseSensor",
       "uiImage": "LogicDiseaseSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11828,6 +12596,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.05,
         "y": -0.015,
@@ -11867,6 +12638,7 @@
       "textureName": "LogicDuplicantSensor",
       "uiImage": "LogicDuplicantSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11888,6 +12660,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.115,
         "y": -0.05,
@@ -11925,6 +12700,7 @@
       "textureName": "LogicElementSensorGas",
       "uiImage": "LogicElementSensorGas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -11946,6 +12722,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.045,
@@ -11983,6 +12760,7 @@
       "textureName": "LogicElementSensorLiquid",
       "uiImage": "LogicElementSensorLiquid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12004,6 +12782,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.045,
@@ -12041,6 +12822,7 @@
       "textureName": "LogicGateAND",
       "uiImage": "LogicGateAND",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12062,6 +12844,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.01,
         "y": -0.015,
@@ -12115,6 +12900,7 @@
       "textureName": "LogicGateOR",
       "uiImage": "LogicGateOR",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12136,6 +12922,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0,
         "y": -0.015,
@@ -12189,6 +12978,7 @@
       "textureName": "LogicGateXOR",
       "uiImage": "LogicGateXOR",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12210,6 +13000,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0,
         "y": -0.015,
@@ -12263,6 +13056,7 @@
       "textureName": "LogicGateNOT",
       "uiImage": "LogicGateNOT",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12284,6 +13078,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.035,
@@ -12329,6 +13126,7 @@
       "textureName": "LogicGateBUFFER",
       "uiImage": "LogicGateBUFFER",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12350,6 +13148,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.245,
         "y": -0.015,
@@ -12395,6 +13196,7 @@
       "textureName": "LogicGateFILTER",
       "uiImage": "LogicGateFILTER",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12416,6 +13218,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.245,
         "y": -0.015,
@@ -12461,6 +13266,7 @@
       "textureName": "LogicGateMultiplexer",
       "uiImage": "LogicGateMultiplexer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12482,6 +13288,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.015,
         "y": -0.02,
@@ -12567,6 +13376,7 @@
       "textureName": "LogicGateDemultiplexer",
       "uiImage": "LogicGateDemultiplexer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12588,6 +13398,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.02,
@@ -12673,6 +13486,7 @@
       "textureName": "LogicHEPSensor",
       "uiImage": "LogicHEPSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12695,6 +13509,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": 0,
@@ -12733,6 +13550,7 @@
       "textureName": "LogicHammer",
       "uiImage": "LogicHammer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12754,6 +13572,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.165,
         "y": -0.025,
@@ -12799,6 +13620,7 @@
       "textureName": "LogicInterasteroidReceiver",
       "uiImage": "LogicInterasteroidReceiver",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12821,6 +13643,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.03,
@@ -12859,6 +13684,7 @@
       "textureName": "LogicInterasteroidSender",
       "uiImage": "LogicInterasteroidSender",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12881,6 +13707,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.055,
@@ -12919,6 +13748,7 @@
       "textureName": "LogicLightSensor",
       "uiImage": "LogicLightSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -12940,6 +13770,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.375,
         "y": -0.11,
@@ -12979,6 +13812,7 @@
       "textureName": "LogicMemory",
       "uiImage": "LogicMemory",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13000,6 +13834,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.135,
         "y": -0.065,
@@ -13053,6 +13890,7 @@
       "textureName": "LogicPowerRelay",
       "uiImage": "LogicPowerRelay",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13074,6 +13912,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.04,
@@ -13127,6 +13968,7 @@
       "textureName": "LogicPressureSensorGas",
       "uiImage": "LogicPressureSensorGas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13148,6 +13990,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": 0.035,
@@ -13185,6 +14030,7 @@
       "textureName": "LogicPressureSensorLiquid",
       "uiImage": "LogicPressureSensorLiquid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13206,6 +14052,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.1,
@@ -13243,6 +14092,7 @@
       "textureName": "LogicRadiationSensor",
       "uiImage": "LogicRadiationSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13265,6 +14115,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.065,
@@ -13303,6 +14156,7 @@
       "textureName": "LogicRibbonBridge",
       "uiImage": "LogicRibbonBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13324,6 +14178,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.055,
         "y": 0.04,
@@ -13369,6 +14226,7 @@
       "textureName": "LogicRibbon",
       "uiImage": "LogicRibbon",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -13390,6 +14248,7 @@
         "y": 1.029126213592233
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.24,
         "y": 0.235,
@@ -13418,6 +14277,7 @@
       "textureName": "LogicRibbonReader",
       "uiImage": "LogicRibbonReader",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13439,6 +14299,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.085,
         "y": -0.015,
@@ -13484,6 +14347,7 @@
       "textureName": "LogicRibbonWriter",
       "uiImage": "LogicRibbonWriter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13505,6 +14369,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.225,
         "y": -0.01,
@@ -13550,6 +14417,7 @@
       "textureName": "LogicSwitch",
       "uiImage": "LogicSwitch",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13571,6 +14439,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.035,
         "y": -0.03,
@@ -13608,6 +14479,7 @@
       "textureName": "LogicTemperatureSensor",
       "uiImage": "LogicTemperatureSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13629,6 +14501,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.11,
         "y": 0.01,
@@ -13666,6 +14541,7 @@
       "textureName": "LogicTimeOfDaySensor",
       "uiImage": "LogicTimeOfDaySensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13687,6 +14563,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.035,
         "y": 0.015,
@@ -13724,6 +14603,7 @@
       "textureName": "LogicTimerSensor",
       "uiImage": "LogicTimerSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13745,6 +14625,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.055,
@@ -13782,6 +14665,7 @@
       "textureName": "LogicWattageSensor",
       "uiImage": "LogicWattageSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13803,6 +14687,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.025,
         "y": -0.035,
@@ -13840,6 +14727,7 @@
       "textureName": "LogicWireBridge",
       "uiImage": "LogicWireBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13861,6 +14749,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.145,
         "y": 0.13,
@@ -13906,6 +14797,7 @@
       "textureName": "LogicWire",
       "uiImage": "LogicWire",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -13927,6 +14819,7 @@
         "y": 1.0196078431372548
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.315,
         "y": 0.28,
@@ -13955,6 +14848,7 @@
       "textureName": "LonelyMinionHouse",
       "uiImage": "LonelyMinionHouse",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -13976,6 +14870,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -14007,6 +14902,7 @@
       "textureName": "LonelyMailBox",
       "uiImage": "LonelyMailBox",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14028,6 +14924,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -14050,6 +14949,7 @@
       "textureName": "LuxuryBed",
       "uiImage": "LuxuryBed",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14071,6 +14971,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "BedType",
+        "LuxuryBedType"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -14093,6 +14997,7 @@
       "textureName": "MachineShop",
       "uiImage": "MachineShop",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14114,6 +15019,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "MachineShopType"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -14136,6 +15044,7 @@
       "textureName": "ManualGenerator",
       "uiImage": "ManualGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14157,6 +15066,11 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "IndustrialMachinery",
+        "LightDutyGeneratorType"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.025,
@@ -14202,6 +15116,7 @@
       "textureName": "ManualHighEnergyParticleSpawner",
       "uiImage": "ManualHighEnergyParticleSpawner",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14224,6 +15139,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.24,
@@ -14262,6 +15180,7 @@
       "textureName": "ManualPressureDoor",
       "uiImage": "ManualPressureDoor",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14283,6 +15202,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.115,
@@ -14311,6 +15231,7 @@
       "textureName": "MarbleSculpture",
       "uiImage": "MarbleSculpture",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14332,6 +15253,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.095,
         "y": -0.115,
@@ -14360,6 +15285,7 @@
       "textureName": "MassageTable",
       "uiImage": "MassageTable",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14381,6 +15307,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "DeStressingBuilding"
+      ],
       "uiImageRect": {
         "x": 0.005,
         "y": -0.12,
@@ -14418,6 +15347,7 @@
       "textureName": "MassiveHeatSink",
       "uiImage": "MassiveHeatSink",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14439,6 +15369,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -14470,6 +15403,7 @@
       "textureName": "MechanicalSurfboard",
       "uiImage": "MechanicalSurfboard",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14491,6 +15425,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding",
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -14530,6 +15468,7 @@
       "textureName": "MedicalCot",
       "uiImage": "MedicalCot",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14551,6 +15490,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "BedType",
+        "Clinic"
+      ],
       "uiImageRect": {
         "x": 0.03,
         "y": -0.135,
@@ -14579,6 +15522,7 @@
       "textureName": "MegaBrainTank",
       "uiImage": "MegaBrainTank",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14600,6 +15544,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -14631,6 +15578,7 @@
       "textureName": "MercuryCeilingLight",
       "uiImage": "MercuryCeilingLight",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14654,6 +15602,7 @@
       "dlcIds": [
         "DLC2_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.02,
         "y": 0.045,
@@ -14699,6 +15648,7 @@
       "textureName": "MeshTile",
       "uiImage": "MeshTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14720,6 +15670,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -14742,6 +15693,7 @@
       "textureName": "MetalRefinery",
       "uiImage": "MetalRefinery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14763,6 +15715,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.065,
@@ -14816,6 +15771,7 @@
       "textureName": "MetalSculpture",
       "uiImage": "MetalSculpture",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14837,6 +15793,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.115,
@@ -14865,6 +15825,7 @@
       "textureName": "MetalTile",
       "uiImage": "MetalTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14886,6 +15847,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -14908,6 +15870,7 @@
       "textureName": "MethaneGenerator",
       "uiImage": "MethaneGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -14929,6 +15892,12 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.215,
         "y": -0.12,
@@ -14990,6 +15959,7 @@
       "textureName": "MicrobeMusher",
       "uiImage": "MicrobeMusher",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15011,6 +15981,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.175,
@@ -15048,6 +16019,7 @@
       "textureName": "MilkFatSeparator",
       "uiImage": "MilkFatSeparator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15069,6 +16041,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.315,
         "y": -0.08,
@@ -15122,6 +16097,7 @@
       "textureName": "MilkFeeder",
       "uiImage": "MilkFeeder",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15143,6 +16119,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RanchStationType"
+      ],
       "uiImageRect": {
         "x": 0.02,
         "y": -0.075,
@@ -15190,6 +16169,7 @@
       "textureName": "MilkPress",
       "uiImage": "MilkPress",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15211,6 +16191,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.205,
         "y": -0.09,
@@ -15256,6 +16237,7 @@
       "textureName": "MilkingStation",
       "uiImage": "MilkingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15277,6 +16259,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RanchStationType"
+      ],
       "uiImageRect": {
         "x": -0.395,
         "y": -0.1,
@@ -15324,6 +16309,7 @@
       "textureName": "MineralDeoxidizer",
       "uiImage": "MineralDeoxidizer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15345,6 +16331,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.04,
@@ -15390,6 +16377,7 @@
       "textureName": "MiniFridge",
       "uiImage": "MiniFridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15412,6 +16400,10 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "KitchenRefrigerator",
+        "Submergible"
       ],
       "buildLocationRule": 1,
       "utilities": [
@@ -15454,6 +16446,7 @@
       "textureName": "MissileLauncher",
       "uiImage": "MissileLauncher",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15475,6 +16468,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.255,
         "y": -0.025,
@@ -15520,6 +16517,7 @@
       "textureName": "MissileFabricator",
       "uiImage": "MissileFabricator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15541,6 +16539,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.13,
         "y": -0.05,
@@ -15586,6 +16587,7 @@
       "textureName": "MissionControlCluster",
       "uiImage": "MissionControlCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15608,6 +16610,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "ScienceBuilding"
       ],
       "uiImageRect": {
         "x": -0.045,
@@ -15646,6 +16651,7 @@
       "textureName": "ModularLaunchpadPortBridge",
       "uiImage": "ModularLaunchpadPortBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15668,6 +16674,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.195,
@@ -15697,6 +16706,7 @@
       "textureName": "ModularLaunchpadPortGas",
       "uiImage": "ModularLaunchpadPortGas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15719,6 +16729,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.2,
@@ -15765,6 +16779,7 @@
       "textureName": "ModularLaunchpadPortGasUnloader",
       "uiImage": "ModularLaunchpadPortGasUnloader",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15787,6 +16802,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.2,
@@ -15833,6 +16852,7 @@
       "textureName": "ModularLaunchpadPortLiquid",
       "uiImage": "ModularLaunchpadPortLiquid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15855,6 +16875,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.175,
@@ -15901,6 +16925,7 @@
       "textureName": "ModularLaunchpadPortLiquidUnloader",
       "uiImage": "ModularLaunchpadPortLiquidUnloader",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15923,6 +16948,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.175,
@@ -15969,6 +16998,7 @@
       "textureName": "ModularLaunchpadPortSolid",
       "uiImage": "ModularLaunchpadPortSolid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -15991,6 +17021,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.175,
@@ -16037,6 +17071,7 @@
       "textureName": "ModularLaunchpadPortSolidUnloader",
       "uiImage": "ModularLaunchpadPortSolidUnloader",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16059,6 +17094,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.175,
@@ -16105,6 +17144,7 @@
       "textureName": "MonumentBottom",
       "uiImage": "MonumentBottom",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16126,6 +17166,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.03,
@@ -16156,6 +17199,7 @@
       "textureName": "MonumentMiddle",
       "uiImage": "MonumentMiddle",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16177,6 +17221,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.62,
         "y": -0.07,
@@ -16209,6 +17256,7 @@
       "textureName": "MonumentTop",
       "uiImage": "MonumentTop",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16230,6 +17278,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -1.435,
         "y": -0.375,
@@ -16262,6 +17313,7 @@
       "textureName": "MorbRoverMaker",
       "uiImage": "MorbRoverMaker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16283,6 +17335,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -16330,6 +17383,7 @@
       "textureName": "MouldingTile",
       "uiImage": "MouldingTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16351,6 +17405,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -16373,6 +17428,7 @@
       "textureName": "MultiMinionDiningTable",
       "uiImage": "MultiMinionDiningTable",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16394,6 +17450,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "DiningTableType"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -16416,6 +17475,7 @@
       "textureName": "NoseconeBasic",
       "uiImage": "NoseconeBasic",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16438,6 +17498,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [],
@@ -16463,6 +17527,7 @@
       "textureName": "NoseconeHarvest",
       "uiImage": "NoseconeHarvest",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16485,6 +17550,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [],
@@ -16510,6 +17579,7 @@
       "textureName": "NuclearReactor",
       "uiImage": "NuclearReactor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16532,6 +17602,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.095,
@@ -16578,6 +17652,7 @@
       "textureName": "NuclearResearchCenter",
       "uiImage": "NuclearResearchCenter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16600,6 +17675,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "ScienceBuilding"
       ],
       "uiImageRect": {
         "x": -0.14,
@@ -16646,6 +17724,7 @@
       "textureName": "ObjectDispenser",
       "uiImage": "ObjectDispenser",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16667,6 +17746,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.145,
         "y": -0.1,
@@ -16712,6 +17794,7 @@
       "textureName": "OilRefinery",
       "uiImage": "OilRefinery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16733,6 +17816,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.105,
         "y": -0.07,
@@ -16786,6 +17872,7 @@
       "textureName": "OilWellCap",
       "uiImage": "OilWellCap",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16807,6 +17894,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.13,
         "y": -0.78,
@@ -16860,6 +17950,7 @@
       "textureName": "OrbitalCargoModule",
       "uiImage": "OrbitalCargoModule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16883,6 +17974,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -16905,6 +18000,7 @@
       "textureName": "OrbitalResearchCenter",
       "uiImage": "OrbitalResearchCenter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16927,6 +18023,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "ScienceBuilding"
       ],
       "buildLocationRule": 1,
       "utilities": [
@@ -16959,6 +18058,7 @@
       "textureName": "OreScrubber",
       "uiImage": "OreScrubber",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -16980,6 +18080,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.36,
         "y": -0.08,
@@ -17017,6 +18120,7 @@
       "textureName": "Outhouse",
       "uiImage": "Outhouse",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17038,6 +18142,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "ToiletType"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -17060,6 +18167,7 @@
       "textureName": "OxidizerTankCluster",
       "uiImage": "OxidizerTankCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17083,6 +18191,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17105,6 +18217,7 @@
       "textureName": "OxidizerTankLiquidCluster",
       "uiImage": "OxidizerTankLiquidCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17127,6 +18240,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -17159,6 +18276,7 @@
       "textureName": "OxygenMaskLocker",
       "uiImage": "OxygenMaskLocker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17180,6 +18298,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.095,
         "y": -0.055,
@@ -17217,6 +18336,7 @@
       "textureName": "OxygenMaskMarker",
       "uiImage": "OxygenMaskMarker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17238,6 +18358,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.225,
         "y": -0.055,
@@ -17275,6 +18396,7 @@
       "textureName": "OxygenMaskStation",
       "uiImage": "OxygenMaskStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17296,6 +18418,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -17327,6 +18450,7 @@
       "textureName": "OxyliteRefinery",
       "uiImage": "OxyliteRefinery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17348,6 +18472,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.01,
         "y": -0.14,
@@ -17403,6 +18530,7 @@
       "textureName": "Oxysconce",
       "uiImage": "Oxysconce",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17426,6 +18554,7 @@
       "dlcIds": [
         "DLC2_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.1,
         "y": -0.04,
@@ -17454,6 +18583,7 @@
       "textureName": "POIBunkerExteriorDoor",
       "uiImage": "POIBunkerExteriorDoor",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17475,6 +18605,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17497,6 +18628,7 @@
       "textureName": "POIDlc2ShowroomDoor",
       "uiImage": "POIDlc2ShowroomDoor",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17518,6 +18650,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17540,6 +18673,7 @@
       "textureName": "POIDoorInternal",
       "uiImage": "POIDoorInternal",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17561,6 +18695,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [
         {
@@ -17592,6 +18727,7 @@
       "textureName": "POIFacilityDoor",
       "uiImage": "POIFacilityDoor",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17613,6 +18749,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17635,6 +18772,7 @@
       "textureName": "ParkSign",
       "uiImage": "ParkSign",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17656,6 +18794,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Park",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.125,
         "y": -0.09,
@@ -17684,6 +18826,7 @@
       "textureName": "PetroleumGenerator",
       "uiImage": "PetroleumGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17705,6 +18848,12 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.12,
         "y": -0.18,
@@ -17758,6 +18907,7 @@
       "textureName": "Phonobox",
       "uiImage": "Phonobox",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17779,6 +18929,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -17810,6 +18963,7 @@
       "textureName": "PioneerModule",
       "uiImage": "PioneerModule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17833,6 +18987,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -17855,6 +19013,7 @@
       "textureName": "PixelPack",
       "uiImage": "PixelPack",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17876,6 +19035,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.045,
         "y": -0.045,
@@ -17923,6 +19085,7 @@
       "textureName": "PlanterBox",
       "uiImage": "PlanterBox",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17944,6 +19107,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.205,
         "y": -0.1,
@@ -17972,6 +19138,7 @@
       "textureName": "PlasticTile",
       "uiImage": "PlasticTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -17993,6 +19160,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -18015,6 +19183,7 @@
       "textureName": "Polymerizer",
       "uiImage": "Polymerizer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18036,6 +19205,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.175,
         "y": -0.165,
@@ -18097,6 +19269,7 @@
       "textureName": "PowerControlStation",
       "uiImage": "PowerControlStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18118,6 +19291,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.55,
         "y": -0.17,
@@ -18155,6 +19332,7 @@
       "textureName": "PowerTransformer",
       "uiImage": "PowerTransformer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18176,6 +19354,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.25,
         "y": -0.21,
@@ -18221,6 +19403,7 @@
       "textureName": "PowerTransformerSmall",
       "uiImage": "PowerTransformerSmall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18242,6 +19425,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.25,
         "y": -0.12,
@@ -18287,6 +19474,7 @@
       "textureName": "PressureDoor",
       "uiImage": "PressureDoor",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18308,6 +19496,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.06,
         "y": -0.115,
@@ -18353,6 +19542,7 @@
       "textureName": "PressureSwitchGas",
       "uiImage": "PressureSwitchGas",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18374,6 +19564,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -18413,6 +19604,7 @@
       "textureName": "PressureSwitchLiquid",
       "uiImage": "PressureSwitchLiquid",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18434,6 +19626,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -18473,6 +19668,7 @@
       "textureName": "PropBeachChair",
       "uiImage": "PropBeachChair",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18495,6 +19691,9 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "RecBuilding"
       ],
       "buildLocationRule": 1,
       "utilities": [],
@@ -18520,6 +19719,7 @@
       "textureName": "PropGravitasLabWall",
       "uiImage": "PropGravitasLabWall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18541,6 +19741,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18563,6 +19766,7 @@
       "textureName": "PropGravitasLabWindow",
       "uiImage": "PropGravitasLabWindow",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18584,6 +19788,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18606,6 +19813,7 @@
       "textureName": "PropGravitasLabWindowHorizontal",
       "uiImage": "PropGravitasLabWindowHorizontal",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18629,6 +19837,9 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18651,6 +19862,7 @@
       "textureName": "PropGravitasWall",
       "uiImage": "PropGravitasWall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18672,6 +19884,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18694,6 +19909,7 @@
       "textureName": "PropGravitasWallPurple",
       "uiImage": "PropGravitasWallPurple",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18715,6 +19931,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18737,6 +19956,7 @@
       "textureName": "PropGravitasWallPurpleWhiteDiagonal",
       "uiImage": "PropGravitasWallPurpleWhiteDiagonal",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18758,6 +19978,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 7,
       "utilities": [],
       "uiScreens": [],
@@ -18780,6 +20003,7 @@
       "textureName": "RadiationLight",
       "uiImage": "RadiationLight",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18803,6 +20027,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -1.08,
@@ -18840,6 +20065,7 @@
       "textureName": "RailGun",
       "uiImage": "RailGun",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18862,6 +20088,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.185,
@@ -18916,6 +20146,7 @@
       "textureName": "RailGunPayloadOpener",
       "uiImage": "RailGunPayloadOpener",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18938,6 +20169,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.21,
@@ -18976,6 +20210,7 @@
       "textureName": "RanchStation",
       "uiImage": "RanchStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -18997,6 +20232,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RanchStationType"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.165,
@@ -19034,6 +20272,7 @@
       "textureName": "RationBox",
       "uiImage": "RationBox",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19055,6 +20294,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -19077,6 +20319,7 @@
       "textureName": "ReefGenerator",
       "uiImage": "ReefGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19099,6 +20342,13 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.095,
@@ -19147,6 +20397,7 @@
       "textureName": "Refrigerator",
       "uiImage": "Refrigerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19168,6 +20419,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "KitchenRefrigerator",
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -19207,6 +20462,7 @@
       "textureName": "ResearchCenter",
       "uiImage": "ResearchCenter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19228,6 +20484,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "ScienceBuilding"
+      ],
       "uiImageRect": {
         "x": -0.095,
         "y": -0.15,
@@ -19265,6 +20524,7 @@
       "textureName": "ResearchClusterModule",
       "uiImage": "ResearchClusterModule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19288,6 +20548,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -19310,6 +20574,7 @@
       "textureName": "ResetSkillsStation",
       "uiImage": "ResetSkillsStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19331,6 +20596,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.16,
         "y": -0.05,
@@ -19368,6 +20636,7 @@
       "textureName": "RockCrusher",
       "uiImage": "RockCrusher",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19389,6 +20658,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.04,
         "y": -0.125,
@@ -19426,6 +20698,7 @@
       "textureName": "RocketControlStation",
       "uiImage": "RocketControlStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19448,6 +20721,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "RocketInterior",
+        "Submergible"
       ],
       "buildLocationRule": 1,
       "utilities": [
@@ -19480,6 +20757,7 @@
       "textureName": "RocketEnvelopeWindowTile",
       "uiImage": "RocketEnvelopeWindowTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19501,6 +20779,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19523,6 +20802,7 @@
       "textureName": "RocketInteriorGasInput",
       "uiImage": "RocketInteriorGasInput",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19545,6 +20825,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.03,
@@ -19583,6 +20866,7 @@
       "textureName": "RocketInteriorGasInputPort",
       "uiImage": "RocketInteriorGasInputPort",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19606,6 +20890,9 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19628,6 +20915,7 @@
       "textureName": "RocketInteriorGasOutput",
       "uiImage": "RocketInteriorGasOutput",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19650,6 +20938,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.025,
@@ -19696,6 +20987,7 @@
       "textureName": "RocketInteriorGasOutputPort",
       "uiImage": "RocketInteriorGasOutputPort",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19719,6 +21011,9 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19741,6 +21036,7 @@
       "textureName": "RocketInteriorLiquidInput",
       "uiImage": "RocketInteriorLiquidInput",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19763,6 +21059,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.015,
@@ -19801,6 +21100,7 @@
       "textureName": "RocketInteriorLiquidInputPort",
       "uiImage": "RocketInteriorLiquidInputPort",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19824,6 +21124,9 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19846,6 +21149,7 @@
       "textureName": "RocketInteriorLiquidOutput",
       "uiImage": "RocketInteriorLiquidOutput",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19868,6 +21172,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.025,
@@ -19914,6 +21221,7 @@
       "textureName": "RocketInteriorLiquidOutputPort",
       "uiImage": "RocketInteriorLiquidOutputPort",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19937,6 +21245,9 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -19959,6 +21270,7 @@
       "textureName": "RocketInteriorPowerPlug",
       "uiImage": "RocketInteriorPowerPlug",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -19981,6 +21293,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "buildLocationRule": 16,
       "utilities": [
@@ -20013,6 +21328,7 @@
       "textureName": "RocketInteriorSolidInput",
       "uiImage": "RocketInteriorSolidInput",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20035,6 +21351,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.03,
@@ -20073,6 +21392,7 @@
       "textureName": "RocketInteriorSolidOutput",
       "uiImage": "RocketInteriorSolidOutput",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20095,6 +21415,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.025,
@@ -20141,6 +21464,7 @@
       "textureName": "RocketWallTile",
       "uiImage": "RocketWallTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20164,6 +21488,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -20186,6 +21511,7 @@
       "textureName": "RoleStation",
       "uiImage": "RoleStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20207,6 +21533,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -20229,6 +21556,7 @@
       "textureName": "RubberMaker",
       "uiImage": "RubberMaker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20251,6 +21579,9 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery"
       ],
       "uiImageRect": {
         "x": -0.04,
@@ -20305,6 +21636,7 @@
       "textureName": "RubberTile",
       "uiImage": "RubberTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20328,6 +21660,7 @@
       "dlcIds": [
         "DLC5_ID"
       ],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -20350,6 +21683,7 @@
       "textureName": "RustDeoxidizer",
       "uiImage": "RustDeoxidizer",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20371,6 +21705,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": -0.33,
         "y": -0.09,
@@ -20416,6 +21753,7 @@
       "textureName": "Sauna",
       "uiImage": "Sauna",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20437,6 +21775,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -20486,6 +21827,7 @@
       "textureName": "ScannerModule",
       "uiImage": "ScannerModule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20508,6 +21850,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [],
@@ -20533,6 +21879,7 @@
       "textureName": "ScoutModule",
       "uiImage": "ScoutModule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20556,6 +21903,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -20578,6 +21929,7 @@
       "textureName": "Sculpture",
       "uiImage": "Sculpture",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20599,6 +21951,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.125,
@@ -20627,6 +21983,7 @@
       "textureName": "ShearingStation",
       "uiImage": "ShearingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20648,6 +22005,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RanchStationType"
+      ],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.04,
@@ -20685,6 +22045,7 @@
       "textureName": "Shelf",
       "uiImage": "Shelf",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20706,6 +22067,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.02,
         "y": -0.115,
@@ -20734,6 +22099,7 @@
       "textureName": "Shower",
       "uiImage": "Shower",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20755,6 +22121,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "AdvancedWashStation",
+        "WashStation"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -20794,6 +22164,7 @@
       "textureName": "SludgePress",
       "uiImage": "SludgePress",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20816,6 +22187,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery"
       ],
       "uiImageRect": {
         "x": -0.105,
@@ -20862,6 +22236,7 @@
       "textureName": "SmallOxidizerTank",
       "uiImage": "SmallOxidizerTank",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20885,6 +22260,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -20907,6 +22286,7 @@
       "textureName": "SmallSculpture",
       "uiImage": "SmallSculpture",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20928,6 +22308,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.02,
         "y": -0.115,
@@ -20956,6 +22340,7 @@
       "textureName": "SnowTile",
       "uiImage": "SnowTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -20979,6 +22364,7 @@
       "dlcIds": [
         "DLC2_ID"
       ],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -21001,6 +22387,7 @@
       "textureName": "SodaFountain",
       "uiImage": "SodaFountain",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21022,6 +22409,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -21061,6 +22451,7 @@
       "textureName": "SolarPanel",
       "uiImage": "SolarPanel",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21082,6 +22473,12 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.595,
         "y": -0.105,
@@ -21119,6 +22516,7 @@
       "textureName": "SolarPanelModule",
       "uiImage": "SolarPanelModule",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21141,6 +22539,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -21173,6 +22575,7 @@
       "textureName": "CargoBayCluster",
       "uiImage": "CargoBayCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21196,6 +22599,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -21218,6 +22625,7 @@
       "textureName": "SolidCargoBaySmall",
       "uiImage": "SolidCargoBaySmall",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21241,6 +22649,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -21263,6 +22675,7 @@
       "textureName": "SolidConduitBridge",
       "uiImage": "SolidConduitBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21284,6 +22697,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.48,
         "y": 0.03,
@@ -21329,6 +22745,7 @@
       "textureName": "SolidConduit",
       "uiImage": "SolidConduit",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -21350,6 +22767,7 @@
         "y": 1.0192307692307692
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.335,
         "y": 0.355,
@@ -21378,6 +22796,7 @@
       "textureName": "SolidConduitInbox",
       "uiImage": "SolidConduitInbox",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21399,6 +22818,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.095,
@@ -21452,6 +22874,7 @@
       "textureName": "SolidConduitOutbox",
       "uiImage": "SolidConduitOutbox",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21473,6 +22896,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.08,
         "y": -0.105,
@@ -21510,6 +22936,7 @@
       "textureName": "SolidConduitDiseaseSensor",
       "uiImage": "SolidConduitDiseaseSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21531,6 +22958,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -21570,6 +23000,7 @@
       "textureName": "SolidConduitElementSensor",
       "uiImage": "SolidConduitElementSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21591,6 +23022,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -21628,6 +23062,7 @@
       "textureName": "SolidConduitTemperatureSensor",
       "uiImage": "SolidConduitTemperatureSensor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21649,6 +23084,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.03,
         "y": -0.015,
@@ -21686,6 +23124,7 @@
       "textureName": "SolidFilter",
       "uiImage": "SolidFilter",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21707,6 +23146,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.015,
         "y": -0.275,
@@ -21768,6 +23211,7 @@
       "textureName": "SolidLimitValve",
       "uiImage": "SolidLimitValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21789,6 +23233,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.155,
         "y": -0.055,
@@ -21860,6 +23307,7 @@
       "textureName": "SolidLogicValve",
       "uiImage": "SolidLogicValve",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21881,6 +23329,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.075,
         "y": -0.065,
@@ -21942,6 +23393,7 @@
       "textureName": "SolidTransferArm",
       "uiImage": "SolidTransferArm",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -21963,6 +23415,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.295,
         "y": -0.085,
@@ -22008,6 +23463,7 @@
       "textureName": "SolidVent",
       "uiImage": "SolidVent",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22029,6 +23485,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.07,
         "y": -0.215,
@@ -22074,6 +23533,7 @@
       "textureName": "SpaceHeater",
       "uiImage": "SpaceHeater",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22095,6 +23555,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "WarmingStation"
+      ],
       "uiImageRect": {
         "x": 0.135,
         "y": -0.17,
@@ -22140,6 +23603,7 @@
       "textureName": "SpecialCargoBayCluster",
       "uiImage": "SpecialCargoBayCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22163,6 +23627,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -22185,6 +23653,7 @@
       "textureName": "SpiceGrinder",
       "uiImage": "SpiceGrinder",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22206,6 +23675,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "SpiceStation"
+      ],
       "uiImageRect": {
         "x": -0.095,
         "y": -0.03,
@@ -22243,6 +23715,7 @@
       "textureName": "StaterpillarGenerator",
       "uiImage": "StaterpillarGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22265,6 +23738,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "buildLocationRule": 14,
       "utilities": [
@@ -22297,6 +23773,7 @@
       "textureName": "StaterpillarGasConnector",
       "uiImage": "StaterpillarGasConnector",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22319,6 +23796,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "buildLocationRule": 14,
       "utilities": [
@@ -22351,6 +23831,7 @@
       "textureName": "StaterpillarLiquidConnector",
       "uiImage": "StaterpillarLiquidConnector",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22373,6 +23854,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "buildLocationRule": 14,
       "utilities": [
@@ -22405,6 +23889,7 @@
       "textureName": "SteamEngineCluster",
       "uiImage": "SteamEngineCluster",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22427,6 +23912,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "buildLocationRule": 0,
       "utilities": [
@@ -22459,6 +23948,7 @@
       "textureName": "SteamTurbine",
       "uiImage": "SteamTurbine",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22480,6 +23970,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.035,
         "y": -1.295,
@@ -22527,6 +24018,7 @@
       "textureName": "SteamTurbine2",
       "uiImage": "SteamTurbine2",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22548,6 +24040,12 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.09,
         "y": -2,
@@ -22603,6 +24101,7 @@
       "textureName": "StorageLocker",
       "uiImage": "StorageLocker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22624,6 +24123,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -22646,6 +24148,7 @@
       "textureName": "StorageLockerSmart",
       "uiImage": "StorageLockerSmart",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22667,6 +24170,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -22706,6 +24212,7 @@
       "textureName": "StorageTile",
       "uiImage": "StorageTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22727,6 +24234,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -22751,6 +24259,7 @@
       "textureName": "SublimationStation",
       "uiImage": "SublimationStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22774,6 +24283,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.215,
         "y": -0.03,
@@ -22819,6 +24329,7 @@
       "textureName": "SugarEngine",
       "uiImage": "SugarEngine",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22842,6 +24353,10 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [],
       "uiScreens": [],
@@ -22864,6 +24379,7 @@
       "textureName": "SuitFabricator",
       "uiImage": "SuitFabricator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22885,6 +24401,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.095,
         "y": -0.15,
@@ -22922,6 +24441,7 @@
       "textureName": "SuitLocker",
       "uiImage": "SuitLocker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -22943,6 +24463,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.26,
         "y": -0.135,
@@ -22988,6 +24509,7 @@
       "textureName": "SuitMarker",
       "uiImage": "SuitMarker",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23009,6 +24531,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.24,
         "y": -0.175,
@@ -23046,6 +24569,7 @@
       "textureName": "SunLamp",
       "uiImage": "SunLamp",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23067,6 +24591,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.995,
         "y": -0.035,
@@ -23106,6 +24631,7 @@
       "textureName": "SupermaterialRefinery",
       "uiImage": "SupermaterialRefinery",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23127,6 +24653,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.635,
         "y": -0.11,
@@ -23164,6 +24691,7 @@
       "textureName": "SushiBar",
       "uiImage": "SushiBar",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23186,6 +24714,9 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "CookTop"
       ],
       "uiImageRect": {
         "x": -0.12,
@@ -23215,6 +24746,7 @@
       "textureName": "SweepBotStation",
       "uiImage": "SweepBotStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23236,6 +24768,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.24,
         "y": -0.07,
@@ -23273,6 +24808,7 @@
       "textureName": "Switch",
       "uiImage": "Switch",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23294,6 +24830,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.175,
         "y": -0.005,
@@ -23339,6 +24878,7 @@
       "textureName": "Telephone",
       "uiImage": "Telephone",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23361,6 +24901,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "RecBuilding"
       ],
       "buildLocationRule": 1,
       "utilities": [
@@ -23393,6 +24936,7 @@
       "textureName": "TeleportalPad",
       "uiImage": "TeleportalPad",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23414,6 +24958,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -23485,6 +25032,7 @@
       "textureName": "TemperatureControlledSwitch",
       "uiImage": "TemperatureControlledSwitch",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23506,6 +25054,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 0,
       "utilities": [
         {
@@ -23545,6 +25096,7 @@
       "textureName": "TemporalTearOpener",
       "uiImage": "TemporalTearOpener",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23568,6 +25120,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -23599,6 +25152,7 @@
       "textureName": "ThermalBlock",
       "uiImage": "ThermalBlock",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23620,6 +25174,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.205,
         "y": -0.2,
@@ -23648,6 +25205,7 @@
       "textureName": "Tile",
       "uiImage": "Tile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23669,6 +25227,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -23691,6 +25250,7 @@
       "textureName": "TilePOI",
       "uiImage": "TilePOI",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23712,6 +25272,7 @@
         "y": 1.5
       },
       "dlcIds": [],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -23734,6 +25295,7 @@
       "textureName": "TravelTube",
       "uiImage": "TravelTube",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -23755,6 +25317,7 @@
         "y": 1.0169491525423728
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.005,
         "y": -0.02,
@@ -23783,6 +25346,7 @@
       "textureName": "TravelTubeEntrance",
       "uiImage": "TravelTubeEntrance",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23804,6 +25368,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.145,
         "y": -0.115,
@@ -23849,6 +25414,7 @@
       "textureName": "TravelTubeWallBridge",
       "uiImage": "TravelTubeWallBridge",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23870,6 +25436,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.565,
         "y": -0.21,
@@ -23898,6 +25465,7 @@
       "textureName": "UnderwaterCritterCondo",
       "uiImage": "UnderwaterCritterCondo",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23919,6 +25487,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RanchStationType",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.02,
         "y": -0.17,
@@ -23947,6 +25519,7 @@
       "textureName": "UnderwaterBreathingStation",
       "uiImage": "UnderwaterBreathingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -23969,6 +25542,9 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": 0.14,
@@ -24007,6 +25583,7 @@
       "textureName": "UnderwaterMilkFeeder",
       "uiImage": "UnderwaterMilkFeeder",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24028,6 +25605,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.065,
         "y": -2,
@@ -24075,6 +25655,7 @@
       "textureName": "UnderwaterMilkingStation",
       "uiImage": "UnderwaterMilkingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24097,6 +25678,10 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "RanchStationType",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.12,
@@ -24145,6 +25730,7 @@
       "textureName": "UnderwaterRanchStation",
       "uiImage": "UnderwaterRanchStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24167,6 +25753,10 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "RanchStationType",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.445,
@@ -24205,6 +25795,7 @@
       "textureName": "UnderwaterShearingStation",
       "uiImage": "UnderwaterShearingStation",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24227,6 +25818,10 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "RanchStationType",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": 0.07,
@@ -24265,6 +25860,7 @@
       "textureName": "UnderwaterVentDrill",
       "uiImage": "UnderwaterVentDrill",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24287,6 +25883,10 @@
       },
       "dlcIds": [
         "DLC5_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.15,
@@ -24335,6 +25935,7 @@
       "textureName": "UraniumCentrifuge",
       "uiImage": "UraniumCentrifuge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24357,6 +25958,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery"
       ],
       "uiImageRect": {
         "x": -0.01,
@@ -24413,6 +26017,7 @@
       "textureName": "VerticalWindTunnel",
       "uiImage": "VerticalWindTunnel",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24434,6 +26039,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -24465,6 +26073,7 @@
       "textureName": "WallToilet",
       "uiImage": "WallToilet",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24487,6 +26096,10 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "FlushToiletType",
+        "ToiletType"
       ],
       "buildLocationRule": 17,
       "utilities": [
@@ -24521,6 +26134,7 @@
       "textureName": "WarpConduitReceiver",
       "uiImage": "WarpConduitReceiver",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24543,6 +26157,9 @@
       },
       "dlcIds": [
         "EXPANSION1_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "buildLocationRule": 1,
       "utilities": [
@@ -24591,6 +26208,7 @@
       "textureName": "WarpConduitSender",
       "uiImage": "WarpConduitSender",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24614,6 +26232,9 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -24636,6 +26257,7 @@
       "textureName": "WashBasin",
       "uiImage": "WashBasin",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24657,6 +26279,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "WashStation"
+      ],
       "uiImageRect": {
         "x": -0.01,
         "y": -0.1,
@@ -24685,6 +26310,7 @@
       "textureName": "WashSink",
       "uiImage": "WashSink",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24706,6 +26332,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "AdvancedWashStation",
+        "WashStation"
+      ],
       "buildLocationRule": 1,
       "utilities": [
         {
@@ -24745,6 +26375,7 @@
       "textureName": "WaterCooler",
       "uiImage": "WaterCooler",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24766,6 +26397,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "RecBuilding",
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -24788,6 +26423,7 @@
       "textureName": "WaterPurifier",
       "uiImage": "WaterPurifier",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24809,6 +26445,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
       "uiImageRect": {
         "x": 0.18,
         "y": -0.095,
@@ -24870,6 +26509,7 @@
       "textureName": "WideFarmTile",
       "uiImage": "WideFarmTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24893,6 +26533,7 @@
       "dlcIds": [
         "DLC5_ID"
       ],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.04,
         "y": -0.06,
@@ -24932,6 +26573,7 @@
       "textureName": "WireBridge",
       "uiImage": "WireBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -24953,6 +26595,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.175,
         "y": -0.03,
@@ -24998,6 +26643,7 @@
       "textureName": "WireBridgeHighWattage",
       "uiImage": "WireBridgeHighWattage",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25019,6 +26665,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.86,
         "y": -0.055,
@@ -25064,6 +26711,7 @@
       "textureName": "Wire",
       "uiImage": "Wire",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -25085,6 +26733,7 @@
         "y": 1.0192307692307692
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.31,
         "y": 0.26,
@@ -25113,6 +26762,7 @@
       "textureName": "HighWattageWire",
       "uiImage": "HighWattageWire",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -25134,6 +26784,7 @@
         "y": 1.029126213592233
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.285,
         "y": 0.27,
@@ -25162,6 +26813,7 @@
       "textureName": "WireRefinedBridge",
       "uiImage": "WireRefinedBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25183,6 +26835,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.14,
         "y": 0.155,
@@ -25228,6 +26883,7 @@
       "textureName": "WireRefinedBridgeHighWattage",
       "uiImage": "WireRefinedBridgeHighWattage",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25249,6 +26905,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.925,
         "y": -0.055,
@@ -25294,6 +26951,7 @@
       "textureName": "WireRefined",
       "uiImage": "WireRefined",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -25315,6 +26973,7 @@
         "y": 1.0192307692307692
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.31,
         "y": 0.26,
@@ -25343,6 +27002,7 @@
       "textureName": "WireRefinedHighWattage",
       "uiImage": "WireRefinedHighWattage",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -25364,6 +27024,7 @@
         "y": 1.029126213592233
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.28,
         "y": 0.27,
@@ -25392,6 +27053,7 @@
       "textureName": "WireRubberBridge",
       "uiImage": "WireRubberBridge",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25413,6 +27075,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": 0.145,
         "y": 0.22,
@@ -25460,6 +27125,7 @@
       "textureName": "WireRubber",
       "uiImage": "WireRubber",
       "isTile": true,
+      "isFoundation": false,
       "isUtility": true,
       "isBridge": false,
       "drawSolid": false,
@@ -25481,6 +27147,7 @@
         "y": 1.0192307692307692
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": 0.36,
         "y": 0.27,
@@ -25511,6 +27178,7 @@
       "textureName": "WoodGasGenerator",
       "uiImage": "WoodGasGenerator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25532,6 +27200,12 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
       "uiImageRect": {
         "x": -0.585,
         "y": -0.045,
@@ -25577,6 +27251,7 @@
       "textureName": "WoodSculpture",
       "uiImage": "WoodSculpture",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25599,6 +27274,10 @@
       },
       "dlcIds": [
         "DLC2_ID"
+      ],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.025,
@@ -25628,6 +27307,7 @@
       "textureName": "WoodStorage",
       "uiImage": "WoodStorage",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25651,6 +27331,9 @@
       "dlcIds": [
         "DLC2_ID"
       ],
+      "roomTags": [
+        "Submergible"
+      ],
       "buildLocationRule": 1,
       "utilities": [],
       "uiScreens": [],
@@ -25673,6 +27356,7 @@
       "textureName": "WoodTile",
       "uiImage": "WoodTile",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25696,6 +27380,7 @@
       "dlcIds": [
         "DLC2_ID"
       ],
+      "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
       "uiScreens": [],
@@ -25718,6 +27403,7 @@
       "textureName": "WoodenDoor",
       "uiImage": "WoodenDoor",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25740,6 +27426,9 @@
       },
       "dlcIds": [
         "DLC2_ID"
+      ],
+      "roomTags": [
+        "Submergible"
       ],
       "uiImageRect": {
         "x": -0.105,
@@ -25769,6 +27458,7 @@
       "textureName": "CreatureAirTrap",
       "uiImage": "CreatureAirTrap",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25790,6 +27480,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.36,
         "y": -0.09,
@@ -25835,6 +27526,7 @@
       "textureName": "Desalinator",
       "uiImage": "Desalinator",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25856,6 +27548,10 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.065,
         "y": -0.07,
@@ -25909,6 +27605,7 @@
       "textureName": "InsulatedDoor",
       "uiImage": "InsulatedDoor",
       "isTile": true,
+      "isFoundation": true,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25930,6 +27627,7 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [],
       "uiImageRect": {
         "x": -0.085,
         "y": -0.11,
@@ -25960,6 +27658,7 @@
       "textureName": "CreatureGroundTrap",
       "uiImage": "CreatureGroundTrap",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -25981,6 +27680,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.155,
         "y": -0.03,
@@ -26026,6 +27728,7 @@
       "textureName": "WaterTrap",
       "uiImage": "WaterTrap",
       "isTile": false,
+      "isFoundation": false,
       "isUtility": false,
       "isBridge": false,
       "drawSolid": false,
@@ -26047,6 +27750,9 @@
         "y": 1
       },
       "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
       "uiImageRect": {
         "x": -0.225,
         "y": 0.255,

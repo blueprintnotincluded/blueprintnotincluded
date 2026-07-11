@@ -127,7 +127,9 @@ export interface BBuildingFile2024 extends BExport2024Meta {
   buildMenuCategories: BBuildMenuCategory2024[];
   // Keyed by lowercase category name (e.g. "base", "oxygen").
   buildingAndSubcategoryDataPairs: { [categoryName: string]: BBuildingSubcategoryPair2024[] };
-  roomConstraintTags?: unknown;
+  // The game's room-system tag vocabulary (33 tags in U59). Each building def's
+  // `tags` intersected with this set yields its roomTags (see BBuilding.roomTags).
+  roomConstraintTags?: BTag2024[] | null;
   requiredSkillPerkMap?: unknown;
 }
 

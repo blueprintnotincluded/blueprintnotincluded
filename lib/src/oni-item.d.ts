@@ -17,12 +17,14 @@ export declare class OniItem {
     id: string;
     name: string;
     dlcIds: string[];
+    roomTags: string[];
     imageId: string;
     iconUrl: string;
     flatIconId: string;
     spriteModifierId: string;
     isWire: boolean;
     isTile: boolean;
+    isFoundation: boolean;
     isBridge: boolean;
     isElement: boolean;
     get isInfo(): boolean;
