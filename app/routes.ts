@@ -86,6 +86,9 @@ export class Routes {
     app.route('/api/blueprints/:id/preview/:variant').get(this.previewController.getPreview);
     app.route('/api/blueprints/:id/comments').get(this.commentController.list);
     app.route('/api/blueprints/:id/versions').get(this.blueprintVersionController.listVersions);
+    // Download beacon: anonymous (the editor's file export works logged out);
+    // dedupe + draft/owner exclusions happen in the counter service path
+    app.route('/api/blueprints/:id/downloads').post(this.uploadBlueprintController.trackDownload);
 
     // Logged in access
     app.route('/api/getblueprintsSecure').get(auth, this.uploadBlueprintController.getBlueprints);

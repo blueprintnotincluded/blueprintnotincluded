@@ -25,6 +25,9 @@ export interface BlueprintListItem {
   modded?: boolean | null;
   isPublished: boolean;
   nbForks: number;
+  // Approximate by design: served from throttled write-behind counters
+  nbViews: number;
+  nbDownloads: number;
   // Present when this blueprint is a fork; null blueprintName means the
   // parent has been soft-deleted ("[original removed by author]")
   forkedFrom?: ForkedFromDto | null;

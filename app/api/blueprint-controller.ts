@@ -26,11 +26,15 @@ import { parseOlderThan } from './utils/pagination';
 import { optionalViewer } from './utils/optionalViewer';
 import { canViewBlueprint } from './utils/blueprint-visibility';
 import { BlueprintEventService } from './services/blueprint-event-service';
+import { BlueprintCounterService, CounterKind } from './services/blueprint-counter-service';
 import { resolveCurrentData, syncCurrentVersion } from './services/blueprint-version-service';
 import { PreviewImageService } from './services/preview-image-service';
 import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
+
+const SORTS = ['recent', 'popular', 'mostForked', 'mostViewed', 'mostDownloaded'] as const;
+type BlueprintSort = (typeof SORTS)[number];
 
 export class BlueprintController {
   public uploadBlueprint(req: Request, res: Response) {
@@ -274,6 +278,25 @@ export class BlueprintController {
     res.json({ likeBlueprint: 'OK' });
   }
 
+  // Buffer a view/download hit in the write-behind counter cache. Drafts
+  // never accumulate counts, and neither does the owner's own traffic —
+  // these numbers exist for social proof, not analytics.
+  private static recordCounter(
+    kind: CounterKind,
+    req: Request,
+    blueprint: Pick<Blueprint, 'owner' | 'isPublished'> & { _id: unknown }
+  ): void {
+    if (blueprint.isPublished === false) return;
+    const viewer = optionalViewer(req);
+    const ownerId = UserModel.isUser(blueprint.owner)
+      ? (blueprint.owner.id as string)
+      : blueprint.owner?.toString();
+    if (viewer != null && viewer._id === ownerId) return;
+    // Logged-in viewers dedupe by user id; anonymous ones by client IP
+    const viewerKey = viewer != null ? viewer._id : `ip:${req.clientIp ?? 'unknown'}`;
+    BlueprintCounterService.instance.record(kind, String(blueprint._id), viewerKey);
+  }
+
   public async getBlueprint(req: Request, res: Response): Promise<void> {
     console.log('getBlueprint' + req.clientIp);
     if (BlueprintModel.model == null) {
@@ -303,6 +326,10 @@ export class BlueprintController {
 
       // Fallback covers docs the migration hasn't touched yet
       let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
+
+      // Editor open counts as a view; the dedupe window makes the common
+      // details-page → editor hop count once, not twice
+      BlueprintController.recordCounter('view', req, blueprint);
 
       let response: BlueprintResponse = {
         id: (blueprint._id as any).toString(),
@@ -349,6 +376,9 @@ export class BlueprintController {
       let angularBlueprint = new sharedBlueprint();
       angularBlueprint.importFromMdb(mdbBlueprint);
       let bniBlueprint = angularBlueprint.toBniBlueprint(blueprint.name);
+
+      // The ONI mod pulling a blueprint by id is a download
+      BlueprintController.recordCounter('download', req, blueprint);
 
       res.json(bniBlueprint);
     } catch (err) {
@@ -402,7 +432,7 @@ export class BlueprintController {
       let filterModded: boolean | null = null;
       let filterForkedFrom: string | null = null;
       let filterLikedBy: string | null = null;
-      let sort: 'recent' | 'popular' | 'mostForked';
+      let sort: BlueprintSort;
       let skip = 0;
 
       let userId = '';
@@ -465,11 +495,11 @@ export class BlueprintController {
         filterLikedBy = rawLikedBy ?? null;
 
         const rawSort = req.query.sort as string | undefined;
-        if (rawSort != null && rawSort !== 'recent' && rawSort !== 'popular' && rawSort !== 'mostForked') {
-          res.status(400).json(apiError(400, "Invalid sort: must be one of recent, popular, mostForked"));
+        if (rawSort != null && !(SORTS as readonly string[]).includes(rawSort)) {
+          res.status(400).json(apiError(400, `Invalid sort: must be one of ${SORTS.join(', ')}`));
           return;
         }
-        sort = (rawSort as 'recent' | 'popular' | 'mostForked') ?? 'recent';
+        sort = (rawSort as BlueprintSort) ?? 'recent';
 
         const rawSkip = req.query.skip as string | undefined;
         if (rawSkip != null) {
@@ -487,9 +517,9 @@ export class BlueprintController {
         return;
       }
 
-      // popular/mostForked ignore the olderthan cursor (offset pagination via skip instead);
+      // count-based sorts ignore the olderthan cursor (offset pagination via skip instead);
       // the param stays accepted so the existing client call shape keeps working
-      const usesOffsetPagination = sort === 'popular' || sort === 'mostForked';
+      const usesOffsetPagination = sort !== 'recent';
       let filter: any = usesOffsetPagination
         ? { $and: [{ deletedAt: null }] }
         : { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
@@ -518,6 +548,8 @@ export class BlueprintController {
       let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
       if (sort === 'popular') sortSpec = { likeCount: -1, createdAt: -1 };
       else if (sort === 'mostForked') sortSpec = { forkCount: -1, createdAt: -1 };
+      else if (sort === 'mostViewed') sortSpec = { viewCount: -1, createdAt: -1 };
+      else if (sort === 'mostDownloaded') sortSpec = { downloadCount: -1, createdAt: -1 };
 
       let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
       let query = BlueprintModel.model
@@ -655,6 +687,8 @@ export class BlueprintController {
           modded: blueprint.modded ?? null,
           isPublished: blueprint.isPublished !== false,
           nbForks: blueprint.forkCount ?? 0,
+          nbViews: blueprint.viewCount ?? 0,
+          nbDownloads: blueprint.downloadCount ?? 0,
           forkedFrom:
             blueprint.forkedFrom != null
               ? {
@@ -810,16 +844,56 @@ export class BlueprintController {
         modded: blueprint.modded ?? null,
         isPublished: blueprint.isPublished !== false,
         nbForks: blueprint.forkCount ?? 0,
+        nbViews: blueprint.viewCount ?? 0,
+        nbDownloads: blueprint.downloadCount ?? 0,
         forkedFrom:
           blueprint.forkedFrom != null
             ? { blueprintId: blueprint.forkedFrom.blueprintId.toString(), blueprintName: forkedFromName }
             : null,
       };
+
+      // Details page open counts as a view (deduped against a later editor open)
+      BlueprintController.recordCounter('view', req, blueprint);
+
       res.json(response);
     } catch (err) {
       console.log('getBlueprintDetails error');
       console.log(err);
       res.status(500).json(apiError(500, 'Failed to retrieve blueprint details'));
+    }
+  }
+
+  // Fire-and-forget beacon from the client: the .blueprint file export
+  // happens entirely in the browser (no server fetch), so the frontend
+  // reports it here to be counted.
+  public async trackDownload(req: Request, res: Response): Promise<void> {
+    try {
+      if (BlueprintModel.model == null) {
+        res.status(503).send();
+        return;
+      }
+
+      const blueprintId = req.params.id;
+      if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
+        res.status(400).json(apiError(400, 'Invalid blueprint id'));
+        return;
+      }
+
+      const blueprint = await BlueprintModel.model
+        .findOne({ _id: blueprintId, deletedAt: null })
+        .select('owner isPublished')
+        .lean();
+      if (blueprint == null || !canViewBlueprint(blueprint, optionalViewer(req))) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
+
+      BlueprintController.recordCounter('download', req, blueprint);
+      res.status(204).send();
+    } catch (err) {
+      console.log('trackDownload error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to record download'));
     }
   }
 

@@ -33,6 +33,10 @@ export interface Blueprint extends Document {
     forkedAt: Date;
   } | null;
   forkCount?: number;
+  // Approximate engagement counters — incremented in batches by
+  // BlueprintCounterService, not per request
+  viewCount?: number;
+  downloadCount?: number;
 }
 
 export class BlueprintModel {
@@ -91,6 +95,8 @@ export class BlueprintModel {
         default: null,
       },
       forkCount: { type: Number, default: 0 },
+      viewCount: { type: Number, default: 0 },
+      downloadCount: { type: Number, default: 0 },
     });
 
     // Listing query: filter by createdAt range, sort by createdAt desc
@@ -109,6 +115,9 @@ export class BlueprintModel {
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, likeCount: -1, createdAt: -1 });
     // "Most forked" sort
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, forkCount: -1, createdAt: -1 });
+    // "Most viewed" / "Most downloaded" sorts
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, viewCount: -1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, downloadCount: -1, createdAt: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }

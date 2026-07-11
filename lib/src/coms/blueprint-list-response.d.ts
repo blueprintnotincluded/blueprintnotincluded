@@ -23,6 +23,8 @@ export interface BlueprintListItem {
     modded?: boolean | null;
     isPublished: boolean;
     nbForks: number;
+    nbViews: number;
+    nbDownloads: number;
     forkedFrom?: ForkedFromDto | null;
 }
 export interface BlueprintDetailsResponse extends BlueprintListItem {
