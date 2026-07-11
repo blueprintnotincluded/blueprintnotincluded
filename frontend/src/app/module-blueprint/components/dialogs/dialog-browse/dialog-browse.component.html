@@ -11,12 +11,13 @@
   [draggable]="false"
   [resizable]="false"
   [contentStyle]=""
+  [style]="{ width: '640px' }"
+  [breakpoints]="{ '700px': '92vw' }"
 >
   <div>
     <input
       class="float-input"
       type="text"
-      size="30"
       i18n-placeholder
       placeholder="Search"
       [(ngModel)]="filterName"

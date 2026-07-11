@@ -11,7 +11,8 @@
 
 .blueprint-line {
   display: flex;
-  width: 600px;
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: 10px;
   padding: 10px;
 
@@ -40,12 +41,29 @@
 
 .thumbnail {
   margin-right: 10px;
+  flex: 0 0 auto;
 }
 
-.thumbnail img {
+.thumbnail img,
+.thumbnail svg {
   width: 200px;
+  height: 200px;
 }
 
 .search {
   margin-top: 10px;
+}
+
+.float-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 500px) {
+  .thumbnail img,
+  .thumbnail svg {
+    width: 72px;
+    height: 72px;
+  }
 }
