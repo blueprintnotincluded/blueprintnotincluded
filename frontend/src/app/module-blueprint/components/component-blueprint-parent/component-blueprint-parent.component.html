@@ -33,6 +33,15 @@
     </div>
     <app-dialog-about #aboutDialog></app-dialog-about>
   </div>
+  <div class="tool-toolbar">
+    <app-toolbar-button
+      iconUrl="assets/images/icon-scissors.png"
+      label="Scissors"
+      i18n-label
+      [active]="toolService.scissorsTool.visible"
+      (buttonClick)="toolService.changeTool(ToolType.scissors)"
+    ></app-toolbar-button>
+  </div>
 </div>
 
 <app-component-save-dialog

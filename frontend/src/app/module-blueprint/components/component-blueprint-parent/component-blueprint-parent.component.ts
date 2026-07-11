@@ -111,6 +111,8 @@ export class ComponentBlueprintParentComponent
   @ViewChild("selectionTool", { static: false })
   selectionTool!: ComponentSideSelectionToolComponent;
 
+  public readonly ToolType = ToolType;
+
   constructor(
     private messageService: MessageService,
     private route: ActivatedRoute,

@@ -9,6 +9,7 @@ import {
 import { DrawPixi } from "../drawing/draw-pixi";
 import { BuildTool } from "../common/tools/build-tool";
 import { ElementReport } from "../common/tools/element-report";
+import { ScissorsTool } from "../common/tools/scissors-tool";
 
 @Injectable({ providedIn: "root" })
 export class ToolService implements ITool, IChangeTool {
@@ -27,7 +28,8 @@ export class ToolService implements ITool, IChangeTool {
   constructor(
     public selectTool: SelectTool,
     public buildTool: BuildTool,
-    public elementReport: ElementReport
+    public elementReport: ElementReport,
+    public scissorsTool: ScissorsTool
   ) {
     this.observers = [];
 
@@ -36,9 +38,11 @@ export class ToolService implements ITool, IChangeTool {
     this.allTools = [];
     this.allTools.push(this.selectTool);
     this.allTools.push(this.buildTool);
+    this.allTools.push(this.scissorsTool);
 
     this.buildTool.parent = this;
     this.selectTool.parent = this;
+    this.scissorsTool.parent = this;
   }
 
   subscribeToolChanged(observer: IObsToolChanged) {
@@ -85,8 +89,8 @@ export class ToolService implements ITool, IChangeTool {
   mouseOut() {
     this.currentTool.mouseOut();
   }
-  mouseDown(tile: Vector2) {
-    this.currentTool.mouseDown(tile);
+  mouseDown(tile: Vector2, tileFloat?: Vector2) {
+    this.currentTool.mouseDown(tile, tileFloat);
   }
   leftClick(tile: Vector2) {
     this.currentTool.leftClick(tile);

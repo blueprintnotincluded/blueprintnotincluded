@@ -13,3 +13,13 @@
   display: flex;
   flex-flow: column;
 }
+
+.tool-toolbar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
