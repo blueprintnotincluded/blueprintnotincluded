@@ -6,6 +6,7 @@ console.log(process.env.ENV_NAME);
 
 import app from './app';
 import { PreviewImageService } from './api/services/preview-image-service';
+import { BlueprintCounterService } from './api/services/blueprint-counter-service';
 
 const PORT = 3000;
 const server = app.listen(PORT, () => {
@@ -14,6 +15,16 @@ const server = app.listen(PORT, () => {
   // deploy doesn't pay the ~10s cold start (no-op when rendering is disabled).
   PreviewImageService.instance.warmUp();
 });
+// Best-effort flush of pending view/download counters on shutdown (DO sends
+// SIGTERM on every deploy) — without this each restart drops up to one flush
+// interval of counts.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.once(signal, () => {
+    server.close();
+    void BlueprintCounterService.instance.flush().finally(() => process.exit(0));
+  });
+}
+
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`Error: port ${PORT} is already in use. Is another server or Docker container running?`);

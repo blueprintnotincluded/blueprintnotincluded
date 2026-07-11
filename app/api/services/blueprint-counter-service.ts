@@ -14,6 +14,12 @@ export type CounterKind = 'view' | 'download';
 // Dedupe: one count per viewer per blueprint per kind within DEDUPE_TTL_MS,
 // keyed on userId (logged in) or client IP (anonymous). This is what keeps a
 // refresh-spam or details-page→editor navigation from counting twice.
+//
+// State is process-local — the deploy runs a single backend instance. With
+// replicas the $inc flushes would still merge correctly, but dedupe becomes
+// per-instance (same viewer could count once per replica): an acceptable
+// over-count for approximate counters. Move `seen` to shared storage (e.g.
+// Redis) if the API is ever replicated.
 export class BlueprintCounterService {
   public static FLUSH_INTERVAL_MS = 30_000;
   public static DEDUPE_TTL_MS = 30 * 60_000;

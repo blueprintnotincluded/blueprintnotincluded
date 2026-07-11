@@ -327,10 +327,6 @@ export class BlueprintController {
       // Fallback covers docs the migration hasn't touched yet
       let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
 
-      // Editor open counts as a view; the dedupe window makes the common
-      // details-page → editor hop count once, not twice
-      BlueprintController.recordCounter('view', req, blueprint);
-
       let response: BlueprintResponse = {
         id: (blueprint._id as any).toString(),
         name: blueprint.name,
@@ -345,6 +341,12 @@ export class BlueprintController {
         modded: blueprint.modded ?? null,
         isPublished: blueprint.isPublished !== false,
       };
+
+      // Editor open counts as a view; the dedupe window makes the common
+      // details-page → editor hop count once, not twice. Recorded only after
+      // the payload assembled — a failed serve must not count.
+      BlueprintController.recordCounter('view', req, blueprint);
+
       res.json(response);
     } catch (err) {
       console.log('Blueprint find error');
