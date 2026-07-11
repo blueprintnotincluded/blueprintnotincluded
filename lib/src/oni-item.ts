@@ -23,6 +23,8 @@ export class OniItem {
   id: string;
   name: string = '';
   dlcIds: string[] = [];
+  // Room-system tags (see BBuilding.roomTags) — consumed by the room detector.
+  roomTags: string[] = [];
 
   // imageId here is used for some stuff (generating white background textures)
   imageId: string = '';
@@ -31,6 +33,9 @@ export class OniItem {
   spriteModifierId: string = '';
   isWire: boolean = false;
   isTile: boolean = false;
+  // Solid foundation (bounds rooms) — see BBuilding.isFoundation. isTile alone
+  // can't be used for room boundaries: it's also true for kanim-tiled wires/pipes.
+  isFoundation: boolean = false;
   isBridge: boolean = false;
   // TODO this should be a get like isInfo
   isElement: boolean = false;
@@ -116,10 +121,12 @@ export class OniItem {
     this.id = original.prefabId;
     this.name = original.name;
     this.dlcIds = original.dlcIds ?? [];
+    this.roomTags = original.roomTags ?? [];
     this.size = original.sizeInCells;
     this.isWire = original.isUtility;
     this.isBridge = original.isBridge;
     this.isTile = original.isTile;
+    this.isFoundation = original.isFoundation ?? false;
 
     this.spriteModifierId = original.kanimPrefix;
     if (original.uiImage) {
@@ -272,6 +279,7 @@ export class OniItem {
 
   public cleanUp() {
     if (this.isTile == null) this.isTile = false;
+    if (this.isFoundation == null) this.isFoundation = false;
     if (this.isWire == null) this.isWire = false;
     if (this.isBridge == null) this.isBridge = false;
     if (this.isElement == null) this.isElement = false;
@@ -289,6 +297,7 @@ export class OniItem {
     if (this.spriteGroup == null) this.spriteGroup = new SpriteModifierGroup();
     if (this.flatIconId == null) this.flatIconId = '';
     if (this.dlcIds == null) this.dlcIds = [];
+    if (this.roomTags == null) this.roomTags = [];
     if (this.tileableLeftRight == null) this.tileableLeftRight = false;
     if (this.tileableTopBottom == null) this.tileableTopBottom = false;
     if (this.connectionSprites == null) this.connectionSprites = false;

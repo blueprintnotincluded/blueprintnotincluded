@@ -13,6 +13,11 @@ export class BBuilding {
   name: string = '';
   prefabId: string = '';
   isTile: boolean = false;
+  // True for solid foundation buildings only (tiles, farm tiles, floor switches,
+  // Heavi-Watt joint plates, ...). Narrower than isTile, which the converter also
+  // sets for kanim-tiled wires/pipes that must NOT bound rooms. This is the
+  // room-boundary signal used by the room detector.
+  isFoundation: boolean = false;
   isUtility: boolean = false;
   isBridge: boolean = false;
   sizeInCells: Vector2 = new Vector2();
@@ -41,6 +46,12 @@ export class BBuilding {
   // DLC IDs required to use this building (e.g. ['EXPANSION1_ID'] for Spaced Out).
   // Empty array means base-game building (no DLC required).
   dlcIds: string[] = [];
+
+  // Room-system tags this building carries (e.g. ['ToiletType', 'FlushToiletType']).
+  // Intersection of the building's game tags with the export's roomConstraintTags
+  // vocabulary, computed by the 2024 converter. Used by the room detector
+  // (lib/src/blueprint/rooms). Empty array = no room role.
+  roomTags: string[] = [];
 
   tileableLeftRight: boolean = false;
   tileableTopBottom: boolean = false;

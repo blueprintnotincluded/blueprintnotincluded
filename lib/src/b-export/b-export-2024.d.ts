@@ -78,7 +78,7 @@ export interface BBuildingFile2024 extends BExport2024Meta {
     buildingAndSubcategoryDataPairs: {
         [categoryName: string]: BBuildingSubcategoryPair2024[];
     };
-    roomConstraintTags?: unknown;
+    roomConstraintTags?: BTag2024[] | null;
     requiredSkillPerkMap?: unknown;
 }
 export interface BElement2024 {

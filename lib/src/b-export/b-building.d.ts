@@ -11,6 +11,7 @@ export declare class BBuilding {
     name: string;
     prefabId: string;
     isTile: boolean;
+    isFoundation: boolean;
     isUtility: boolean;
     isBridge: boolean;
     sizeInCells: Vector2;
@@ -33,6 +34,7 @@ export declare class BBuilding {
     permittedRotations: PermittedRotations;
     buildLocationRule: BuildLocationRule;
     dlcIds: string[];
+    roomTags: string[];
     tileableLeftRight: boolean;
     tileableTopBottom: boolean;
     connectionSprites: boolean;
