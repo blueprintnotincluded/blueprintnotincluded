@@ -54,9 +54,13 @@ body {
   float: right;
   cursor: pointer;
   transition: color 0.2s;
+  /* Icon glyph is ~14px; pad the tap target out without shifting layout. */
+  padding: 12px;
+  margin: -12px;
 }
 
-.ui-close-button:hover {
+.ui-close-button:hover,
+.ui-close-button:active {
   color: var(--p-text-color);
 }
 

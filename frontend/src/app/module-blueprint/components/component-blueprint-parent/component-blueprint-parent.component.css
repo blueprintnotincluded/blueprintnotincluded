@@ -1,13 +1,17 @@
 .side-panel {
   position: absolute;
   width: 310px;
+  max-width: calc(100vw - 20px);
   padding: 10px;
+  box-sizing: border-box;
 }
 
 .side-panel-right {
   position: absolute;
   right: 0;
+  max-width: calc(100vw - 20px);
   padding: 10px;
+  box-sizing: border-box;
 }
 .outer {
   display: flex;
@@ -17,9 +21,12 @@
 .tool-toolbar {
   position: fixed;
   right: 16px;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: calc(100vw - 32px);
   gap: 8px;
   z-index: 10;
 }
