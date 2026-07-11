@@ -15,6 +15,7 @@ import { ComponentBlueprintParentComponent } from "./component-blueprint-parent.
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { ElementReport } from "src/app/module-blueprint/common/tools/element-report";
 import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
+import { ScissorsTool } from "src/app/module-blueprint/common/tools/scissors-tool";
 
 // TODO: spec is incomplete — missing providers for MessageService, BlueprintService,
 // ToolService, and GameStringService. Add stubs for these before re-enabling.
@@ -39,6 +40,7 @@ describe.skip("ComponentBlueprintParentComponent", () => {
         DatePipe,
         ElementReport,
         SelectTool,
+        ScissorsTool,
         provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();

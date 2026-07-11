@@ -50,6 +50,7 @@ import { BlueprintService } from "./services/blueprint-service";
 import { ToolService } from "./services/tool-service";
 import { SelectTool } from "./common/tools/select-tool";
 import { BuildTool } from "./common/tools/build-tool";
+import { ScissorsTool } from "./common/tools/scissors-tool";
 import { ComponentSaveDialogComponent } from "./components/dialogs/component-save-dialog/component-save-dialog.component";
 import { DialogShareUrlComponent } from "./components/dialogs/dialog-share-url/dialog-share-url.component";
 import { ComponentSideBuildToolComponent } from "./components/side-bar/build-tool/build-tool.component";
@@ -99,6 +100,7 @@ import { BrowsePageComponent } from "./components/browse-page/browse-page.compon
 import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
 import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-list/dialog-follow-list.component";
 import { NotificationBellComponent } from "./components/notification-bell/notification-bell.component";
+import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-button.component";
 
 @NgModule({
   declarations: [
@@ -156,6 +158,7 @@ import { NotificationBellComponent } from "./components/notification-bell/notifi
     ProfilePageComponent,
     DialogFollowListComponent,
     NotificationBellComponent,
+    ToolbarButtonComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [
@@ -200,6 +203,7 @@ import { NotificationBellComponent } from "./components/notification-bell/notifi
     ToolService,
     SelectTool,
     BuildTool,
+    ScissorsTool,
     ElementReport,
     DatePipe,
     MessageService,

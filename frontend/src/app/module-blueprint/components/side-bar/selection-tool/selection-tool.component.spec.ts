@@ -11,6 +11,7 @@ import { BuildTool } from "src/app/module-blueprint/common/tools/build-tool";
 import { ElementReport } from "src/app/module-blueprint/common/tools/element-report";
 import { ComponentSideSelectionToolComponent } from "./selection-tool.component";
 import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
+import { ScissorsTool } from "src/app/module-blueprint/common/tools/scissors-tool";
 
 describe("ComponentSideSelectionToolComponent", () => {
   let component: ComponentSideSelectionToolComponent;
@@ -26,6 +27,7 @@ describe("ComponentSideSelectionToolComponent", () => {
         BuildTool,
         ElementReport,
         SelectTool,
+        ScissorsTool,
         provideHttpClient(withInterceptorsFromDi()),
       ],
     }).compileComponents();

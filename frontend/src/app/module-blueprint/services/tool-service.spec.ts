@@ -27,16 +27,19 @@ describe("ToolService", () => {
   let mockSelect: ReturnType<typeof makeTool>;
   let mockBuild: ReturnType<typeof makeTool>;
   let mockElementReport: any;
+  let mockScissors: ReturnType<typeof makeTool>;
 
   beforeEach(() => {
     mockSelect = makeTool(ToolType.select);
     mockBuild = makeTool(ToolType.build);
     mockElementReport = {};
+    mockScissors = makeTool(ToolType.scissors);
 
     service = new ToolService(
       mockSelect as any,
       mockBuild as any,
-      mockElementReport
+      mockElementReport,
+      mockScissors as any
     );
   });
 
@@ -47,6 +50,10 @@ describe("ToolService", () => {
 
     it("returns buildTool for ToolType.build", () => {
       expect(service.getTool(ToolType.build)).toBe(mockBuild);
+    });
+
+    it("returns scissorsTool for ToolType.scissors", () => {
+      expect(service.getTool(ToolType.scissors)).toBe(mockScissors);
     });
   });
 
@@ -79,7 +86,7 @@ describe("ToolService", () => {
       // Verify delegation now goes to buildTool
       const tile = new Vector2(3, 4);
       service.mouseDown(tile);
-      expect(mockBuild.mouseDown).toHaveBeenCalledWith(tile);
+      expect(mockBuild.mouseDown).toHaveBeenCalledWith(tile, undefined);
     });
 
     it("toggles tool off when it is already visible and toggleable", () => {
@@ -112,7 +119,14 @@ describe("ToolService", () => {
     it("delegates mouseDown", () => {
       const tile = new Vector2(1, 2);
       service.mouseDown(tile);
-      expect(mockSelect.mouseDown).toHaveBeenCalledWith(tile);
+      expect(mockSelect.mouseDown).toHaveBeenCalledWith(tile, undefined);
+    });
+
+    it("delegates mouseDown with the float tile position", () => {
+      const tile = new Vector2(1, 2);
+      const tileFloat = new Vector2(1.4, 2.6);
+      service.mouseDown(tile, tileFloat);
+      expect(mockSelect.mouseDown).toHaveBeenCalledWith(tile, tileFloat);
     });
 
     it("delegates leftClick", () => {

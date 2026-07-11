@@ -5,6 +5,7 @@ export enum ToolType {
   select,
   build,
   elementReport,
+  scissors,
 }
 
 export interface ITool {
@@ -14,7 +15,9 @@ export interface ITool {
   // Input
   leftClick(tile: Vector2): void;
   rightClick(tile: Vector2): void;
-  mouseDown(tile: Vector2): void;
+  // tileFloat carries the sub-tile cursor position (unrounded), needed by tools
+  // that resolve a click to a zone within the tile rather than the whole tile.
+  mouseDown(tile: Vector2, tileFloat?: Vector2): void;
   mouseOut(): void;
   hover(tile: Vector2): void;
   drag(tileStart: Vector2, tileStop: Vector2): void;

@@ -10,6 +10,7 @@ import { ElementReport } from "src/app/module-blueprint/common/tools/element-rep
 import { ComponentCanvasComponent } from "./component-canvas.component";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
+import { ScissorsTool } from "src/app/module-blueprint/common/tools/scissors-tool";
 import { DrawPixi } from "src/app/module-blueprint/drawing/draw-pixi";
 
 // The real DrawPixi constructs a PIXI.Application (WebGL) in Init(), which jsdom
@@ -36,6 +37,7 @@ describe("ComponentCanvasComponent", () => {
         BuildTool,
         ElementReport,
         SelectTool,
+        ScissorsTool,
         provideHttpClient(withInterceptorsFromDi()),
       ],
     });

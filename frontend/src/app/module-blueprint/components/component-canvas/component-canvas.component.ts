@@ -273,7 +273,10 @@ export class ComponentCanvasComponent
 
   mouseDown(event: any) {
     if (event.button == 0) {
-      this.toolService.mouseDown(this.getCurrentTile(event));
+      this.toolService.mouseDown(
+        this.getCurrentTile(event),
+        this.cameraService.getTileCoords(this.getCursorPosition(event))
+      );
     }
   }
 

@@ -1,0 +1,15 @@
+<button
+  type="button"
+  class="toolbar-button"
+  [class.active]="active"
+  [pTooltip]="label"
+  tooltipPosition="left"
+  (click)="buttonClick.emit()"
+>
+  <img
+    class="toolbar-button-background"
+    src="assets/images/toolbar-background.png"
+    alt=""
+  />
+  <img class="toolbar-button-icon" [src]="iconUrl" [alt]="label" />
+</button>

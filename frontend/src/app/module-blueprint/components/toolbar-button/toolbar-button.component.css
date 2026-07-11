@@ -1,0 +1,42 @@
+.toolbar-button {
+  position: relative;
+  display: block;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.toolbar-button-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.toolbar-button-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 60%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.toolbar-button:hover .toolbar-button-background {
+  filter: brightness(1.3);
+}
+
+.toolbar-button.active .toolbar-button-background {
+  filter: brightness(1.5) saturate(1.5);
+}
+
+.toolbar-button:focus-visible {
+  outline: 2px solid #4cff00;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
