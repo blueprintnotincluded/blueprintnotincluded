@@ -35,6 +35,13 @@
   </div>
   <div class="tool-toolbar">
     <app-toolbar-button
+      iconUrl="assets/images/icon-select.png"
+      label="Select"
+      i18n-label
+      [active]="toolService.selectTool.visible"
+      (buttonClick)="toolService.changeTool(ToolType.select)"
+    ></app-toolbar-button>
+    <app-toolbar-button
       iconUrl="assets/images/icon-scissors.png"
       label="Scissors"
       i18n-label
