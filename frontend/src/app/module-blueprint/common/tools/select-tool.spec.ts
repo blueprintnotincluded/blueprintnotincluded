@@ -450,7 +450,7 @@ describe("SelectTool", () => {
       expect(mockDrawPixi.drawTileRectangle).not.toHaveBeenCalled();
     });
 
-    it("should draw selection rectangle while dragging", () => {
+    it("should draw selection rectangle while dragging, snapped to whole tiles", () => {
       tool.drag(new Vector2(1, 5), new Vector2(4, 2));
       tool.draw(mockDrawPixi, mockCamera);
       expect(mockDrawPixi.drawTileRectangle).toHaveBeenCalledTimes(1);
@@ -467,10 +467,12 @@ describe("SelectTool", () => {
         borderAlpha,
       ] = args;
       expect(camera).toBe(mockCamera);
+      // Bounding box covers the full extent of the whole tiles selectFromBox()
+      // will operate on, not just the raw drag endpoints.
       expect(topLeft.x).toBe(1);
       expect(topLeft.y).toBe(5);
-      expect(bottomRight.x).toBe(4);
-      expect(bottomRight.y).toBe(2);
+      expect(bottomRight.x).toBe(5);
+      expect(bottomRight.y).toBe(1);
       expect(frontGraphics).toBe(true); // must be true so it renders above blueprint tiles
       expect(borderWidth).toBe(2);
       expect(fillColor).toBe(0x4cff00); // lime green fill

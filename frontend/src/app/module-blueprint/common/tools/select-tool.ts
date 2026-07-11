@@ -392,14 +392,20 @@ export class SelectTool implements ITool {
     // Return
     if (this.beginSelection == null) return;
 
+    // Snap to the same whole tiles selectFromBox() will actually operate on
+    // (see dragStop()), so the drawn box previews the real selection instead
+    // of following the raw cursor position.
+    let beginTile = DrawHelpers.getIntegerTile(this.beginSelection);
+    let endTile = DrawHelpers.getIntegerTile(this.endSelection);
+
     let topLeft = new Vector2(
-      Math.min(this.beginSelection.x, this.endSelection.x),
-      Math.max(this.beginSelection.y, this.endSelection.y)
+      Math.min(beginTile.x, endTile.x),
+      Math.max(beginTile.y, endTile.y)
     );
 
     let bottomRight = new Vector2(
-      Math.max(this.beginSelection.x, this.endSelection.x),
-      Math.min(this.beginSelection.y, this.endSelection.y)
+      Math.max(beginTile.x, endTile.x) + 1,
+      Math.min(beginTile.y, endTile.y) - 1
     );
 
     drawPixi.drawTileRectangle(
