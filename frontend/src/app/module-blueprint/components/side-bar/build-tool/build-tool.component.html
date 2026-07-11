@@ -123,6 +123,7 @@
           (click)="chooseItem(item)"
           [pTooltip]="item.name"
           tooltipPosition="bottom"
+          tooltipEvent="both"
           life="5000"
         >
           <img src="{{ item.iconUrl }}" height="40px" />
@@ -140,6 +141,7 @@
       i18n-pTooltip
       pTooltip="Add info tip"
       tooltipPosition="bottom"
+      tooltipEvent="both"
       life="5000"
     >
       <img
@@ -153,6 +155,7 @@
       i18n-pTooltip
       pTooltip="Paint Element"
       tooltipPosition="bottom"
+      tooltipEvent="both"
       life="5000"
     >
       <img src="assets/images/ui/manual/liquid_icon.png" height="40px" />
@@ -168,6 +171,7 @@
         (click)="showItems($event, buildMenuCategory, indexCategory)"
         [pTooltip]="buildMenuCategory.categoryShowName"
         tooltipPosition="bottom"
+        tooltipEvent="both"
         life="5000"
       >
         <img src="{{ buildMenuCategory.categoryIconUrl }}" height="40px" />

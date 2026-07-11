@@ -60,6 +60,7 @@
           icon="pi pi-history"
           i18n-pTooltip
           pTooltip="Restore this version"
+          tooltipEvent="both"
           i18n-aria-label
           aria-label="Restore this version"
           [disabled]="busyVersionId === version.id"
@@ -72,6 +73,7 @@
           icon="pi pi-trash"
           i18n-pTooltip
           pTooltip="Delete this version"
+          tooltipEvent="both"
           i18n-aria-label
           aria-label="Delete this version"
           [disabled]="busyVersionId === version.id"

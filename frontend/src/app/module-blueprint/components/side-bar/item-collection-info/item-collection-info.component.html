@@ -76,6 +76,7 @@
   (click)="buildingsCopy()"
   i18n-pTooltip
   pTooltip="Build this type of building"
+  tooltipEvent="both"
 ></button>
 <button
   *ngIf="!itemCollection.oniItem.isInfo || itemCollection.items.length === 1"
@@ -86,6 +87,7 @@
   (click)="selectEvery()"
   i18n-pTooltip
   pTooltip="Select every {{ itemCollection.oniItem.name }}"
+  tooltipEvent="both"
 ></button>
 <button
   *ngIf="!itemCollection.oniItem.isInfo || itemCollection.items.length === 1"
@@ -96,4 +98,5 @@
   (click)="buildingsDestroy()"
   i18n-pTooltip
   pTooltip="Destroy these buildings (Delete key)"
+  tooltipEvent="both"
 ></button>
