@@ -14,6 +14,10 @@ import { DrawPixi } from "../../drawing/draw-pixi";
 import { SameItemCollection } from "./same-item-collection";
 import { ToolService } from "src/app/module-blueprint/services/tool-service";
 
+// Matches the borderColor passed to drawTileRectangle() in draw() below, so
+// the dimensions label reads as part of the same selection outline.
+const SELECTION_BORDER_COLOR = "#2d9600";
+
 @Injectable()
 export class SelectTool implements ITool {
   public sameItemCollections!: SameItemCollection[];
@@ -288,9 +292,59 @@ export class SelectTool implements ITool {
     this.deselectAll();
   }
 
+  // Created lazily on first draw() and reused every frame after that (see
+  // DrawMiniUi/ScissorsTool for the same create-once-mutate-per-frame sprite
+  // pattern).
+  private dimensionsText: any = null;
+
+  private ensureDimensionsText(drawPixi: DrawPixi): any {
+    if (this.dimensionsText == null) {
+      this.dimensionsText = drawPixi.getNewText("", {
+        fontFamily: "Arial",
+        fontSize: 14,
+        fontWeight: "bold",
+        fill: SELECTION_BORDER_COLOR,
+        align: "center",
+      });
+      this.dimensionsText.anchor.set(0.5, 0.5);
+      drawPixi.pixiApp.stage.addChild(this.dimensionsText);
+    }
+    return this.dimensionsText;
+  }
+
+  // Shows "width x height" / "area tiles" centered in the selection box.
+  private updateDimensionsText(
+    drawPixi: DrawPixi,
+    camera: CameraService,
+    topLeft: Vector2,
+    bottomRight: Vector2
+  ) {
+    let text = this.ensureDimensionsText(drawPixi);
+
+    let width = bottomRight.x - topLeft.x;
+    let height = topLeft.y - bottomRight.y;
+    text.text = `${width} x ${height}\n${width * height} tiles`;
+
+    let centerWorld = new Vector2(
+      (topLeft.x + bottomRight.x) / 2,
+      (topLeft.y + bottomRight.y) / 2
+    );
+
+    text.position.x =
+      (centerWorld.x + camera.cameraOffset.x) * camera.currentZoom;
+    text.position.y =
+      (-centerWorld.y + camera.cameraOffset.y) * camera.currentZoom;
+    text.visible = true;
+  }
+
+  private hideDimensionsText() {
+    if (this.dimensionsText != null) this.dimensionsText.visible = false;
+  }
+
   // Tool interface :
   switchFrom() {
     this.deselectAll();
+    this.hideDimensionsText();
   }
 
   switchTo() {
@@ -390,7 +444,10 @@ export class SelectTool implements ITool {
 
   draw(drawPixi: DrawPixi, camera: CameraService) {
     // Return
-    if (this.beginSelection == null) return;
+    if (this.beginSelection == null) {
+      this.hideDimensionsText();
+      return;
+    }
 
     // Snap to the same whole tiles selectFromBox() will actually operate on
     // (see dragStop()), so the drawn box previews the real selection instead
@@ -419,6 +476,8 @@ export class SelectTool implements ITool {
       0.25,
       0.8
     );
+
+    this.updateDimensionsText(drawPixi, camera, topLeft, bottomRight);
   }
 
   toggleable: boolean = false;
