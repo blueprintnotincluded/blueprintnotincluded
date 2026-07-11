@@ -529,7 +529,7 @@ describe('Fork + BlueprintVersion API', function () {
       const token = testData.users.user2.generateJwt();
       const response = await upload(token, {
         name: 'Copy Of Hidden Draft',
-        sourceBlueprintId: draft._id.toString(),
+        sourceBlueprintId: String(draft._id),
       });
       expect(response.status).to.equal(200);
       await settle();
