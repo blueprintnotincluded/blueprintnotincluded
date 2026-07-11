@@ -30,6 +30,7 @@
     (click)="copyToClipboard(urlInput)"
     i18n-pTooltip
     pTooltip="Copy url to clipboard"
+    tooltipEvent="both"
     [disabled]="url === ''"
   ></button>
   <button
@@ -40,6 +41,7 @@
     (click)="newTab()"
     i18n-pTooltip
     pTooltip="Open in new tab"
+    tooltipEvent="both"
     [disabled]="url === ''"
   ></button>
   <button
@@ -50,6 +52,7 @@
     (click)="shareToReddit()"
     i18n-pTooltip
     pTooltip="Share to Reddit"
+    tooltipEvent="both"
     [disabled]="url === ''"
   ></button>
 </p-dialog>
