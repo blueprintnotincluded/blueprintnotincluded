@@ -412,6 +412,10 @@ export class ComponentBlueprintParentComponent
       );
       a.click();
       a.remove();
+
+      // Only saved blueprints have a counter to increment
+      if (this.blueprintService.id != null)
+        this.blueprintService.trackDownload(this.blueprintService.id);
     }
   }
 

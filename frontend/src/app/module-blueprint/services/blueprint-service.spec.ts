@@ -500,6 +500,35 @@ describe("BlueprintService", () => {
     });
   });
 
+  describe("trackDownload()", () => {
+    it("posts the download beacon anonymously when logged out", () => {
+      mockHttp.post.mockReturnValue(of({}));
+      service.trackDownload("bp-1");
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/blueprints/bp-1/downloads",
+        {},
+        {}
+      );
+    });
+
+    it("sends the auth token when logged in", () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      mockAuth.getToken.mockReturnValue("tok");
+      mockHttp.post.mockReturnValue(of({}));
+      service.trackDownload("bp-1");
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/blueprints/bp-1/downloads",
+        {},
+        { headers: { Authorization: "Bearer tok" } }
+      );
+    });
+
+    it("swallows beacon errors silently", () => {
+      mockHttp.post.mockReturnValue(throwError(() => new Error("boom")));
+      expect(() => service.trackDownload("bp-1")).not.toThrow();
+    });
+  });
+
   describe("openBlueprintFromUpload()", () => {
     it("does nothing when fileList is empty", () => {
       const spy = vi.spyOn(service as any, "openYamlBlueprint");

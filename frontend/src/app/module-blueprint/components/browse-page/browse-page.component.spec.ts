@@ -368,6 +368,21 @@ describe("BrowsePageComponent", () => {
       component.ngOnInit();
       expect(component.sort).toBe("mostForked");
     });
+
+    it("accepts the count sorts and falls back to recent on junk", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(convertToParamMap({ sort: "mostViewed" }));
+      component.ngOnInit();
+      expect(component.sort).toBe("mostViewed");
+
+      route.queryParamMap = of(convertToParamMap({ sort: "mostDownloaded" }));
+      component.ngOnInit();
+      expect(component.sort).toBe("mostDownloaded");
+
+      route.queryParamMap = of(convertToParamMap({ sort: "bogus" }));
+      component.ngOnInit();
+      expect(component.sort).toBe("recent");
+    });
   });
 
   describe("feed view mode", () => {

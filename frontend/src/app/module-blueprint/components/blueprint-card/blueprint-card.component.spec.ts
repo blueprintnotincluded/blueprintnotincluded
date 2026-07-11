@@ -19,6 +19,8 @@ function makeItem(overrides: any = {}) {
     ownedByMe: false,
     commentCount: 4,
     nbForks: 3,
+    nbViews: 25,
+    nbDownloads: 6,
     category: null,
     gameVersion: null,
     modded: false,
@@ -163,6 +165,20 @@ describe("BlueprintCardComponent", () => {
       fixture.debugElement.query(By.css(".card-forks")).nativeElement
         .textContent
     ).toContain("3");
+  });
+
+  it("renders the view and download counts", () => {
+    component.item = makeItem({ nbViews: 25, nbDownloads: 6 });
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css(".card-views")).nativeElement
+        .textContent
+    ).toContain("25");
+    expect(
+      fixture.debugElement.query(By.css(".card-downloads")).nativeElement
+        .textContent
+    ).toContain("6");
   });
 
   it("hides the owner byline when showOwner is false", () => {

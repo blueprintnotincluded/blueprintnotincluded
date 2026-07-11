@@ -32,6 +32,8 @@ function makeDetails(overrides: any = {}) {
     modded: false,
     isPublished: true,
     nbForks: 0,
+    nbViews: 0,
+    nbDownloads: 0,
     forkedFrom: null,
     ...overrides,
   };
@@ -237,6 +239,22 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(forkCount.properties["routerLink"]).toEqual(["/discover"]);
     expect(forkCount.properties["queryParams"]).toEqual({ forkedFrom: "bp1" });
     expect(forkCount.nativeElement.textContent).toContain("5");
+  });
+
+  it("shows the view and download counts with pluralized labels", () => {
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(makeDetails({ nbViews: 41, nbDownloads: 1 }))
+    );
+    fixture.detectChanges();
+
+    const views = fixture.debugElement.query(By.css(".details-views"));
+    expect(views.nativeElement.textContent).toContain("41");
+    expect(views.nativeElement.textContent).toContain("views");
+
+    const downloads = fixture.debugElement.query(By.css(".details-downloads"));
+    expect(downloads.nativeElement.textContent).toContain("1");
+    expect(downloads.nativeElement.textContent).toContain("download");
+    expect(downloads.nativeElement.textContent).not.toContain("downloads");
   });
 
   describe("scrollToFragment", () => {

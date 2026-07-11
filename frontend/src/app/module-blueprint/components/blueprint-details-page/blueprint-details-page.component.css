@@ -109,6 +109,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.details-views,
+.details-downloads {
+  color: var(--bni-faint);
+  font-variant-numeric: tabular-nums;
+}
+
 .details-forked-from {
   font-size: 12.5px;
   color: var(--bni-faint);

@@ -63,6 +63,16 @@ export class BlueprintDetailsPageComponent implements OnInit {
     return $localize`fork${nbForks !== 1 ? "s" : ""}`;
   }
 
+  get nbViewsString() {
+    const nbViews = this.details?.nbViews ?? 0;
+    return $localize`view${nbViews !== 1 ? "s" : ""}`;
+  }
+
+  get nbDownloadsString() {
+    const nbDownloads = this.details?.nbDownloads ?? 0;
+    return $localize`download${nbDownloads !== 1 ? "s" : ""}`;
+  }
+
   ngOnInit() {
     this.route.paramMap
       .pipe(
