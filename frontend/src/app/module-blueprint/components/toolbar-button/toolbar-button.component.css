@@ -32,13 +32,12 @@
 }
 
 .toolbar-button.active .toolbar-button-background {
-  filter: brightness(1.5) saturate(1.5);
+  filter: brightness(200%) saturate(50%);
 }
 
 .toolbar-button:focus-visible {
-  outline: 2px solid #4cff00;
-  outline-offset: 2px;
-  border-radius: 8px;
+  outline: none;
+  border: none;
 }
 
 .toolbar-button:disabled {
