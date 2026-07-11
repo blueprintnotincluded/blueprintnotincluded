@@ -8,9 +8,19 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 process.env.NODE_ENV = 'test';
 
 import mongoose, { Types } from 'mongoose';
-import { TestSetup } from '../setup/testSetup';
+import { TestSetup, TestDbHelper } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { BlueprintVersionModel } from '../../app/api/models/blueprint-version';
+import { NotificationModel } from '../../app/api/models/notification';
+
+const SAMPLE_BLUEPRINT_DATA = {
+  version: '1.0',
+  buildings: [{ id: 'Generator', x: 0, y: 0, element: 'Coal' }],
+  info: { name: 'Test', description: 'Test blueprint' },
+};
+
+const TINY_PNG =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const versionInitMigration = require('../../migrations/20260707000000_blueprint-version-init.js');
@@ -420,6 +430,140 @@ describe('Fork + BlueprintVersion API', function () {
 
       const versionCount = await BlueprintVersionModel.model.countDocuments({});
       expect(versionCount).to.equal(0);
+    });
+  });
+
+  // ─── Copy-as-fork: POST /api/uploadblueprint with sourceBlueprintId ──────────
+  // The editor's old "copy" flow (non-owner saves someone else's blueprint)
+  // now carries fork attribution.
+
+  describe('copy-as-fork via POST /api/uploadblueprint', function () {
+    // Fork bookkeeping (forkCount inc + notification) is fire-and-forget
+    // after res.json — give the writes a beat to land before asserting
+    const settle = () => new Promise(resolve => setTimeout(resolve, 50));
+
+    function upload(token: string, body: Record<string, unknown>) {
+      return TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          blueprint: SAMPLE_BLUEPRINT_DATA,
+          thumbnail: TINY_PNG,
+          overwrite: false,
+          ...body,
+        });
+    }
+
+    it('non-owner save records forkedFrom, increments forkCount, and notifies the source owner', async function () {
+      const token = testData.users.user2.generateJwt();
+      const response = await upload(token, {
+        name: 'My Copied Setup',
+        sourceBlueprintId: popularId,
+      });
+      expect(response.status).to.equal(200);
+      await settle();
+
+      const copy = await BlueprintModel.model.findById(response.body.id);
+      expect(copy!.owner.toString()).to.equal(testData.users.user2._id.toString());
+      // The user's chosen name is kept — no " fork" suffix on the copy path
+      expect(copy!.name).to.equal('My Copied Setup');
+      expect(copy!.forkedFrom!.blueprintId.toString()).to.equal(popularId);
+
+      const source = await BlueprintModel.model.findById(popularId);
+      expect(source!.forkCount).to.equal(1);
+      expect(copy!.forkedFrom!.versionId.toString()).to.equal(source!.currentVersionId!.toString());
+
+      const notifications = await NotificationModel.model.find({
+        recipientId: testData.users.user1._id,
+        type: 'fork',
+      });
+      expect(notifications).to.have.length(1);
+      expect(notifications[0].actorId.toString()).to.equal(testData.users.user2._id.toString());
+      expect(notifications[0].blueprintId!.toString()).to.equal(response.body.id);
+    });
+
+    it('owner saving their own blueprint under a new name gets no fork attribution', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await upload(token, {
+        name: 'Renamed Own Copy',
+        sourceBlueprintId: popularId,
+      });
+      expect(response.status).to.equal(200);
+      await settle();
+
+      const copy = await BlueprintModel.model.findById(response.body.id);
+      expect(copy!.forkedFrom ?? null).to.equal(null);
+
+      const source = await BlueprintModel.model.findById(popularId);
+      expect(source!.forkCount ?? 0).to.equal(0);
+    });
+
+    it('unknown or malformed sourceBlueprintId still saves, without attribution', async function () {
+      const token = testData.users.user2.generateJwt();
+
+      const unknown = await upload(token, {
+        name: 'Copy Of Nothing',
+        sourceBlueprintId: new Types.ObjectId().toString(),
+      });
+      expect(unknown.status).to.equal(200);
+      expect(
+        (await BlueprintModel.model.findById(unknown.body.id))!.forkedFrom ?? null
+      ).to.equal(null);
+
+      const malformed = await upload(token, {
+        name: 'Copy Of Garbage',
+        sourceBlueprintId: 'not-an-id',
+      });
+      expect(malformed.status).to.equal(200);
+      expect(
+        (await BlueprintModel.model.findById(malformed.body.id))!.forkedFrom ?? null
+      ).to.equal(null);
+    });
+
+    it("someone else's draft as source gets no attribution (not viewable)", async function () {
+      const draft = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Hidden Draft Source',
+        isPublished: false,
+      });
+
+      const token = testData.users.user2.generateJwt();
+      const response = await upload(token, {
+        name: 'Copy Of Hidden Draft',
+        sourceBlueprintId: draft._id.toString(),
+      });
+      expect(response.status).to.equal(200);
+      await settle();
+
+      const copy = await BlueprintModel.model.findById(response.body.id);
+      expect(copy!.forkedFrom ?? null).to.equal(null);
+      const source = await BlueprintModel.model.findById(draft._id);
+      expect(source!.forkCount ?? 0).to.equal(0);
+    });
+
+    it('overwrite saves of the copy keep forkedFrom and do not re-increment forkCount', async function () {
+      const token = testData.users.user2.generateJwt();
+      const first = await upload(token, {
+        name: 'My Copied Setup',
+        sourceBlueprintId: popularId,
+      });
+      expect(first.status).to.equal(200);
+      await settle();
+
+      // Second save from the same editor session: the frontend now sends the
+      // copy's own id as the source
+      const second = await upload(token, {
+        name: 'My Copied Setup',
+        overwrite: true,
+        sourceBlueprintId: first.body.id,
+      });
+      expect(second.status).to.equal(200);
+      expect(second.body.id).to.equal(first.body.id);
+      await settle();
+
+      const copy = await BlueprintModel.model.findById(first.body.id);
+      expect(copy!.forkedFrom!.blueprintId.toString()).to.equal(popularId);
+      const source = await BlueprintModel.model.findById(popularId);
+      expect(source!.forkCount).to.equal(1);
     });
   });
 });

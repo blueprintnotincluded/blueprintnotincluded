@@ -27,7 +27,11 @@ import { optionalViewer } from './utils/optionalViewer';
 import { canViewBlueprint } from './utils/blueprint-visibility';
 import { BlueprintEventService } from './services/blueprint-event-service';
 import { BlueprintCounterService, CounterKind } from './services/blueprint-counter-service';
-import { resolveCurrentData, syncCurrentVersion } from './services/blueprint-version-service';
+import {
+  ensureCurrentVersion,
+  resolveCurrentData,
+  syncCurrentVersion,
+} from './services/blueprint-version-service';
 import { PreviewImageService } from './services/preview-image-service';
 import mongoose from 'mongoose';
 
@@ -107,9 +111,20 @@ export class BlueprintController {
 
       const metadata = { gameVersion, category, subcategory, description, researchTier, modded };
 
+      // Copy-as-fork: when the editor saves a blueprint it loaded from
+      // someone else's document, the client passes the source id so the new
+      // copy is attributed as a fork. Malformed ids are treated as absent —
+      // attribution is best-effort and must never fail the save.
+      const rawSourceBlueprintId = req.body.sourceBlueprintId;
+      const sourceBlueprintId =
+        typeof rawSourceBlueprintId === 'string' &&
+        mongoose.Types.ObjectId.isValid(rawSourceBlueprintId)
+          ? rawSourceBlueprintId
+          : null;
+
       BlueprintModel.model
         .find({ owner: ownerId, name: name })
-        .then(blueprints => {
+        .then(async blueprints => {
           if (blueprints.length > 0) {
             if (overwrite || blueprints[0].deletedAt != null)
               BlueprintController.saveBlueprint(
@@ -130,6 +145,10 @@ export class BlueprintController {
             // Every blueprint starts with the author's like (GitHub-star semantics)
             blueprint.likes = [ownerId];
             blueprint.likeCount = 1;
+            const forkSource = await BlueprintController.resolveForkSource(
+              sourceBlueprintId,
+              user
+            );
             BlueprintController.saveBlueprint(
               req,
               res,
@@ -140,7 +159,8 @@ export class BlueprintController {
               thumbnail,
               true,
               metadata,
-              publish
+              publish,
+              forkSource
             );
           }
         })
@@ -899,6 +919,31 @@ export class BlueprintController {
     }
   }
 
+  // Copy-as-fork: a non-owner saving from the editor creates a new blueprint;
+  // when the client names the source, attribute it as a fork. Any problem with
+  // the source (missing, deleted, not viewable, requester's own document) just
+  // skips attribution — the save itself must never fail because of it.
+  private static async resolveForkSource(
+    sourceBlueprintId: string | null,
+    user: UserJwt
+  ): Promise<{ source: Blueprint; versionId: mongoose.Types.ObjectId } | null> {
+    if (sourceBlueprintId == null) return null;
+    try {
+      const source = await BlueprintModel.model.findOne({
+        _id: sourceBlueprintId,
+        deletedAt: null,
+      });
+      if (!source || !canViewBlueprint(source, user)) return null;
+      if (source.owner.toString() === user._id.toString()) return null;
+      const sourceVersion = await ensureCurrentVersion(source);
+      return { source, versionId: sourceVersion._id as mongoose.Types.ObjectId };
+    } catch (err) {
+      console.log('fork source lookup error');
+      console.log(err);
+      return null;
+    }
+  }
+
   private static async saveBlueprint(
     _req: Request,
     res: Response,
@@ -916,7 +961,8 @@ export class BlueprintController {
       researchTier: string | null;
       modded: boolean | null;
     },
-    publish?: boolean | null
+    publish?: boolean | null,
+    forkSource?: { source: Blueprint; versionId: mongoose.Types.ObjectId } | null
   ): Promise<void> {
     // New blueprints start as drafts (set explicitly — see the schema comment
     // on isPublished for why there is no schema default). Resurrect-via-
@@ -925,6 +971,16 @@ export class BlueprintController {
     if (blueprint.isNew) blueprint.isPublished = false;
     const wasPublished = blueprint.isPublished !== false;
     if (publish === true && !wasPublished) blueprint.isPublished = true;
+
+    // Copy-as-fork attribution (create path only — an overwrite of the
+    // requester's own document keeps its history)
+    if (blueprint.isNew && forkSource != null) {
+      blueprint.forkedFrom = {
+        blueprintId: forkSource.source._id as mongoose.Types.ObjectId,
+        versionId: forkSource.versionId,
+        forkedAt: new Date(),
+      };
+    }
 
     blueprint.owner = ownerId;
     blueprint.name = name;
@@ -970,6 +1026,22 @@ export class BlueprintController {
     });
     if (publish === true && !wasPublished) {
       BlueprintEventService.log({ blueprintId: newBlueprint.id, actorId: ownerId, type: 'published' });
+    }
+
+    // Copy-as-fork bookkeeping — mirrors POST /api/blueprints/:id/fork
+    if (blueprint.forkedFrom != null && forkSource != null) {
+      BlueprintModel.model
+        .updateOne({ _id: forkSource.source._id }, { $inc: { forkCount: 1 } })
+        .catch(err => {
+          console.log('fork count increment error');
+          console.log(err);
+        });
+      NotificationController.notify({
+        recipientId: forkSource.source.owner,
+        actorId: ownerId,
+        type: 'fork',
+        blueprintId: newBlueprint._id as mongoose.Types.ObjectId,
+      });
     }
 
     // Render-on-write: warm the preview cache so the first browse view of
