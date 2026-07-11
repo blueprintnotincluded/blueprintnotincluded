@@ -335,6 +335,26 @@ export class ComponentCanvasComponent
     this.toolService.dragStop();
   }
 
+  // Two-finger touch gesture: pans and zooms the camera together, mirroring
+  // desktop's right-drag-to-pan + wheel-to-zoom since touch has no
+  // equivalent buttons/wheel. Single-finger touch drives the active tool
+  // exactly like a left-button mouse drag (see mouseDrag/mouseDown above).
+  multiTouchGesture(event: any) {
+    this.cameraService.cameraOffset.x +=
+      event.panX / this.cameraService.currentZoom;
+    this.cameraService.cameraOffset.y +=
+      event.panY / this.cameraService.currentZoom;
+
+    if (event.zoomDelta) {
+      let rect = this.canvasRef.nativeElement.getBoundingClientRect();
+      let centerPos = new Vector2(
+        event.centerClientX - rect.left,
+        event.centerClientY - rect.top
+      );
+      this.cameraService.changeZoom(event.zoomDelta, centerPos);
+    }
+  }
+
   // previousMouse is used by the keyboard zoom
   previousMouse: Vector2 = new Vector2();
   previousTileUnderMouse: Vector2 | null = null;
