@@ -12,4 +12,5 @@ export interface PixiUtil {
     getUtilityGraphicsBack(): any;
     getUtilityGraphicsFront(): any;
 }
+export declare function stableSortChildren(container: any): void;
 //# sourceMappingURL=pixi-util.d.ts.map
