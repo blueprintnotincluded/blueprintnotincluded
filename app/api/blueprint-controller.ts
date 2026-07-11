@@ -1041,6 +1041,9 @@ export class BlueprintController {
         actorId: ownerId,
         type: 'fork',
         blueprintId: newBlueprint._id as mongoose.Types.ObjectId,
+      }).catch(err => {
+        console.log('fork notification error');
+        console.log(err);
       });
     }
 
