@@ -52,8 +52,16 @@ describe("SelectTool", () => {
         destroyBlueprintItem: vi.fn(),
       },
     };
+    const dimensionsTextSprite: any = {
+      text: "",
+      anchor: { set: vi.fn() },
+      position: { x: 0, y: 0 },
+      visible: false,
+    };
     mockDrawPixi = {
       drawTileRectangle: vi.fn(),
+      getNewText: vi.fn().mockReturnValue(dimensionsTextSprite),
+      pixiApp: { stage: { addChild: vi.fn() } },
     };
     mockCamera = {
       cameraOffset: { x: 0, y: 0 },
@@ -496,6 +504,58 @@ describe("SelectTool", () => {
       tool.dragStop();
       tool.draw(mockDrawPixi, mockCamera);
       expect(mockDrawPixi.drawTileRectangle).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("draw() dimensions label", () => {
+    it("shows 'width x height' and area centered in the selection box", () => {
+      // Snaps to a 9 (wide) x 4 (tall) box == 36 tiles.
+      tool.drag(new Vector2(0, 4), new Vector2(8, 1));
+      tool.draw(mockDrawPixi, mockCamera);
+
+      expect(mockDrawPixi.getNewText).toHaveBeenCalledTimes(1);
+      const label = mockDrawPixi.getNewText.mock.results[0].value;
+      expect(label.text).toBe("9 x 4\n36 tiles");
+      // Center of the box in world space, converted to screen space.
+      expect(label.position.x).toBe(144);
+      expect(label.position.y).toBe(-64);
+      expect(label.visible).toBe(true);
+    });
+
+    it("colours the label to match the selection border", () => {
+      tool.drag(new Vector2(0, 0), new Vector2(1, 1));
+      tool.draw(mockDrawPixi, mockCamera);
+
+      const style = mockDrawPixi.getNewText.mock.calls[0][1];
+      expect(style.fill).toBe("#2d9600");
+    });
+
+    it("reuses the same text sprite across draw calls instead of recreating it", () => {
+      tool.drag(new Vector2(0, 0), new Vector2(2, 2));
+      tool.draw(mockDrawPixi, mockCamera);
+      tool.draw(mockDrawPixi, mockCamera);
+
+      expect(mockDrawPixi.getNewText).toHaveBeenCalledTimes(1);
+    });
+
+    it("hides the label once dragStop clears the selection", () => {
+      tool.drag(new Vector2(0, 0), new Vector2(2, 2));
+      tool.draw(mockDrawPixi, mockCamera);
+      const label = mockDrawPixi.getNewText.mock.results[0].value;
+      expect(label.visible).toBe(true);
+
+      tool.dragStop();
+      tool.draw(mockDrawPixi, mockCamera);
+      expect(label.visible).toBe(false);
+    });
+
+    it("hides the label when switching away from the tool mid-drag", () => {
+      tool.drag(new Vector2(0, 0), new Vector2(2, 2));
+      tool.draw(mockDrawPixi, mockCamera);
+      const label = mockDrawPixi.getNewText.mock.results[0].value;
+
+      tool.switchFrom();
+      expect(label.visible).toBe(false);
     });
   });
 

@@ -30,6 +30,9 @@ export class DrawPixi implements PixiUtil {
   getSpriteFrom(ressource: any) {
     return PIXI.Sprite.from(ressource);
   }
+  getNewText(text: string, style?: any) {
+    return new PIXI.Text(text, style);
+  }
   getNewBaseTexture(url: string) {
     return PIXI.Texture.from(url);
   }
