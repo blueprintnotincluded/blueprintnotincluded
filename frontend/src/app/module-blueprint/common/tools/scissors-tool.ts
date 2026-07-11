@@ -68,7 +68,10 @@ export class ScissorsTool implements ITool {
 
     let neighborItems = this.blueprintService.blueprint
       .getBlueprintItemsAt(neighborPosition)
-      .filter((i) => i.oniItem.objectLayer == item.oniItem.objectLayer);
+      .filter(
+        (i) =>
+          i.oniItem.isWire && i.oniItem.objectLayer == item.oniItem.objectLayer
+      );
 
     for (let neighborItem of neighborItems) {
       let neighborWire = neighborItem as BlueprintItemWire;
@@ -98,36 +101,44 @@ export class ScissorsTool implements ITool {
 
     this.blueprintService.blueprint.pauseChangeEvents();
 
-    for (let tileX = topLeftTile.x; tileX <= bottomRightTile.x; tileX++) {
-      for (let tileY = bottomRightTile.y; tileY <= topLeftTile.y; tileY++) {
-        let localX0 = Math.min(Math.max(xMin - tileX, 0), 1);
-        let localX1 = Math.min(Math.max(xMax - tileX, 0), 1);
-        let localY0 = Math.min(Math.max(tileY - yMax, 0), 1);
-        let localY1 = Math.min(Math.max(tileY - yMin, 0), 1);
+    try {
+      for (let tileX = topLeftTile.x; tileX <= bottomRightTile.x; tileX++) {
+        for (let tileY = bottomRightTile.y; tileY <= topLeftTile.y; tileY++) {
+          let localX0 = Math.min(Math.max(xMin - tileX, 0), 1);
+          let localX1 = Math.min(Math.max(xMax - tileX, 0), 1);
+          let localY0 = Math.min(Math.max(tileY - yMax, 0), 1);
+          let localY1 = Math.min(Math.max(tileY - yMin, 0), 1);
 
-        let wireItems = this.blueprintService.blueprint
-          .getBlueprintItemsAt(new Vector2(tileX, tileY))
-          .filter(
-            (i) =>
-              i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay)
-          ) as BlueprintItemWire[];
+          let wireItems = this.blueprintService.blueprint
+            .getBlueprintItemsAt(new Vector2(tileX, tileY))
+            .filter(
+              (i) =>
+                i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay)
+            ) as BlueprintItemWire[];
 
-        for (let wireItem of wireItems) {
-          let connectionsArray = DrawHelpers.getConnectionArray(
-            wireItem.connections
-          );
-          for (let direction = 0; direction < 4; direction++) {
-            if (
-              connectionsArray[direction] &&
-              zoneIntersectsRect(direction, localX0, localY0, localX1, localY1)
-            )
-              this.disconnectBit(wireItem, direction);
+          for (let wireItem of wireItems) {
+            let connectionsArray = DrawHelpers.getConnectionArray(
+              wireItem.connections
+            );
+            for (let direction = 0; direction < 4; direction++) {
+              if (
+                connectionsArray[direction] &&
+                zoneIntersectsRect(
+                  direction,
+                  localX0,
+                  localY0,
+                  localX1,
+                  localY1
+                )
+              )
+                this.disconnectBit(wireItem, direction);
+            }
           }
         }
       }
+    } finally {
+      this.blueprintService.blueprint.resumeChangeEvents();
     }
-
-    this.blueprintService.blueprint.resumeChangeEvents();
   }
 
   // Tool interface :
