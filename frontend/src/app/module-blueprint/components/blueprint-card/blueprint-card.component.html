@@ -127,6 +127,44 @@
         </svg>
         {{ item.nbForks }}
       </a>
+      <span class="card-views bni-icon-link" i18n-title title="View count">
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"
+          ></path>
+          <circle cx="12" cy="12" r="2.8"></circle>
+        </svg>
+        {{ item.nbViews }}
+      </span>
+      <span
+        class="card-downloads bni-icon-link"
+        i18n-title
+        title="Download count"
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 3v11M7.5 9.5L12 14l4.5-4.5M4 17v2.5h16V17"></path>
+        </svg>
+        {{ item.nbDownloads }}
+      </span>
     </div>
   </div>
 </article>

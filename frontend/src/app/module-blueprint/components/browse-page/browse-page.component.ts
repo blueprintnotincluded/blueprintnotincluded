@@ -12,7 +12,10 @@ import {
   CATEGORIES,
   SUBCATEGORIES,
 } from "../../../../../../lib/index";
-import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
+import {
+  BlueprintService,
+  BlueprintSort,
+} from "src/app/module-blueprint/services/blueprint-service";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { UserService } from "src/app/module-blueprint/services/user-service";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
@@ -48,7 +51,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   filterModded: boolean | null = null;
   filterForkedFrom: string | null = null;
   remaining = 0;
-  sort: "recent" | "popular" | "mostForked" = "recent";
+  sort: BlueprintSort = "recent";
   skipCount = 0;
   private requestId = 0;
 
@@ -61,6 +64,14 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     {
       label: $localize`:browse.sortMostForked:Most forked`,
       value: "mostForked",
+    },
+    {
+      label: $localize`:browse.sortMostViewed:Most viewed`,
+      value: "mostViewed",
+    },
+    {
+      label: $localize`:browse.sortMostDownloaded:Most downloaded`,
+      value: "mostDownloaded",
     },
   ];
 
@@ -111,6 +122,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       nbLikes: 0,
       commentCount: 0,
       nbForks: 0,
+      nbViews: 0,
+      nbDownloads: 0,
     };
 
     this.nothingBlueprintItem = {
@@ -127,6 +140,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       nbLikes: 0,
       commentCount: 0,
       nbForks: 0,
+      nbViews: 0,
+      nbDownloads: 0,
     };
 
     this.filterNameSubject.pipe(debounceTime(600)).subscribe(() => {
@@ -198,8 +213,11 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       rawModded === "true" ? true : rawModded === "false" ? false : null;
     const forkedFrom = params.get("forkedFrom");
     const rawSort = params.get("sort");
-    const sort: "recent" | "popular" | "mostForked" =
-      rawSort === "popular" || rawSort === "mostForked" ? rawSort : "recent";
+    const sort: BlueprintSort = this.sortOptions.some(
+      (option) => option.value === rawSort
+    )
+      ? (rawSort as BlueprintSort)
+      : "recent";
 
     const changed =
       name !== this.filterName ||

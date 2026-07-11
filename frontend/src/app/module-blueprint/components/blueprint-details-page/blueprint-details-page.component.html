@@ -67,6 +67,12 @@
             <span class="details-date">{{
               details.createdAt | date : "yyyy-MM-dd"
             }}</span>
+            <span class="details-views"
+              >{{ details.nbViews }}&nbsp;{{ nbViewsString }}</span
+            >
+            <span class="details-downloads"
+              >{{ details.nbDownloads }}&nbsp;{{ nbDownloadsString }}</span
+            >
           </div>
 
           <div *ngIf="details.forkedFrom" class="details-forked-from">

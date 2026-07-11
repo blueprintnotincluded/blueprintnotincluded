@@ -20,6 +20,13 @@ import {
 } from "../../../../../lib/index";
 import * as yaml from "js-yaml";
 
+export type BlueprintSort =
+  | "recent"
+  | "popular"
+  | "mostForked"
+  | "mostViewed"
+  | "mostDownloaded";
+
 @Injectable({ providedIn: "root" })
 export class BlueprintService implements IObsBlueprintChange {
   static baseUrl: string = window.location.origin;
@@ -333,7 +340,7 @@ export class BlueprintService implements IObsBlueprintChange {
     filterGameVersion?: string | null,
     filterCategory?: string | null,
     filterSubcategory?: string | null,
-    sort?: "recent" | "popular" | "mostForked",
+    sort?: BlueprintSort,
     skip?: number,
     filterModded?: boolean | null,
     filterForkedFrom?: string | null,
@@ -481,6 +488,26 @@ export class BlueprintService implements IObsBlueprintChange {
           return response;
         })
       );
+  }
+
+  // Fire-and-forget beacon: the .blueprint file export is client-side only,
+  // so the server can't see it — report it for the download counter. Works
+  // logged out (the endpoint is anonymous) and must never bother the user
+  // on failure.
+  trackDownload(blueprintId: string) {
+    this.http
+      .post(
+        `/api/blueprints/${blueprintId}/downloads`,
+        {},
+        this.authService.isLoggedIn()
+          ? {
+              headers: {
+                Authorization: `Bearer ${this.authService.getToken()}`,
+              },
+            }
+          : {}
+      )
+      .subscribe({ error: () => {} });
   }
 
   nbLikes!: number;
