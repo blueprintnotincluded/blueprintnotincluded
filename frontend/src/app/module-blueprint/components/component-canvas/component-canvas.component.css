@@ -2,4 +2,8 @@
   background-color: black;
   position: absolute;
   z-index: -1;
+  /* Interaction is handled entirely by our own pointer-event pipeline
+     (pan, pinch-zoom, tool drags) - stop the browser from intercepting
+     touch gestures as native scroll/pinch-zoom before they reach it. */
+  touch-action: none;
 }
