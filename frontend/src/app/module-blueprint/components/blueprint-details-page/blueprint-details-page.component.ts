@@ -149,7 +149,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
   private loadRelatedBlueprints(id: string) {
     this.blueprintService.getRelatedBlueprints(id).subscribe({
       next: (response) => (this.relatedBlueprints = response.blueprints),
-      error: () => {},
+      error: (err) => console.warn("Failed to load related blueprints", err),
     });
   }
 

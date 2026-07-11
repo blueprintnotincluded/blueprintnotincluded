@@ -609,23 +609,30 @@ export class BlueprintController {
     skip: number,
     limit: number
   ): Promise<Blueprint[]> {
-    const rows: { _id: mongoose.Types.ObjectId }[] = await BlueprintModel.model.aggregate([
-      { $match: filter },
-      {
-        $lookup: {
-          from: CommentModel.model.collection.name,
-          let: { blueprintId: '$_id' },
-          pipeline: [
+    const commentLookupStage: mongoose.PipelineStage[] =
+      CommentModel.model == null
+        ? []
+        : [
             {
-              $match: {
-                $expr: { $and: [{ $eq: ['$blueprintId', '$$blueprintId'] }, { $eq: ['$deletedAt', null] }] },
+              $lookup: {
+                from: CommentModel.model.collection.name,
+                let: { blueprintId: '$_id' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: { $and: [{ $eq: ['$blueprintId', '$$blueprintId'] }, { $eq: ['$deletedAt', null] }] },
+                    },
+                  },
+                  { $count: 'count' },
+                ],
+                as: 'commentAgg',
               },
             },
-            { $count: 'count' },
-          ],
-          as: 'commentAgg',
-        },
-      },
+          ];
+
+    const rows: { _id: mongoose.Types.ObjectId }[] = await BlueprintModel.model.aggregate([
+      { $match: filter },
+      ...commentLookupStage,
       {
         $addFields: {
           commentCount: { $ifNull: [{ $arrayElemAt: ['$commentAgg.count', 0] }, 0] },
