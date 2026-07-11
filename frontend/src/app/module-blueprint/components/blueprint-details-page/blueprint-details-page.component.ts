@@ -3,7 +3,10 @@ import { Location } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, finalize, switchMap, tap } from "rxjs/operators";
-import { BlueprintDetailsResponse } from "../../../../../../lib/index";
+import {
+  BlueprintDetailsResponse,
+  BlueprintListItem,
+} from "../../../../../../lib/index";
 import { MessageService } from "primeng/api";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
@@ -34,6 +37,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
   loading = true;
   notFound = false;
   loadError = false;
+  relatedBlueprints: BlueprintListItem[] = [];
 
   backLink: any[] = ["/discover"];
   backLabel = BACK_TO_DISCOVER;
@@ -89,6 +93,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
         this.details = details;
         this.blueprintId = details.id;
         this.loading = false;
+        this.loadRelatedBlueprints(details.id);
       });
 
     this.route.fragment.subscribe((fragment) => {
@@ -121,6 +126,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.loadError = false;
     this.previewFailed = false;
     this.publishWorking = false;
+    this.relatedBlueprints = [];
 
     if (id == null) {
       this.loading = false;
@@ -136,6 +142,15 @@ export class BlueprintDetailsPageComponent implements OnInit {
         return EMPTY;
       })
     );
+  }
+
+  // Decoration on the page — a failure here must never surface an error to
+  // the user, the shelf just stays empty.
+  private loadRelatedBlueprints(id: string) {
+    this.blueprintService.getRelatedBlueprints(id).subscribe({
+      next: (response) => (this.relatedBlueprints = response.blueprints),
+      error: () => {},
+    });
   }
 
   get loggedIn() {

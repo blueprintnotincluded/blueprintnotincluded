@@ -16,12 +16,14 @@ import {
   BlueprintLike,
   BlueprintResponse,
   BlueprintDetailsResponse,
+  RelatedBlueprintsResponse,
   BlueprintDelete,
 } from "../../../../../lib/index";
 import * as yaml from "js-yaml";
 
 export type BlueprintSort =
   | "recent"
+  | "trending"
   | "popular"
   | "mostForked"
   | "mostViewed"
@@ -323,6 +325,21 @@ export class BlueprintService implements IObsBlueprintChange {
   getBlueprintDetails(id: string) {
     return this.http.get<BlueprintDetailsResponse>(
       `/api/blueprints/${id}`,
+      this.authService.isLoggedIn()
+        ? {
+            headers: {
+              Authorization: `Bearer ${this.authService.getToken()}`,
+            },
+          }
+        : {}
+    );
+  }
+
+  // "You might also like" shelf for the details page. Token is optional; the
+  // backend uses it to personalize likedByMe/ownedByMe on the returned cards.
+  getRelatedBlueprints(id: string) {
+    return this.http.get<RelatedBlueprintsResponse>(
+      `/api/blueprints/${id}/related`,
       this.authService.isLoggedIn()
         ? {
             headers: {

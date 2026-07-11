@@ -30,6 +30,9 @@ export interface BlueprintListItem {
 export interface BlueprintDetailsResponse extends BlueprintListItem {
     researchTier?: string | null;
 }
+export interface RelatedBlueprintsResponse {
+    blueprints: BlueprintListItem[];
+}
 export interface BlueprintLike {
     blueprintId: string;
     like: boolean;

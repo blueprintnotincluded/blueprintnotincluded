@@ -49,6 +49,7 @@ describe("BlueprintDetailsPageComponent", () => {
   beforeEach(async () => {
     blueprintService = {
       getBlueprintDetails: vi.fn().mockReturnValue(of(makeDetails())),
+      getRelatedBlueprints: vi.fn().mockReturnValue(of({ blueprints: [] })),
       setPublished: vi.fn().mockReturnValue(of({ isPublished: true })),
     };
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
@@ -154,6 +155,56 @@ describe("BlueprintDetailsPageComponent", () => {
         "2026-07-01"
       ).getTime()}`
     );
+  });
+
+  describe("related blueprints", () => {
+    const relatedItem = {
+      id: "bp2",
+      name: "Related Setup",
+      ownerId: "owner-2",
+      ownerName: "bob",
+      createdAt: new Date("2026-06-01").toISOString(),
+      modifiedAt: new Date("2026-06-01").toISOString(),
+      thumbnail: "data:image/png;base64,xyz",
+      nbLikes: 0,
+      likedByMe: false,
+      ownedByMe: false,
+      commentCount: 0,
+      isPublished: true,
+      nbForks: 0,
+      nbViews: 0,
+      nbDownloads: 0,
+    };
+
+    it("fetches and renders related blueprints once details load", () => {
+      blueprintService.getRelatedBlueprints.mockReturnValue(
+        of({ blueprints: [relatedItem] })
+      );
+      fixture.detectChanges();
+
+      expect(blueprintService.getRelatedBlueprints).toHaveBeenCalledWith("bp1");
+      expect(component.relatedBlueprints).toEqual([relatedItem]);
+      const cards = fixture.debugElement.queryAll(
+        By.css(".details-related app-blueprint-card")
+      );
+      expect(cards.length).toBe(1);
+    });
+
+    it("hides the section when there are no related blueprints", () => {
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css(".details-related"))).toBeNull();
+    });
+
+    it("does not blow up the page when the related fetch fails", () => {
+      blueprintService.getRelatedBlueprints.mockReturnValue(
+        throwError(() => new Error("boom"))
+      );
+
+      expect(() => fixture.detectChanges()).not.toThrow();
+      expect(component.relatedBlueprints).toEqual([]);
+      expect(component.details?.name).toBe("Super Coal Generator Setup");
+    });
   });
 
   it("renders the details and passes the blueprint id to the comment section", () => {

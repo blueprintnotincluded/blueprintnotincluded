@@ -3,8 +3,9 @@ import { BlueprintModel, Blueprint } from './models/blueprint';
 import {
   MdbBlueprint,
   BlueprintResponse,
-//   BlueprintListItem,
+  BlueprintListItem,
   BlueprintListResponse,
+  RelatedBlueprintsResponse,
   BlueprintLike,
 //   Vector2,
 //   CameraService,
@@ -24,7 +25,7 @@ import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
 import { optionalViewer } from './utils/optionalViewer';
-import { canViewBlueprint } from './utils/blueprint-visibility';
+import { canViewBlueprint, ownerIdOf } from './utils/blueprint-visibility';
 import { BlueprintEventService } from './services/blueprint-event-service';
 import { BlueprintCounterService, CounterKind } from './services/blueprint-counter-service';
 import {
@@ -37,8 +38,11 @@ import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
 
-const SORTS = ['recent', 'popular', 'mostForked', 'mostViewed', 'mostDownloaded'] as const;
+const SORTS = ['recent', 'popular', 'mostForked', 'mostViewed', 'mostDownloaded', 'trending'] as const;
 type BlueprintSort = (typeof SORTS)[number];
+
+// How many "you might also like" cards the details page shows
+const RELATED_LIMIT = 6;
 
 export class BlueprintController {
   public uploadBlueprint(req: Request, res: Response) {
@@ -308,9 +312,7 @@ export class BlueprintController {
   ): void {
     if (blueprint.isPublished === false) return;
     const viewer = optionalViewer(req);
-    const ownerId = UserModel.isUser(blueprint.owner)
-      ? (blueprint.owner.id as string)
-      : blueprint.owner?.toString();
+    const ownerId = ownerIdOf(blueprint);
     if (viewer != null && viewer._id === ownerId) return;
     // Logged-in viewers dedupe by user id; anonymous ones by client IP
     const viewerKey = viewer != null ? viewer._id : `ip:${req.clientIp ?? 'unknown'}`;
@@ -574,14 +576,18 @@ export class BlueprintController {
       else if (sort === 'mostDownloaded') sortSpec = { downloadCount: -1, createdAt: -1 };
 
       let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
-      let query = BlueprintModel.model
-        .find(filter)
-        .sort(sortSpec)
-        .skip(usesOffsetPagination ? skip : 0)
-        .limit(browseIncrement * 2)
-        .populate('owner');
+      let skipAmount = usesOffsetPagination ? skip : 0;
+      let limit = browseIncrement * 2;
 
-      query
+      // Trending has no single indexed field to sort on — it's a computed,
+      // time-decayed score — so it goes through an aggregation instead of
+      // the plain find().sort() every other sort uses.
+      let blueprintsPromise: Promise<Blueprint[]> =
+        sort === 'trending'
+          ? BlueprintController.getTrendingBlueprints(filter, skipAmount, limit)
+          : BlueprintModel.model.find(filter).sort(sortSpec).skip(skipAmount).limit(limit).populate('owner');
+
+      blueprintsPromise
         .then(blueprints => {
           return BlueprintController.handleGetBlueprint(req, res, userId, blueprints);
         })
@@ -591,6 +597,72 @@ export class BlueprintController {
           res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
         });
     }
+  }
+
+  // Time-decayed engagement score (likes + weighted forks/comments/views,
+  // divided down by age) computed in an aggregation since it isn't a stored
+  // field. Only the ordered ids come out of the aggregation; the actual
+  // documents are then fetched + populated normally and put back in that
+  // order — cheaper than populating owner inside the pipeline via $lookup.
+  private static async getTrendingBlueprints(
+    filter: Record<string, unknown>,
+    skip: number,
+    limit: number
+  ): Promise<Blueprint[]> {
+    const rows: { _id: mongoose.Types.ObjectId }[] = await BlueprintModel.model.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: CommentModel.model.collection.name,
+          let: { blueprintId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $and: [{ $eq: ['$blueprintId', '$$blueprintId'] }, { $eq: ['$deletedAt', null] }] },
+              },
+            },
+            { $count: 'count' },
+          ],
+          as: 'commentAgg',
+        },
+      },
+      {
+        $addFields: {
+          commentCount: { $ifNull: [{ $arrayElemAt: ['$commentAgg.count', 0] }, 0] },
+          ageInDays: { $divide: [{ $subtract: ['$$NOW', '$createdAt'] }, 1000 * 60 * 60 * 24] },
+        },
+      },
+      {
+        $addFields: {
+          trendingScore: {
+            $divide: [
+              {
+                $add: [
+                  { $ifNull: ['$likeCount', 0] },
+                  { $multiply: [{ $ifNull: ['$forkCount', 0] }, 3] },
+                  { $multiply: ['$commentCount', 2] },
+                  { $multiply: [{ $ifNull: ['$viewCount', 0] }, 0.05] },
+                ],
+              },
+              { $pow: [{ $add: ['$ageInDays', 2] }, 1.5] },
+            ],
+          },
+        },
+      },
+      { $sort: { trendingScore: -1, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      { $project: { _id: 1 } },
+    ]);
+
+    const orderedIds = rows.map(row => row._id);
+    if (orderedIds.length === 0) return [];
+
+    const docs = await BlueprintModel.model.find({ _id: { $in: orderedIds } }).populate('owner');
+    const byId = new Map(docs.map(doc => [(doc._id as mongoose.Types.ObjectId).toString(), doc]));
+    return orderedIds
+      .map(id => byId.get(id.toString()))
+      .filter((doc): doc is NonNullable<typeof doc> => doc != null);
   }
 
   // Visible (non-deleted) comment counts for a page of blueprints, one aggregate.
@@ -673,56 +745,188 @@ export class BlueprintController {
 
       for (const blueprint of page) {
         if (blueprint.createdAt < returnValue.oldest) returnValue.oldest = blueprint.createdAt;
-
-        let ownerId = '';
-        let username: string = '';
-        if (UserModel.isUser(blueprint.owner)) {
-          username = blueprint.owner.username as string;
-          ownerId = blueprint.owner.id as string;
-        }
-
-        let likedByMe = false;
-        if (userId != null && blueprint.likes != null && blueprint.likes.indexOf(userId) != -1)
-          likedByMe = true;
-
-        let ownedByMe = false;
-        if (userId != null && ownerId == userId) ownedByMe = true;
-
-        let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
-
-        returnValue.blueprints.push({
-          id: (blueprint._id as any).toString(),
-          name: blueprint.name,
-          ownerId: ownerId,
-          ownerName: username,
-          createdAt: blueprint.createdAt,
-          modifiedAt: blueprint.modifiedAt,
-          thumbnail: blueprint.thumbnail,
-          nbLikes: nbLikes,
-          likedByMe: likedByMe,
-          ownedByMe: ownedByMe,
-          commentCount: commentCounts.get((blueprint._id as any).toString()) ?? 0,
-          gameVersion: blueprint.gameVersion ?? null,
-          category: blueprint.category ?? null,
-          subcategory: blueprint.subcategory ?? null,
-          description: blueprint.description ?? null,
-          modded: blueprint.modded ?? null,
-          isPublished: blueprint.isPublished !== false,
-          nbForks: blueprint.forkCount ?? 0,
-          nbViews: blueprint.viewCount ?? 0,
-          nbDownloads: blueprint.downloadCount ?? 0,
-          forkedFrom:
-            blueprint.forkedFrom != null
-              ? {
-                  blueprintId: blueprint.forkedFrom.blueprintId.toString(),
-                  blueprintName: forkedFromNames.get(blueprint.forkedFrom.blueprintId.toString()) ?? null,
-                }
-              : null,
-        });
+        returnValue.blueprints.push(
+          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames)
+        );
       }
 
       res.json(returnValue);
     } else res.json(returnValue);
+  }
+
+  // Shared blueprint-document -> BlueprintListItem mapping, used by the browse
+  // list, and the details page's related-blueprints shelf.
+  private static buildListItem(
+    blueprint: Blueprint,
+    userId: string,
+    commentCounts: Map<string, number>,
+    forkedFromNames: Map<string, string | null>
+  ): BlueprintListItem {
+    const id = (blueprint._id as any).toString();
+
+    let ownerId = '';
+    let username = '';
+    if (UserModel.isUser(blueprint.owner)) {
+      username = blueprint.owner.username as string;
+      ownerId = blueprint.owner.id as string;
+    }
+
+    let likedByMe = false;
+    if (userId != null && blueprint.likes != null && blueprint.likes.indexOf(userId) != -1) likedByMe = true;
+
+    let ownedByMe = false;
+    if (userId != null && ownerId == userId) ownedByMe = true;
+
+    return {
+      id,
+      name: blueprint.name,
+      ownerId,
+      ownerName: username,
+      createdAt: blueprint.createdAt,
+      modifiedAt: blueprint.modifiedAt,
+      thumbnail: blueprint.thumbnail,
+      nbLikes: blueprint.likeCount ?? blueprint.likes?.length ?? 0,
+      likedByMe,
+      ownedByMe,
+      commentCount: commentCounts.get(id) ?? 0,
+      gameVersion: blueprint.gameVersion ?? null,
+      category: blueprint.category ?? null,
+      subcategory: blueprint.subcategory ?? null,
+      description: blueprint.description ?? null,
+      modded: blueprint.modded ?? null,
+      isPublished: blueprint.isPublished !== false,
+      nbForks: blueprint.forkCount ?? 0,
+      nbViews: blueprint.viewCount ?? 0,
+      nbDownloads: blueprint.downloadCount ?? 0,
+      forkedFrom:
+        blueprint.forkedFrom != null
+          ? {
+              blueprintId: blueprint.forkedFrom.blueprintId.toString(),
+              blueprintName: forkedFromNames.get(blueprint.forkedFrom.blueprintId.toString()) ?? null,
+            }
+          : null,
+    };
+  }
+
+  // "You might also like": same category/subcategory/gameVersion, or same
+  // author, scored simply and merged. Two cheap indexed queries + in-memory
+  // scoring — plenty at this catalog's size, and avoids an aggregation with
+  // no single field to sort on. Backfills with recent public blueprints so
+  // the shelf is never sparse for under-tagged or solo-author blueprints.
+  public async getRelatedBlueprints(req: Request, res: Response): Promise<void> {
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
+    }
+
+    const blueprintId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
+      res.status(400).json(apiError(400, 'Invalid blueprint id'));
+      return;
+    }
+
+    try {
+      const viewer = optionalViewer(req);
+      const source = await BlueprintModel.model
+        .findOne({ _id: blueprintId, deletedAt: null })
+        .select('owner category subcategory gameVersion isPublished')
+        .lean();
+      if (source == null || !canViewBlueprint(source, viewer)) {
+        res.status(404).json(apiError(404, 'Blueprint not found'));
+        return;
+      }
+
+      const userId = viewer?._id ?? '';
+      const sourceOwnerId = ownerIdOf(source);
+
+      const pools = await Promise.all([
+        source.category != null
+          ? BlueprintModel.model
+              .find({
+                deletedAt: null,
+                isPublished: { $ne: false },
+                category: source.category,
+                _id: { $ne: blueprintId },
+              })
+              .sort({ likeCount: -1, createdAt: -1 })
+              .limit(RELATED_LIMIT * 4)
+              .populate('owner')
+          : Promise.resolve([]),
+        BlueprintModel.model
+          .find({
+            deletedAt: null,
+            isPublished: { $ne: false },
+            owner: source.owner,
+            _id: { $ne: blueprintId },
+          })
+          .sort({ createdAt: -1 })
+          .limit(RELATED_LIMIT * 4)
+          .populate('owner'),
+      ]);
+
+      const candidates = new Map<string, Blueprint>();
+      for (const pool of pools) {
+        for (const candidate of pool) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
+      }
+
+      if (candidates.size < RELATED_LIMIT) {
+        const fallback = await BlueprintModel.model
+          .find({ deletedAt: null, isPublished: { $ne: false }, _id: { $ne: blueprintId } })
+          .sort({ createdAt: -1 })
+          .limit(RELATED_LIMIT * 4)
+          .populate('owner');
+        for (const candidate of fallback) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
+      }
+
+      const scored = Array.from(candidates.values()).map(candidate => {
+        let score = 0;
+        if (source.category != null && candidate.category === source.category) score += 3;
+        if (source.subcategory != null && candidate.subcategory === source.subcategory) score += 2;
+        if (source.gameVersion != null && candidate.gameVersion === source.gameVersion) score += 1;
+        if (sourceOwnerId != null && ownerIdOf(candidate) === sourceOwnerId) score += 2;
+        return { candidate, score };
+      });
+
+      scored.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        const likeDiff = (b.candidate.likeCount ?? 0) - (a.candidate.likeCount ?? 0);
+        if (likeDiff !== 0) return likeDiff;
+        return b.candidate.createdAt.getTime() - a.candidate.createdAt.getTime();
+      });
+
+      const page = scored.slice(0, RELATED_LIMIT).map(s => s.candidate);
+
+      let commentCounts = new Map<string, number>();
+      try {
+        commentCounts = await BlueprintController.getCommentCounts(
+          page.map(blueprint => blueprint._id as mongoose.Types.ObjectId)
+        );
+      } catch (err) {
+        console.log('related comment count aggregate error');
+        console.log(err);
+      }
+
+      let forkedFromNames = new Map<string, string | null>();
+      try {
+        forkedFromNames = await BlueprintController.getForkedFromNames(
+          page.filter(blueprint => blueprint.forkedFrom != null).map(blueprint => blueprint.forkedFrom!.blueprintId)
+        );
+      } catch (err) {
+        console.log('related forkedFrom name lookup error');
+        console.log(err);
+      }
+
+      const response: RelatedBlueprintsResponse = {
+        blueprints: page.map(blueprint =>
+          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames)
+        ),
+      };
+      res.json(response);
+    } catch (err) {
+      console.log('getRelatedBlueprints error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve related blueprints'));
+    }
   }
 
   public publishBlueprint(req: Request, res: Response) {

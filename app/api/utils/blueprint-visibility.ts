@@ -2,7 +2,7 @@ import { UserJwt } from '../models/user';
 
 // Owner may be a raw ObjectId/string or a populated User document depending on
 // which query produced the blueprint — normalize to the id string either way.
-function ownerIdOf(blueprint: { owner: any }): string | null {
+export function ownerIdOf(blueprint: { owner: any }): string | null {
   const owner = blueprint.owner;
   if (owner == null) return null;
   return (owner._id ?? owner).toString();
