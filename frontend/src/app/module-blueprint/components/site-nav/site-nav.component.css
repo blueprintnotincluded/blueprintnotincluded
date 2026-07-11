@@ -7,3 +7,10 @@
   border-width: 0 0 2px;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
+
+@media (max-width: 640px) {
+  :host ::ng-deep .p-menubar {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+}

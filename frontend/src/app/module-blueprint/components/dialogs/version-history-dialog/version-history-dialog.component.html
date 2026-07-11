@@ -10,11 +10,12 @@
   [maximizable]="false"
   [draggable]="false"
   [resizable]="false"
+  [style]="{ width: '480px' }"
+  [breakpoints]="{ '560px': '92vw' }"
 >
   <div *ngIf="isOwner" class="new-version-row">
     <input
       type="text"
-      size="30"
       i18n-placeholder
       placeholder="Name this snapshot (optional)"
       [(ngModel)]="newVersionName"
