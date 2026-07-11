@@ -16,7 +16,7 @@ import { Display } from '../enums/display';
 import { Visualization } from '../enums/visualization';
 import { ConnectionHelper } from '../utility-connection';
 import { SpriteInfo } from '../drawing/sprite-info';
-import { PixiUtil } from '../drawing/pixi-util';
+import { PixiUtil, stableSortChildren } from '../drawing/pixi-util';
 
 export class BlueprintItem {
   static defaultRotation = 0;
@@ -515,6 +515,11 @@ export class BlueprintItem {
     else if (this.oniItem.isOverlaySecondary(camera.overlay)) this.depth = this.oniItem.zIndex + 50;
     else this.depth = this.oniItem.zIndex;
 
+    // Wall-plane props (PixelPack, ...) render flush in the wall, so they must
+    // always sit behind Building-layer items sharing the same tier (e.g. a
+    // portrait mounted on the wall) - never left to tie/insertion order.
+    if (this.oniItem.objectLayer == OniItem.objectLayerBackwall) this.depth -= 0.5;
+
     if (this.isBuildCandidate) this.depth = 199;
 
     this.visualizationTint = -1;
@@ -801,7 +806,7 @@ export class BlueprintItem {
   */
 
   sortChildren() {
-    if (this.container != null) this.container.sortChildren();
+    if (this.container != null) stableSortChildren(this.container);
   }
 
   destroyed: boolean = false;

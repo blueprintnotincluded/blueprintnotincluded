@@ -367,6 +367,14 @@ export class OniItem {
   // structures even when their sceneLayer is a wire/conduit render layer.
   static readonly objectLayerBuilding = 1;
 
+  // ObjectLayer.Backwall: wall-plane props (ExteriorWall, GlassExteriorWall,
+  // PropGravitasLabWall/Window, PixelPack, ...). These sit flush in the wall
+  // itself, so they must always render behind Building-layer items even when
+  // they share the same sceneLayer tier (e.g. PixelPack and the Portrait
+  // Canvas both sit at InteriorWall) - a wall mural is always behind whatever
+  // is mounted on the wall, regardless of build order.
+  static readonly objectLayerBackwall = 2;
+
   public isOverlayPrimary(overlay: Overlay): boolean {
     // U59 moved the Heavi-Watt joint plates to the WireBridges/WireBridgesFront
     // scene layers, but they occupy the Building object layer: solid in the Base

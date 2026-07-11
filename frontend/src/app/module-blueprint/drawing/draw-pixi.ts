@@ -6,6 +6,7 @@ import {
   Vector2,
   PixiUtil,
   ZIndex,
+  stableSortChildren,
 } from "../../../../../lib/index";
 import { ComponentMenuComponent } from "../components/component-menu/component-menu.component";
 
@@ -124,7 +125,7 @@ export class DrawPixi implements PixiUtil {
 
   public sortChildren() {
     //console.log('sortChildren')
-    this.blueprintContainer.sortChildren();
+    stableSortChildren(this.blueprintContainer);
   }
 
   animateAll() {

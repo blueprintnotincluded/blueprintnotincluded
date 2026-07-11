@@ -2,10 +2,12 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  BlueprintItem,
   BuildableElement,
   BuildLocationRule,
   BuildMenuCategory,
   BuildMenuItem,
+  CameraService,
   ConnectionType,
   SpriteInfo,
   SpriteModifier,
@@ -207,6 +209,44 @@ describe('Game structure contract (representative buildings)', () => {
       for (const b of database.buildings)
         for (const dlcId of b.dlcIds ?? []) if (!knownDlcIds.has(dlcId)) unknown.add(dlcId);
       expect([...unknown], `unknown DLC ids: ${[...unknown].join(', ')}`).to.be.empty;
+    });
+  });
+
+  // PixelPack (a wall-plane decal, ObjectLayer.Backwall) and the Portrait Canvas
+  // (ObjectLayer.Building) both sit at the InteriorWall scene layer, so at rest
+  // they tie on sceneLayer alone. PixelPack is architecturally "behind the wall"
+  // (like drywall) and must never exactly tie with - let alone render in front
+  // of - a portrait mounted on it. Before the objectLayerBackwall depth offset,
+  // both got the exact same computed `depth` in Base, and PIXI's
+  // Container.sortChildren() breaks such ties using an index it re-stamps from
+  // current array position on every call - so a real, temporary depth
+  // divergence (this pair diverges under the Automation overlay, since
+  // PixelPack has an automation viewMode) permanently reordered them even after
+  // returning to Base, where they tie again.
+  describe('render depth ordering (BlueprintItem.cameraChanged)', () => {
+    it('PixelPack (Backwall) never ties with Canvas (Building) at rest, and reverts deterministically', () => {
+      const pixelPack = new BlueprintItem('PixelPack');
+      const canvas = new BlueprintItem('Canvas');
+      const camera = new CameraService({});
+
+      // Base (both before and after the Automation round-trip): both are
+      // "primary" at the InteriorWall tier - PixelPack must lose the tie,
+      // and must do so identically each time (no hysteresis from the switch).
+      for (const _ of [0, 1]) {
+        camera.overlay = Overlay.Base;
+        pixelPack.cameraChanged(camera);
+        canvas.cameraChanged(camera);
+        expect(pixelPack.depth, 'PixelPack.depth in Base').to.be.lessThan(canvas.depth);
+
+        // Automation: PixelPack has a wire connection and is meant to highlight
+        // forward (like wires popping above tiles in the Power overlay) while
+        // the unrelated Canvas dims to alpha 0.3 - intentional, not the bug.
+        camera.overlay = Overlay.Automation;
+        pixelPack.cameraChanged(camera);
+        canvas.cameraChanged(camera);
+        expect(pixelPack.depth, 'PixelPack.depth in Automation').to.be.greaterThan(canvas.depth);
+        expect(canvas.isOpaque, 'Canvas.isOpaque in Automation').to.equal(false);
+      }
     });
   });
 
