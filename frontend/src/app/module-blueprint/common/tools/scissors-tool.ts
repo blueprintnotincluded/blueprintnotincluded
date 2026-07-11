@@ -16,41 +16,23 @@ const RIGHT = 1;
 const UP = 2;
 const DOWN = 3;
 
-// A tile occupies world x in [tileX, tileX + 1) and world y in (tileY - 1, tileY].
-// Local coordinates below place the origin at the tile's top-left corner:
-// localX 0..1 is left..right, localY 0..1 is top (Up neighbour)..bottom (Down neighbour).
-// Each tile is split by both diagonals into 4 triangular "zones of control", one per
-// connection direction. A zone is cut if the (possibly zero-area) selection rectangle
-// touches it at all.
-function zoneIntersectsRect(
-  direction: number,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number
-): boolean {
-  switch (direction) {
-    case LEFT:
-      return x0 < 0.5 && y1 > x0 && y0 < 1 - x0;
-    case RIGHT:
-      return x1 > 0.5 && y0 < x1 && y1 > 1 - x1;
-    case UP:
-      return y0 < 0.5 && x1 > y0 && x0 < 1 - y0;
-    case DOWN:
-      return y1 > 0.5 && x1 > 1 - y1 && x0 < y1;
-    default:
-      return false;
-  }
-}
-
 @Injectable()
 export class ScissorsTool implements ITool {
   parent!: ToolService;
 
   constructor(private blueprintService: BlueprintService) {}
 
-  private beginSelection: Vector2 | null = null;
-  private endSelection: Vector2 | null = null;
+  // The tile the drag started in, the float position it started at (used to
+  // measure drag direction), and the currently-picked neighbour direction
+  // (null while the cursor hasn't left the starting tile yet).
+  private startTile: Vector2 | null = null;
+  private startFloat: Vector2 | null = null;
+  private direction: number | null = null;
+
+  private neighborTile(tile: Vector2, direction: number): Vector2 {
+    let offset = DrawHelpers.connectionVectors[direction];
+    return new Vector2(tile.x + offset.x, tile.y + offset.y);
+  }
 
   private disconnectBit(item: BlueprintItemWire, direction: number) {
     let connectionsArray = DrawHelpers.getConnectionArray(item.connections);
@@ -60,11 +42,7 @@ export class ScissorsTool implements ITool {
     item.connections = DrawHelpers.getConnection(connectionsArray);
     item.updateTileables(this.blueprintService.blueprint);
 
-    let offset = DrawHelpers.connectionVectors[direction];
-    let neighborPosition = new Vector2(
-      item.position.x + offset.x,
-      item.position.y + offset.y
-    );
+    let neighborPosition = this.neighborTile(item.position, direction);
 
     let neighborItems = this.blueprintService.blueprint
       .getBlueprintItemsAt(neighborPosition)
@@ -84,57 +62,26 @@ export class ScissorsTool implements ITool {
     }
   }
 
-  private cutBox(begin: Vector2, end: Vector2) {
-    // Only cut connections belonging to the overlay currently being viewed
-    // (Power/Plumbing/Ventilation/etc), same as build-tool restricts placement.
+  // Cuts the single connection (if any) between `tile` and its neighbour in
+  // `direction`, restricted to connectables on the currently viewed overlay.
+  private cutBetween(tile: Vector2, direction: number) {
     let currentOverlay = CameraService.cameraService?.overlay;
-
-    let xMin = Math.min(begin.x, end.x);
-    let xMax = Math.max(begin.x, end.x);
-    let yMin = Math.min(begin.y, end.y);
-    let yMax = Math.max(begin.y, end.y);
-
-    // Tile range spanned by the continuous box, using the same integer tile
-    // convention (floor x, ceil y) as the rest of the tool code.
-    let topLeftTile = DrawHelpers.getIntegerTile(new Vector2(xMin, yMax));
-    let bottomRightTile = DrawHelpers.getIntegerTile(new Vector2(xMax, yMin));
 
     this.blueprintService.blueprint.pauseChangeEvents();
 
     try {
-      for (let tileX = topLeftTile.x; tileX <= bottomRightTile.x; tileX++) {
-        for (let tileY = bottomRightTile.y; tileY <= topLeftTile.y; tileY++) {
-          let localX0 = Math.min(Math.max(xMin - tileX, 0), 1);
-          let localX1 = Math.min(Math.max(xMax - tileX, 0), 1);
-          let localY0 = Math.min(Math.max(tileY - yMax, 0), 1);
-          let localY1 = Math.min(Math.max(tileY - yMin, 0), 1);
+      let wireItems = this.blueprintService.blueprint
+        .getBlueprintItemsAt(tile)
+        .filter(
+          (i) => i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay)
+        ) as BlueprintItemWire[];
 
-          let wireItems = this.blueprintService.blueprint
-            .getBlueprintItemsAt(new Vector2(tileX, tileY))
-            .filter(
-              (i) =>
-                i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay)
-            ) as BlueprintItemWire[];
-
-          for (let wireItem of wireItems) {
-            let connectionsArray = DrawHelpers.getConnectionArray(
-              wireItem.connections
-            );
-            for (let direction = 0; direction < 4; direction++) {
-              if (
-                connectionsArray[direction] &&
-                zoneIntersectsRect(
-                  direction,
-                  localX0,
-                  localY0,
-                  localX1,
-                  localY1
-                )
-              )
-                this.disconnectBit(wireItem, direction);
-            }
-          }
-        }
+      for (let wireItem of wireItems) {
+        let connectionsArray = DrawHelpers.getConnectionArray(
+          wireItem.connections
+        );
+        if (connectionsArray[direction])
+          this.disconnectBit(wireItem, direction);
       }
     } finally {
       this.blueprintService.blueprint.resumeChangeEvents();
@@ -143,8 +90,9 @@ export class ScissorsTool implements ITool {
 
   // Tool interface :
   switchFrom() {
-    this.beginSelection = null;
-    this.endSelection = null;
+    this.startTile = null;
+    this.startFloat = null;
+    this.direction = null;
   }
 
   switchTo() {
@@ -153,9 +101,10 @@ export class ScissorsTool implements ITool {
 
   mouseOut() {}
 
-  mouseDown(_tile: Vector2, tileFloat?: Vector2) {
-    this.beginSelection = Vector2.clone(tileFloat ?? undefined);
-    this.endSelection = null;
+  mouseDown(tile: Vector2, tileFloat?: Vector2) {
+    this.startFloat = Vector2.clone(tileFloat ?? tile)!;
+    this.startTile = DrawHelpers.getIntegerTile(this.startFloat);
+    this.direction = null;
   }
 
   leftClick(_tile: Vector2) {}
@@ -166,37 +115,56 @@ export class ScissorsTool implements ITool {
 
   hover(_tile: Vector2) {}
 
-  drag(tileStart: Vector2, tileStop: Vector2) {
-    if (this.beginSelection == null)
-      this.beginSelection = Vector2.clone(tileStart)!;
-    this.endSelection = Vector2.clone(tileStop)!;
+  // tileStart is a delayed/possibly-null sample (see DragAndDropDirective), so
+  // direction is measured from the anchor captured in mouseDown, not from it.
+  drag(_tileStart: Vector2, tileStop: Vector2) {
+    if (tileStop == null) return;
+
+    if (this.startFloat == null) {
+      this.startFloat = Vector2.clone(tileStop)!;
+      this.startTile = DrawHelpers.getIntegerTile(tileStop);
+    }
+
+    let currentTile = DrawHelpers.getIntegerTile(tileStop);
+    if (currentTile.equals(this.startTile!)) {
+      this.direction = null;
+      return;
+    }
+
+    let deltaX = tileStop.x - this.startFloat.x;
+    let deltaY = tileStop.y - this.startFloat.y;
+
+    if (Math.abs(deltaX) >= Math.abs(deltaY))
+      this.direction = deltaX > 0 ? RIGHT : LEFT;
+    else this.direction = deltaY > 0 ? UP : DOWN;
   }
 
   dragStop() {
-    if (this.beginSelection != null)
-      this.cutBox(
-        this.beginSelection,
-        this.endSelection ?? this.beginSelection
-      );
+    if (this.startTile != null && this.direction != null)
+      this.cutBetween(this.startTile, this.direction);
 
-    this.beginSelection = null;
-    this.endSelection = null;
+    this.startTile = null;
+    this.startFloat = null;
+    this.direction = null;
   }
 
   keyDown(_keyCode: string) {}
 
   draw(drawPixi: DrawPixi, camera: CameraService) {
-    if (this.beginSelection == null) return;
+    if (this.startTile == null) return;
 
-    let end = this.endSelection ?? this.beginSelection;
+    let tiles =
+      this.direction == null
+        ? [this.startTile]
+        : [this.startTile, this.neighborTile(this.startTile, this.direction)];
 
     let topLeft = new Vector2(
-      Math.min(this.beginSelection.x, end.x),
-      Math.max(this.beginSelection.y, end.y)
+      Math.min(...tiles.map((t) => t.x)),
+      Math.max(...tiles.map((t) => t.y))
     );
     let bottomRight = new Vector2(
-      Math.max(this.beginSelection.x, end.x),
-      Math.min(this.beginSelection.y, end.y)
+      Math.max(...tiles.map((t) => t.x)) + 1,
+      Math.min(...tiles.map((t) => t.y)) - 1
     );
 
     drawPixi.drawTileRectangle(

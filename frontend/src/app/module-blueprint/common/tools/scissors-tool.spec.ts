@@ -69,107 +69,150 @@ describe("ScissorsTool", () => {
     });
   });
 
-  describe("dragStop with no prior mouseDown/drag", () => {
+  describe("plain click (mouseDown + dragStop, no drag)", () => {
+    it("does nothing", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.dragStop();
+
+      expect(mockBlueprint.getBlueprintItemsAt).not.toHaveBeenCalled();
+      expect(mockBlueprint.pauseChangeEvents).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("dragStop with no prior mouseDown", () => {
     it("does nothing", () => {
       tool.dragStop();
       expect(mockBlueprint.getBlueprintItemsAt).not.toHaveBeenCalled();
     });
   });
 
-  describe("click (mouseDown + dragStop, no drag in between)", () => {
-    // Click at world (2.2, 2.1) -> tile (2,3) [floor x, ceil y]
-    // local coords within tile: x=0.2, y=3-2.1=0.9 -> falls only in the "Down" zone
-    it("resolves the click to a single triangle of control and cuts only that connection", () => {
-      const wireAtClick = makeWireItem({
-        position: new Vector2(2, 3),
-        connections: 8, // Down bit set
-      });
-      const neighborBelow = makeWireItem({
-        position: new Vector2(2, 2),
-        connections: 4, // Up bit set (opposite side of the same link)
-      });
-
-      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
-        if (pos.x == 2 && pos.y == 3) return [wireAtClick];
-        if (pos.x == 2 && pos.y == 2) return [neighborBelow];
-        return [];
-      });
-
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+  describe("dragging within the starting tile", () => {
+    it("does not cut anything, since only one box is selected", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(2.6, 2.4)); // still tile (2,3)
       tool.dragStop();
 
-      expect(wireAtClick.connections & 8).toBe(0);
-      expect(neighborBelow.connections & 4).toBe(0);
-      expect(wireAtClick.updateTileables).toHaveBeenCalledWith(mockBlueprint);
-      expect(neighborBelow.updateTileables).toHaveBeenCalledWith(mockBlueprint);
-    });
-
-    it("leaves connections in other zones untouched", () => {
-      const wireAtClick = makeWireItem({
-        position: new Vector2(2, 3),
-        connections: 8 | 1, // Down + Left
-      });
-
-      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
-        if (pos.x == 2 && pos.y == 3) return [wireAtClick];
-        return [];
-      });
-
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
-      tool.dragStop();
-
-      expect(wireAtClick.connections & 8).toBe(0);
-      expect(wireAtClick.connections & 1).toBe(1);
-    });
-
-    it("does not affect a wire with no connection in the clicked zone", () => {
-      const wireAtClick = makeWireItem({
-        position: new Vector2(2, 3),
-        connections: 1, // Left only, click zone is Down
-      });
-
-      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
-        if (pos.x == 2 && pos.y == 3) return [wireAtClick];
-        return [];
-      });
-
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
-      tool.dragStop();
-
-      expect(wireAtClick.connections).toBe(1);
-      expect(wireAtClick.updateTileables).not.toHaveBeenCalled();
+      expect(mockBlueprint.getBlueprintItemsAt).not.toHaveBeenCalled();
     });
   });
 
-  describe("drag across multiple tiles", () => {
-    it("cuts all connections whose zone is covered by the box, across every overlapping tile", () => {
-      // Box covers the whole of tile (0,1) and tile (1,1) entirely
-      const wireA = makeWireItem({
-        position: new Vector2(0, 1),
-        connections: 1 | 2 | 4 | 8,
-      });
-      const wireB = makeWireItem({
-        position: new Vector2(1, 1),
-        connections: 1 | 2 | 4 | 8,
-      });
+  describe("dragging into a neighboring tile", () => {
+    // startTile is (2,3): floor(2.5)=2, ceil(2.5)=3
+    const start = () => new Vector2(2.5, 2.5);
 
+    it("dragging right cuts the connection toward tile (3,3)", () => {
+      const wire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 1 | 2, // Left + Right
+      });
       mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
-        if (pos.x == 0 && pos.y == 1) return [wireA];
-        if (pos.x == 1 && pos.y == 1) return [wireB];
+        if (pos.x == 2 && pos.y == 3) return [wire];
         return [];
       });
 
-      tool.mouseDown(new Vector2(0, 1), new Vector2(0, 1));
-      tool.drag(new Vector2(0, 1), new Vector2(2, 0));
+      tool.mouseDown(new Vector2(2, 3), start());
+      tool.drag(start(), new Vector2(3.5, 2.5));
       tool.dragStop();
 
-      expect(wireA.connections).toBe(0);
-      expect(wireB.connections).toBe(0);
+      expect(wire.connections & 2).toBe(0); // Right cleared
+      expect(wire.connections & 1).toBe(1); // Left untouched
     });
 
-    it("batches the changes between pauseChangeEvents/resumeChangeEvents", () => {
-      tool.mouseDown(new Vector2(0, 1), new Vector2(0, 1));
-      tool.drag(new Vector2(0, 1), new Vector2(2, 0));
+    it("dragging left cuts the connection toward tile (1,3)", () => {
+      const wire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 1, // Left
+      });
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [wire];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), start());
+      tool.drag(start(), new Vector2(1.5, 2.5));
+      tool.dragStop();
+
+      expect(wire.connections & 1).toBe(0);
+    });
+
+    it("dragging up cuts the connection toward tile (2,4)", () => {
+      const wire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 4, // Up
+      });
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [wire];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), start());
+      tool.drag(start(), new Vector2(2.5, 3.5));
+      tool.dragStop();
+
+      expect(wire.connections & 4).toBe(0);
+    });
+
+    it("dragging down cuts the connection toward tile (2,2)", () => {
+      const wire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 8, // Down
+      });
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [wire];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), start());
+      tool.drag(start(), new Vector2(2.5, 1.5));
+      tool.dragStop();
+
+      expect(wire.connections & 8).toBe(0);
+    });
+
+    it("clears the opposite bit on the neighbor sharing the connection", () => {
+      const wire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 2,
+      });
+      const neighbor = makeWireItem({
+        position: new Vector2(3, 3),
+        connections: 1,
+      });
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [wire];
+        if (pos.x == 3 && pos.y == 3) return [neighbor];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), start());
+      tool.drag(start(), new Vector2(3.5, 2.5));
+      tool.dragStop();
+
+      expect(wire.connections & 2).toBe(0);
+      expect(neighbor.connections & 1).toBe(0);
+    });
+
+    it("does nothing when there is no connection in the picked direction", () => {
+      const wire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 1,
+      }); // Left only
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [wire];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), start());
+      tool.drag(start(), new Vector2(3.5, 2.5)); // Right
+      tool.dragStop();
+
+      expect(wire.connections).toBe(1);
+      expect(wire.updateTileables).not.toHaveBeenCalled();
+    });
+
+    it("batches the change between pauseChangeEvents/resumeChangeEvents", () => {
+      tool.mouseDown(new Vector2(2, 3), start());
+      tool.drag(start(), new Vector2(3.5, 2.5));
       tool.dragStop();
 
       expect(mockBlueprint.pauseChangeEvents).toHaveBeenCalled();
@@ -177,94 +220,58 @@ describe("ScissorsTool", () => {
     });
   });
 
-  describe("connectable-type isolation", () => {
-    it("cuts each stacked connectable independently based on its own bitmask", () => {
-      const powerWire = makeWireItem({
+  describe("direction is the dominant axis of the drag", () => {
+    it("picks Right/Left when horizontal movement dominates, even with some vertical drift", () => {
+      const wire = makeWireItem({
         position: new Vector2(2, 3),
-        connections: 8,
-        oniItem: {
-          isWire: true,
-          objectLayer: 1,
-          isOverlayPrimary: vi.fn().mockReturnValue(true),
-        },
+        connections: 2,
       });
-      const gasPipe = makeWireItem({
-        position: new Vector2(2, 3),
-        connections: 8,
-        oniItem: {
-          isWire: true,
-          objectLayer: 5,
-          isOverlayPrimary: vi.fn().mockReturnValue(true),
-        },
-      });
-      const nonWireDecoration = {
-        oniItem: {
-          isWire: false,
-          objectLayer: 9,
-          isOverlayPrimary: vi.fn().mockReturnValue(true),
-        },
-        connections: 8,
-        position: new Vector2(2, 3),
-        updateTileables: vi.fn(),
-      };
-
       mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
-        if (pos.x == 2 && pos.y == 3)
-          return [powerWire, gasPipe, nonWireDecoration];
+        if (pos.x == 2 && pos.y == 3) return [wire];
         return [];
       });
 
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.9));
       tool.dragStop();
 
-      expect(powerWire.connections & 8).toBe(0);
-      expect(gasPipe.connections & 8).toBe(0);
-      // Non-wire items are never touched (isWire filter)
-      expect(nonWireDecoration.connections).toBe(8);
-      expect(nonWireDecoration.updateTileables).not.toHaveBeenCalled();
+      expect(wire.connections & 2).toBe(0);
     });
 
-    it("only clears the opposite bit on neighbors sharing the same objectLayer", () => {
-      const wireAtClick = makeWireItem({
+    it("picks Up/Down when vertical movement dominates, even with some horizontal drift", () => {
+      const wire = makeWireItem({
         position: new Vector2(2, 3),
-        connections: 8,
-        oniItem: {
-          isWire: true,
-          objectLayer: 1,
-          isOverlayPrimary: vi.fn().mockReturnValue(true),
-        },
-      });
-      const sameLayerNeighbor = makeWireItem({
-        position: new Vector2(2, 2),
         connections: 4,
-        oniItem: {
-          isWire: true,
-          objectLayer: 1,
-          isOverlayPrimary: vi.fn().mockReturnValue(true),
-        },
       });
-      const otherLayerNeighbor = makeWireItem({
-        position: new Vector2(2, 2),
-        connections: 4,
-        oniItem: {
-          isWire: true,
-          objectLayer: 2,
-          isOverlayPrimary: vi.fn().mockReturnValue(true),
-        },
-      });
-
       mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
-        if (pos.x == 2 && pos.y == 3) return [wireAtClick];
-        if (pos.x == 2 && pos.y == 2)
-          return [sameLayerNeighbor, otherLayerNeighbor];
+        if (pos.x == 2 && pos.y == 3) return [wire];
         return [];
       });
 
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(2.9, 3.5));
       tool.dragStop();
 
-      expect(sameLayerNeighbor.connections & 4).toBe(0);
-      expect(otherLayerNeighbor.connections & 4).toBe(4);
+      expect(wire.connections & 4).toBe(0);
+    });
+
+    it("only the final direction at mouse-up is cut when the drag changes direction", () => {
+      const wire = makeWireItem({
+        position: new Vector2(2, 3),
+        connections: 2 | 4, // Right + Up
+      });
+      mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
+        if (pos.x == 2 && pos.y == 3) return [wire];
+        return [];
+      });
+
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5)); // momentarily Right
+      tool.drag(new Vector2(3.5, 2.5), new Vector2(2.5, 3.5)); // ends up Up
+      tool.dragStop();
+
+      expect(wire.connections & 4).toBe(0); // Up cut
+      expect(wire.connections & 2).toBe(2); // Right left alone
     });
   });
 
@@ -272,7 +279,7 @@ describe("ScissorsTool", () => {
     it("only cuts connectables belonging to the currently viewed overlay", () => {
       const powerWire = makeWireItem({
         position: new Vector2(2, 3),
-        connections: 8,
+        connections: 2,
         oniItem: {
           isWire: true,
           objectLayer: 1,
@@ -281,25 +288,24 @@ describe("ScissorsTool", () => {
       });
       const gasPipe = makeWireItem({
         position: new Vector2(2, 3),
-        connections: 8,
+        connections: 2,
         oniItem: {
           isWire: true,
           objectLayer: 5,
           isOverlayPrimary: vi.fn().mockReturnValue(false),
         },
       });
-
       mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
         if (pos.x == 2 && pos.y == 3) return [powerWire, gasPipe];
         return [];
       });
 
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5));
       tool.dragStop();
 
-      expect(powerWire.connections & 8).toBe(0);
-      // Not on the active (Power) overlay -> left untouched
-      expect(gasPipe.connections).toBe(8);
+      expect(powerWire.connections & 2).toBe(0);
+      expect(gasPipe.connections).toBe(2);
       expect(gasPipe.updateTileables).not.toHaveBeenCalled();
     });
 
@@ -307,15 +313,15 @@ describe("ScissorsTool", () => {
       mockCameraService.overlay = Overlay.Gas;
       const gasPipe = makeWireItem({
         position: new Vector2(2, 3),
-        connections: 8,
+        connections: 2,
       });
-
       mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
         if (pos.x == 2 && pos.y == 3) return [gasPipe];
         return [];
       });
 
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5));
       tool.dragStop();
 
       expect(gasPipe.oniItem.isOverlayPrimary).toHaveBeenCalledWith(
@@ -323,38 +329,35 @@ describe("ScissorsTool", () => {
       );
     });
 
-    it("passes undefined to isOverlayPrimary (and thus cuts nothing) when no camera is available", () => {
-      vi.spyOn(CameraService, "cameraService", "get").mockReturnValue(
-        undefined as any
-      );
-      const wireAtClick = makeWireItem({
-        position: new Vector2(2, 3),
-        connections: 8,
+    it("ignores non-wire items entirely", () => {
+      const nonWire = {
         oniItem: {
-          isWire: true,
+          isWire: false,
           objectLayer: 1,
-          isOverlayPrimary: vi.fn().mockReturnValue(false),
+          isOverlayPrimary: vi.fn().mockReturnValue(true),
         },
-      });
-
+        connections: 2,
+        position: new Vector2(2, 3),
+        updateTileables: vi.fn(),
+      };
       mockBlueprint.getBlueprintItemsAt.mockImplementation((pos: Vector2) => {
-        if (pos.x == 2 && pos.y == 3) return [wireAtClick];
+        if (pos.x == 2 && pos.y == 3) return [nonWire];
         return [];
       });
 
-      tool.mouseDown(new Vector2(2, 3), new Vector2(2.2, 2.1));
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5));
       tool.dragStop();
 
-      expect(wireAtClick.oniItem.isOverlayPrimary).toHaveBeenCalledWith(
-        undefined
-      );
-      expect(wireAtClick.connections).toBe(8);
+      expect(nonWire.connections).toBe(2);
+      expect(nonWire.updateTileables).not.toHaveBeenCalled();
     });
   });
 
   describe("switchFrom", () => {
     it("clears any in-progress selection", () => {
-      tool.mouseDown(new Vector2(0, 0), new Vector2(0.5, 0.5));
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5));
       tool.switchFrom();
 
       const mockDrawPixi = { drawTileRectangle: vi.fn() } as any;
@@ -370,13 +373,43 @@ describe("ScissorsTool", () => {
       expect(mockDrawPixi.drawTileRectangle).not.toHaveBeenCalled();
     });
 
-    it("draws a preview rectangle while a selection is in progress", () => {
-      tool.mouseDown(new Vector2(0, 0), new Vector2(0.5, 0.5));
-      tool.drag(new Vector2(0.5, 0.5), new Vector2(2.5, -1.5));
+    it("draws a single-tile square while still within the starting tile", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
 
       const mockDrawPixi = { drawTileRectangle: vi.fn() } as any;
       tool.draw(mockDrawPixi, {} as any);
-      expect(mockDrawPixi.drawTileRectangle).toHaveBeenCalled();
+
+      expect(mockDrawPixi.drawTileRectangle).toHaveBeenCalledWith(
+        {},
+        new Vector2(2, 3),
+        new Vector2(3, 2),
+        true,
+        2,
+        0xff4c00,
+        0x963300,
+        0.25,
+        0.8
+      );
+    });
+
+    it("draws a two-tile rectangle once a direction is picked", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5)); // Right -> neighbor (3,3)
+
+      const mockDrawPixi = { drawTileRectangle: vi.fn() } as any;
+      tool.draw(mockDrawPixi, {} as any);
+
+      expect(mockDrawPixi.drawTileRectangle).toHaveBeenCalledWith(
+        {},
+        new Vector2(2, 3),
+        new Vector2(4, 2),
+        true,
+        2,
+        0xff4c00,
+        0x963300,
+        0.25,
+        0.8
+      );
     });
   });
 });
