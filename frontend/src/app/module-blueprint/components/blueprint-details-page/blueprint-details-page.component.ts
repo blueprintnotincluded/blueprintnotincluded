@@ -58,19 +58,24 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.router.navigate(["/profile", data.filterUserName]);
   }
 
+  // Complete singular/plural messages (not a conditional suffix) so
+  // translators control each form
   get nbForksString() {
-    const nbForks = this.details?.nbForks ?? 0;
-    return $localize`fork${nbForks !== 1 ? "s" : ""}`;
+    return (this.details?.nbForks ?? 0) === 1
+      ? $localize`:forkSingular:fork`
+      : $localize`:forkPlural:forks`;
   }
 
   get nbViewsString() {
-    const nbViews = this.details?.nbViews ?? 0;
-    return $localize`view${nbViews !== 1 ? "s" : ""}`;
+    return (this.details?.nbViews ?? 0) === 1
+      ? $localize`:viewSingular:view`
+      : $localize`:viewPlural:views`;
   }
 
   get nbDownloadsString() {
-    const nbDownloads = this.details?.nbDownloads ?? 0;
-    return $localize`download${nbDownloads !== 1 ? "s" : ""}`;
+    return (this.details?.nbDownloads ?? 0) === 1
+      ? $localize`:downloadSingular:download`
+      : $localize`:downloadPlural:downloads`;
   }
 
   ngOnInit() {

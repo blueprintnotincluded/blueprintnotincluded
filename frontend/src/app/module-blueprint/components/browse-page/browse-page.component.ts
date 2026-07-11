@@ -58,7 +58,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   viewMode: "discover" | "feed" = "discover";
   followingCount = 0;
 
-  readonly sortOptions = [
+  readonly sortOptions: { label: string; value: BlueprintSort }[] = [
     { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
     { label: $localize`:browse.sortMostLiked:Most liked`, value: "popular" },
     {
