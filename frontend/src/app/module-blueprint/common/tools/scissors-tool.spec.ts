@@ -2,6 +2,23 @@ import { ScissorsTool } from "./scissors-tool";
 import { CameraService, Overlay, Vector2 } from "../../../../../../lib/index";
 import { ToolType } from "./tool";
 
+const makeMockDrawPixi = () => {
+  const sprite: any = {
+    tint: 0,
+    anchor: { set: vi.fn() },
+    scale: { set: vi.fn() },
+    position: { x: 0, y: 0 },
+    angle: 0,
+    visible: false,
+    texture: { height: 200 },
+  };
+  return {
+    drawTileRectangle: vi.fn(),
+    getSpriteFrom: vi.fn().mockReturnValue(sprite),
+    pixiApp: { stage: { addChild: vi.fn() } },
+  } as any;
+};
+
 const makeWireItem = (overrides: any = {}) => ({
   oniItem: {
     isWire: true,
@@ -360,15 +377,29 @@ describe("ScissorsTool", () => {
       tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5));
       tool.switchFrom();
 
-      const mockDrawPixi = { drawTileRectangle: vi.fn() } as any;
+      const mockDrawPixi = makeMockDrawPixi();
       tool.draw(mockDrawPixi, {} as any);
       expect(mockDrawPixi.drawTileRectangle).not.toHaveBeenCalled();
+    });
+
+    it("hides the ready icon if it was already showing", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5));
+      const mockDrawPixi = makeMockDrawPixi();
+      const mockCamera = { currentZoom: 1, cameraOffset: new Vector2(0, 0) };
+      tool.draw(mockDrawPixi, mockCamera as any);
+      const sprite = mockDrawPixi.getSpriteFrom.mock.results[0].value;
+      expect(sprite.visible).toBe(true);
+
+      tool.switchFrom();
+
+      expect(sprite.visible).toBe(false);
     });
   });
 
   describe("draw", () => {
     it("does not draw when no selection is in progress", () => {
-      const mockDrawPixi = { drawTileRectangle: vi.fn() } as any;
+      const mockDrawPixi = makeMockDrawPixi();
       tool.draw(mockDrawPixi, {} as any);
       expect(mockDrawPixi.drawTileRectangle).not.toHaveBeenCalled();
     });
@@ -376,40 +407,94 @@ describe("ScissorsTool", () => {
     it("draws a single-tile square while still within the starting tile", () => {
       tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
 
-      const mockDrawPixi = { drawTileRectangle: vi.fn() } as any;
-      tool.draw(mockDrawPixi, {} as any);
+      const mockDrawPixi = makeMockDrawPixi();
+      const mockCamera = {} as any;
+      tool.draw(mockDrawPixi, mockCamera);
 
       expect(mockDrawPixi.drawTileRectangle).toHaveBeenCalledWith(
-        {},
+        mockCamera,
         new Vector2(2, 3),
         new Vector2(3, 2),
         true,
         2,
-        0xff4c00,
-        0x963300,
+        0xffc341,
+        0xffc341,
         0.25,
-        0.8
+        1
       );
+    });
+
+    it("does not show the ready icon while only one tile is selected", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+
+      const mockDrawPixi = makeMockDrawPixi();
+      tool.draw(mockDrawPixi, {} as any);
+
+      const sprite = mockDrawPixi.getSpriteFrom.mock.results[0].value;
+      expect(sprite.visible).toBe(false);
     });
 
     it("draws a two-tile rectangle once a direction is picked", () => {
       tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
       tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5)); // Right -> neighbor (3,3)
 
-      const mockDrawPixi = { drawTileRectangle: vi.fn() } as any;
-      tool.draw(mockDrawPixi, {} as any);
+      const mockDrawPixi = makeMockDrawPixi();
+      const mockCamera = { currentZoom: 1, cameraOffset: new Vector2(0, 0) };
+      tool.draw(mockDrawPixi, mockCamera as any);
 
       expect(mockDrawPixi.drawTileRectangle).toHaveBeenCalledWith(
-        {},
+        mockCamera,
         new Vector2(2, 3),
         new Vector2(4, 2),
         true,
         2,
-        0xff4c00,
-        0x963300,
+        0xffc341,
+        0xffc341,
         0.25,
-        0.8
+        1
       );
+    });
+
+    it("shows the ready icon at the midpoint of the two tiles, unrotated for a horizontal pick", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5)); // Right -> neighbor (3,3)
+
+      const mockDrawPixi = makeMockDrawPixi();
+      const mockCamera = { currentZoom: 40, cameraOffset: new Vector2(0, 0) };
+      tool.draw(mockDrawPixi, mockCamera as any);
+
+      const sprite = mockDrawPixi.getSpriteFrom.mock.results[0].value;
+      expect(sprite.visible).toBe(true);
+      expect(sprite.angle).toBe(0);
+      expect(sprite.tint).toBe(0xffc341);
+      // midpoint between tile (2,3) and (3,3) centers is world (3, 2.5)
+      expect(sprite.position.x).toBeCloseTo(3 * 40);
+      expect(sprite.position.y).toBeCloseTo(-2.5 * 40);
+    });
+
+    it("rotates the ready icon 90 degrees for a vertical pick", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(2.5, 4.5)); // Up -> neighbor (2,4)
+
+      const mockDrawPixi = makeMockDrawPixi();
+      const mockCamera = { currentZoom: 1, cameraOffset: new Vector2(0, 0) };
+      tool.draw(mockDrawPixi, mockCamera as any);
+
+      const sprite = mockDrawPixi.getSpriteFrom.mock.results[0].value;
+      expect(sprite.angle).toBe(90);
+    });
+
+    it("reuses the same sprite across multiple draw calls instead of recreating it", () => {
+      tool.mouseDown(new Vector2(2, 3), new Vector2(2.5, 2.5));
+      tool.drag(new Vector2(2.5, 2.5), new Vector2(3.5, 2.5));
+
+      const mockDrawPixi = makeMockDrawPixi();
+      const mockCamera = { currentZoom: 1, cameraOffset: new Vector2(0, 0) };
+      tool.draw(mockDrawPixi, mockCamera as any);
+      tool.draw(mockDrawPixi, mockCamera as any);
+
+      expect(mockDrawPixi.getSpriteFrom).toHaveBeenCalledTimes(1);
+      expect(mockDrawPixi.pixiApp.stage.addChild).toHaveBeenCalledTimes(1);
     });
   });
 });

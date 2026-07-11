@@ -16,6 +16,11 @@ const RIGHT = 1;
 const UP = 2;
 const DOWN = 3;
 
+const SCISSORS_COLOR = 0xffc341;
+const READY_ICON_URL = "assets/images/disconnect-ready.png";
+// Fraction of one tile's on-screen height the ready icon is sized to.
+const READY_ICON_TILE_FRACTION = 0.7;
+
 @Injectable()
 export class ScissorsTool implements ITool {
   parent!: ToolService;
@@ -28,6 +33,10 @@ export class ScissorsTool implements ITool {
   private startTile: Vector2 | null = null;
   private startFloat: Vector2 | null = null;
   private direction: number | null = null;
+
+  // Created lazily on first draw() and reused every frame after that (see
+  // DrawMiniUi for the same create-once-mutate-per-frame sprite pattern).
+  private readyIcon: any = null;
 
   private neighborTile(tile: Vector2, direction: number): Vector2 {
     let offset = DrawHelpers.connectionVectors[direction];
@@ -93,6 +102,7 @@ export class ScissorsTool implements ITool {
     this.startTile = null;
     this.startFloat = null;
     this.direction = null;
+    if (this.readyIcon != null) this.readyIcon.visible = false;
   }
 
   switchTo() {
@@ -150,7 +160,53 @@ export class ScissorsTool implements ITool {
 
   keyDown(_keyCode: string) {}
 
+  private ensureReadyIcon(drawPixi: DrawPixi): any {
+    if (this.readyIcon == null) {
+      this.readyIcon = drawPixi.getSpriteFrom(READY_ICON_URL);
+      this.readyIcon.tint = SCISSORS_COLOR;
+      this.readyIcon.anchor.set(0.5, 0.5);
+      drawPixi.pixiApp.stage.addChild(this.readyIcon);
+    }
+    return this.readyIcon;
+  }
+
+  // Positions/rotates/shows the "ready to cut" icon at the midpoint of the
+  // two selected tiles, or hides it while there's no two-tile selection yet.
+  private updateReadyIcon(drawPixi: DrawPixi, camera: CameraService) {
+    let icon = this.ensureReadyIcon(drawPixi);
+
+    if (this.startTile == null || this.direction == null) {
+      icon.visible = false;
+      return;
+    }
+
+    // The source art is oriented for a horizontal (Left/Right) selection —
+    // a vertical dashed cut line between two side-by-side tiles — so a
+    // vertical (Up/Down) selection needs the icon rotated 90 degrees.
+    icon.angle = this.direction == UP || this.direction == DOWN ? 90 : 0;
+
+    if (icon.texture.height > 0) {
+      icon.scale.set(
+        (READY_ICON_TILE_FRACTION * camera.currentZoom) / icon.texture.height
+      );
+    }
+
+    let neighbor = this.neighborTile(this.startTile, this.direction);
+    let centerWorld = new Vector2(
+      (this.startTile.x + neighbor.x) / 2 + 0.5,
+      (this.startTile.y + neighbor.y) / 2 - 0.5
+    );
+
+    icon.position.x =
+      (centerWorld.x + camera.cameraOffset.x) * camera.currentZoom;
+    icon.position.y =
+      (-centerWorld.y + camera.cameraOffset.y) * camera.currentZoom;
+    icon.visible = true;
+  }
+
   draw(drawPixi: DrawPixi, camera: CameraService) {
+    this.updateReadyIcon(drawPixi, camera);
+
     if (this.startTile == null) return;
 
     let tiles =
@@ -173,10 +229,10 @@ export class ScissorsTool implements ITool {
       bottomRight,
       true,
       2,
-      0xff4c00,
-      0x963300,
+      SCISSORS_COLOR,
+      SCISSORS_COLOR,
       0.25,
-      0.8
+      1
     );
   }
 

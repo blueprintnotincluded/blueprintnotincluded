@@ -36,10 +36,15 @@ import {
   BlueprintService,
   ExportImageOptions,
 } from "../../services/blueprint-service";
-import { ToolService } from "../../services/tool-service";
+import { ToolService, IObsToolChanged } from "../../services/tool-service";
+import { ToolType } from "../../common/tools/tool";
 
 import {} from "pixi.js-legacy";
 declare var PIXI: any;
+
+// Hotspot is the sprite's center (32x54 baked cursor image).
+const SCISSORS_CURSOR =
+  "url(assets/images/disconnect-none-cursor.png) 16 27, auto";
 
 @Component({
   selector: "app-component-canvas",
@@ -49,7 +54,7 @@ declare var PIXI: any;
   providers: [DrawPixi],
 })
 export class ComponentCanvasComponent
-  implements OnInit, OnDestroy, IObsCameraChanged
+  implements OnInit, OnDestroy, IObsCameraChanged, IObsToolChanged
 {
   width!: number;
   height!: number;
@@ -84,6 +89,13 @@ export class ComponentCanvasComponent
     this.drawPixi = drawPixi;
     this.cameraService = new CameraService(this.drawPixi.getNewContainer());
     this.cameraService.subscribeCameraChange(this);
+    this.toolService.subscribeToolChanged(this);
+  }
+
+  toolChanged(toolType: ToolType) {
+    if (!this.forceSize)
+      this.canvasRef.nativeElement.style.cursor =
+        toolType == ToolType.scissors ? SCISSORS_CURSOR : "";
   }
 
   private running!: boolean;
