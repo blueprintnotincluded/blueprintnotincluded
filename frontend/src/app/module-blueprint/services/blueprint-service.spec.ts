@@ -471,6 +471,22 @@ describe("BlueprintService", () => {
       const body = mockHttp.post.mock.calls[0][1];
       expect(body.overwrite).toBe(true);
     });
+
+    it("sends sourceBlueprintId when the editor started from an existing blueprint", () => {
+      service.id = "source-bp-id";
+      mockHttp.post.mockReturnValue(of({ id: "copy-id" }));
+      service.saveBlueprint(false).subscribe(() => {});
+      const body = mockHttp.post.mock.calls[0][1];
+      expect(body.sourceBlueprintId).toBe("source-bp-id");
+    });
+
+    it("omits sourceBlueprintId for a brand-new blueprint", () => {
+      service.id = null;
+      mockHttp.post.mockReturnValue(of({}));
+      service.saveBlueprint(false).subscribe(() => {});
+      const body = mockHttp.post.mock.calls[0][1];
+      expect(body.sourceBlueprintId).toBeUndefined();
+    });
   });
 
   describe("likeBlueprint()", () => {

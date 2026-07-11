@@ -448,6 +448,10 @@ export class BlueprintService implements IObsBlueprintChange {
     // publish: true publishes in the same save; null/undefined keeps the
     // current state (new blueprints start as drafts server-side)
     if (publish != null) body.publish = publish;
+    // Copy-as-fork attribution: when the editor started from an existing
+    // blueprint, name it as the source — the server records forkedFrom when
+    // the save creates a copy because the requester isn't the owner
+    if (this.id != null) body.sourceBlueprintId = this.id;
     Object.assign(body, this.metadata);
     const request = this.http
       .post("/api/uploadblueprint", body, {
@@ -535,6 +539,9 @@ export class SaveBlueprintMessage {
   thumbnail!: string;
   // true = publish with this save; omitted = keep current publish state
   publish?: boolean;
+  // id of the blueprint the editor was opened from; the server records
+  // forkedFrom when the save creates a copy (requester isn't the owner)
+  sourceBlueprintId?: string;
   gameVersion?: string | null;
   category?: string | null;
   subcategory?: string | null;
