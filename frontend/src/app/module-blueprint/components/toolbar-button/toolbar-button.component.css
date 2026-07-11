@@ -37,7 +37,7 @@
 
 .toolbar-button:focus-visible {
   outline: none;
-  border: none;
+  box-shadow: 0 0 0 2px #ffc341;
 }
 
 .toolbar-button:disabled {
