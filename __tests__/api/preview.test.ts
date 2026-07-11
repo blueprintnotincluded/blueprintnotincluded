@@ -242,11 +242,13 @@ describe('Blueprint preview images', function () {
       const firstStarted = new Promise<void>(resolve => {
         releaseFirst = resolve;
       });
+      let renderStarted = false;
       const service = new PreviewImageService({
         cacheDir,
         disabled: false,
         renderQueueMax: 1,
         renderMasterFn: async () => {
+          renderStarted = true;
           await firstStarted;
           return fakeMaster;
         },
@@ -254,7 +256,11 @@ describe('Blueprint preview images', function () {
       const loadMdb = async () => ({ items: [] });
 
       const first = service.getVariant(new Types.ObjectId().toString(), null, 'card.webp', loadMdb);
-      await new Promise(resolve => setImmediate(resolve));
+      // getVariant awaits a real Mongo lookup before it reaches the queue-depth
+      // check, so a single setImmediate tick isn't a reliable enough signal
+      // that the first request has claimed its queue slot under CI load.
+      // Poll for the render actually starting instead.
+      await waitFor(() => renderStarted);
 
       // Queue holds one render (the active one); the next request is shed
       // immediately so the controller serves the legacy thumbnail.
