@@ -30,6 +30,8 @@ import {
 
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { DrawMiniUi } from "../../drawing/draw-mini-ui";
+import { DrawRoomOverlay } from "../../drawing/draw-room-overlay";
+import { RoomDetectionService } from "../../services/room-detection-service";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 import JSZip from "jszip";
 import {
@@ -73,6 +75,7 @@ export class ComponentCanvasComponent
   forcedSize!: Vector2;
 
   drawPixi: DrawPixi;
+  drawRoomOverlay!: DrawRoomOverlay;
 
   private cameraService: CameraService;
 
@@ -84,6 +87,7 @@ export class ComponentCanvasComponent
     private blueprintService: BlueprintService,
     private toolService: ToolService,
     private gaService: GoogleAnalyticsService,
+    private roomDetectionService: RoomDetectionService,
     drawPixi: DrawPixi
   ) {
     this.drawPixi = drawPixi;
@@ -108,6 +112,7 @@ export class ComponentCanvasComponent
       this.drawPixi.Init(this.canvasRef, this);
       this.drawPixi.InitAnimation();
       this.cameraService.container = this.drawPixi.blueprintContainer;
+      this.drawRoomOverlay = new DrawRoomOverlay(this.drawPixi);
 
       if (this.forceSize) {
         let miniUi = new DrawMiniUi();
@@ -1055,6 +1060,20 @@ export class ComponentCanvasComponent
       }
 
       this.toolService.draw(this.drawPixi, this.cameraService);
+
+      // Room overlay: cavity tints + labels above everything. Only the main
+      // editor canvas drives detection activity — export/thumbnail canvases
+      // (forceSize) never show the Room overlay and must not fight the flag.
+      if (!this.forceSize) {
+        const roomOverlayActive = this.cameraService.overlay == Overlay.Room;
+        this.roomDetectionService.active = roomOverlayActive;
+        if (roomOverlayActive)
+          this.drawRoomOverlay.draw(
+            this.roomDetectionService.result,
+            this.cameraService
+          );
+        else this.drawRoomOverlay.clear();
+      }
     }
 
     if (this.pendingRenderMetric != null) this.checkRenderMetric();
