@@ -167,11 +167,12 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 ## Current Status
 
 - **Phase**: OniExtract2024 flat-icon rendering (current asset pipeline)
-- **Date**: 2026-07-06
+- **Date**: 2026-07-12
 - **Node.js**: 20.19.4 (via volta)
-- **Stack**: TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: ✅ Backend 427 passing (Mocha + Chai; 2 workos-provision specs flake locally, green in CI) · Frontend 670 passing (Vitest/jsdom)
+- **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
+- **Tests**: ✅ Backend 530 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 750 passing (Vitest/jsdom)
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
+- **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
 ### Asset rendering: OniExtract2024 flat icons
 Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas. Contract and
