@@ -43,13 +43,13 @@ export class CellElementPickerComponent implements OnInit {
   filterElements() {
     this.elements = [];
     this.elements.push(BuildableElement.getElement("None"));
-    for (let element of BuildableElement.elements) {
+    for (const element of BuildableElement.elements) {
       let filterString = false;
       let filterTag = false;
       let filterMissing = true;
 
       if (this.forceTag == undefined) {
-        for (let tag of this.selectedTags)
+        for (const tag of this.selectedTags)
           if (element.hasTag(tag)) filterTag = true;
       } else if (element.hasTag(this.forceTag)) filterTag = true;
 

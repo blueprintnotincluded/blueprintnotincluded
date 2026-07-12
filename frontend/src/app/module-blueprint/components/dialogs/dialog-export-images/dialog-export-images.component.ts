@@ -43,7 +43,7 @@ export class DialogExportImagesComponent implements OnInit {
           this.blueprintSize.y *
           this.exportOptions.pixelsPerTile *
           this.exportOptions.selectedOverlays.length *
-          0.00000068120021446078431372549;
+          6.812002144607843e-7;
   }
 
   constructor(private blueprintService: BlueprintService) {
@@ -68,7 +68,7 @@ export class DialogExportImagesComponent implements OnInit {
   }
 
   ngOnInit() {
-    let overlayList: Overlay[] = [
+    const overlayList: Overlay[] = [
       Overlay.Base,
       Overlay.Power,
       Overlay.Liquid,
@@ -106,9 +106,9 @@ export class DialogExportImagesComponent implements OnInit {
   showDialog() {
     this.visible = true;
 
-    let boundingBox = this.blueprintService.blueprint.getBoundingBox();
-    let topLeft = boundingBox[0];
-    let bottomRight = boundingBox[1];
+    const boundingBox = this.blueprintService.blueprint.getBoundingBox();
+    const topLeft = boundingBox[0];
+    const bottomRight = boundingBox[1];
     this.blueprintSize = new Vector2(
       bottomRight.x - topLeft.x + 3,
       bottomRight.y - topLeft.y + 3

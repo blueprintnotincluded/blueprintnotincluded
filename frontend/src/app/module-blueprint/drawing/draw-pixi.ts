@@ -11,7 +11,7 @@ import {
 import { ComponentMenuComponent } from "../components/component-menu/component-menu.component";
 
 import {} from "pixi.js-legacy";
-declare var PIXI: any;
+declare let PIXI: any;
 
 @Injectable()
 export class DrawPixi implements PixiUtil {
@@ -70,8 +70,8 @@ export class DrawPixi implements PixiUtil {
 
     this.parent = parent;
 
-    let htmlCanvas: HTMLCanvasElement = canvas.nativeElement;
-    let options: any = {};
+    const htmlCanvas: HTMLCanvasElement = canvas.nativeElement;
+    const options: any = {};
     options.view = htmlCanvas;
     options.width = canvas.nativeElement.width;
     options.height = canvas.nativeElement.height;
@@ -175,16 +175,16 @@ export class DrawPixi implements PixiUtil {
     fillAlpha: number,
     borderAlpha: number
   ) {
-    let rectanglePosition = new Vector2(
+    const rectanglePosition = new Vector2(
       (topLeft.x + camera.cameraOffset.x) * camera.currentZoom,
       (-topLeft.y + camera.cameraOffset.y) * camera.currentZoom
     );
-    let rectangleSize = new Vector2(
+    const rectangleSize = new Vector2(
       (bottomRight.x - topLeft.x) * camera.currentZoom,
       (topLeft.y - bottomRight.y) * camera.currentZoom
     );
 
-    let graphics = frontGraphics ? this.frontGraphics : this.backGraphics;
+    const graphics = frontGraphics ? this.frontGraphics : this.backGraphics;
 
     graphics.beginFill(fillColor, fillAlpha);
     graphics.drawRect(

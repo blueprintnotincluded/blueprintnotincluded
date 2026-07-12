@@ -73,7 +73,7 @@ export class RoomDetectionService implements IObsBlueprintChange {
   private recompute() {
     try {
       this.result_ = detectRooms(this.blueprintService.blueprint);
-    } catch (error) {
+    } catch {
       // Detection must never break the editor; drop the result and move on.
       this.result_ = null;
     }

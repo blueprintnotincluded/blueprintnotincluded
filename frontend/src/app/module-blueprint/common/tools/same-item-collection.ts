@@ -64,9 +64,9 @@ export class SameItemCollection {
       indexElement < this.oniItem.buildableElementsArray.length;
       indexElement++
     ) {
-      let elements: BuildableElement[] = [];
+      const elements: BuildableElement[] = [];
 
-      for (let item of this.items)
+      for (const item of this.items)
         if (elements.indexOf(item.buildableElements[indexElement]) == -1)
           elements.push(item.buildableElements[indexElement]);
 
@@ -78,20 +78,20 @@ export class SameItemCollection {
     let firstTemperature = null;
     this.temperatureWarning = false;
 
-    for (let item of this.items)
+    for (const item of this.items)
       if (firstTemperature == null) firstTemperature = item.temperature;
       else if (item.temperature != firstTemperature)
         this.temperatureWarning = true;
   }
 
   setSelection() {
-    for (let item of this.items) {
+    for (const item of this.items) {
       item.selected = this.selected_;
     }
   }
 
   destroyAll() {
-    for (let item of this.items)
+    for (const item of this.items)
       BlueprintService.blueprintService.blueprint.destroyBlueprintItem(item);
   }
 

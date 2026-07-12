@@ -48,9 +48,9 @@ export class BuildTool implements ITool {
   }
 
   private updateBuildCandidateResult() {
-    let previousCanBuild =
+    const previousCanBuild =
       this.templateItemToBuild.buildCandidateResult.canBuild.valueOf();
-    let previousCantBuildReason =
+    const previousCantBuildReason =
       this.templateItemToBuild.buildCandidateResult.cantBuildReason.valueOf();
 
     this.templateItemToBuild.buildCandidateResult.canBuild = true;
@@ -58,12 +58,12 @@ export class BuildTool implements ITool {
 
     // First : iterate all the buildings on each tile of this building
 
-    let isBridge = BRIDGE_LOCATION_RULES.has(
+    const isBridge = BRIDGE_LOCATION_RULES.has(
       this.templateItemToBuild.oniItem.buildLocationRule
     );
 
-    for (let tileIndex of this.templateItemToBuild.tileIndexes) {
-      for (let templateItem of this.blueprintService.blueprint.getBlueprintItemsAtIndex(
+    for (const tileIndex of this.templateItemToBuild.tileIndexes) {
+      for (const templateItem of this.blueprintService.blueprint.getBlueprintItemsAtIndex(
         tileIndex
       )) {
         // If at least one of them is in the same object layer, we can't build
@@ -86,21 +86,21 @@ export class BuildTool implements ITool {
       connectionIndex < utilityConnections.length;
       connectionIndex++
     ) {
-      let connectionToBuild = utilityConnections[connectionIndex];
+      const connectionToBuild = utilityConnections[connectionIndex];
       // Rotation/scale are baked into this cache whenever the candidate's orientation changes;
       // only the (cheap) position offset needs to happen per hover.
-      let cachedOffset =
+      const cachedOffset =
         this.templateItemToBuild.utilityConnectionOffsets[connectionIndex];
-      let connectionToBuildPosition = new Vector2(
+      const connectionToBuildPosition = new Vector2(
         cachedOffset.x + this.templateItemToBuild.position.x,
         cachedOffset.y + this.templateItemToBuild.position.y
       );
 
-      let utilitiesAtIndex =
+      const utilitiesAtIndex =
         this.blueprintService.blueprint.getUtilityConnectionsAtIndex(
           DrawHelpers.getTileIndex(connectionToBuildPosition)
         );
-      for (let trackedUtilities of utilitiesAtIndex) {
+      for (const trackedUtilities of utilitiesAtIndex) {
         if (
           ConnectionHelper.getConnectionOverlay(connectionToBuild.type) ==
           ConnectionHelper.getConnectionOverlay(
@@ -131,7 +131,7 @@ export class BuildTool implements ITool {
   build() {
     if (!this.templateItemToBuild.buildCandidateResult.canBuild) return;
 
-    let newItem = BlueprintHelpers.cloneBlueprintItem(
+    const newItem = BlueprintHelpers.cloneBlueprintItem(
       this.templateItemToBuild,
       false,
       true
@@ -181,14 +181,14 @@ export class BuildTool implements ITool {
     this.build();
 
     if (this.templateItemToBuild.oniItem.isWire) {
-      let itemsPrevious = this.blueprintService.blueprint
+      const itemsPrevious = this.blueprintService.blueprint
         .getBlueprintItemsAt(tileStart)
         .filter(
           (i) =>
             i.oniItem.objectLayer ==
             this.templateItemToBuild.oniItem.objectLayer
         );
-      let itemsCurrent = this.blueprintService.blueprint
+      const itemsCurrent = this.blueprintService.blueprint
         .getBlueprintItemsAt(tileStop)
         .filter(
           (i) =>
@@ -202,8 +202,8 @@ export class BuildTool implements ITool {
         itemsCurrent != null &&
         itemsCurrent.length > 0
       ) {
-        let itemPrevious = itemsPrevious[0] as BlueprintItemWire;
-        let itemCurrent = itemsCurrent[0] as BlueprintItemWire;
+        const itemPrevious = itemsPrevious[0] as BlueprintItemWire;
+        const itemCurrent = itemsCurrent[0] as BlueprintItemWire;
 
         this.connectAToB(itemPrevious, itemCurrent);
         this.connectAToB(itemCurrent, itemPrevious);
@@ -248,8 +248,8 @@ export class BuildTool implements ITool {
   drag(tileStart: Vector2, tileStop: Vector2) {
     if (tileStart == null || tileStop == null) return;
 
-    let tileStartInt = DrawHelpers.getIntegerTile(tileStart);
-    let tileStopInt = DrawHelpers.getIntegerTile(tileStop);
+    const tileStartInt = DrawHelpers.getIntegerTile(tileStart);
+    const tileStopInt = DrawHelpers.getIntegerTile(tileStop);
 
     // Only drag if we are changing tiles
     if (!tileStartInt.equals(tileStopInt))
@@ -286,7 +286,7 @@ export class BuildTool implements ITool {
     if (tileStop.y == Math.floor(tileStop.y)) tileStop.y += delta.y * 0.005;
 
     // Current tile is the float tile that will
-    let currentTile: Vector2 = Vector2.clone(tileStart)!;
+    const currentTile: Vector2 = Vector2.clone(tileStart)!;
 
     //console.log('delta');
     //console.log(delta);
@@ -297,7 +297,7 @@ export class BuildTool implements ITool {
 
     // The algorithm requires floor for both x and y
     // However for blueprint, it's floor(x) and ceil(y)
-    let startTile = DrawHelpers.getIntegerTile(tileStart);
+    const startTile = DrawHelpers.getIntegerTile(tileStart);
     //console.log(startTile);
 
     while (advance) {
@@ -308,7 +308,7 @@ export class BuildTool implements ITool {
 
       // nextTile is currentTile advanced by delta
       // and then floored of ceilingedto be closest to currentTile
-      let nextTile = new Vector2(
+      const nextTile = new Vector2(
         currentTile.x + delta.x,
         currentTile.y + delta.y
       );
@@ -321,18 +321,18 @@ export class BuildTool implements ITool {
       //console.log(nextTile);
 
       // d is the distance vector between the final target and currentTile
-      let d = new Vector2(
+      const d = new Vector2(
         tileStop.x - currentTile.x,
         tileStop.y - currentTile.y
       );
 
       // dp is the distance between the next Target and current Tile
-      let dp = new Vector2(
+      const dp = new Vector2(
         nextTile.x - currentTile.x,
         nextTile.y - currentTile.y
       );
 
-      let dLengthSquared = d.lengthSquared;
+      const dLengthSquared = d.lengthSquared;
 
       //console.log('d')
       //console.log(d);

@@ -39,30 +39,30 @@ export class ScissorsTool implements ITool {
   private readyIcon: any = null;
 
   private neighborTile(tile: Vector2, direction: number): Vector2 {
-    let offset = DrawHelpers.connectionVectors[direction];
+    const offset = DrawHelpers.connectionVectors[direction];
     return new Vector2(tile.x + offset.x, tile.y + offset.y);
   }
 
   private disconnectBit(item: BlueprintItemWire, direction: number) {
-    let connectionsArray = DrawHelpers.getConnectionArray(item.connections);
+    const connectionsArray = DrawHelpers.getConnectionArray(item.connections);
     if (!connectionsArray[direction]) return;
 
     connectionsArray[direction] = false;
     item.connections = DrawHelpers.getConnection(connectionsArray);
     item.updateTileables(this.blueprintService.blueprint);
 
-    let neighborPosition = this.neighborTile(item.position, direction);
+    const neighborPosition = this.neighborTile(item.position, direction);
 
-    let neighborItems = this.blueprintService.blueprint
+    const neighborItems = this.blueprintService.blueprint
       .getBlueprintItemsAt(neighborPosition)
       .filter(
         (i) =>
           i.oniItem.isWire && i.oniItem.objectLayer == item.oniItem.objectLayer
       );
 
-    for (let neighborItem of neighborItems) {
-      let neighborWire = neighborItem as BlueprintItemWire;
-      let neighborArray = DrawHelpers.getConnectionArray(
+    for (const neighborItem of neighborItems) {
+      const neighborWire = neighborItem as BlueprintItemWire;
+      const neighborArray = DrawHelpers.getConnectionArray(
         neighborWire.connections
       );
       neighborArray[DrawHelpers.connectionBitsOpposite[direction]] = false;
@@ -74,19 +74,19 @@ export class ScissorsTool implements ITool {
   // Cuts the single connection (if any) between `tile` and its neighbour in
   // `direction`, restricted to connectables on the currently viewed overlay.
   private cutBetween(tile: Vector2, direction: number) {
-    let currentOverlay = CameraService.cameraService?.overlay;
+    const currentOverlay = CameraService.cameraService?.overlay;
 
     this.blueprintService.blueprint.pauseChangeEvents();
 
     try {
-      let wireItems = this.blueprintService.blueprint
+      const wireItems = this.blueprintService.blueprint
         .getBlueprintItemsAt(tile)
         .filter(
           (i) => i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay)
         ) as BlueprintItemWire[];
 
-      for (let wireItem of wireItems) {
-        let connectionsArray = DrawHelpers.getConnectionArray(
+      for (const wireItem of wireItems) {
+        const connectionsArray = DrawHelpers.getConnectionArray(
           wireItem.connections
         );
         if (connectionsArray[direction])
@@ -135,14 +135,14 @@ export class ScissorsTool implements ITool {
       this.startTile = DrawHelpers.getIntegerTile(tileStop);
     }
 
-    let currentTile = DrawHelpers.getIntegerTile(tileStop);
+    const currentTile = DrawHelpers.getIntegerTile(tileStop);
     if (currentTile.equals(this.startTile!)) {
       this.direction = null;
       return;
     }
 
-    let deltaX = tileStop.x - this.startFloat.x;
-    let deltaY = tileStop.y - this.startFloat.y;
+    const deltaX = tileStop.x - this.startFloat.x;
+    const deltaY = tileStop.y - this.startFloat.y;
 
     if (Math.abs(deltaX) >= Math.abs(deltaY))
       this.direction = deltaX > 0 ? RIGHT : LEFT;
@@ -173,7 +173,7 @@ export class ScissorsTool implements ITool {
   // Positions/rotates/shows the "ready to cut" icon at the midpoint of the
   // two selected tiles, or hides it while there's no two-tile selection yet.
   private updateReadyIcon(drawPixi: DrawPixi, camera: CameraService) {
-    let icon = this.ensureReadyIcon(drawPixi);
+    const icon = this.ensureReadyIcon(drawPixi);
 
     if (this.startTile == null || this.direction == null) {
       icon.visible = false;
@@ -191,8 +191,8 @@ export class ScissorsTool implements ITool {
       );
     }
 
-    let neighbor = this.neighborTile(this.startTile, this.direction);
-    let centerWorld = new Vector2(
+    const neighbor = this.neighborTile(this.startTile, this.direction);
+    const centerWorld = new Vector2(
       (this.startTile.x + neighbor.x) / 2 + 0.5,
       (this.startTile.y + neighbor.y) / 2 - 0.5
     );
@@ -209,16 +209,16 @@ export class ScissorsTool implements ITool {
 
     if (this.startTile == null) return;
 
-    let tiles =
+    const tiles =
       this.direction == null
         ? [this.startTile]
         : [this.startTile, this.neighborTile(this.startTile, this.direction)];
 
-    let topLeft = new Vector2(
+    const topLeft = new Vector2(
       Math.min(...tiles.map((t) => t.x)),
       Math.max(...tiles.map((t) => t.y))
     );
-    let bottomRight = new Vector2(
+    const bottomRight = new Vector2(
       Math.max(...tiles.map((t) => t.x)) + 1,
       Math.min(...tiles.map((t) => t.y)) - 1
     );

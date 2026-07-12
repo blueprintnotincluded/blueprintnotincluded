@@ -221,7 +221,7 @@ export class ComponentSaveDialogComponent {
       } else {
         summary = $localize`${this.blueprintService.name} saved`;
       }
-      let detail: string = "";
+      const detail: string = "";
 
       this.messageService.add({
         severity: "success",
@@ -280,7 +280,7 @@ export class ComponentSaveDialogComponent {
 
   changeThumbnail() {
     if (this.saveBlueprintForm.value.thumbnailType != null) {
-      let newStyle =
+      const newStyle =
         this.saveBlueprintForm.value.thumbnailType == "Color"
           ? Display.solid
           : Display.blueprint;

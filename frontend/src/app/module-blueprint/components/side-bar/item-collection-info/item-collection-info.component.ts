@@ -28,8 +28,8 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
   @ViewChild("focusElement", { static: true }) focusElement!: ElementRef;
 
   get debug() {
-    let debug = this.itemCollection.items[0] as any;
-    let debugInfo = { connections: debug.connections };
+    const debug = this.itemCollection.items[0] as any;
+    const debugInfo = { connections: debug.connections };
     return JSON.stringify(debugInfo);
   }
 
@@ -42,7 +42,7 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
   }
 
   getPipeElement() {
-    let blueprintItemWire = this.itemCollection.items[0] as BlueprintItemWire;
+    const blueprintItemWire = this.itemCollection.items[0] as BlueprintItemWire;
     if (blueprintItemWire != null && this.showPipeContent)
       return blueprintItemWire.pipeElement;
     else return undefined;
@@ -82,7 +82,7 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
   buildingsCopy() {
     this.toolService.changeTool(ToolType.build);
 
-    let newItem = BlueprintHelpers.cloneBlueprintItem(
+    const newItem = BlueprintHelpers.cloneBlueprintItem(
       this.itemCollection.items[0]
     );
 
@@ -114,7 +114,7 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
 
   changePipeElement(element: BuildableElement) {
     this.itemCollection.items.map((item) => {
-      let blueprintItemWire = item as BlueprintItemWire;
+      const blueprintItemWire = item as BlueprintItemWire;
       if (blueprintItemWire != null) blueprintItemWire.pipeElement = element;
     });
 

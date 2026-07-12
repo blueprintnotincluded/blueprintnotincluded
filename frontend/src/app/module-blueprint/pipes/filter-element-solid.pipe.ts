@@ -7,7 +7,7 @@ import { ElementReportDataItem } from "../common/tools/element-report";
 })
 export class FilterElementSolidPipe implements PipeTransform {
   transform(value: any, ..._args: any[]): any {
-    let dataItems = value as ElementReportDataItem[];
+    const dataItems = value as ElementReportDataItem[];
 
     return dataItems.filter((d) => {
       return d.buildableElement.hasTag("BuildableAny");

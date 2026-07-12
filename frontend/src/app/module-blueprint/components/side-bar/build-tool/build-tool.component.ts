@@ -70,7 +70,7 @@ export class ComponentSideBuildToolComponent
   }
 
   paintElement() {
-    let newElement = new BlueprintItemElement(OniItem.elementId);
+    const newElement = new BlueprintItemElement(OniItem.elementId);
     newElement.setElement("Water", 0);
 
     this.toolService.buildTool.changeItem(newElement);
@@ -79,7 +79,7 @@ export class ComponentSideBuildToolComponent
   }
 
   addInfo() {
-    let newInfo = new BlueprintItemInfo(OniItem.infoId);
+    const newInfo = new BlueprintItemInfo(OniItem.infoId);
     this.toolService.buildTool.changeItem(newInfo);
 
     this.categoryPanel.hide();
@@ -95,9 +95,9 @@ export class ComponentSideBuildToolComponent
     let lineIndex = 0;
     let itemIndex = 0;
 
-    for (let buildMenuItem of BuildMenuItem.buildMenuItems)
+    for (const buildMenuItem of BuildMenuItem.buildMenuItems)
       if (buildMenuCategory.category == buildMenuItem.category) {
-        let oniItem = OniItem.getOniItem(buildMenuItem.buildingId);
+        const oniItem = OniItem.getOniItem(buildMenuItem.buildingId);
         if (this.items[indexCategory][lineIndex] == null)
           this.items[indexCategory].push([]);
         const specialItemName: Record<string, string> = {

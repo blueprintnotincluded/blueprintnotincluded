@@ -86,7 +86,7 @@ export class DragAndDropDirective {
       this.myMouseMove.emit(event);
     }
 
-    let dragButton: number = event.button;
+    const dragButton: number = event.button;
     if (!this.isMouseDown[dragButton]) {
       this.myMouseDown.emit(event);
       this.isMouseDown[dragButton] = true;
@@ -129,7 +129,7 @@ export class DragAndDropDirective {
         // One finger is still down after the pinch ends: let the user keep
         // dragging with it, but re-baseline drag tracking to that finger's
         // current position so it doesn't jump.
-        let remaining = this.activePointers.values().next().value as Vector2;
+        const remaining = this.activePointers.values().next().value as Vector2;
         this.isMouseDown[0] = true;
         this.startDragPosition[0] = new Vector2(remaining.x, remaining.y);
         this.lastDragPosition[0] = new Vector2(remaining.x, remaining.y);
@@ -141,7 +141,7 @@ export class DragAndDropDirective {
       return;
     }
 
-    let dragButton: number = event.button;
+    const dragButton: number = event.button;
 
     if (
       allowClick &&
@@ -204,7 +204,7 @@ export class DragAndDropDirective {
   }
 
   private primeGestureBaseline() {
-    let points = Array.from(this.activePointers.values());
+    const points = Array.from(this.activePointers.values());
     if (points.length < 2) return;
 
     this.gestureLastDistance = DragAndDropDirective.pointerDistance(
@@ -218,11 +218,11 @@ export class DragAndDropDirective {
   }
 
   private handleGestureMove(event: any) {
-    let points = Array.from(this.activePointers.values());
+    const points = Array.from(this.activePointers.values());
     if (points.length < 2 || this.gestureLastMidpoint == null) return;
 
-    let distance = DragAndDropDirective.pointerDistance(points[0], points[1]);
-    let midpoint = new Vector2(
+    const distance = DragAndDropDirective.pointerDistance(points[0], points[1]);
+    const midpoint = new Vector2(
       (points[0].x + points[1].x) / 2,
       (points[0].y + points[1].y) / 2
     );
