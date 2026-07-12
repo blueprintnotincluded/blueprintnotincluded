@@ -22,9 +22,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build shared library
-        run: npm run build:lib
-
+      # tsc -b on the root tsconfig builds the referenced lib/ project too.
       - name: Compile TypeScript
         run: npm run tsc
 

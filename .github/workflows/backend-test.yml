@@ -1,4 +1,4 @@
-name: Backend Tests
+name: Backend CI
 
 on:
   push:
@@ -7,18 +7,40 @@ on:
       - 'app/**'
       - 'lib/**'
       - '__tests__/**'
+      - 'migrations/**'
       - 'package.json'
       - 'package-lock.json'
-      - 'jest.config.js'
+      - '.mocharc.json'
       - 'tsconfig.json'
       - 'scripts/**'
   pull_request:
     branches: [master]
 
 jobs:
-  backend-test:
+  typecheck:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.19.4'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      # tsc -b on the root tsconfig builds the referenced lib/ project too,
+      # so no separate build:lib step is needed here.
+      - name: Type-check backend
+        run: npm run tsc
+
+  test:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+
     services:
       mongodb:
         image: mongo:8.0.23
@@ -34,7 +56,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Setup Node.js (Backend)
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '20.19.4'
@@ -60,18 +82,5 @@ jobs:
           echo "DB_URI=mongodb://localhost:27017/blueprintnotincluded_test" >> $GITHUB_ENV
           echo "JWT_SECRET=test_jwt_secret_for_ci" >> $GITHUB_ENV
 
-      - name: Type-check backend
-        run: npm run tsc
-
       - name: Run backend tests
         run: npm run test
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: backend-test-results
-          path: |
-            coverage/
-            junit.xml
-          retention-days: 30

@@ -2,4 +2,6 @@
 . "$(dirname "$0")/_/husky.sh"
 
 (cd frontend && npx lint-staged)
-(cd frontend && npx tsc --noEmit)
+# tsconfig.json is solution-style (files: []), so a bare `tsc --noEmit`
+# checks nothing. Check the app project here; CI covers spec + admin too.
+(cd frontend && npx tsc -p tsconfig.app.json --noEmit)
