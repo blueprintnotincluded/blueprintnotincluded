@@ -361,7 +361,8 @@ export class BlueprintService implements IObsBlueprintChange {
     skip?: number,
     filterModded?: boolean | null,
     filterForkedFrom?: string | null,
-    filterLikedBy?: string | null
+    filterLikedBy?: string | null,
+    filterRooms?: string | null
   ) {
     let parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
 
@@ -400,6 +401,9 @@ export class BlueprintService implements IObsBlueprintChange {
     let parameterLikedBy = "";
     if (filterLikedBy != null) parameterLikedBy = "&likedBy=" + filterLikedBy;
 
+    let parameterRooms = "";
+    if (filterRooms != null) parameterRooms = "&rooms=" + filterRooms;
+
     let parameters =
       parameterOlderThan +
       parameterFilterUserId +
@@ -410,7 +414,8 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterSort +
       parameterModded +
       parameterForkedFrom +
-      parameterLikedBy;
+      parameterLikedBy +
+      parameterRooms;
 
     let request = this.authService.isLoggedIn()
       ? this.http.get("/api/getblueprintsSecure?" + parameters, {

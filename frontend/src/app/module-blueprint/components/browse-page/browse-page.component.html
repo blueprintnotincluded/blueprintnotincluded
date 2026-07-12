@@ -86,6 +86,16 @@
         placeholder="Category"
       ></p-select>
       <p-select
+        [(ngModel)]="filterRooms"
+        [options]="roomOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="false"
+        (onChange)="onRoomsChange()"
+        i18n-placeholder
+        placeholder="Room"
+      ></p-select>
+      <p-select
         [(ngModel)]="sort"
         [options]="sortOptions"
         optionLabel="label"
@@ -113,7 +123,8 @@
           filterSubcategory ||
           filterName ||
           filterModded !== null ||
-          filterForkedFrom
+          filterForkedFrom ||
+          filterRooms
         "
         type="button"
         class="clear-filters"

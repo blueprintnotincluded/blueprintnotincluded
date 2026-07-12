@@ -17,6 +17,10 @@ export function subcategoryTooltip(subcategory: string): string {
   return $localize`Browse ${subcategory} blueprints`;
 }
 
+export function roomTooltip(roomLabel: string): string {
+  return $localize`:chipTooltip.room:Browse blueprints containing a ${roomLabel}`;
+}
+
 export function moddedTooltip(): string {
   return $localize`:chipTooltip.modded:Uses mods not included in the base game`;
 }
