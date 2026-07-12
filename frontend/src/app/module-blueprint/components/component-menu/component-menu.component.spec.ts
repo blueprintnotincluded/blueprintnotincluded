@@ -3,7 +3,7 @@ import { LOCALE_ID, NO_ERRORS_SCHEMA } from "@angular/core";
 import { Router } from "@angular/router";
 import { MessageService } from "primeng/api";
 
-import { CameraService } from "../../../../../../lib/index";
+import { CameraService, Overlay } from "../../../../../../lib/index";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { ToolService } from "src/app/module-blueprint/services/tool-service";
@@ -50,5 +50,13 @@ describe("ComponentMenuComponent", () => {
 
   it("should create", () => {
     expect(component).toBeTruthy();
+  });
+
+  it("offers the Rooms overlay in the overlay switcher", () => {
+    const roomsItem = component.overlayMenuItems.find(
+      (item) => item.id == Overlay.Room.toString()
+    );
+    expect(roomsItem).toBeTruthy();
+    expect(roomsItem!.label).toBe("Rooms");
   });
 });

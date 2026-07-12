@@ -513,15 +513,19 @@ export class BlueprintItem {
     // TODO general case for elements
     if (camera.overlay == Overlay.Unknown) Overlay.Base;
 
+    // The Room overlay tints cavities on top of the normal Base render (like the
+    // game's F11 view); items themselves keep their Base opacity and depth.
+    const itemOverlay = camera.overlay == Overlay.Room ? Overlay.Base : camera.overlay;
+
     this.isOpaque =
-      this.oniItem.isOverlayPrimary(camera.overlay) ||
-      this.oniItem.isOverlaySecondary(camera.overlay);
+      this.oniItem.isOverlayPrimary(itemOverlay) ||
+      this.oniItem.isOverlaySecondary(itemOverlay);
 
     if (this.isOpaque) this.alpha = 1;
     else this.alpha = 0.3;
 
-    if (this.oniItem.isOverlayPrimary(camera.overlay)) this.depth = this.oniItem.zIndex + 100;
-    else if (this.oniItem.isOverlaySecondary(camera.overlay)) this.depth = this.oniItem.zIndex + 50;
+    if (this.oniItem.isOverlayPrimary(itemOverlay)) this.depth = this.oniItem.zIndex + 100;
+    else if (this.oniItem.isOverlaySecondary(itemOverlay)) this.depth = this.oniItem.zIndex + 50;
     else this.depth = this.oniItem.zIndex;
 
     // Wall-plane decals always render behind whatever they're placed against -

@@ -113,6 +113,7 @@ export class ComponentMenuComponent
         id: Overlay.Conveyor,
         name: $localize`:overlay switch on the menu:Shipment`,
       },
+      { id: Overlay.Room, name: $localize`:overlay switch on the menu:Rooms` },
     ];
     this.overlayMenuItems = [];
     overlayList.map((overlay) => {
