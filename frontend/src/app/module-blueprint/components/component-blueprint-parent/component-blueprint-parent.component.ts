@@ -11,7 +11,7 @@ import {
 import { ActivatedRoute, Params, UrlSegment } from "@angular/router";
 import JSZip from "jszip";
 import { MessageService } from "primeng/api";
-import {} from "sanitize-filename";
+import sanitize from "sanitize-filename";
 import {
   BBuilding,
   Blueprint,
@@ -51,7 +51,6 @@ import { DialogShareUrlComponent } from "../dialogs/dialog-share-url/dialog-shar
 import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dialog.component";
 import { ComponentSideBuildToolComponent } from "../side-bar/build-tool/build-tool.component";
 import { ComponentSideSelectionToolComponent } from "../side-bar/selection-tool/selection-tool.component";
-var sanitize = require("sanitize-filename");
 
 /*
 TODO Feature List before release :
@@ -138,7 +137,7 @@ export class ComponentBlueprintParentComponent
   // (Power/Plumbing/Ventilation/etc) — there's nothing to cut on Buildings/None.
   get scissorsDisabled() {
     if (CameraService.cameraService == null) return true;
-    let overlay = CameraService.cameraService.overlay;
+    const overlay = CameraService.cameraService.overlay;
     return overlay == Overlay.Base || overlay == Overlay.None;
   }
 
@@ -147,8 +146,8 @@ export class ComponentBlueprintParentComponent
 
   ngOnInit() {
     this.route.params.subscribe((params: Params): void => {
-      let width = Number(params.width);
-      let height = Number(params.height);
+      const width = Number(params.width);
+      const height = Number(params.height);
       if (Number.isInteger(width) && Number.isInteger(height)) {
         this.forceSize = true;
         this.forcedSize = new Vector2(width, height);
@@ -208,7 +207,7 @@ export class ComponentBlueprintParentComponent
 
   resizeTools() {
     if (!this.forceSize) {
-      let sidePanelPosition: number =
+      const sidePanelPosition: number =
         this.sidePanelLeft.nativeElement.getBoundingClientRect().y;
       this.selectionTool.setMaxHeight(sidePanelPosition);
     }
@@ -224,7 +223,7 @@ export class ComponentBlueprintParentComponent
 
   database: any;
   fetchDatabase(): Promise<any> {
-    let promise = new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       // Start comment here
       this.http
         .get("assets/database/database-2024.zip", {
@@ -234,11 +233,11 @@ export class ComponentBlueprintParentComponent
           JSZip.loadAsync(data)
             .then((zipped) => {
               zipped.files["database.json"].async("text").then(async (text) => {
-                let json = JSON.parse(text);
+                const json = JSON.parse(text);
 
                 this.database = json;
 
-                let elements: BuildableElement[] = json.elements;
+                const elements: BuildableElement[] = json.elements;
                 for (const e of elements) {
                   const localizedName = await this.gameStringService.getStr(
                     `STRINGS.ELEMENTS.${e.id.toUpperCase()}.NAME`
@@ -249,7 +248,7 @@ export class ComponentBlueprintParentComponent
                 }
                 BuildableElement.load(elements);
 
-                let buildMenuCategories: BuildMenuCategory[] =
+                const buildMenuCategories: BuildMenuCategory[] =
                   json.buildMenuCategories;
                 for (const bm of buildMenuCategories) {
                   const localizedName = await this.gameStringService.getStr(
@@ -261,16 +260,16 @@ export class ComponentBlueprintParentComponent
                 }
                 BuildMenuCategory.load(buildMenuCategories);
 
-                let buildMenuItems: BuildMenuItem[] = json.buildMenuItems;
+                const buildMenuItems: BuildMenuItem[] = json.buildMenuItems;
                 BuildMenuItem.load(buildMenuItems);
 
-                let uiSprites: BSpriteInfo[] = json.uiSprites;
+                const uiSprites: BSpriteInfo[] = json.uiSprites;
                 SpriteInfo.load(uiSprites);
 
-                let spriteModifiers: BSpriteModifier[] = json.spriteModifiers;
+                const spriteModifiers: BSpriteModifier[] = json.spriteModifiers;
                 SpriteModifier.load(spriteModifiers);
 
-                let buildings: BBuilding[] = json.buildings;
+                const buildings: BBuilding[] = json.buildings;
                 for (const b of buildings) {
                   const localizedName = await this.gameStringService.getStr(
                     `STRINGS.BUILDINGS.PREFABS.${b.prefabId.toUpperCase()}.NAME`
@@ -411,10 +410,10 @@ export class ComponentBlueprintParentComponent
       if (this.blueprintService.name != undefined)
         friendlyname = this.blueprintService.name;
 
-      let bniBlueprint =
+      const bniBlueprint =
         this.blueprintService.blueprint.toBniBlueprint(friendlyname);
 
-      let a = document.createElement("a");
+      const a = document.createElement("a");
       document.body.append(a);
       a.download = sanitize(friendlyname) + ".blueprint";
       a.href = URL.createObjectURL(
@@ -444,7 +443,7 @@ export class ComponentBlueprintParentComponent
   }
 
   browseBlueprints(data: any) {
-    let browseData = data as BrowseData;
+    const browseData = data as BrowseData;
     if (browseData != null)
       this.browseDialog.showDialog(
         browseData.filterUserId,

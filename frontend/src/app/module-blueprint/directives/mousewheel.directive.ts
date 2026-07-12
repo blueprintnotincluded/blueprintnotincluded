@@ -28,8 +28,8 @@ export class MouseWheelDirective {
   }
 
   mouseWheelFunc(event: any) {
-    var event = window.event || event; // old IE support
-    var delta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
+    event = window.event || event; // old IE support
+    const delta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
     event.delta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
     if (delta != 0) this.mouseWheel.emit(event);
     if (delta > 0) {

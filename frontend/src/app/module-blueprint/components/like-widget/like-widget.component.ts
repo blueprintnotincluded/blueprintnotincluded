@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { BlueprintService } from "../../services/blueprint-service";
 
 @Component({
@@ -7,7 +7,7 @@ import { BlueprintService } from "../../services/blueprint-service";
   styleUrls: ["./like-widget.component.css"],
   standalone: false,
 })
-export class LikeWidgetComponent implements OnInit {
+export class LikeWidgetComponent {
   @Input() blueprintId!: string;
   @Input() nbLikes: number = 0;
   @Input() likedByMe!: boolean;
@@ -24,10 +24,6 @@ export class LikeWidgetComponent implements OnInit {
   }
 
   constructor(private blueprintService: BlueprintService) {}
-
-  ngOnInit() {
-    1; // required for type
-  }
 
   like() {
     this.likedByMe = !this.likedByMe;

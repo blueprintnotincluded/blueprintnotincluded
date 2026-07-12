@@ -91,7 +91,7 @@ export class ComponentMenuComponent
   }
 
   ngOnInit() {
-    let overlayList: { id: Overlay; name: string }[] = [
+    const overlayList: { id: Overlay; name: string }[] = [
       {
         id: Overlay.Base,
         name: $localize`:overlay switch on the menu:Buildings`,
@@ -342,7 +342,7 @@ export class ComponentMenuComponent
   }
 
   updateToolIcon() {
-    for (let menuItem of this.toolMenuItems) {
+    for (const menuItem of this.toolMenuItems) {
       if (!menuItem.separator) {
         if (
           menuItem.id != null &&
@@ -367,7 +367,7 @@ export class ComponentMenuComponent
   }
 
   updateOverlayIcon(overlay: Overlay) {
-    for (let menuItem of this.overlayMenuItems) {
+    for (const menuItem of this.overlayMenuItems) {
       if (menuItem.id == overlay.toString()) {
         menuItem.icon = "pi pi-fw pi-check";
       } else menuItem.icon = "pi pi-fw pi-none";
@@ -375,7 +375,7 @@ export class ComponentMenuComponent
   }
 
   updateDisplayIcon(display: Display) {
-    for (let menuItem of this.displayMenuItems) {
+    for (const menuItem of this.displayMenuItems) {
       if (menuItem.id == display.toString()) {
         menuItem.icon = "pi pi-fw pi-check";
       } else menuItem.icon = "pi pi-fw pi-none";
@@ -383,7 +383,7 @@ export class ComponentMenuComponent
   }
 
   updateVisualizationIcon(visualization: Visualization) {
-    for (let menuItem of this.visualizationMenuItems) {
+    for (const menuItem of this.visualizationMenuItems) {
       if (menuItem.id == visualization.toString()) {
         menuItem.icon = "pi pi-fw pi-check";
       } else menuItem.icon = "pi pi-fw pi-none";
@@ -406,26 +406,26 @@ export class ComponentMenuComponent
   }
 
   uploadYamlTemplate() {
-    let fileElem = document.getElementById("fileChooser") as HTMLInputElement;
+    const fileElem = document.getElementById("fileChooser") as HTMLInputElement;
     fileElem.click();
   }
 
   uploadJsonTemplate() {
-    let fileElem = document.getElementById(
+    const fileElem = document.getElementById(
       "fileChooserJson"
     ) as HTMLInputElement;
     fileElem.click();
   }
 
   uploadBsonTemplate() {
-    let fileElem = document.getElementById(
+    const fileElem = document.getElementById(
       "fileChooserBson"
     ) as HTMLInputElement;
     fileElem.click();
   }
 
   templateUpload(_event: any) {
-    let fileElem = document.getElementById("fileChooser") as HTMLInputElement;
+    const fileElem = document.getElementById("fileChooser") as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
       BlueprintFileType.YAML,
       fileElem.files!
@@ -434,7 +434,7 @@ export class ComponentMenuComponent
   }
 
   templateUploadJson(_event: any) {
-    let fileElem = document.getElementById(
+    const fileElem = document.getElementById(
       "fileChooserJson"
     ) as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
@@ -445,7 +445,7 @@ export class ComponentMenuComponent
   }
 
   templateUploadBson(_event: any) {
-    let fileElem = document.getElementById(
+    const fileElem = document.getElementById(
       "fileChooserBson"
     ) as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(

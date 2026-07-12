@@ -7,7 +7,6 @@ import {
 } from "./room-overlay-geometry";
 
 import {} from "pixi.js-legacy";
-declare var PIXI: any;
 
 const LABEL_STYLE = {
   fontFamily: "Arial",

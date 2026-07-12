@@ -68,9 +68,9 @@ export class InfoInputComponent implements OnInit {
   }
 
   colorChange() {
-    let frontColorString = this.frontColor.replace("#", "0x");
+    const frontColorString = this.frontColor.replace("#", "0x");
     this.blueprintIteminfo.frontColor = parseInt(frontColorString, 16);
-    let backColorString = this.backColor.replace("#", "0x");
+    const backColorString = this.backColor.replace("#", "0x");
     this.blueprintIteminfo.backColor = parseInt(backColorString, 16);
     this.blueprintIteminfo.reloadCamera = true;
   }

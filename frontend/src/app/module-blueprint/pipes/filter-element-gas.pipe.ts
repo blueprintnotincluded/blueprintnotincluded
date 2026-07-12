@@ -7,7 +7,7 @@ import { ElementReportDataItem } from "../common/tools/element-report";
 })
 export class FilterElementGasPipe implements PipeTransform {
   transform(value: any, ..._args: any[]): any {
-    let dataItems = value as ElementReportDataItem[];
+    const dataItems = value as ElementReportDataItem[];
 
     // TODO boolean in export
     return dataItems.filter((d) => {

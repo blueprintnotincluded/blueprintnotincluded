@@ -42,7 +42,7 @@ import { ToolService, IObsToolChanged } from "../../services/tool-service";
 import { ToolType } from "../../common/tools/tool";
 
 import {} from "pixi.js-legacy";
-declare var PIXI: any;
+declare let PIXI: any;
 
 // Hotspot is the sprite's center (32x54 baked cursor image).
 const SCISSORS_CURSOR =
@@ -115,7 +115,7 @@ export class ComponentCanvasComponent
       this.drawRoomOverlay = new DrawRoomOverlay(this.drawPixi);
 
       if (this.forceSize) {
-        let miniUi = new DrawMiniUi();
+        const miniUi = new DrawMiniUi();
         miniUi.init(this.drawPixi.pixiApp.stage);
         this.cameraService.subscribeCameraChange(miniUi);
       }
@@ -227,26 +227,26 @@ export class ComponentCanvasComponent
     this.cameraService.overlay = Overlay.Base;
     //let cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
 
-    let rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     this.cameraService.resetZoom(
       new Vector2(rect.width - rect.left, rect.height - rect.top)
     );
 
     if (source.blueprintItems.length > 0) {
-      let boundingBox = this.blueprint.getBoundingBox();
-      let topLeft = boundingBox[0];
-      let bottomRight = boundingBox[1];
+      const boundingBox = this.blueprint.getBoundingBox();
+      const topLeft = boundingBox[0];
+      const bottomRight = boundingBox[1];
 
-      let totalTileSize = new Vector2(
+      const totalTileSize = new Vector2(
         bottomRight.x - topLeft.x + 3,
         bottomRight.y - topLeft.y + 3
       );
-      let maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
-      let minCanvasSize = Math.min(
+      const maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
+      const minCanvasSize = Math.min(
         this.canvasRef.nativeElement.width,
         this.canvasRef.nativeElement.height
       );
-      let thumbnailTileSize = minCanvasSize / maxTotalSize;
+      const thumbnailTileSize = minCanvasSize / maxTotalSize;
 
       this.cameraService.cameraOffset.x = -topLeft.x + 1;
       this.cameraService.cameraOffset.y = bottomRight.y + 1; // (add 2 instead of 1, one tile will probably be hidden by the menu)
@@ -263,12 +263,12 @@ export class ComponentCanvasComponent
   }
 
   getCursorPosition(event: any): Vector2 {
-    let rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     return new Vector2(event.clientX - rect.left, event.clientY - rect.top);
   }
 
   getCurrentTile(event: any): Vector2 {
-    let returnValue = this.cameraService.getTileCoords(
+    const returnValue = this.cameraService.getTileCoords(
       this.getCursorPosition(event)
     );
 
@@ -313,10 +313,10 @@ export class ComponentCanvasComponent
 
   storePreviousTileFloat: Vector2 | null = null;
   mouseDrag(event: any) {
-    let previousTileFloat = Vector2.clone(
+    const previousTileFloat = Vector2.clone(
       this.storePreviousTileFloat ?? undefined
     );
-    let currentTileFloat = this.cameraService.getTileCoords(
+    const currentTileFloat = this.cameraService.getTileCoords(
       this.getCursorPosition(event)
     );
 
@@ -351,8 +351,8 @@ export class ComponentCanvasComponent
       event.panY / this.cameraService.currentZoom;
 
     if (event.zoomDelta) {
-      let rect = this.canvasRef.nativeElement.getBoundingClientRect();
-      let centerPos = new Vector2(
+      const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+      const centerPos = new Vector2(
         event.centerClientX - rect.left,
         event.centerClientY - rect.top
       );
@@ -365,7 +365,7 @@ export class ComponentCanvasComponent
   previousTileUnderMouse: Vector2 | null = null;
   mouseMove(event: any) {
     this.previousMouse = this.getCursorPosition(event);
-    let currentTileUnderMouse = this.getCurrentTile(event);
+    const currentTileUnderMouse = this.getCurrentTile(event);
 
     if (
       this.previousTileUnderMouse == null ||
@@ -406,14 +406,14 @@ export class ComponentCanvasComponent
    *
    */
   fetchIcons() {
-    for (let k of ImageSource.keys)
+    for (const k of ImageSource.keys)
       ImageSource.getBaseTexture(k, this.drawPixi);
-    for (let k of SpriteInfo.keys)
+    for (const k of SpriteInfo.keys)
       SpriteInfo.getSpriteInfo(k).getTexture(this.drawPixi);
   }
 
   downloadUtility(database: BExport) {
-    let allWhiteFilter = new PIXI.filters.ColorMatrixFilter();
+    const allWhiteFilter = new PIXI.filters.ColorMatrixFilter();
     // 1 1 1 0 1
     // 1 1 1 0 1
     // 1 1 1 0 1
@@ -431,21 +431,21 @@ export class ComponentCanvasComponent
     allWhiteFilter.matrix[12] = 1;
     allWhiteFilter.matrix[14] = 1;
 
-    let sourceSpriteModifiers = database.spriteModifiers.filter((s) => {
+    const sourceSpriteModifiers = database.spriteModifiers.filter((s) => {
       return s.tags.indexOf(SpriteTag.solid) != -1;
     });
 
-    let sourceTextures: string[] = [];
+    const sourceTextures: string[] = [];
 
-    for (let sourceSpriteModifier of sourceSpriteModifiers) {
-      let sourceSpriteInfo = database.uiSprites.find((s) => {
+    for (const sourceSpriteModifier of sourceSpriteModifiers) {
+      const sourceSpriteInfo = database.uiSprites.find((s) => {
         return s.name == sourceSpriteModifier.spriteInfoName;
       });
 
       if (sourceTextures.indexOf(sourceSpriteInfo!.textureName) == -1)
         sourceTextures.push(sourceSpriteInfo!.textureName);
 
-      let spriteModifierWhite = BSpriteModifier.clone(sourceSpriteModifier);
+      const spriteModifierWhite = BSpriteModifier.clone(sourceSpriteModifier);
       spriteModifierWhite.name = spriteModifierWhite.name + "_white";
       spriteModifierWhite.spriteInfoName =
         spriteModifierWhite.spriteInfoName + "_white";
@@ -453,7 +453,7 @@ export class ComponentCanvasComponent
       database.spriteModifiers.push(spriteModifierWhite);
 
       let spriteInfoWhite: BSpriteInfo | null = null;
-      for (let spriteInfo of database.uiSprites)
+      for (const spriteInfo of database.uiSprites)
         if (spriteInfo.name == sourceSpriteModifier.spriteInfoName)
           spriteInfoWhite = BSpriteInfo.clone(spriteInfo);
 
@@ -463,7 +463,7 @@ export class ComponentCanvasComponent
         database.uiSprites.push(spriteInfoWhite);
       }
 
-      for (let building of database.buildings)
+      for (const building of database.buildings)
         if (
           building.sprites.spriteNames.indexOf(sourceSpriteModifier.name) != -1
         )
@@ -480,21 +480,21 @@ export class ComponentCanvasComponent
       JSON.stringify(database, null, 2)
     );
 
-    for (let sourceTexture of sourceTextures) {
-      let baseTexture = ImageSource.getBaseTexture(
+    for (const sourceTexture of sourceTextures) {
+      const baseTexture = ImageSource.getBaseTexture(
         sourceTexture,
         this.drawPixi
       );
 
-      let texture = new PIXI.Texture(baseTexture);
+      const texture = new PIXI.Texture(baseTexture);
 
-      let brt = new PIXI.BaseRenderTexture({
+      const brt = new PIXI.BaseRenderTexture({
         width: texture.width,
         height: texture.height,
       });
-      let rt = new PIXI.RenderTexture(brt);
+      const rt = new PIXI.RenderTexture(brt);
 
-      let sprite = PIXI.Sprite.from(texture);
+      const sprite = PIXI.Sprite.from(texture);
       sprite.filters = [allWhiteFilter];
 
       this.drawPixi.pixiApp.renderer.render(sprite, rt);
@@ -506,16 +506,16 @@ export class ComponentCanvasComponent
   }
 
   downloadGroups(database: BExport) {
-    let renderTextures: PIXI.RenderTexture[] = [];
-    let textureNames: string[] = [];
+    const renderTextures: PIXI.RenderTexture[] = [];
+    const textureNames: string[] = [];
 
-    for (let oniItem of OniItem.oniItems) {
-      let buildingInDatabase = database.buildings.find((building) => {
+    for (const oniItem of OniItem.oniItems) {
+      const buildingInDatabase = database.buildings.find((building) => {
         return building.prefabId == oniItem.id;
       });
 
-      let spritesToGroup: SpriteModifier[] = [];
-      for (let spriteModifier of oniItem.spriteGroup.spriteModifiers) {
+      const spritesToGroup: SpriteModifier[] = [];
+      for (const spriteModifier of oniItem.spriteGroup.spriteModifiers) {
         if (
           spriteModifier.tags.indexOf(SpriteTag.solid) != -1 &&
           spriteModifier.tags.indexOf(SpriteTag.tileable) == -1 &&
@@ -525,15 +525,15 @@ export class ComponentCanvasComponent
       }
 
       if (spritesToGroup.length > 1) {
-        let container: PIXI.Container = new PIXI.Container();
+        const container: PIXI.Container = new PIXI.Container();
         container.sortableChildren = true;
 
-        let modifierId = oniItem.id + "_group_modifier";
-        let spriteInfoId = oniItem.id + "_group_sprite";
-        let textureName = oniItem.id + "_group_sprite";
+        const modifierId = oniItem.id + "_group_modifier";
+        const spriteInfoId = oniItem.id + "_group_sprite";
+        const textureName = oniItem.id + "_group_sprite";
 
         let indexDrawPart = 0;
-        for (let spriteModifier of oniItem.spriteGroup.spriteModifiers) {
+        for (const spriteModifier of oniItem.spriteGroup.spriteModifiers) {
           if (
             spriteModifier.tags.indexOf(SpriteTag.solid) == -1 ||
             spriteModifier.tags.indexOf(SpriteTag.tileable) != -1 ||
@@ -548,7 +548,7 @@ export class ComponentCanvasComponent
           buildingInDatabase!.sprites.spriteNames.splice(indexToRemove, 1);
 
           // Then from the sprite modifiers
-          let spriteModifierToRemove = database.spriteModifiers.find((s) => {
+          const spriteModifierToRemove = database.spriteModifiers.find((s) => {
             return s.name == spriteModifier.spriteModifierId;
           });
           if (spriteModifierToRemove != null) {
@@ -558,7 +558,7 @@ export class ComponentCanvasComponent
             database.spriteModifiers.splice(indexToRemove, 1);
           }
 
-          let spriteInfoToRemove = database.uiSprites.find((s) => {
+          const spriteInfoToRemove = database.uiSprites.find((s) => {
             return s.name == spriteModifier.spriteInfoName;
           });
           if (spriteInfoToRemove != null) {
@@ -566,11 +566,11 @@ export class ComponentCanvasComponent
             database.uiSprites.splice(indexToRemove, 1);
           }
 
-          let spriteInfo = SpriteInfo.getSpriteInfo(
+          const spriteInfo = SpriteInfo.getSpriteInfo(
             spriteModifier.spriteInfoName
           );
-          let texture = spriteInfo.getTexture(this.drawPixi);
-          let sprite = PIXI.Sprite.from(texture);
+          const texture = spriteInfo.getTexture(this.drawPixi);
+          const sprite = PIXI.Sprite.from(texture);
           sprite.anchor.set(spriteInfo.pivot.x, 1 - spriteInfo.pivot.y);
           sprite.x = 0 + spriteModifier.translation.x;
           sprite.y = 0 - spriteModifier.translation.y;
@@ -589,30 +589,30 @@ export class ComponentCanvasComponent
         buildingInDatabase!.sprites.spriteNames.push(modifierId);
 
         container.calculateBounds();
-        let bounds = container.getBounds();
+        const bounds = container.getBounds();
         bounds.x = Math.floor(bounds.x);
         bounds.y = Math.floor(bounds.y);
         bounds.width = Math.ceil(bounds.width);
         bounds.height = Math.ceil(bounds.height);
 
-        let diff = new Vector2(bounds.x, bounds.y);
-        for (let child of container.children) {
+        const diff = new Vector2(bounds.x, bounds.y);
+        for (const child of container.children) {
           child.x -= diff.x;
           child.y -= diff.y;
         }
 
-        let pivot = new Vector2(
+        const pivot = new Vector2(
           1 - (bounds.width + bounds.x) / bounds.width,
           (bounds.height + bounds.y) / bounds.height
         );
         //console.log(pivot);
 
-        let brt = new PIXI.BaseRenderTexture({
+        const brt = new PIXI.BaseRenderTexture({
           width: bounds.width,
           height: bounds.height,
           scaleMode: PIXI.SCALE_MODES.NEAREST,
         });
-        let rt = new PIXI.RenderTexture(brt);
+        const rt = new PIXI.RenderTexture(brt);
 
         this.drawPixi.pixiApp.renderer.render(container, rt);
 
@@ -620,7 +620,7 @@ export class ComponentCanvasComponent
         textureNames.push(textureName);
 
         // Create and add the new sprite modifier to replace the group
-        let newSpriteModifier = new BSpriteModifier();
+        const newSpriteModifier = new BSpriteModifier();
         newSpriteModifier.name = modifierId;
         newSpriteModifier.spriteInfoName = spriteInfoId;
         newSpriteModifier.rotation = 0;
@@ -630,7 +630,7 @@ export class ComponentCanvasComponent
         database.spriteModifiers.push(newSpriteModifier);
 
         // Create and add the new spriteInfo
-        let newSpriteInfo = new BSpriteInfo();
+        const newSpriteInfo = new BSpriteInfo();
         newSpriteInfo.name = spriteInfoId;
         newSpriteInfo.textureName = textureName;
         newSpriteInfo.pivot = pivot;
@@ -754,16 +754,16 @@ export class ComponentCanvasComponent
       (s) => SpriteInfo.getSpriteInfo(s).isIcon
     ).length;
 
-    for (let k of SpriteInfo.keys.filter(
+    for (const k of SpriteInfo.keys.filter(
       (s) => SpriteInfo.getSpriteInfo(s).isIcon
     )) {
-      let uiSpriteInfo = SpriteInfo.getSpriteInfo(k);
-      let texture = uiSpriteInfo.getTexture(this.drawPixi);
-      let uiSprite = PIXI.Sprite.from(texture);
+      const uiSpriteInfo = SpriteInfo.getSpriteInfo(k);
+      const texture = uiSpriteInfo.getTexture(this.drawPixi);
+      const uiSprite = PIXI.Sprite.from(texture);
 
-      let size = Math.max(texture.width, texture.height);
+      const size = Math.max(texture.width, texture.height);
 
-      let container = new PIXI.Container();
+      const container = new PIXI.Container();
       container.addChild(uiSprite);
 
       uiSprite.x = 0;
@@ -774,12 +774,12 @@ export class ComponentCanvasComponent
       if (texture.height > texture.width)
         uiSprite.x += texture.height / 2 - texture.width / 2;
 
-      let brt = new PIXI.BaseRenderTexture({
+      const brt = new PIXI.BaseRenderTexture({
         width: size,
         height: size,
         scaleMode: PIXI.SCALE_MODES.LINEAR,
       });
-      let rt = new PIXI.RenderTexture(brt);
+      const rt = new PIXI.RenderTexture(brt);
 
       this.drawPixi.pixiApp.renderer.render(container, rt, true);
       this.drawPixi.pixiApp.renderer.extract.canvas(rt).toBlob((blob) => {
@@ -800,7 +800,7 @@ export class ComponentCanvasComponent
       ComponentCanvasComponent.zip
         .generateAsync({ type: "blob" })
         .then(function (blob) {
-          let a = document.createElement("a");
+          const a = document.createElement("a");
           document.body.append(a);
           a.download = ComponentCanvasComponent.downloadFile;
           a.href = URL.createObjectURL(blob);
@@ -814,29 +814,29 @@ export class ComponentCanvasComponent
     //console.log('updateThumbnail')
     this.blueprintService.thumbnail = null!;
 
-    let clone = this.blueprint.clone();
+    const clone = this.blueprint.clone();
     if (clone.blueprintItems.length == 0)
       throw new Error("No buildings to export");
 
-    let boundingBox = clone.getBoundingBox();
-    let topLeft = boundingBox[0];
-    let bottomRight = boundingBox[1];
+    const boundingBox = clone.getBoundingBox();
+    const topLeft = boundingBox[0];
+    const bottomRight = boundingBox[1];
 
-    let totalTileSize = new Vector2(
+    const totalTileSize = new Vector2(
       bottomRight.x - topLeft.x + 3,
       bottomRight.y - topLeft.y + 3
     );
 
-    let thumbnailSize = 200;
-    let maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
-    let thumbnailTileSize = thumbnailSize / maxTotalSize;
-    let cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
+    const thumbnailSize = 200;
+    const maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
+    const thumbnailTileSize = thumbnailSize / maxTotalSize;
+    const cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
     if (totalTileSize.x > totalTileSize.y)
       cameraOffset.y += totalTileSize.x / 2 - totalTileSize.y / 2;
     if (totalTileSize.y > totalTileSize.x)
       cameraOffset.x += totalTileSize.y / 2 - totalTileSize.x / 2;
 
-    let exportCamera = new CameraService(this.drawPixi.getNewContainer());
+    const exportCamera = new CameraService(this.drawPixi.getNewContainer());
     exportCamera.setHardZoom(thumbnailTileSize);
     exportCamera.cameraOffset = cameraOffset;
     exportCamera.overlay = Overlay.Base;
@@ -844,7 +844,7 @@ export class ComponentCanvasComponent
     exportCamera.container = new PIXI.Container();
     exportCamera.container.sortableChildren = true;
 
-    let graphics = new PIXI.Graphics();
+    const graphics = new PIXI.Graphics();
     exportCamera.container.addChild(graphics);
 
     //graphics.beginFill(0x00000000);
@@ -856,16 +856,16 @@ export class ComponentCanvasComponent
       item.drawPixi(exportCamera, this.drawPixi);
     });
 
-    let brt = new PIXI.BaseRenderTexture({
+    const brt = new PIXI.BaseRenderTexture({
       width: thumbnailSize,
       height: thumbnailSize,
       scaleMode: PIXI.SCALE_MODES.LINEAR,
     });
-    let rt = new PIXI.RenderTexture(brt);
+    const rt = new PIXI.RenderTexture(brt);
 
     this.drawPixi.pixiApp.renderer.render(exportCamera.container, rt, false);
     this.drawPixi.pixiApp.renderer.extract.canvas(rt).toBlob((blob) => {
-      let reader = new FileReader();
+      const reader = new FileReader();
       reader.onload = () => {
         this.blueprintService.thumbnail = reader.result as string;
       };
@@ -884,31 +884,31 @@ export class ComponentCanvasComponent
   }
 
   saveImages(exportOptions: ExportImageOptions) {
-    let clone = this.blueprint.clone();
+    const clone = this.blueprint.clone();
     if (clone.blueprintItems.length == 0)
       throw new Error("No buildings to export");
 
-    let boundingBox = clone.getBoundingBox();
-    let topLeft = boundingBox[0];
-    let bottomRight = boundingBox[1];
+    const boundingBox = clone.getBoundingBox();
+    const topLeft = boundingBox[0];
+    const bottomRight = boundingBox[1];
 
-    let tileSize = exportOptions.pixelsPerTile;
-    let totalTileSize = new Vector2(
+    const tileSize = exportOptions.pixelsPerTile;
+    const totalTileSize = new Vector2(
       bottomRight.x - topLeft.x + 3,
       bottomRight.y - topLeft.y + 3
     );
-    let sizeInPixels = new Vector2(
+    const sizeInPixels = new Vector2(
       totalTileSize.x * tileSize,
       totalTileSize.y * tileSize
     );
 
-    let exportCamera = new CameraService(this.drawPixi.getNewContainer());
+    const exportCamera = new CameraService(this.drawPixi.getNewContainer());
     exportCamera.setHardZoom(tileSize);
     exportCamera.cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
     exportCamera.container = new PIXI.Container();
     exportCamera.container.sortableChildren = true;
 
-    let graphics = new PIXI.Graphics();
+    const graphics = new PIXI.Graphics();
     exportCamera.container.addChild(graphics);
 
     // TODO color in parameter
@@ -929,12 +929,12 @@ export class ComponentCanvasComponent
         item.drawPixi(exportCamera, this.drawPixi);
       });
 
-      let brt = new PIXI.BaseRenderTexture({
+      const brt = new PIXI.BaseRenderTexture({
         width: sizeInPixels.x,
         height: sizeInPixels.y,
         scaleMode: PIXI.SCALE_MODES.LINEAR,
       });
-      let rt = new PIXI.RenderTexture(brt);
+      const rt = new PIXI.RenderTexture(brt);
 
       this.drawPixi.pixiApp.renderer.render(exportCamera.container, rt, false);
 
@@ -991,12 +991,12 @@ export class ComponentCanvasComponent
       this.drawPixi.FillRect(0x007ad9, 0, 0, this.width, this.height);
     else this.drawPixi.FillRect(0x909090, 0, 0, this.width, this.height);
 
-    let alphaOrig: number = 0.4;
+    const alphaOrig: number = 0.4;
     let alpha: number = alphaOrig;
-    let realLineSpacing: number = this.cameraService.currentZoom;
+    const realLineSpacing: number = this.cameraService.currentZoom;
 
-    let zoomFadeMax: number = 35;
-    let zoomFadeMin: number = 25;
+    const zoomFadeMax: number = 35;
+    const zoomFadeMin: number = 25;
     if (this.cameraService.currentZoom < zoomFadeMax)
       alpha *=
         (this.cameraService.currentZoom - zoomFadeMin) /
@@ -1006,7 +1006,7 @@ export class ComponentCanvasComponent
     //while (realLineSpacing < 30)
     //  realLineSpacing *= 5;
 
-    let colOrig: number =
+    const colOrig: number =
       ((this.cameraService.cameraOffset.x * this.cameraService.currentZoom) %
         (realLineSpacing * 5)) -
       realLineSpacing * 4;
@@ -1016,8 +1016,8 @@ export class ComponentCanvasComponent
       col < this.width + realLineSpacing * 4;
       col += realLineSpacing
     ) {
-      let realAlpha = mod % 5 == 0 ? alphaOrig + 0.3 : alpha;
-      let color = "rgba(255,255,255, " + realAlpha + ")";
+      const realAlpha = mod % 5 == 0 ? alphaOrig + 0.3 : alpha;
+      const color = "rgba(255,255,255, " + realAlpha + ")";
       if (realAlpha > 0)
         this.drawPixi.drawBlueprintLine(
           color,
@@ -1029,7 +1029,7 @@ export class ComponentCanvasComponent
       mod++;
     }
 
-    let lineOrig =
+    const lineOrig =
       ((this.cameraService.cameraOffset.y * this.cameraService.currentZoom) %
         (realLineSpacing * 5)) -
       realLineSpacing * 4;
@@ -1039,8 +1039,8 @@ export class ComponentCanvasComponent
       line < this.height + realLineSpacing * 4;
       line += realLineSpacing
     ) {
-      let realAlpha = mod % 5 == 0 ? alphaOrig + 0.3 : alpha;
-      let color = "rgba(255,255,255, " + realAlpha + ")";
+      const realAlpha = mod % 5 == 0 ? alphaOrig + 0.3 : alpha;
+      const color = "rgba(255,255,255, " + realAlpha + ")";
       if (realAlpha > 0)
         this.drawPixi.drawBlueprintLine(
           color,
@@ -1053,7 +1053,7 @@ export class ComponentCanvasComponent
     }
 
     if (this.blueprint != null) {
-      for (var templateItem of this.blueprint.blueprintItems) {
+      for (const templateItem of this.blueprint.blueprintItems) {
         //templateItem.updateTileables(this.blueprint);
         this.drawPixi.drawTemplateItem(templateItem, this.cameraService);
         //templateItem.draw(ctx, this.camera);
@@ -1101,7 +1101,7 @@ export class ComponentCanvasComponent
     lineWidth: number,
     alpha: number
   ) {
-    let offset: number = (lineWidth % 2) / 2;
+    const offset: number = (lineWidth % 2) / 2;
 
     ctx.beginPath();
     ctx.moveTo(Math.floor(xStart) + offset, Math.floor(yStart) + offset);
@@ -1113,7 +1113,7 @@ export class ComponentCanvasComponent
 
   cameraChanged(camera: CameraService) {
     if (this.blueprint != null)
-      for (let blueprintItem of this.blueprint.blueprintItems)
+      for (const blueprintItem of this.blueprint.blueprintItems)
         blueprintItem.cameraChanged(camera);
 
     if (

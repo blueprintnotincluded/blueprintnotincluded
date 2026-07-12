@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type -- must match Angular's EventManager.addEventListener signature */
 import { Injectable, Inject, NgZone } from "@angular/core";
 import { EVENT_MANAGER_PLUGINS, EventManager } from "@angular/platform-browser";
 

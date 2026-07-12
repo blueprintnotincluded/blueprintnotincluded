@@ -100,7 +100,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   private openYamlBlueprint(file: File) {
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => {
       this.loadYamlBlueprint(reader.result as string);
     };
@@ -108,9 +108,9 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   private loadYamlBlueprint(yamlString: string) {
-    let templateYaml: OniTemplate = yaml.load(yamlString) as OniTemplate;
+    const templateYaml: OniTemplate = yaml.load(yamlString) as OniTemplate;
 
-    let newBlueprint = new Blueprint();
+    const newBlueprint = new Blueprint();
     this.name = templateYaml.name;
     newBlueprint.importFromOni(templateYaml);
 
@@ -120,7 +120,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   private openJsonBlueprint(file: File) {
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => {
       this.loadJsonBlueprint(reader.result as string);
     };
@@ -128,9 +128,9 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   private loadJsonBlueprint(template: string) {
-    let templateJson: BniBlueprint = JSON.parse(template);
+    const templateJson: BniBlueprint = JSON.parse(template);
 
-    let newBlueprint = new Blueprint();
+    const newBlueprint = new Blueprint();
     this.name = templateJson.friendlyname;
     newBlueprint.importFromBni(templateJson);
 
@@ -140,7 +140,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   private openBsonBlueprint(file: File) {
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => {
       this.loadBsonBlueprint(reader.result as ArrayBuffer);
     };
@@ -148,7 +148,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   private loadBsonBlueprint(template: ArrayBuffer) {
-    let newBlueprint = new Blueprint();
+    const newBlueprint = new Blueprint();
     newBlueprint.importFromBinary(template);
 
     this.observersBlueprintChanged.map((observer) => {
@@ -165,7 +165,7 @@ export class BlueprintService implements IObsBlueprintChange {
   newBlueprint() {
     this.name = "new blueprint";
     this.reset();
-    let newBlueprint = new Blueprint();
+    const newBlueprint = new Blueprint();
     this.location.replaceState("/");
     this.observersBlueprintChanged.map((observer) => {
       observer.blueprintChanged(newBlueprint);
@@ -184,7 +184,7 @@ export class BlueprintService implements IObsBlueprintChange {
   undoStates!: MdbBlueprint[];
   undoIndex!: number;
   undo() {
-    let tempUndoIndex = this.undoIndex - 1;
+    const tempUndoIndex = this.undoIndex - 1;
 
     if (tempUndoIndex < 0 || tempUndoIndex >= this.undoStates.length) return;
 
@@ -193,7 +193,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   redo() {
-    let tempUndoIndex = this.undoIndex + 1;
+    const tempUndoIndex = this.undoIndex + 1;
 
     if (tempUndoIndex >= this.undoStates.length) return;
 
@@ -202,7 +202,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   reloadUndoIndex() {
-    let newBlueprint = new Blueprint();
+    const newBlueprint = new Blueprint();
     newBlueprint.importFromMdb(this.undoStates[this.undoIndex]);
 
     this.suppressChanges = true;
@@ -229,7 +229,7 @@ export class BlueprintService implements IObsBlueprintChange {
     if (this.undoIndex < this.undoStates.length - 1)
       this.undoStates.splice(this.undoIndex + 1);
 
-    let newState = this.blueprint.toMdbBlueprint();
+    const newState = this.blueprint.toMdbBlueprint();
     /*if (this.undoStates.length > 0) {
       let oldState = this.undoStates[this.undoStates.length - 1];
       let oldHash = this.hashMdb(oldState);
@@ -244,8 +244,8 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   hashMdb(mdb: MdbBlueprint) {
-    let s = JSON.stringify(mdb);
-    var hash = 0,
+    const s = JSON.stringify(mdb);
+    let hash = 0,
       i,
       chr;
     if (s.length === 0) return hash;
@@ -296,7 +296,7 @@ export class BlueprintService implements IObsBlueprintChange {
       .pipe(
         map((response: BlueprintResponse) => {
           if (response.data) {
-            let blueprint = new Blueprint();
+            const blueprint = new Blueprint();
 
             this.id = response.id;
             this.name = response.name;
@@ -364,7 +364,7 @@ export class BlueprintService implements IObsBlueprintChange {
     filterLikedBy?: string | null,
     filterRooms?: string | null
   ) {
-    let parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
+    const parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
 
     let parameterFilterUserId = "";
     if (filterUserId != null)
@@ -404,7 +404,7 @@ export class BlueprintService implements IObsBlueprintChange {
     let parameterRooms = "";
     if (filterRooms != null) parameterRooms = "&rooms=" + filterRooms;
 
-    let parameters =
+    const parameters =
       parameterOlderThan +
       parameterFilterUserId +
       parameterFilterName +
@@ -417,7 +417,7 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterLikedBy +
       parameterRooms;
 
-    let request = this.authService.isLoggedIn()
+    const request = this.authService.isLoggedIn()
       ? this.http.get("/api/getblueprintsSecure?" + parameters, {
           headers: { Authorization: `Bearer ${this.authService.getToken()}` },
         })
@@ -425,7 +425,7 @@ export class BlueprintService implements IObsBlueprintChange {
 
     request.pipe(
       map((response: any) => {
-        let blueprintListItems = response as BlueprintListItem[];
+        const blueprintListItems = response as BlueprintListItem[];
         return blueprintListItems;
       })
     );
@@ -434,7 +434,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   deleteBlueprint(id: string) {
-    let body: BlueprintDelete = { blueprintId: id };
+    const body: BlueprintDelete = { blueprintId: id };
 
     const request = this.http
       .post("/api/deleteblueprint", body, {
@@ -460,9 +460,9 @@ export class BlueprintService implements IObsBlueprintChange {
   > = {};
 
   saveBlueprint(overwrite: boolean, publish?: boolean | null) {
-    let saveBlueprint = this.blueprint.toMdbBlueprint();
+    const saveBlueprint = this.blueprint.toMdbBlueprint();
 
-    let body = new SaveBlueprintMessage();
+    const body = new SaveBlueprintMessage();
     body.overwrite = overwrite;
     body.name = this.name;
     body.blueprint = saveBlueprint;
@@ -540,7 +540,7 @@ export class BlueprintService implements IObsBlueprintChange {
   likedByMe!: boolean;
   likeBlueprint(blueprintId: string, like: boolean) {
     this.likedByMe = !this.likedByMe;
-    let body: BlueprintLike = {
+    const body: BlueprintLike = {
       blueprintId: blueprintId,
       like: like,
     };

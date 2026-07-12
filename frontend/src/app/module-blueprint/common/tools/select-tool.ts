@@ -56,17 +56,17 @@ export class SelectTool implements ITool {
     this.deselectAll();
     this.sameItemCollections = [];
 
-    let tileSelected: Vector2[] = [];
+    const tileSelected: Vector2[] = [];
 
     for (let x = topLeft.x; x <= bottomRight.x; x++)
       for (let y = topLeft.y; y >= bottomRight.y; y--)
         tileSelected.push(new Vector2(x, y));
 
     if (tileSelected.length > 0) {
-      for (let tile of tileSelected) {
-        let itemsInTile =
+      for (const tile of tileSelected) {
+        const itemsInTile =
           this.blueprintService.blueprint.getBlueprintItemsAt(tile);
-        for (let item of itemsInTile) this.addToCollection(item);
+        for (const item of itemsInTile) this.addToCollection(item);
       }
 
       this.sameItemCollections = this.sameItemCollections.sort((i1, i2) => {
@@ -84,7 +84,7 @@ export class SelectTool implements ITool {
           selectedOne = true;
           firstSelected = itemCollection.items[0];
 
-          let newDate = new Date();
+          const newDate = new Date();
           if (
             firstSelected == this.lastSelected &&
             this.lastSelectedDate != null &&
@@ -178,7 +178,7 @@ export class SelectTool implements ITool {
   selectEveryElement(buildableElement: BuildableElement) {
     this.deselectAll();
 
-    for (let blueprintItem of this.blueprintService.blueprint.blueprintItems)
+    for (const blueprintItem of this.blueprintService.blueprint.blueprintItems)
       if (blueprintItem.buildableElements.indexOf(buildableElement) != -1)
         this.addToCollection(blueprintItem);
 
@@ -194,7 +194,7 @@ export class SelectTool implements ITool {
 
   addToCollection(blueprintItem: BlueprintItem) {
     // Find if there is already an item collection for this oniItem
-    let itemCollectionArray = this.sameItemCollections.filter((sameItem) => {
+    const itemCollectionArray = this.sameItemCollections.filter((sameItem) => {
       if (blueprintItem.oniItem.isElement)
         return (
           blueprintItem.oniItem.id == sameItem.oniItem.id &&
@@ -204,7 +204,7 @@ export class SelectTool implements ITool {
       else return blueprintItem.oniItem.id == sameItem.oniItem.id;
     });
     if (itemCollectionArray.length == 0) {
-      let newItemCollection = new SameItemCollection(blueprintItem.oniItem);
+      const newItemCollection = new SameItemCollection(blueprintItem.oniItem);
       newItemCollection.addItem(blueprintItem);
 
       this.sameItemCollections.push(newItemCollection);
@@ -223,7 +223,7 @@ export class SelectTool implements ITool {
 
   buildingsDestroy(itemCollection: SameItemCollection) {
     this.blueprintService.blueprint.pauseChangeEvents();
-    for (let item of itemCollection.items)
+    for (const item of itemCollection.items)
       this.blueprintService.blueprint.destroyBlueprintItem(item);
     this.blueprintService.blueprint.resumeChangeEvents();
 
@@ -283,7 +283,7 @@ export class SelectTool implements ITool {
     if (this.sameItemCollections != null) {
       this.blueprintService.blueprint.pauseChangeEvents();
 
-      for (let itemCollection of this.sameItemCollections)
+      for (const itemCollection of this.sameItemCollections)
         itemCollection.destroyAll();
 
       this.blueprintService.blueprint.resumeChangeEvents();
@@ -319,13 +319,13 @@ export class SelectTool implements ITool {
     topLeft: Vector2,
     bottomRight: Vector2
   ) {
-    let text = this.ensureDimensionsText(drawPixi);
+    const text = this.ensureDimensionsText(drawPixi);
 
-    let width = bottomRight.x - topLeft.x;
-    let height = topLeft.y - bottomRight.y;
+    const width = bottomRight.x - topLeft.x;
+    const height = topLeft.y - bottomRight.y;
     text.text = `${width} x ${height}\n${width * height} tiles`;
 
-    let centerWorld = new Vector2(
+    const centerWorld = new Vector2(
       (topLeft.x + bottomRight.x) / 2,
       (topLeft.y + bottomRight.y) / 2
     );
@@ -359,7 +359,7 @@ export class SelectTool implements ITool {
     let doSelectFromBox = true;
 
     if (this.currentMultipleSelectionIndex != -1) {
-      let next_group =
+      const next_group =
         (this.currentMultipleSelectionIndex + 1) %
         this.sameItemCollections.length;
       doSelectFromBox =
@@ -391,15 +391,15 @@ export class SelectTool implements ITool {
 
   dragStop() {
     if (this.beginSelection != null && this.endSelection != null) {
-      let beginTile = DrawHelpers.getIntegerTile(this.beginSelection);
-      let endTile = DrawHelpers.getIntegerTile(this.endSelection);
+      const beginTile = DrawHelpers.getIntegerTile(this.beginSelection);
+      const endTile = DrawHelpers.getIntegerTile(this.endSelection);
 
-      let topLeft = new Vector2(
+      const topLeft = new Vector2(
         Math.min(beginTile.x, endTile.x),
         Math.max(beginTile.y, endTile.y)
       );
 
-      let bottomRight = new Vector2(
+      const bottomRight = new Vector2(
         Math.max(beginTile.x, endTile.x),
         Math.min(beginTile.y, endTile.y)
       );
@@ -412,22 +412,22 @@ export class SelectTool implements ITool {
 
   keyDown(keyCode: string) {
     if (keyCode == "Delete") {
-      let itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
+      const itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
       if (itemGroupToDestroyIndex != -1)
         this.buildingsDestroy(
           this.sameItemCollections[itemGroupToDestroyIndex]
         );
     } else if (keyCode == "b") {
       // ignore keypress when a textbox is active
-      let textboxElements = ["INPUT", "TEXTAREA"];
-      let activeElement = document.activeElement?.tagName ?? "";
+      const textboxElements = ["INPUT", "TEXTAREA"];
+      const activeElement = document.activeElement?.tagName ?? "";
       if (textboxElements.includes(activeElement)) {
         return;
       }
 
       // find the currently selected item
       let newItem = null;
-      let itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
+      const itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
       if (itemGroupToDestroyIndex != -1) {
         newItem = BlueprintHelpers.cloneBlueprintItem(
           this.sameItemCollections[itemGroupToDestroyIndex].items[0]
@@ -452,15 +452,15 @@ export class SelectTool implements ITool {
     // Snap to the same whole tiles selectFromBox() will actually operate on
     // (see dragStop()), so the drawn box previews the real selection instead
     // of following the raw cursor position.
-    let beginTile = DrawHelpers.getIntegerTile(this.beginSelection);
-    let endTile = DrawHelpers.getIntegerTile(this.endSelection);
+    const beginTile = DrawHelpers.getIntegerTile(this.beginSelection);
+    const endTile = DrawHelpers.getIntegerTile(this.endSelection);
 
-    let topLeft = new Vector2(
+    const topLeft = new Vector2(
       Math.min(beginTile.x, endTile.x),
       Math.max(beginTile.y, endTile.y)
     );
 
-    let bottomRight = new Vector2(
+    const bottomRight = new Vector2(
       Math.max(beginTile.x, endTile.x) + 1,
       Math.min(beginTile.y, endTile.y) - 1
     );

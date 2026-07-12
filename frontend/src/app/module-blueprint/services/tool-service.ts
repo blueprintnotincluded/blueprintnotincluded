@@ -50,7 +50,7 @@ export class ToolService implements ITool, IChangeTool {
   }
 
   changeTool(newTool: ToolType) {
-    let newToolInstance = this.getTool(newTool);
+    const newToolInstance = this.getTool(newTool);
 
     // Iterate over every tool of the same group
     // Switch from and make invisible if needed
@@ -110,11 +110,9 @@ export class ToolService implements ITool, IChangeTool {
   keyDown(keyCode: string) {
     // TODO This is hacky, but when I press B on the info icons, the UI changes tool.
     // I have to figure out a way of suppressing key presses when in a text area
-    if (false)
-      /*if (keyCode == 'b' && this.currentTool.toolType != ToolType.build)*/ this.changeTool(
-        ToolType.build
-      );
-    else this.currentTool.keyDown(keyCode);
+    // if (keyCode == 'b' && this.currentTool.toolType != ToolType.build)
+    //   this.changeTool(ToolType.build);
+    this.currentTool.keyDown(keyCode);
   }
   draw(drawPixi: DrawPixi, camera: CameraService) {
     this.currentTool.draw(drawPixi, camera);

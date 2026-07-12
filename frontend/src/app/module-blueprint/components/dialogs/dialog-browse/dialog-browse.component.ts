@@ -44,7 +44,7 @@ export class DialogBrowseComponent implements OnInit {
     public authService: AuthenticationService,
     public datepipe: DatePipe
   ) {
-    let tempDate = new Date();
+    const tempDate = new Date();
     this.loadingBlueprintItem = {
       id: null as any,
       name: LOADING_STR,
@@ -230,8 +230,8 @@ export class DialogBrowseComponent implements OnInit {
   }
 
   scroll(_e: Event) {
-    let scrollTop: number = this.scrollable.nativeElement.scrollTop;
-    let scrollMax: number =
+    const scrollTop: number = this.scrollable.nativeElement.scrollTop;
+    const scrollMax: number =
       this.scrollable.nativeElement.scrollHeight -
       this.scrollable.nativeElement.clientHeight;
     //console.log('scroll')
