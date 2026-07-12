@@ -1,5 +1,7 @@
 .angular
 dist
 out-tsc
+coverage
+package-lock.json
 
 assets

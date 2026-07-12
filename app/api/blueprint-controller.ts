@@ -328,7 +328,7 @@ export class BlueprintController {
       return;
     }
     // TODO checks here
-    let id = req.params.id;
+    let id = String(req.params.id);
     let userId = req.query.userId;
 
     try {
@@ -387,7 +387,7 @@ export class BlueprintController {
       return;
     }
     // TODO checks here
-    let id = req.params.id;
+    let id = String(req.params.id);
 //       let _userId = req.query.userId;
 
     try {
@@ -420,7 +420,7 @@ export class BlueprintController {
     if (BlueprintModel.model == null) res.status(503).send();
     else {
       // TODO checks here
-      let id = req.params.id;
+      let id = String(req.params.id);
 //       let _userId = req.query.userId;
 
       BlueprintModel.model
@@ -853,7 +853,7 @@ export class BlueprintController {
       return;
     }
 
-    const blueprintId = req.params.id;
+    const blueprintId = String(req.params.id);
     if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
       res.status(400).json(apiError(400, 'Invalid blueprint id'));
       return;
@@ -978,7 +978,7 @@ export class BlueprintController {
     }
     try {
       const user = req.user as UserJwt;
-      const blueprintId = req.params.id;
+      const blueprintId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
         return;
@@ -1038,7 +1038,7 @@ export class BlueprintController {
         return;
       }
 
-      const blueprintId = req.params.id;
+      const blueprintId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
         return;
@@ -1134,7 +1134,7 @@ export class BlueprintController {
         return;
       }
 
-      const blueprintId = req.params.id;
+      const blueprintId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
         return;

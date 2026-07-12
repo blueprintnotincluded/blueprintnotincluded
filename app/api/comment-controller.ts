@@ -124,7 +124,7 @@ export class CommentController {
 
   public async list(req: Request, res: Response): Promise<void> {
     try {
-      const blueprintId = req.params.id;
+      const blueprintId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
         return;
@@ -187,7 +187,7 @@ export class CommentController {
   public async create(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as UserJwt;
-      const blueprintId = req.params.id;
+      const blueprintId = String(req.params.id);
       const { body, parentId } = req.body as PostCommentRequest;
 
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
@@ -293,7 +293,7 @@ export class CommentController {
   public async edit(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as UserJwt;
-      const commentId = req.params.id;
+      const commentId = String(req.params.id);
       const { body } = req.body as EditCommentRequest;
 
       if (!mongoose.Types.ObjectId.isValid(commentId)) {
@@ -364,7 +364,7 @@ export class CommentController {
   public async remove(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as UserJwt;
-      const commentId = req.params.id;
+      const commentId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(commentId)) {
         res.status(400).json(apiError(400, 'Invalid comment id'));
         return;
