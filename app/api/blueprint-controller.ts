@@ -16,6 +16,7 @@ import {
   CATEGORIES,
   SUBCATEGORIES,
   RESEARCH_TIERS,
+  ROOM_TYPE_IDS,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { UserModel, UserJwt } from './models/user';
@@ -34,6 +35,7 @@ import {
   syncCurrentVersion,
 } from './services/blueprint-version-service';
 import { PreviewImageService } from './services/preview-image-service';
+import { deriveRooms } from './services/room-derivation-service';
 import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
@@ -361,6 +363,7 @@ export class BlueprintController {
         description: blueprint.description ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
+        rooms: blueprint.rooms ?? null,
         isPublished: blueprint.isPublished !== false,
       };
 
@@ -454,6 +457,7 @@ export class BlueprintController {
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
       let filterModded: boolean | null = null;
+      let filterRooms: string[] | null = null;
       let filterForkedFrom: string | null = null;
       let filterLikedBy: string | null = null;
       let sort: BlueprintSort;
@@ -497,6 +501,27 @@ export class BlueprintController {
           return;
         }
         filterModded = rawModded != null ? rawModded === 'true' : null;
+
+        // ?rooms=latrine,park -> blueprints containing ANY of the room types.
+        // Values validated against the shared enum (400 on garbage, consistent
+        // with category). Docs never derived (rooms null/absent) never match.
+        const rawRooms = req.query.rooms as string | undefined;
+        if (rawRooms != null) {
+          const requested = rawRooms
+            .split(',')
+            .map(room => room.trim())
+            .filter(room => room.length > 0);
+          const invalid = requested.filter(
+            room => !(ROOM_TYPE_IDS as readonly string[]).includes(room)
+          );
+          if (requested.length === 0 || invalid.length > 0) {
+            res
+              .status(400)
+              .json(apiError(400, `Invalid rooms: must be a comma-separated list of ${ROOM_TYPE_IDS.join(', ')}`));
+            return;
+          }
+          filterRooms = requested;
+        }
 
         const rawForkedFrom = req.query.forkedFrom as string | undefined;
         if (rawForkedFrom != null && !mongoose.Types.ObjectId.isValid(rawForkedFrom)) {
@@ -566,6 +591,7 @@ export class BlueprintController {
       if (filterCategory != null) filter.$and.push({ category: filterCategory });
       if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
       if (filterModded != null) filter.$and.push({ modded: filterModded });
+      if (filterRooms != null) filter.$and.push({ rooms: { $in: filterRooms } });
       if (filterForkedFrom != null) filter.$and.push({ 'forkedFrom.blueprintId': filterForkedFrom });
       if (filterLikedBy != null) filter.$and.push({ likes: filterLikedBy });
 
@@ -801,6 +827,7 @@ export class BlueprintController {
       subcategory: blueprint.subcategory ?? null,
       description: blueprint.description ?? null,
       modded: blueprint.modded ?? null,
+      rooms: blueprint.rooms ?? null,
       isPublished: blueprint.isPublished !== false,
       nbForks: blueprint.forkCount ?? 0,
       nbViews: blueprint.viewCount ?? 0,
@@ -1075,6 +1102,7 @@ export class BlueprintController {
         description: blueprint.description ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
+        rooms: blueprint.rooms ?? null,
         isPublished: blueprint.isPublished !== false,
         nbForks: blueprint.forkCount ?? 0,
         nbViews: blueprint.viewCount ?? 0,
@@ -1199,6 +1227,9 @@ export class BlueprintController {
     blueprint.markModified('data');
     blueprint.thumbnail = thumbnail;
     blueprint.deletedAt = null;
+    // Derived fact, never client-supplied — any `rooms` key in the request
+    // body is ignored (same policy as a client trying to set likeCount).
+    blueprint.rooms = deriveRooms(data);
 
     if (metadata) {
       blueprint.gameVersion = metadata.gameVersion;

@@ -8,6 +8,7 @@ import { apiError } from './utils/apiError';
 import { optionalViewer } from './utils/optionalViewer';
 import { canViewBlueprint } from './utils/blueprint-visibility';
 import { BlueprintEventService } from './services/blueprint-event-service';
+import { deriveRooms } from './services/room-derivation-service';
 import {
   ensureCurrentVersion,
   resolveCurrentData,
@@ -310,6 +311,8 @@ export class BlueprintVersionController {
       // The rendered content changed: bumping modifiedAt invalidates both the
       // disk preview cache and the frontend's versioned (?v=) preview urls.
       blueprint.modifiedAt = new Date();
+      // The live content changed, so the derived room tags change with it.
+      blueprint.rooms = deriveRooms(version.data);
       await blueprint.save();
 
       // Render-on-write: warm the preview cache with the restored data (Phase 2).

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { GAME_VERSIONS, CATEGORIES, RESEARCH_TIERS } from '../../../lib/index';
+import { GAME_VERSIONS, CATEGORIES, RESEARCH_TIERS, ROOM_TYPE_IDS } from '../../../lib/index';
 
 export interface Blueprint extends Document {
   owner: string;
@@ -26,6 +26,10 @@ export interface Blueprint extends Document {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
+  // Room types detected in the blueprint content, server-derived on every save
+  // (never client-supplied). null/absent = never derived or blueprint too large
+  // for detection; [] = derived, no rooms found.
+  rooms?: string[] | null;
   currentVersionId?: mongoose.Types.ObjectId | null;
   forkedFrom?: {
     blueprintId: mongoose.Types.ObjectId;
@@ -78,6 +82,9 @@ export class BlueprintModel {
       description: { type: String, maxlength: 500 },
       researchTier: { type: String, enum: [...RESEARCH_TIERS, null] },
       modded: { type: Boolean },
+      // No default: absent means "never derived", distinct from [] = "derived,
+      // none found" (mirrors the gameVersion nullability convention).
+      rooms: { type: [String], enum: ROOM_TYPE_IDS, default: undefined },
       currentVersionId: {
         type: Schema.Types.ObjectId,
         ref: 'BlueprintVersion',
@@ -111,6 +118,8 @@ export class BlueprintModel {
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, category: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, category: 1, createdAt: -1 });
+    // Room-type filter on the public feed (multikey on rooms)
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, rooms: 1, createdAt: -1 });
     // "Most liked" sort on the public feed
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, likeCount: -1, createdAt: -1 });
     // "Most forked" sort

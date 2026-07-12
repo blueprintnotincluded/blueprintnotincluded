@@ -23,6 +23,9 @@ export interface BlueprintListItem {
   subcategory?: string | null;
   description?: string | null;
   modded?: boolean | null;
+  // Server-derived room types contained in the blueprint (see RoomTypeId);
+  // null = never derived or too large for detection
+  rooms?: string[] | null;
   isPublished: boolean;
   nbForks: number;
   // Approximate by design: served from throttled write-behind counters
@@ -65,5 +68,6 @@ export interface BlueprintResponse {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
+  rooms?: string[] | null;
   isPublished: boolean;
 }
