@@ -86,7 +86,7 @@ describe("ProfilePageComponent", () => {
     expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
       expect.any(Date),
       "owner-1",
-      null
+      null,
     );
   });
 
@@ -106,7 +106,7 @@ describe("ProfilePageComponent", () => {
       authService.getUserDetails.mockReturnValue({ username: "alice" });
       fixture.detectChanges();
       expect(
-        fixture.debugElement.query(By.css(".view-mode-tabs"))
+        fixture.debugElement.query(By.css(".view-mode-tabs")),
       ).toBeTruthy();
     });
 
@@ -119,7 +119,7 @@ describe("ProfilePageComponent", () => {
 
       expect(component.activeTab).toBe("liked");
       expect(
-        component.blueprintListItems.some((i: any) => i.name === "stale")
+        component.blueprintListItems.some((i: any) => i.name === "stale"),
       ).toBe(false);
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
         expect.any(Date),
@@ -132,7 +132,7 @@ describe("ProfilePageComponent", () => {
         undefined,
         undefined,
         undefined,
-        "owner-1"
+        "owner-1",
       );
     });
 
@@ -146,7 +146,7 @@ describe("ProfilePageComponent", () => {
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
         expect.any(Date),
         "owner-1",
-        null
+        null,
       );
     });
 
@@ -210,7 +210,7 @@ describe("ProfilePageComponent", () => {
   describe("bio editing", () => {
     it("starts editing with the current bio", () => {
       userService.getProfile.mockReturnValue(
-        of(makeProfile({ bio: "old bio" }))
+        of(makeProfile({ bio: "old bio" })),
       );
       fixture.detectChanges();
       component.startEditingBio();

@@ -27,7 +27,7 @@ export class VersionHistoryDialogComponent {
 
   constructor(
     private blueprintVersionService: BlueprintVersionService,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {}
 
   showDialog(blueprintId: string, isOwner: boolean) {
@@ -55,7 +55,7 @@ export class VersionHistoryDialogComponent {
         if (requestId !== this.requestId) return;
         this.loading = false;
         this.showError(
-          $localize`:versionHistory.loadError:Could not load version history`
+          $localize`:versionHistory.loadError:Could not load version history`,
         );
       },
     });
@@ -77,7 +77,7 @@ export class VersionHistoryDialogComponent {
         error: () => {
           this.creatingVersion = false;
           this.showError(
-            $localize`:versionHistory.createError:Could not create a version`
+            $localize`:versionHistory.createError:Could not create a version`,
           );
         },
       });
@@ -95,7 +95,7 @@ export class VersionHistoryDialogComponent {
         error: () => {
           this.busyVersionId = null;
           this.showError(
-            $localize`:versionHistory.restoreError:Could not restore this version`
+            $localize`:versionHistory.restoreError:Could not restore this version`,
           );
         },
       });
@@ -103,7 +103,7 @@ export class VersionHistoryDialogComponent {
 
   deleteVersion(version: BlueprintVersionDto) {
     const confirmed = window.confirm(
-      $localize`:versionHistory.deleteConfirm:Delete this version? This cannot be undone.`
+      $localize`:versionHistory.deleteConfirm:Delete this version? This cannot be undone.`,
     );
     if (!confirmed) return;
 
@@ -119,11 +119,11 @@ export class VersionHistoryDialogComponent {
           this.busyVersionId = null;
           if (err?.status === 400) {
             this.showError(
-              $localize`:versionHistory.lastVersionError:Cannot delete the only remaining version`
+              $localize`:versionHistory.lastVersionError:Cannot delete the only remaining version`,
             );
           } else {
             this.showError(
-              $localize`:versionHistory.deleteError:Could not delete this version`
+              $localize`:versionHistory.deleteError:Could not delete this version`,
             );
           }
         },

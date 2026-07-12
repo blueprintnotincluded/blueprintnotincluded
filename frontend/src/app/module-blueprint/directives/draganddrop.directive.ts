@@ -52,7 +52,7 @@ export class DragAndDropDirective {
   @HostListener("pointerdown", ["$event"]) onPointerDown(event: any) {
     this.activePointers.set(
       event.pointerId,
-      new Vector2(event.clientX, event.clientY)
+      new Vector2(event.clientX, event.clientY),
     );
 
     if (event.pointerType) {
@@ -92,11 +92,11 @@ export class DragAndDropDirective {
       this.isMouseDown[dragButton] = true;
       this.startDragPosition[dragButton] = new Vector2(
         event.clientX,
-        event.clientY
+        event.clientY,
       );
       this.lastDragPosition[dragButton] = new Vector2(
         event.clientX,
-        event.clientY
+        event.clientY,
       );
     }
 
@@ -147,7 +147,7 @@ export class DragAndDropDirective {
       allowClick &&
       this.startDragPosition[dragButton] != null &&
       new Vector2(event.clientX, event.clientY).equals(
-        this.startDragPosition[dragButton]!
+        this.startDragPosition[dragButton]!,
       )
     )
       this.myMouseClick.emit(event);
@@ -172,7 +172,7 @@ export class DragAndDropDirective {
     if (this.activePointers.has(event.pointerId))
       this.activePointers.set(
         event.pointerId,
-        new Vector2(event.clientX, event.clientY)
+        new Vector2(event.clientX, event.clientY),
       );
 
     if (this.gestureActive) {
@@ -209,11 +209,11 @@ export class DragAndDropDirective {
 
     this.gestureLastDistance = DragAndDropDirective.pointerDistance(
       points[0],
-      points[1]
+      points[1],
     );
     this.gestureLastMidpoint = new Vector2(
       (points[0].x + points[1].x) / 2,
-      (points[0].y + points[1].y) / 2
+      (points[0].y + points[1].y) / 2,
     );
   }
 
@@ -224,7 +224,7 @@ export class DragAndDropDirective {
     const distance = DragAndDropDirective.pointerDistance(points[0], points[1]);
     const midpoint = new Vector2(
       (points[0].x + points[1].x) / 2,
-      (points[0].y + points[1].y) / 2
+      (points[0].y + points[1].y) / 2,
     );
 
     event.panX = midpoint.x - this.gestureLastMidpoint.x;

@@ -9,37 +9,40 @@ import { AuthenticationService } from "./authentification-service";
 
 @Injectable()
 export class CommentService {
-  constructor(private http: HttpClient, private auth: AuthenticationService) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthenticationService,
+  ) {}
 
   // Token is optional on the list call: the backend uses it to compute
   // per-comment delete rights for the viewer
   public getComments(blueprintId: string): Observable<ListCommentsResponse> {
     return this.http.get<ListCommentsResponse>(
       `/api/blueprints/${blueprintId}/comments`,
-      this.auth.isLoggedIn() ? { headers: this.authHeaders() } : {}
+      this.auth.isLoggedIn() ? { headers: this.authHeaders() } : {},
     );
   }
 
   public postComment(
     blueprintId: string,
     body: string,
-    parentId?: string
+    parentId?: string,
   ): Observable<PostCommentResponse> {
     return this.http.post<PostCommentResponse>(
       `/api/blueprints/${blueprintId}/comments`,
       parentId != null ? { body, parentId } : { body },
-      { headers: this.authHeaders() }
+      { headers: this.authHeaders() },
     );
   }
 
   public editComment(
     commentId: string,
-    body: string
+    body: string,
   ): Observable<PostCommentResponse> {
     return this.http.patch<PostCommentResponse>(
       `/api/comments/${commentId}`,
       { body },
-      { headers: this.authHeaders() }
+      { headers: this.authHeaders() },
     );
   }
 

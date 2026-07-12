@@ -25,7 +25,7 @@ export class TemperaturePickerComponent {
   }
   get temperatureHex() {
     return DrawHelpers.colorToHex(
-      DrawHelpers.temperatureToColor(this.blueprintItem.temperature)
+      DrawHelpers.temperatureToColor(this.blueprintItem.temperature),
     );
   }
   get temperatureThresholds() {
@@ -41,14 +41,14 @@ export class TemperaturePickerComponent {
   temperatureOffset(index: number) {
     return (
       DrawHelpers.temperatureToScale(
-        DrawHelpers.temperatureThresholds[index].temperature
+        DrawHelpers.temperatureThresholds[index].temperature,
       ) / 100
     );
   }
 
   temperatureColor(index: number) {
     return DrawHelpers.colorToHex(
-      DrawHelpers.temperatureThresholds[index].color
+      DrawHelpers.temperatureThresholds[index].color,
     );
   }
 

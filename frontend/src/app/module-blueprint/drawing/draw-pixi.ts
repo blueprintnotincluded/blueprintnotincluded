@@ -117,7 +117,7 @@ export class DrawPixi implements PixiUtil {
       //this.pixiApp.renderer.height != this.parent.canvasRef.nativeElement.height)
       this.pixiApp.renderer.resize(
         this.parent.canvasRef.nativeElement.width,
-        this.parent.canvasRef.nativeElement.height
+        this.parent.canvasRef.nativeElement.height,
       );
       //console.log('resize');
       //return;
@@ -154,7 +154,7 @@ export class DrawPixi implements PixiUtil {
     alpha: number,
     start: Vector2,
     end: Vector2,
-    _lineWidth: number
+    _lineWidth: number,
   ) {
     this.backGraphics.lineStyle(1, 0xffffff, alpha);
     this.backGraphics.moveTo(start.x, start.y);
@@ -173,15 +173,15 @@ export class DrawPixi implements PixiUtil {
     fillColor: number,
     borderColor: number,
     fillAlpha: number,
-    borderAlpha: number
+    borderAlpha: number,
   ) {
     const rectanglePosition = new Vector2(
       (topLeft.x + camera.cameraOffset.x) * camera.currentZoom,
-      (-topLeft.y + camera.cameraOffset.y) * camera.currentZoom
+      (-topLeft.y + camera.cameraOffset.y) * camera.currentZoom,
     );
     const rectangleSize = new Vector2(
       (bottomRight.x - topLeft.x) * camera.currentZoom,
-      (topLeft.y - bottomRight.y) * camera.currentZoom
+      (topLeft.y - bottomRight.y) * camera.currentZoom,
     );
 
     const graphics = frontGraphics ? this.frontGraphics : this.backGraphics;
@@ -191,7 +191,7 @@ export class DrawPixi implements PixiUtil {
       rectanglePosition.x,
       rectanglePosition.y,
       rectangleSize.x,
-      rectangleSize.y
+      rectangleSize.y,
     );
     graphics.endFill();
 
@@ -200,15 +200,15 @@ export class DrawPixi implements PixiUtil {
       graphics.moveTo(rectanglePosition.x, rectanglePosition.y);
       graphics.lineTo(
         rectanglePosition.x + rectangleSize.x,
-        rectanglePosition.y
+        rectanglePosition.y,
       );
       graphics.lineTo(
         rectanglePosition.x + rectangleSize.x,
-        rectanglePosition.y + rectangleSize.y
+        rectanglePosition.y + rectangleSize.y,
       );
       graphics.lineTo(
         rectanglePosition.x,
-        rectanglePosition.y + rectangleSize.y
+        rectanglePosition.y + rectangleSize.y,
       );
       graphics.lineTo(rectanglePosition.x, rectanglePosition.y);
     }

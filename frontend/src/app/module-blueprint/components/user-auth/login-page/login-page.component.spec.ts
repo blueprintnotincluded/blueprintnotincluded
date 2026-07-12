@@ -51,7 +51,7 @@ describe("LoginPageComponent", () => {
       mockRoute.snapshot.queryParams = { reset: "1" };
       component.ngOnInit();
       expect(mockMessageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({ severity: "success" })
+        expect.objectContaining({ severity: "success" }),
       );
     });
 
@@ -97,7 +97,7 @@ describe("LoginPageComponent", () => {
       component.email = "a@b.com";
       component.password = "pass";
       mockAuth.loginWithPassword.mockReturnValue(
-        of({ kind: "success", token: "jwt" })
+        of({ kind: "success", token: "jwt" }),
       );
       component.submit();
       expect(mockRouter.navigate).toHaveBeenCalledWith(["/"]);
@@ -107,7 +107,7 @@ describe("LoginPageComponent", () => {
       component.email = "a@b.com";
       component.password = "pass";
       mockAuth.loginWithPassword.mockReturnValue(
-        of({ kind: "legacy_account" })
+        of({ kind: "legacy_account" }),
       );
       component.submit();
       expect(component.showLegacyHint).toBe(true);
@@ -118,7 +118,7 @@ describe("LoginPageComponent", () => {
       component.email = "a@b.com";
       component.password = "pass";
       mockAuth.loginWithPassword.mockReturnValue(
-        of({ kind: "invalid_credentials" })
+        of({ kind: "invalid_credentials" }),
       );
       component.submit();
       expect(component.errorMessage).toBeTruthy();
@@ -129,7 +129,7 @@ describe("LoginPageComponent", () => {
       component.email = "a@b.com";
       component.password = "pass";
       mockAuth.loginWithPassword.mockReturnValue(
-        throwError(() => new Error("network"))
+        throwError(() => new Error("network")),
       );
       component.submit();
       expect(component.errorMessage).toBeTruthy();
@@ -142,7 +142,7 @@ describe("LoginPageComponent", () => {
       component.email = "a@b.com";
       component.password = "pass";
       mockAuth.loginWithPassword.mockReturnValue(
-        of({ kind: "success", token: "t" })
+        of({ kind: "success", token: "t" }),
       );
       component.submit();
       expect(component.showLegacyHint).toBe(false);

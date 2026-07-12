@@ -46,7 +46,7 @@ describe("ScissorsTool", () => {
     mockBlueprintService = { blueprint: mockBlueprint };
     mockCameraService = { overlay: Overlay.Power };
     vi.spyOn(CameraService, "cameraService", "get").mockReturnValue(
-      mockCameraService as any
+      mockCameraService as any,
     );
     tool = new ScissorsTool(mockBlueprintService as any);
   });
@@ -342,7 +342,7 @@ describe("ScissorsTool", () => {
       tool.dragStop();
 
       expect(gasPipe.oniItem.isOverlayPrimary).toHaveBeenCalledWith(
-        Overlay.Gas
+        Overlay.Gas,
       );
     });
 
@@ -420,7 +420,7 @@ describe("ScissorsTool", () => {
         0xffc341,
         0xffc341,
         0.25,
-        1
+        1,
       );
     });
 
@@ -451,7 +451,7 @@ describe("ScissorsTool", () => {
         0xffc341,
         0xffc341,
         0.25,
-        1
+        1,
       );
     });
 

@@ -11,7 +11,7 @@ import { UserService } from "src/app/module-blueprint/services/user-service";
 
 function makeResponse(
   users: { id: string; username: string; followedByMe: boolean }[] = [],
-  remaining = 0
+  remaining = 0,
 ) {
   return { users, oldest: new Date("2026-01-01").toISOString(), remaining };
 }
@@ -53,15 +53,15 @@ describe("DialogFollowListComponent", () => {
         makeResponse([
           { id: "u1", username: "alice", followedByMe: true },
           { id: "u2", username: "bob", followedByMe: false },
-        ])
-      )
+        ]),
+      ),
     );
 
     component.showDialog("carol", "followers");
 
     expect(userService.getFollowers).toHaveBeenCalledWith(
       "carol",
-      expect.any(Date)
+      expect.any(Date),
     );
     expect(component.visible).toBe(true);
     expect(component.entries).toHaveLength(2);
@@ -72,7 +72,7 @@ describe("DialogFollowListComponent", () => {
     component.showDialog("carol", "following");
     expect(userService.getFollowing).toHaveBeenCalledWith(
       "carol",
-      expect.any(Date)
+      expect.any(Date),
     );
     expect(component.title).toContain("Following");
   });
@@ -83,8 +83,8 @@ describe("DialogFollowListComponent", () => {
         makeResponse([
           { id: "u1", username: "alice", followedByMe: true },
           { id: "u2", username: "bob", followedByMe: false },
-        ])
-      )
+        ]),
+      ),
     );
     component.showDialog("carol", "followers");
     fixture.detectChanges();
@@ -101,14 +101,14 @@ describe("DialogFollowListComponent", () => {
         of(
           makeResponse(
             [{ id: "u1", username: "alice", followedByMe: false }],
-            1
-          )
-        )
+            1,
+          ),
+        ),
       )
       .mockReturnValueOnce(
         of(
-          makeResponse([{ id: "u2", username: "bob", followedByMe: false }], 0)
-        )
+          makeResponse([{ id: "u2", username: "bob", followedByMe: false }], 0),
+        ),
       );
 
     component.showDialog("carol", "followers");
@@ -122,7 +122,7 @@ describe("DialogFollowListComponent", () => {
 
   it("flags loadError on failure", () => {
     userService.getFollowers.mockReturnValue(
-      throwError(() => new Error("network"))
+      throwError(() => new Error("network")),
     );
     component.showDialog("carol", "followers");
     expect(component.loadError).toBe(true);

@@ -57,13 +57,13 @@ export class ScissorsTool implements ITool {
       .getBlueprintItemsAt(neighborPosition)
       .filter(
         (i) =>
-          i.oniItem.isWire && i.oniItem.objectLayer == item.oniItem.objectLayer
+          i.oniItem.isWire && i.oniItem.objectLayer == item.oniItem.objectLayer,
       );
 
     for (const neighborItem of neighborItems) {
       const neighborWire = neighborItem as BlueprintItemWire;
       const neighborArray = DrawHelpers.getConnectionArray(
-        neighborWire.connections
+        neighborWire.connections,
       );
       neighborArray[DrawHelpers.connectionBitsOpposite[direction]] = false;
       neighborWire.connections = DrawHelpers.getConnection(neighborArray);
@@ -82,12 +82,12 @@ export class ScissorsTool implements ITool {
       const wireItems = this.blueprintService.blueprint
         .getBlueprintItemsAt(tile)
         .filter(
-          (i) => i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay)
+          (i) => i.oniItem.isWire && i.oniItem.isOverlayPrimary(currentOverlay),
         ) as BlueprintItemWire[];
 
       for (const wireItem of wireItems) {
         const connectionsArray = DrawHelpers.getConnectionArray(
-          wireItem.connections
+          wireItem.connections,
         );
         if (connectionsArray[direction])
           this.disconnectBit(wireItem, direction);
@@ -187,14 +187,14 @@ export class ScissorsTool implements ITool {
 
     if (icon.texture.height > 0) {
       icon.scale.set(
-        (READY_ICON_TILE_FRACTION * camera.currentZoom) / icon.texture.height
+        (READY_ICON_TILE_FRACTION * camera.currentZoom) / icon.texture.height,
       );
     }
 
     const neighbor = this.neighborTile(this.startTile, this.direction);
     const centerWorld = new Vector2(
       (this.startTile.x + neighbor.x) / 2 + 0.5,
-      (this.startTile.y + neighbor.y) / 2 - 0.5
+      (this.startTile.y + neighbor.y) / 2 - 0.5,
     );
 
     icon.position.x =
@@ -216,11 +216,11 @@ export class ScissorsTool implements ITool {
 
     const topLeft = new Vector2(
       Math.min(...tiles.map((t) => t.x)),
-      Math.max(...tiles.map((t) => t.y))
+      Math.max(...tiles.map((t) => t.y)),
     );
     const bottomRight = new Vector2(
       Math.max(...tiles.map((t) => t.x)) + 1,
-      Math.min(...tiles.map((t) => t.y)) - 1
+      Math.min(...tiles.map((t) => t.y)) - 1,
     );
 
     drawPixi.drawTileRectangle(
@@ -232,7 +232,7 @@ export class ScissorsTool implements ITool {
       SCISSORS_COLOR,
       SCISSORS_COLOR,
       0.25,
-      1
+      1,
     );
   }
 

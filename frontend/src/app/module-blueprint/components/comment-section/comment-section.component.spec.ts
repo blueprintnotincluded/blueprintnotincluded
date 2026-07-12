@@ -38,7 +38,7 @@ describe("CommentSectionComponent", () => {
       getComments: vi
         .fn()
         .mockReturnValue(
-          of({ threads: [{ comment: makeComment(), replies: [] }], total: 1 })
+          of({ threads: [{ comment: makeComment(), replies: [] }], total: 1 }),
         ),
       postComment: vi.fn().mockReturnValue(of({ comment: makeComment() })),
       editComment: vi.fn().mockReturnValue(of({ comment: makeComment() })),
@@ -92,7 +92,7 @@ describe("CommentSectionComponent", () => {
 
     it("flags a load error on failure", () => {
       commentService.getComments.mockReturnValue(
-        throwError(() => new Error("boom"))
+        throwError(() => new Error("boom")),
       );
       bindBlueprint("bp1");
 
@@ -122,7 +122,7 @@ describe("CommentSectionComponent", () => {
       expect(commentService.postComment).toHaveBeenCalledWith(
         "bp1",
         "this breaks in Spaced Out",
-        undefined
+        undefined,
       );
       expect(component.newComment).toBe("");
       expect(commentService.getComments).toHaveBeenCalledTimes(2);
@@ -142,7 +142,7 @@ describe("CommentSectionComponent", () => {
       expect(commentService.postComment).toHaveBeenCalledWith(
         "bp1",
         "works for me",
-        "parent1"
+        "parent1",
       );
       expect(component.replyingTo).toBe(null);
       expect(component.replyText).toBe("");
@@ -152,7 +152,7 @@ describe("CommentSectionComponent", () => {
       commentService.postComment.mockReturnValue(
         throwError(() => ({
           error: { errors: [{ status: "429", title: "Too fast" }] },
-        }))
+        })),
       );
       component.newComment = "spam spam";
       component.postTopLevel();
@@ -167,7 +167,7 @@ describe("CommentSectionComponent", () => {
 
     it("prefills the edit box from editSource and saves through the service", () => {
       component.startEdit(
-        makeComment({ canEdit: true, editSource: "hey @alice" }) as any
+        makeComment({ canEdit: true, editSource: "hey @alice" }) as any,
       );
       expect(component.editText).toBe("hey @alice");
 
@@ -176,7 +176,7 @@ describe("CommentSectionComponent", () => {
 
       expect(commentService.editComment).toHaveBeenCalledWith(
         "c1",
-        "hey @alice, updated"
+        "hey @alice, updated",
       );
       expect(component.editingId).toBe(null);
       expect(commentService.getComments).toHaveBeenCalledTimes(2);
@@ -191,7 +191,7 @@ describe("CommentSectionComponent", () => {
 
     it("cancelling an edit restores the read view without saving", () => {
       component.startEdit(
-        makeComment({ canEdit: true, editSource: "draft" }) as any
+        makeComment({ canEdit: true, editSource: "draft" }) as any,
       );
       component.cancelEdit();
 
@@ -215,7 +215,7 @@ describe("CommentSectionComponent", () => {
       commentService.editComment.mockReturnValue(
         throwError(() => ({
           error: { errors: [{ status: "400", title: "Comment is empty" }] },
-        }))
+        })),
       );
       component.startEdit(makeComment({ canEdit: true }) as any);
       component.editText = "https://link.example.com";

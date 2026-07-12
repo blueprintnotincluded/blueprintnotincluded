@@ -16,7 +16,7 @@ const makeOniItem = (overrides: Partial<any> = {}) => ({
 const makeBlueprintItem = (
   oniItem: any,
   buildableElements: any[],
-  overrides: Partial<any> = {}
+  overrides: Partial<any> = {},
 ) => ({
   oniItem,
   buildableElements,
@@ -40,7 +40,7 @@ describe("ElementReport", () => {
 
   it("subscribes to blueprint changes on construction", () => {
     expect(mockBlueprint.subscribeBlueprintChanged).toHaveBeenCalledWith(
-      report
+      report,
     );
   });
 
@@ -67,7 +67,7 @@ describe("ElementReport", () => {
       const elem = makeBuildableElement("Steel");
       const item = makeBlueprintItem(
         makeOniItem({ buildableElementsArray: [elem], materialMass: [200] }),
-        [elem]
+        [elem],
       );
       mockBlueprint.blueprintItems = [item];
       report.updateElementReport();
@@ -126,7 +126,7 @@ describe("ElementReport", () => {
       ];
       report.updateElementReport();
       expect(report.data[0].totalMass).toBeGreaterThan(
-        report.data[1].totalMass
+        report.data[1].totalMass,
       );
       expect(report.data[0].buildableElement).toBe(steel);
     });
@@ -142,7 +142,7 @@ describe("ElementReport", () => {
       mockBlueprint.blueprintItems = [makeBlueprintItem(oniItem, [primary])];
       report.updateElementReport();
       const fiberEntry = report.data.find(
-        (d) => d.buildableElement === secondary
+        (d) => d.buildableElement === secondary,
       );
       expect(fiberEntry).toBeDefined();
       expect(fiberEntry!.totalMass).toBe(25);

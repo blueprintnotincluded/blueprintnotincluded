@@ -13,13 +13,16 @@ export class ComponentSideSelectionToolComponent {
   buildingsAccordion!: Accordion;
   @ViewChild("selectToolCard", { static: true }) selectToolCard!: ElementRef;
 
-  constructor(public toolService: ToolService, private renderer: Renderer2) {}
+  constructor(
+    public toolService: ToolService,
+    private renderer: Renderer2,
+  ) {}
 
   setMaxHeight(position: number) {
     this.renderer.setStyle(
       this.selectToolCard.nativeElement,
       "max-height",
-      "calc(100vh - " + position + "px - 20px)"
+      "calc(100vh - " + position + "px - 20px)",
     );
   }
 

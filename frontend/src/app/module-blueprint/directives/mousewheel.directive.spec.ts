@@ -6,7 +6,7 @@ const wheelEvent = (wheelDelta: number) =>
     detail: 0,
     returnValue: true,
     preventDefault: vi.fn(),
-  } as any);
+  }) as any;
 
 describe("MouseWheelDirective", () => {
   let dir: MouseWheelDirective;

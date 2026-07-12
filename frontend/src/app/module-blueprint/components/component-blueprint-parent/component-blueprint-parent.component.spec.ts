@@ -61,7 +61,7 @@ describe.skip("ComponentBlueprintParentComponent", () => {
     const observersBefore = blueprintService.observersBlueprintChanged.length;
     fixture.destroy();
     expect(blueprintService.observersBlueprintChanged.length).toBe(
-      observersBefore - 1
+      observersBefore - 1,
     );
   });
 });

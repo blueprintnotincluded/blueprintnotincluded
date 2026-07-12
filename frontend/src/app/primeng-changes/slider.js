@@ -7,8 +7,8 @@ var __decorate =
         c < 3
           ? target
           : desc === null
-          ? (desc = Object.getOwnPropertyDescriptor(target, key))
-          : desc,
+            ? (desc = Object.getOwnPropertyDescriptor(target, key))
+            : desc,
       d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
       r = Reflect.decorate(decorators, target, key, desc);
@@ -16,7 +16,7 @@ var __decorate =
       for (var i = decorators.length - 1; i >= 0; i--)
         if ((d = decorators[i]))
           r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
+    return (c > 3 && r && Object.defineProperty(target, key, r), r);
   };
 var __metadata =
   (this && this.__metadata) ||
@@ -93,13 +93,14 @@ var Slider = /** @class */ (function () {
     if (this.orientation === "horizontal") {
       handleValue =
         Math.floor(
-          ((parseInt(touchobj.clientX, 10) - this.startx) * 100) / this.barWidth
+          ((parseInt(touchobj.clientX, 10) - this.startx) * 100) /
+            this.barWidth,
         ) + this.startHandleValue;
     } else {
       handleValue =
         Math.floor(
           ((this.starty - parseInt(touchobj.clientY, 10)) * 100) /
-            this.barHeight
+            this.barHeight,
         ) + this.startHandleValue;
     }
     this.setValueFromHandle(event, handleValue);
@@ -161,7 +162,7 @@ var Slider = /** @class */ (function () {
                 _this.handleChange(event);
               });
             }
-          }
+          },
         );
       }
       if (!_this.mouseupListener) {
@@ -185,7 +186,7 @@ var Slider = /** @class */ (function () {
                 }
               });
             }
-          }
+          },
         );
       }
     });
@@ -385,79 +386,79 @@ var Slider = /** @class */ (function () {
     [core_1.Input(), __metadata("design:type", Boolean)],
     Slider.prototype,
     "animate",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Boolean)],
     Slider.prototype,
     "disabled",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Number)],
     Slider.prototype,
     "min",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Number)],
     Slider.prototype,
     "max",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", String)],
     Slider.prototype,
     "orientation",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Number)],
     Slider.prototype,
     "step",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Array[Number])],
     Slider.prototype,
     "customStep",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Boolean)],
     Slider.prototype,
     "range",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Object)],
     Slider.prototype,
     "style",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", String)],
     Slider.prototype,
     "styleClass",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Number)],
     Slider.prototype,
     "tabindex",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Output(), __metadata("design:type", core_1.EventEmitter)],
     Slider.prototype,
     "onChange",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Output(), __metadata("design:type", core_1.EventEmitter)],
     Slider.prototype,
     "onSlideEnd",
-    void 0
+    void 0,
   );
   __decorate(
     [
@@ -466,7 +467,7 @@ var Slider = /** @class */ (function () {
     ],
     Slider.prototype,
     "sliderHandle",
-    void 0
+    void 0,
   );
   __decorate(
     [
@@ -475,7 +476,7 @@ var Slider = /** @class */ (function () {
     ],
     Slider.prototype,
     "sliderHandleStart",
-    void 0
+    void 0,
   );
   __decorate(
     [
@@ -484,7 +485,7 @@ var Slider = /** @class */ (function () {
     ],
     Slider.prototype,
     "sliderHandleEnd",
-    void 0
+    void 0,
   );
   Slider = __decorate(
     [
@@ -501,7 +502,7 @@ var Slider = /** @class */ (function () {
         core_1.ChangeDetectorRef,
       ]),
     ],
-    Slider
+    Slider,
   );
   return Slider;
 })();
@@ -516,7 +517,7 @@ var SliderModule = /** @class */ (function () {
         declarations: [Slider],
       }),
     ],
-    SliderModule
+    SliderModule,
   );
   return SliderModule;
 })();

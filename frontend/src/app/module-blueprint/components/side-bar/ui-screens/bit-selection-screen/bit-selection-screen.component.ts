@@ -28,7 +28,7 @@ export class BitSelectionScreenComponent implements OnInit {
   ngOnInit(): void {
     this.buttonValues = [];
     this.value = this.blueprintItem.getUiSettings(
-      this.bitSelectorSideScreen.id
+      this.bitSelectorSideScreen.id,
     )!.values[0] as number;
 
     this.updateButtonValues();

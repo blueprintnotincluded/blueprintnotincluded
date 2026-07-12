@@ -172,7 +172,7 @@ describe("BlueprintService", () => {
       const mdb1 = { blueprintItems: [] };
       const mdb2 = { blueprintItems: [{ id: "Wire" }] };
       expect(service.hashMdb(mdb1 as any)).not.toBe(
-        service.hashMdb(mdb2 as any)
+        service.hashMdb(mdb2 as any),
       );
     });
   });
@@ -263,7 +263,7 @@ describe("BlueprintService", () => {
       service.getBlueprint("test-id").subscribe(() => {});
       expect(mockHttp.get).toHaveBeenCalledWith(
         "/api/getblueprint/test-id",
-        {}
+        {},
       );
     });
 
@@ -285,7 +285,7 @@ describe("BlueprintService", () => {
           likedByMe: true,
           nbLikes: 7,
           data: { blueprintItems: [] },
-        })
+        }),
       );
       let result: any;
       service.getBlueprint("bp-1").subscribe((bp) => {
@@ -317,7 +317,7 @@ describe("BlueprintService", () => {
           likedByMe: false,
           nbLikes: 0,
           data: { blueprintItems: [] },
-        })
+        }),
       );
       service.openBlueprintFromId("test-id");
       expect(mockLocation.replaceState).toHaveBeenCalledWith("/b/test-id");
@@ -333,7 +333,7 @@ describe("BlueprintService", () => {
           likedByMe: false,
           nbLikes: 0,
           data: { blueprintItems: [] },
-        })
+        }),
       );
       obs.blueprintChanged.mockClear();
       service.openBlueprintFromId("test-id");
@@ -343,7 +343,7 @@ describe("BlueprintService", () => {
     it("calls handleGetBlueprintError on http error", () => {
       const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       mockHttp.get.mockReturnValue(
-        throwError(() => new Error("network error"))
+        throwError(() => new Error("network error")),
       );
       service.openBlueprintFromId("bad-id");
       expect(errorSpy).toHaveBeenCalled();
@@ -401,7 +401,7 @@ describe("BlueprintService", () => {
         null,
         null,
         null,
-        "mostForked"
+        "mostForked",
       );
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("sort=mostForked");
@@ -429,7 +429,7 @@ describe("BlueprintService", () => {
       expect(mockHttp.post).toHaveBeenCalledWith(
         "/api/deleteblueprint",
         { blueprintId: "bp-to-delete" },
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -454,7 +454,7 @@ describe("BlueprintService", () => {
       expect(mockHttp.post).toHaveBeenCalledWith(
         "/api/uploadblueprint",
         expect.any(Object),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -511,7 +511,7 @@ describe("BlueprintService", () => {
       expect(mockHttp.post).toHaveBeenCalledWith(
         "/api/likeblueprint",
         { blueprintId: "bp-1", like: true },
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -523,7 +523,7 @@ describe("BlueprintService", () => {
       expect(mockHttp.post).toHaveBeenCalledWith(
         "/api/blueprints/bp-1/downloads",
         {},
-        {}
+        {},
       );
     });
 
@@ -535,7 +535,7 @@ describe("BlueprintService", () => {
       expect(mockHttp.post).toHaveBeenCalledWith(
         "/api/blueprints/bp-1/downloads",
         {},
-        { headers: { Authorization: "Bearer tok" } }
+        { headers: { Authorization: "Bearer tok" } },
       );
     });
 
@@ -592,7 +592,7 @@ describe("BlueprintService", () => {
 
     it("calls resetUndoStates after dispatching to the format handler", () => {
       vi.spyOn(service as any, "openYamlBlueprint").mockImplementation(
-        () => {}
+        () => {},
       );
       const resetSpy = vi.spyOn(service, "resetUndoStates");
       service.openBlueprintFromUpload(BlueprintFileType.YAML, {

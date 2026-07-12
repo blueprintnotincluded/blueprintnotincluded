@@ -27,7 +27,7 @@ const cavity = (id: number, overrides: Partial<Cavity>): Cavity => ({
 
 const result = (
   cavities: Cavity[],
-  rooms: RoomDetectionResult["rooms"] = []
+  rooms: RoomDetectionResult["rooms"] = [],
 ): RoomDetectionResult => ({ status: "ok", cavities, rooms });
 
 describe("buildRoomOverlayGeometry", () => {
@@ -43,7 +43,7 @@ describe("buildRoomOverlayGeometry", () => {
       [2, 1],
     ]);
     const geometry = buildRoomOverlayGeometry(
-      result([cavity(0, { cells: block, size: block.length })])
+      result([cavity(0, { cells: block, size: block.length })]),
     );
 
     expect(geometry[0].spans).toEqual([
@@ -61,7 +61,7 @@ describe("buildRoomOverlayGeometry", () => {
       [3, 4],
     ]);
     const geometry = buildRoomOverlayGeometry(
-      result([cavity(0, { cells: block, size: 4 })])
+      result([cavity(0, { cells: block, size: 4 })]),
     );
     expect(geometry[0].center).toEqual({ x: 2.5, y: 3.5 });
   });
@@ -78,8 +78,8 @@ describe("buildRoomOverlayGeometry", () => {
             matchedTypes: ["latrine"],
           }),
         ],
-        [{ type: "latrine", cavityId: 0, cells: roomCells, size: 1 }]
-      )
+        [{ type: "latrine", cavityId: 0, cells: roomCells, size: 1 }],
+      ),
     );
     expect(geometry[0].label).toBe(ROOM_TYPE_LABELS.latrine);
     expect(geometry[0].color).toBeGreaterThan(0);
@@ -105,11 +105,11 @@ describe("buildRoomOverlayGeometry", () => {
             cells: roomCells,
             size: 1,
           },
-        ]
-      )
+        ],
+      ),
     );
     expect(geometry[0].label).toBe(
-      `${ROOM_TYPE_LABELS.park} / ${ROOM_TYPE_LABELS.natureReserve}`
+      `${ROOM_TYPE_LABELS.park} / ${ROOM_TYPE_LABELS.natureReserve}`,
     );
   });
 
@@ -122,10 +122,10 @@ describe("buildRoomOverlayGeometry", () => {
           result: "conflict",
           matchedTypes: ["barracks", "messHall"],
         }),
-      ])
+      ]),
     );
     expect(geometry[0].label).toBe(
-      `${ROOM_TYPE_LABELS.barracks} / ${ROOM_TYPE_LABELS.messHall}`
+      `${ROOM_TYPE_LABELS.barracks} / ${ROOM_TYPE_LABELS.messHall}`,
     );
   });
 
@@ -140,11 +140,11 @@ describe("buildRoomOverlayGeometry", () => {
             matchedTypes: ["latrine"],
           }),
         ],
-        [{ type: "latrine", cavityId: 0, cells: cells([[0, 0]]), size: 1 }]
-      )
+        [{ type: "latrine", cavityId: 0, cells: cells([[0, 0]]), size: 1 }],
+      ),
     );
     const miscGeometry = buildRoomOverlayGeometry(
-      result([cavity(0, { cells: cells([[0, 0]]), size: 1 })])
+      result([cavity(0, { cells: cells([[0, 0]]), size: 1 })]),
     );
     expect(miscGeometry[0].label).toBeNull();
     expect(miscGeometry[0].alpha).toBeLessThan(roomGeometry[0].alpha);

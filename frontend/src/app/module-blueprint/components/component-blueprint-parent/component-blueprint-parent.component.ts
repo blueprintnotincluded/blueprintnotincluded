@@ -120,7 +120,7 @@ export class ComponentBlueprintParentComponent
     public toolService: ToolService,
     private renderer: Renderer2,
     private http: HttpClient,
-    public gameStringService: GameStringService
+    public gameStringService: GameStringService,
   ) {}
 
   get showElementReport() {
@@ -240,7 +240,7 @@ export class ComponentBlueprintParentComponent
                 const elements: BuildableElement[] = json.elements;
                 for (const e of elements) {
                   const localizedName = await this.gameStringService.getStr(
-                    `STRINGS.ELEMENTS.${e.id.toUpperCase()}.NAME`
+                    `STRINGS.ELEMENTS.${e.id.toUpperCase()}.NAME`,
                   );
                   if (!localizedName)
                     console.warn(`Missing element translation`, e);
@@ -252,7 +252,7 @@ export class ComponentBlueprintParentComponent
                   json.buildMenuCategories;
                 for (const bm of buildMenuCategories) {
                   const localizedName = await this.gameStringService.getStr(
-                    `STRINGS.UI.BUILDCATEGORIES.${bm.categoryName.toUpperCase()}.NAME`
+                    `STRINGS.UI.BUILDCATEGORIES.${bm.categoryName.toUpperCase()}.NAME`,
                   );
                   if (!localizedName)
                     console.warn(`Missing buildMenuCategory translation`, bm);
@@ -272,7 +272,7 @@ export class ComponentBlueprintParentComponent
                 const buildings: BBuilding[] = json.buildings;
                 for (const b of buildings) {
                   const localizedName = await this.gameStringService.getStr(
-                    `STRINGS.BUILDINGS.PREFABS.${b.prefabId.toUpperCase()}.NAME`
+                    `STRINGS.BUILDINGS.PREFABS.${b.prefabId.toUpperCase()}.NAME`,
                   );
                   if (!localizedName)
                     console.warn(`Missing building translation`, b);
@@ -417,7 +417,7 @@ export class ComponentBlueprintParentComponent
       document.body.append(a);
       a.download = sanitize(friendlyname) + ".blueprint";
       a.href = URL.createObjectURL(
-        new Blob([JSON.stringify(bniBlueprint)], {})
+        new Blob([JSON.stringify(bniBlueprint)], {}),
       );
       a.click();
       a.remove();
@@ -447,7 +447,7 @@ export class ComponentBlueprintParentComponent
     if (browseData != null)
       this.browseDialog.showDialog(
         browseData.filterUserId,
-        browseData.filterUserName
+        browseData.filterUserName,
       );
     else this.browseDialog.showDialog();
   }

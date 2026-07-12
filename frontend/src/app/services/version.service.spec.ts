@@ -146,7 +146,7 @@ describe("VersionService", () => {
 
       const result = await versionPromise;
       expect(result).toBe(
-        "Version unknown (Error: Failed to fetch version information)"
+        "Version unknown (Error: Failed to fetch version information)",
       );
     });
   });
@@ -163,7 +163,7 @@ describe("VersionService", () => {
       expect(result).toContain("Environment: production");
       expect(result).toMatch(/Build Time: .+/);
       expect(result).toContain(
-        "Commit: abc123def4567890123456789012345678901234"
+        "Commit: abc123def4567890123456789012345678901234",
       );
       expect(result).toContain("Branch: main");
       expect(result).toContain("Node.js: v20.18.0");

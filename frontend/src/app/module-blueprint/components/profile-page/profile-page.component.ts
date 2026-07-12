@@ -53,7 +53,7 @@ export class ProfilePageComponent implements OnInit {
     private userService: UserService,
     private blueprintService: BlueprintService,
     public authService: AuthenticationService,
-    public datepipe: DatePipe
+    public datepipe: DatePipe,
   ) {
     const tempDate = new Date();
     this.loadingBlueprintItem = {
@@ -247,12 +247,12 @@ export class ProfilePageComponent implements OnInit {
             undefined,
             undefined,
             undefined,
-            this.profile.id
+            this.profile.id,
           )
         : this.blueprintService.getBlueprints(
             this.oldestDate,
             this.profile.id,
-            null
+            null,
           );
 
     request$.subscribe({
@@ -270,7 +270,7 @@ export class ProfilePageComponent implements OnInit {
     if (this.remaining === 0) this.noMoreBlueprints = true;
 
     this.blueprintListItems = this.blueprintListItems.filter(
-      (i) => i !== this.loadingBlueprintItem
+      (i) => i !== this.loadingBlueprintItem,
     );
     response.blueprints.forEach((item) => this.blueprintListItems.push(item));
 

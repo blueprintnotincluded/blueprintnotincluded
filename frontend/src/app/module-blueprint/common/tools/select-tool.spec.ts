@@ -278,10 +278,10 @@ describe("SelectTool", () => {
       tool.sameItemCollections = [col] as any;
       tool.buildingsDestroy(col as any);
       expect(
-        mockBlueprintService.blueprint.destroyBlueprintItem
+        mockBlueprintService.blueprint.destroyBlueprintItem,
       ).toHaveBeenCalledWith(item1);
       expect(
-        mockBlueprintService.blueprint.destroyBlueprintItem
+        mockBlueprintService.blueprint.destroyBlueprintItem,
       ).toHaveBeenCalledWith(item2);
     });
 
@@ -320,7 +320,7 @@ describe("SelectTool", () => {
       tool.sameItemCollections = [col] as any;
       tool.keyDown("Delete");
       expect(
-        mockBlueprintService.blueprint.destroyBlueprintItem
+        mockBlueprintService.blueprint.destroyBlueprintItem,
       ).toHaveBeenCalledWith(item);
     });
 
@@ -328,7 +328,7 @@ describe("SelectTool", () => {
       tool.sameItemCollections = [makeMockCollection(false)] as any;
       tool.keyDown("Delete");
       expect(
-        mockBlueprintService.blueprint.destroyBlueprintItem
+        mockBlueprintService.blueprint.destroyBlueprintItem,
       ).not.toHaveBeenCalled();
     });
 
@@ -393,7 +393,7 @@ describe("SelectTool", () => {
       tool.selectFromBox(new Vector2(1, 3), new Vector2(3, 1));
       // 3x3 = 9 tiles queried
       expect(
-        mockBlueprintService.blueprint.getBlueprintItemsAt
+        mockBlueprintService.blueprint.getBlueprintItemsAt,
       ).toHaveBeenCalledTimes(9);
     });
   });
@@ -726,7 +726,7 @@ describe("SelectTool", () => {
     it("calls changeTool(build) and changeItem with the cloned item", () => {
       const mockClonedItem = { id: "Wire" };
       vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
-        mockClonedItem as any
+        mockClonedItem as any,
       );
 
       const oniItem = makeOniItem("Wire");
@@ -743,7 +743,7 @@ describe("SelectTool", () => {
 
       expect(tool.parent.changeTool).toHaveBeenCalledWith(ToolType.build);
       expect(tool.parent.buildTool.changeItem).toHaveBeenCalledWith(
-        mockClonedItem
+        mockClonedItem,
       );
       vi.restoreAllMocks();
     });

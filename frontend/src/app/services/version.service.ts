@@ -52,7 +52,7 @@ export class VersionService {
           };
           this.versionInfo = fallbackVersion;
           return of(fallbackVersion);
-        })
+        }),
       )
       .toPromise() as Promise<VersionInfo>;
 

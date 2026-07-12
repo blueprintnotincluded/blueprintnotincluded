@@ -6,7 +6,7 @@ import { EVENT_MANAGER_PLUGINS, EventManager } from "@angular/platform-browser";
 export class CustomEventManager extends EventManager {
   constructor(
     @Inject(EVENT_MANAGER_PLUGINS) plugins: any[],
-    private zone: NgZone
+    private zone: NgZone,
   ) {
     super(plugins, zone);
   }
@@ -15,12 +15,12 @@ export class CustomEventManager extends EventManager {
   addEventListener(
     element: HTMLElement,
     eventName: string,
-    handler: Function
+    handler: Function,
   ): Function {
     if (eventName.endsWith("out-zone")) {
       eventName = eventName.split(".")[0];
       return this.zone.runOutsideAngular(() =>
-        super.addEventListener(element, eventName, handler)
+        super.addEventListener(element, eventName, handler),
       );
     }
 

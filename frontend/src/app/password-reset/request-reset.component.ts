@@ -58,7 +58,7 @@ export class RequestResetComponent {
       () => {
         this.message = "Error requesting password reset.";
         this.messageClass = "error";
-      }
+      },
     );
   }
 }

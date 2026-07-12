@@ -70,7 +70,7 @@ describe("RegisterPageComponent", () => {
       component.password = "pass";
       component.username = "alice";
       mockAuth.registerWithPassword.mockReturnValue(
-        of({ message: "ok", userId: "u1" })
+        of({ message: "ok", userId: "u1" }),
       );
       component.submit();
       expect(mockRouter.navigate).toHaveBeenCalledWith(["/auth/verify-email"], {
@@ -87,7 +87,7 @@ describe("RegisterPageComponent", () => {
         error: { errors: [{ title: "Email already in use" }] },
       };
       mockAuth.registerWithPassword.mockReturnValue(
-        throwError(() => serverErr)
+        throwError(() => serverErr),
       );
       component.submit();
       expect(component.errorMessage).toBe("Email already in use");

@@ -25,7 +25,7 @@ export class ElementReport implements IObsBlueprintChange {
       if (item.oniItem.isElement)
         this.addElementToReport(
           item.buildableElements[0],
-          (item as BlueprintItemElement).mass
+          (item as BlueprintItemElement).mass,
         );
       else
         for (
@@ -35,7 +35,7 @@ export class ElementReport implements IObsBlueprintChange {
         ) {
           this.addElementToReport(
             item.buildableElements[elementIndex],
-            item.oniItem.materialMass[elementIndex]
+            item.oniItem.materialMass[elementIndex],
           );
         }
       // Include secondary, non-selectable material costs (e.g., BuildingFiber)

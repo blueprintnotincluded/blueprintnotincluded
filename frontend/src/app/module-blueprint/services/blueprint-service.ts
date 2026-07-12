@@ -58,7 +58,7 @@ export class BlueprintService implements IObsBlueprintChange {
   constructor(
     private http: HttpClient,
     private authService: AuthenticationService,
-    private location: Location
+    private location: Location,
   ) {
     this.blueprint = new Blueprint();
 
@@ -291,7 +291,7 @@ export class BlueprintService implements IObsBlueprintChange {
                 Authorization: `Bearer ${this.authService.getToken()}`,
               },
             }
-          : {}
+          : {},
       )
       .pipe(
         map((response: BlueprintResponse) => {
@@ -314,7 +314,7 @@ export class BlueprintService implements IObsBlueprintChange {
             return blueprint;
           }
           return undefined;
-        })
+        }),
       );
 
     return request;
@@ -331,7 +331,7 @@ export class BlueprintService implements IObsBlueprintChange {
               Authorization: `Bearer ${this.authService.getToken()}`,
             },
           }
-        : {}
+        : {},
     );
   }
 
@@ -346,7 +346,7 @@ export class BlueprintService implements IObsBlueprintChange {
               Authorization: `Bearer ${this.authService.getToken()}`,
             },
           }
-        : {}
+        : {},
     );
   }
 
@@ -362,7 +362,7 @@ export class BlueprintService implements IObsBlueprintChange {
     filterModded?: boolean | null,
     filterForkedFrom?: string | null,
     filterLikedBy?: string | null,
-    filterRooms?: string | null
+    filterRooms?: string | null,
   ) {
     const parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
 
@@ -427,7 +427,7 @@ export class BlueprintService implements IObsBlueprintChange {
       map((response: any) => {
         const blueprintListItems = response as BlueprintListItem[];
         return blueprintListItems;
-      })
+      }),
     );
 
     return request;
@@ -446,7 +446,7 @@ export class BlueprintService implements IObsBlueprintChange {
             this.id = response.id;
           }
           return response;
-        })
+        }),
       );
 
     return request;
@@ -489,7 +489,7 @@ export class BlueprintService implements IObsBlueprintChange {
             else if (isNewBlueprint) this.isPublished = false;
           }
           return response;
-        })
+        }),
       );
 
     return request;
@@ -506,13 +506,13 @@ export class BlueprintService implements IObsBlueprintChange {
       .post<{ isPublished: boolean }>(
         `/api/blueprints/${blueprintId}/${action}`,
         {},
-        { headers: { Authorization: `Bearer ${this.authService.getToken()}` } }
+        { headers: { Authorization: `Bearer ${this.authService.getToken()}` } },
       )
       .pipe(
         map((response) => {
           if (blueprintId === this.id) this.isPublished = response.isPublished;
           return response;
-        })
+        }),
       );
   }
 
@@ -531,7 +531,7 @@ export class BlueprintService implements IObsBlueprintChange {
                 Authorization: `Bearer ${this.authService.getToken()}`,
               },
             }
-          : {}
+          : {},
       )
       .subscribe({ error: () => {} });
   }

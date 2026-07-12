@@ -74,7 +74,7 @@ describe("MagicRequestComponent", () => {
     it("still sets submitted=true on error (no enumeration)", () => {
       component.email = "a@b.com";
       mockAuth.sendMagicLink.mockReturnValue(
-        throwError(() => new Error("fail"))
+        throwError(() => new Error("fail")),
       );
       component.submit();
       expect(component.submitted).toBe(true);
@@ -96,7 +96,7 @@ describe("MagicRequestComponent", () => {
       component.verifyCode();
       expect(mockAuth.verifyMagicCode).toHaveBeenCalledWith(
         "CODE123",
-        "a@b.com"
+        "a@b.com",
       );
     });
 
@@ -113,7 +113,7 @@ describe("MagicRequestComponent", () => {
       component.code = "WRONG";
       component.email = "a@b.com";
       mockAuth.verifyMagicCode.mockReturnValue(
-        throwError(() => new Error("expired"))
+        throwError(() => new Error("expired")),
       );
       component.verifyCode();
       expect(component.codeError).toBeTruthy();

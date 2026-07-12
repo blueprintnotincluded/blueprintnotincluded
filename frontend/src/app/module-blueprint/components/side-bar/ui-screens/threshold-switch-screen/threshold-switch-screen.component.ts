@@ -77,30 +77,30 @@ export class ThresholdSwhitchScreenComponent implements OnInit {
 
   ngOnInit() {
     this.value = this.blueprintItem.getUiSettings(
-      this.thresholdSwitchSideScreen.id
+      this.thresholdSwitchSideScreen.id,
     )!.values[0] as number;
     this.above = this.blueprintItem.getUiSettings(
-      this.thresholdSwitchSideScreen.id
+      this.thresholdSwitchSideScreen.id,
     )!.values[1] as boolean;
   }
 
   clickAbove() {
     this.above = true;
     this.blueprintItem.getUiSettings(
-      this.thresholdSwitchSideScreen.id
+      this.thresholdSwitchSideScreen.id,
     )!.values[1] = this.above;
   }
 
   clickBelow() {
     this.above = false;
     this.blueprintItem.getUiSettings(
-      this.thresholdSwitchSideScreen.id
+      this.thresholdSwitchSideScreen.id,
     )!.values[1] = this.above;
   }
 
   onChange() {
     this.blueprintItem.getUiSettings(
-      this.thresholdSwitchSideScreen.id
+      this.thresholdSwitchSideScreen.id,
     )!.values[0] = this.value;
   }
 }

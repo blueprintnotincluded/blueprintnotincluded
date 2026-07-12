@@ -20,7 +20,7 @@ export class MagicRequestComponent implements OnInit {
   constructor(
     private authService: AuthenticationService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit() {

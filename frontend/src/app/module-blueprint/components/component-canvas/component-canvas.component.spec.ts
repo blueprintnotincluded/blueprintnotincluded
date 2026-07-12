@@ -19,9 +19,9 @@ import { DrawPixi } from "src/app/module-blueprint/drawing/draw-pixi";
 // and the stage to attach to — plain stubs keep it inert.
 function mockDrawPixi(): Partial<DrawPixi> {
   return {
-    getNewContainer: () => ({ addChild: () => {}, visible: true } as any),
-    getNewGraphics: () => ({ clear: () => {} } as any),
-    getNewText: () => ({ anchor: { set: () => {} }, visible: true } as any),
+    getNewContainer: () => ({ addChild: () => {}, visible: true }) as any,
+    getNewGraphics: () => ({ clear: () => {} }) as any,
+    getNewText: () => ({ anchor: { set: () => {} }, visible: true }) as any,
     Init: () => {},
     InitAnimation: () => {},
     blueprintContainer: {} as any,

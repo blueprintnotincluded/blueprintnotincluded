@@ -13,7 +13,7 @@ import { AuthenticationService } from "src/app/module-blueprint/services/authent
 function makeResponse(
   notifications: any[] = [],
   unreadCount = 0,
-  remaining = 0
+  remaining = 0,
 ) {
   return {
     notifications,
@@ -82,7 +82,7 @@ describe("NotificationBellComponent", () => {
   it("hides the badge when unreadCount is 0", () => {
     fixture.detectChanges();
     expect(
-      fixture.debugElement.query(By.css(".notification-badge"))
+      fixture.debugElement.query(By.css(".notification-badge")),
     ).toBeNull();
   });
 
@@ -104,9 +104,9 @@ describe("NotificationBellComponent", () => {
                 read: false,
               },
             ],
-            1
-          )
-        )
+            1,
+          ),
+        ),
       );
       component.onShow();
 
@@ -118,7 +118,7 @@ describe("NotificationBellComponent", () => {
     it("flags loadError on failure", () => {
       fixture.detectChanges();
       notificationService.list.mockReturnValue(
-        throwError(() => new Error("network"))
+        throwError(() => new Error("network")),
       );
       component.onShow();
       expect(component.loadError).toBe(true);
@@ -139,19 +139,19 @@ describe("NotificationBellComponent", () => {
 
     it("composes a message per notification type", () => {
       expect(component.message({ ...base, type: "comment" } as any)).toContain(
-        "commented on your blueprint"
+        "commented on your blueprint",
       );
       expect(component.message({ ...base, type: "reply" } as any)).toContain(
-        "replied to your comment"
+        "replied to your comment",
       );
       expect(component.message({ ...base, type: "like" } as any)).toContain(
-        "liked your blueprint"
+        "liked your blueprint",
       );
       expect(component.message({ ...base, type: "fork" } as any)).toContain(
-        "forked your blueprint"
+        "forked your blueprint",
       );
       expect(component.message({ ...base, type: "follow" } as any)).toContain(
-        "started following you"
+        "started following you",
       );
     });
   });
@@ -216,9 +216,9 @@ describe("NotificationBellComponent", () => {
             },
           ],
           0,
-          1
-        )
-      )
+          1,
+        ),
+      ),
     );
     component.onShow();
     expect(component.notifications).toHaveLength(1);
@@ -240,9 +240,9 @@ describe("NotificationBellComponent", () => {
             },
           ],
           0,
-          0
-        )
-      )
+          0,
+        ),
+      ),
     );
     component.loadMore();
     expect(component.notifications).toHaveLength(2);

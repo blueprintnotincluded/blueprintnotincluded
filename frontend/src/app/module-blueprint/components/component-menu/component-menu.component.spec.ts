@@ -54,7 +54,7 @@ describe("ComponentMenuComponent", () => {
 
   it("offers the Rooms overlay in the overlay switcher", () => {
     const roomsItem = component.overlayMenuItems.find(
-      (item) => item.id == Overlay.Room.toString()
+      (item) => item.id == Overlay.Room.toString(),
     );
     expect(roomsItem).toBeTruthy();
     expect(roomsItem!.label).toBe("Rooms");

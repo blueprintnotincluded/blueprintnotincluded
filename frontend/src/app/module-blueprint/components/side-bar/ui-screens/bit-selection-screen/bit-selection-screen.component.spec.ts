@@ -27,7 +27,7 @@ describe("BitSelectionScreenComponent", () => {
     OniItem.getOniItem = () => undefined as unknown as OniItem;
     component.blueprintItem = new BlueprintItem();
     component.blueprintItem.getUiSettings = () =>
-      ({ values: [0] } as UiSaveSettings);
+      ({ values: [0] }) as UiSaveSettings;
     component.bitSelectorSideScreen = { id: "test" } as BBitSelectorSideScreen;
     // end TODO
     fixture.detectChanges();

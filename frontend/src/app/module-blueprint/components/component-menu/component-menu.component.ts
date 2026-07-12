@@ -73,7 +73,7 @@ export class ComponentMenuComponent
     public authService: AuthenticationService,
     private toolService: ToolService,
     private blueprintService: BlueprintService,
-    @Inject(LOCALE_ID) private locale: string
+    @Inject(LOCALE_ID) private locale: string,
   ) {
     this.toolService.subscribeToolChanged(this);
     this.cameraService = CameraService.cameraService;
@@ -347,7 +347,7 @@ export class ComponentMenuComponent
         if (
           menuItem.id != null &&
           this.toolService.getTool(
-            ToolType[menuItem.id as keyof typeof ToolType]
+            ToolType[menuItem.id as keyof typeof ToolType],
           ).visible
         )
           menuItem.icon = "pi pi-fw pi-check";
@@ -412,14 +412,14 @@ export class ComponentMenuComponent
 
   uploadJsonTemplate() {
     const fileElem = document.getElementById(
-      "fileChooserJson"
+      "fileChooserJson",
     ) as HTMLInputElement;
     fileElem.click();
   }
 
   uploadBsonTemplate() {
     const fileElem = document.getElementById(
-      "fileChooserBson"
+      "fileChooserBson",
     ) as HTMLInputElement;
     fileElem.click();
   }
@@ -428,29 +428,29 @@ export class ComponentMenuComponent
     const fileElem = document.getElementById("fileChooser") as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
       BlueprintFileType.YAML,
-      fileElem.files!
+      fileElem.files!,
     );
     fileElem.value = "";
   }
 
   templateUploadJson(_event: any) {
     const fileElem = document.getElementById(
-      "fileChooserJson"
+      "fileChooserJson",
     ) as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
       BlueprintFileType.JSON,
-      fileElem.files!
+      fileElem.files!,
     );
     fileElem.value = "";
   }
 
   templateUploadBson(_event: any) {
     const fileElem = document.getElementById(
-      "fileChooserBson"
+      "fileChooserBson",
     ) as HTMLInputElement;
     this.blueprintService.openBlueprintFromUpload(
       BlueprintFileType.BSON,
-      fileElem.files!
+      fileElem.files!,
     );
     fileElem.value = "";
   }

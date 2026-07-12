@@ -42,7 +42,7 @@ export class DialogBrowseComponent implements OnInit {
   constructor(
     private blueprintService: BlueprintService,
     public authService: AuthenticationService,
-    public datepipe: DatePipe
+    public datepipe: DatePipe,
   ) {
     const tempDate = new Date();
     this.loadingBlueprintItem = {
@@ -210,7 +210,7 @@ export class DialogBrowseComponent implements OnInit {
 
   showDialog(
     filterUserId: string | null = null,
-    filterUserName: string | null = null
+    filterUserName: string | null = null,
   ) {
     this.reset();
     if (filterUserId != null) {
@@ -225,7 +225,7 @@ export class DialogBrowseComponent implements OnInit {
   handleOnShow() {
     this.scrollable.nativeElement.addEventListener(
       "scroll",
-      this.scroll.bind(this)
+      this.scroll.bind(this),
     );
   }
 

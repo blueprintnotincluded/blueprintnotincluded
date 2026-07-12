@@ -64,7 +64,7 @@ describe("UserMenuComponent", () => {
       authService.getUserDetails.mockReturnValue(makeUser("user"));
       component.ngOnInit();
       const adminItem = component.userMenuItems.find(
-        (i) => i.label === "Admin Panel"
+        (i) => i.label === "Admin Panel",
       );
       expect(adminItem?.visible).toBe(false);
     });
@@ -73,7 +73,7 @@ describe("UserMenuComponent", () => {
       authService.getUserDetails.mockReturnValue(makeUser("admin"));
       component.ngOnInit();
       const adminItem = component.userMenuItems.find(
-        (i) => i.label === "Admin Panel"
+        (i) => i.label === "Admin Panel",
       );
       expect(adminItem?.visible).toBe(true);
     });
@@ -83,7 +83,7 @@ describe("UserMenuComponent", () => {
     it("emits when Send Feedback menu item is clicked", () => {
       vi.spyOn(component.sendFeedback, "emit");
       const item = component.userMenuItems.find((i) =>
-        i.label?.includes("Feedback")
+        i.label?.includes("Feedback"),
       );
       item!.command!({} as any);
       expect(component.sendFeedback.emit).toHaveBeenCalled();
@@ -100,7 +100,7 @@ describe("UserMenuComponent", () => {
         filterUserName: "alice",
       };
       expect(component.myBlueprintsRequested.emit).toHaveBeenCalledWith(
-        expected
+        expected,
       );
     });
 
@@ -117,7 +117,7 @@ describe("UserMenuComponent", () => {
       component.logout();
       expect(authService.logout).toHaveBeenCalled();
       expect(messageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({ severity: "success" })
+        expect.objectContaining({ severity: "success" }),
       );
     });
   });

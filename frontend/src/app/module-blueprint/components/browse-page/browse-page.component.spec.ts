@@ -52,7 +52,7 @@ describe("BrowsePageComponent", () => {
           followerCount: 0,
           followingCount: 0,
           followedByMe: false,
-        })
+        }),
       ),
       getFeed: vi.fn().mockReturnValue(of(makeResponse())),
     };
@@ -89,7 +89,7 @@ describe("BrowsePageComponent", () => {
   describe("getBlueprints error handling", () => {
     it("clears working, sets loadError, and strips loading placeholders on failure", () => {
       blueprintService.getBlueprints.mockReturnValue(
-        throwError(() => new Error("network"))
+        throwError(() => new Error("network")),
       );
       component.appendLoading();
       component.getBlueprints();
@@ -97,13 +97,13 @@ describe("BrowsePageComponent", () => {
       expect(component.working).toBe(false);
       expect(component.loadError).toBe(true);
       expect(
-        component.blueprintListItems.includes(component.loadingBlueprintItem)
+        component.blueprintListItems.includes(component.loadingBlueprintItem),
       ).toBe(false);
     });
 
     it("re-enables infinite scroll after a failure (working=false)", () => {
       blueprintService.getBlueprints.mockReturnValue(
-        throwError(() => new Error("network"))
+        throwError(() => new Error("network")),
       );
       component.getBlueprints();
       // working must be false so onWindowScroll can retry via loadMore
@@ -162,7 +162,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        null
+        null,
       );
     });
   });
@@ -184,7 +184,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        null
+        null,
       );
     });
 
@@ -204,7 +204,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        null
+        null,
       );
     });
 
@@ -225,7 +225,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        null
+        null,
       );
     });
 
@@ -245,7 +245,7 @@ describe("BrowsePageComponent", () => {
         true,
         null,
         null,
-        null
+        null,
       );
     });
 
@@ -265,7 +265,7 @@ describe("BrowsePageComponent", () => {
         null,
         "parent-1",
         null,
-        null
+        null,
       );
     });
 
@@ -285,7 +285,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        "latrine"
+        "latrine",
       );
     });
 
@@ -295,7 +295,7 @@ describe("BrowsePageComponent", () => {
       component.onRoomsChange();
 
       expect(
-        component.blueprintListItems.some((i: any) => i.name === "stale")
+        component.blueprintListItems.some((i: any) => i.name === "stale"),
       ).toBe(false);
       expect(router.navigate).toHaveBeenCalledWith([], {
         queryParams: { rooms: "kitchen" },
@@ -309,7 +309,7 @@ describe("BrowsePageComponent", () => {
       expect(component.roomOptions[0].value).toBeNull();
       expect(component.roomOptions.length).toBe(19); // 18 room types + All
       expect(component.roomOptions.some((o) => o.value === "latrine")).toBe(
-        true
+        true,
       );
     });
 
@@ -380,7 +380,7 @@ describe("BrowsePageComponent", () => {
       expect(lastCall[6]).toBe("popular");
       expect(lastCall[7]).toBe(0); // skip reset before refetch
       expect(
-        component.blueprintListItems.some((i: any) => i.name === "stale")
+        component.blueprintListItems.some((i: any) => i.name === "stale"),
       ).toBe(false);
       expect(router.navigate).toHaveBeenCalledWith([], {
         queryParams: { sort: "popular" },
@@ -401,7 +401,7 @@ describe("BrowsePageComponent", () => {
       component.sort = "popular";
       component.skipCount = 0;
       component.handleGetBlueprints(
-        makeResponse([{ name: "a" }, { name: "b" }], 5) as any
+        makeResponse([{ name: "a" }, { name: "b" }], 5) as any,
       );
       expect(component.skipCount).toBe(2);
     });
@@ -471,7 +471,7 @@ describe("BrowsePageComponent", () => {
       expect(userService.getFeed).toHaveBeenCalled();
       expect(blueprintService.getBlueprints).not.toHaveBeenCalled();
       expect(
-        component.blueprintListItems.some((i: any) => i.name === "stale")
+        component.blueprintListItems.some((i: any) => i.name === "stale"),
       ).toBe(false);
     });
 
@@ -488,7 +488,7 @@ describe("BrowsePageComponent", () => {
       const callsBefore = blueprintService.getBlueprints.mock.calls.length;
       component.setViewMode("discover");
       expect(blueprintService.getBlueprints.mock.calls.length).toBe(
-        callsBefore
+        callsBefore,
       );
     });
   });

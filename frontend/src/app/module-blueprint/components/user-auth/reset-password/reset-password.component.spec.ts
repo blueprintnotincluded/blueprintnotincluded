@@ -96,7 +96,7 @@ describe("ResetPasswordComponent", () => {
       component.newPassword = "newpass";
       component.confirmPassword = "newpass";
       mockAuth.resetPasswordWithToken.mockReturnValue(
-        throwError(() => ({ status: 401, error: {} }))
+        throwError(() => ({ status: 401, error: {} })),
       );
       component.submit();
       expect(component.tokenError).toBe(true);

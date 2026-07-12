@@ -18,7 +18,7 @@ export class DialogShareUrlComponent {
 
   constructor(
     public blueprintService: BlueprintService,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {}
 
   private get id(): string | null {

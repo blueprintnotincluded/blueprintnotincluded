@@ -128,7 +128,7 @@ export class ComponentSaveDialogComponent {
     public blueprintService: BlueprintService,
     private messageService: MessageService,
     //TODO should not be public
-    public authService: AuthenticationService
+    public authService: AuthenticationService,
   ) {}
 
   // Enter key / form submit triggers the primary action: publish for a new
@@ -173,7 +173,7 @@ export class ComponentSaveDialogComponent {
     if (!OniItem.oniItemsMap) return;
 
     const buildingDlcIds = blueprint.blueprintItems.map(
-      (item) => item.oniItem.dlcIds
+      (item) => item.oniItem.dlcIds,
     );
     const gameVersion = deriveGameVersion(buildingDlcIds);
 
@@ -195,7 +195,7 @@ export class ComponentSaveDialogComponent {
     ) {
       this._categoryLookup ??= buildCategoryLookup(
         BuildMenuCategory.buildMenuCategories,
-        BuildMenuItem.buildMenuItems
+        BuildMenuItem.buildMenuItems,
       );
       const category = deriveCategory(prefabIds, this._categoryLookup);
       if (category != null) this.saveBlueprintForm.patchValue({ category });
@@ -290,7 +290,7 @@ export class ComponentSaveDialogComponent {
         //this.saveBlueprintForm.controls.thumbnailType.disable();
         this.intervalId = window.setInterval(
           this.updateThumbnailReady.bind(this),
-          500
+          500,
         );
       }
     }
@@ -309,7 +309,7 @@ export class ComponentSaveDialogComponent {
     this.tryClearInterval();
     this.intervalId = window.setInterval(
       this.updateThumbnailReady.bind(this),
-      500
+      500,
     );
   }
 

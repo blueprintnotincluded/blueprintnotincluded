@@ -42,10 +42,10 @@ export class DrawMiniUi implements IObsCameraChanged {
     let buttonPositionX = 50;
     for (let i = 0; i < this.overlays.length; i++) {
       this.texturesActive[i] = PIXI.Texture.from(
-        "assets/images/miniui/" + this.icons[i] + ".png"
+        "assets/images/miniui/" + this.icons[i] + ".png",
       );
       this.texturesInactive[i] = PIXI.Texture.from(
-        "assets/images/miniui/" + this.icons[i] + "_disabled.png"
+        "assets/images/miniui/" + this.icons[i] + "_disabled.png",
       );
       this.buttons[i] = new PIXI.Sprite(this.texturesActive[i]);
       this.buttons[i].buttonMode = true;

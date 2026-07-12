@@ -25,7 +25,7 @@ describe("UserService", () => {
       service.getProfile("alice").subscribe();
       expect(mockHttp.get).toHaveBeenCalledWith(
         "/api/users/alice/profile",
-        expect.objectContaining({ headers: {} })
+        expect.objectContaining({ headers: {} }),
       );
     });
 
@@ -36,7 +36,7 @@ describe("UserService", () => {
         "/api/users/alice/profileSecure",
         expect.objectContaining({
           headers: { Authorization: "Bearer token123" },
-        })
+        }),
       );
     });
   });
@@ -50,7 +50,7 @@ describe("UserService", () => {
         { followeeId: "user-1", follow: true },
         expect.objectContaining({
           headers: { Authorization: "Bearer token123" },
-        })
+        }),
       );
     });
 
@@ -71,7 +71,7 @@ describe("UserService", () => {
         { bio: "hello" },
         expect.objectContaining({
           headers: { Authorization: "Bearer token123" },
-        })
+        }),
       );
     });
 
@@ -92,7 +92,7 @@ describe("UserService", () => {
         expect.objectContaining({
           params: new HttpParams().set("olderthan", date.getTime().toString()),
           headers: { Authorization: "Bearer token123" },
-        })
+        }),
       );
     });
   });

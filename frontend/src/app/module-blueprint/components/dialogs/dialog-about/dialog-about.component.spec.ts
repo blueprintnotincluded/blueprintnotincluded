@@ -25,7 +25,7 @@ describe("DialogAboutComponent", () => {
       getDetailedVersionInfo: vi
         .fn()
         .mockResolvedValue(
-          "Version: 1.2.3\nEnvironment: production\nBuild Time: 1/15/2024\nCommit: abc123def4567890123456789012345678901234\nBranch: main\nNode.js: v20.18.0"
+          "Version: 1.2.3\nEnvironment: production\nBuild Time: 1/15/2024\nCommit: abc123def4567890123456789012345678901234\nBranch: main\nNode.js: v20.18.0",
         ),
     };
 
@@ -43,7 +43,7 @@ describe("DialogAboutComponent", () => {
     fixture = TestBed.createComponent(DialogAboutComponent);
     component = fixture.componentInstance;
     mockVersionService = TestBed.inject(
-      VersionService
+      VersionService,
     ) as unknown as VersionServiceSpy;
   });
 
@@ -79,17 +79,17 @@ describe("DialogAboutComponent", () => {
 
   it("should handle version service errors gracefully", async () => {
     mockVersionService.getVersionString.mockResolvedValue(
-      "Version unknown (Error: Failed to fetch)"
+      "Version unknown (Error: Failed to fetch)",
     );
     mockVersionService.getDetailedVersionInfo.mockResolvedValue(
-      "Version: unknown\nError: Failed to fetch"
+      "Version: unknown\nError: Failed to fetch",
     );
 
     component.ngOnInit();
     await fixture.whenStable();
 
     expect(component.versionString).toBe(
-      "Version unknown (Error: Failed to fetch)"
+      "Version unknown (Error: Failed to fetch)",
     );
     expect(component.detailedVersionInfo).toContain("Error: Failed to fetch");
   });

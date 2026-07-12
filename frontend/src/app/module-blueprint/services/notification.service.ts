@@ -8,7 +8,7 @@ import { NotificationListResponse } from "../../../../../lib/index";
 export class NotificationService {
   constructor(
     private http: HttpClient,
-    private authService: AuthenticationService
+    private authService: AuthenticationService,
   ) {}
 
   private authHeaders() {
@@ -18,7 +18,7 @@ export class NotificationService {
   list(olderThan: Date): Observable<NotificationListResponse> {
     const params = new HttpParams().set(
       "olderthan",
-      olderThan.getTime().toString()
+      olderThan.getTime().toString(),
     );
     return this.http.get<NotificationListResponse>("/api/notifications", {
       params,
@@ -30,7 +30,7 @@ export class NotificationService {
     return this.http.post<{ markRead: string }>(
       "/api/notifications/mark-read",
       {},
-      { headers: this.authHeaders() }
+      { headers: this.authHeaders() },
     );
   }
 }

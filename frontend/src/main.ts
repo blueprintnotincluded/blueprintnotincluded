@@ -21,7 +21,7 @@ Sentry.init({
 window.addEventListener("unhandledrejection", (event) => {
   console.warn(
     "Unhandled promise rejection caught and prevented:",
-    event.reason
+    event.reason,
   );
   // Prevent the default behavior (console error)
   event.preventDefault();

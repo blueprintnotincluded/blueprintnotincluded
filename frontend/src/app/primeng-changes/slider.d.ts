@@ -51,7 +51,7 @@ export declare class Slider implements OnDestroy, ControlValueAccessor {
     el: ElementRef,
     renderer: Renderer2,
     ngZone: NgZone,
-    cd: ChangeDetectorRef
+    cd: ChangeDetectorRef,
   );
   onMouseDown(event: any, index?: number): void;
   onTouchStart(event: any, index?: number): void;

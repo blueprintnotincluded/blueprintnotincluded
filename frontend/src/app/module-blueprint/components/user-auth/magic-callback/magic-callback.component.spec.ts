@@ -66,7 +66,7 @@ describe("MagicCallbackComponent", () => {
       component.ngOnInit();
       expect(mockAuth.verifyMagicCode).toHaveBeenCalledWith(
         "abc123",
-        "a@b.com"
+        "a@b.com",
       );
       expect(mockAuth.saveToken).toHaveBeenCalledWith("magic-jwt");
       expect(mockRouter.navigate).toHaveBeenCalledWith(["/"]);
@@ -74,7 +74,7 @@ describe("MagicCallbackComponent", () => {
 
     it("sets errorMessage on expired/used link", () => {
       mockAuth.verifyMagicCode.mockReturnValue(
-        throwError(() => new Error("expired"))
+        throwError(() => new Error("expired")),
       );
       component.ngOnInit();
       expect(component.loading).toBe(false);
@@ -89,7 +89,7 @@ describe("MagicCallbackComponent", () => {
       // request has not emitted yet — loading must stay true in flight
       expect(mockAuth.verifyMagicCode).toHaveBeenCalledWith(
         "abc123",
-        "a@b.com"
+        "a@b.com",
       );
       expect(component.loading).toBe(true);
       expect(component.errorMessage).toBe("");

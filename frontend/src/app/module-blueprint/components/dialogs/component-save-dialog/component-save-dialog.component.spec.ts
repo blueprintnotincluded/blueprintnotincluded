@@ -74,7 +74,7 @@ describe("ComponentSaveDialogComponent", () => {
 
     it("gameVersion and modded controls are disabled (auto-detected)", () => {
       expect(component.saveBlueprintForm.controls.gameVersion.disabled).toBe(
-        true
+        true,
       );
       expect(component.saveBlueprintForm.controls.modded.disabled).toBe(true);
     });
@@ -188,7 +188,7 @@ describe("ComponentSaveDialogComponent", () => {
       component.showDialog();
 
       expect(component.saveBlueprintForm.controls.category.disabled).toBe(
-        false
+        false,
       );
     });
 
@@ -216,7 +216,7 @@ describe("ComponentSaveDialogComponent", () => {
 
       // PrimeNG dialog appends to document.body as an overlay
       const publishButton = document.body.querySelector(
-        ".save-action--publish"
+        ".save-action--publish",
       );
       const draftButton = document.body.querySelector(".save-action--draft");
       expect(publishButton).not.toBeNull();
@@ -263,7 +263,7 @@ describe("ComponentSaveDialogComponent", () => {
 
       expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(
         false,
-        undefined
+        undefined,
       );
     });
 
@@ -284,7 +284,7 @@ describe("ComponentSaveDialogComponent", () => {
 
       expect(blueprintService.saveBlueprint).toHaveBeenCalledWith(
         false,
-        undefined
+        undefined,
       );
     });
 

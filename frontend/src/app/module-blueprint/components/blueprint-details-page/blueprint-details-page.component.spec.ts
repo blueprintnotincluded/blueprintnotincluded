@@ -92,7 +92,7 @@ describe("BlueprintDetailsPageComponent", () => {
 
   it("shows not-found when the blueprint does not exist", () => {
     blueprintService.getBlueprintDetails.mockReturnValue(
-      throwError(() => ({ status: 404 }))
+      throwError(() => ({ status: 404 })),
     );
     fixture.detectChanges();
 
@@ -103,7 +103,7 @@ describe("BlueprintDetailsPageComponent", () => {
 
   it("detects placeholder thumbnails", () => {
     blueprintService.getBlueprintDetails.mockReturnValue(
-      of(makeDetails({ thumbnail: "svg" }))
+      of(makeDetails({ thumbnail: "svg" })),
     );
     fixture.detectChanges();
 
@@ -116,8 +116,8 @@ describe("BlueprintDetailsPageComponent", () => {
     const img = fixture.debugElement.query(By.css(".details-thumbnail img"));
     expect(img.properties["src"]).toBe(
       `/api/blueprints/bp1/preview/hero.webp?v=${new Date(
-        "2026-07-01"
-      ).getTime()}`
+        "2026-07-01",
+      ).getTime()}`,
     );
 
     img.triggerEventHandler("error", {});
@@ -143,7 +143,7 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(component.previewFailed).toBe(true);
 
     blueprintService.getBlueprintDetails.mockReturnValue(
-      of(makeDetails({ id: "bp2", name: "Other Setup" }))
+      of(makeDetails({ id: "bp2", name: "Other Setup" })),
     );
     paramMap$.next(convertToParamMap({ id: "bp2" }));
     fixture.detectChanges();
@@ -152,8 +152,8 @@ describe("BlueprintDetailsPageComponent", () => {
     img = fixture.debugElement.query(By.css(".details-thumbnail img"));
     expect(img.properties["src"]).toBe(
       `/api/blueprints/bp2/preview/hero.webp?v=${new Date(
-        "2026-07-01"
-      ).getTime()}`
+        "2026-07-01",
+      ).getTime()}`,
     );
   });
 
@@ -178,14 +178,14 @@ describe("BlueprintDetailsPageComponent", () => {
 
     it("fetches and renders related blueprints once details load", () => {
       blueprintService.getRelatedBlueprints.mockReturnValue(
-        of({ blueprints: [relatedItem] })
+        of({ blueprints: [relatedItem] }),
       );
       fixture.detectChanges();
 
       expect(blueprintService.getRelatedBlueprints).toHaveBeenCalledWith("bp1");
       expect(component.relatedBlueprints).toEqual([relatedItem]);
       const cards = fixture.debugElement.queryAll(
-        By.css(".details-related app-blueprint-card")
+        By.css(".details-related app-blueprint-card"),
       );
       expect(cards.length).toBe(1);
     });
@@ -198,7 +198,7 @@ describe("BlueprintDetailsPageComponent", () => {
 
     it("does not blow up the page when the related fetch fails", () => {
       blueprintService.getRelatedBlueprints.mockReturnValue(
-        throwError(() => new Error("boom"))
+        throwError(() => new Error("boom")),
       );
 
       expect(() => fixture.detectChanges()).not.toThrow();
@@ -212,7 +212,7 @@ describe("BlueprintDetailsPageComponent", () => {
     const el: HTMLElement = fixture.nativeElement;
 
     expect(el.querySelector("h1")?.textContent).toContain(
-      "Super Coal Generator Setup"
+      "Super Coal Generator Setup",
     );
     expect(el.querySelector("app-comment-section")).toBeTruthy();
     expect(el.textContent).toContain("A tidy coal setup");
@@ -226,8 +226,8 @@ describe("BlueprintDetailsPageComponent", () => {
             blueprintId: "parent-1",
             blueprintName: "Original Setup",
           },
-        })
-      )
+        }),
+      ),
     );
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
@@ -241,8 +241,8 @@ describe("BlueprintDetailsPageComponent", () => {
       of(
         makeDetails({
           forkedFrom: { blueprintId: "parent-1", blueprintName: null },
-        })
-      )
+        }),
+      ),
     );
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
@@ -252,7 +252,7 @@ describe("BlueprintDetailsPageComponent", () => {
 
   it("links the category, subcategory, gameVersion, and modded chips to filtered discover pages", () => {
     blueprintService.getBlueprintDetails.mockReturnValue(
-      of(makeDetails({ subcategory: "generator", modded: true }))
+      of(makeDetails({ subcategory: "generator", modded: true })),
     );
     fixture.detectChanges();
 
@@ -261,7 +261,7 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(category.properties["queryParams"]).toEqual({ category: "power" });
 
     const subcategory = fixture.debugElement.queryAll(
-      By.css(".bni-chip--cat")
+      By.css(".bni-chip--cat"),
     )[1];
     expect(subcategory.properties["routerLink"]).toEqual(["/discover"]);
     expect(subcategory.properties["queryParams"]).toEqual({
@@ -270,7 +270,7 @@ describe("BlueprintDetailsPageComponent", () => {
     });
 
     const gameVersion = fixture.debugElement.query(
-      By.css("a.bni-chip:not(.bni-chip--cat):not(.bni-chip--modded)")
+      By.css("a.bni-chip:not(.bni-chip--cat):not(.bni-chip--modded)"),
     );
     expect(gameVersion.properties["queryParams"]).toEqual({
       gameVersion: "spacedOut",
@@ -282,7 +282,7 @@ describe("BlueprintDetailsPageComponent", () => {
 
   it("renders a linked chip per detected room and none when rooms is absent", () => {
     blueprintService.getBlueprintDetails.mockReturnValue(
-      of(makeDetails({ rooms: ["greatHall", "powerPlant"] }))
+      of(makeDetails({ rooms: ["greatHall", "powerPlant"] })),
     );
     fixture.detectChanges();
 
@@ -294,7 +294,7 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(chips[1].nativeElement.textContent.trim()).toBe("Power Plant");
 
     blueprintService.getBlueprintDetails.mockReturnValue(
-      of(makeDetails({ rooms: null }))
+      of(makeDetails({ rooms: null })),
     );
     component.ngOnInit();
     fixture.detectChanges();
@@ -303,7 +303,7 @@ describe("BlueprintDetailsPageComponent", () => {
 
   it("links the fork count to a discover page filtered by forkedFrom", () => {
     blueprintService.getBlueprintDetails.mockReturnValue(
-      of(makeDetails({ nbForks: 5 }))
+      of(makeDetails({ nbForks: 5 })),
     );
     fixture.detectChanges();
 
@@ -315,7 +315,7 @@ describe("BlueprintDetailsPageComponent", () => {
 
   it("shows the view and download counts with pluralized labels", () => {
     blueprintService.getBlueprintDetails.mockReturnValue(
-      of(makeDetails({ nbViews: 41, nbDownloads: 1 }))
+      of(makeDetails({ nbViews: 41, nbDownloads: 1 })),
     );
     fixture.detectChanges();
 
@@ -370,18 +370,18 @@ describe("BlueprintDetailsPageComponent", () => {
 
     expect(component.versionHistoryDialog.showDialog).toHaveBeenCalledWith(
       "bp1",
-      false
+      false,
     );
   });
 
   it("passes the blueprint id and name to the share dialog", () => {
     fixture.detectChanges();
     const shareDialog = fixture.debugElement.query(
-      By.css("app-dialog-share-url")
+      By.css("app-dialog-share-url"),
     );
     expect(shareDialog.properties["blueprintId"]).toBe("bp1");
     expect(shareDialog.properties["blueprintName"]).toBe(
-      "Super Coal Generator Setup"
+      "Super Coal Generator Setup",
     );
   });
 
@@ -410,7 +410,7 @@ describe("BlueprintDetailsPageComponent", () => {
         fromProfile: "alice",
       });
       blueprintService.getBlueprintDetails.mockReturnValue(
-        throwError(() => ({ status: 404 }))
+        throwError(() => ({ status: 404 })),
       );
 
       fixture.detectChanges();
@@ -424,18 +424,18 @@ describe("BlueprintDetailsPageComponent", () => {
   describe("publish / unpublish", () => {
     it("shows the Draft chip and Publish button on an owned draft", () => {
       blueprintService.getBlueprintDetails.mockReturnValue(
-        of(makeDetails({ ownedByMe: true, isPublished: false }))
+        of(makeDetails({ ownedByMe: true, isPublished: false })),
       );
       fixture.detectChanges();
 
       expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).not.toBe(
-        null
+        null,
       );
       expect(fixture.debugElement.query(By.css(".details-publish"))).not.toBe(
-        null
+        null,
       );
       expect(fixture.debugElement.query(By.css(".details-unpublish"))).toBe(
-        null
+        null,
       );
     });
 
@@ -445,26 +445,26 @@ describe("BlueprintDetailsPageComponent", () => {
       expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).toBe(null);
       expect(fixture.debugElement.query(By.css(".details-publish"))).toBe(null);
       expect(fixture.debugElement.query(By.css(".details-unpublish"))).toBe(
-        null
+        null,
       );
     });
 
     it("shows Unpublish (but no chip) on an owned published blueprint", () => {
       blueprintService.getBlueprintDetails.mockReturnValue(
-        of(makeDetails({ ownedByMe: true, isPublished: true }))
+        of(makeDetails({ ownedByMe: true, isPublished: true })),
       );
       fixture.detectChanges();
 
       expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).toBe(null);
       expect(fixture.debugElement.query(By.css(".details-publish"))).toBe(null);
       expect(fixture.debugElement.query(By.css(".details-unpublish"))).not.toBe(
-        null
+        null,
       );
     });
 
     it("publishes: calls the service, flips state, and toasts success", () => {
       blueprintService.getBlueprintDetails.mockReturnValue(
-        of(makeDetails({ ownedByMe: true, isPublished: false }))
+        of(makeDetails({ ownedByMe: true, isPublished: false })),
       );
       fixture.detectChanges();
 
@@ -474,13 +474,13 @@ describe("BlueprintDetailsPageComponent", () => {
       expect(component.details?.isPublished).toBe(true);
       expect(component.publishWorking).toBe(false);
       expect(messageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({ severity: "success" })
+        expect.objectContaining({ severity: "success" }),
       );
     });
 
     it("unpublishes and toasts", () => {
       blueprintService.getBlueprintDetails.mockReturnValue(
-        of(makeDetails({ ownedByMe: true, isPublished: true }))
+        of(makeDetails({ ownedByMe: true, isPublished: true })),
       );
       blueprintService.setPublished.mockReturnValue(of({ isPublished: false }));
       fixture.detectChanges();
@@ -493,16 +493,16 @@ describe("BlueprintDetailsPageComponent", () => {
         expect.objectContaining({
           severity: "success",
           summary: expect.stringContaining("moved back to drafts"),
-        })
+        }),
       );
     });
 
     it("keeps state and toasts an error when the call fails", () => {
       blueprintService.getBlueprintDetails.mockReturnValue(
-        of(makeDetails({ ownedByMe: true, isPublished: false }))
+        of(makeDetails({ ownedByMe: true, isPublished: false })),
       );
       blueprintService.setPublished.mockReturnValue(
-        throwError(() => new Error("boom"))
+        throwError(() => new Error("boom")),
       );
       fixture.detectChanges();
 
@@ -511,13 +511,13 @@ describe("BlueprintDetailsPageComponent", () => {
       expect(component.details?.isPublished).toBe(false);
       expect(component.publishWorking).toBe(false);
       expect(messageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({ severity: "error" })
+        expect.objectContaining({ severity: "error" }),
       );
     });
 
     it("disables Share on a draft with a publish hint", () => {
       blueprintService.getBlueprintDetails.mockReturnValue(
-        of(makeDetails({ ownedByMe: true, isPublished: false }))
+        of(makeDetails({ ownedByMe: true, isPublished: false })),
       );
       fixture.detectChanges();
 

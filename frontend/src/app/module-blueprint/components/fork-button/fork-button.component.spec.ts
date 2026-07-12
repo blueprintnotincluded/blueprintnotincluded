@@ -50,7 +50,7 @@ describe("ForkButtonComponent", () => {
 
   it("resets forking state and shows a toast on error, without navigating", () => {
     blueprintVersionService.fork.mockReturnValue(
-      throwError(() => new Error("fail"))
+      throwError(() => new Error("fail")),
     );
 
     component.fork();
@@ -58,7 +58,7 @@ describe("ForkButtonComponent", () => {
     expect(component.forking).toBe(false);
     expect(router.navigate).not.toHaveBeenCalled();
     expect(messageService.add).toHaveBeenCalledWith(
-      expect.objectContaining({ severity: "error" })
+      expect.objectContaining({ severity: "error" }),
     );
   });
 

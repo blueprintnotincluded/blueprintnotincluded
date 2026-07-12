@@ -39,13 +39,13 @@ export class SingleSliderScreenComponent implements OnInit {
 
   ngOnInit() {
     this.value = this.blueprintItem.getUiSettings(
-      this.singleSliderSideScreen.id
+      this.singleSliderSideScreen.id,
     )!.values[0] as number;
   }
 
   onChange() {
     this.blueprintItem.getUiSettings(
-      this.singleSliderSideScreen.id
+      this.singleSliderSideScreen.id,
     )!.values[0] = this.value;
   }
 }

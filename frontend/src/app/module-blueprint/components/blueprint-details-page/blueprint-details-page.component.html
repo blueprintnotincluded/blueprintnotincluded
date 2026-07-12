@@ -65,7 +65,7 @@
               ></span
             >
             <span class="details-date">{{
-              details.createdAt | date : "yyyy-MM-dd"
+              details.createdAt | date: "yyyy-MM-dd"
             }}</span>
             <span class="details-views"
               >{{ details.nbViews }}&nbsp;{{ nbViewsString }}</span
@@ -112,7 +112,7 @@
               [routerLink]="['/discover']"
               [queryParams]="{
                 category: details.category,
-                subcategory: details.subcategory
+                subcategory: details.subcategory,
               }"
               [title]="subcategoryTooltip(details.subcategory)"
               >{{ details.subcategory }}</a

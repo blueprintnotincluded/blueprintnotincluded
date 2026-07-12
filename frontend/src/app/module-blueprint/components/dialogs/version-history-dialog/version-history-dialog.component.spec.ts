@@ -70,7 +70,7 @@ describe("VersionHistoryDialogComponent", () => {
 
     expect(versionService.createVersion).toHaveBeenCalledWith(
       "bp-1",
-      "my snapshot"
+      "my snapshot",
     );
     expect(component.newVersionName).toBe("");
     expect(versionService.getVersions).toHaveBeenCalledWith("bp-1");
@@ -114,7 +114,7 @@ describe("VersionHistoryDialogComponent", () => {
 
   it("shows an error toast when loading versions fails", () => {
     versionService.getVersions.mockReturnValue(
-      throwError(() => new Error("network"))
+      throwError(() => new Error("network")),
     );
 
     component.showDialog("bp-1", true);
@@ -124,7 +124,7 @@ describe("VersionHistoryDialogComponent", () => {
       expect.objectContaining({
         severity: "error",
         detail: "Could not load version history",
-      })
+      }),
     );
   });
 
@@ -150,7 +150,7 @@ describe("VersionHistoryDialogComponent", () => {
 
   it("shows a specific toast when deleting the only remaining version fails with 400", () => {
     versionService.deleteVersion.mockReturnValue(
-      throwError(() => ({ status: 400 }))
+      throwError(() => ({ status: 400 })),
     );
     component.blueprintId = "bp-1";
 
@@ -161,13 +161,13 @@ describe("VersionHistoryDialogComponent", () => {
       expect.objectContaining({
         severity: "error",
         detail: "Cannot delete the only remaining version",
-      })
+      }),
     );
   });
 
   it("shows a generic toast for other delete failures", () => {
     versionService.deleteVersion.mockReturnValue(
-      throwError(() => ({ status: 500 }))
+      throwError(() => ({ status: 500 })),
     );
     component.blueprintId = "bp-1";
 
@@ -177,7 +177,7 @@ describe("VersionHistoryDialogComponent", () => {
       expect.objectContaining({
         severity: "error",
         detail: "Could not delete this version",
-      })
+      }),
     );
   });
 });
