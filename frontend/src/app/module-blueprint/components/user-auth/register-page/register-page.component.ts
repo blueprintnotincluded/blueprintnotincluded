@@ -17,7 +17,7 @@ export class RegisterPageComponent {
 
   constructor(
     private authService: AuthenticationService,
-    private router: Router
+    private router: Router,
   ) {}
 
   submit() {

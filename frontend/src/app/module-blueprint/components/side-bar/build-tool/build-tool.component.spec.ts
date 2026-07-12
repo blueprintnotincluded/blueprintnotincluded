@@ -65,7 +65,7 @@ describe("ComponentSideBuildToolComponent", () => {
   describe("constructor", () => {
     it("subscribes to build-item and tool changes", () => {
       expect(buildTool.subscribeBuildItemChanged).toHaveBeenCalledWith(
-        component
+        component,
       );
       expect(toolService.subscribeToolChanged).toHaveBeenCalledWith(component);
     });
@@ -84,7 +84,7 @@ describe("ComponentSideBuildToolComponent", () => {
 
     it("buildMenuCategories exposes the static category list", () => {
       expect(component.buildMenuCategories).toBe(
-        BuildMenuCategory.buildMenuCategories
+        BuildMenuCategory.buildMenuCategories,
       );
     });
   });
@@ -139,7 +139,7 @@ describe("ComponentSideBuildToolComponent", () => {
 
       expect(setElement).toHaveBeenCalledWith("Water", 0);
       expect(buildTool.changeItem).toHaveBeenCalledWith(
-        expect.any(BlueprintItemElement)
+        expect.any(BlueprintItemElement),
       );
       expect(component.categoryPanel.hide).toHaveBeenCalled();
       setElement.mockRestore();
@@ -157,7 +157,7 @@ describe("ComponentSideBuildToolComponent", () => {
       component.addInfo();
 
       expect(buildTool.changeItem).toHaveBeenCalledWith(
-        expect.any(BlueprintItemInfo)
+        expect.any(BlueprintItemInfo),
       );
       expect(component.categoryPanel.hide).toHaveBeenCalled();
       getOniItem.mockRestore();

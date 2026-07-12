@@ -88,7 +88,7 @@ export class ComponentCanvasComponent
     private toolService: ToolService,
     private gaService: GoogleAnalyticsService,
     private roomDetectionService: RoomDetectionService,
-    drawPixi: DrawPixi
+    drawPixi: DrawPixi,
   ) {
     this.drawPixi = drawPixi;
     this.cameraService = new CameraService(this.drawPixi.getNewContainer());
@@ -176,7 +176,7 @@ export class ComponentCanvasComponent
         this.reportRenderMetric(
           "blueprint_render_timeout",
           pending.itemCount,
-          elapsedMs
+          elapsedMs,
         );
         this.pendingRenderMetric = null;
         return;
@@ -187,7 +187,7 @@ export class ComponentCanvasComponent
         this.reportRenderMetric(
           "blueprint_render_complete",
           pending.itemCount,
-          elapsedMs
+          elapsedMs,
         );
         this.pendingRenderMetric = null;
       }
@@ -200,7 +200,7 @@ export class ComponentCanvasComponent
   private reportRenderMetric(
     action: string,
     itemCount: number,
-    durationMs: number
+    durationMs: number,
   ) {
     try {
       this.gaService?.event(
@@ -211,7 +211,7 @@ export class ComponentCanvasComponent
         false,
         {
           item_count: itemCount,
-        }
+        },
       );
     } catch (error) {
       console.warn("reportRenderMetric failed", error);
@@ -229,7 +229,7 @@ export class ComponentCanvasComponent
 
     const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     this.cameraService.resetZoom(
-      new Vector2(rect.width - rect.left, rect.height - rect.top)
+      new Vector2(rect.width - rect.left, rect.height - rect.top),
     );
 
     if (source.blueprintItems.length > 0) {
@@ -239,12 +239,12 @@ export class ComponentCanvasComponent
 
       const totalTileSize = new Vector2(
         bottomRight.x - topLeft.x + 3,
-        bottomRight.y - topLeft.y + 3
+        bottomRight.y - topLeft.y + 3,
       );
       const maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
       const minCanvasSize = Math.min(
         this.canvasRef.nativeElement.width,
-        this.canvasRef.nativeElement.height
+        this.canvasRef.nativeElement.height,
       );
       const thumbnailTileSize = minCanvasSize / maxTotalSize;
 
@@ -269,7 +269,7 @@ export class ComponentCanvasComponent
 
   getCurrentTile(event: any): Vector2 {
     const returnValue = this.cameraService.getTileCoords(
-      this.getCursorPosition(event)
+      this.getCursorPosition(event),
     );
 
     returnValue.x = Math.floor(returnValue.x);
@@ -292,7 +292,7 @@ export class ComponentCanvasComponent
     if (event.button == 0) {
       this.toolService.mouseDown(
         this.getCurrentTile(event),
-        this.cameraService.getTileCoords(this.getCursorPosition(event))
+        this.cameraService.getTileCoords(this.getCursorPosition(event)),
       );
     }
   }
@@ -314,10 +314,10 @@ export class ComponentCanvasComponent
   storePreviousTileFloat: Vector2 | null = null;
   mouseDrag(event: any) {
     const previousTileFloat = Vector2.clone(
-      this.storePreviousTileFloat ?? undefined
+      this.storePreviousTileFloat ?? undefined,
     );
     const currentTileFloat = this.cameraService.getTileCoords(
-      this.getCursorPosition(event)
+      this.getCursorPosition(event),
     );
 
     if (event.dragButton[2]) {
@@ -354,7 +354,7 @@ export class ComponentCanvasComponent
       const rect = this.canvasRef.nativeElement.getBoundingClientRect();
       const centerPos = new Vector2(
         event.centerClientX - rect.left,
-        event.centerClientY - rect.top
+        event.centerClientY - rect.top,
       );
       this.cameraService.changeZoom(event.zoomDelta, centerPos);
     }
@@ -477,13 +477,13 @@ export class ComponentCanvasComponent
 
     ComponentCanvasComponent.zip.file(
       "database_white.json",
-      JSON.stringify(database, null, 2)
+      JSON.stringify(database, null, 2),
     );
 
     for (const sourceTexture of sourceTextures) {
       const baseTexture = ImageSource.getBaseTexture(
         sourceTexture,
-        this.drawPixi
+        this.drawPixi,
       );
 
       const texture = new PIXI.Texture(baseTexture);
@@ -543,7 +543,7 @@ export class ComponentCanvasComponent
 
           // Remove from the database building sprite list
           let indexToRemove = buildingInDatabase!.sprites.spriteNames.indexOf(
-            spriteModifier.spriteModifierId
+            spriteModifier.spriteModifierId,
           );
           buildingInDatabase!.sprites.spriteNames.splice(indexToRemove, 1);
 
@@ -553,7 +553,7 @@ export class ComponentCanvasComponent
           });
           if (spriteModifierToRemove != null) {
             indexToRemove = database.spriteModifiers.indexOf(
-              spriteModifierToRemove
+              spriteModifierToRemove,
             );
             database.spriteModifiers.splice(indexToRemove, 1);
           }
@@ -567,7 +567,7 @@ export class ComponentCanvasComponent
           }
 
           const spriteInfo = SpriteInfo.getSpriteInfo(
-            spriteModifier.spriteInfoName
+            spriteModifier.spriteInfoName,
           );
           const texture = spriteInfo.getTexture(this.drawPixi);
           const sprite = PIXI.Sprite.from(texture);
@@ -603,7 +603,7 @@ export class ComponentCanvasComponent
 
         const pivot = new Vector2(
           1 - (bounds.width + bounds.x) / bounds.width,
-          (bounds.height + bounds.y) / bounds.height
+          (bounds.height + bounds.y) / bounds.height,
         );
         //console.log(pivot);
 
@@ -648,7 +648,7 @@ export class ComponentCanvasComponent
 
     ComponentCanvasComponent.zip.file(
       "database_groups.json",
-      JSON.stringify(database, null, 2)
+      JSON.stringify(database, null, 2),
     );
 
     for (let indexRt = 0; indexRt < renderTextures.length; indexRt++)
@@ -751,11 +751,11 @@ export class ComponentCanvasComponent
     ComponentCanvasComponent.nbBlob = 0;
     ComponentCanvasComponent.downloadFile = "icons.zip";
     ComponentCanvasComponent.nbBlobMax = SpriteInfo.keys.filter(
-      (s) => SpriteInfo.getSpriteInfo(s).isIcon
+      (s) => SpriteInfo.getSpriteInfo(s).isIcon,
     ).length;
 
     for (const k of SpriteInfo.keys.filter(
-      (s) => SpriteInfo.getSpriteInfo(s).isIcon
+      (s) => SpriteInfo.getSpriteInfo(s).isIcon,
     )) {
       const uiSpriteInfo = SpriteInfo.getSpriteInfo(k);
       const texture = uiSpriteInfo.getTexture(this.drawPixi);
@@ -824,7 +824,7 @@ export class ComponentCanvasComponent
 
     const totalTileSize = new Vector2(
       bottomRight.x - topLeft.x + 3,
-      bottomRight.y - topLeft.y + 3
+      bottomRight.y - topLeft.y + 3,
     );
 
     const thumbnailSize = 200;
@@ -895,11 +895,11 @@ export class ComponentCanvasComponent
     const tileSize = exportOptions.pixelsPerTile;
     const totalTileSize = new Vector2(
       bottomRight.x - topLeft.x + 3,
-      bottomRight.y - topLeft.y + 3
+      bottomRight.y - topLeft.y + 3,
     );
     const sizeInPixels = new Vector2(
       totalTileSize.x * tileSize,
-      totalTileSize.y * tileSize
+      totalTileSize.y * tileSize,
     );
 
     const exportCamera = new CameraService(this.drawPixi.getNewContainer());
@@ -941,7 +941,7 @@ export class ComponentCanvasComponent
       this.drawPixi.pixiApp.renderer.extract.canvas(rt).toBlob((blob) => {
         this.addBlob(
           blob!,
-          "export_" + DrawHelpers.overlayString[overlay] + ".png"
+          "export_" + DrawHelpers.overlayString[overlay] + ".png",
         );
       });
     });
@@ -1024,7 +1024,7 @@ export class ComponentCanvasComponent
           realAlpha,
           new Vector2(col, 0),
           new Vector2(col, this.height),
-          1
+          1,
         );
       mod++;
     }
@@ -1047,7 +1047,7 @@ export class ComponentCanvasComponent
           realAlpha,
           new Vector2(0, line),
           new Vector2(this.width, line),
-          1
+          1,
         );
       mod++;
     }
@@ -1070,7 +1070,7 @@ export class ComponentCanvasComponent
         if (roomOverlayActive)
           this.drawRoomOverlay.draw(
             this.roomDetectionService.result,
-            this.cameraService
+            this.cameraService,
           );
         else this.drawRoomOverlay.clear();
       }
@@ -1099,7 +1099,7 @@ export class ComponentCanvasComponent
     xEnd: number,
     yEnd: number,
     lineWidth: number,
-    alpha: number
+    alpha: number,
   ) {
     const offset: number = (lineWidth % 2) / 2;
 

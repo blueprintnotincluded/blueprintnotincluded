@@ -27,7 +27,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
   constructor(
     private notificationService: NotificationService,
-    public authService: AuthenticationService
+    public authService: AuthenticationService,
   ) {}
 
   ngOnInit() {
@@ -35,7 +35,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     this.pollSub = interval(POLL_INTERVAL_MS)
       .pipe(
         startWith(0),
-        switchMap(() => this.notificationService.list(new Date()))
+        switchMap(() => this.notificationService.list(new Date())),
       )
       .subscribe({
         next: (response) => {

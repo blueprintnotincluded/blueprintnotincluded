@@ -29,7 +29,7 @@ export class ToolService implements ITool, IChangeTool {
     public selectTool: SelectTool,
     public buildTool: BuildTool,
     public elementReport: ElementReport,
-    public scissorsTool: ScissorsTool
+    public scissorsTool: ScissorsTool,
   ) {
     this.observers = [];
 

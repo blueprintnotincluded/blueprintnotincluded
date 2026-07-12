@@ -43,14 +43,14 @@ describe("QueuedPreviewDirective", () => {
 
   it("loads one preview at a time", () => {
     expect(img("a").getAttribute("src")).toBe(
-      "/api/blueprints/a/preview/card.webp?v=1"
+      "/api/blueprints/a/preview/card.webp?v=1",
     );
     expect(img("b").getAttribute("src")).toBeNull();
 
     img("a").dispatchEvent(new Event("load"));
 
     expect(img("b").getAttribute("src")).toBe(
-      "/api/blueprints/b/preview/card.webp?v=1"
+      "/api/blueprints/b/preview/card.webp?v=1",
     );
   });
 
@@ -59,7 +59,7 @@ describe("QueuedPreviewDirective", () => {
 
     expect(img("a").getAttribute("src")).toBe("data:image/png;base64,aaa");
     expect(img("b").getAttribute("src")).toBe(
-      "/api/blueprints/b/preview/card.webp?v=1"
+      "/api/blueprints/b/preview/card.webp?v=1",
     );
   });
 
@@ -77,7 +77,7 @@ describe("QueuedPreviewDirective", () => {
     fixture.detectChanges();
 
     expect(img("b").getAttribute("src")).toBe(
-      "/api/blueprints/b/preview/card.webp?v=1"
+      "/api/blueprints/b/preview/card.webp?v=1",
     );
   });
 });

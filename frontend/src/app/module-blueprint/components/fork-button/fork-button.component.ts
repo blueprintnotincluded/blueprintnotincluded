@@ -24,7 +24,7 @@ export class ForkButtonComponent {
   constructor(
     private blueprintVersionService: BlueprintVersionService,
     private router: Router,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {}
 
   fork() {

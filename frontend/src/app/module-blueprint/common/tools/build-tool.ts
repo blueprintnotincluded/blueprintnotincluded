@@ -31,7 +31,7 @@ export class BuildTool implements ITool {
 
   constructor(
     private blueprintService: BlueprintService,
-    private appRef: ApplicationRef
+    private appRef: ApplicationRef,
   ) {
     this.observers = [];
   }
@@ -59,12 +59,12 @@ export class BuildTool implements ITool {
     // First : iterate all the buildings on each tile of this building
 
     const isBridge = BRIDGE_LOCATION_RULES.has(
-      this.templateItemToBuild.oniItem.buildLocationRule
+      this.templateItemToBuild.oniItem.buildLocationRule,
     );
 
     for (const tileIndex of this.templateItemToBuild.tileIndexes) {
       for (const templateItem of this.blueprintService.blueprint.getBlueprintItemsAtIndex(
-        tileIndex
+        tileIndex,
       )) {
         // If at least one of them is in the same object layer, we can't build
         // We skip this step for bridges, who only care about their utility ports
@@ -93,23 +93,23 @@ export class BuildTool implements ITool {
         this.templateItemToBuild.utilityConnectionOffsets[connectionIndex];
       const connectionToBuildPosition = new Vector2(
         cachedOffset.x + this.templateItemToBuild.position.x,
-        cachedOffset.y + this.templateItemToBuild.position.y
+        cachedOffset.y + this.templateItemToBuild.position.y,
       );
 
       const utilitiesAtIndex =
         this.blueprintService.blueprint.getUtilityConnectionsAtIndex(
-          DrawHelpers.getTileIndex(connectionToBuildPosition)
+          DrawHelpers.getTileIndex(connectionToBuildPosition),
         );
       for (const trackedUtilities of utilitiesAtIndex) {
         if (
           ConnectionHelper.getConnectionOverlay(connectionToBuild.type) ==
           ConnectionHelper.getConnectionOverlay(
-            trackedUtilities.utilityConnection.type
+            trackedUtilities.utilityConnection.type,
           )
         ) {
           this.templateItemToBuild.buildCandidateResult.canBuild = false;
           const connection = ConnectionHelper.getConnectionName(
-            trackedUtilities.utilityConnection.type
+            trackedUtilities.utilityConnection.type,
           );
           const itemName = trackedUtilities.blueprintItem.oniItem.name;
           this.templateItemToBuild.buildCandidateResult.cantBuildReason = $localize`Can\'t build here : The ${connection} from ${itemName} is in the way`;
@@ -134,7 +134,7 @@ export class BuildTool implements ITool {
     const newItem = BlueprintHelpers.cloneBlueprintItem(
       this.templateItemToBuild,
       false,
-      true
+      true,
     );
 
     newItem.prepareBoundingBox();
@@ -186,14 +186,14 @@ export class BuildTool implements ITool {
         .filter(
           (i) =>
             i.oniItem.objectLayer ==
-            this.templateItemToBuild.oniItem.objectLayer
+            this.templateItemToBuild.oniItem.objectLayer,
         );
       const itemsCurrent = this.blueprintService.blueprint
         .getBlueprintItemsAt(tileStop)
         .filter(
           (i) =>
             i.oniItem.objectLayer ==
-            this.templateItemToBuild.oniItem.objectLayer
+            this.templateItemToBuild.oniItem.objectLayer,
         );
 
       if (
@@ -271,12 +271,12 @@ export class BuildTool implements ITool {
       DrawHelpers.getFloorTile(tileStop).x -
         DrawHelpers.getFloorTile(tileStart).x,
       DrawHelpers.getFloorTile(tileStop).y -
-        DrawHelpers.getFloorTile(tileStart).y
+        DrawHelpers.getFloorTile(tileStart).y,
     );
 
     delta = new Vector2(
       delta.x == 0 ? 0 : 1 * (delta.x / Math.abs(delta.x)),
-      delta.y == 0 ? 0 : 1 * (delta.y / Math.abs(delta.y))
+      delta.y == 0 ? 0 : 1 * (delta.y / Math.abs(delta.y)),
     );
 
     // Special cases : if tileStart or tileStop is an integer, we run into problems, so let's change that
@@ -310,7 +310,7 @@ export class BuildTool implements ITool {
       // and then floored of ceilingedto be closest to currentTile
       const nextTile = new Vector2(
         currentTile.x + delta.x,
-        currentTile.y + delta.y
+        currentTile.y + delta.y,
       );
       if (delta.x > 0) nextTile.x = Math.floor(nextTile.x);
       else if (delta.x < 0) nextTile.x = Math.ceil(nextTile.x);
@@ -323,13 +323,13 @@ export class BuildTool implements ITool {
       // d is the distance vector between the final target and currentTile
       const d = new Vector2(
         tileStop.x - currentTile.x,
-        tileStop.y - currentTile.y
+        tileStop.y - currentTile.y,
       );
 
       // dp is the distance between the next Target and current Tile
       const dp = new Vector2(
         nextTile.x - currentTile.x,
-        nextTile.y - currentTile.y
+        nextTile.y - currentTile.y,
       );
 
       const dLengthSquared = d.lengthSquared;

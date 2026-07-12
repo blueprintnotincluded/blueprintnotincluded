@@ -62,5 +62,5 @@ module.exports = tseslint.config(
     files: ["**/*.html"],
     extends: [...angular.configs.templateRecommended, prettier],
     rules: {},
-  }
+  },
 );

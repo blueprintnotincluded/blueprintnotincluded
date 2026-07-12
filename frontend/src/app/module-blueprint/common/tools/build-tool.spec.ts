@@ -60,7 +60,7 @@ describe("BuildTool", () => {
     mockCameraService = { setOverlayForItem: vi.fn() };
 
     vi.spyOn(CameraService, "cameraService", "get").mockReturnValue(
-      mockCameraService as any
+      mockCameraService as any,
     );
 
     tool = new BuildTool(mockBlueprintService as any, mockAppRef as any);
@@ -165,7 +165,7 @@ describe("BuildTool", () => {
       const newItem = makeTemplateItem();
       tool.changeItem(newItem);
       expect(mockCameraService.setOverlayForItem).toHaveBeenCalledWith(
-        newItem.oniItem
+        newItem.oniItem,
       );
     });
   });
@@ -215,7 +215,7 @@ describe("BuildTool", () => {
       const addSpy = mockBlueprint.addBlueprintItem;
       const cloned = makeTemplateItem();
       vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
-        cloned as any
+        cloned as any,
       );
       const tile = new Vector2(3, 4);
       tool.leftClick(tile);
@@ -228,7 +228,7 @@ describe("BuildTool", () => {
     it("sets position and triggers build", () => {
       const cloned = makeTemplateItem();
       vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
-        cloned as any
+        cloned as any,
       );
       const tile = new Vector2(5, 6);
       tool.mouseDown(tile);
@@ -247,13 +247,13 @@ describe("BuildTool", () => {
     it("clones item, adds to blueprint, and refreshes overlay when canBuild", () => {
       const cloned = makeTemplateItem();
       vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
-        cloned as any
+        cloned as any,
       );
       tool.build();
       expect(BlueprintHelpers.cloneBlueprintItem).toHaveBeenCalledWith(
         templateItem,
         false,
-        true
+        true,
       );
       expect(cloned.prepareBoundingBox).toHaveBeenCalled();
       expect(cloned.updateTileables).toHaveBeenCalledWith(mockBlueprint);
@@ -297,7 +297,7 @@ describe("BuildTool", () => {
       tool.draw(mockDrawPixi, mockCamera);
       expect(templateItem.drawPixi).toHaveBeenCalledWith(
         mockCamera,
-        mockDrawPixi
+        mockDrawPixi,
       );
     });
   });
@@ -412,7 +412,7 @@ describe("BuildTool", () => {
       };
 
       vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
-        makeTemplateItem() as any
+        makeTemplateItem() as any,
       );
     });
 
@@ -513,7 +513,7 @@ describe("BuildTool", () => {
       mockBuildAndConnect.mockRestore();
       vi.spyOn(tool, "buildAndConnect").mockImplementation(() => {});
       expect(() =>
-        tool.dragStepByStep(new Vector2(0.5, 0.5), new Vector2(1500.5, 0.5))
+        tool.dragStepByStep(new Vector2(0.5, 0.5), new Vector2(1500.5, 0.5)),
       ).toThrow("The tile dragger was too long");
     });
   });

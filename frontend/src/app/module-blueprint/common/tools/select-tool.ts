@@ -229,7 +229,7 @@ export class SelectTool implements ITool {
 
     this.sameItemCollections.splice(
       this.sameItemCollections.indexOf(itemCollection),
-      1
+      1,
     );
 
     this.emitSelectionChanged();
@@ -317,7 +317,7 @@ export class SelectTool implements ITool {
     drawPixi: DrawPixi,
     camera: CameraService,
     topLeft: Vector2,
-    bottomRight: Vector2
+    bottomRight: Vector2,
   ) {
     const text = this.ensureDimensionsText(drawPixi);
 
@@ -327,7 +327,7 @@ export class SelectTool implements ITool {
 
     const centerWorld = new Vector2(
       (topLeft.x + bottomRight.x) / 2,
-      (topLeft.y + bottomRight.y) / 2
+      (topLeft.y + bottomRight.y) / 2,
     );
 
     text.position.x =
@@ -364,7 +364,7 @@ export class SelectTool implements ITool {
         this.sameItemCollections.length;
       doSelectFromBox =
         this.sameItemCollections[next_group].items.find((item) =>
-          item.position.equals(tile)
+          item.position.equals(tile),
         ) === undefined;
     }
 
@@ -396,12 +396,12 @@ export class SelectTool implements ITool {
 
       const topLeft = new Vector2(
         Math.min(beginTile.x, endTile.x),
-        Math.max(beginTile.y, endTile.y)
+        Math.max(beginTile.y, endTile.y),
       );
 
       const bottomRight = new Vector2(
         Math.max(beginTile.x, endTile.x),
-        Math.min(beginTile.y, endTile.y)
+        Math.min(beginTile.y, endTile.y),
       );
 
       this.selectFromBox(topLeft, bottomRight);
@@ -415,7 +415,7 @@ export class SelectTool implements ITool {
       const itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
       if (itemGroupToDestroyIndex != -1)
         this.buildingsDestroy(
-          this.sameItemCollections[itemGroupToDestroyIndex]
+          this.sameItemCollections[itemGroupToDestroyIndex],
         );
     } else if (keyCode == "b") {
       // ignore keypress when a textbox is active
@@ -430,7 +430,7 @@ export class SelectTool implements ITool {
       const itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
       if (itemGroupToDestroyIndex != -1) {
         newItem = BlueprintHelpers.cloneBlueprintItem(
-          this.sameItemCollections[itemGroupToDestroyIndex].items[0]
+          this.sameItemCollections[itemGroupToDestroyIndex].items[0],
         );
       }
 
@@ -457,12 +457,12 @@ export class SelectTool implements ITool {
 
     const topLeft = new Vector2(
       Math.min(beginTile.x, endTile.x),
-      Math.max(beginTile.y, endTile.y)
+      Math.max(beginTile.y, endTile.y),
     );
 
     const bottomRight = new Vector2(
       Math.max(beginTile.x, endTile.x) + 1,
-      Math.min(beginTile.y, endTile.y) - 1
+      Math.min(beginTile.y, endTile.y) - 1,
     );
 
     drawPixi.drawTileRectangle(
@@ -474,7 +474,7 @@ export class SelectTool implements ITool {
       0x4cff00,
       0x2d9600,
       0.25,
-      0.8
+      0.8,
     );
 
     this.updateDimensionsText(drawPixi, camera, topLeft, bottomRight);

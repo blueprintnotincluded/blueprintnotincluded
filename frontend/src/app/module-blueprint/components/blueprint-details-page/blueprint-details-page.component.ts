@@ -59,7 +59,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     private location: Location,
     private blueprintService: BlueprintService,
     private messageService: MessageService,
-    public authService: AuthenticationService
+    public authService: AuthenticationService,
   ) {}
 
   goToProfile(data: BrowseData) {
@@ -90,7 +90,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.route.paramMap
       .pipe(
         tap(() => this.updateBackLink()),
-        switchMap((params) => this.load(params.get("id")))
+        switchMap((params) => this.load(params.get("id"))),
       )
       .subscribe((details) => {
         if (details == null) return;
@@ -144,7 +144,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
         else this.loadError = true;
         this.loading = false;
         return EMPTY;
-      })
+      }),
     );
   }
 
@@ -183,7 +183,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     if (this.details == null) return;
     this.versionHistoryDialog.showDialog(
       this.details.id,
-      this.details.ownedByMe
+      this.details.ownedByMe,
     );
   }
 

@@ -7,7 +7,7 @@ const pointerEvent = (
   button: number,
   clientX: number,
   clientY: number,
-  opts: { pointerType?: string; pointerId?: number } = {}
+  opts: { pointerType?: string; pointerId?: number } = {},
 ) =>
   ({
     button,
@@ -16,7 +16,7 @@ const pointerEvent = (
     pointerId: opts.pointerId ?? nextPointerId++,
     pointerType: opts.pointerType ?? "mouse",
     preventDefault: vi.fn(),
-  } as any);
+  }) as any;
 
 const fakeElementRef = () =>
   ({
@@ -24,7 +24,7 @@ const fakeElementRef = () =>
       setPointerCapture: vi.fn(),
       releasePointerCapture: vi.fn(),
     },
-  } as unknown as ElementRef);
+  }) as unknown as ElementRef;
 
 describe("DragAndDropDirective", () => {
   let dir: DragAndDropDirective;
@@ -142,10 +142,10 @@ describe("DragAndDropDirective", () => {
 
       const id = nextPointerId++;
       dir.onPointerDown(
-        pointerEvent(0, 30, 40, { pointerId: id, pointerType: "touch" })
+        pointerEvent(0, 30, 40, { pointerId: id, pointerType: "touch" }),
       );
       dir.onPointerUp(
-        pointerEvent(0, 30, 40, { pointerId: id, pointerType: "touch" })
+        pointerEvent(0, 30, 40, { pointerId: id, pointerType: "touch" }),
       );
 
       expect(clickHandler).toHaveBeenCalledTimes(1);
@@ -214,10 +214,10 @@ describe("DragAndDropDirective", () => {
       dir.myMouseStopDrag.subscribe(stopDragHandler);
 
       dir.onPointerDown(
-        pointerEvent(0, 10, 10, { pointerId: 1, pointerType: "touch" })
+        pointerEvent(0, 10, 10, { pointerId: 1, pointerType: "touch" }),
       );
       dir.onPointerDown(
-        pointerEvent(0, 50, 10, { pointerId: 2, pointerType: "touch" })
+        pointerEvent(0, 50, 10, { pointerId: 2, pointerType: "touch" }),
       );
 
       expect(stopDragHandler).toHaveBeenCalled();
@@ -230,18 +230,18 @@ describe("DragAndDropDirective", () => {
       dir.myMultiTouchGesture.subscribe(gestureHandler);
 
       dir.onPointerDown(
-        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" })
+        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" }),
       );
       dir.onPointerDown(
-        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" })
+        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" }),
       );
 
       // Fingers spread apart and both shift right -> pan right, zoom in.
       dir.onPointerMove(
-        pointerEvent(0, 10, 0, { pointerId: 1, pointerType: "touch" })
+        pointerEvent(0, 10, 0, { pointerId: 1, pointerType: "touch" }),
       );
       dir.onPointerMove(
-        pointerEvent(0, 130, 0, { pointerId: 2, pointerType: "touch" })
+        pointerEvent(0, 130, 0, { pointerId: 2, pointerType: "touch" }),
       );
 
       expect(gestureHandler).toHaveBeenCalled();
@@ -257,13 +257,13 @@ describe("DragAndDropDirective", () => {
       dir.myMouseUp.subscribe(upHandler);
 
       dir.onPointerDown(
-        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" })
+        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" }),
       );
       dir.onPointerDown(
-        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" })
+        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" }),
       );
       dir.onPointerUp(
-        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" })
+        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" }),
       );
 
       expect(clickHandler).not.toHaveBeenCalled();
@@ -272,13 +272,13 @@ describe("DragAndDropDirective", () => {
 
     it("lets the user keep dragging with the remaining finger after the pinch ends", () => {
       dir.onPointerDown(
-        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" })
+        pointerEvent(0, 0, 0, { pointerId: 1, pointerType: "touch" }),
       );
       dir.onPointerDown(
-        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" })
+        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" }),
       );
       dir.onPointerUp(
-        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" })
+        pointerEvent(0, 100, 0, { pointerId: 2, pointerType: "touch" }),
       );
 
       expect(dir.isMouseDown[0]).toBe(true);
@@ -286,7 +286,7 @@ describe("DragAndDropDirective", () => {
       const dragHandler = vi.fn();
       dir.myMouseDrag.subscribe(dragHandler);
       dir.onPointerMove(
-        pointerEvent(0, 20, 0, { pointerId: 1, pointerType: "touch" })
+        pointerEvent(0, 20, 0, { pointerId: 1, pointerType: "touch" }),
       );
       expect(dragHandler).toHaveBeenCalled();
     });

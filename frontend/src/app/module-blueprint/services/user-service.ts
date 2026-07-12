@@ -14,7 +14,7 @@ import {
 export class UserService {
   constructor(
     private http: HttpClient,
-    private authService: AuthenticationService
+    private authService: AuthenticationService,
   ) {}
 
   getProfile(username: string): Observable<ProfileResponse> {
@@ -52,11 +52,11 @@ export class UserService {
   private getConnections(
     username: string,
     mode: "followers" | "following",
-    olderThan: Date
+    olderThan: Date,
   ): Observable<FollowListResponse> {
     const params = new HttpParams().set(
       "olderthan",
-      olderThan.getTime().toString()
+      olderThan.getTime().toString(),
     );
     return this.http.get<FollowListResponse>(`/api/users/${username}/${mode}`, {
       params,
@@ -68,14 +68,14 @@ export class UserService {
 
   getFollowers(
     username: string,
-    olderThan: Date
+    olderThan: Date,
   ): Observable<FollowListResponse> {
     return this.getConnections(username, "followers", olderThan);
   }
 
   getFollowing(
     username: string,
-    olderThan: Date
+    olderThan: Date,
   ): Observable<FollowListResponse> {
     return this.getConnections(username, "following", olderThan);
   }
@@ -83,7 +83,7 @@ export class UserService {
   getFeed(olderThan: Date): Observable<BlueprintListResponse> {
     const params = new HttpParams().set(
       "olderthan",
-      olderThan.getTime().toString()
+      olderThan.getTime().toString(),
     );
     return this.http.get<BlueprintListResponse>("/api/feed", {
       params,

@@ -34,10 +34,10 @@ export class ActiveRangeScreenComponent implements OnInit {
   ngOnInit() {
     this.values = [];
     this.values[0] = this.blueprintItem.getUiSettings(
-      this.activeRangeSideScreen.id
+      this.activeRangeSideScreen.id,
     )!.values[0] as number;
     this.values[1] = this.blueprintItem.getUiSettings(
-      this.activeRangeSideScreen.id
+      this.activeRangeSideScreen.id,
     )!.values[1] as number;
   }
 

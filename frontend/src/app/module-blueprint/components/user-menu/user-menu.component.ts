@@ -35,7 +35,7 @@ export class UserMenuComponent implements OnInit {
   constructor(
     public authService: AuthenticationService,
     private messageService: MessageService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit() {

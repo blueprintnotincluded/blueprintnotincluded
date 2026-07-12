@@ -48,7 +48,10 @@ export class FeedbackListComponent implements OnInit {
     { label: "Spam", value: "spam" },
   ];
 
-  constructor(private http: HttpClient, private auth: AdminAuthService) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AdminAuthService,
+  ) {}
 
   ngOnInit() {
     this.load();
@@ -95,7 +98,7 @@ export class FeedbackListComponent implements OnInit {
       .patch<FeedbackItem>(
         `/api/admin/feedback/${item._id}`,
         { status },
-        { headers: this.headers() }
+        { headers: this.headers() },
       )
       .subscribe({
         next: (updated) => {

@@ -55,11 +55,11 @@ describe("BlueprintCardComponent", () => {
     fixture.detectChanges();
 
     const links = fixture.debugElement.queryAll(
-      By.css(".bni-card__thumb, .bni-card__title")
+      By.css(".bni-card__thumb, .bni-card__title"),
     );
     expect(links.length).toBe(2);
     links.forEach((link) =>
-      expect(link.properties["routerLink"]).toEqual(["/blueprint", "bp-1"])
+      expect(link.properties["routerLink"]).toEqual(["/blueprint", "bp-1"]),
     );
   });
 
@@ -69,7 +69,7 @@ describe("BlueprintCardComponent", () => {
 
     const img = fixture.debugElement.query(By.css(".bni-card__thumb img"));
     expect(img.nativeElement.getAttribute("src")).toBe(
-      "/api/blueprints/bp-1/preview/card.webp?v=1700000000000"
+      "/api/blueprints/bp-1/preview/card.webp?v=1700000000000",
     );
   });
 
@@ -82,7 +82,7 @@ describe("BlueprintCardComponent", () => {
     fixture.detectChanges();
 
     expect(img.nativeElement.getAttribute("src")).toBe(
-      "data:image/png;base64,xyz"
+      "data:image/png;base64,xyz",
     );
   });
 
@@ -90,7 +90,7 @@ describe("BlueprintCardComponent", () => {
     component.item = makeItem({ isPublished: false });
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css(".bni-chip--draft"))).not.toBe(
-      null
+      null,
     );
 
     component.item = makeItem({ isPublished: true });
@@ -129,7 +129,7 @@ describe("BlueprintCardComponent", () => {
     expect(category.properties["title"]).toContain("power");
 
     const gameVersion = fixture.debugElement.query(
-      By.css("a.bni-chip:not(.bni-chip--cat):not(.bni-chip--modded)")
+      By.css("a.bni-chip:not(.bni-chip--cat):not(.bni-chip--modded)"),
     );
     expect(gameVersion.properties["routerLink"]).toEqual(["/discover"]);
     expect(gameVersion.properties["queryParams"]).toEqual({
@@ -160,7 +160,7 @@ describe("BlueprintCardComponent", () => {
     fixture.detectChanges();
 
     expect(
-      fixture.debugElement.queryAll(By.css("a.bni-chip--room")).length
+      fixture.debugElement.queryAll(By.css("a.bni-chip--room")).length,
     ).toBe(3);
     const more = fixture.debugElement.query(By.css(".bni-chip--room-more"));
     expect(more.nativeElement.textContent.trim()).toBe("+2");
@@ -195,11 +195,11 @@ describe("BlueprintCardComponent", () => {
 
     expect(
       fixture.debugElement.query(By.css(".card-comments")).nativeElement
-        .textContent
+        .textContent,
     ).toContain("4");
     expect(
       fixture.debugElement.query(By.css(".card-forks")).nativeElement
-        .textContent
+        .textContent,
     ).toContain("3");
   });
 
@@ -209,11 +209,11 @@ describe("BlueprintCardComponent", () => {
 
     expect(
       fixture.debugElement.query(By.css(".card-views")).nativeElement
-        .textContent
+        .textContent,
     ).toContain("25");
     expect(
       fixture.debugElement.query(By.css(".card-downloads")).nativeElement
-        .textContent
+        .textContent,
     ).toContain("6");
   });
 

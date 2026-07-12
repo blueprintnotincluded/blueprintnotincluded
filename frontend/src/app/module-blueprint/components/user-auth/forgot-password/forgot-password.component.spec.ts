@@ -67,7 +67,7 @@ describe("ForgotPasswordComponent", () => {
     it("still sets submitted=true on error (no enumeration)", () => {
       component.email = "a@b.com";
       mockAuth.forgotPassword.mockReturnValue(
-        throwError(() => new Error("fail"))
+        throwError(() => new Error("fail")),
       );
       component.submit();
       expect(component.submitted).toBe(true);

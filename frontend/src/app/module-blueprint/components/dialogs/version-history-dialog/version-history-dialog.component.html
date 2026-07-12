@@ -49,7 +49,7 @@
       <div class="version-info">
         <div class="version-name">{{ version.name ?? "(unnamed)" }}</div>
         <div class="version-date">
-          {{ version.createdAt | date : "yyyy-MM-dd HH:mm" }}
+          {{ version.createdAt | date: "yyyy-MM-dd HH:mm" }}
         </div>
       </div>
       <div *ngIf="isOwner" class="version-actions">

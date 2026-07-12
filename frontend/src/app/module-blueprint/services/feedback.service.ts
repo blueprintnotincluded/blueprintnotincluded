@@ -31,7 +31,10 @@ export function getRecentConsoleErrors(): string[] {
 
 @Injectable()
 export class FeedbackService {
-  constructor(private http: HttpClient, private auth: AuthenticationService) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthenticationService,
+  ) {}
 
   public submit(message: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(
@@ -42,7 +45,7 @@ export class FeedbackService {
         userAgent: navigator.userAgent,
         consoleErrors: getRecentConsoleErrors(),
       },
-      { headers: { Authorization: `Bearer ${this.auth.getToken()}` } }
+      { headers: { Authorization: `Bearer ${this.auth.getToken()}` } },
     );
   }
 }

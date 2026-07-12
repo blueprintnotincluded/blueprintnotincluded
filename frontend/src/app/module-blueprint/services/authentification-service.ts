@@ -72,7 +72,7 @@ export class AuthenticationService {
 
   public loginWithPassword(
     email: string,
-    password: string
+    password: string,
   ): Observable<LoginResult> {
     return this.http
       .post<{ token: string }>("/api/auth/login", { email, password })
@@ -84,24 +84,24 @@ export class AuthenticationService {
             return [{ kind: "legacy_account" as const }];
           }
           return [{ kind: "invalid_credentials" as const }];
-        })
+        }),
       );
   }
 
   public registerWithPassword(
     email: string,
     password: string,
-    username: string
+    username: string,
   ): Observable<{ message: string; userId: string }> {
     return this.http.post<{ message: string; userId: string }>(
       "/api/auth/register",
-      { email, password, username }
+      { email, password, username },
     );
   }
 
   public verifyEmail(
     code: string,
-    userId: string
+    userId: string,
   ): Observable<{ token: string }> {
     return this.http.post<{ token: string }>("/api/auth/verify-email", {
       code,
@@ -117,7 +117,7 @@ export class AuthenticationService {
 
   public verifyMagicCode(
     code: string,
-    email: string
+    email: string,
   ): Observable<{ token: string }> {
     return this.http.post<{ token: string }>("/api/auth/verify-magic", {
       code,
@@ -133,7 +133,7 @@ export class AuthenticationService {
 
   public resetPasswordWithToken(
     token: string,
-    newPassword: string
+    newPassword: string,
   ): Observable<void> {
     return this.http
       .post<void>("/api/auth/reset-password", { token, newPassword })

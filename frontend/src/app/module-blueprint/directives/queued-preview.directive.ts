@@ -40,7 +40,7 @@ export class QueuedPreviewDirective implements OnChanges, OnDestroy {
 
   constructor(
     private element: ElementRef<HTMLImageElement>,
-    private queue: PreviewQueueService
+    private queue: PreviewQueueService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
@@ -51,7 +51,7 @@ export class QueuedPreviewDirective implements OnChanges, OnDestroy {
       this.element.nativeElement.src = this.previewUrl;
       this.safetyTimer = setTimeout(
         () => this.releaseSlot(),
-        LOAD_SAFETY_TIMEOUT_MS
+        LOAD_SAFETY_TIMEOUT_MS,
       );
     });
   }

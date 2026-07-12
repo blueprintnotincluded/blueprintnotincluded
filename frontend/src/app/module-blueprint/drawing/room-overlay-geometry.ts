@@ -61,14 +61,14 @@ const CONFLICT_ALPHA = 0.3;
 const TOO_LARGE_ALPHA = 0.1;
 
 const familyById = new Map<RoomTypeId, RoomFamily>(
-  ROOM_DEFINITIONS.map((def) => [def.id, def.family])
+  ROOM_DEFINITIONS.map((def) => [def.id, def.family]),
 );
 
 export function buildRoomOverlayGeometry(
-  result: RoomDetectionResult
+  result: RoomDetectionResult,
 ): CavityOverlayGeometry[] {
   const roomByCavity = new Map(
-    result.rooms.map((room) => [room.cavityId, room])
+    result.rooms.map((room) => [room.cavityId, room]),
   );
 
   return result.cavities.map((cavity) => {

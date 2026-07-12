@@ -41,7 +41,7 @@ export class CommentSectionComponent implements OnChanges {
 
   constructor(
     private commentService: CommentService,
-    public authService: AuthenticationService
+    public authService: AuthenticationService,
   ) {}
 
   ngOnChanges() {

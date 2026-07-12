@@ -85,7 +85,7 @@ describe("VerifyEmailCallbackComponent", () => {
     it("sets errorMessage on invalid/expired code", () => {
       component.code = "bad-code";
       mockAuth.verifyEmail.mockReturnValue(
-        throwError(() => new Error("expired"))
+        throwError(() => new Error("expired")),
       );
       component.submit();
       expect(component.errorMessage).toBeTruthy();

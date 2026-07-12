@@ -33,13 +33,13 @@ describe("deriveGameVersion", () => {
 
   it("returns the highest-priority version when buildings span multiple DLCs", () => {
     expect(deriveGameVersion([["EXPANSION1_ID"], ["DLC5_ID"], []])).toBe(
-      "bionicBooster"
+      "bionicBooster",
     );
   });
 
   it("frostyPlanet beats spacedOut", () => {
     expect(deriveGameVersion([["DLC2_ID"], ["EXPANSION1_ID"]])).toBe(
-      "frostyPlanet"
+      "frostyPlanet",
     );
   });
 
@@ -49,7 +49,7 @@ describe("deriveGameVersion", () => {
 
   it("ignores unknown DLC IDs and still returns correct version", () => {
     expect(deriveGameVersion([["UNKNOWN_DLC", "EXPANSION1_ID"]])).toBe(
-      "spacedOut"
+      "spacedOut",
     );
   });
 
@@ -63,13 +63,13 @@ describe("deriveModded", () => {
 
   it("returns false when all building IDs are known", () => {
     expect(deriveModded(["WireRefinedHighWattage", "GasPipe"], knownIds)).toBe(
-      false
+      false,
     );
   });
 
   it("returns true when any building ID is unknown", () => {
     expect(
-      deriveModded(["WireRefinedHighWattage", "ModdedSuperFurnace"], knownIds)
+      deriveModded(["WireRefinedHighWattage", "ModdedSuperFurnace"], knownIds),
     ).toBe(true);
   });
 
@@ -83,7 +83,7 @@ describe("deriveModded", () => {
 
   it("single unknown building triggers modded", () => {
     expect(
-      deriveModded(["LiquidPipe", "GasPipe", "Unknown123"], knownIds)
+      deriveModded(["LiquidPipe", "GasPipe", "Unknown123"], knownIds),
     ).toBe(true);
   });
 });
@@ -94,7 +94,7 @@ describe("deriveCategory", () => {
   const buildingIds = new Set<string>(db.buildings.map((b: any) => b.prefabId));
   const lookup: CategoryLookup = buildCategoryLookup(
     db.buildMenuCategories,
-    db.buildMenuItems
+    db.buildMenuItems,
   );
 
   // Fixture: one signature building per category that has a signature entry,
@@ -119,7 +119,7 @@ describe("deriveCategory", () => {
     // instead of silently dropping out of category scoring.
     for (const id of Object.keys(SIGNATURE_PREFABS)) {
       expect(buildingIds.has(id), `${id} missing from database-2024.json`).toBe(
-        true
+        true,
       );
     }
   });
@@ -127,7 +127,7 @@ describe("deriveCategory", () => {
   for (const category of CATEGORIES) {
     it(`derives ${category} from its representative fixture`, () => {
       expect(deriveCategory(FIXTURE_BY_CATEGORY[category], lookup)).toBe(
-        category
+        category,
       );
     });
   }
@@ -149,7 +149,7 @@ describe("deriveCategory", () => {
 
   it("returns null for a tile/pipe-only blueprint with no signal", () => {
     expect(
-      deriveCategory(["Tile", "GasPipe", "LiquidPipe"], lookup)
+      deriveCategory(["Tile", "GasPipe", "LiquidPipe"], lookup),
     ).toBeNull();
   });
 

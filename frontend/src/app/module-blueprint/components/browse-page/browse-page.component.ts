@@ -116,7 +116,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     private authService: AuthenticationService,
     private userService: UserService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
   ) {
     const tempDate = new Date();
     this.loadingBlueprintItem = {
@@ -228,7 +228,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     const rooms = params.get("rooms");
     const rawSort = params.get("sort");
     const sort: BlueprintSort = this.sortOptions.some(
-      (option) => option.value === rawSort
+      (option) => option.value === rawSort,
     )
       ? (rawSort as BlueprintSort)
       : "recent";
@@ -343,7 +343,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.filterModded,
             this.filterForkedFrom,
             null,
-            this.filterRooms
+            this.filterRooms,
           );
 
     request$.subscribe({
@@ -366,7 +366,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.working = false;
     this.loadError = true;
     this.blueprintListItems = this.blueprintListItems.filter(
-      (i) => i !== this.loadingBlueprintItem
+      (i) => i !== this.loadingBlueprintItem,
     );
   }
 
@@ -385,7 +385,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       this.noMoreBlueprints = true;
 
     this.blueprintListItems = this.blueprintListItems.filter(
-      (i) => i !== this.loadingBlueprintItem
+      (i) => i !== this.loadingBlueprintItem,
     );
     response.blueprints.forEach((item) => this.blueprintListItems.push(item));
 

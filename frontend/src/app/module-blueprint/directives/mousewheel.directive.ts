@@ -10,19 +10,19 @@ export class MouseWheelDirective {
   @Output() mouseWheel = new EventEmitter();
 
   @HostListener("mousewheel.out-zone", ["$event"]) onMouseWheelChrome(
-    event: any
+    event: any,
   ) {
     this.mouseWheelFunc(event);
   }
 
   @HostListener("DOMMouseScroll.out-zone", ["$event"]) onMouseWheelFirefox(
-    event: any
+    event: any,
   ) {
     this.mouseWheelFunc(event);
   }
 
   @HostListener("onmousewheel.out-zone", ["$event"]) onMouseWheelIE(
-    event: any
+    event: any,
   ) {
     this.mouseWheelFunc(event);
   }

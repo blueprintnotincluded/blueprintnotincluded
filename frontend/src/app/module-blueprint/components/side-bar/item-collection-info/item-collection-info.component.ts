@@ -64,7 +64,7 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
 
   constructor(
     private blueprintService: BlueprintService,
-    private toolService: ToolService
+    private toolService: ToolService,
   ) {}
 
   ngOnInit() {
@@ -83,7 +83,7 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
     this.toolService.changeTool(ToolType.build);
 
     const newItem = BlueprintHelpers.cloneBlueprintItem(
-      this.itemCollection.items[0]
+      this.itemCollection.items[0],
     );
 
     this.toolService.buildTool.changeItem(newItem);

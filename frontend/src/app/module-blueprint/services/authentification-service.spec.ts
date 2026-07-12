@@ -141,7 +141,7 @@ describe("AuthenticationService", () => {
           email: "a@b.com",
           username: "alice",
           exp: FUTURE_EXP,
-        })
+        }),
       );
       expect(service.isLoggedIn()).toBe(true);
     });
@@ -153,7 +153,7 @@ describe("AuthenticationService", () => {
           email: "a@b.com",
           username: "alice",
           exp: PAST_EXP,
-        })
+        }),
       );
       expect(service.isLoggedIn()).toBe(false);
     });
@@ -195,7 +195,7 @@ describe("AuthenticationService", () => {
         .expectOne("/api/auth/login")
         .flush(
           { error: "legacy_account" },
-          { status: 401, statusText: "Unauthorized" }
+          { status: 401, statusText: "Unauthorized" },
         );
       expect(result).toEqual({ kind: "legacy_account" });
     });
@@ -209,7 +209,7 @@ describe("AuthenticationService", () => {
         .expectOne("/api/auth/login")
         .flush(
           { error: "bad_credentials" },
-          { status: 401, statusText: "Unauthorized" }
+          { status: 401, statusText: "Unauthorized" },
         );
       expect(result).toEqual({ kind: "invalid_credentials" });
     });

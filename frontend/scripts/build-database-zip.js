@@ -25,8 +25,8 @@ async function main() {
     console.error(
       `[build-database-zip] missing ${path.relative(
         process.cwd(),
-        jsonPath
-      )} — ` + "run `npm run import:2024` from the repo root first."
+        jsonPath,
+      )} — ` + "run `npm run import:2024` from the repo root first.",
     );
     process.exit(1);
   }
@@ -50,7 +50,7 @@ async function main() {
   console.log(
     `[build-database-zip] wrote ${path.relative(process.cwd(), zipPath)} (${
       buf.length
-    } bytes)`
+    } bytes)`,
   );
 }
 

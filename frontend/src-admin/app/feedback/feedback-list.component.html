@@ -41,7 +41,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-item>
       <tr>
-        <td>{{ item.createdAt | date : "short" }}</td>
+        <td>{{ item.createdAt | date: "short" }}</td>
         <td>
           <span pTooltip="{{ item.userEmail }}" tooltipPosition="top">
             {{ item.username }}
@@ -51,7 +51,7 @@
           <p-button
             styleClass="p-button-text message-preview"
             [label]="
-              (item.message | slice : 0 : 120) +
+              (item.message | slice: 0 : 120) +
               (item.message.length > 120 ? '…' : '')
             "
             aria-label="Open feedback detail"
@@ -65,8 +65,8 @@
               item.status === 'open'
                 ? 'warn'
                 : item.status === 'resolved'
-                ? 'success'
-                : 'secondary'
+                  ? 'success'
+                  : 'secondary'
             "
           ></p-tag>
         </td>
@@ -121,7 +121,7 @@
         }})
       </div>
       <div class="col-6">
-        <strong>Date:</strong> {{ selectedItem.createdAt | date : "medium" }}
+        <strong>Date:</strong> {{ selectedItem.createdAt | date: "medium" }}
       </div>
       <div class="col-12">
         <strong>URL:</strong>

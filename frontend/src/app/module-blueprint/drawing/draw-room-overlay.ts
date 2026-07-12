@@ -76,7 +76,7 @@ export class DrawRoomOverlay {
           (span.x + offset.x) * zoom,
           (offset.y - span.y) * zoom,
           span.length * zoom,
-          zoom
+          zoom,
         );
       this.graphics.endFill();
 

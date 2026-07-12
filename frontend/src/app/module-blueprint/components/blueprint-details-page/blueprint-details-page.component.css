@@ -31,7 +31,8 @@
   overflow: hidden;
   box-shadow: var(--bni-card-sh);
   background-color: var(--bni-thumbbg);
-  background-image: linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
+  background-image:
+    linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
     linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
   background-size: 32px 32px;
 }

@@ -28,7 +28,7 @@ describe("ActiveRangeScreenComponent", () => {
     OniItem.getOniItem = () => undefined as unknown as OniItem;
     component.blueprintItem = new BlueprintItem();
     component.blueprintItem.getUiSettings = () =>
-      ({ values: [0, 1] } as UiSaveSettings);
+      ({ values: [0, 1] }) as UiSaveSettings;
     component.activeRangeSideScreen = new BActiveRangeSideScreen("test");
     // end TODO
     fixture.detectChanges();

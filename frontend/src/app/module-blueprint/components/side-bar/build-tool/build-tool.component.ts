@@ -57,7 +57,7 @@ export class ComponentSideBuildToolComponent
   oniItemsLoaded() {
     //this.toolService.buildTool.changeItem(BlueprintHelpers.createInstance('SteamTurbine2'));
     this.toolService.buildTool.changeItem(
-      BlueprintHelpers.createInstance("Tile")
+      BlueprintHelpers.createInstance("Tile"),
     );
     this.databaseLoaded = true;
   }
@@ -88,7 +88,7 @@ export class ComponentSideBuildToolComponent
   showItems(
     event: any,
     buildMenuCategory: BuildMenuCategory,
-    indexCategory: number
+    indexCategory: number,
   ) {
     this.items[indexCategory] = [];
 
@@ -147,7 +147,7 @@ export class ComponentSideBuildToolComponent
 
   uiItemChanged() {
     this.toolService.buildTool.changeItem(
-      BlueprintHelpers.createInstance(this.currentItem.id)
+      BlueprintHelpers.createInstance(this.currentItem.id),
     );
   }
 

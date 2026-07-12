@@ -84,7 +84,7 @@ describe("ItemCollectionInfoComponent", () => {
   describe("ngOnInit", () => {
     it("subscribes itself to the collection's selection events", () => {
       expect(component.itemCollection.subscribeSelected).toHaveBeenCalledWith(
-        component
+        component,
       );
     });
 
@@ -158,7 +158,7 @@ describe("ItemCollectionInfoComponent", () => {
     it("buildingsDestroy forwards the collection to the select tool", () => {
       component.buildingsDestroy();
       expect(selectTool.buildingsDestroy).toHaveBeenCalledWith(
-        component.itemCollection
+        component.itemCollection,
       );
     });
 
@@ -179,7 +179,7 @@ describe("ItemCollectionInfoComponent", () => {
     it("selectEvery selects all items like the first one", () => {
       component.selectEvery();
       expect(selectTool.selectAllLike).toHaveBeenCalledWith(
-        component.itemCollection.items[0]
+        component.itemCollection.items[0],
       );
     });
 

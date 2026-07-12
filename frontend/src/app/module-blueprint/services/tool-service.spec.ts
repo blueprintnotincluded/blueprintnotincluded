@@ -39,7 +39,7 @@ describe("ToolService", () => {
       mockSelect as any,
       mockBuild as any,
       mockElementReport,
-      mockScissors as any
+      mockScissors as any,
     );
   });
 

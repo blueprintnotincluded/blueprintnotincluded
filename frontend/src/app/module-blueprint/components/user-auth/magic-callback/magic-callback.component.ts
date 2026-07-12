@@ -15,7 +15,7 @@ export class MagicCallbackComponent implements OnInit {
   constructor(
     private authService: AuthenticationService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit() {

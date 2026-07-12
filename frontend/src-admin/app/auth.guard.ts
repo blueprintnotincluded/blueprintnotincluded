@@ -4,7 +4,10 @@ import { AdminAuthService } from "./auth.service";
 
 @Injectable({ providedIn: "root" })
 export class AdminAuthGuard implements CanActivate {
-  constructor(private auth: AdminAuthService, private router: Router) {}
+  constructor(
+    private auth: AdminAuthService,
+    private router: Router,
+  ) {}
 
   canActivate(): boolean {
     if (this.auth.isAdmin()) return true;

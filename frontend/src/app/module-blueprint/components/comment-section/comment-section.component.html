@@ -115,12 +115,12 @@
           >[deleted user]</span
         >
         <span class="comment-date">{{
-          comment.createdAt | date : "medium"
+          comment.createdAt | date: "medium"
         }}</span>
         <span
           *ngIf="comment.editedAt"
           class="comment-edited"
-          [title]="comment.editedAt | date : 'medium'"
+          [title]="comment.editedAt | date: 'medium'"
           i18n
           >(edited)</span
         >

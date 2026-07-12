@@ -7,8 +7,8 @@ var __decorate =
         c < 3
           ? target
           : desc === null
-          ? (desc = Object.getOwnPropertyDescriptor(target, key))
-          : desc,
+            ? (desc = Object.getOwnPropertyDescriptor(target, key))
+            : desc,
       d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
       r = Reflect.decorate(decorators, target, key, desc);
@@ -16,7 +16,7 @@ var __decorate =
       for (var i = decorators.length - 1; i >= 0; i--)
         if ((d = decorators[i]))
           r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
+    return (c > 3 && r && Object.defineProperty(target, key, r), r);
   };
 var __metadata =
   (this && this.__metadata) ||
@@ -65,7 +65,7 @@ var MenubarSub = /** @class */ (function () {
         var sublist = nextElement.children[0];
         if (this.autoZIndex) {
           sublist.style.zIndex = String(
-            this.baseZIndex + ++domhandler_1.DomHandler.zindex
+            this.baseZIndex + ++domhandler_1.DomHandler.zindex,
           );
         }
         if (this.root) {
@@ -103,7 +103,7 @@ var MenubarSub = /** @class */ (function () {
             _this.activeMenu = false;
           }
           _this.menuClick = false;
-        }
+        },
       );
     }
   };
@@ -169,31 +169,31 @@ var MenubarSub = /** @class */ (function () {
     [core_1.Input(), __metadata("design:type", Object)],
     MenubarSub.prototype,
     "item",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Boolean)],
     MenubarSub.prototype,
     "root",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Boolean)],
     MenubarSub.prototype,
     "autoDisplay",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Boolean)],
     MenubarSub.prototype,
     "autoZIndex",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Number)],
     MenubarSub.prototype,
     "baseZIndex",
-    void 0
+    void 0,
   );
   __decorate(
     [
@@ -203,7 +203,7 @@ var MenubarSub = /** @class */ (function () {
     ],
     MenubarSub.prototype,
     "parentActive",
-    null
+    null,
   );
   MenubarSub = __decorate(
     [
@@ -217,7 +217,7 @@ var MenubarSub = /** @class */ (function () {
         core_1.ChangeDetectorRef,
       ]),
     ],
-    MenubarSub
+    MenubarSub,
   );
   return MenubarSub;
 })();
@@ -239,7 +239,7 @@ var Menubar = /** @class */ (function () {
   Object.defineProperty(Menubar.prototype, "utc", {
     set: function (_utc) {
       console.log(
-        "AutoDisplay property is deprecated and functionality is not available."
+        "AutoDisplay property is deprecated and functionality is not available.",
       );
     },
     enumerable: true,
@@ -249,31 +249,31 @@ var Menubar = /** @class */ (function () {
     [core_1.Input(), __metadata("design:type", Array)],
     Menubar.prototype,
     "model",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Object)],
     Menubar.prototype,
     "style",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", String)],
     Menubar.prototype,
     "styleClass",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Boolean)],
     Menubar.prototype,
     "autoZIndex",
-    void 0
+    void 0,
   );
   __decorate(
     [core_1.Input(), __metadata("design:type", Number)],
     Menubar.prototype,
     "baseZIndex",
-    void 0
+    void 0,
   );
   __decorate(
     [
@@ -283,7 +283,7 @@ var Menubar = /** @class */ (function () {
     ],
     Menubar.prototype,
     "autoDisplay",
-    null
+    null,
   );
   Menubar = __decorate(
     [
@@ -294,7 +294,7 @@ var Menubar = /** @class */ (function () {
       }),
       __metadata("design:paramtypes", [core_1.ElementRef, core_1.Renderer2]),
     ],
-    Menubar
+    Menubar,
   );
   return Menubar;
 })();
@@ -309,7 +309,7 @@ var MenubarModule = /** @class */ (function () {
         declarations: [Menubar, MenubarSub],
       }),
     ],
-    MenubarModule
+    MenubarModule,
   );
   return MenubarModule;
 })();

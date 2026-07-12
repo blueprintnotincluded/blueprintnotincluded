@@ -32,7 +32,7 @@ export class TemperatureScaleComponent {
 
   temperatureRange(index: number) {
     const celsius = (this.temperatureData[index].temperature - 273.15).toFixed(
-      0
+      0,
     );
     if (index == 0) return $localize`(Above ${celsius}°C)`;
     else {

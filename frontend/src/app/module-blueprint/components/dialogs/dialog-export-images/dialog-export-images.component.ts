@@ -111,7 +111,7 @@ export class DialogExportImagesComponent implements OnInit {
     const bottomRight = boundingBox[1];
     this.blueprintSize = new Vector2(
       bottomRight.x - topLeft.x + 3,
-      bottomRight.y - topLeft.y + 3
+      bottomRight.y - topLeft.y + 3,
     );
   }
 }
