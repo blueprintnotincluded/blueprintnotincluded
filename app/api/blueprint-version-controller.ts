@@ -57,7 +57,7 @@ export class BlueprintVersionController {
   public async fork(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as UserJwt;
-      const sourceId = req.params.id;
+      const sourceId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(sourceId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
         return;
@@ -137,7 +137,7 @@ export class BlueprintVersionController {
 
   public async listVersions(req: Request, res: Response): Promise<void> {
     try {
-      const blueprintId = req.params.id;
+      const blueprintId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
         return;
@@ -171,7 +171,7 @@ export class BlueprintVersionController {
   public async createVersion(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as UserJwt;
-      const blueprintId = req.params.id;
+      const blueprintId = String(req.params.id);
       if (!mongoose.Types.ObjectId.isValid(blueprintId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint id'));
         return;
@@ -221,8 +221,8 @@ export class BlueprintVersionController {
   public async deleteVersion(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as UserJwt;
-      const blueprintId = req.params.id;
-      const versionId = req.params.versionId;
+      const blueprintId = String(req.params.id);
+      const versionId = String(req.params.versionId);
       if (!mongoose.Types.ObjectId.isValid(blueprintId) || !mongoose.Types.ObjectId.isValid(versionId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint or version id'));
         return;
@@ -280,8 +280,8 @@ export class BlueprintVersionController {
   public async restoreVersion(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user as UserJwt;
-      const blueprintId = req.params.id;
-      const versionId = req.params.versionId;
+      const blueprintId = String(req.params.id);
+      const versionId = String(req.params.versionId);
       if (!mongoose.Types.ObjectId.isValid(blueprintId) || !mongoose.Types.ObjectId.isValid(versionId)) {
         res.status(400).json(apiError(400, 'Invalid blueprint or version id'));
         return;

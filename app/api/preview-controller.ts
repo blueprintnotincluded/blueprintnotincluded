@@ -22,7 +22,7 @@ export class PreviewController {
   }
 
   public async getPreview(req: Request, res: Response) {
-    const id = req.params.id;
+    const id = String(req.params.id);
     const variant = req.params.variant as PreviewVariant;
 
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).send();

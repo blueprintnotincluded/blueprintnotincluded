@@ -1,6 +1,6 @@
 import path from 'path';
 import { Request, Response } from 'express';
-import isbot from 'isbot';
+import { isbot } from 'isbot';
 
 import { WebsiteMeta } from './websiteMeta';
 import { BlueprintModel } from './api/models/blueprint';
