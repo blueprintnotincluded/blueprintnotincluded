@@ -40,6 +40,7 @@ import {
   Display,
 } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
+import { startMemoryHeartbeat } from './memory-heartbeat';
 import { resolveMaxRssMb } from './render-memory';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
@@ -325,6 +326,7 @@ async function main() {
 
   process.send!({ type: 'ready' });
   logRss('ready');
+  startMemoryHeartbeat('preview-render-worker');
 }
 
 main().catch(e => {
