@@ -1,4 +1,4 @@
-name: Frontend Tests
+name: Frontend CI
 
 on:
   push:
@@ -6,24 +6,49 @@ on:
     paths:
       - 'frontend/**'
       - 'lib/**'
+      - 'package.json'
+      - 'package-lock.json'
   pull_request:
     branches: [master]
 
 jobs:
-  frontend-test:
+  lint:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    permissions:
-      code-quality: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Setup Node.js (Backend for lib build)
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '20.19.4'
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # No root install or lib build: lint has no type-aware rules, so it
+      # never resolves imports into lib/.
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Lint
+        run: cd frontend && npm run lint
+
+  typecheck:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.19.4'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
 
       - name: Install backend dependencies (for lib build)
         run: npm ci
@@ -32,24 +57,48 @@ jobs:
         run: npm run build:lib
 
       - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm ci
+        run: cd frontend && npm ci
 
-      - name: Run frontend type-check
-        run: |
-          cd frontend
-          npx tsc --noEmit
+      # frontend/tsconfig.json is solution-style (files: []), so a bare
+      # `tsc --noEmit` there checks nothing — check each project directly.
+      - name: Type-check app
+        run: cd frontend && npx tsc -p tsconfig.app.json --noEmit
 
-      - name: Run frontend linting
-        run: |
-          cd frontend
-          npm run lint
+      - name: Type-check specs
+        run: cd frontend && npx tsc -p tsconfig.spec.json --noEmit
+
+      - name: Type-check admin
+        run: cd frontend && npx tsc -p tsconfig.admin.json --noEmit
+
+  test:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions:
+      code-quality: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.19.4'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies (for lib build)
+        run: npm ci
+
+      - name: Build shared library
+        run: npm run build:lib
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
 
       - name: Run frontend tests
-        run: |
-          cd frontend
-          npm run test:coverage
+        run: cd frontend && npm run test:coverage
 
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -59,13 +108,35 @@ jobs:
           language: JavaScript
           label: frontend
 
+  build:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.19.4'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies (for lib build)
+        run: npm ci
+
+      - name: Build shared library
+        run: npm run build:lib
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
       - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
+        run: cd frontend && npm run build
 
       - name: Upload frontend build artifacts
-        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: frontend-build
