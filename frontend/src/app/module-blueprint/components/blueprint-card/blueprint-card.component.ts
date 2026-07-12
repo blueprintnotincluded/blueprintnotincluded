@@ -4,7 +4,11 @@ import {
   categoryTooltip,
   gameVersionTooltip,
   moddedTooltip,
+  roomTooltip,
 } from "../../utils/chip-tooltip";
+import { roomTypeLabel } from "../../utils/room-labels";
+
+const MAX_ROOM_CHIPS = 3;
 
 @Component({
   selector: "app-blueprint-card",
@@ -22,6 +26,24 @@ export class BlueprintCardComponent {
   readonly categoryTooltip = categoryTooltip;
   readonly gameVersionTooltip = gameVersionTooltip;
   readonly moddedTooltip = moddedTooltip;
+  readonly roomTooltip = roomTooltip;
+  readonly roomTypeLabel = roomTypeLabel;
+
+  // Cards stay compact: at most 3 room chips, the rest collapse into "+N".
+  get visibleRooms(): string[] {
+    return (this.item.rooms ?? []).slice(0, MAX_ROOM_CHIPS);
+  }
+
+  get hiddenRoomCount(): number {
+    return Math.max(0, (this.item.rooms?.length ?? 0) - MAX_ROOM_CHIPS);
+  }
+
+  get hiddenRoomsTitle(): string {
+    return (this.item.rooms ?? [])
+      .slice(MAX_ROOM_CHIPS)
+      .map(roomTypeLabel)
+      .join(", ");
+  }
 
   isReal(thumbnail: string): boolean {
     return thumbnail !== "svg" && thumbnail !== "svg_nothing";

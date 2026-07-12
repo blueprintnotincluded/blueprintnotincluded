@@ -160,6 +160,8 @@ describe("BrowsePageComponent", () => {
         "recent",
         undefined,
         null,
+        null,
+        null,
         null
       );
     });
@@ -180,6 +182,8 @@ describe("BrowsePageComponent", () => {
         "recent",
         undefined,
         null,
+        null,
+        null,
         null
       );
     });
@@ -197,6 +201,8 @@ describe("BrowsePageComponent", () => {
         null,
         "recent",
         undefined,
+        null,
+        null,
         null,
         null
       );
@@ -217,6 +223,8 @@ describe("BrowsePageComponent", () => {
         "recent",
         undefined,
         null,
+        null,
+        null,
         null
       );
     });
@@ -235,6 +243,8 @@ describe("BrowsePageComponent", () => {
         "recent",
         undefined,
         true,
+        null,
+        null,
         null
       );
     });
@@ -253,17 +263,71 @@ describe("BrowsePageComponent", () => {
         "recent",
         undefined,
         null,
-        "parent-1"
+        "parent-1",
+        null,
+        null
       );
     });
 
-    it("clearFilters resets all facets (including modded and forkedFrom) and refetches", () => {
+    it("passes rooms filter to getBlueprints", () => {
+      component.filterRooms = "latrine";
+      component.getBlueprints();
+
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        expect.any(Date),
+        null,
+        null,
+        null,
+        null,
+        null,
+        "recent",
+        undefined,
+        null,
+        null,
+        null,
+        "latrine"
+      );
+    });
+
+    it("onRoomsChange resets the list, updates the URL, and refetches", () => {
+      component.blueprintListItems = [{ name: "stale" } as any];
+      component.filterRooms = "kitchen";
+      component.onRoomsChange();
+
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "stale")
+      ).toBe(false);
+      expect(router.navigate).toHaveBeenCalledWith([], {
+        queryParams: { rooms: "kitchen" },
+        replaceUrl: true,
+      });
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[11]).toBe("kitchen");
+    });
+
+    it("offers every room type plus an All rooms option", () => {
+      expect(component.roomOptions[0].value).toBeNull();
+      expect(component.roomOptions.length).toBe(19); // 18 room types + All
+      expect(component.roomOptions.some((o) => o.value === "latrine")).toBe(
+        true
+      );
+    });
+
+    it("initializes rooms from the URL query param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(convertToParamMap({ rooms: "latrine" }));
+      component.ngOnInit();
+      expect(component.filterRooms).toBe("latrine");
+    });
+
+    it("clearFilters resets all facets (including modded, forkedFrom, rooms) and refetches", () => {
       component.filterGameVersion = "base";
       component.filterCategory = "cooling";
       component.filterSubcategory = "fan";
       component.filterName = "test";
       component.filterModded = true;
       component.filterForkedFrom = "parent-1";
+      component.filterRooms = "latrine";
       component.clearFilters();
 
       expect(component.filterGameVersion).toBeNull();
@@ -271,6 +335,7 @@ describe("BrowsePageComponent", () => {
       expect(component.filterSubcategory).toBeNull();
       expect(component.filterModded).toBeNull();
       expect(component.filterForkedFrom).toBeNull();
+      expect(component.filterRooms).toBeNull();
       expect(component.filterName).toBe("");
       expect(blueprintService.getBlueprints).toHaveBeenCalled();
     });

@@ -17,7 +17,9 @@ import {
   subcategoryTooltip,
   gameVersionTooltip,
   moddedTooltip,
+  roomTooltip,
 } from "../../utils/chip-tooltip";
+import { roomTypeLabel } from "../../utils/room-labels";
 
 const BACK_TO_DISCOVER = $localize`:blueprintDetails.backToDiscover:Back to Discover`;
 const BACK_TO_PROFILE = $localize`:blueprintDetails.backToProfile:Back to Profile`;
@@ -46,6 +48,8 @@ export class BlueprintDetailsPageComponent implements OnInit {
   readonly subcategoryTooltip = subcategoryTooltip;
   readonly gameVersionTooltip = gameVersionTooltip;
   readonly moddedTooltip = moddedTooltip;
+  readonly roomTooltip = roomTooltip;
+  readonly roomTypeLabel = roomTypeLabel;
 
   private pendingFragment: string | null = null;
 

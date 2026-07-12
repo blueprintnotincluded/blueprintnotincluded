@@ -420,6 +420,19 @@ a.bni-chip:hover {
   border-color: var(--bni-accent2-bd);
 }
 
+/* Server-derived room-type chips: blue-slate so they read as facts, not
+   author-picked tags (category teal / modded orange) */
+.bni-chip--room {
+  background: rgba(125, 155, 209, 0.14);
+  color: #91abd8;
+  border-color: rgba(125, 155, 209, 0.45);
+}
+
+.bni-chip--room-more {
+  background: transparent;
+  cursor: default;
+}
+
 /* Draft = work in progress: dashed outline, primary tint so it pops on
    the owner's own cards without reading as a filter chip */
 .bni-chip--draft {

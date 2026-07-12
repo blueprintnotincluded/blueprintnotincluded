@@ -11,7 +11,9 @@ import {
   GAME_VERSIONS,
   CATEGORIES,
   SUBCATEGORIES,
+  ROOM_TYPE_IDS,
 } from "../../../../../../lib/index";
+import { ROOM_TYPE_LABELS } from "../../utils/room-labels";
 import {
   BlueprintService,
   BlueprintSort,
@@ -50,6 +52,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   filterSubcategory: string | null = null;
   filterModded: boolean | null = null;
   filterForkedFrom: string | null = null;
+  filterRooms: string | null = null;
   remaining = 0;
   sort: BlueprintSort = "recent";
   skipCount = 0;
@@ -83,6 +86,13 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   readonly categoryOptions = [
     { label: "All categories", value: null },
     ...CATEGORIES.map((c) => ({ label: c, value: c })),
+  ];
+  readonly roomOptions: { label: string; value: string | null }[] = [
+    { label: $localize`:browse.allRooms:All rooms`, value: null },
+    ...ROOM_TYPE_IDS.map((id) => ({
+      label: ROOM_TYPE_LABELS[id],
+      value: id as string,
+    })).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   get subcategoryOptions(): { label: string; value: string | null }[] {
@@ -213,6 +223,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     const modded =
       rawModded === "true" ? true : rawModded === "false" ? false : null;
     const forkedFrom = params.get("forkedFrom");
+    // Kept as the raw param (the API accepts a comma list); the select simply
+    // shows no selection for a multi-value URL, but the filter still applies.
+    const rooms = params.get("rooms");
     const rawSort = params.get("sort");
     const sort: BlueprintSort = this.sortOptions.some(
       (option) => option.value === rawSort
@@ -227,6 +240,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       subcategory !== this.filterSubcategory ||
       modded !== this.filterModded ||
       forkedFrom !== this.filterForkedFrom ||
+      rooms !== this.filterRooms ||
       sort !== this.sort;
 
     this.filterName = name;
@@ -235,6 +249,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterSubcategory = subcategory;
     this.filterModded = modded;
     this.filterForkedFrom = forkedFrom;
+    this.filterRooms = rooms;
     this.sort = sort;
     return changed;
   }
@@ -245,6 +260,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   }
 
   onSubcategoryChange() {
+    this.applyFiltersToUrl();
+    this.reset();
+    this.getBlueprints();
+  }
+
+  onRoomsChange() {
     this.applyFiltersToUrl();
     this.reset();
     this.getBlueprints();
@@ -272,6 +293,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       queryParams["modded"] = String(this.filterModded);
     if (this.filterForkedFrom)
       queryParams["forkedFrom"] = this.filterForkedFrom;
+    if (this.filterRooms) queryParams["rooms"] = this.filterRooms;
     if (this.sort !== "recent") queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
@@ -283,6 +305,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterSubcategory = null;
     this.filterModded = null;
     this.filterForkedFrom = null;
+    this.filterRooms = null;
     this.applyFiltersToUrl();
     this.reset();
     this.getBlueprints();
@@ -318,7 +341,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.sort,
             this.sort !== "recent" ? this.skipCount : undefined,
             this.filterModded,
-            this.filterForkedFrom
+            this.filterForkedFrom,
+            null,
+            this.filterRooms
           );
 
     request$.subscribe({

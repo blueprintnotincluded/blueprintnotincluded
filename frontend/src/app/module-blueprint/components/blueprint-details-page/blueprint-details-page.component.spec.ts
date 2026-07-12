@@ -280,6 +280,27 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(modded.properties["queryParams"]).toEqual({ modded: "true" });
   });
 
+  it("renders a linked chip per detected room and none when rooms is absent", () => {
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(makeDetails({ rooms: ["greatHall", "powerPlant"] }))
+    );
+    fixture.detectChanges();
+
+    const chips = fixture.debugElement.queryAll(By.css(".bni-chip--room"));
+    expect(chips.length).toBe(2);
+    expect(chips[0].nativeElement.textContent.trim()).toBe("Great Hall");
+    expect(chips[0].properties["routerLink"]).toEqual(["/discover"]);
+    expect(chips[0].properties["queryParams"]).toEqual({ rooms: "greatHall" });
+    expect(chips[1].nativeElement.textContent.trim()).toBe("Power Plant");
+
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(makeDetails({ rooms: null }))
+    );
+    component.ngOnInit();
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css(".bni-chip--room"))).toBeNull();
+  });
+
   it("links the fork count to a discover page filtered by forkedFrom", () => {
     blueprintService.getBlueprintDetails.mockReturnValue(
       of(makeDetails({ nbForks: 5 }))

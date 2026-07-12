@@ -141,6 +141,42 @@ describe("BlueprintCardComponent", () => {
     expect(modded.properties["queryParams"]).toEqual({ modded: "true" });
   });
 
+  it("renders a linked chip per detected room, using display labels", () => {
+    component.item = makeItem({ rooms: ["latrine", "messHall"] });
+    fixture.detectChanges();
+
+    const chips = fixture.debugElement.queryAll(By.css("a.bni-chip--room"));
+    expect(chips.length).toBe(2);
+    expect(chips[0].nativeElement.textContent.trim()).toBe("Latrine");
+    expect(chips[0].properties["routerLink"]).toEqual(["/discover"]);
+    expect(chips[0].properties["queryParams"]).toEqual({ rooms: "latrine" });
+    expect(chips[1].nativeElement.textContent.trim()).toBe("Mess Hall");
+  });
+
+  it("collapses room chips beyond three into a +N marker naming the rest", () => {
+    component.item = makeItem({
+      rooms: ["latrine", "barracks", "messHall", "kitchen", "stable"],
+    });
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.queryAll(By.css("a.bni-chip--room")).length
+    ).toBe(3);
+    const more = fixture.debugElement.query(By.css(".bni-chip--room-more"));
+    expect(more.nativeElement.textContent.trim()).toBe("+2");
+    expect(more.properties["title"]).toBe("Kitchen, Stable");
+  });
+
+  it("renders no room chips when rooms is missing or empty", () => {
+    component.item = makeItem({ rooms: null });
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css(".bni-chip--room"))).toBeNull();
+
+    component.item = makeItem({ rooms: [] });
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css(".bni-chip--room"))).toBeNull();
+  });
+
   it("passes like state through to the like widget", () => {
     component.item = makeItem({ nbLikes: 7, likedByMe: true });
     component.loggedIn = false;
