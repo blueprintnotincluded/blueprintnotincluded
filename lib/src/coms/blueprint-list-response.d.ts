@@ -21,6 +21,7 @@ export interface BlueprintListItem {
     subcategory?: string | null;
     description?: string | null;
     modded?: boolean | null;
+    rooms?: string[] | null;
     isPublished: boolean;
     nbForks: number;
     nbViews: number;
@@ -52,6 +53,7 @@ export interface BlueprintResponse {
     description?: string | null;
     researchTier?: string | null;
     modded?: boolean | null;
+    rooms?: string[] | null;
     isPublished: boolean;
 }
 //# sourceMappingURL=blueprint-list-response.d.ts.map
