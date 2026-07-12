@@ -47,6 +47,13 @@ RUN npm rebuild canvas && node -e "require('canvas')"
 COPY --from=build-backend /bpni/build /bpni/build
 COPY --from=build-frontend /bpni/build/app/public /bpni/build/app/public
 
+# glibc malloc grows one arena per thread by default; sharp/libvips's thread
+# pool spreads allocations across them and freed pages never return to the OS,
+# so parent RSS ratchets upward under image traffic. Capping arenas is the
+# standard mitigation on glibc (sharp docs recommend this or jemalloc).
+# Inherited by the forked preview render worker.
+ENV MALLOC_ARENA_MAX=2
+
 # Optional: Set version information via environment variables
 ARG BUILD_DATE
 ARG GIT_COMMIT

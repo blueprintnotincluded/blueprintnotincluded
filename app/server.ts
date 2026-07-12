@@ -7,10 +7,12 @@ console.log(process.env.ENV_NAME);
 import app from './app';
 import { PreviewImageService } from './api/services/preview-image-service';
 import { BlueprintCounterService } from './api/services/blueprint-counter-service';
+import { startMemoryHeartbeat } from './api/services/memory-heartbeat';
 
 const PORT = 3000;
 const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
+  startMemoryHeartbeat('api');
   // Pre-warm the preview render worker so the first preview request after a
   // deploy doesn't pay the ~10s cold start (no-op when rendering is disabled).
   PreviewImageService.instance.warmUp();
