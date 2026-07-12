@@ -85,7 +85,7 @@
     "@types/jsdom": "^16.2.3",
     "@types/jsonwebtoken": "^8.3.5",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^14.18.63",
+    "@types/node": "^20.19.43",
     "@types/nodemailer": "^6.4.17",
     "@types/passport": "^1.0.1",
     "@types/passport-local": "^1.0.33",
