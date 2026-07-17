@@ -19,8 +19,9 @@ export interface Blueprint extends Document {
   deletedAt?: Date | null;
   // Draft state: false = draft (owner/admin only). Docs predating the backfill
   // migration lack the field — doc-level checks must treat missing as published
-  // (isPublished !== false); feed queries match { isPublished: { $ne: false } }
-  // so those documents stay visible until the migration runs.
+  // (isPublished !== false); feed queries match { isPublished: { $in: [true, null] } }
+  // (same coverage as $ne: false, but point index bounds — see PUBLISHED_FILTER
+  // in blueprint-controller) so those documents stay visible until the migration runs.
   isPublished?: boolean;
   gameVersion?: string | null;
   category?: string | null;
