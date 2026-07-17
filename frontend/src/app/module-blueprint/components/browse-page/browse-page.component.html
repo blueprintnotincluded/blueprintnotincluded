@@ -19,7 +19,11 @@
       </a>
     </div>
 
-    <div class="view-mode-tabs bni-seg" *ngIf="loggedIn && followingCount > 0">
+    <div
+      class="view-mode-tabs bni-seg"
+      *ngIf="loggedIn && followingCount > 0"
+      appTabInk
+    >
       <button
         type="button"
         [class.active]="viewMode === 'discover'"
@@ -162,7 +166,7 @@
 
       <main class="browse-results">
         <div class="browse-toolbar" *ngIf="viewMode === 'discover'">
-          <div class="bni-tabs sort-tabs" role="tablist">
+          <div class="bni-tabs sort-tabs" role="tablist" appTabInk>
             <button
               *ngFor="let opt of sortOptions"
               type="button"
@@ -194,7 +198,9 @@
 
         <div class="blueprint-grid">
           <app-blueprint-card
-            *ngFor="let item of blueprintListItems"
+            *ngFor="let item of blueprintListItems; let i = index"
+            animate.enter="card-enter"
+            [style.--enter-delay]="(i % 12) * 30 + 'ms'"
             [item]="item"
             [loggedIn]="loggedIn"
           ></app-blueprint-card>

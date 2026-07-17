@@ -134,6 +134,26 @@
   gap: 14px;
 }
 
+/* cards fade + rise as they enter (tab/sort/filter switches, infinite
+ * scroll); --enter-delay staggers them by grid position */
+.card-enter {
+  animation: card-enter 0.32s cubic-bezier(0.25, 0.7, 0.3, 1) both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-enter {
+    animation: none;
+  }
+}
+
 @media (max-width: 900px) {
   .browse-body {
     grid-template-columns: minmax(0, 1fr);

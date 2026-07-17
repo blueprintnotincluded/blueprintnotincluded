@@ -675,6 +675,11 @@
   color: var(--bni-accent-hi);
 }
 
+.bni-seg button,
+.bni-tab {
+  transition: color 0.15s ease;
+}
+
 .bni-seg button + button {
   border-left: none;
 }
@@ -684,6 +689,42 @@
   background: transparent;
   color: var(--bni-ink);
   border-bottom-color: var(--bni-accent);
+}
+
+/* ---- sliding tab indicator (appTabInk directive) ----
+ * The directive adds .has-tab-ink to the container, hides the per-button
+ * static underline, and slides a single .bni-tab-ink bar under the active
+ * tab instead. */
+.has-tab-ink {
+  position: relative;
+}
+
+.has-tab-ink button.active {
+  border-bottom-color: transparent;
+}
+
+.bni-tab-ink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 2px;
+  width: 0;
+  background: var(--bni-accent);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.bni-tab-ink--ready {
+  opacity: 1;
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bni-tab-ink--ready {
+    transition: none;
+  }
 }
 
 /* ---- facet sidebar (browse) ---- */
