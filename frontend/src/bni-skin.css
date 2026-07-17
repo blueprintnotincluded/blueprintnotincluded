@@ -213,7 +213,7 @@
   background-image: url("/assets/images/bni-background.webp");
   background-size: cover;
   background-position: center;
-  filter: blur(28px) saturate(0.7) brightness(0.55);
+  filter: blur(2px) saturate(0.7) brightness(0.55);
   /* blur samples past the viewport edge; overscan hides the fringe */
   transform: scale(1.1);
 }
