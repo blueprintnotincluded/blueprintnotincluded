@@ -48,6 +48,23 @@ type BlueprintSort = (typeof SORTS)[number];
 // How many "you might also like" cards the details page shows
 const RELATED_LIMIT = 6;
 
+// Public-visibility clause for feed queries. $in's null matches docs that
+// predate the isPublished backfill (deploy→migrate window), same coverage as
+// the old { $ne: false } — but $in gives the planner point bounds, so the
+// isPublished-prefixed indexes can still provide sort order for the
+// count/rating sorts instead of fetching every live doc into a blocking SORT.
+const PUBLISHED_FILTER = { $in: [true, null] };
+
+// Anonymous feed responses are viewer-independent, so Cloudflare can cache
+// them at the edge; slightly stale lists are fine. Responses to requests
+// carrying credentials are personalized (myRating/ownedByMe/own drafts) and
+// must never be cached.
+const ANON_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
+
+function setFeedCacheControl(req: Request, res: Response) {
+  res.set('Cache-Control', req.headers.authorization == null ? ANON_CACHE_CONTROL : 'no-store');
+}
+
 export class BlueprintController {
   public uploadBlueprint(req: Request, res: Response) {
     console.log('uploadBlueprint' + req.clientIp);
@@ -619,11 +636,9 @@ export class BlueprintController {
       // Draft visibility: published blueprints for everyone, plus the viewer's
       // own drafts. Admins browsing a specific user's list (filterUserId) see
       // that user's drafts too, but drafts never leak into the general feed.
-      // $ne: false (not $eq: true) so docs predating the backfill migration
-      // stay visible in the deploy→migrate window.
       const isAdmin = userJwt?.role === 'admin';
       if (!(isAdmin && filterUserId != null)) {
-        const visibleTo: any[] = [{ isPublished: { $ne: false } }];
+        const visibleTo: any[] = [{ isPublished: PUBLISHED_FILTER }];
         if (userId !== '') visibleTo.push({ owner: userId });
         filter.$and.push({ $or: visibleTo });
       }
@@ -666,10 +681,18 @@ export class BlueprintController {
       // Trending has no single indexed field to sort on — it's a computed,
       // time-decayed score — so it goes through an aggregation instead of
       // the plain find().sort() every other sort uses.
+      // -data: the list never renders blueprint contents, and the blobs
+      // average ~85KB per doc — dominating the query's fetch cost otherwise
       let blueprintsPromise: Promise<Blueprint[]> =
         sort === 'trending'
           ? BlueprintController.getTrendingBlueprints(filter, skipAmount, limit)
-          : BlueprintModel.model.find(filter).sort(sortSpec).skip(skipAmount).limit(limit).populate('owner');
+          : BlueprintModel.model
+              .find(filter)
+              .sort(sortSpec)
+              .skip(skipAmount)
+              .limit(limit)
+              .select('-data')
+              .populate('owner');
 
       blueprintsPromise
         .then(blueprints => {
@@ -683,6 +706,18 @@ export class BlueprintController {
     }
   }
 
+  // Trending rankings are cached briefly (ordered ids only, keyed by the
+  // exact filter+page): the score is a full pass over every matching
+  // blueprint by design, and "what's trending" tolerates a few minutes of
+  // staleness. Documents are still fetched fresh on every request, so
+  // counts/names/thumbnails never go stale — only the ordering does.
+  private static trendingIdCache = new Map<string, { expiresAt: number; ids: mongoose.Types.ObjectId[] }>();
+  private static readonly TRENDING_CACHE_TTL_MS = 5 * 60 * 1000;
+
+  public static clearTrendingCache() {
+    BlueprintController.trendingIdCache.clear();
+  }
+
   // Time-decayed engagement score (ratings + weighted forks/comments/views,
   // divided down by age) computed in an aggregation since it isn't a stored
   // field. Only the ordered ids come out of the aggregation; the actual
@@ -693,6 +728,11 @@ export class BlueprintController {
     skip: number,
     limit: number
   ): Promise<Blueprint[]> {
+    const cacheKey = JSON.stringify({ filter, skip, limit });
+    const cached = BlueprintController.trendingIdCache.get(cacheKey);
+    if (cached != null && cached.expiresAt > Date.now()) {
+      return BlueprintController.fetchInOrder(cached.ids, filter);
+    }
     const commentLookupStage: mongoose.PipelineStage[] =
       CommentModel.model == null
         ? []
@@ -716,6 +756,9 @@ export class BlueprintController {
 
     const rows: { _id: mongoose.Types.ObjectId }[] = await BlueprintModel.model.aggregate([
       { $match: filter },
+      // Slim each doc to the scoring inputs before the $lookup so the full
+      // blueprint data blobs (~85KB avg) never stream through the pipeline
+      { $project: { ratingCount: 1, forkCount: 1, viewCount: 1, createdAt: 1 } },
       ...commentLookupStage,
       {
         $addFields: {
@@ -747,9 +790,31 @@ export class BlueprintController {
     ]);
 
     const orderedIds = rows.map(row => row._id);
-    if (orderedIds.length === 0) return [];
 
-    const docs = await BlueprintModel.model.find({ _id: { $in: orderedIds } }).populate('owner');
+    const now = Date.now();
+    for (const [key, entry] of BlueprintController.trendingIdCache) {
+      if (entry.expiresAt <= now) BlueprintController.trendingIdCache.delete(key);
+    }
+    BlueprintController.trendingIdCache.set(cacheKey, {
+      expiresAt: now + BlueprintController.TRENDING_CACHE_TTL_MS,
+      ids: orderedIds,
+    });
+
+    return BlueprintController.fetchInOrder(orderedIds, filter);
+  }
+
+  // Re-applies the visibility filter so a blueprint deleted or unpublished
+  // after the ranking was cached drops out immediately — only the ordering
+  // is ever stale, never visibility.
+  private static async fetchInOrder(
+    orderedIds: mongoose.Types.ObjectId[],
+    filter: Record<string, unknown>
+  ): Promise<Blueprint[]> {
+    if (orderedIds.length === 0) return [];
+    const docs = await BlueprintModel.model
+      .find({ $and: [{ _id: { $in: orderedIds } }, filter] })
+      .select('-data')
+      .populate('owner');
     const byId = new Map(docs.map(doc => [(doc._id as mongoose.Types.ObjectId).toString(), doc]));
     return orderedIds
       .map(id => byId.get(id.toString()))
@@ -788,12 +853,13 @@ export class BlueprintController {
   }
 
   public static async handleGetBlueprint(
-    _req: Request,
+    req: Request,
     res: Response,
     userId: string,
     blueprints: Blueprint[]
   ) {
     let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
+    setFeedCacheControl(req, res);
 
     let returnValueAny = {};
     let returnValue = returnValueAny as BlueprintListResponse;
@@ -947,23 +1013,25 @@ export class BlueprintController {
           ? BlueprintModel.model
               .find({
                 deletedAt: null,
-                isPublished: { $ne: false },
+                isPublished: PUBLISHED_FILTER,
                 category: source.category,
                 _id: { $ne: blueprintId },
               })
               .sort({ ratingAverage: -1, ratingCount: -1, createdAt: -1 })
               .limit(RELATED_LIMIT * 4)
+              .select('-data')
               .populate('owner')
           : Promise.resolve([]),
         BlueprintModel.model
           .find({
             deletedAt: null,
-            isPublished: { $ne: false },
+            isPublished: PUBLISHED_FILTER,
             owner: source.owner,
             _id: { $ne: blueprintId },
           })
           .sort({ createdAt: -1 })
           .limit(RELATED_LIMIT * 4)
+          .select('-data')
           .populate('owner'),
       ]);
 
@@ -974,9 +1042,10 @@ export class BlueprintController {
 
       if (candidates.size < RELATED_LIMIT) {
         const fallback = await BlueprintModel.model
-          .find({ deletedAt: null, isPublished: { $ne: false }, _id: { $ne: blueprintId } })
+          .find({ deletedAt: null, isPublished: PUBLISHED_FILTER, _id: { $ne: blueprintId } })
           .sort({ createdAt: -1 })
           .limit(RELATED_LIMIT * 4)
+          .select('-data')
           .populate('owner');
         for (const candidate of fallback) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
       }
@@ -1035,6 +1104,7 @@ export class BlueprintController {
           BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames, myRatings)
         ),
       };
+      setFeedCacheControl(req, res);
       res.json(response);
     } catch (err) {
       console.log('getRelatedBlueprints error');

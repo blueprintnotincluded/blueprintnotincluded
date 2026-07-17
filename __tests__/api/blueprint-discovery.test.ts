@@ -8,6 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 process.env.NODE_ENV = 'test';
 
 import { TestSetup } from '../setup/testSetup';
+import { BlueprintController } from '../../app/api/blueprint-controller';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { CommentModel } from '../../app/api/models/comment';
 import { Types } from 'mongoose';
@@ -222,6 +223,106 @@ describe('Discovery: related blueprints + trending sort', function () {
         .get('/api/getblueprints')
         .query({ olderthan: Date.now(), sort: 'notASort' });
       expect(response.status).to.equal(400);
+    });
+
+    it('memoizes the ranking until the cache is cleared, but never the documents', async function () {
+      const first = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'trending' });
+      expect(first.status).to.equal(200);
+
+      const late = await makeBlueprint(testData.users.user2._id, {
+        name: 'Trending Late Arrival',
+        ratingCount: 99,
+        ratingAverage: 5,
+      });
+
+      const cached = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'trending' });
+      expect(cached.body.blueprints.map((b: any) => b.name)).to.not.include(late.name);
+
+      BlueprintController.clearTrendingCache();
+      const fresh = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'trending' });
+      expect(fresh.body.blueprints.map((b: any) => b.name)).to.include(late.name);
+    });
+
+    it('drops a soft-deleted blueprint from a cached ranking immediately', async function () {
+      const doomed = await makeBlueprint(testData.users.user1._id, { name: 'Trending Doomed' });
+
+      const first = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'trending' });
+      expect(first.body.blueprints.map((b: any) => b.name)).to.include(doomed.name);
+
+      await BlueprintModel.model.updateOne({ _id: doomed._id }, { $set: { deletedAt: new Date() } });
+
+      const second = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'trending' });
+      expect(second.body.blueprints.map((b: any) => b.name)).to.not.include(doomed.name);
+    });
+  });
+
+  describe('feed visibility filter', function () {
+    it('keeps docs predating the isPublished backfill visible in count sorts', async function () {
+      const legacy = await makeBlueprint(testData.users.user1._id, {
+        name: 'Legacy Pre Backfill',
+        ratingCount: 42,
+        ratingAverage: 5,
+      });
+      await BlueprintModel.model.updateOne({ _id: legacy._id }, { $unset: { isPublished: '' } });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular' });
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints.map((b: any) => b.name)).to.include(legacy.name);
+    });
+
+    it('still hides drafts from the anonymous feed in count sorts', async function () {
+      const draft = await makeBlueprint(testData.users.user1._id, {
+        name: 'Hidden Draft Popular',
+        ratingCount: 42,
+        ratingAverage: 5,
+        isPublished: false,
+      });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), sort: 'popular' });
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints.map((b: any) => b.name)).to.not.include(draft.name);
+    });
+  });
+
+  describe('feed cache headers', function () {
+    const ANON_CACHE = 'public, s-maxage=60, stale-while-revalidate=300';
+
+    it('marks anonymous list responses edge-cacheable', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now() });
+      expect(response.status).to.equal(200);
+      expect(response.headers['cache-control']).to.equal(ANON_CACHE);
+    });
+
+    it('never caches responses to requests carrying credentials', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now() })
+        .set('Authorization', `Bearer ${testData.users.user1.generateJwt()}`);
+      expect(response.status).to.equal(200);
+      expect(response.headers['cache-control']).to.equal('no-store');
+    });
+
+    it('marks anonymous related-blueprints responses edge-cacheable', async function () {
+      const source = await makeBlueprint(testData.users.user1._id, { name: 'Cache Header Source' });
+      const response = await TestSetup.request().get(`/api/blueprints/${source._id}/related`);
+      expect(response.status).to.equal(200);
+      expect(response.headers['cache-control']).to.equal(ANON_CACHE);
     });
   });
 });
