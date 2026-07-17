@@ -49,7 +49,8 @@ export interface Placement {
 // Places a building with its footprint's bottom-left corner at (x, y) — easier
 // to reason about in fixtures than the game's centered anchor position.
 export function place(blueprint: Blueprint, id: string, x: number, y: number): void {
-  const item = BlueprintHelpers.createInstance(id);
+  // Fixture ids are always known-good; a null here means the fixture itself is broken.
+  const item = BlueprintHelpers.createInstance(id)!;
   const tileOffset = item.oniItem.tileOffset;
   item.position = new Vector2(x - tileOffset.x, y - tileOffset.y);
   item.prepareBoundingBox();
