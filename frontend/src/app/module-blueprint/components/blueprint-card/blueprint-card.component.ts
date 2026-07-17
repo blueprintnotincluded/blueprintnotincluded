@@ -55,4 +55,15 @@ export class BlueprintCardComponent {
       : 0;
     return `/api/blueprints/${this.item.id}/preview/card.webp?v=${version}`;
   }
+
+  // Fallback img src for when the preview request errors: the stored
+  // save-time thumbnail. List responses carry the 'real' sentinel instead of
+  // inlining the image, so the fallback is a URL, not a data URI.
+  thumbnailFallbackUrl(): string | null {
+    if (this.item.thumbnail !== "real") return null;
+    const version = this.item.modifiedAt
+      ? new Date(this.item.modifiedAt).getTime()
+      : 0;
+    return `/api/blueprints/${this.item.id}/thumbnail?v=${version}`;
+  }
 }

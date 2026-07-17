@@ -21,7 +21,7 @@ const LOAD_SAFETY_TIMEOUT_MS = 30_000;
 /**
  * Loads a server-rendered preview through PreviewQueueService: the img gets
  * its src only when no earlier preview is still loading, and swaps to the
- * legacy inline thumbnail if the preview request errors. Do not combine with
+ * fallback src if the preview request errors. Do not combine with
  * loading="lazy" — a deferred offscreen fetch never fires load and would
  * stall the queue.
  */
@@ -31,7 +31,7 @@ const LOAD_SAFETY_TIMEOUT_MS = 30_000;
 })
 export class QueuedPreviewDirective implements OnChanges, OnDestroy {
   @Input("appQueuedPreview") previewUrl!: string;
-  /** Legacy inline thumbnail (data url) used when the preview request errors. */
+  /** Fallback src (stored-thumbnail endpoint url) used when the preview request errors. */
   @Input() previewFallback: string | null = null;
 
   private ticket: PreviewQueueTicket | null = null;

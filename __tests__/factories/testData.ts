@@ -18,6 +18,9 @@ export interface TestBlueprint {
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;
+  // Absent by default: fixtures represent pre-backfill documents; tests that
+  // need post-migration behavior override it explicitly
+  thumbnailType?: 'real' | 'svg' | 'svg_nothing';
   isCopy?: boolean;
   copyOf?: Types.ObjectId;
   data: any;

@@ -1,6 +1,21 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { GAME_VERSIONS, CATEGORIES, RESEARCH_TIERS, ROOM_TYPE_IDS } from '../../../lib/index';
 
+// Discriminator for the stored thumbnail: 'real' = data-URI image, the other
+// two are placeholder sentinels stored verbatim in `thumbnail`. Exists so list
+// queries can know real-vs-sentinel without fetching the blob (a find()
+// projection can't prefix-test a field).
+export const THUMBNAIL_TYPES = ['real', 'svg', 'svg_nothing'] as const;
+export type ThumbnailType = (typeof THUMBNAIL_TYPES)[number];
+
+// Shared by every write site that sets `thumbnail` (upload/save, fork, seeds)
+// and by the backfill migration: sentinels map to themselves, anything else is
+// a real image.
+export function thumbnailTypeOf(thumbnail: string | null | undefined): ThumbnailType {
+  if (thumbnail === 'svg' || thumbnail === 'svg_nothing') return thumbnail;
+  return 'real';
+}
+
 export interface Blueprint extends Document {
   owner: string;
   name: string;
@@ -13,6 +28,10 @@ export interface Blueprint extends Document {
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;
+  // No schema default (same hydration rationale as isPublished): docs
+  // predating the backfill migration lack the field — readers fall back to
+  // 'real', the overwhelmingly common case.
+  thumbnailType?: ThumbnailType;
   isCopy?: boolean;
   copyOf?: string;
   data: any;
@@ -67,6 +86,7 @@ export class BlueprintModel {
       createdAt: Date,
       modifiedAt: Date,
       thumbnail: String,
+      thumbnailType: { type: String, enum: THUMBNAIL_TYPES },
       isCopy: Boolean,
       copyOf: {
         type: Schema.Types.ObjectId,

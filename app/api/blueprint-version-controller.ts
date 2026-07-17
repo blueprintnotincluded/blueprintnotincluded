@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { BlueprintModel } from './models/blueprint';
+import { BlueprintModel, thumbnailTypeOf } from './models/blueprint';
 import { BlueprintVersionModel, BlueprintVersion } from './models/blueprint-version';
 import { UserJwt } from './models/user';
 import { NotificationController } from './notification-controller';
@@ -79,6 +79,7 @@ export class BlueprintVersionController {
         name: forkName(source.name),
         data: sourceVersion.data,
         thumbnail: sourceVersion.thumbnail,
+        thumbnailType: thumbnailTypeOf(sourceVersion.thumbnail),
         createdAt: now,
         modifiedAt: now,
         deletedAt: null,

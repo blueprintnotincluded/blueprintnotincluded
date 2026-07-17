@@ -104,6 +104,14 @@ export class DialogBrowseComponent implements OnInit {
     return `/api/blueprints/${item.id}/preview/card.webp?v=${version}`;
   }
 
+  // Fallback img src when the preview errors — list responses carry the
+  // 'real' sentinel, the actual image is served by the thumbnail endpoint.
+  thumbnailFallbackUrl(item: BlueprintListItem): string | null {
+    if (item.thumbnail !== "real") return null;
+    const version = item.modifiedAt ? new Date(item.modifiedAt).getTime() : 0;
+    return `/api/blueprints/${item.id}/thumbnail?v=${version}`;
+  }
+
   ngOnInit() {
     this.browseDialog.onShow.subscribe({
       next: this.handleOnShow.bind(this),
