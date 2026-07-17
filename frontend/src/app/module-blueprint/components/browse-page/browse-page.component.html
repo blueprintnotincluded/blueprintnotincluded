@@ -186,7 +186,7 @@
           class="active-filters-bar"
         >
           <button
-            *ngFor="let chip of activeFilterChips"
+            *ngFor="let chip of activeFilterChips; trackBy: trackChip"
             type="button"
             class="active-filter-chip"
             [attr.aria-label]="chip.ariaLabel"
