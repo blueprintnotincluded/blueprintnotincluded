@@ -65,6 +65,26 @@ function setFeedCacheControl(req: Request, res: Response) {
   res.set('Cache-Control', req.headers.authorization == null ? ANON_CACHE_CONTROL : 'no-store');
 }
 
+// The stored thumbnail data URI is user-supplied, so its declared mime cannot
+// be trusted: a URI claiming image/svg+xml (scriptable when opened directly)
+// or mislabeled bytes must never be echoed back as a Content-Type. Sniff the
+// decoded bytes and only serve allowlisted raster formats.
+function sniffImageMime(bytes: Buffer): string | null {
+  if (bytes.length >= 8 && bytes.subarray(0, 8).equals(PNG_SIGNATURE)) return 'image/png';
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
+    return 'image/jpeg';
+  const ascii6 = bytes.subarray(0, 6).toString('latin1');
+  if (ascii6 === 'GIF87a' || ascii6 === 'GIF89a') return 'image/gif';
+  if (
+    bytes.length >= 12 &&
+    bytes.subarray(0, 4).toString('latin1') === 'RIFF' &&
+    bytes.subarray(8, 12).toString('latin1') === 'WEBP'
+  )
+    return 'image/webp';
+  return null;
+}
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
 export class BlueprintController {
   public uploadBlueprint(req: Request, res: Response) {
     console.log('uploadBlueprint' + req.clientIp);
@@ -502,10 +522,18 @@ export class BlueprintController {
       }
 
       // Parse rather than trust thumbnailType: sentinels ('svg'/'svg_nothing')
-      // and pre-migration junk all fail the match and 404, and the stored mime
-      // comes out of the data URI itself (not always png).
+      // and pre-migration junk all fail the match and 404. The mime comes from
+      // sniffing the decoded bytes (not always png), and must agree with the
+      // declared one — mismatches and non-raster formats (svg) 404.
       const match = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(blueprint.thumbnail ?? '');
       if (!match) {
+        res.status(404).send();
+        return;
+      }
+      const bytes = Buffer.from(match[2], 'base64');
+      const declared = match[1].toLowerCase();
+      const detected = sniffImageMime(bytes);
+      if (!detected || detected !== (declared === 'image/jpg' ? 'image/jpeg' : declared)) {
         res.status(404).send();
         return;
       }
@@ -524,8 +552,13 @@ export class BlueprintController {
       const cacheControl =
         blueprint.isPublished === false ? 'private, no-store' : 'public, max-age=86400';
 
-      res.set({ 'Content-Type': match[1], 'Cache-Control': cacheControl, ETag: etag });
-      res.send(Buffer.from(match[2], 'base64'));
+      res.set({
+        'Content-Type': detected,
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': cacheControl,
+        ETag: etag,
+      });
+      res.send(bytes);
     } catch (err) {
       console.log('getBlueprintThumbnail error');
       console.log(err);

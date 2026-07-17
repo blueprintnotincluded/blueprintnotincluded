@@ -95,6 +95,10 @@ export class UpdateThumbnail {
 
           blueprints[index].thumbnail = newThumbnail;
           blueprints[index].thumbnailType = thumbnailTypeOf(newThumbnail);
+          // The thumbnail endpoint's ETag and the client's ?v= cache key are
+          // derived from modifiedAt — without this bump caches keep serving
+          // the old image.
+          blueprints[index].modifiedAt = new Date();
           blueprints[index]
             .save()
             .then(() => {

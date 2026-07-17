@@ -16,6 +16,10 @@ const thumbnailTypeMigration = require('../../migrations/20260717000000_blueprin
 const TINY_PNG_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 const TINY_PNG = `data:image/png;base64,${TINY_PNG_BASE64}`;
+// Genuine 1x1 JPEG (node-canvas toDataURL('image/jpeg')) — the endpoint sniffs
+// the decoded bytes, so a jpeg test must actually be jpeg-encoded.
+const TINY_JPEG_BASE64 =
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD5/ooooA//2Q==';
 
 const SAMPLE_BLUEPRINT_DATA = {
   version: '1.0',
@@ -58,12 +62,35 @@ describe('Blueprint thumbnails (slim lists)', function () {
     it('does not assume png — a jpeg data URI comes back as image/jpeg', async function () {
       const jpeg = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
         name: 'Jpeg Thumb',
-        thumbnail: `data:image/jpeg;base64,${TINY_PNG_BASE64}`,
+        thumbnail: `data:image/jpeg;base64,${TINY_JPEG_BASE64}`,
       });
 
       const response = await TestSetup.request().get(`/api/blueprints/${jpeg._id}/thumbnail`);
       expect(response.status).to.equal(200);
       expect(response.headers['content-type']).to.match(/image\/jpeg/);
+    });
+
+    it('404s when the declared mime does not match the decoded bytes', async function () {
+      const mislabeled = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Mislabeled Thumb',
+        thumbnail: `data:image/jpeg;base64,${TINY_PNG_BASE64}`,
+      });
+
+      const response = await TestSetup.request().get(`/api/blueprints/${mislabeled._id}/thumbnail`);
+      expect(response.status).to.equal(404);
+    });
+
+    it('404s for svg data URIs — scriptable formats are never served', async function () {
+      const svgBase64 = Buffer.from(
+        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+      ).toString('base64');
+      const svg = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Svg Thumb',
+        thumbnail: `data:image/svg+xml;base64,${svgBase64}`,
+      });
+
+      const response = await TestSetup.request().get(`/api/blueprints/${svg._id}/thumbnail`);
+      expect(response.status).to.equal(404);
     });
 
     it('serves 304 when the ETag matches', async function () {
