@@ -46,6 +46,11 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 RUN npm rebuild canvas && node -e "require('canvas')"
 COPY --from=build-backend /bpni/build /bpni/build
 COPY --from=build-frontend /bpni/build/app/public /bpni/build/app/public
+# Migrations run from the deploy console (cd /bpni/build && npm run migrate:up);
+# migrate-mongo resolves its config and migrationsDir relative to cwd, so both
+# must ship inside the runtime image.
+COPY migrate-mongo-config.js /bpni/build/
+COPY migrations /bpni/build/migrations
 
 # glibc malloc grows one arena per thread by default; sharp/libvips's thread
 # pool spreads allocations across them and freed pages never return to the OS,
