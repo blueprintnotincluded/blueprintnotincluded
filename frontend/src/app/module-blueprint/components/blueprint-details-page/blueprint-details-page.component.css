@@ -80,6 +80,11 @@
   overflow-wrap: break-word;
 }
 
+.details-stars {
+  display: block;
+  margin: 0 0 8px;
+}
+
 .details-byline {
   display: flex;
   gap: 12px;

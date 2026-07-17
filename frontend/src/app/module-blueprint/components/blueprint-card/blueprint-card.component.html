@@ -18,12 +18,19 @@
   </a>
 
   <div class="card-info">
-    <a
-      class="bni-card__title"
-      [routerLink]="['/blueprint', item.id]"
-      [state]="linkState"
-      >{{ item.name }}</a
-    >
+    <div class="card-title-row">
+      <a
+        class="bni-card__title"
+        [routerLink]="['/blueprint', item.id]"
+        [state]="linkState"
+        >{{ item.name }}</a
+      >
+      <app-star-rating
+        class="card-stars"
+        [nbLikes]="item.nbLikes"
+        [showCount]="false"
+      ></app-star-rating>
+    </div>
     <div class="card-meta">
       <span *ngIf="showOwner" i18n
         >by
