@@ -1,9 +1,13 @@
 import { Component, Input } from "@angular/core";
 
 /**
- * Maps a like count onto 1–5 filled stars (0 likes → 0, component hides).
- * Log scale: 1→1★, 2–3→2★, 4–7→3★, 8–15→4★, 16+→5★ — tuned to the
- * site's like volumes, retune here when the community grows.
+ * PLACEHOLDER — likes are a stand-in until real per-user star ratings
+ * exist. The plan (agent/TODO.md "Star ratings v2") is a server-side
+ * aggregate stored on the blueprint and computed out of band; when that
+ * lands this component reads the aggregate and this mapping disappears.
+ *
+ * Until then: maps a like count onto 1–5 filled stars (0 likes → 0,
+ * component hides). Log scale: 1→1★, 2–3→2★, 4–7→3★, 8–15→4★, 16+→5★.
  */
 export function starsFromLikes(nbLikes: number): number {
   if (nbLikes <= 0) return 0;
