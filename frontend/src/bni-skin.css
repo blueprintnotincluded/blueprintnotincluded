@@ -1,7 +1,14 @@
 /*
- * BNI "industrial blueprint" skin for the discover section
+ * BNI "Steam Workshop" skin for the discover section
  * (browse / blueprint details / profile). Source of truth for the visual
- * language: spec/BNI Reskin - Standalone.html.
+ * language: spec/Steam Style Guide (standalone).html — every color is
+ * sampled from the ONI Workshop (spec/steam-bni.png).
+ *
+ * The language in four rules:
+ *   - one accent (blue); everything else desaturated blue-grey ramps
+ *   - flat, square panels — no rivets, bevels, or rounded corners
+ *   - hover = one surface step lighter (+ blue ring/glow on cards)
+ *   - the schematic grid survives only inside blueprint thumbnails
  *
  * Everything is scoped under .bni-skin so the editor and auth pages keep
  * the stock PrimeNG look. PrimeNG components inside the skin are restyled
@@ -9,55 +16,64 @@
  */
 
 .bni-skin {
-  /* palette (dark, the design default) */
-  --bni-bg: #1f1b18;
-  --bni-grid: rgba(237, 230, 218, 0.045);
-  --bni-panel: #2a2522;
-  --bni-panel2: #342e29;
-  --bni-inset: #241f1c;
-  --bni-line: #4a4238;
-  --bni-line2: #5c5346;
-  --bni-ink: #ede6da;
-  --bni-muted: #a99f92;
-  --bni-faint: #7a7164;
-  --bni-accent: #6fc7b4;
-  --bni-accent-dim: rgba(111, 199, 180, 0.16);
-  --bni-accent-bd: rgba(111, 199, 180, 0.45);
-  --bni-accent2: #e89a3c;
-  --bni-accent2-dim: rgba(232, 154, 60, 0.16);
-  --bni-accent2-bd: rgba(232, 154, 60, 0.5);
-  --bni-primary: #a6516b;
-  --bni-primary-bd: #c97b93;
-  --bni-primary-hi: #b95f7b;
-  --bni-btn: #3b424c;
-  --bni-btn-line: #79828e;
-  --bni-btn-hi: #4a525e;
-  --bni-btn-ink: #f2f4f6;
-  --bni-blue: #5e9bd6;
-  --bni-blue-hi: #82b4e4;
+  /* palette — Steam Workshop ramp */
+  --bni-bg: #1f232a; /* void / page */
+  --bni-float: #1a1f22; /* content panel */
+  --bni-panel: #24252a; /* card surface */
+  --bni-panel2: #313339; /* card hover / raised surface */
+  --bni-inset: #23262c; /* input inset */
+  --bni-line: #3a3e45; /* border subtle */
+  --bni-line2: #454a52;
+  --bni-ink: #ffffff; /* headings */
+  --bni-body: #c3c5c9; /* body text */
+  --bni-muted: #8f9399; /* secondary */
+  --bni-faint: #6e7379; /* dim / counts */
+  --bni-accent: #579bf8;
+  --bni-accent-hi: #8cbdfb;
+  --bni-accent-dim: #456fa7; /* blue borders */
+  --bni-accent-glow: rgba(87, 155, 248, 0.45);
+  --bni-accent-tint: rgba(87, 155, 248, 0.08);
+  --bni-chip: #3f444f;
+  --bni-chip-hi: #4d5361;
+  /* primary action = the one accent */
+  --bni-primary: var(--bni-accent);
+  --bni-primary-hi: var(--bni-accent-hi);
+  --bni-primary-bd: var(--bni-accent-dim);
+  --bni-blue: var(--bni-accent); /* legacy alias (links) */
+  --bni-blue-hi: var(--bni-accent-hi);
   --bni-danger: #d95f4c;
-  --bni-rivet: rgba(237, 230, 218, 0.28);
-  --bni-schemline2: rgba(94, 155, 214, 0.8);
+  /* draft/WIP status — the single deliberate warm exception in the chrome;
+   * a status flag has to be findable at a glance among all-blue-grey */
+  --bni-draft: #cfa14f;
+  --bni-draft-dim: rgba(207, 161, 79, 0.14);
+  /* thumbnails keep the schematic-grid placeholder */
   --bni-thumbbg: #8b8b8b;
   --bni-thumbgrid: rgba(255, 255, 255, 0.35);
-  --bni-card-sh: 0 2px 0 rgba(0, 0, 0, 0.35);
+  --bni-card-sh: none; /* flat — depth comes from surface steps */
 
-  /* typography */
-  --bni-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  /* typography — single face; the display face survives only in the nav
+   * wordmark (see .bni-nav-wordmark) */
+  --bni-display: "IBM Plex Sans", "Helvetica Neue", sans-serif;
   --p-font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
 
   /* z-index scale — every page-level layer sits on this ladder. Layering
-   * that is purely internal to one component (e.g. rivets over a card
-   * thumbnail) may use small local values, but anything that competes
-   * across components must use a token. PrimeNG overlays (menus, selects,
-   * dialogs, toasts) auto-assign from ~1000 up; nothing here may exceed
-   * that, or dropdowns/dialogs start rendering behind our chrome. */
-  --bni-z-backdrop: -1; /* cave art + vignette, behind an isolated page */
+   * that is purely internal to one component may use small local values,
+   * but anything that competes across components must use a token.
+   * PrimeNG overlays (menus, selects, dialogs, toasts) auto-assign from
+   * ~1000 up; nothing here may exceed that. */
+  --bni-z-backdrop: -1; /* key-art backdrop, behind an isolated page */
   --bni-z-raised: 4; /* content raised above page siblings */
   --bni-z-nav: 40; /* sticky site nav, above all page content */
 
   /* PrimeNG token remap */
-  --p-text-color: var(--bni-ink);
+  --p-border-radius-none: 0;
+  --p-border-radius-xs: 0;
+  --p-border-radius-sm: 0;
+  --p-border-radius-md: 0;
+  --p-border-radius-lg: 0;
+  --p-border-radius-xl: 0;
+  --p-content-border-radius: 0;
+  --p-text-color: var(--bni-body);
   --p-text-muted-color: var(--bni-muted);
   --p-content-background: var(--bni-panel);
   --p-content-border-color: var(--bni-line);
@@ -70,78 +86,79 @@
 
   /* form fields */
   --p-inputtext-background: var(--bni-inset);
-  --p-inputtext-color: var(--bni-ink);
+  --p-inputtext-color: var(--bni-body);
   --p-inputtext-border-color: var(--bni-line);
   --p-inputtext-hover-border-color: var(--bni-line2);
   --p-inputtext-focus-border-color: var(--bni-accent);
   --p-inputtext-placeholder-color: var(--bni-faint);
-  --p-inputtext-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  --p-inputtext-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
   --p-textarea-background: var(--bni-inset);
-  --p-textarea-color: var(--bni-ink);
+  --p-textarea-color: var(--bni-body);
   --p-textarea-border-color: var(--bni-line);
   --p-textarea-hover-border-color: var(--bni-line2);
   --p-textarea-focus-border-color: var(--bni-accent);
   --p-textarea-placeholder-color: var(--bni-faint);
 
   /* select */
-  --p-select-background: var(--bni-panel2);
-  --p-select-color: var(--bni-ink);
-  --p-select-border-color: var(--bni-line2);
-  --p-select-hover-border-color: var(--bni-btn-line);
+  --p-select-background: var(--bni-inset);
+  --p-select-color: var(--bni-body);
+  --p-select-border-color: var(--bni-line);
+  --p-select-hover-border-color: var(--bni-line2);
   --p-select-focus-border-color: var(--bni-accent);
-  --p-select-placeholder-color: var(--bni-muted);
+  --p-select-placeholder-color: var(--bni-faint);
   --p-select-dropdown-color: var(--bni-muted);
   --p-select-overlay-background: var(--bni-panel2);
   --p-select-overlay-border-color: var(--bni-line2);
-  --p-select-option-color: var(--bni-ink);
-  --p-select-option-focus-background: var(--bni-btn);
-  --p-select-option-focus-color: var(--bni-btn-ink);
+  --p-select-option-color: var(--bni-body);
+  --p-select-option-focus-background: var(--bni-chip);
+  --p-select-option-focus-color: var(--bni-ink);
   --p-select-option-selected-background: var(--bni-primary);
   --p-select-option-selected-color: #ffffff;
   --p-select-option-selected-focus-background: var(--bni-primary-hi);
   --p-select-option-selected-focus-color: #ffffff;
 
-  /* buttons */
+  /* buttons — one primary, one ghost; all flat and square */
   --p-button-primary-background: var(--bni-primary);
-  --p-button-primary-border-color: var(--bni-primary-bd);
+  --p-button-primary-border-color: var(--bni-primary);
   --p-button-primary-color: #ffffff;
   --p-button-primary-hover-background: var(--bni-primary-hi);
-  --p-button-primary-hover-border-color: var(--bni-primary-bd);
+  --p-button-primary-hover-border-color: var(--bni-primary-hi);
   --p-button-primary-hover-color: #ffffff;
   --p-button-primary-active-background: var(--bni-primary-hi);
-  --p-button-primary-active-border-color: var(--bni-primary-bd);
-  --p-button-secondary-background: var(--bni-btn);
-  --p-button-secondary-border-color: var(--bni-btn-line);
-  --p-button-secondary-color: var(--bni-btn-ink);
-  --p-button-secondary-hover-background: var(--bni-btn-hi);
-  --p-button-secondary-hover-border-color: var(--bni-btn-line);
-  --p-button-secondary-hover-color: var(--bni-btn-ink);
+  --p-button-primary-active-border-color: var(--bni-primary-hi);
+  --p-button-secondary-background: transparent;
+  --p-button-secondary-border-color: var(--bni-line2);
+  --p-button-secondary-color: var(--bni-body);
+  --p-button-secondary-hover-background: var(--bni-panel2);
+  --p-button-secondary-hover-border-color: var(--bni-accent-dim);
+  --p-button-secondary-hover-color: var(--bni-accent-hi);
   --p-button-danger-background: rgba(217, 95, 76, 0.14);
   --p-button-danger-border-color: rgba(217, 95, 76, 0.5);
   --p-button-danger-color: var(--bni-danger);
   --p-button-danger-hover-background: rgba(217, 95, 76, 0.28);
   --p-button-danger-hover-border-color: var(--bni-danger);
   --p-button-danger-hover-color: var(--bni-danger);
-  --p-button-text-primary-color: var(--bni-blue);
-  --p-button-text-primary-hover-background: var(--bni-panel);
+  --p-button-text-primary-color: var(--bni-accent);
+  --p-button-text-primary-hover-background: var(--bni-accent-tint);
   --p-button-text-secondary-color: var(--bni-muted);
   --p-button-text-secondary-hover-background: var(--bni-panel2);
-  --p-button-outlined-primary-color: var(--bni-btn-ink);
-  --p-button-outlined-primary-border-color: var(--bni-btn-line);
-  --p-button-outlined-primary-hover-background: var(--bni-btn-hi);
+  --p-button-outlined-primary-color: var(--bni-body);
+  --p-button-outlined-primary-border-color: var(--bni-line2);
+  --p-button-outlined-primary-hover-background: var(--bni-panel2);
 
   /* dialog */
-  --p-dialog-background: var(--bni-panel);
-  --p-dialog-border-color: var(--bni-line2);
-  --p-dialog-color: var(--bni-ink);
-  --p-overlay-modal-background: rgba(12, 9, 7, 0.62);
-  --p-mask-background: rgba(12, 9, 7, 0.62);
+  --p-dialog-background: var(--bni-float);
+  --p-dialog-border-color: var(--bni-line);
+  --p-dialog-color: var(--bni-body);
+  --p-overlay-modal-background: rgba(10, 12, 16, 0.7);
+  --p-mask-background: rgba(10, 12, 16, 0.7);
 
-  /* menubar + popup menu */
-  --p-menubar-background: var(--bni-panel);
-  --p-menubar-border-color: var(--bni-line);
-  --p-menubar-color: var(--bni-ink);
-  --p-menubar-item-color: var(--bni-ink);
+  /* menubar + popup menu — near-black, flat */
+  --p-menubar-background: var(--bni-float);
+  --p-menubar-border-color: transparent;
+  --p-menubar-border-radius: 0;
+  --p-menubar-color: var(--bni-body);
+  --p-menubar-item-color: var(--bni-body);
   --p-menubar-item-focus-background: var(--bni-panel2);
   --p-menubar-item-focus-color: var(--bni-ink);
   --p-menubar-item-active-background: var(--bni-panel2);
@@ -150,38 +167,34 @@
   --p-menubar-submenu-border-color: var(--bni-line2);
   --p-menu-background: var(--bni-panel2);
   --p-menu-border-color: var(--bni-line2);
-  --p-menu-item-color: var(--bni-ink);
-  --p-menu-item-focus-background: var(--bni-btn);
-  --p-menu-item-focus-color: var(--bni-btn-ink);
+  --p-menu-item-color: var(--bni-body);
+  --p-menu-item-focus-background: var(--bni-chip);
+  --p-menu-item-focus-color: var(--bni-ink);
   --p-menu-item-icon-color: var(--bni-muted);
-  --p-menu-item-icon-focus-color: var(--bni-btn-ink);
+  --p-menu-item-icon-focus-color: var(--bni-ink);
   --p-menu-separator-border-color: var(--bni-line);
 
   --p-tooltip-background: var(--bni-panel2);
   --p-tooltip-color: var(--bni-ink);
 
-  color: var(--bni-ink);
+  color: var(--bni-body);
   font-family: var(--p-font-family);
   font-size: 14.5px;
   line-height: 1.5;
 }
 
-/* full-bleed page background with the 48px drafting grid */
+/* full-bleed page background — flat void, no chrome grid */
 .bni-page {
   min-height: 100vh;
   background-color: var(--bni-bg);
-  background-image:
-    linear-gradient(var(--bni-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-grid) 1px, transparent 1px);
-  background-size: 48px 48px;
 }
 
-/* ---- cave backdrop ----
- * Full-viewport illustration behind floating content panels. The art is
- * intentionally busy at the edges and plain in the middle, so the content
- * column sits over the calm center while a vignette sinks the edges into
- * shadow. Layers (bottom to top): page bg color -> blurred illustration
- * (::before) -> vignette (::after) -> content.
+/* ---- key-art backdrop (Effect A) ----
+ * Full-viewport illustration behind floating content panels: heavily
+ * blurred, desaturated, darkened, then sunk under a vertical gradient so
+ * panels float over ambiance rather than an image. Layers (bottom to
+ * top): page bg color -> blurred illustration (::before) -> gradient
+ * overlay (::after) -> content.
  *
  * isolation creates a stacking context so the negative-z pseudos paint
  * above this element's own background but below ALL in-flow content —
@@ -200,9 +213,9 @@
   background-image: url("/assets/images/bni-background.webp");
   background-size: cover;
   background-position: center;
-  filter: blur(2px) brightness(0.8) saturate(0.85);
+  filter: blur(28px) saturate(0.7) brightness(0.55);
   /* blur samples past the viewport edge; overscan hides the fringe */
-  transform: scale(1.02);
+  transform: scale(1.1);
 }
 
 .bni-cave::after {
@@ -211,38 +224,28 @@
   inset: 0;
   z-index: var(--bni-z-backdrop);
   pointer-events: none;
-  background: radial-gradient(
-    ellipse 80% 75% at 50% 42%,
-    transparent 0%,
-    rgba(15, 11, 9, 0.35) 55%,
-    rgba(15, 11, 9, 0.8) 100%
+  background: linear-gradient(
+    rgba(31, 35, 42, 0.55) 0%,
+    rgba(31, 35, 42, 0.92) 100%
   );
 }
 
-/* ---- floating content panel over the cave backdrop ---- */
+/* ---- floating content panel (Effect B): near-black, square, big soft
+ * shadow — no border, no grid ---- */
 .bni-float {
-  background-color: rgba(31, 27, 24, 0.85);
-  background-image:
-    linear-gradient(var(--bni-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-grid) 1px, transparent 1px);
-  background-size: 48px 48px;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--bni-line);
-  border-radius: 12px;
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.55),
-    0 4px 16px rgba(0, 0, 0, 0.4);
+  background-color: var(--bni-float);
+  border-radius: 0;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.55);
 }
 
 .bni-skin a {
-  color: var(--bni-blue);
+  color: var(--bni-accent);
   text-decoration: none;
 }
 
 .bni-skin a:hover {
-  color: var(--bni-blue-hi);
-  text-decoration: underline;
+  color: var(--bni-accent-hi);
+  text-decoration: none;
 }
 
 /* ---- site nav (shared by the discover site-nav and the editor menubar;
@@ -276,8 +279,10 @@
   height: 32px;
 }
 
+/* the wordmark is the one place the display face survives — it's brand,
+ * not chrome */
 .bni-nav-wordmark {
-  font-family: var(--bni-display);
+  font-family: "Big Shoulders Display", "Arial Narrow", sans-serif;
   font-weight: 800;
   font-size: 19px;
   letter-spacing: 0.05em;
@@ -297,39 +302,45 @@
   }
 }
 
-/* display headings */
+/* headings — plain bold Plex, white; no condensed face, no uppercase */
 .bni-skin h1,
 .bni-skin h2,
 .bni-skin h3 {
-  font-family: var(--bni-display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-family: var(--p-font-family);
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--bni-ink);
 }
 
-/* ---- industrial buttons (plain <button>/<a> elements) ---- */
+/* Steam inputs whisper */
+.bni-skin ::placeholder {
+  font-style: italic;
+}
+
+/* ---- buttons (plain <button>/<a> elements): flat, square ---- */
 .bni-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--bni-display);
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  font-family: var(--p-font-family);
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+  text-transform: none;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
-  color: var(--bni-btn-ink);
-  background: var(--bni-btn);
-  border: 1px solid var(--bni-btn-line);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
-    0 2px 0 rgba(0, 0, 0, 0.3);
+  color: var(--bni-body);
+  background: transparent;
+  border: 1px solid var(--bni-line2);
+  box-shadow: none;
 }
 
 .bni-btn:hover:not(:disabled) {
-  background: var(--bni-btn-hi);
+  background: var(--bni-panel2);
+  border-color: var(--bni-accent-dim);
+  color: var(--bni-accent-hi);
 }
 
 .bni-btn:disabled {
@@ -340,24 +351,22 @@
 .bni-btn--primary {
   color: #fff;
   background: var(--bni-primary);
-  border-color: var(--bni-primary-bd);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
-    0 2px 0 rgba(0, 0, 0, 0.3);
+  border-color: var(--bni-primary);
 }
 
 .bni-btn--primary:hover:not(:disabled) {
-  background: var(--bni-primary-hi);
+  background: linear-gradient(var(--bni-accent-hi), var(--bni-accent));
+  border-color: var(--bni-accent-hi);
+  color: #fff;
 }
 
-/* anchors styled as industrial buttons must not inherit link colors */
+/* anchors styled as buttons must not inherit link colors */
 .bni-skin a.bni-btn {
-  color: var(--bni-btn-ink);
+  color: var(--bni-body);
 }
 
 .bni-skin a.bni-btn:hover {
-  color: var(--bni-btn-ink);
+  color: var(--bni-accent-hi);
   text-decoration: none;
 }
 
@@ -366,20 +375,13 @@
   color: #fff;
 }
 
-/* PrimeNG buttons inside the skin pick up the industrial style too */
+/* PrimeNG buttons inside the skin go flat and square too */
 .bni-skin .p-button {
-  font-family: var(--bni-display);
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  border-radius: 4px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
-    0 2px 0 rgba(0, 0, 0, 0.3);
-}
-
-.bni-skin .p-button.p-button-text {
+  font-family: var(--p-font-family);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  border-radius: 0;
   box-shadow: none;
 }
 
@@ -393,62 +395,53 @@
   text-decoration: none;
 }
 
-/* ---- chips / badges ---- */
+/* ---- chips / badges — one monochrome Steam style, 2px radius; the
+ * label carries the meaning, not the color ---- */
 .bni-chip {
   display: inline-block;
-  font-family: var(--bni-display);
-  font-weight: 600;
-  font-size: 11.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 3px;
-  background: transparent;
-  color: var(--bni-muted);
-  border: 1px solid var(--bni-line);
+  font-family: var(--p-font-family);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  padding: 2px 9px;
+  border-radius: 2px;
+  background: var(--bni-chip);
+  color: var(--bni-body);
+  border: 1px solid transparent;
   text-decoration: none;
 }
 
-a.bni-chip:hover {
-  border-color: var(--bni-muted);
+.bni-skin a.bni-chip {
+  color: var(--bni-body);
 }
 
-.bni-chip--cat {
-  background: var(--bni-accent-dim);
-  color: var(--bni-accent);
-  border-color: var(--bni-accent-bd);
+.bni-skin a.bni-chip:hover {
+  background: var(--bni-chip-hi);
+  color: var(--bni-ink);
+  text-decoration: none;
 }
 
 .bni-chip--untagged {
   font-style: italic;
+  background: transparent;
+  border-color: var(--bni-line);
   color: var(--bni-faint);
-}
-
-.bni-chip--modded {
-  background: var(--bni-accent2-dim);
-  color: var(--bni-accent2);
-  border-color: var(--bni-accent2-bd);
-}
-
-/* Server-derived room-type chips: blue-slate so they read as facts, not
-   author-picked tags (category teal / modded orange) */
-.bni-chip--room {
-  background: rgba(125, 155, 209, 0.14);
-  color: #91abd8;
-  border-color: rgba(125, 155, 209, 0.45);
 }
 
 .bni-chip--room-more {
   background: transparent;
+  border-color: var(--bni-line);
+  color: var(--bni-faint);
   cursor: default;
 }
 
-/* Draft = work in progress: dashed outline, primary tint so it pops on
-   the owner's own cards without reading as a filter chip */
+/* Draft = work in progress: dashed amber outline — the one warm signal
+ * in the chrome, so the owner's WIP is impossible to miss */
 .bni-chip--draft {
-  background: transparent;
-  color: var(--bni-primary-bd);
-  border: 1px dashed var(--bni-primary-bd);
+  background: var(--bni-draft-dim);
+  color: var(--bni-draft);
+  border: 1px dashed var(--bni-draft);
 }
 
 /* ---- publish nudge (profile) ---- */
@@ -458,12 +451,10 @@ a.bni-chip:hover {
   gap: 8px;
   margin: 0 0 14px;
   padding: 10px 14px;
-  border: 1px dashed var(--bni-primary-bd);
-  border-radius: 6px;
-  color: var(--bni-primary-bd);
-  font-family: var(--bni-display);
+  border: 1px dashed var(--bni-draft);
+  border-radius: 0;
+  color: var(--bni-draft);
   font-weight: 600;
-  letter-spacing: 0.04em;
 }
 
 .drafts-nudge .pi {
@@ -472,74 +463,57 @@ a.bni-chip:hover {
 
 .drafts-nudge-hint {
   color: var(--bni-muted);
-  font-family: inherit;
   font-weight: 400;
-  letter-spacing: normal;
 }
 
-/* ---- riveted panel ---- */
+/* ---- plain panel (profile header etc.): flat, square ---- */
 .bni-panel {
   position: relative;
   background: var(--bni-panel);
-  border: 2px solid var(--bni-line);
-  border-radius: 10px;
+  border: 1px solid var(--bni-line);
+  border-radius: 0;
   box-shadow: var(--bni-card-sh);
 }
 
+/* rivets are gone; the class lingers in templates until they're cleaned */
 .bni-rivets::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 3;
-  border-radius: inherit;
-  background-image:
-    radial-gradient(
-      circle at 9px 9px,
-      var(--bni-rivet) 2.5px,
-      transparent 3.2px
-    ),
-    radial-gradient(
-      circle at calc(100% - 9px) 9px,
-      var(--bni-rivet) 2.5px,
-      transparent 3.2px
-    ),
-    radial-gradient(
-      circle at 9px calc(100% - 9px),
-      var(--bni-rivet) 2.5px,
-      transparent 3.2px
-    ),
-    radial-gradient(
-      circle at calc(100% - 9px) calc(100% - 9px),
-      var(--bni-rivet) 2.5px,
-      transparent 3.2px
-    );
+  content: none;
 }
 
-/* ---- blueprint card ---- */
+/* ---- blueprint card + hover glow (Effect C) ---- */
 .bni-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  border: 2px solid var(--bni-line);
+  border: 1px solid var(--bni-line);
   background: var(--bni-panel);
-  border-radius: 10px;
+  border-radius: 0;
   box-shadow: var(--bni-card-sh);
   overflow: hidden;
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
-/* Draft cards read as work-in-progress: dashed primary border + faint
+.bni-card:hover:not(.bni-skel):not(.no-results-card) {
+  background: var(--bni-panel2);
+  box-shadow:
+    0 0 0 1px var(--bni-accent),
+    0 0 12px var(--bni-accent-glow);
+}
+
+/* Draft cards read as work-in-progress: dashed amber border + faint
    diagonal hatching, echoing the .bni-chip--draft treatment. Loud on
    purpose — drafts should be impossible to forget, publishing clears it. */
 .bni-card--draft {
-  border: 2px dashed var(--bni-primary-bd);
+  border: 1px dashed var(--bni-draft);
   background:
     repeating-linear-gradient(
       -45deg,
       transparent 0,
       transparent 10px,
-      color-mix(in srgb, var(--bni-primary) 16%, transparent) 10px,
-      color-mix(in srgb, var(--bni-primary) 16%, transparent) 13px
+      var(--bni-draft-dim) 10px,
+      var(--bni-draft-dim) 13px
     ),
     var(--bni-panel);
 }
@@ -557,7 +531,7 @@ a.bni-chip:hover {
     linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
     linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
   background-size: 32px 32px;
-  border-bottom: 2px solid var(--bni-line);
+  border-bottom: 1px solid var(--bni-line);
 }
 
 .bni-card__thumb img {
@@ -569,11 +543,11 @@ a.bni-chip:hover {
 }
 
 .bni-card__title {
-  font-family: var(--bni-display);
   font-weight: 700;
-  font-size: 19px;
-  letter-spacing: 0.03em;
-  line-height: 1.15;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  transition: color 0.12s ease;
 }
 
 .bni-skin a.bni-card__title,
@@ -582,8 +556,9 @@ a.bni-chip:hover {
 }
 
 .bni-skin a.bni-card__title:hover,
-.bni-skin .bni-card__title a:hover {
-  color: var(--bni-accent);
+.bni-skin .bni-card__title a:hover,
+.bni-card:hover a.bni-card__title {
+  color: var(--bni-accent-hi);
   text-decoration: none;
 }
 
@@ -593,7 +568,7 @@ a.bni-chip:hover {
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   font-family: var(--p-font-family);
   font-weight: 600;
@@ -601,13 +576,18 @@ a.bni-chip:hover {
   border: 1px solid var(--bni-line);
   background: transparent;
   color: var(--bni-muted);
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  box-shadow: none;
+}
+
+.bni-like:hover:not(:disabled):not(.bni-like--liked) {
+  border-color: var(--bni-accent-dim);
+  color: var(--bni-accent-hi);
 }
 
 .bni-like.bni-like--liked {
-  border-color: var(--bni-accent2-bd);
-  background: var(--bni-accent2-dim);
-  color: var(--bni-accent2);
+  border-color: var(--bni-accent-dim);
+  background: var(--bni-accent-tint);
+  color: var(--bni-accent);
 }
 
 .bni-like:disabled {
@@ -629,7 +609,7 @@ a.bni-chip:hover {
 }
 
 .bni-skin a.bni-icon-link:hover {
-  color: var(--bni-accent);
+  color: var(--bni-accent-hi);
   text-decoration: none;
 }
 
@@ -651,38 +631,116 @@ a.bni-chip:hover {
   text-decoration: none;
 }
 
-/* ---- segmented control (Discover | From creators you follow) ---- */
-.bni-seg {
-  display: inline-flex;
+/* ---- underline tabs (sort rows, view-mode switch: .bni-seg keeps its
+ * name for existing templates) ---- */
+.bni-seg,
+.bni-tabs {
+  display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 18px;
   max-width: 100%;
-  border: 1px solid var(--bni-line2);
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
-.bni-seg button {
-  font-family: var(--bni-display);
+.bni-seg button,
+.bni-tab {
+  font-family: var(--p-font-family);
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  padding: 7px 16px;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  padding: 4px 2px 6px;
   cursor: pointer;
   border: none;
-  color: var(--bni-btn-ink);
-  background: var(--bni-btn);
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  border-bottom: 2px solid transparent;
+  color: var(--bni-body);
+  background: transparent;
+  box-shadow: none;
+}
+
+.bni-seg button:hover,
+.bni-tab:hover {
+  color: var(--bni-accent-hi);
 }
 
 .bni-seg button + button {
-  border-left: 1px solid var(--bni-line2);
+  border-left: none;
 }
 
-.bni-seg button.active {
-  background: var(--bni-primary);
-  color: #fff;
+.bni-seg button.active,
+.bni-tab.active {
+  background: transparent;
+  color: var(--bni-ink);
+  border-bottom-color: var(--bni-accent);
+}
+
+/* ---- facet sidebar (browse) ---- */
+.bni-facet-group {
+  margin: 0 0 18px;
+}
+
+.bni-facet-label {
+  margin: 0 0 4px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bni-faint);
+}
+
+.bni-facet {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 8px;
+  font-family: var(--p-font-family);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--bni-body);
+}
+
+.bni-facet:hover {
+  color: var(--bni-accent-hi);
+}
+
+.bni-facet.active {
+  background: var(--bni-panel2);
+  color: var(--bni-ink);
+  box-shadow: inset 2px 0 0 var(--bni-accent);
+}
+
+.bni-facet-count {
+  font-size: 12px;
+  color: var(--bni-faint);
+}
+
+/* ---- star rating (accent fill, display only) ---- */
+.bni-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--bni-accent);
+}
+
+.bni-stars__empty {
+  color: var(--bni-chip);
+}
+
+.bni-stars__count {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bni-faint);
 }
 
 /* ---- loading skeleton ---- */
@@ -702,10 +760,7 @@ a.bni-chip:hover {
 
 .bni-skel .bni-card__thumb {
   background-color: var(--bni-inset);
-  background-image:
-    linear-gradient(var(--bni-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-grid) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-image: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -714,8 +769,8 @@ a.bni-chip:hover {
 .bni-skel__bar {
   height: 15px;
   width: 70%;
-  border-radius: 3px;
-  background: var(--bni-line);
+  border-radius: 2px;
+  background: var(--bni-chip);
 }
 
 .bni-skel__bar--dim {
@@ -727,6 +782,6 @@ a.bni-chip:hover {
 .bni-skel__chip {
   height: 16px;
   width: 64px;
-  border-radius: 3px;
+  border-radius: 2px;
   background: var(--bni-inset);
 }

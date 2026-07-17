@@ -16,7 +16,7 @@
   margin-bottom: 10px;
   padding: 10px;
 
-  border-radius: 3px;
+  border-radius: 0;
   border: 1px solid var(--p-content-border-color);
 }
 

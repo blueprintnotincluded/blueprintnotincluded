@@ -2,8 +2,8 @@
   display: block;
   position: relative;
   background: var(--bni-panel);
-  border: 2px solid var(--bni-line);
-  border-radius: 10px;
+  border: 1px solid var(--bni-line);
+  border-radius: 0;
   box-shadow: var(--bni-card-sh);
   padding: 18px 20px 20px;
 }

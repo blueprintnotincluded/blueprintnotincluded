@@ -1,6 +1,6 @@
 .version-section {
   padding: 15px;
-  border-radius: 8px;
+  border-radius: 0;
   margin-bottom: 20px;
   border-left: 4px solid var(--p-primary-color);
   background: var(--p-surface-100);
@@ -20,7 +20,7 @@
 .version-pre {
   background: var(--p-surface-0);
   padding: 10px;
-  border-radius: 4px;
+  border-radius: 0;
   margin-top: 10px;
   font-size: 0.8em;
   white-space: pre-wrap;
