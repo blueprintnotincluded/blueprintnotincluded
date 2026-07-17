@@ -100,6 +100,8 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
         return $localize`${n.actorUsername} replied to your comment`;
       case "like":
         return $localize`${n.actorUsername} liked your blueprint`;
+      case "rating":
+        return $localize`${n.actorUsername} rated your blueprint`;
       case "fork":
         return $localize`${n.actorUsername} forked your blueprint`;
       case "follow":

@@ -1,0 +1,34 @@
+<span
+  class="bni-rate"
+  [class.bni-rate--disabled]="disabled || ownBlueprint"
+  [title]="title"
+  (mouseleave)="hoverValue = null"
+>
+  <span class="bni-rate__label" *ngIf="myRating === null" i18n>Rate</span>
+  <span class="bni-rate__label" *ngIf="myRating !== null" i18n>Rated</span>
+  <button
+    *ngFor="let value of starValues"
+    type="button"
+    class="bni-rate__star"
+    [class.bni-rate__star--filled]="value <= displayValue"
+    [disabled]="disabled || ownBlueprint"
+    [attr.aria-label]="'Rate ' + value + ' of 5'"
+    [attr.aria-pressed]="myRating === value"
+    (mouseenter)="hoverValue = value"
+    (focus)="hoverValue = value"
+    (blur)="hoverValue = null"
+    (click)="rate(value)"
+  >
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"
+      ></path>
+    </svg>
+  </button>
+</span>

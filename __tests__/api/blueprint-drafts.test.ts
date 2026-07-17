@@ -359,18 +359,18 @@ describe('Blueprint drafts (Mocha)', function () {
       expect(response.body.isPublished).to.equal(false);
     });
 
-    it('liking a draft: 404 for others, allowed for the owner', async function () {
+    it('rating a draft: 404 for others (no id probing), 403 self-rating for the owner', async function () {
       const other = await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${otherToken}`)
-        .send({ blueprintId: draft._id.toString(), like: true });
+        .send({ blueprintId: draft._id.toString(), rating: 5 });
       expect(other.status).to.equal(404);
 
       const owner = await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ blueprintId: draft._id.toString(), like: true });
-      expect(owner.status).to.equal(200);
+        .send({ blueprintId: draft._id.toString(), rating: 5 });
+      expect(owner.status).to.equal(403);
     });
 
     it('forking a draft: 404 for others; owner fork is itself a draft with a created event', async function () {

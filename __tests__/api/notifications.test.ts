@@ -79,30 +79,30 @@ describe('Notifications API', function () {
     });
   });
 
-  describe('like trigger', function () {
-    it('notifies the blueprint owner when someone else likes it', async function () {
-      // recentBlueprint is owned by user2 and not yet liked by user3 (popularBlueprint
-      // is pre-liked by both user2 and user3 in the seed, which would make a re-like a no-op)
+  describe('rating trigger', function () {
+    it('notifies the blueprint owner when someone else rates it', async function () {
+      // recentBlueprint is owned by user2 and not yet rated by user3 (popularBlueprint
+      // is pre-rated by both user2 and user3 in the seed, which would make it a re-rate)
       const recentId = testData.blueprints.recentBlueprint._id.toString();
       const token = testData.users.user3.generateJwt();
       await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ blueprintId: recentId, like: true });
+        .send({ blueprintId: recentId, rating: 5 });
 
       const notifications = await NotificationModel.model.find({ recipientId: testData.users.user2._id });
       expect(notifications).to.have.lengthOf(1);
-      expect(notifications[0].type).to.equal('like');
+      expect(notifications[0].type).to.equal('rating');
       expect(notifications[0].actorId.toString()).to.equal(testData.users.user3._id.toString());
     });
 
-    it('does not notify on unlike', async function () {
-      // user2 and user3 already like popularBlueprint (seeded)
+    it('does not re-notify when changing an existing rating', async function () {
+      // user2 already rated popularBlueprint (seeded)
       const token = testData.users.user2.generateJwt();
       await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ blueprintId: popularId, like: false });
+        .send({ blueprintId: popularId, rating: 3 });
 
       const notifications = await NotificationModel.model.find({});
       expect(notifications).to.have.lengthOf(0);

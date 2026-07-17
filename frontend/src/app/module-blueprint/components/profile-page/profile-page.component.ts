@@ -38,7 +38,7 @@ export class ProfilePageComponent implements OnInit {
   noMoreBlueprints = false;
   oldestDate = new Date();
   remaining = 0;
-  activeTab: "blueprints" | "liked" = "blueprints";
+  activeTab: "blueprints" | "rated" = "blueprints";
 
   loadingBlueprintItem: BlueprintListItem;
   nothingBlueprintItem: BlueprintListItem;
@@ -65,9 +65,10 @@ export class ProfilePageComponent implements OnInit {
       modifiedAt: tempDate,
       thumbnail: "svg",
       isPublished: true,
-      likedByMe: false,
+      myRating: null,
       ownedByMe: false,
-      nbLikes: 0,
+      nbRatings: 0,
+      rating: 0,
       commentCount: 0,
       nbForks: 0,
       nbViews: 0,
@@ -83,9 +84,10 @@ export class ProfilePageComponent implements OnInit {
       modifiedAt: tempDate,
       thumbnail: "svg_nothing",
       isPublished: true,
-      likedByMe: false,
+      myRating: null,
       ownedByMe: false,
-      nbLikes: 0,
+      nbRatings: 0,
+      rating: 0,
       commentCount: 0,
       nbForks: 0,
       nbViews: 0,
@@ -167,7 +169,7 @@ export class ProfilePageComponent implements OnInit {
     if (!this.profile || this.followWorking) return;
     const nextFollowed = !this.profile.followedByMe;
 
-    // Optimistic, mirroring like-widget
+    // Optimistic, mirroring the rating widget
     this.profile.followedByMe = nextFollowed;
     this.profile.followerCount += nextFollowed ? 1 : -1;
     this.followWorking = true;
@@ -220,7 +222,7 @@ export class ProfilePageComponent implements OnInit {
     }
   }
 
-  setTab(tab: "blueprints" | "liked") {
+  setTab(tab: "blueprints" | "rated") {
     if (this.activeTab === tab) return;
     this.activeTab = tab;
     this.blueprintListItems = [];
@@ -235,7 +237,7 @@ export class ProfilePageComponent implements OnInit {
   loadBlueprints() {
     if (!this.profile) return;
     const request$ =
-      this.activeTab === "liked"
+      this.activeTab === "rated"
         ? this.blueprintService.getBlueprints(
             this.oldestDate,
             null,

@@ -137,11 +137,6 @@
   flex-wrap: wrap;
 }
 
-.details-like ::ng-deep .bni-like {
-  padding: 8px 14px;
-  font-size: 13.5px;
-}
-
 .details-fork-count {
   font-size: 13px;
   color: var(--bni-muted);

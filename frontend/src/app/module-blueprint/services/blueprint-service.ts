@@ -13,7 +13,8 @@ import {
   MdbBlueprint,
   OniTemplate,
   BlueprintListItem,
-  BlueprintLike,
+  BlueprintRate,
+  BlueprintRateResponse,
   BlueprintResponse,
   BlueprintDetailsResponse,
   RelatedBlueprintsResponse,
@@ -176,7 +177,9 @@ export class BlueprintService implements IObsBlueprintChange {
 
   reset() {
     this.id = null;
-    this.likedByMe = false;
+    this.myRating = null;
+    this.rating = 0;
+    this.nbRatings = 0;
     this.metadata = {};
   }
 
@@ -300,8 +303,9 @@ export class BlueprintService implements IObsBlueprintChange {
 
             this.id = response.id;
             this.name = response.name;
-            this.likedByMe = response.likedByMe;
-            this.nbLikes = response.nbLikes;
+            this.nbRatings = response.nbRatings;
+            this.rating = response.rating;
+            this.myRating = response.myRating;
             this.isPublished = response.isPublished;
             this.metadata = {
               gameVersion: response.gameVersion ?? null,
@@ -321,7 +325,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   // Meta only (no blueprint data) — for the details page. Token is optional;
-  // the backend uses it to personalize likedByMe/ownedByMe.
+  // the backend uses it to personalize myRating/ownedByMe.
   getBlueprintDetails(id: string) {
     return this.http.get<BlueprintDetailsResponse>(
       `/api/blueprints/${id}`,
@@ -336,7 +340,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   // "You might also like" shelf for the details page. Token is optional; the
-  // backend uses it to personalize likedByMe/ownedByMe on the returned cards.
+  // backend uses it to personalize myRating/ownedByMe on the returned cards.
   getRelatedBlueprints(id: string) {
     return this.http.get<RelatedBlueprintsResponse>(
       `/api/blueprints/${id}/related`,
@@ -361,7 +365,7 @@ export class BlueprintService implements IObsBlueprintChange {
     skip?: number,
     filterModded?: boolean | null,
     filterForkedFrom?: string | null,
-    filterLikedBy?: string | null,
+    filterRatedBy?: string | null,
     filterRooms?: string | null,
   ) {
     const parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
@@ -398,8 +402,8 @@ export class BlueprintService implements IObsBlueprintChange {
     if (filterForkedFrom != null)
       parameterForkedFrom = "&forkedFrom=" + filterForkedFrom;
 
-    let parameterLikedBy = "";
-    if (filterLikedBy != null) parameterLikedBy = "&likedBy=" + filterLikedBy;
+    let parameterRatedBy = "";
+    if (filterRatedBy != null) parameterRatedBy = "&ratedBy=" + filterRatedBy;
 
     let parameterRooms = "";
     if (filterRooms != null) parameterRooms = "&rooms=" + filterRooms;
@@ -414,7 +418,7 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterSort +
       parameterModded +
       parameterForkedFrom +
-      parameterLikedBy +
+      parameterRatedBy +
       parameterRooms;
 
     const request = this.authService.isLoggedIn()
@@ -499,7 +503,7 @@ export class BlueprintService implements IObsBlueprintChange {
   isPublished?: boolean;
 
   // Returns the observable: callers need success/error to update their UI
-  // (unlike the fire-and-forget likeBlueprint)
+  // (rateBlueprint does the same)
   setPublished(blueprintId: string, publish: boolean) {
     const action = publish ? "publish" : "unpublish";
     return this.http
@@ -536,21 +540,19 @@ export class BlueprintService implements IObsBlueprintChange {
       .subscribe({ error: () => {} });
   }
 
-  nbLikes!: number;
-  likedByMe!: boolean;
-  likeBlueprint(blueprintId: string, like: boolean) {
-    this.likedByMe = !this.likedByMe;
-    const body: BlueprintLike = {
+  nbRatings!: number;
+  rating!: number;
+  myRating!: number | null;
+  rateBlueprint(blueprintId: string, rating: number) {
+    const body: BlueprintRate = {
       blueprintId: blueprintId,
-      like: like,
+      rating: rating,
     };
 
-    // We don't care about the response
-    this.http
-      .post("/api/likeblueprint", body, {
-        headers: { Authorization: `Bearer ${this.authService.getToken()}` },
-      })
-      .subscribe();
+    // Response carries the fresh aggregate so widgets can update in place
+    return this.http.post<BlueprintRateResponse>("/api/rateblueprint", body, {
+      headers: { Authorization: `Bearer ${this.authService.getToken()}` },
+    });
   }
 }
 

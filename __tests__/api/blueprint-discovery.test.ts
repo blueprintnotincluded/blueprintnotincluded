@@ -19,8 +19,8 @@ async function makeBlueprint(owner: Types.ObjectId, overrides: Record<string, an
   return BlueprintModel.model.create({
     owner,
     name: `Discovery Test Blueprint ${new Types.ObjectId().toString()}`,
-    likes: [],
-    likeCount: 0,
+    ratingCount: 0,
+    ratingAverage: 0,
     forkCount: 0,
     viewCount: 0,
     downloadCount: 0,
@@ -139,13 +139,15 @@ describe('Discovery: related blueprints + trending sort', function () {
     it('ranks recently engaged blueprints above older ones with the same raw engagement', async function () {
       const hot = await makeBlueprint(testData.users.user1._id, {
         name: 'Trending Hot Recent',
-        likeCount: 10,
+        ratingCount: 10,
+        ratingAverage: 4,
         forkCount: 2,
         createdAt: new Date(),
       });
       const stale = await makeBlueprint(testData.users.user2._id, {
         name: 'Trending Stale Old',
-        likeCount: 10,
+        ratingCount: 10,
+        ratingAverage: 4,
         forkCount: 2,
         createdAt: daysAgo(60),
       });
@@ -159,15 +161,17 @@ describe('Discovery: related blueprints + trending sort', function () {
       expect(names.indexOf(hot.name)).to.be.lessThan(names.indexOf(stale.name));
     });
 
-    it('reorders relative to the plain popular (most-liked) sort', async function () {
+    it('reorders relative to the plain popular (top-rated) sort', async function () {
       const oldButLiked = await makeBlueprint(testData.users.user1._id, {
         name: 'Trending Old But Liked',
-        likeCount: 50,
+        ratingCount: 50,
+        ratingAverage: 5,
         createdAt: daysAgo(90),
       });
       const newSmall = await makeBlueprint(testData.users.user2._id, {
         name: 'Trending New Small',
-        likeCount: 3,
+        ratingCount: 3,
+        ratingAverage: 4,
         createdAt: new Date(),
       });
 

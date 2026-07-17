@@ -14,8 +14,9 @@ function makeItem(overrides: any = {}) {
     createdAt: new Date("2026-01-01"),
     modifiedAt: new Date("2026-01-01"),
     thumbnail: "data:image/png;base64,xyz",
-    nbLikes: 7,
-    likedByMe: true,
+    nbRatings: 7,
+    rating: 4.5,
+    myRating: null,
     ownedByMe: false,
     commentCount: 4,
     nbForks: 3,
@@ -177,16 +178,14 @@ describe("BlueprintCardComponent", () => {
     expect(fixture.debugElement.query(By.css(".bni-chip--room"))).toBeNull();
   });
 
-  it("passes like state through to the like widget", () => {
-    component.item = makeItem({ nbLikes: 7, likedByMe: true });
-    component.loggedIn = false;
+  it("passes the rating aggregate through to the star row", () => {
+    component.item = makeItem({ nbRatings: 7, rating: 4.5 });
     fixture.detectChanges();
 
-    const widget = fixture.debugElement.query(By.css("app-like-widget"));
-    expect(widget.properties["blueprintId"]).toBe("bp-1");
-    expect(widget.properties["nbLikes"]).toBe(7);
-    expect(widget.properties["likedByMe"]).toBe(true);
-    expect(widget.properties["disabled"]).toBe(true);
+    const stars = fixture.debugElement.query(By.css("app-star-rating"));
+    expect(stars.properties["average"]).toBe(4.5);
+    expect(stars.properties["count"]).toBe(7);
+    expect(stars.properties["showCount"]).toBe(false);
   });
 
   it("renders the comment and fork counts", () => {
@@ -242,7 +241,7 @@ describe("BlueprintCardComponent", () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css(".bni-skel"))).toBeTruthy();
-    expect(fixture.debugElement.query(By.css("app-like-widget"))).toBeNull();
+    expect(fixture.debugElement.query(By.css("app-star-rating"))).toBeNull();
   });
 
   it("renders the no-results state without card content", () => {
@@ -250,6 +249,6 @@ describe("BlueprintCardComponent", () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain("No Results");
-    expect(fixture.debugElement.query(By.css("app-like-widget"))).toBeNull();
+    expect(fixture.debugElement.query(By.css("app-star-rating"))).toBeNull();
   });
 });

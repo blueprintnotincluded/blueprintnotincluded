@@ -33,10 +33,14 @@ describe("BlueprintService", () => {
       expect(service.id).toBeNull();
     });
 
-    it("clears likedByMe to false", () => {
-      service.likedByMe = true;
+    it("clears the rating state", () => {
+      service.myRating = 4;
+      service.rating = 4.5;
+      service.nbRatings = 7;
       service.reset();
-      expect(service.likedByMe).toBe(false);
+      expect(service.myRating).toBeNull();
+      expect(service.rating).toBe(0);
+      expect(service.nbRatings).toBe(0);
     });
   });
 
@@ -282,8 +286,9 @@ describe("BlueprintService", () => {
         of({
           id: "bp-1",
           name: "My Blueprint",
-          likedByMe: true,
-          nbLikes: 7,
+          nbRatings: 7,
+          rating: 4.5,
+          myRating: 4,
           data: { blueprintItems: [] },
         }),
       );
@@ -294,8 +299,9 @@ describe("BlueprintService", () => {
       expect(result).toBeDefined();
       expect(service.id).toBe("bp-1");
       expect(service.name).toBe("My Blueprint");
-      expect(service.likedByMe).toBe(true);
-      expect(service.nbLikes).toBe(7);
+      expect(service.nbRatings).toBe(7);
+      expect(service.rating).toBe(4.5);
+      expect(service.myRating).toBe(4);
     });
 
     it("returns undefined when response has no data", () => {
@@ -314,8 +320,9 @@ describe("BlueprintService", () => {
         of({
           id: "test-id",
           name: "Test",
-          likedByMe: false,
-          nbLikes: 0,
+          nbRatings: 0,
+          rating: 0,
+          myRating: null,
           data: { blueprintItems: [] },
         }),
       );
@@ -330,8 +337,9 @@ describe("BlueprintService", () => {
         of({
           id: "test-id",
           name: "Test",
-          likedByMe: false,
-          nbLikes: 0,
+          nbRatings: 0,
+          rating: 0,
+          myRating: null,
           data: { blueprintItems: [] },
         }),
       );
@@ -489,30 +497,26 @@ describe("BlueprintService", () => {
     });
   });
 
-  describe("likeBlueprint()", () => {
+  describe("rateBlueprint()", () => {
     beforeEach(() => {
-      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.post.mockReturnValue(
+        of({ nbRatings: 3, rating: 4, myRating: 5 }),
+      );
     });
 
-    it("toggles likedByMe from false to true", () => {
-      service.likedByMe = false;
-      service.likeBlueprint("bp-1", true);
-      expect(service.likedByMe).toBe(true);
-    });
-
-    it("toggles likedByMe from true to false", () => {
-      service.likedByMe = true;
-      service.likeBlueprint("bp-1", false);
-      expect(service.likedByMe).toBe(false);
-    });
-
-    it("calls http.post with the likeblueprint endpoint and correct body", () => {
-      service.likeBlueprint("bp-1", true);
+    it("calls http.post with the rateblueprint endpoint and correct body", () => {
+      service.rateBlueprint("bp-1", 5).subscribe();
       expect(mockHttp.post).toHaveBeenCalledWith(
-        "/api/likeblueprint",
-        { blueprintId: "bp-1", like: true },
+        "/api/rateblueprint",
+        { blueprintId: "bp-1", rating: 5 },
         expect.any(Object),
       );
+    });
+
+    it("returns the fresh aggregate from the server", () => {
+      let result: any;
+      service.rateBlueprint("bp-1", 5).subscribe((r) => (result = r));
+      expect(result).toEqual({ nbRatings: 3, rating: 4, myRating: 5 });
     });
   });
 

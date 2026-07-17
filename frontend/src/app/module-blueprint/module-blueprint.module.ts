@@ -59,8 +59,8 @@ import { DialogBrowseComponent } from "./components/dialogs/dialog-browse/dialog
 import { DialogExportImagesComponent } from "./components/dialogs/dialog-export-images/dialog-export-images.component";
 import { BlueprintNameValidationDirective } from "./directives/blueprint-name-validation.directive";
 import { QueuedPreviewDirective } from "./directives/queued-preview.directive";
-import { LikeWidgetComponent } from "./components/like-widget/like-widget.component";
 import { StarRatingComponent } from "./components/star-rating/star-rating.component";
+import { RatingWidgetComponent } from "./components/rating-widget/rating-widget.component";
 import { ForkButtonComponent } from "./components/fork-button/fork-button.component";
 import { BlueprintCardComponent } from "./components/blueprint-card/blueprint-card.component";
 import { VersionHistoryDialogComponent } from "./components/dialogs/version-history-dialog/version-history-dialog.component";
@@ -122,8 +122,8 @@ import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-butt
     ItemCollectionInfoComponent,
     DialogBrowseComponent,
     DialogExportImagesComponent,
-    LikeWidgetComponent,
     StarRatingComponent,
+    RatingWidgetComponent,
     ForkButtonComponent,
     BlueprintCardComponent,
     VersionHistoryDialogComponent,

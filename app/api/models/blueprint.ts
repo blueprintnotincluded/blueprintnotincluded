@@ -4,10 +4,12 @@ import { GAME_VERSIONS, CATEGORIES, RESEARCH_TIERS, ROOM_TYPE_IDS } from '../../
 export interface Blueprint extends Document {
   owner: string;
   name: string;
-  likes: string[];
-  // optional: documents predating the backfill migration lack this field —
-  // callers must fall back to likes?.length (see blueprint-controller)
-  likeCount?: number;
+  // Star-rating aggregate, denormalized from the blueprintratings collection
+  // by BlueprintController.recomputeRatingAggregate — never computed at read
+  // time. (Replaced the retired likes/likeCount fields; orphaned like data
+  // may linger on old documents until a cleanup migration drops it.)
+  ratingCount?: number;
+  ratingAverage?: number;
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;
@@ -59,8 +61,8 @@ export class BlueprintModel {
         maxlength: [60, 'Blueprint name must be 60 characters or fewer'],
         minlength: [1, 'Blueprint name is required'],
       },
-      likes: { type: [String] },
-      likeCount: { type: Number, default: 0 },
+      ratingCount: { type: Number, default: 0 },
+      ratingAverage: { type: Number, default: 0 },
       createdAt: Date,
       modifiedAt: Date,
       thumbnail: String,
@@ -120,8 +122,14 @@ export class BlueprintModel {
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, category: 1, createdAt: -1 });
     // Room-type filter on the public feed (multikey on rooms)
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, rooms: 1, createdAt: -1 });
-    // "Most liked" sort on the public feed
-    blueprintSchema.index({ deletedAt: 1, isPublished: 1, likeCount: -1, createdAt: -1 });
+    // "Top rated" sort on the public feed
+    blueprintSchema.index({
+      deletedAt: 1,
+      isPublished: 1,
+      ratingAverage: -1,
+      ratingCount: -1,
+      createdAt: -1,
+    });
     // "Most forked" sort
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, forkCount: -1, createdAt: -1 });
     // "Most viewed" / "Most downloaded" sorts

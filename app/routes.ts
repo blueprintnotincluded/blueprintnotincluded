@@ -94,7 +94,7 @@ export class Routes {
     // Logged in access
     app.route('/api/getblueprintsSecure').get(auth, this.uploadBlueprintController.getBlueprints);
     app.route('/api/uploadblueprint').post(auth, this.uploadBlueprintController.uploadBlueprint);
-    app.route('/api/likeblueprint').post(auth, this.uploadBlueprintController.likeBlueprint);
+    app.route('/api/rateblueprint').post(auth, this.uploadBlueprintController.rateBlueprint);
     app.route('/api/deleteblueprint').post(auth, this.uploadBlueprintController.deleteBlueprint);
     app.route('/api/blueprints/:id/publish').post(auth, this.uploadBlueprintController.publishBlueprint);
     app.route('/api/blueprints/:id/unpublish').post(auth, this.uploadBlueprintController.unpublishBlueprint);

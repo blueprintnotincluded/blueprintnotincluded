@@ -25,7 +25,7 @@ export interface FollowListResponse {
     oldest: string;
     remaining: number;
 }
-export type NotificationType = 'comment' | 'reply' | 'like' | 'fork' | 'follow';
+export type NotificationType = 'comment' | 'reply' | 'like' | 'rating' | 'fork' | 'follow';
 export interface NotificationDto {
     id: string;
     type: NotificationType;

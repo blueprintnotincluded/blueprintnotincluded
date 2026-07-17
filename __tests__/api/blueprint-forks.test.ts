@@ -78,8 +78,8 @@ describe('Fork + BlueprintVersion API', function () {
       expect(fork!.name).to.equal('Super Coal Generator Setup fork');
       expect(fork!.currentVersionId).to.not.equal(null);
       expect(fork!.forkedFrom!.blueprintId.toString()).to.equal(popularId);
-      expect(fork!.likes).to.deep.equal([testData.users.user2._id.toString()]);
-      expect(fork!.likeCount).to.equal(1);
+      expect(fork!.ratingCount).to.equal(0); // forks start unrated
+      expect(fork!.ratingAverage).to.equal(0);
 
       const forkVersion = await BlueprintVersionModel.model.findById(fork!.currentVersionId);
       expect(forkVersion).to.not.equal(null);

@@ -44,6 +44,7 @@ import { BlueprintModel, Blueprint } from '../models/blueprint';
 import { BlueprintVersionModel } from '../models/blueprint-version';
 import { CommentModel } from '../models/comment';
 import { FollowModel } from '../models/follow';
+import { BlueprintRatingModel } from '../models/blueprint-rating';
 import { FeedbackModel } from '../models/feedback';
 import { ensureCurrentVersion } from '../services/blueprint-version-service';
 import { sanitizeCommentBody } from '../services/comment-body';
@@ -117,7 +118,7 @@ interface SourceSpec {
   description: string;
   prefabIds: string[];
   daysAgo: number;
-  likedBy: string[]; // usernames
+  ratedBy: string[]; // usernames (each seeds a 4-5 star rating)
 }
 
 const SOURCE_SPECS: SourceSpec[] = [
@@ -128,7 +129,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'A single manual generator. Should categorize as power.',
     prefabIds: ['ManualGenerator'], // -> power / base
     daysAgo: 30,
-    likedBy: ['dev_forker', 'dev_lurker', 'dev_creator_beta', 'dev_admin'],
+    ratedBy: ['dev_forker', 'dev_lurker', 'dev_creator_beta', 'dev_admin'],
   },
   {
     owner: 'dev_creator_alpha',
@@ -137,7 +138,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'One electrolyzer. Should categorize as oxygenGen.',
     prefabIds: ['Electrolyzer'], // -> oxygenGen / base
     daysAgo: 26,
-    likedBy: ['dev_lurker', 'dev_forker'],
+    ratedBy: ['dev_lurker', 'dev_forker'],
   },
   {
     owner: 'dev_creator_beta',
@@ -146,7 +147,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'AirConditioner sits in the game "utilities" tab but is a cooling signature prefab.',
     prefabIds: ['AirConditioner'], // -> cooling / base (signature, not game-category)
     daysAgo: 22,
-    likedBy: ['dev_lurker'],
+    ratedBy: ['dev_lurker'],
   },
   {
     owner: 'dev_creator_beta',
@@ -155,7 +156,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'Single metal refinery. Should categorize as refining.',
     prefabIds: ['MetalRefinery'], // -> refining / base
     daysAgo: 18,
-    likedBy: ['dev_admin', 'dev_forker'],
+    ratedBy: ['dev_admin', 'dev_forker'],
   },
   {
     owner: 'dev_creator_alpha',
@@ -164,7 +165,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'One microbe musher. Should categorize as food.',
     prefabIds: ['MicrobeMusher'], // -> food / base
     daysAgo: 15,
-    likedBy: ['dev_lurker'],
+    ratedBy: ['dev_lurker'],
   },
   {
     owner: 'dev_creator_beta',
@@ -173,7 +174,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'Single ranch station. Should categorize as ranching.',
     prefabIds: ['RanchStation'], // -> ranching / base
     daysAgo: 12,
-    likedBy: ['dev_forker'],
+    ratedBy: ['dev_forker'],
   },
   {
     owner: 'dev_creator_alpha',
@@ -182,7 +183,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'A single gas pump. Ventilation/hvac is intentionally unmapped, so this should stay Untagged.',
     prefabIds: ['GasPump'], // -> Untagged / base (hvac deliberately not mapped)
     daysAgo: 9,
-    likedBy: ['dev_lurker', 'dev_admin'],
+    ratedBy: ['dev_lurker', 'dev_admin'],
   },
   {
     owner: 'dev_forker',
@@ -191,7 +192,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'Just wires. No functional signal — should stay Untagged.',
     prefabIds: ['Wire', 'Wire'], // -> Untagged / base
     daysAgo: 7,
-    likedBy: [],
+    ratedBy: [],
   },
   {
     owner: 'dev_creator_alpha',
@@ -200,7 +201,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'Electrolyzer + a Spaced Out battery module — category oxygenGen, gameVersion spacedOut.',
     prefabIds: ['Electrolyzer', 'BatteryModule'], // -> oxygenGen / spacedOut (BatteryModule = EXPANSION1_ID)
     daysAgo: 4,
-    likedBy: ['dev_forker', 'dev_lurker', 'dev_admin'],
+    ratedBy: ['dev_forker', 'dev_lurker', 'dev_admin'],
   },
   {
     owner: 'dev_creator_beta',
@@ -209,7 +210,7 @@ const SOURCE_SPECS: SourceSpec[] = [
     description: 'Contains a prefab ID absent from the database — should flag modded=true.',
     prefabIds: ['ManualGenerator', 'TotallyFakeModBuilding'], // -> power / base / modded=true
     daysAgo: 2,
-    likedBy: [],
+    ratedBy: [],
   },
 ];
 
@@ -323,15 +324,13 @@ function printLogin(label: string, token: string): void {
   console.log(`  localStorage.setItem('blueprintnotincluded-token', '${token}'); location.reload();`);
 }
 
-async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId, likedBy: string[]) {
+async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId, ratedBy: string[]) {
   const sourceVersion = await ensureCurrentVersion(source);
   const now = new Date();
 
   const forked = new BlueprintModel.model({
     owner: ownerId,
     name: `${source.name} fork`,
-    likes: likedBy,
-    likeCount: likedBy.length,
     data: sourceVersion.data,
     thumbnail: sourceVersion.thumbnail,
     createdAt: now,
@@ -360,6 +359,7 @@ async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId
   await forked.save();
 
   await BlueprintModel.model.updateOne({ _id: source._id }, { $inc: { forkCount: 1 } });
+  await seedRatings(forked, ratedBy);
   return forked;
 }
 
@@ -376,6 +376,12 @@ async function cleanupPrior(): Promise<void> {
   const priorBlueprintIds = priorBlueprints.map(b => b._id);
 
   await BlueprintVersionModel.model.deleteMany({ blueprintId: { $in: priorBlueprintIds } });
+  await BlueprintRatingModel.model.deleteMany({
+    $or: [
+      { blueprintId: { $in: priorBlueprintIds } },
+      { userId: { $in: contentUserIds.map(id => id.toString()) } },
+    ],
+  });
   await CommentModel.model.deleteMany({
     $or: [{ blueprintId: { $in: priorBlueprintIds } }, { authorId: { $in: contentUserIds } }],
   });
@@ -397,6 +403,28 @@ function initModels(): void {
   CommentModel.init();
   FollowModel.init();
   FeedbackModel.init();
+  BlueprintRatingModel.init();
+}
+
+// Seed one rating doc per rater with varied values (5,4,5,4…) and set the
+// blueprint's denormalized aggregate — the invariant the rate endpoint keeps.
+async function seedRatings(blueprint: Blueprint, raterIds: string[]): Promise<void> {
+  if (raterIds.length === 0) return;
+  const now = new Date();
+  const values = raterIds.map((_, index) => (index % 2 === 0 ? 5 : 4));
+  await BlueprintRatingModel.model.insertMany(
+    raterIds.map((userId, index) => ({
+      blueprintId: blueprint._id,
+      userId,
+      value: values[index],
+      createdAt: now,
+      updatedAt: now,
+    }))
+  );
+  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+  blueprint.ratingCount = values.length;
+  blueprint.ratingAverage = average;
+  await blueprint.save();
 }
 
 // `npm run seed:dev-user`: restore ONLY the protected user + reprint its token, with no
@@ -446,13 +474,11 @@ async function run() {
     const modded = deriveModded(spec.prefabIds, knownIds);
     const category = deriveCategory(spec.prefabIds, categoryLookup);
 
-    const likes = spec.likedBy.map(u => idOf(u).toString());
+    const raterIds = spec.ratedBy.map(u => idOf(u).toString());
     const created = daysAgo(spec.daysAgo);
     const blueprint = new BlueprintModel.model({
       owner: idOf(spec.owner),
       name: spec.name,
-      likes,
-      likeCount: likes.length,
       thumbnail: THUMBNAIL,
       data: blueprintData(spec.prefabIds),
       gameVersion,
@@ -465,14 +491,16 @@ async function run() {
       deletedAt: null,
     });
     await blueprint.save();
+    await seedRatings(blueprint, raterIds);
     sourcesByName.set(spec.name, blueprint);
     derivedRows.push({ name: spec.name, gameVersion, category: category ?? 'Untagged', modded });
   }
 
-  // Forks (real BlueprintVersion + forkedFrom + forkCount), including a fork-of-fork
+  // Forks (real BlueprintVersion + forkedFrom + forkCount), including a fork-of-fork.
+  // Forks start unrated — self-rating is forbidden, so the forker can't seed one.
   const forksByName = new Map<string, Blueprint>();
   for (const [sourceName, forkerName] of FORKS) {
-    const fork = await forkBlueprint(sourcesByName.get(sourceName)!, idOf(forkerName), [idOf(forkerName).toString()]);
+    const fork = await forkBlueprint(sourcesByName.get(sourceName)!, idOf(forkerName), []);
     forksByName.set(fork.name, fork);
   }
   for (const [forkName, forkerName] of FORK_OF_FORKS) {
@@ -482,15 +510,13 @@ async function run() {
   }
 
   // A blueprint OWNED by the protected user, so `dev_you`'s profile/feed isn't empty:
-  // it gets likes, and dev_forker forks it (so "someone forked my build" is testable).
+  // it gets ratings, and dev_forker forks it (so "someone forked my build" is testable).
   const myPrefabs = ['ManualGenerator', 'Wire'];
-  const myLikers = [idOf('dev_lurker').toString(), idOf('dev_creator_alpha').toString()];
+  const myRaters = [idOf('dev_lurker').toString(), idOf('dev_creator_alpha').toString()];
   const myCreated = daysAgo(5);
   const myBlueprint = new BlueprintModel.model({
     owner: idOf(PROTECTED_USER.username),
     name: 'My Test Base',
-    likes: myLikers,
-    likeCount: myLikers.length,
     thumbnail: THUMBNAIL,
     data: blueprintData(myPrefabs),
     gameVersion: deriveGameVersion(myPrefabs.map(id => dlcIdsMap.get(id) ?? [])),
@@ -503,8 +529,9 @@ async function run() {
     deletedAt: null,
   });
   await myBlueprint.save();
+  await seedRatings(myBlueprint, myRaters);
   sourcesByName.set(myBlueprint.name, myBlueprint);
-  await forkBlueprint(myBlueprint, idOf('dev_forker'), [idOf('dev_forker').toString()]);
+  await forkBlueprint(myBlueprint, idOf('dev_forker'), []);
 
   // Mentions resolver over the seeded users (lowercased username -> userId)
   const resolveMentions = async (usernames: string[]): Promise<Map<string, string>> => {
