@@ -585,6 +585,111 @@ describe("BrowsePageComponent", () => {
     });
   });
 
+  describe("active filter chips (visible above the grid regardless of sidebar scroll)", () => {
+    it("is empty with no active filters", () => {
+      expect(component.activeFilterChips).toEqual([]);
+    });
+
+    it("builds one chip per active facet, using human labels for rooms and modded", () => {
+      component.filterName = "spom";
+      component.filterCategory = "ranching";
+      component.filterSubcategory = "critter";
+      component.filterGameVersion = "spacedOut";
+      component.filterModded = true;
+      component.filterRooms = "latrine,kitchen";
+
+      const labels = component.activeFilterChips.map((c) => c.label);
+
+      expect(labels).toEqual([
+        'Search: "spom"',
+        "ranching",
+        "critter",
+        "spacedOut",
+        "Modded",
+        "Latrine",
+        "Kitchen",
+      ]);
+    });
+
+    it("labels an explicit modded=false as Base game", () => {
+      component.filterModded = false;
+      expect(component.activeFilterChips[0].label).toBe("Base game");
+    });
+
+    it("clicking a chip's remove() clears just that facet and refetches", () => {
+      component.filterCategory = "ranching";
+      component.filterRooms = "latrine";
+
+      const categoryChip = component.activeFilterChips.find(
+        (c) => c.key === "category",
+      )!;
+      categoryChip.remove();
+
+      expect(component.filterCategory).toBeNull();
+      expect(component.filterRooms).toBe("latrine");
+    });
+
+    it("removing a room chip clears the whole rooms filter (rooms is single-select)", () => {
+      component.filterRooms = "latrine,kitchen";
+
+      const roomChip = component.activeFilterChips.find((c) =>
+        c.key.startsWith("room-"),
+      )!;
+      roomChip.remove();
+
+      expect(component.filterRooms).toBeNull();
+    });
+
+    it("clearNameFilter is a no-op when the search box is already empty", () => {
+      const callsBefore = blueprintService.getBlueprints.mock.calls.length;
+      component.clearNameFilter();
+      expect(blueprintService.getBlueprints.mock.calls.length).toBe(
+        callsBefore,
+      );
+    });
+
+    it("clearModdedFilter is a no-op when modded is already unset", () => {
+      const callsBefore = blueprintService.getBlueprints.mock.calls.length;
+      component.clearModdedFilter();
+      expect(blueprintService.getBlueprints.mock.calls.length).toBe(
+        callsBefore,
+      );
+    });
+
+    it("clearModdedFilter resets modded (facetSubject refetches on the next tick)", () => {
+      component.filterModded = true;
+      component.clearModdedFilter();
+      expect(component.filterModded).toBeNull();
+    });
+  });
+
+  describe("empty-state messaging", () => {
+    it("uses the generic no-results message when no filters are active", () => {
+      component.handleGetBlueprints({
+        oldest: Date.now(),
+        blueprints: [],
+        remaining: 0,
+      } as any);
+
+      expect(component.blueprintListItems[0].name).toBe("No Results");
+    });
+
+    it("uses a filter-aware message when the empty page is filter-driven", () => {
+      component.filterCategory = "ranching";
+      component.filterRooms = "latrine";
+
+      component.handleGetBlueprints({
+        oldest: Date.now(),
+        blueprints: [],
+        remaining: 0,
+      } as any);
+
+      expect(component.blueprintListItems[0].name).toBe(
+        "No blueprints match these filters",
+      );
+    });
+  });
+
   describe("list transition (minimum animation on context switches)", () => {
     it("keeps the old cards during the fade-out, then applies a fast response with no placeholder flash", () => {
       vi.useFakeTimers();

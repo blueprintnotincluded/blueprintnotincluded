@@ -181,11 +181,38 @@
           </div>
         </div>
 
-        <div *ngIf="filterModded !== null" class="filter-context-banner">
-          <span *ngIf="filterModded" i18n>Showing modded blueprints only.</span>
-          <span *ngIf="!filterModded" i18n
-            >Showing base-game (unmodded) blueprints only.</span
+        <div
+          *ngIf="viewMode === 'discover' && hasActiveFilters"
+          class="active-filters-bar"
+        >
+          <button
+            *ngFor="let chip of activeFilterChips"
+            type="button"
+            class="active-filter-chip"
+            [attr.aria-label]="chip.ariaLabel"
+            (click)="chip.remove()"
           >
+            {{ chip.label }}
+            <svg
+              width="9"
+              height="9"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3.4"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M5 5l14 14M19 5L5 19"></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="clear-filters clear-filters--inline"
+            (click)="clearFilters()"
+          >
+            <ng-container i18n>Clear all</ng-container>
+          </button>
         </div>
 
         <div *ngIf="filterForkedFrom" class="filter-context-banner" i18n>
