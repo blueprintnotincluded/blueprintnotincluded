@@ -328,21 +328,33 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.rating).to.equal(4.5);
     });
 
-    it('should set myRating when userId has rated the blueprint', async function () {
+    it('should set myRating from the authenticated viewer who rated the blueprint', async function () {
       const id = testData.blueprints.popularBlueprint._id.toString();
-      const userId = testData.users.user2._id.toString(); // user2 rated it 5 (seeded)
+      const token = testData.users.user2.generateJwt(); // user2 rated it 5 (seeded)
 
       const response = await TestSetup.request()
         .get(`/api/getblueprint/${id}`)
-        .query({ userId });
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).to.equal(200);
       expect(response.body.myRating).to.equal(5);
     });
 
-    it('should return myRating=null when userId has not rated', async function () {
+    it('should return myRating=null when the authenticated viewer has not rated', async function () {
       const id = testData.blueprints.popularBlueprint._id.toString();
-      const userId = testData.users.user1._id.toString(); // user1 owns it, cannot rate it
+      const token = testData.users.user1.generateJwt(); // user1 owns it, cannot rate it
+
+      const response = await TestSetup.request()
+        .get(`/api/getblueprint/${id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).to.equal(200);
+      expect(response.body.myRating).to.equal(null);
+    });
+
+    it('should ignore a caller-supplied userId query param (no rating leak)', async function () {
+      const id = testData.blueprints.popularBlueprint._id.toString();
+      const userId = testData.users.user2._id.toString(); // user2 rated it 5 (seeded)
 
       const response = await TestSetup.request()
         .get(`/api/getblueprint/${id}`)

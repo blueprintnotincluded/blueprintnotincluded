@@ -373,21 +373,21 @@ export class BlueprintController {
     }
     // TODO checks here
     let id = String(req.params.id);
-    let userId = req.query.userId;
 
     try {
       const blueprint = await BlueprintModel.model.findOne({ _id: id });
+      const viewer = optionalViewer(req);
       // TODO: this endpoint (like getBlueprintMod/getBlueprintThumbnail) still
       // serves soft-deleted blueprints — pre-existing behavior, left as is.
-      if (blueprint == null || !canViewBlueprint(blueprint, optionalViewer(req))) {
+      if (blueprint == null || !canViewBlueprint(blueprint, viewer)) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
       }
 
       let myRating: number | null = null;
-      if (userId != null && BlueprintRatingModel.model != null) {
+      if (viewer != null && BlueprintRatingModel.model != null) {
         const mine = await BlueprintRatingModel.model
-          .findOne({ blueprintId: blueprint._id, userId: userId as string })
+          .findOne({ blueprintId: blueprint._id, userId: viewer._id })
           .select('value')
           .lean();
         myRating = mine?.value ?? null;
