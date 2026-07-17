@@ -432,6 +432,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   // is visible even when the sidebar is scrolled out of view — the sidebar
   // alone left users unable to tell why a narrow combination (e.g. a room
   // that category's buildings never form) returned nothing.
+  trackChip(_index: number, chip: ActiveFilterChip): string {
+    return chip.key;
+  }
+
   get activeFilterChips(): ActiveFilterChip[] {
     const chips: ActiveFilterChip[] = [];
 
