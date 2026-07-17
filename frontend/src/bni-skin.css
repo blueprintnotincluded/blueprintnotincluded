@@ -318,6 +318,14 @@
   font-style: italic;
 }
 
+/* square PrimeNG fields (their radius tokens don't all derive from the
+ * base --p-border-radius-* scale) */
+.bni-skin .p-inputtext,
+.bni-skin .p-textarea,
+.bni-skin .p-select {
+  border-radius: 0;
+}
+
 /* ---- buttons (plain <button>/<a> elements): flat, square ---- */
 .bni-btn {
   display: inline-flex;
