@@ -23,7 +23,8 @@
 //       was never touched, so down restores exactly the pre-up state.
 //
 // Both directions are idempotent — safe to re-run if interrupted (rating
-// seeds are upserts keyed on the unique index; aggregate writes are
+// seeds are insert-only upserts keyed on the unique index, so a re-run
+// never overwrites a rating a user has since changed; aggregate writes are
 // recomputed from the ratings collection each run).
 
 const NEW_SORT_INDEX = {
@@ -72,9 +73,10 @@ module.exports = {
         raterIds.map(userId => ({
           updateOne: {
             filter: { blueprintId: blueprint._id, userId },
+            // insert-only: a re-run must never overwrite a rating the user
+            // has since changed through the app
             update: {
-              $set: { value: 5, updatedAt: now },
-              $setOnInsert: { createdAt: now },
+              $setOnInsert: { value: 5, createdAt: now, updatedAt: now },
             },
             upsert: true,
           },
