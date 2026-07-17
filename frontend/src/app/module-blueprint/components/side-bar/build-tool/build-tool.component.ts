@@ -56,8 +56,9 @@ export class ComponentSideBuildToolComponent
   databaseLoaded: boolean = false;
   oniItemsLoaded() {
     //this.toolService.buildTool.changeItem(BlueprintHelpers.createInstance('SteamTurbine2'));
+    // "Tile" is always present in the database, so this is never null.
     this.toolService.buildTool.changeItem(
-      BlueprintHelpers.createInstance("Tile"),
+      BlueprintHelpers.createInstance("Tile")!,
     );
     this.databaseLoaded = true;
   }
@@ -146,8 +147,9 @@ export class ComponentSideBuildToolComponent
   }
 
   uiItemChanged() {
+    // this.currentItem is itself an existing OniItem, so its id is known good.
     this.toolService.buildTool.changeItem(
-      BlueprintHelpers.createInstance(this.currentItem.id),
+      BlueprintHelpers.createInstance(this.currentItem.id)!,
     );
   }
 
