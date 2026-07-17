@@ -9,6 +9,18 @@
   padding: 12px 14px 13px;
 }
 
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.card-stars {
+  flex: none;
+  padding-top: 3px;
+}
+
 .card-meta {
   display: flex;
   justify-content: space-between;

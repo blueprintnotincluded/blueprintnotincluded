@@ -55,6 +55,11 @@
         <div class="details-meta">
           <h1>{{ details.name }}</h1>
 
+          <app-star-rating
+            class="details-stars"
+            [nbLikes]="details.nbLikes"
+          ></app-star-rating>
+
           <div class="details-byline">
             <span i18n
               >by

@@ -1,0 +1,22 @@
+<span
+  *ngIf="filled > 0"
+  class="bni-stars"
+  role="img"
+  [attr.aria-label]="likesLabel"
+  [title]="likesLabel"
+>
+  <svg
+    *ngFor="let i of starIndexes"
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    [class.bni-stars__empty]="i >= filled"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"
+    ></path>
+  </svg>
+  <span *ngIf="showCount" class="bni-stars__count">{{ likesLabel }}</span>
+</span>
