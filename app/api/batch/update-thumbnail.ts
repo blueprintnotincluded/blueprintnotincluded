@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 import { Database } from '../db';
-import { BlueprintModel,} from '../models/blueprint';
+import { BlueprintModel, thumbnailTypeOf } from '../models/blueprint';
 import {
   Blueprint as sharedBlueprint,
 //   Vector2,
@@ -94,6 +94,7 @@ export class UpdateThumbnail {
           global.gc && global.gc();
 
           blueprints[index].thumbnail = newThumbnail;
+          blueprints[index].thumbnailType = thumbnailTypeOf(newThumbnail);
           blueprints[index]
             .save()
             .then(() => {

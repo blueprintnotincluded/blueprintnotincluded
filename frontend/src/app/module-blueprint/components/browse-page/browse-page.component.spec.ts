@@ -577,7 +577,7 @@ describe("BrowsePageComponent", () => {
       ownerName: "alice",
       createdAt: new Date(),
       modifiedAt: new Date(),
-      thumbnail: "data:image/png;base64,xyz",
+      thumbnail: "real",
       nbRatings: 7,
       rating: 4.5,
       myRating: null,

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { BlueprintModel, Blueprint } from './models/blueprint';
+import { BlueprintModel, Blueprint, thumbnailTypeOf } from './models/blueprint';
 import {
   MdbBlueprint,
   BlueprintResponse,
@@ -475,35 +475,61 @@ export class BlueprintController {
     }
   }
 
-  public getBlueprintThumbnail(req: Request, res: Response) {
-    console.log('getBlueprintThumbnail' + req.clientIp);
-    if (BlueprintModel.model == null) res.status(503).send();
-    else {
-      // TODO checks here
-      let id = String(req.params.id);
-//       let _userId = req.query.userId;
+  // GET /api/blueprints/:id/thumbnail — the stored save-time thumbnail decoded
+  // to its binary image. Only ever requested as the card's fallback when the
+  // server-rendered preview errors; list responses carry the 'real' sentinel
+  // instead of inlining this blob.
+  public async getBlueprintThumbnail(req: Request, res: Response): Promise<void> {
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
+    }
 
-      BlueprintModel.model
-        .find({ _id: id })
-        .then(blueprints => {
-          if (blueprints.length > 0 && canViewBlueprint(blueprints[0], optionalViewer(req))) {
-            let blueprint = blueprints[0];
+    const id = String(req.params.id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).send();
+      return;
+    }
 
-            let mdbBlueprint = blueprint.data as MdbBlueprint;
-            let angularBlueprint = new sharedBlueprint();
-            angularBlueprint.importFromMdb(mdbBlueprint);
+    try {
+      const blueprint = await BlueprintModel.model
+        .findOne({ _id: id, deletedAt: null })
+        .select('thumbnail modifiedAt owner isPublished')
+        .lean();
+      if (!blueprint || !canViewBlueprint(blueprint, optionalViewer(req))) {
+        res.status(404).send();
+        return;
+      }
 
-            // TODO not sure if I should allow users to regen, or just serve the save thumbnail
-            //PixiBackend.pixiBackend.generateThumbnail(angularBlueprint);
+      // Parse rather than trust thumbnailType: sentinels ('svg'/'svg_nothing')
+      // and pre-migration junk all fail the match and 404, and the stored mime
+      // comes out of the data URI itself (not always png).
+      const match = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(blueprint.thumbnail ?? '');
+      if (!match) {
+        res.status(404).send();
+        return;
+      }
 
-            res.json({ status: 'ok' });
-          } else res.status(404).json(apiError(404, 'Blueprint not found'));
-        })
-        .catch(err => {
-          console.log('Blueprint find error');
-          console.log(err);
-          res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
-        });
+      const modifiedAt = blueprint.modifiedAt ?? null;
+      const etag = `"${id}-${modifiedAt ? new Date(modifiedAt).getTime() : 0}-thumbnail"`;
+      if (req.headers['if-none-match'] === etag) {
+        res.set({ ETag: etag });
+        res.status(304).end();
+        return;
+      }
+
+      // Clients pass ?v=<modifiedAt ms> (same scheme as the preview urls), so
+      // a long shared max-age is safe; draft thumbnails are owner/admin-only
+      // and must never sit in a shared cache.
+      const cacheControl =
+        blueprint.isPublished === false ? 'private, no-store' : 'public, max-age=86400';
+
+      res.set({ 'Content-Type': match[1], 'Cache-Control': cacheControl, ETag: etag });
+      res.send(Buffer.from(match[2], 'base64'));
+    } catch (err) {
+      console.log('getBlueprintThumbnail error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve thumbnail'));
     }
   }
 
@@ -681,8 +707,9 @@ export class BlueprintController {
       // Trending has no single indexed field to sort on — it's a computed,
       // time-decayed score — so it goes through an aggregation instead of
       // the plain find().sort() every other sort uses.
-      // -data: the list never renders blueprint contents, and the blobs
-      // average ~85KB per doc — dominating the query's fetch cost otherwise
+      // -data -thumbnail: the list renders neither blueprint contents (~85KB
+      // avg) nor the inline thumbnail data URI (~10-20KB) — together they
+      // dominate the query's fetch cost otherwise
       let blueprintsPromise: Promise<Blueprint[]> =
         sort === 'trending'
           ? BlueprintController.getTrendingBlueprints(filter, skipAmount, limit)
@@ -691,7 +718,7 @@ export class BlueprintController {
               .sort(sortSpec)
               .skip(skipAmount)
               .limit(limit)
-              .select('-data')
+              .select('-data -thumbnail')
               .populate('owner');
 
       blueprintsPromise
@@ -821,7 +848,7 @@ export class BlueprintController {
     if (orderedIds.length === 0) return [];
     const docs = await BlueprintModel.model
       .find({ $and: [{ _id: { $in: orderedIds } }, filter] })
-      .select('-data')
+      .select('-data -thumbnail')
       .populate('owner');
     const byId = new Map(docs.map(doc => [(doc._id as mongoose.Types.ObjectId).toString(), doc]));
     return orderedIds
@@ -959,7 +986,10 @@ export class BlueprintController {
       ownerName: username,
       createdAt: blueprint.createdAt,
       modifiedAt: blueprint.modifiedAt,
-      thumbnail: blueprint.thumbnail,
+      // Sentinel only, never the ~10-20KB data URI — real images are fetched
+      // via /api/blueprints/:id/thumbnail. Missing thumbnailType (docs in the
+      // deploy→backfill-migration window) reads as 'real', the common case.
+      thumbnail: blueprint.thumbnailType ?? 'real',
       nbRatings: blueprint.ratingCount ?? 0,
       rating: blueprint.ratingAverage ?? 0,
       myRating: myRatings.get(id) ?? null,
@@ -1027,7 +1057,7 @@ export class BlueprintController {
               })
               .sort({ ratingAverage: -1, ratingCount: -1, createdAt: -1 })
               .limit(RELATED_LIMIT * 4)
-              .select('-data')
+              .select('-data -thumbnail')
               .populate('owner')
           : Promise.resolve([]),
         BlueprintModel.model
@@ -1039,7 +1069,7 @@ export class BlueprintController {
           })
           .sort({ createdAt: -1 })
           .limit(RELATED_LIMIT * 4)
-          .select('-data')
+          .select('-data -thumbnail')
           .populate('owner'),
       ]);
 
@@ -1053,7 +1083,7 @@ export class BlueprintController {
           .find({ deletedAt: null, isPublished: PUBLISHED_FILTER, _id: { $ne: blueprintId } })
           .sort({ createdAt: -1 })
           .limit(RELATED_LIMIT * 4)
-          .select('-data')
+          .select('-data -thumbnail')
           .populate('owner');
         for (const candidate of fallback) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
       }
@@ -1399,6 +1429,7 @@ export class BlueprintController {
     blueprint.data = data;
     blueprint.markModified('data');
     blueprint.thumbnail = thumbnail;
+    blueprint.thumbnailType = thumbnailTypeOf(thumbnail);
     blueprint.deletedAt = null;
     // Derived fact, never client-supplied — any `rooms` key in the request
     // body is ignored (same policy as a client trying to set ratingCount).

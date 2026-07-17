@@ -73,9 +73,6 @@ export class Routes {
     // Anonymous access
     app.route('/api/getblueprint/:id').get(this.uploadBlueprintController.getBlueprint);
     app.route('/api/getblueprintmod/:id').get(this.uploadBlueprintController.getBlueprintMod);
-    app
-      .route('/api/getblueprintthumbnail/:id')
-      .get(this.uploadBlueprintController.getBlueprintThumbnail);
     app.route('/api/getblueprints').get(this.uploadBlueprintController.getBlueprints);
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
@@ -85,6 +82,9 @@ export class Routes {
     app.route('/api/blueprints/:id').get(this.uploadBlueprintController.getBlueprintDetails);
     app.route('/api/blueprints/:id/related').get(this.uploadBlueprintController.getRelatedBlueprints);
     app.route('/api/blueprints/:id/preview/:variant').get(this.previewController.getPreview);
+    // Fallback image for cards when the preview render errors — the stored
+    // save-time thumbnail decoded from its data URI
+    app.route('/api/blueprints/:id/thumbnail').get(this.uploadBlueprintController.getBlueprintThumbnail);
     app.route('/api/blueprints/:id/comments').get(this.commentController.list);
     app.route('/api/blueprints/:id/versions').get(this.blueprintVersionController.listVersions);
     // Download beacon: anonymous (the editor's file export works logged out);

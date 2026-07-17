@@ -13,7 +13,7 @@ function makeItem(overrides: any = {}) {
     ownerName: "alice",
     createdAt: new Date("2026-01-01"),
     modifiedAt: new Date("2026-01-01"),
-    thumbnail: "data:image/png;base64,xyz",
+    thumbnail: "real",
     nbRatings: 7,
     rating: 4.5,
     myRating: null,
@@ -74,8 +74,8 @@ describe("BlueprintCardComponent", () => {
     );
   });
 
-  it("falls back to the inline thumbnail when the server preview errors", () => {
-    component.item = makeItem();
+  it("falls back to the stored-thumbnail endpoint when the server preview errors", () => {
+    component.item = makeItem({ modifiedAt: new Date(1700000000000) });
     fixture.detectChanges();
 
     const img = fixture.debugElement.query(By.css(".bni-card__thumb img"));
@@ -83,8 +83,13 @@ describe("BlueprintCardComponent", () => {
     fixture.detectChanges();
 
     expect(img.nativeElement.getAttribute("src")).toBe(
-      "data:image/png;base64,xyz",
+      "/api/blueprints/bp-1/thumbnail?v=1700000000000",
     );
+  });
+
+  it("provides no fallback url for sentinel thumbnails", () => {
+    component.item = makeItem({ thumbnail: "svg" });
+    expect(component.thumbnailFallbackUrl()).toBeNull();
   });
 
   it("shows the Draft chip only when the blueprint is unpublished", () => {

@@ -13,6 +13,10 @@ export interface BlueprintListItem {
   ownerName: string;
   createdAt: Date;
   modifiedAt: Date;
+  // List responses send a sentinel, never image data: 'real' = fetch the
+  // stored thumbnail via GET /api/blueprints/:id/thumbnail (used only as the
+  // preview's error fallback); 'svg'/'svg_nothing' render placeholder
+  // branches. (BlueprintDetailsResponse still inlines the data URI here.)
   thumbnail: string;
   // Star-rating aggregate (denormalized onto the blueprint; recomputed
   // out of band so the algorithm can evolve — plain average for now)

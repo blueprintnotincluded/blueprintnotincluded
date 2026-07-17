@@ -43,7 +43,7 @@
         <img
           *ngIf="isReal(item.thumbnail)"
           [appQueuedPreview]="previewUrl(item)"
-          [previewFallback]="item.thumbnail"
+          [previewFallback]="thumbnailFallbackUrl(item)"
         />
         <svg
           *ngIf="item.thumbnail === 'svg'"

@@ -302,14 +302,14 @@ describe('Blueprint drafts (Mocha)', function () {
     it('404s for anonymous and other users on every read endpoint; 200 for owner and admin', async function () {
       this.timeout(10000);
       const id = draft._id.toString();
-      // getblueprintmod/getblueprintthumbnail 500 on the synthetic fixture
-      // data (not a real MdbBlueprint) once past the gate — assert "not 404"
-      // for owner/admin there instead of 200
+      // getblueprintmod 500s on the synthetic fixture data (not a real
+      // MdbBlueprint) once past the gate — assert "not 404" for owner/admin
+      // there instead of 200
       const readEndpoints = [
         { url: `/api/blueprints/${id}`, passStatus: 200 },
         { url: `/api/getblueprint/${id}`, passStatus: 200 },
         { url: `/api/getblueprintmod/${id}`, passStatus: null },
-        { url: `/api/getblueprintthumbnail/${id}`, passStatus: null },
+        { url: `/api/blueprints/${id}/thumbnail`, passStatus: 200 },
         { url: `/api/blueprints/${id}/versions`, passStatus: 200 },
         { url: `/api/blueprints/${id}/comments`, passStatus: 200 },
       ];

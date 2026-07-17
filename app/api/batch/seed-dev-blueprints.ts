@@ -40,7 +40,7 @@ import {
   CategoryLookup,
 } from '../../../lib/index';
 import { UserModel } from '../models/user';
-import { BlueprintModel, Blueprint } from '../models/blueprint';
+import { BlueprintModel, Blueprint, thumbnailTypeOf } from '../models/blueprint';
 import { BlueprintVersionModel } from '../models/blueprint-version';
 import { CommentModel } from '../models/comment';
 import { FollowModel } from '../models/follow';
@@ -333,6 +333,7 @@ async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId
     name: `${source.name} fork`,
     data: sourceVersion.data,
     thumbnail: sourceVersion.thumbnail,
+    thumbnailType: thumbnailTypeOf(sourceVersion.thumbnail),
     createdAt: now,
     modifiedAt: now,
     deletedAt: null,
@@ -480,6 +481,7 @@ async function run() {
       owner: idOf(spec.owner),
       name: spec.name,
       thumbnail: THUMBNAIL,
+      thumbnailType: thumbnailTypeOf(THUMBNAIL),
       data: blueprintData(spec.prefabIds),
       gameVersion,
       category,
@@ -518,6 +520,7 @@ async function run() {
     owner: idOf(PROTECTED_USER.username),
     name: 'My Test Base',
     thumbnail: THUMBNAIL,
+    thumbnailType: thumbnailTypeOf(THUMBNAIL),
     data: blueprintData(myPrefabs),
     gameVersion: deriveGameVersion(myPrefabs.map(id => dlcIdsMap.get(id) ?? [])),
     category: deriveCategory(myPrefabs, categoryLookup),

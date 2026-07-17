@@ -183,7 +183,7 @@ export class UserController {
           .find({ owner: { $in: followeeIds }, deletedAt: null, createdAt: { $lt: dateFilter } })
           .sort({ createdAt: -1 })
           .limit(browseIncrement * 2)
-          .select('-data')
+          .select('-data -thumbnail')
           .populate('owner')
           .then(blueprints => {
             return BlueprintController.handleGetBlueprint(req, res, user._id, blueprints);
