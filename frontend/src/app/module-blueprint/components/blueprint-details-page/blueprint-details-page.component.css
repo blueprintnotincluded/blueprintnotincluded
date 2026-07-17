@@ -14,22 +14,22 @@
   color: var(--bni-muted);
 }
 
+/* hero banner (Effect D): artwork left, copy right, joined by a
+ * horizontal gradient so the image melts into the panel */
 .details-header {
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
+  align-items: stretch;
   flex-wrap: wrap;
   margin-bottom: 30px;
+  background: linear-gradient(90deg, #343836 0%, #23262a 55%, #1d2024 100%);
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.55);
 }
 
 .details-thumbnail {
-  flex: 0 1 380px;
+  flex: 1 1 340px;
   max-width: 100%;
   position: relative;
-  border: 2px solid var(--bni-line);
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: var(--bni-card-sh);
   background-color: var(--bni-thumbbg);
   background-image:
     linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
@@ -40,6 +40,8 @@
 .details-thumbnail img {
   display: block;
   width: 100%;
+  height: 100%;
+  min-height: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
@@ -49,45 +51,32 @@
   aspect-ratio: 4 / 3;
 }
 
-.schematic-corners {
+/* the melt: art fades into the hero gradient instead of a hard edge */
+.thumbnail-melt {
   position: absolute;
-  inset: 6px;
+  inset: 0;
   pointer-events: none;
+  background: linear-gradient(90deg, transparent 62%, #2e3134 100%);
 }
 
-.schematic-corners::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 18px;
-  height: 18px;
-  border-top: 2.5px solid var(--bni-schemline2);
-  border-left: 2.5px solid var(--bni-schemline2);
-}
-
-.schematic-corners::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 18px;
-  height: 18px;
-  border-bottom: 2.5px solid var(--bni-schemline2);
-  border-right: 2.5px solid var(--bni-schemline2);
+/* wrapped hero (narrow viewports): art sits above the copy, so the
+ * melt runs downward instead */
+@media (max-width: 740px) {
+  .thumbnail-melt {
+    background: linear-gradient(180deg, transparent 70%, #26292c 100%);
+  }
 }
 
 .details-meta {
   flex: 1 1 340px;
   min-width: 0;
+  padding: 20px 22px 18px;
 }
 
 .details-meta h1 {
   margin: 0 0 6px;
-  font-weight: 800;
-  font-size: 34px;
-  letter-spacing: 0.03em;
-  line-height: 1.05;
+  font-size: 26px;
+  line-height: 1.15;
   overflow-wrap: break-word;
 }
 
