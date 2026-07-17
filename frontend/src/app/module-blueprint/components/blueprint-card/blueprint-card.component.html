@@ -27,7 +27,8 @@
       >
       <app-star-rating
         class="card-stars"
-        [nbLikes]="item.nbLikes"
+        [average]="item.rating"
+        [count]="item.nbRatings"
         [showCount]="false"
       ></app-star-rating>
     </div>
@@ -93,13 +94,6 @@
       >
     </div>
     <div class="card-social">
-      <app-like-widget
-        class="card-likes"
-        [blueprintId]="item.id"
-        [nbLikes]="item.nbLikes"
-        [likedByMe]="item.likedByMe"
-        [disabled]="!loggedIn"
-      ></app-like-widget>
       <a
         class="card-comments bni-icon-link"
         [routerLink]="['/blueprint', item.id]"

@@ -57,7 +57,8 @@
 
           <app-star-rating
             class="details-stars"
-            [nbLikes]="details.nbLikes"
+            [average]="details.rating"
+            [count]="details.nbRatings"
           ></app-star-rating>
 
           <div class="details-byline">
@@ -172,14 +173,14 @@
               icon="pi pi-pencil"
               [routerLink]="['/b', details.id]"
             ></a>
-            <app-like-widget
+            <app-rating-widget
               [blueprintId]="details.id"
-              [nbLikes]="details.nbLikes"
-              [likedByMe]="details.likedByMe"
+              [myRating]="details.myRating"
               [disabled]="!loggedIn"
-              [showLabel]="true"
-              class="details-like"
-            ></app-like-widget>
+              [ownBlueprint]="details.ownedByMe"
+              (rated)="onRated($event)"
+              class="details-rate"
+            ></app-rating-widget>
             <app-fork-button
               [blueprintId]="details.id"
               [disabled]="!loggedIn"

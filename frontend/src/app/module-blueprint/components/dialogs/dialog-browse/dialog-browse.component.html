@@ -100,7 +100,7 @@
           >
           <div
             *ngIf="isReal(item.thumbnail) && item.ownedByMe"
-            class="like-widget"
+            class="owner-actions"
           >
             <button
               pButton
@@ -112,14 +112,6 @@
               pTooltip="Delete this blueprint"
               tooltipEvent="both"
             ></button>
-            <!--
-            <app-like-widget
-              [blueprintId]="item.id"
-              [nbLikes]="item.nbLikes"
-              [likedByMe]="item.likedByMe"
-              [disabled]="!authService.isLoggedIn() || item.thumbnail == 'svg'">
-            </app-like-widget>
-            -->
           </div>
         </div>
         <br />

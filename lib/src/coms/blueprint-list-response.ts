@@ -14,8 +14,11 @@ export interface BlueprintListItem {
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;
-  nbLikes: number;
-  likedByMe: boolean;
+  // Star-rating aggregate (denormalized onto the blueprint; recomputed
+  // out of band so the algorithm can evolve — plain average for now)
+  nbRatings: number;
+  rating: number; // average 1–5; 0 = unrated
+  myRating: number | null;
   ownedByMe: boolean;
   commentCount: number;
   gameVersion?: string | null;
@@ -47,9 +50,16 @@ export interface RelatedBlueprintsResponse {
   blueprints: BlueprintListItem[];
 }
 
-export interface BlueprintLike {
+export interface BlueprintRate {
   blueprintId: string;
-  like: boolean;
+  rating: number; // integer 1–5
+}
+
+// Returned by the rate endpoint so the client can show the fresh aggregate
+export interface BlueprintRateResponse {
+  nbRatings: number;
+  rating: number;
+  myRating: number;
 }
 
 export interface BlueprintDelete {
@@ -60,8 +70,9 @@ export interface BlueprintResponse {
   id: string;
   name: string;
   data: any;
-  likedByMe: boolean;
-  nbLikes: number;
+  nbRatings: number;
+  rating: number;
+  myRating: number | null;
   gameVersion?: string | null;
   category?: string | null;
   subcategory?: string | null;

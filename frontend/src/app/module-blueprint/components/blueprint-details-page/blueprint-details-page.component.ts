@@ -6,6 +6,7 @@ import { catchError, finalize, switchMap, tap } from "rxjs/operators";
 import {
   BlueprintDetailsResponse,
   BlueprintListItem,
+  BlueprintRateResponse,
 } from "../../../../../../lib/index";
 import { MessageService } from "primeng/api";
 import { BlueprintService } from "../../services/blueprint-service";
@@ -159,6 +160,14 @@ export class BlueprintDetailsPageComponent implements OnInit {
 
   get loggedIn() {
     return this.authService.isLoggedIn();
+  }
+
+  // Fresh aggregate from the rate endpoint — keep hero stars in sync
+  onRated(response: BlueprintRateResponse) {
+    if (this.details == null) return;
+    this.details.rating = response.rating;
+    this.details.nbRatings = response.nbRatings;
+    this.details.myRating = response.myRating;
   }
 
   hasRealThumbnail(): boolean {

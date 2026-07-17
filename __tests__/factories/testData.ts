@@ -13,8 +13,8 @@ export interface TestBlueprint {
   _id?: Types.ObjectId;
   owner: Types.ObjectId;
   name: string;
-  likes: string[];
-  likeCount?: number;
+  ratingCount?: number;
+  ratingAverage?: number;
   createdAt: Date;
   modifiedAt: Date;
   thumbnail: string;
@@ -54,7 +54,8 @@ export class TestDataFactory {
       _id: new Types.ObjectId(),
       owner,
       name: `Test Blueprint ${this.blueprintCounter}`,
-      likes: [],
+      ratingCount: 0,
+      ratingAverage: 0,
       createdAt: new Date(now.getTime() - this.blueprintCounter * 1000 * 60 * 60), // Spread creation times
       modifiedAt: new Date(now.getTime() - this.blueprintCounter * 1000 * 60 * 30), // Modified more recently
       thumbnail: `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`,
@@ -81,18 +82,14 @@ export class TestDataFactory {
       isPublished: true,
       ...overrides,
     };
-    // Keep the counter-cache consistent with the likes array unless a test overrides it
-    blueprint.likeCount = overrides.likeCount ?? blueprint.likes.length;
     return blueprint;
   }
 
-  static createPopularBlueprint(
-    owner: Types.ObjectId,
-    likes: string[] = ['user1', 'user2', 'user3']
-  ): TestBlueprint {
+  static createPopularBlueprint(owner: Types.ObjectId): TestBlueprint {
     return this.createBlueprint(owner, {
       name: `Popular Blueprint ${this.blueprintCounter}`,
-      likes,
+      ratingCount: 3,
+      ratingAverage: 4.5,
       data: {
         version: '1.0',
         buildings: [

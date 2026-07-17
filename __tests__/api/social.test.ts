@@ -388,8 +388,8 @@ describe('Profile, Follow, Feed API', function () {
       const extra = Array.from({ length: 12 }, (_, i) => ({
         owner: testData.users.user1._id,
         name: `Feed Item ${i}`,
-        likes: [],
-        likeCount: 0,
+        ratingCount: 0,
+        ratingAverage: 0,
         createdAt: new Date(now - (i + 1) * 60 * 1000),
         modifiedAt: new Date(now - (i + 1) * 60 * 1000),
         thumbnail: 'x',

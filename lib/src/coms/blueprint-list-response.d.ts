@@ -12,8 +12,9 @@ export interface BlueprintListItem {
     createdAt: Date;
     modifiedAt: Date;
     thumbnail: string;
-    nbLikes: number;
-    likedByMe: boolean;
+    nbRatings: number;
+    rating: number;
+    myRating: number | null;
     ownedByMe: boolean;
     commentCount: number;
     gameVersion?: string | null;
@@ -34,9 +35,14 @@ export interface BlueprintDetailsResponse extends BlueprintListItem {
 export interface RelatedBlueprintsResponse {
     blueprints: BlueprintListItem[];
 }
-export interface BlueprintLike {
+export interface BlueprintRate {
     blueprintId: string;
-    like: boolean;
+    rating: number;
+}
+export interface BlueprintRateResponse {
+    nbRatings: number;
+    rating: number;
+    myRating: number;
 }
 export interface BlueprintDelete {
     blueprintId: string;
@@ -45,8 +51,9 @@ export interface BlueprintResponse {
     id: string;
     name: string;
     data: any;
-    likedByMe: boolean;
-    nbLikes: number;
+    nbRatings: number;
+    rating: number;
+    myRating: number | null;
     gameVersion?: string | null;
     category?: string | null;
     subcategory?: string | null;

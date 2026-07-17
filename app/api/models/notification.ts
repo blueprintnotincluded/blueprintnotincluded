@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export type NotificationType = 'comment' | 'reply' | 'like' | 'fork' | 'follow';
+// 'like' is retired (ratings replaced likes) but stays in the enum so
+// historical notifications keep validating and rendering
+export type NotificationType = 'comment' | 'reply' | 'like' | 'rating' | 'fork' | 'follow';
 
 export interface Notification extends Document {
   recipientId: mongoose.Types.ObjectId;
@@ -21,7 +23,7 @@ export class NotificationModel {
     const notificationSchema = new mongoose.Schema({
       recipientId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
       actorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-      type: { type: String, enum: ['comment', 'reply', 'like', 'fork', 'follow'], required: true },
+      type: { type: String, enum: ['comment', 'reply', 'like', 'rating', 'fork', 'follow'], required: true },
       blueprintId: { type: Schema.Types.ObjectId, ref: 'Blueprint', default: null },
       commentId: { type: Schema.Types.ObjectId, ref: 'Comment', default: null },
       read: { type: Boolean, default: false },

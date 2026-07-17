@@ -6,7 +6,8 @@ import {
   BlueprintListItem,
   BlueprintListResponse,
   RelatedBlueprintsResponse,
-  BlueprintLike,
+  BlueprintRate,
+  BlueprintRateResponse,
 //   Vector2,
 //   CameraService,
 //   Overlay,
@@ -21,6 +22,7 @@ import {
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { UserModel, UserJwt } from './models/user';
 import { CommentModel } from './models/comment';
+import { BlueprintRatingModel } from './models/blueprint-rating';
 import { NotificationController } from './notification-controller';
 import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
@@ -147,10 +149,8 @@ export class BlueprintController {
               );
             else res.json({ overwrite: true });
           } else {
+            // Blueprints start unrated — authors can't rate their own work
             let blueprint = new BlueprintModel.model();
-            // Every blueprint starts with the author's like (GitHub-star semantics)
-            blueprint.likes = [ownerId];
-            blueprint.likeCount = 1;
             const forkSource = await BlueprintController.resolveForkSource(
               sourceBlueprintId,
               user
@@ -229,23 +229,29 @@ export class BlueprintController {
     }
   }
 
-  public likeBlueprint(req: Request, res: Response) {
-    console.log('likeBlueprint' + req.clientIp);
-    if (BlueprintModel.model == null) res.status(503).send();
+  public rateBlueprint(req: Request, res: Response) {
+    console.log('rateBlueprint' + req.clientIp);
+    if (BlueprintModel.model == null || BlueprintRatingModel.model == null) res.status(503).send();
     else {
       try {
         let user = req.user as UserJwt;
-        let blueprintLike = req.body as BlueprintLike;
+        let blueprintRate = req.body as BlueprintRate;
 
-        if (blueprintLike.blueprintId == null || blueprintLike.like == null || user == null) {
-          res.status(400).json(apiError(400, 'Missing blueprintId or like'));
+        if (
+          blueprintRate.blueprintId == null ||
+          user == null ||
+          !Number.isInteger(blueprintRate.rating) ||
+          blueprintRate.rating < 1 ||
+          blueprintRate.rating > 5
+        ) {
+          res.status(400).json(apiError(400, 'Missing blueprintId or rating (integer 1-5)'));
           return;
         }
 
         // Drafts are invisible to everyone but owner/admin — 404 (not 403) so
-        // draft ids can't be probed via the like endpoint.
+        // draft ids can't be probed via the rate endpoint.
         BlueprintModel.model
-          .findById(blueprintLike.blueprintId)
+          .findById(blueprintRate.blueprintId)
           .select('owner isPublished')
           .lean()
           .then(target => {
@@ -253,55 +259,93 @@ export class BlueprintController {
               res.status(404).json(apiError(404, 'Blueprint not found'));
               return null;
             }
-            return BlueprintController.applyLike(res, user, blueprintLike);
+            if (ownerIdOf(target) === user._id) {
+              res.status(403).json(apiError(403, 'Cannot rate your own blueprint'));
+              return null;
+            }
+            return BlueprintController.applyRating(res, user, blueprintRate, target.owner);
           })
           .catch(err => {
-            console.log('likeBlueprint error');
+            console.log('rateBlueprint error');
             console.log(err);
-            res.status(500).json(apiError(500, 'Failed to update like'));
+            res.status(500).json(apiError(500, 'Failed to update rating'));
           });
       } catch {
-        res.status(500).json(apiError(500, 'Failed to update like'));
+        res.status(500).json(apiError(500, 'Failed to update rating'));
       }
     }
   }
 
-  private static async applyLike(res: Response, user: UserJwt, blueprintLike: BlueprintLike) {
-    // Atomic toggle keyed on current membership: concurrent or repeated
-    // requests can't skew likeCount. matchedCount === 0 on an existing
-    // blueprint just means "already in desired state" — idempotent 200.
+  private static async applyRating(
+    res: Response,
+    user: UserJwt,
+    blueprintRate: BlueprintRate,
+    recipientId: string | mongoose.Types.ObjectId
+  ) {
+    // Upsert keyed on the unique {blueprintId, userId} index: repeated or
+    // concurrent requests converge on one document with the latest value.
     const userId = user._id;
-    const update = blueprintLike.like
-      ? BlueprintModel.model.updateOne(
-          { _id: blueprintLike.blueprintId, likes: { $ne: userId } },
-          { $push: { likes: userId }, $inc: { likeCount: 1 } }
-        )
-      : BlueprintModel.model.updateOne(
-          { _id: blueprintLike.blueprintId, likes: userId },
-          { $pull: { likes: userId }, $inc: { likeCount: -1 } }
-        );
+    const result = await BlueprintRatingModel.model.updateOne(
+      { blueprintId: blueprintRate.blueprintId, userId },
+      {
+        $set: { value: blueprintRate.rating, updatedAt: new Date() },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true }
+    );
 
-    const result = await update;
-    if (result.matchedCount === 0) {
-      if ((await BlueprintModel.model.exists({ _id: blueprintLike.blueprintId })) != null) {
-        res.json({ likeBlueprint: 'OK' });
-      } else res.status(404).json(apiError(404, 'Blueprint not found'));
-      return;
+    const aggregate = await BlueprintController.recomputeRatingAggregate(blueprintRate.blueprintId);
+
+    // Notify on a user's first rating only — value changes stay quiet
+    if (result.upsertedCount > 0) {
+      await NotificationController.notify({
+        recipientId,
+        actorId: userId,
+        type: 'rating',
+        blueprintId: blueprintRate.blueprintId,
+      });
     }
 
-    if (blueprintLike.like) {
-      const liked = await BlueprintModel.model.findById(blueprintLike.blueprintId).select('owner').lean();
-      if (liked != null) {
-        await NotificationController.notify({
-          recipientId: liked.owner,
-          actorId: userId,
-          type: 'like',
-          blueprintId: blueprintLike.blueprintId,
-        });
-      }
-    }
+    const response: BlueprintRateResponse = {
+      nbRatings: aggregate.count,
+      rating: aggregate.average,
+      myRating: blueprintRate.rating,
+    };
+    res.json(response);
+  }
 
-    res.json({ likeBlueprint: 'OK' });
+  // Recompute one blueprint's denormalized rating aggregate from the ratings
+  // collection and store it on the blueprint. Deliberately a separate,
+  // server-side step (never read-time): the algorithm here will evolve —
+  // plain average today, recency-weighted later — and a change is a re-run
+  // of this function (or a batch job calling it), not a client change.
+  public static async recomputeRatingAggregate(
+    blueprintId: string
+  ): Promise<{ count: number; average: number }> {
+    const rows: { count: number; average: number }[] = await BlueprintRatingModel.model.aggregate([
+      { $match: { blueprintId: new mongoose.Types.ObjectId(blueprintId) } },
+      { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$value' } } },
+      { $project: { _id: 0, count: 1, average: 1 } },
+    ]);
+    const aggregate = rows[0] ?? { count: 0, average: 0 };
+    await BlueprintModel.model.updateOne(
+      { _id: blueprintId },
+      { $set: { ratingCount: aggregate.count, ratingAverage: aggregate.average } }
+    );
+    return aggregate;
+  }
+
+  // Batch "my rating" lookup for a page of list items; one indexed query.
+  public static async getMyRatings(
+    blueprintIds: mongoose.Types.ObjectId[],
+    userId: string
+  ): Promise<Map<string, number>> {
+    if (userId === '' || blueprintIds.length === 0 || BlueprintRatingModel.model == null) return new Map();
+    const rows = await BlueprintRatingModel.model
+      .find({ blueprintId: { $in: blueprintIds }, userId })
+      .select('blueprintId value')
+      .lean();
+    return new Map(rows.map(row => [row.blueprintId.toString(), row.value]));
   }
 
   // Buffer a view/download hit in the write-behind counter cache. Drafts
@@ -340,23 +384,22 @@ export class BlueprintController {
         return;
       }
 
-      let likedByMe = false;
-      if (
-        userId != null &&
-        blueprint.likes != null &&
-        blueprint.likes.indexOf(userId as string) != -1
-      )
-        likedByMe = true;
-
-      // Fallback covers docs the migration hasn't touched yet
-      let nbLikes = blueprint.likeCount ?? blueprint.likes?.length ?? 0;
+      let myRating: number | null = null;
+      if (userId != null && BlueprintRatingModel.model != null) {
+        const mine = await BlueprintRatingModel.model
+          .findOne({ blueprintId: blueprint._id, userId: userId as string })
+          .select('value')
+          .lean();
+        myRating = mine?.value ?? null;
+      }
 
       let response: BlueprintResponse = {
         id: (blueprint._id as any).toString(),
         name: blueprint.name,
         data: await resolveCurrentData(blueprint),
-        likedByMe: likedByMe,
-        nbLikes: nbLikes,
+        nbRatings: blueprint.ratingCount ?? 0,
+        rating: blueprint.ratingAverage ?? 0,
+        myRating,
         gameVersion: blueprint.gameVersion ?? null,
         category: blueprint.category ?? null,
         subcategory: blueprint.subcategory ?? null,
@@ -447,7 +490,7 @@ export class BlueprintController {
     }
   }
 
-  public getBlueprints(req: Request, res: Response) {
+  public async getBlueprints(req: Request, res: Response) {
     console.log('getBlueprints' + req.clientIp);
     if (BlueprintModel.model == null) res.status(503).send();
     else {
@@ -459,7 +502,7 @@ export class BlueprintController {
       let filterModded: boolean | null = null;
       let filterRooms: string[] | null = null;
       let filterForkedFrom: string | null = null;
-      let filterLikedBy: string | null = null;
+      let filterRatedBy: string | null = null;
       let sort: BlueprintSort;
       let skip = 0;
 
@@ -530,18 +573,18 @@ export class BlueprintController {
         }
         filterForkedFrom = rawForkedFrom ?? null;
 
-        const rawLikedBy = req.query.likedBy as string | undefined;
-        if (rawLikedBy != null && !mongoose.Types.ObjectId.isValid(rawLikedBy)) {
-          res.status(400).json(apiError(400, 'Invalid likedBy: must be a valid user id'));
+        const rawRatedBy = req.query.ratedBy as string | undefined;
+        if (rawRatedBy != null && !mongoose.Types.ObjectId.isValid(rawRatedBy)) {
+          res.status(400).json(apiError(400, 'Invalid ratedBy: must be a valid user id'));
           return;
         }
-        // Liked blueprints are private — only the owner can list their own likes (matches
-        // the profile page's "Liked" tab, which is only ever rendered on your own profile).
-        if (rawLikedBy != null && rawLikedBy !== userId) {
-          res.status(403).json(apiError(403, 'Cannot view another user\'s liked blueprints'));
+        // Rated blueprints are private — only the owner can list their own ratings (matches
+        // the profile page's "Rated" tab, which is only ever rendered on your own profile).
+        if (rawRatedBy != null && rawRatedBy !== userId) {
+          res.status(403).json(apiError(403, 'Cannot view another user\'s rated blueprints'));
           return;
         }
-        filterLikedBy = rawLikedBy ?? null;
+        filterRatedBy = rawRatedBy ?? null;
 
         const rawSort = req.query.sort as string | undefined;
         if (rawSort != null && !(SORTS as readonly string[]).includes(rawSort)) {
@@ -593,10 +636,25 @@ export class BlueprintController {
       if (filterModded != null) filter.$and.push({ modded: filterModded });
       if (filterRooms != null) filter.$and.push({ rooms: { $in: filterRooms } });
       if (filterForkedFrom != null) filter.$and.push({ 'forkedFrom.blueprintId': filterForkedFrom });
-      if (filterLikedBy != null) filter.$and.push({ likes: filterLikedBy });
+      if (filterRatedBy != null) {
+        // Ratings live in their own collection; resolve to ids first (the
+        // {userId, updatedAt} index covers this)
+        try {
+          const ratedIds =
+            BlueprintRatingModel.model == null
+              ? []
+              : await BlueprintRatingModel.model.find({ userId: filterRatedBy }).distinct('blueprintId');
+          filter.$and.push({ _id: { $in: ratedIds } });
+        } catch (err) {
+          console.log('ratedBy lookup error');
+          console.log(err);
+          res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
+          return;
+        }
+      }
 
       let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
-      if (sort === 'popular') sortSpec = { likeCount: -1, createdAt: -1 };
+      if (sort === 'popular') sortSpec = { ratingAverage: -1, ratingCount: -1, createdAt: -1 };
       else if (sort === 'mostForked') sortSpec = { forkCount: -1, createdAt: -1 };
       else if (sort === 'mostViewed') sortSpec = { viewCount: -1, createdAt: -1 };
       else if (sort === 'mostDownloaded') sortSpec = { downloadCount: -1, createdAt: -1 };
@@ -625,7 +683,7 @@ export class BlueprintController {
     }
   }
 
-  // Time-decayed engagement score (likes + weighted forks/comments/views,
+  // Time-decayed engagement score (ratings + weighted forks/comments/views,
   // divided down by age) computed in an aggregation since it isn't a stored
   // field. Only the ordered ids come out of the aggregation; the actual
   // documents are then fetched + populated normally and put back in that
@@ -671,7 +729,7 @@ export class BlueprintController {
             $divide: [
               {
                 $add: [
-                  { $ifNull: ['$likeCount', 0] },
+                  { $ifNull: ['$ratingCount', 0] },
                   { $multiply: [{ $ifNull: ['$forkCount', 0] }, 3] },
                   { $multiply: ['$commentCount', 2] },
                   { $multiply: [{ $ifNull: ['$viewCount', 0] }, 0.05] },
@@ -776,10 +834,22 @@ export class BlueprintController {
         console.log(err);
       }
 
+      let myRatings = new Map<string, number>();
+      try {
+        myRatings = await BlueprintController.getMyRatings(
+          page.map(blueprint => blueprint._id as mongoose.Types.ObjectId),
+          userId
+        );
+      } catch (err) {
+        // Decoration on the list — never fail the browse for it
+        console.log('my-ratings lookup error');
+        console.log(err);
+      }
+
       for (const blueprint of page) {
         if (blueprint.createdAt < returnValue.oldest) returnValue.oldest = blueprint.createdAt;
         returnValue.blueprints.push(
-          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames)
+          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames, myRatings)
         );
       }
 
@@ -793,7 +863,8 @@ export class BlueprintController {
     blueprint: Blueprint,
     userId: string,
     commentCounts: Map<string, number>,
-    forkedFromNames: Map<string, string | null>
+    forkedFromNames: Map<string, string | null>,
+    myRatings: Map<string, number>
   ): BlueprintListItem {
     const id = (blueprint._id as any).toString();
 
@@ -803,9 +874,6 @@ export class BlueprintController {
       username = blueprint.owner.username as string;
       ownerId = blueprint.owner.id as string;
     }
-
-    let likedByMe = false;
-    if (userId != null && blueprint.likes != null && blueprint.likes.indexOf(userId) != -1) likedByMe = true;
 
     let ownedByMe = false;
     if (userId != null && ownerId == userId) ownedByMe = true;
@@ -818,8 +886,9 @@ export class BlueprintController {
       createdAt: blueprint.createdAt,
       modifiedAt: blueprint.modifiedAt,
       thumbnail: blueprint.thumbnail,
-      nbLikes: blueprint.likeCount ?? blueprint.likes?.length ?? 0,
-      likedByMe,
+      nbRatings: blueprint.ratingCount ?? 0,
+      rating: blueprint.ratingAverage ?? 0,
+      myRating: myRatings.get(id) ?? null,
       ownedByMe,
       commentCount: commentCounts.get(id) ?? 0,
       gameVersion: blueprint.gameVersion ?? null,
@@ -882,7 +951,7 @@ export class BlueprintController {
                 category: source.category,
                 _id: { $ne: blueprintId },
               })
-              .sort({ likeCount: -1, createdAt: -1 })
+              .sort({ ratingAverage: -1, ratingCount: -1, createdAt: -1 })
               .limit(RELATED_LIMIT * 4)
               .populate('owner')
           : Promise.resolve([]),
@@ -923,8 +992,8 @@ export class BlueprintController {
 
       scored.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
-        const likeDiff = (b.candidate.likeCount ?? 0) - (a.candidate.likeCount ?? 0);
-        if (likeDiff !== 0) return likeDiff;
+        const ratingDiff = (b.candidate.ratingAverage ?? 0) - (a.candidate.ratingAverage ?? 0);
+        if (ratingDiff !== 0) return ratingDiff;
         return b.candidate.createdAt.getTime() - a.candidate.createdAt.getTime();
       });
 
@@ -950,9 +1019,20 @@ export class BlueprintController {
         console.log(err);
       }
 
+      let myRatings = new Map<string, number>();
+      try {
+        myRatings = await BlueprintController.getMyRatings(
+          page.map(blueprint => blueprint._id as mongoose.Types.ObjectId),
+          userId
+        );
+      } catch (err) {
+        console.log('related my-ratings lookup error');
+        console.log(err);
+      }
+
       const response: RelatedBlueprintsResponse = {
         blueprints: page.map(blueprint =>
-          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames)
+          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames, myRatings)
         ),
       };
       res.json(response);
@@ -1084,6 +1164,20 @@ export class BlueprintController {
         }
       }
 
+      let detailsMyRating: number | null = null;
+      if (viewerId != null) {
+        try {
+          const mine = await BlueprintController.getMyRatings(
+            [blueprint._id as mongoose.Types.ObjectId],
+            viewerId
+          );
+          detailsMyRating = mine.get((blueprint._id as any).toString()) ?? null;
+        } catch (err) {
+          console.log('details my-rating lookup error');
+          console.log(err);
+        }
+      }
+
       const response: BlueprintDetailsResponse = {
         id: (blueprint._id as any).toString(),
         name: blueprint.name,
@@ -1092,8 +1186,9 @@ export class BlueprintController {
         createdAt: blueprint.createdAt,
         modifiedAt: blueprint.modifiedAt,
         thumbnail: blueprint.thumbnail,
-        nbLikes: blueprint.likeCount ?? blueprint.likes?.length ?? 0,
-        likedByMe: viewerId != null && (blueprint.likes ?? []).indexOf(viewerId) !== -1,
+        nbRatings: blueprint.ratingCount ?? 0,
+        rating: blueprint.ratingAverage ?? 0,
+        myRating: detailsMyRating,
         ownedByMe: viewerId != null && ownerId === viewerId,
         commentCount: commentCounts.get((blueprint._id as any).toString()) ?? 0,
         gameVersion: blueprint.gameVersion ?? null,
@@ -1228,7 +1323,7 @@ export class BlueprintController {
     blueprint.thumbnail = thumbnail;
     blueprint.deletedAt = null;
     // Derived fact, never client-supplied — any `rooms` key in the request
-    // body is ignored (same policy as a client trying to set likeCount).
+    // body is ignored (same policy as a client trying to set ratingCount).
     blueprint.rooms = deriveRooms(data);
 
     if (metadata) {

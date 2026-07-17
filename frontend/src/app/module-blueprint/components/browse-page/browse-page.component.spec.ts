@@ -578,8 +578,9 @@ describe("BrowsePageComponent", () => {
       createdAt: new Date(),
       modifiedAt: new Date(),
       thumbnail: "data:image/png;base64,xyz",
-      nbLikes: 7,
-      likedByMe: true,
+      nbRatings: 7,
+      rating: 4.5,
+      myRating: null,
       ownedByMe: false,
       nbForks: 3,
     } as any;

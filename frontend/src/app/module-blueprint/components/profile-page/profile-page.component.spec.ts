@@ -110,14 +110,14 @@ describe("ProfilePageComponent", () => {
       ).toBeTruthy();
     });
 
-    it("switching to Liked resets the list and requests likedBy blueprints", () => {
+    it("switching to Rated resets the list and requests ratedBy blueprints", () => {
       fixture.detectChanges();
       component.blueprintListItems = [{ name: "stale" } as any];
       blueprintService.getBlueprints.mockClear();
 
-      component.setTab("liked");
+      component.setTab("rated");
 
-      expect(component.activeTab).toBe("liked");
+      expect(component.activeTab).toBe("rated");
       expect(
         component.blueprintListItems.some((i: any) => i.name === "stale"),
       ).toBe(false);
@@ -138,7 +138,7 @@ describe("ProfilePageComponent", () => {
 
     it("switching back to Blueprints requests owner-filtered blueprints", () => {
       fixture.detectChanges();
-      component.setTab("liked");
+      component.setTab("rated");
       blueprintService.getBlueprints.mockClear();
 
       component.setTab("blueprints");

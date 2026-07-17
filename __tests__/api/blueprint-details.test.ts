@@ -46,8 +46,9 @@ describe('Blueprint details API', function () {
       expect(response.body.name).to.equal('Super Coal Generator Setup');
       expect(response.body.ownerName).to.equal(testData.users.user1.username);
       expect(response.body.ownerId).to.equal(testData.users.user1._id.toString());
-      expect(response.body.nbLikes).to.equal(2);
-      expect(response.body.likedByMe).to.equal(false);
+      expect(response.body.nbRatings).to.equal(2);
+      expect(response.body.rating).to.equal(4.5);
+      expect(response.body.myRating).to.equal(null);
       expect(response.body.ownedByMe).to.equal(false);
       expect(response.body.commentCount).to.equal(0);
       expect(response.body.createdAt).to.exist;
@@ -55,18 +56,18 @@ describe('Blueprint details API', function () {
       expect(response.body.data).to.equal(undefined);
     });
 
-    it('personalizes likedByMe and ownedByMe when a token is sent', async function () {
-      // user2 liked popularBlueprint in the seed; user1 owns it
-      const liker = await TestSetup.request()
+    it('personalizes myRating and ownedByMe when a token is sent', async function () {
+      // user2 rated popularBlueprint 5 in the seed; user1 owns it
+      const rater = await TestSetup.request()
         .get(`/api/blueprints/${blueprintId}`)
         .set('Authorization', `Bearer ${testData.users.user2.generateJwt()}`);
-      expect(liker.body.likedByMe).to.equal(true);
-      expect(liker.body.ownedByMe).to.equal(false);
+      expect(rater.body.myRating).to.equal(5);
+      expect(rater.body.ownedByMe).to.equal(false);
 
       const owner = await TestSetup.request()
         .get(`/api/blueprints/${blueprintId}`)
         .set('Authorization', `Bearer ${testData.users.user1.generateJwt()}`);
-      expect(owner.body.likedByMe).to.equal(false);
+      expect(owner.body.myRating).to.equal(null);
       expect(owner.body.ownedByMe).to.equal(true);
     });
 

@@ -80,7 +80,7 @@ describe('Blueprint API (Mocha)', function () {
       }
     });
 
-    it('should return correct like counts for popular blueprints', async function () {
+    it('should return the rating aggregate for rated blueprints', async function () {
       const response = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now() });
@@ -91,7 +91,8 @@ describe('Blueprint API (Mocha)', function () {
         (bp: any) => bp.name === 'Super Coal Generator Setup'
       );
       expect(popularBlueprint).to.exist;
-      expect(popularBlueprint.nbLikes).to.equal(2);
+      expect(popularBlueprint.nbRatings).to.equal(2);
+      expect(popularBlueprint.rating).to.equal(4.5);
     });
 
     it('includes forks/copies — the silent isCopy hide was removed (issue #8: forks are now an explicit, visible relationship via forkCount/forkedFrom)', async function () {
@@ -201,14 +202,14 @@ describe('Blueprint API (Mocha)', function () {
   });
 
   describe('GET /api/getblueprints?sort=popular', function () {
-    it('should return blueprints in descending likeCount order', async function () {
+    it('should return blueprints in descending rating order', async function () {
       const response = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now(), sort: 'popular' });
 
       expect(response.status).to.equal(200);
       const names = response.body.blueprints.map((bp: any) => bp.name);
-      // Seeded: Super Coal (2 likes), Oxygen (1), then 0-like ties broken by
+      // Seeded: Super Coal (avg 4.5), Oxygen (avg 4), then unrated ties broken by
       // createdAt desc: Modified Coal Generator (2 days ago) before Legacy (30 days ago)
       expect(names.slice(0, 4)).to.deep.equal([
         'Super Coal Generator Setup',
@@ -216,15 +217,14 @@ describe('Blueprint API (Mocha)', function () {
         'Modified Coal Generator',
         'Legacy Food System',
       ]);
-      const likes = response.body.blueprints.map((bp: any) => bp.nbLikes);
-      expect(likes).to.deep.equal([...likes].sort((a, b) => b - a));
+      const ratings = response.body.blueprints.map((bp: any) => bp.rating);
+      expect(ratings).to.deep.equal([...ratings].sort((a: number, b: number) => b - a));
     });
 
-    it('should break likeCount ties by createdAt descending', async function () {
-      // Second 0-like blueprint, newer than Legacy Food System (30 days old)
+    it('should break rating ties by createdAt descending', async function () {
+      // Second unrated blueprint, newer than Legacy Food System (30 days old)
       await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
-        name: 'Fresh Zero Likes',
-        likes: [],
+        name: 'Fresh Unrated',
         createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
       });
 
@@ -234,7 +234,7 @@ describe('Blueprint API (Mocha)', function () {
 
       expect(response.status).to.equal(200);
       const names = response.body.blueprints.map((bp: any) => bp.name);
-      expect(names.indexOf('Fresh Zero Likes')).to.be.lessThan(
+      expect(names.indexOf('Fresh Unrated')).to.be.lessThan(
         names.indexOf('Legacy Food System')
       );
     });
@@ -292,8 +292,8 @@ describe('Blueprint API (Mocha)', function () {
       await BlueprintModel.model.create({
         owner: testData.users.user1._id,
         name: 'Popular Power',
-        likes: ['a', 'b', 'c'],
-        likeCount: 3,
+        ratingCount: 3,
+        ratingAverage: 5,
         createdAt: new Date(Date.now() - 60 * 60 * 1000),
         modifiedAt: new Date(),
         thumbnail: TINY_PNG,
@@ -324,31 +324,32 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.id).to.equal(id);
       expect(response.body.name).to.equal('Super Coal Generator Setup');
       expect(response.body.data).to.exist;
-      expect(response.body.nbLikes).to.equal(2);
+      expect(response.body.nbRatings).to.equal(2);
+      expect(response.body.rating).to.equal(4.5);
     });
 
-    it('should set likedByMe when userId matches a like', async function () {
+    it('should set myRating when userId has rated the blueprint', async function () {
       const id = testData.blueprints.popularBlueprint._id.toString();
-      const userId = testData.users.user2._id.toString(); // user2 liked the popular blueprint
+      const userId = testData.users.user2._id.toString(); // user2 rated it 5 (seeded)
 
       const response = await TestSetup.request()
         .get(`/api/getblueprint/${id}`)
         .query({ userId });
 
       expect(response.status).to.equal(200);
-      expect(response.body.likedByMe).to.be.true;
+      expect(response.body.myRating).to.equal(5);
     });
 
-    it('should return likedByMe=false when userId is not a liker', async function () {
+    it('should return myRating=null when userId has not rated', async function () {
       const id = testData.blueprints.popularBlueprint._id.toString();
-      const userId = testData.users.user1._id.toString(); // user1 owns it but didn't like it
+      const userId = testData.users.user1._id.toString(); // user1 owns it, cannot rate it
 
       const response = await TestSetup.request()
         .get(`/api/getblueprint/${id}`)
         .query({ userId });
 
       expect(response.status).to.equal(200);
-      expect(response.body.likedByMe).to.be.false;
+      expect(response.body.myRating).to.equal(null);
     });
 
     it('should return 404 for a nonexistent id', async function () {
@@ -462,19 +463,19 @@ describe('Blueprint API (Mocha)', function () {
       expect(response.body.errors[0].status).to.equal('400');
     });
 
-    it('should self-like a new upload with a consistent likeCount', async function () {
+    it('should start a new upload unrated', async function () {
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
         .post('/api/uploadblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'Self Like', blueprint: SAMPLE_BLUEPRINT_DATA, thumbnail: TINY_PNG });
+        .send({ name: 'Starts Unrated', blueprint: SAMPLE_BLUEPRINT_DATA, thumbnail: TINY_PNG });
 
       expect(response.status).to.equal(200);
 
       const saved = await BlueprintModel.model.findById(response.body.id);
-      expect(saved!.likes).to.deep.equal([testData.users.user1._id.toString()]);
-      expect(saved!.likeCount).to.equal(1);
+      expect(saved!.ratingCount).to.equal(0);
+      expect(saved!.ratingAverage).to.equal(0);
     });
 
     it('should correct out-of-bounds building positions after upload', async function () {
@@ -509,96 +510,92 @@ describe('Blueprint API (Mocha)', function () {
     });
   });
 
-  describe('POST /api/likeblueprint', function () {
+  describe('POST /api/rateblueprint', function () {
     it('should return 401 without authentication', async function () {
       const id = testData.blueprints.recentBlueprint._id.toString();
 
       const response = await TestSetup.request()
-        .post('/api/likeblueprint')
-        .send({ blueprintId: id, like: true });
+        .post('/api/rateblueprint')
+        .send({ blueprintId: id, rating: 5 });
 
       expect(response.status).to.equal(401);
     });
 
-    it('should like a blueprint', async function () {
+    it('should rate a blueprint and return the fresh aggregate', async function () {
       const token = testData.users.user3.generateJwt();
       const id = testData.blueprints.recentBlueprint._id.toString();
+      // seeded with one rating of 4 from user1
 
       const response = await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ blueprintId: id, like: true });
+        .send({ blueprintId: id, rating: 5 });
 
       expect(response.status).to.equal(200);
-      expect(response.body.likeBlueprint).to.equal('OK');
+      expect(response.body.nbRatings).to.equal(2);
+      expect(response.body.rating).to.equal(4.5);
+      expect(response.body.myRating).to.equal(5);
 
       const updated = await BlueprintModel.model.findById(id);
-      expect(updated!.likes).to.include(testData.users.user3._id.toString());
-      expect(updated!.likeCount).to.equal(2); // seeded with 1 like from user1
+      expect(updated!.ratingCount).to.equal(2);
+      expect(updated!.ratingAverage).to.equal(4.5);
     });
 
-    it('should keep likeCount stable when liking twice (idempotent)', async function () {
+    it('should replace (not duplicate) the rating when rating twice', async function () {
       const token = testData.users.user3.generateJwt();
       const id = testData.blueprints.recentBlueprint._id.toString();
+      // seeded with one rating of 4 from user1
 
-      for (let i = 0; i < 2; i++) {
+      for (const rating of [5, 3]) {
         const response = await TestSetup.request()
-          .post('/api/likeblueprint')
+          .post('/api/rateblueprint')
           .set('Authorization', `Bearer ${token}`)
-          .send({ blueprintId: id, like: true });
+          .send({ blueprintId: id, rating });
         expect(response.status).to.equal(200);
-        expect(response.body.likeBlueprint).to.equal('OK');
       }
 
       const updated = await BlueprintModel.model.findById(id);
-      expect(updated!.likeCount).to.equal(2);
-      expect(
-        updated!.likes.filter(l => l === testData.users.user3._id.toString())
-      ).to.have.length(1);
+      expect(updated!.ratingCount).to.equal(2); // still one doc per user
+      expect(updated!.ratingAverage).to.equal(3.5); // (4 + 3) / 2
     });
 
-    it('should unlike a blueprint', async function () {
-      const token = testData.users.user2.generateJwt();
-      const id = testData.blueprints.popularBlueprint._id.toString();
-      // user2 already likes the popular blueprint (seeded)
+    it('should reject rating your own blueprint', async function () {
+      const token = testData.users.user1.generateJwt();
+      const id = testData.blueprints.popularBlueprint._id.toString(); // owned by user1
 
       const response = await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ blueprintId: id, like: false });
+        .send({ blueprintId: id, rating: 5 });
 
-      expect(response.status).to.equal(200);
-      expect(response.body.likeBlueprint).to.equal('OK');
+      expect(response.status).to.equal(403);
+      expect(response.body.errors).to.be.an('array');
 
       const updated = await BlueprintModel.model.findById(id);
-      expect(updated!.likes).to.not.include(testData.users.user2._id.toString());
-      expect(updated!.likeCount).to.equal(1); // seeded with 2 likes
+      expect(updated!.ratingCount).to.equal(2); // seeded aggregate untouched
     });
 
-    it('should keep likeCount stable when unliking a blueprint not liked', async function () {
-      const token = testData.users.user1.generateJwt(); // user1 never liked recentBlueprint
-      const id = testData.blueprints.oldBlueprint._id.toString(); // 0 likes seeded
+    it('should reject out-of-range and non-integer ratings', async function () {
+      const token = testData.users.user3.generateJwt();
+      const id = testData.blueprints.recentBlueprint._id.toString();
 
-      const response = await TestSetup.request()
-        .post('/api/likeblueprint')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ blueprintId: id, like: false });
-
-      expect(response.status).to.equal(200);
-      expect(response.body.likeBlueprint).to.equal('OK');
-
-      const updated = await BlueprintModel.model.findById(id);
-      expect(updated!.likeCount).to.equal(0);
-      expect(updated!.likes).to.deep.equal([]);
+      for (const rating of [0, 6, 3.5, 'four', null]) {
+        const response = await TestSetup.request()
+          .post('/api/rateblueprint')
+          .set('Authorization', `Bearer ${token}`)
+          .send({ blueprintId: id, rating });
+        expect(response.status).to.equal(400);
+        expect(response.body.errors).to.be.an('array');
+      }
     });
 
     it('should return 404 for a nonexistent blueprint id', async function () {
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ blueprintId: '000000000000000000000001', like: true });
+        .send({ blueprintId: '000000000000000000000001', rating: 5 });
 
       expect(response.status).to.equal(404);
       expect(response.body.errors).to.be.an('array');
@@ -608,9 +605,9 @@ describe('Blueprint API (Mocha)', function () {
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
-        .post('/api/likeblueprint')
+        .post('/api/rateblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ like: true });
+        .send({ rating: 5 });
 
       expect(response.status).to.equal(400);
       expect(response.body.errors).to.be.an('array');

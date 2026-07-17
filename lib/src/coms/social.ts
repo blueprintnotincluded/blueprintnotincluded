@@ -30,7 +30,9 @@ export interface FollowListResponse {
   remaining: number;
 }
 
-export type NotificationType = 'comment' | 'reply' | 'like' | 'fork' | 'follow';
+// 'like' is retired (ratings replaced likes) but stays so historical
+// notifications keep rendering
+export type NotificationType = 'comment' | 'reply' | 'like' | 'rating' | 'fork' | 'follow';
 
 export interface NotificationDto {
   id: string;
