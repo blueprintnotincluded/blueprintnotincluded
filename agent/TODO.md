@@ -22,6 +22,22 @@ Open items only (import pipeline, render cutover, legacy-pipeline removal, and E
   nothing wired yet. Non-English i18n still open: site has zh/ru/ko but the export ships
   English only.
 
+## Steam reskin follow-ups
+
+The discover section wears the Steam Workshop skin (branch `steam-reskin`; art direction:
+`spec/Steam Style Guide (standalone).html`, sampled from `spec/steam-bni.png`). Deferred
+guide items, both needing backend work:
+
+- **Facet counts** — per-facet blueprint counts in the browse sidebar, right-aligned dim
+  grey ("Power (1,368)"). One aggregation endpoint (`$group` over non-deleted published
+  blueprints by category / gameVersion / rooms); render into the existing
+  `.bni-facet-count` slot (already styled in `bni-skin.css`).
+- **Per-page backdrop** — /blueprint/:id replaces the flat void with Effect A (blurred
+  `blur(28px) saturate(.7) brightness(.55)` + gradient overlay) using that blueprint's own
+  preview. Cache a tiny ~64px variant (previewimages collection already stores renders);
+  the blur hides the resolution.
+- **No carousel.** Considered and rejected — do not resurrect the "featured strip" as one.
+
 ## Future directions (product)
 
 - **Blueprint forks** — fork/remix an existing blueprint with attribution (was queued with
