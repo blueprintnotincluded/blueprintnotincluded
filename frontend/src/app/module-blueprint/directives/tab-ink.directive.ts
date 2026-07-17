@@ -44,9 +44,13 @@ export class TabInkDirective implements AfterViewInit, OnDestroy {
       this.classObserver = new MutationObserver((mutations) => {
         if (mutations.some((m) => m.target !== this.ink)) this.reposition();
       });
+      // childList: tabs added/removed dynamically (*ngFor/*ngIf) must also
+      // reposition the bar; the ink is appended before observing and
+      // reposition never touches the child list, so this cannot self-fire
       this.classObserver.observe(host, {
         attributes: true,
         attributeFilter: ["class"],
+        childList: true,
         subtree: true,
       });
       if (typeof ResizeObserver !== "undefined") {
