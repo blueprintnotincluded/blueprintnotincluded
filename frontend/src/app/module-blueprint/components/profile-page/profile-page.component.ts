@@ -36,7 +36,8 @@ export class ProfilePageComponent implements OnInit {
   blueprintListItems: BlueprintListItem[] = [];
   working = true;
   noMoreBlueprints = false;
-  oldestDate = new Date();
+  // null = first page ("older than now" server-side); keeps page-1 URLs stable
+  oldestDate: Date | null = null;
   remaining = 0;
   activeTab: "blueprints" | "rated" = "blueprints";
 
@@ -119,7 +120,7 @@ export class ProfilePageComponent implements OnInit {
     this.blueprintListItems = [];
     this.working = true;
     this.noMoreBlueprints = false;
-    this.oldestDate = new Date();
+    this.oldestDate = null;
     this.remaining = 0;
     this.activeTab = "blueprints";
   }
@@ -228,7 +229,7 @@ export class ProfilePageComponent implements OnInit {
     this.blueprintListItems = [];
     this.working = true;
     this.noMoreBlueprints = false;
-    this.oldestDate = new Date();
+    this.oldestDate = null;
     this.remaining = 0;
     this.appendLoading();
     this.loadBlueprints();

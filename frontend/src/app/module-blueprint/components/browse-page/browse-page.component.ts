@@ -44,7 +44,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   working = true;
   noMoreBlueprints = false;
   loadError = false;
-  oldestDate = new Date();
+  // null = first page ("older than now" server-side). A concrete Date.now()
+  // here would make every page-1 URL unique and defeat the CDN cache.
+  oldestDate: Date | null = null;
   filterName = "";
   filterUserId: string | null = null;
   filterGameVersion: string | null = null;
@@ -384,7 +386,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
     const request$ =
       this.viewMode === "feed"
-        ? this.userService.getFeed(this.oldestDate)
+        ? // feed is always authed (no-store), so a concrete cursor costs nothing
+          this.userService.getFeed(this.oldestDate ?? new Date())
         : this.blueprintService.getBlueprints(
             this.oldestDate,
             this.filterUserId,
@@ -460,7 +463,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   reset() {
     this.blueprintListItems = [];
-    this.oldestDate = new Date();
+    this.oldestDate = null;
     this.skipCount = 0;
     this.noMoreBlueprints = false;
     this.working = true;

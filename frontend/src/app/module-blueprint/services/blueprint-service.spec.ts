@@ -389,6 +389,31 @@ describe("BlueprintService", () => {
       expect(url).toContain("olderthan=" + date.getTime());
     });
 
+    it("omits olderthan on the first page (null cursor) so the URL is cacheable", () => {
+      service.getBlueprints(null, null, null);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).not.toContain("olderthan");
+      expect(url).not.toContain("?&");
+    });
+
+    it("omits olderthan for count sorts, which paginate via skip", () => {
+      service.getBlueprints(
+        new Date(1_000_000),
+        null,
+        null,
+        null,
+        null,
+        null,
+        "popular",
+        10,
+      );
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).not.toContain("olderthan");
+      expect(url).toContain("sort=popular");
+      expect(url).toContain("skip=10");
+      expect(url).not.toContain("?&");
+    });
+
     it("includes filterUserId when provided", () => {
       service.getBlueprints(new Date(), "user123", null);
       const url: string = mockHttp.get.mock.calls[0][0];

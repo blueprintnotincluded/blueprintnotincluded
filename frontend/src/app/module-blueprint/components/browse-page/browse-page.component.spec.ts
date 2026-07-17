@@ -151,7 +151,7 @@ describe("BrowsePageComponent", () => {
 
       expect(component.filterUserId).toBe("user-123");
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         "user-123",
         null,
         null,
@@ -173,7 +173,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         null,
         null,
         "spacedOut",
@@ -193,7 +193,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         null,
         null,
         null,
@@ -214,7 +214,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         null,
         null,
         null,
@@ -234,7 +234,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         null,
         null,
         null,
@@ -254,7 +254,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         null,
         null,
         null,
@@ -274,7 +274,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         null,
         null,
         null,

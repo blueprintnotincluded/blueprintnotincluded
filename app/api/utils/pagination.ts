@@ -2,9 +2,12 @@ import { Request, Response } from 'express';
 import { apiError } from './apiError';
 
 export function parseOlderThan(req: Request, res: Response): Date | null {
+  // Absent (or empty) means "everything older than now" — the first-page
+  // request. Clients omit it there on purpose: a Date.now() cursor makes
+  // every page-1 URL unique, which defeats the edge cache on the feed
+  // endpoints. Explicit values (page 2+ cursors) are validated as before.
   if (!req.query.olderthan || req.query.olderthan === '') {
-    res.status(400).json(apiError(400, 'Missing required parameter: olderthan'));
-    return null;
+    return new Date();
   }
 
   const dateInt = parseInt(req.query.olderthan as string);

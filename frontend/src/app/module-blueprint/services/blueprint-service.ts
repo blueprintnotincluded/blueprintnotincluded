@@ -355,7 +355,7 @@ export class BlueprintService implements IObsBlueprintChange {
   }
 
   getBlueprints(
-    olderThan: Date,
+    olderThan: Date | null,
     filterUserId: string | null,
     filterName: string | null,
     filterGameVersion?: string | null,
@@ -368,7 +368,16 @@ export class BlueprintService implements IObsBlueprintChange {
     filterRatedBy?: string | null,
     filterRooms?: string | null,
   ) {
-    const parameterOlderThan = "olderthan=" + olderThan.getTime().toString();
+    // olderthan is a cache-buster when it isn't doing real work, so send it
+    // only where it is the pagination cursor: the recent sort past page 1
+    // (null = first page = "older than now", the server default). Count
+    // sorts paginate via skip and ignore it entirely. Stable URLs let the
+    // CDN actually serve anonymous browse requests from the edge.
+    const usesCursor = sort == null || sort === "recent";
+    const parameterOlderThan =
+      usesCursor && olderThan != null
+        ? "olderthan=" + olderThan.getTime().toString()
+        : "";
 
     let parameterFilterUserId = "";
     if (filterUserId != null)
@@ -408,7 +417,7 @@ export class BlueprintService implements IObsBlueprintChange {
     let parameterRooms = "";
     if (filterRooms != null) parameterRooms = "&rooms=" + filterRooms;
 
-    const parameters =
+    const parameters = (
       parameterOlderThan +
       parameterFilterUserId +
       parameterFilterName +
@@ -419,7 +428,8 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterModded +
       parameterForkedFrom +
       parameterRatedBy +
-      parameterRooms;
+      parameterRooms
+    ).replace(/^&/, "");
 
     const request = this.authService.isLoggedIn()
       ? this.http.get("/api/getblueprintsSecure?" + parameters, {
