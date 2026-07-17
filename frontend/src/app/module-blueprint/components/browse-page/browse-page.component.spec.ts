@@ -518,6 +518,16 @@ describe("BrowsePageComponent", () => {
       );
     });
 
+    it("selectGameVersion keeps the subcategory (it is scoped to category)", () => {
+      component.filterCategory = "power";
+      component.filterSubcategory = "generator";
+
+      component.selectGameVersion("spacedOut");
+
+      expect(component.filterGameVersion).toBe("spacedOut");
+      expect(component.filterSubcategory).toBe("generator");
+    });
+
     it("selectRoom updates the URL and refetches", () => {
       component.selectRoom("kitchen");
 
