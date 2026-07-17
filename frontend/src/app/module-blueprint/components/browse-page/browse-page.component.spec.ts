@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
-import { of, throwError } from "rxjs";
+import { of, Subject, throwError } from "rxjs";
 import { convertToParamMap } from "@angular/router";
 
 import { By } from "@angular/platform-browser";
@@ -81,6 +81,16 @@ describe("BrowsePageComponent", () => {
     fixture = TestBed.createComponent(BrowsePageComponent);
     component = fixture.componentInstance;
   });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** Run the full list transition (grid fade-out + placeholder dwell) under
+   * fake timers so specs can assert the settled state. */
+  function settleListTransition() {
+    vi.advanceTimersByTime(600);
+  }
 
   it("creates", () => {
     expect(component).toBeTruthy();
@@ -290,9 +300,11 @@ describe("BrowsePageComponent", () => {
     });
 
     it("onRoomsChange resets the list, updates the URL, and refetches", () => {
+      vi.useFakeTimers();
       component.blueprintListItems = [{ name: "stale" } as any];
       component.filterRooms = "kitchen";
       component.onRoomsChange();
+      settleListTransition();
 
       expect(
         component.blueprintListItems.some((i: any) => i.name === "stale"),
@@ -370,11 +382,13 @@ describe("BrowsePageComponent", () => {
 
   describe("sort", () => {
     it("calls the service with sort=popular and skip=0, resets the list, and updates the URL", () => {
+      vi.useFakeTimers();
       component.blueprintListItems = [{ name: "stale" } as any];
       component.skipCount = 42;
 
       component.sort = "popular";
       component.onSortChange();
+      settleListTransition();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
       expect(lastCall[6]).toBe("popular");
@@ -464,8 +478,10 @@ describe("BrowsePageComponent", () => {
     });
 
     it("setViewMode('feed') resets the list and calls the feed endpoint", () => {
+      vi.useFakeTimers();
       component.blueprintListItems = [{ name: "stale" } as any];
       component.setViewMode("feed");
+      settleListTransition();
 
       expect(component.viewMode).toBe("feed");
       expect(userService.getFeed).toHaveBeenCalled();
@@ -566,6 +582,104 @@ describe("BrowsePageComponent", () => {
 
       expect(component.activeFilterCount).toBe(3);
       expect(component.hasActiveFilters).toBe(true);
+    });
+  });
+
+  describe("list transition (minimum animation on context switches)", () => {
+    it("keeps the old cards during the fade-out, then applies a fast response with no placeholder flash", () => {
+      vi.useFakeTimers();
+      blueprintService.getBlueprints.mockReturnValue(
+        of(makeResponse([{ name: "fresh" }], 0)),
+      );
+      component.blueprintListItems = [{ name: "stale" } as any];
+
+      component.selectSort("popular");
+
+      // during the fade the old cards must still be on screen
+      expect(component.listSwitching).toBe(true);
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "stale"),
+      ).toBe(true);
+
+      vi.advanceTimersByTime(200); // past the 160ms fade
+
+      // response beat the fade: real cards applied directly, no placeholders
+      expect(component.listSwitching).toBe(false);
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "fresh"),
+      ).toBe(true);
+      expect(
+        component.blueprintListItems.includes(component.loadingBlueprintItem),
+      ).toBe(false);
+    });
+
+    it("shows placeholders for a slow response and keeps them a minimum dwell", () => {
+      vi.useFakeTimers();
+      const slow = new Subject<any>();
+      blueprintService.getBlueprints.mockReturnValue(slow);
+      component.blueprintListItems = [{ name: "stale" } as any];
+
+      component.selectSort("popular");
+      vi.advanceTimersByTime(200); // fade done, response still pending
+
+      expect(
+        component.blueprintListItems.includes(component.loadingBlueprintItem),
+      ).toBe(true);
+
+      slow.next(makeResponse([{ name: "fresh" }], 0));
+
+      // response arrived 40ms into the placeholder dwell — must not flash
+      vi.advanceTimersByTime(40);
+      expect(
+        component.blueprintListItems.includes(component.loadingBlueprintItem),
+      ).toBe(true);
+
+      vi.advanceTimersByTime(300); // dwell elapsed
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "fresh"),
+      ).toBe(true);
+      expect(
+        component.blueprintListItems.includes(component.loadingBlueprintItem),
+      ).toBe(false);
+    });
+
+    it("holds an error until the fade-out completes", () => {
+      vi.useFakeTimers();
+      blueprintService.getBlueprints.mockReturnValue(
+        throwError(() => new Error("network")),
+      );
+      component.blueprintListItems = [{ name: "stale" } as any];
+
+      component.selectSort("popular");
+      expect(component.loadError).toBe(false); // not yet — grid still fading
+
+      vi.advanceTimersByTime(200);
+      expect(component.loadError).toBe(true);
+      expect(
+        component.blueprintListItems.includes(component.loadingBlueprintItem),
+      ).toBe(false);
+    });
+
+    it("a second switch during the fade supersedes the first (stale response dropped)", () => {
+      vi.useFakeTimers();
+      const first = new Subject<any>();
+      blueprintService.getBlueprints.mockReturnValue(first);
+      component.selectSort("popular");
+
+      vi.advanceTimersByTime(50);
+      blueprintService.getBlueprints.mockReturnValue(
+        of(makeResponse([{ name: "second" }], 0)),
+      );
+      component.selectSort("trending");
+      first.next(makeResponse([{ name: "first" }], 0)); // stale — must be dropped
+
+      settleListTransition();
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "second"),
+      ).toBe(true);
+      expect(
+        component.blueprintListItems.some((i: any) => i.name === "first"),
+      ).toBe(false);
     });
   });
 

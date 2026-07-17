@@ -132,6 +132,23 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
   gap: 14px;
+  /* fade-out on list-context switches; duration must match LIST_FADE_OUT_MS
+   * in the component */
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.blueprint-grid--leaving {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blueprint-grid {
+    transition: none;
+  }
 }
 
 /* cards fade + rise as they enter (tab/sort/filter switches, infinite
