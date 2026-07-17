@@ -30,6 +30,13 @@ import { BrowseData } from "../user-menu/user-menu.component";
 const LOADING_STR = $localize`Loading...`;
 const NO_RESULTS_STR = $localize`:browse.noResults:No Results`;
 
+/** Grid fade-out duration when the list context changes (ms); must match the
+ * .blueprint-grid transition in the component CSS. */
+const LIST_FADE_OUT_MS = 160;
+/** Once loading placeholders are visible, keep them at least this long so a
+ * fast response can't flash them for a single frame. */
+const MIN_PLACEHOLDER_MS = 300;
+
 @Component({
   selector: "app-browse-page",
   templateUrl: "./browse-page.component.html",
@@ -64,6 +71,15 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   followingCount = 0;
   /** mobile-only: whether the facet sidebar disclosure is open */
   filtersOpen = false;
+
+  /** true while the grid fades out during a list-context switch */
+  listSwitching = false;
+  private switchTimer: ReturnType<typeof setTimeout> | null = null;
+  private dwellTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingResponse: BlueprintListResponse | null = null;
+  private pendingError = false;
+  private awaitingFade = false;
+  private placeholdersShownAt = 0;
 
   readonly sortOptions: { label: string; value: BlueprintSort }[] = [
     { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
@@ -163,14 +179,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
     this.filterNameSubject.pipe(debounceTime(600)).subscribe(() => {
       this.applyFiltersToUrl();
-      this.reset();
-      this.getBlueprints();
+      this.transitionList();
     });
 
     this.filterFacetSubject.pipe(debounceTime(0)).subscribe(() => {
       this.applyFiltersToUrl();
-      this.reset();
-      this.getBlueprints();
+      this.transitionList();
     });
   }
 
@@ -190,8 +204,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         this.appendLoading();
         this.getBlueprints();
       } else if (changed) {
-        this.reset();
-        this.getBlueprints();
+        this.transitionList();
       }
     });
 
@@ -209,14 +222,78 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   setViewMode(mode: "discover" | "feed") {
     if (this.viewMode === mode) return;
     this.viewMode = mode;
-    this.reset();
-    this.getBlueprints();
+    this.transitionList();
   }
 
   ngOnDestroy() {
     this.paramsSub?.unsubscribe();
     this.filterNameSubject.complete();
     this.filterFacetSubject.complete();
+    if (this.switchTimer) clearTimeout(this.switchTimer);
+    if (this.dwellTimer) clearTimeout(this.dwellTimer);
+  }
+
+  /**
+   * Swap the list to a new context (sort/tab/filter change) without an
+   * instantaneous redraw: the grid fades out while the request runs in
+   * parallel. If the response beats the fade it is applied at fade-end (no
+   * placeholder flash); otherwise placeholders show and stay for a minimum
+   * dwell. Reduced-motion users get the old immediate swap.
+   */
+  private transitionList() {
+    this.resetPaging();
+    if (this.prefersReducedMotion()) {
+      this.blueprintListItems = [];
+      this.appendLoading();
+      this.getBlueprints();
+      return;
+    }
+    this.listSwitching = true;
+    this.awaitingFade = true;
+    this.pendingResponse = null;
+    this.pendingError = false;
+    if (this.dwellTimer) {
+      clearTimeout(this.dwellTimer);
+      this.dwellTimer = null;
+    }
+    this.getBlueprints();
+    if (this.switchTimer) clearTimeout(this.switchTimer);
+    this.switchTimer = setTimeout(() => this.finishFadeOut(), LIST_FADE_OUT_MS);
+  }
+
+  private finishFadeOut() {
+    this.switchTimer = null;
+    this.awaitingFade = false;
+    this.listSwitching = false;
+    this.blueprintListItems = [];
+    if (this.pendingResponse) {
+      const response = this.pendingResponse;
+      this.pendingResponse = null;
+      this.handleGetBlueprints(response);
+    } else if (this.pendingError) {
+      this.pendingError = false;
+      this.handleError();
+    } else {
+      this.appendLoading();
+    }
+  }
+
+  private resetPaging() {
+    // null = first page; a concrete Date.now() would make every page-1 URL
+    // unique and defeat the CDN cache (see the field comment)
+    this.oldestDate = null;
+    this.skipCount = 0;
+    this.noMoreBlueprints = false;
+    this.working = true;
+    this.remaining = 0;
+    this.loadError = false;
+  }
+
+  private prefersReducedMotion(): boolean {
+    return (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
   }
 
   /** Sync filter state from URL params; true if anything changed. */
@@ -317,20 +394,17 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   onSubcategoryChange() {
     this.applyFiltersToUrl();
-    this.reset();
-    this.getBlueprints();
+    this.transitionList();
   }
 
   onRoomsChange() {
     this.applyFiltersToUrl();
-    this.reset();
-    this.getBlueprints();
+    this.transitionList();
   }
 
   onSortChange() {
     this.applyFiltersToUrl();
-    this.reset();
-    this.getBlueprints();
+    this.transitionList();
   }
 
   get loggedIn(): boolean {
@@ -363,8 +437,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterForkedFrom = null;
     this.filterRooms = null;
     this.applyFiltersToUrl();
-    this.reset();
-    this.getBlueprints();
+    this.transitionList();
   }
 
   @HostListener("window:scroll")
@@ -405,18 +478,49 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
     request$.subscribe({
       next: (r: any) => {
-        if (requestId === this.requestId) this.handleGetBlueprints(r);
+        if (requestId === this.requestId) this.receiveListResponse(r);
       },
       error: () => {
-        if (requestId === this.requestId) this.handleError();
+        if (requestId === this.requestId) this.receiveListError();
       },
     });
   }
 
+  /** Gate responses through the transition: hold them until the fade-out
+   * ends, and give visible placeholders their minimum dwell. */
+  private receiveListResponse(response: BlueprintListResponse) {
+    if (this.awaitingFade) {
+      this.pendingResponse = response;
+      return;
+    }
+    const placeholdersVisible = this.blueprintListItems.includes(
+      this.loadingBlueprintItem,
+    );
+    const dwellLeft = placeholdersVisible
+      ? MIN_PLACEHOLDER_MS - (Date.now() - this.placeholdersShownAt)
+      : 0;
+    if (dwellLeft > 0 && !this.prefersReducedMotion()) {
+      const requestId = this.requestId;
+      this.dwellTimer = setTimeout(() => {
+        this.dwellTimer = null;
+        if (requestId === this.requestId) this.handleGetBlueprints(response);
+      }, dwellLeft);
+      return;
+    }
+    this.handleGetBlueprints(response);
+  }
+
+  private receiveListError() {
+    if (this.awaitingFade) {
+      this.pendingError = true;
+      return;
+    }
+    this.handleError();
+  }
+
   showMyBlueprints(data: BrowseData) {
     this.filterUserId = data.filterUserId;
-    this.reset();
-    this.getBlueprints();
+    this.transitionList();
   }
 
   handleError() {
@@ -457,17 +561,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   }
 
   appendLoading() {
+    this.placeholdersShownAt = Date.now();
     for (let i = 0; i < 6; i++)
       this.blueprintListItems.push(this.loadingBlueprintItem);
-  }
-
-  reset() {
-    this.blueprintListItems = [];
-    this.oldestDate = null;
-    this.skipCount = 0;
-    this.noMoreBlueprints = false;
-    this.working = true;
-    this.remaining = 0;
-    this.appendLoading();
   }
 }

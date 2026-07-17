@@ -196,7 +196,10 @@
           <span i18n>Couldn't load blueprints. Scroll to try again.</span>
         </div>
 
-        <div class="blueprint-grid">
+        <div
+          class="blueprint-grid"
+          [class.blueprint-grid--leaving]="listSwitching"
+        >
           <app-blueprint-card
             *ngFor="let item of blueprintListItems; let i = index"
             animate.enter="card-enter"
