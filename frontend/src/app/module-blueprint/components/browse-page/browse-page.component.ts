@@ -272,7 +272,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   selectGameVersion(value: string | null) {
     if (this.filterGameVersion === value) return;
     this.filterGameVersion = value;
-    this.onFacetChange();
+    // not onFacetChange(): subcategory is scoped to category, so a
+    // game-version change must not reset it
+    this.filterFacetSubject.next();
   }
 
   selectSubcategory(value: string | null) {
