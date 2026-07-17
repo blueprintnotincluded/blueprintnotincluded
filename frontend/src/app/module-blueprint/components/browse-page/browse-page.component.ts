@@ -13,7 +13,7 @@ import {
   SUBCATEGORIES,
   ROOM_TYPE_IDS,
 } from "../../../../../../lib/index";
-import { ROOM_TYPE_LABELS } from "../../utils/room-labels";
+import { ROOM_TYPE_LABELS, roomTypeLabel } from "../../utils/room-labels";
 import {
   BlueprintService,
   BlueprintSort,
@@ -29,6 +29,18 @@ import { BrowseData } from "../user-menu/user-menu.component";
 
 const LOADING_STR = $localize`Loading...`;
 const NO_RESULTS_STR = $localize`:browse.noResults:No Results`;
+// Shown instead of NO_RESULTS_STR when the empty page is filter-driven,
+// distinct from "no blueprints have ever been uploaded" (see activeFilterChips
+// bar below — the sidebar can be scrolled out of view, so this and the chip
+// bar are the only clue a filter combination is too narrow).
+const NO_RESULTS_FILTERED_STR = $localize`:browse.noResultsFiltered:No blueprints match these filters`;
+
+interface ActiveFilterChip {
+  key: string;
+  label: string;
+  ariaLabel: string;
+  remove: () => void;
+}
 
 /** Grid fade-out duration when the list context changes (ms); must match the
  * .blueprint-grid transition in the component CSS. */
@@ -376,6 +388,18 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.onSortChange();
   }
 
+  clearNameFilter() {
+    if (!this.filterName) return;
+    this.filterName = "";
+    this.filterFacetSubject.next();
+  }
+
+  clearModdedFilter() {
+    if (this.filterModded == null) return;
+    this.filterModded = null;
+    this.filterFacetSubject.next();
+  }
+
   get activeFilterCount(): number {
     return [
       this.filterName,
@@ -390,6 +414,76 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   get hasActiveFilters(): boolean {
     return this.activeFilterCount > 0;
+  }
+
+  private removeChipAriaLabel(label: string): string {
+    return $localize`:browse remove filter chip aria-label:Remove filter: ${label}`;
+  }
+
+  private chip(
+    key: string,
+    label: string,
+    remove: () => void,
+  ): ActiveFilterChip {
+    return { key, label, ariaLabel: this.removeChipAriaLabel(label), remove };
+  }
+
+  // Pinned above the grid (not the sidebar) so an active filter combination
+  // is visible even when the sidebar is scrolled out of view — the sidebar
+  // alone left users unable to tell why a narrow combination (e.g. a room
+  // that category's buildings never form) returned nothing.
+  get activeFilterChips(): ActiveFilterChip[] {
+    const chips: ActiveFilterChip[] = [];
+
+    if (this.filterName)
+      chips.push(
+        this.chip(
+          "name",
+          $localize`:browse filter chip:Search: "${this.filterName}"`,
+          () => this.clearNameFilter(),
+        ),
+      );
+    if (this.filterCategory)
+      chips.push(
+        this.chip("category", this.filterCategory, () =>
+          this.selectCategory(null),
+        ),
+      );
+    if (this.filterSubcategory)
+      chips.push(
+        this.chip("subcategory", this.filterSubcategory, () =>
+          this.selectSubcategory(null),
+        ),
+      );
+    if (this.filterGameVersion)
+      chips.push(
+        this.chip("gameVersion", this.filterGameVersion, () =>
+          this.selectGameVersion(null),
+        ),
+      );
+    if (this.filterModded != null)
+      chips.push(
+        this.chip(
+          "modded",
+          this.filterModded
+            ? $localize`:browse filter chip:Modded`
+            : $localize`:browse filter chip:Base game`,
+          () => this.clearModdedFilter(),
+        ),
+      );
+    if (this.filterRooms)
+      for (const roomId of this.filterRooms.split(","))
+        chips.push(
+          this.chip(`room-${roomId}`, roomTypeLabel(roomId), () =>
+            // rooms is effectively single-select from the UI (selectRoom
+            // replaces, never appends), so removing any one room chip clears
+            // the whole rooms filter — matches the only removal semantics
+            // the sidebar itself supports.
+            this.selectRoom(null),
+          ),
+        );
+
+    return chips;
   }
 
   onSubcategoryChange() {
@@ -550,8 +644,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     );
     response.blueprints.forEach((item) => this.blueprintListItems.push(item));
 
-    if (this.blueprintListItems.length === 0)
+    if (this.blueprintListItems.length === 0) {
+      this.nothingBlueprintItem.name = this.hasActiveFilters
+        ? NO_RESULTS_FILTERED_STR
+        : NO_RESULTS_STR;
       this.blueprintListItems.push(this.nothingBlueprintItem);
+    }
   }
 
   loadMore() {
