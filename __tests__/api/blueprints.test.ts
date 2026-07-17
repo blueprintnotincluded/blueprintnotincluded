@@ -107,12 +107,16 @@ describe('Blueprint API (Mocha)', function () {
       expect(blueprintNames).to.include('Super Coal Generator Setup'); // Original should still be included
     });
 
-    it('should return 400 error with proper validation for missing olderthan parameter', async function () {
-      const response = await TestSetup.request().get('/api/getblueprints');
+    it('treats a missing olderthan parameter as "older than now" (stable page-1 URLs)', async function () {
+      const withParam = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now() });
+      const withoutParam = await TestSetup.request().get('/api/getblueprints');
 
-      expect(response.status).to.equal(400);
-      expect(response.body.errors).to.be.an('array');
-      expect(response.body.errors[0].status).to.equal('400');
+      expect(withoutParam.status).to.equal(200);
+      expect(withoutParam.body.blueprints.map((bp: any) => bp.name)).to.deep.equal(
+        withParam.body.blueprints.map((bp: any) => bp.name)
+      );
     });
 
     it('should return 400 error for invalid olderthan parameter formats', async function () {
@@ -124,13 +128,12 @@ describe('Blueprint API (Mocha)', function () {
       expect(response1.status).to.equal(400);
       expect(response1.body.errors).to.be.an('array');
 
-      // Test empty parameter
+      // Empty parameter reads as absent — the "older than now" default
       const response2 = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: '' });
 
-      expect(response2.status).to.equal(400);
-      expect(response2.body.errors).to.be.an('array');
+      expect(response2.status).to.equal(200);
 
       // Test mixed alphanumeric
       const response3 = await TestSetup.request()

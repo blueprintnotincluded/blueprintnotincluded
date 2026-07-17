@@ -84,7 +84,7 @@ describe("ProfilePageComponent", () => {
   it("loads that owner's blueprints once the profile resolves", () => {
     fixture.detectChanges();
     expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-      expect.any(Date),
+      null,
       "owner-1",
       null,
     );
@@ -122,7 +122,7 @@ describe("ProfilePageComponent", () => {
         component.blueprintListItems.some((i: any) => i.name === "stale"),
       ).toBe(false);
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         null,
         null,
         undefined,
@@ -144,7 +144,7 @@ describe("ProfilePageComponent", () => {
       component.setTab("blueprints");
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        expect.any(Date),
+        null,
         "owner-1",
         null,
       );
