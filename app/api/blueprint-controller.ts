@@ -713,6 +713,10 @@ export class BlueprintController {
   // counts/names/thumbnails never go stale — only the ordering does.
   private static trendingIdCache = new Map<string, { expiresAt: number; ids: mongoose.Types.ObjectId[] }>();
   private static readonly TRENDING_CACHE_TTL_MS = 5 * 60 * 1000;
+  // The key embeds the whole filter (name search strings, skip, per-viewer
+  // clauses), so arbitrary requests can mint unlimited distinct keys within
+  // one TTL window — cap the map and evict oldest-inserted first.
+  private static readonly TRENDING_CACHE_MAX_ENTRIES = 200;
 
   public static clearTrendingCache() {
     BlueprintController.trendingIdCache.clear();
@@ -794,6 +798,10 @@ export class BlueprintController {
     const now = Date.now();
     for (const [key, entry] of BlueprintController.trendingIdCache) {
       if (entry.expiresAt <= now) BlueprintController.trendingIdCache.delete(key);
+    }
+    while (BlueprintController.trendingIdCache.size >= BlueprintController.TRENDING_CACHE_MAX_ENTRIES) {
+      const oldestKey = BlueprintController.trendingIdCache.keys().next().value as string;
+      BlueprintController.trendingIdCache.delete(oldestKey);
     }
     BlueprintController.trendingIdCache.set(cacheKey, {
       expiresAt: now + BlueprintController.TRENDING_CACHE_TTL_MS,
