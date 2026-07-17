@@ -13,30 +13,6 @@
   <div class="browse-page bni-float">
     <div class="browse-header">
       <h1 i18n>Browse Blueprints</h1>
-      <div class="search-box">
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.4"
-          stroke-linecap="round"
-          aria-hidden="true"
-        >
-          <circle cx="10.5" cy="10.5" r="6.5"></circle>
-          <path d="M15.5 15.5L21 21"></path>
-        </svg>
-        <input
-          class="search-input"
-          type="text"
-          i18n-placeholder
-          placeholder="Search blueprints"
-          [(ngModel)]="filterName"
-          (ngModelChange)="filterNameSubject.next($event)"
-          pInputText
-        />
-      </div>
       <a routerLink="/editor" class="bni-btn bni-btn--primary create-cta">
         <i class="pi pi-plus" aria-hidden="true"></i>
         <ng-container i18n>Create a new blueprint</ng-container>
@@ -64,109 +40,166 @@
       </button>
     </div>
 
-    <div class="filter-panel" *ngIf="viewMode === 'discover'">
-      <p-select
-        [(ngModel)]="filterGameVersion"
-        [options]="gameVersionOptions"
-        optionLabel="label"
-        optionValue="value"
-        [showClear]="false"
-        (onChange)="onFacetChange()"
-        i18n-placeholder
-        placeholder="Version"
-      ></p-select>
-      <p-select
-        [(ngModel)]="filterCategory"
-        [options]="categoryOptions"
-        optionLabel="label"
-        optionValue="value"
-        [showClear]="false"
-        (onChange)="onFacetChange()"
-        i18n-placeholder
-        placeholder="Category"
-      ></p-select>
-      <p-select
-        [(ngModel)]="filterRooms"
-        [options]="roomOptions"
-        optionLabel="label"
-        optionValue="value"
-        [showClear]="false"
-        (onChange)="onRoomsChange()"
-        i18n-placeholder
-        placeholder="Room"
-      ></p-select>
-      <p-select
-        [(ngModel)]="sort"
-        [options]="sortOptions"
-        optionLabel="label"
-        optionValue="value"
-        [showClear]="false"
-        (onChange)="onSortChange()"
-        i18n-placeholder
-        placeholder="Sort"
-      ></p-select>
-      <p-select
-        *ngIf="subcategoryOptions.length > 0"
-        [(ngModel)]="filterSubcategory"
-        [options]="subcategoryOptions"
-        optionLabel="label"
-        optionValue="value"
-        [showClear]="false"
-        (onChange)="onSubcategoryChange()"
-        i18n-placeholder
-        placeholder="Subcategory"
-      ></p-select>
-      <button
-        *ngIf="
-          filterGameVersion ||
-          filterCategory ||
-          filterSubcategory ||
-          filterName ||
-          filterModded !== null ||
-          filterForkedFrom ||
-          filterRooms
-        "
-        type="button"
-        class="clear-filters"
-        (click)="clearFilters()"
+    <button
+      *ngIf="viewMode === 'discover'"
+      type="button"
+      class="filters-toggle bni-btn"
+      [attr.aria-expanded]="filtersOpen"
+      (click)="filtersOpen = !filtersOpen"
+    >
+      <i class="pi pi-sliders-h" aria-hidden="true"></i>
+      <ng-container i18n>Filters</ng-container>
+      <span *ngIf="activeFilterCount > 0">({{ activeFilterCount }})</span>
+    </button>
+
+    <div
+      class="browse-body"
+      [class.browse-body--full]="viewMode !== 'discover'"
+    >
+      <aside
+        *ngIf="viewMode === 'discover'"
+        class="browse-sidebar"
+        [class.open]="filtersOpen"
       >
-        <svg
-          width="11"
-          height="11"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="3"
-          stroke-linecap="round"
-          aria-hidden="true"
+        <div class="search-box">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="10.5" cy="10.5" r="6.5"></circle>
+            <path d="M15.5 15.5L21 21"></path>
+          </svg>
+          <input
+            class="search-input"
+            type="text"
+            i18n-placeholder
+            placeholder="Search blueprints"
+            [(ngModel)]="filterName"
+            (ngModelChange)="filterNameSubject.next($event)"
+            pInputText
+          />
+        </div>
+
+        <div class="bni-facet-group">
+          <h4 class="bni-facet-label" i18n>Category</h4>
+          <button
+            *ngFor="let opt of categoryOptions"
+            type="button"
+            class="bni-facet"
+            [class.active]="filterCategory === opt.value"
+            (click)="selectCategory(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
+        <div class="bni-facet-group" *ngIf="subcategoryOptions.length > 0">
+          <h4 class="bni-facet-label" i18n>Subcategory</h4>
+          <button
+            *ngFor="let opt of subcategoryOptions"
+            type="button"
+            class="bni-facet"
+            [class.active]="filterSubcategory === opt.value"
+            (click)="selectSubcategory(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
+        <div class="bni-facet-group">
+          <h4 class="bni-facet-label" i18n>Compatibility</h4>
+          <button
+            *ngFor="let opt of gameVersionOptions"
+            type="button"
+            class="bni-facet"
+            [class.active]="filterGameVersion === opt.value"
+            (click)="selectGameVersion(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
+        <div class="bni-facet-group">
+          <h4 class="bni-facet-label" i18n>Room</h4>
+          <button
+            *ngFor="let opt of roomOptions"
+            type="button"
+            class="bni-facet"
+            [class.active]="filterRooms === opt.value"
+            (click)="selectRoom(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
+        <button
+          *ngIf="hasActiveFilters"
+          type="button"
+          class="clear-filters"
+          (click)="clearFilters()"
         >
-          <path d="M5 5l14 14M19 5L5 19"></path>
-        </svg>
-        <ng-container i18n>Clear filters</ng-container>
-      </button>
-    </div>
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M5 5l14 14M19 5L5 19"></path>
+          </svg>
+          <ng-container i18n>Clear filters</ng-container>
+        </button>
+      </aside>
 
-    <div *ngIf="filterModded !== null" class="filter-context-banner">
-      <span *ngIf="filterModded" i18n>Showing modded blueprints only.</span>
-      <span *ngIf="!filterModded" i18n
-        >Showing base-game (unmodded) blueprints only.</span
-      >
-    </div>
+      <main class="browse-results">
+        <div class="browse-toolbar" *ngIf="viewMode === 'discover'">
+          <div class="bni-tabs sort-tabs" role="tablist">
+            <button
+              *ngFor="let opt of sortOptions"
+              type="button"
+              class="bni-tab"
+              role="tab"
+              [class.active]="sort === opt.value"
+              [attr.aria-selected]="sort === opt.value"
+              (click)="selectSort(opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
 
-    <div *ngIf="filterForkedFrom" class="filter-context-banner" i18n>
-      Showing forks of this blueprint.
-    </div>
+        <div *ngIf="filterModded !== null" class="filter-context-banner">
+          <span *ngIf="filterModded" i18n>Showing modded blueprints only.</span>
+          <span *ngIf="!filterModded" i18n
+            >Showing base-game (unmodded) blueprints only.</span
+          >
+        </div>
 
-    <div *ngIf="loadError" class="browse-error" role="alert">
-      <span i18n>Couldn't load blueprints. Scroll to try again.</span>
-    </div>
+        <div *ngIf="filterForkedFrom" class="filter-context-banner" i18n>
+          Showing forks of this blueprint.
+        </div>
 
-    <div class="blueprint-grid">
-      <app-blueprint-card
-        *ngFor="let item of blueprintListItems"
-        [item]="item"
-        [loggedIn]="loggedIn"
-      ></app-blueprint-card>
+        <div *ngIf="loadError" class="browse-error" role="alert">
+          <span i18n>Couldn't load blueprints. Scroll to try again.</span>
+        </div>
+
+        <div class="blueprint-grid">
+          <app-blueprint-card
+            *ngFor="let item of blueprintListItems"
+            [item]="item"
+            [loggedIn]="loggedIn"
+          ></app-blueprint-card>
+        </div>
+      </main>
     </div>
   </div>
 </div>
