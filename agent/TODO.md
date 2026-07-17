@@ -37,6 +37,21 @@ guide items, both needing backend work:
   preview. Cache a tiny ~64px variant (previewimages collection already stores renders);
   the blur hides the resolution.
 - **No carousel.** Considered and rejected — do not resurrect the "featured strip" as one.
+- **Star ratings v2 — replace likes with real ratings.** The shipped `app-star-rating`
+  (stars derived from like counts) is an explicit placeholder; like volumes are too low
+  for it to mean much. Target design, mirroring the write-behind pattern that made
+  likes/views scalable (`BlueprintCounterService`, PR #129):
+  - Users rate a blueprint 1–5 stars (replaces the like interaction).
+  - Per-user ratings stored in their own collection (one doc per user+blueprint, like
+    `blueprintlikes`), so a user can change their rating and recency is queryable.
+  - The **aggregate** rating is denormalized onto the blueprint document itself — list
+    and detail views never aggregate at read time.
+  - Aggregation runs **out of band** (write-behind flush or batch job), because the
+    algorithm will change: start with the plain average, later prefer recent ratings
+    (recency-weighted / time-decay). Keeping computation server-side and async means
+    retuning the algorithm is a batch re-run, not a client or schema change.
+  - `app-star-rating` then just renders the stored aggregate; `starsFromLikes()` and its
+    log-scale mapping are deleted.
 
 ## Future directions (product)
 
