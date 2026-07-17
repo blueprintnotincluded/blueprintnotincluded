@@ -60,6 +60,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   viewMode: "discover" | "feed" = "discover";
   followingCount = 0;
+  /** mobile-only: whether the facet sidebar disclosure is open */
+  filtersOpen = false;
 
   readonly sortOptions: { label: string; value: BlueprintSort }[] = [
     { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
@@ -257,6 +259,54 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   onFacetChange() {
     this.filterSubcategory = null;
     this.filterFacetSubject.next();
+  }
+
+  /* sidebar facet clicks — no-ops when the value is already active, then
+   * funnel into the same handlers the old dropdowns used */
+  selectCategory(value: string | null) {
+    if (this.filterCategory === value) return;
+    this.filterCategory = value;
+    this.onFacetChange();
+  }
+
+  selectGameVersion(value: string | null) {
+    if (this.filterGameVersion === value) return;
+    this.filterGameVersion = value;
+    this.onFacetChange();
+  }
+
+  selectSubcategory(value: string | null) {
+    if (this.filterSubcategory === value) return;
+    this.filterSubcategory = value;
+    this.onSubcategoryChange();
+  }
+
+  selectRoom(value: string | null) {
+    if (this.filterRooms === value) return;
+    this.filterRooms = value;
+    this.onRoomsChange();
+  }
+
+  selectSort(value: BlueprintSort) {
+    if (this.sort === value) return;
+    this.sort = value;
+    this.onSortChange();
+  }
+
+  get activeFilterCount(): number {
+    return [
+      this.filterName,
+      this.filterGameVersion,
+      this.filterCategory,
+      this.filterSubcategory,
+      this.filterRooms,
+      this.filterForkedFrom,
+      this.filterModded !== null || null,
+    ].filter(Boolean).length;
+  }
+
+  get hasActiveFilters(): boolean {
+    return this.activeFilterCount > 0;
   }
 
   onSubcategoryChange() {

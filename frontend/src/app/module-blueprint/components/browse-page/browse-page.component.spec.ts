@@ -493,6 +493,72 @@ describe("BrowsePageComponent", () => {
     });
   });
 
+  describe("sidebar facet clicks", () => {
+    it("selectCategory sets the facet and resets subcategory", () => {
+      component.filterCategory = "power";
+      component.filterSubcategory = "generator";
+
+      component.selectCategory("cooling");
+
+      expect(component.filterCategory).toBe("cooling");
+      expect(component.filterSubcategory).toBeNull();
+    });
+
+    it("selectCategory is a no-op when the value is already active", () => {
+      component.filterCategory = "power";
+      component.filterSubcategory = "generator";
+      const callsBefore = blueprintService.getBlueprints.mock.calls.length;
+
+      component.selectCategory("power");
+
+      // an active-facet re-click must not wipe subcategory or refetch
+      expect(component.filterSubcategory).toBe("generator");
+      expect(blueprintService.getBlueprints.mock.calls.length).toBe(
+        callsBefore,
+      );
+    });
+
+    it("selectRoom updates the URL and refetches", () => {
+      component.selectRoom("kitchen");
+
+      expect(component.filterRooms).toBe("kitchen");
+      expect(router.navigate).toHaveBeenCalledWith([], {
+        queryParams: { rooms: "kitchen" },
+        replaceUrl: true,
+      });
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[11]).toBe("kitchen");
+    });
+
+    it("selectSort funnels into onSortChange", () => {
+      component.selectSort("popular");
+
+      expect(component.sort).toBe("popular");
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[6]).toBe("popular");
+    });
+
+    it("selectSort is a no-op when the sort is already active", () => {
+      const callsBefore = blueprintService.getBlueprints.mock.calls.length;
+      component.selectSort("recent");
+      expect(blueprintService.getBlueprints.mock.calls.length).toBe(
+        callsBefore,
+      );
+    });
+
+    it("counts active filters for the mobile disclosure label", () => {
+      expect(component.activeFilterCount).toBe(0);
+      expect(component.hasActiveFilters).toBe(false);
+
+      component.filterName = "spom";
+      component.filterCategory = "power";
+      component.filterModded = false;
+
+      expect(component.activeFilterCount).toBe(3);
+      expect(component.hasActiveFilters).toBe(true);
+    });
+  });
+
   describe("blueprint card rendering", () => {
     const realItem = {
       id: "bp-1",
