@@ -238,7 +238,9 @@
             </button>
           </div>
           <div
-            *ngIf="!avatarLoading && availableAvatars.length === 0"
+            *ngIf="
+              avatarsLoaded && !avatarLoading && availableAvatars.length === 0
+            "
             class="avatar-hint"
             i18n
           >
