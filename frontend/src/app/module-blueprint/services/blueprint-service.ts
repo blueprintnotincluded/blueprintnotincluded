@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "./authentification-service";
-import { map } from "rxjs/operators";
+import { map, tap } from "rxjs/operators";
 import {
   Blueprint,
   IObsBlueprintChange,
@@ -341,19 +341,21 @@ export class BlueprintService implements IObsBlueprintChange {
           : {},
       )
       .pipe(
-        map((response: BlueprintResponse) => {
+        tap((response: BlueprintResponse) => {
           const blueprint = new Blueprint();
           blueprint.importFromMdb(response.data);
           const bniBlueprint = blueprint.toBniBlueprint(friendlyName);
 
+          const url = URL.createObjectURL(
+            new Blob([JSON.stringify(bniBlueprint)], {}),
+          );
           const a = document.createElement("a");
           document.body.append(a);
           a.download = sanitize(friendlyName) + ".blueprint";
-          a.href = URL.createObjectURL(
-            new Blob([JSON.stringify(bniBlueprint)], {}),
-          );
+          a.href = url;
           a.click();
           a.remove();
+          URL.revokeObjectURL(url);
 
           this.trackDownload(id);
         }),
