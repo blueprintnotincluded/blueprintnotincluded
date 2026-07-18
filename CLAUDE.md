@@ -90,6 +90,7 @@ and their `npm run generate*` / `seed` / `enhancedSeed` / `testCanvas` entries n
 Remaining batch utilities:
 - `npm run fixHtmlLabels` - Fix HTML formatting in labels.
 - `npm run derive-metadata` - Backfill `gameVersion` and `modded` on all blueprint documents from stored building IDs. Use `--dry-run` flag (`npm run derive-metadata:dry-run`) to preview counts without writing.
+- `npm run avatars:smoke` / `avatars:seed-batch -- --count N` / `avatars:backfill[:dry-run]` - Gemini avatar pipeline (costs real money per generation; setup + rollout order in `agent/AVATARS.md`).
 - `npm run backfill-previews` - Render preview images for all non-deleted blueprints (newest first) and store them durably in Mongo (`previewimages` collection). Skips blueprints whose durable rows are already fresh, so it's rerunnable/resumable. Use `--dry-run` (`npm run backfill-previews:dry-run`) to report the fresh/stale split without rendering or writing.
 - The `ts-node` batch scripts only work in a dev checkout. The deploy image has no devDependencies or TS sources — in a DO console run the compiled output instead: `cd /bpni/build && node app/api/batch/backfill-preview-images.js [--dry-run]` (same for `derive-blueprint-metadata.js`).
 
@@ -225,6 +226,7 @@ Check these files in `agent/` directory for current status:
 - `agent/TODO.md` - Improvement roadmap and remaining work
 - `agent/SESSION_NOTES.md` - Session-by-session progress
 - `agent/WORKOS_PLAN.md` - WorkOS auth operational reference (env mapping, admin roles)
+- `agent/AVATARS.md` - Gemini avatar generation operational reference (API key setup, pool, costs)
 - `UPGRADE_PLAN.md` - Upgrade history and strategy
 
 ### Quick Status Check Commands
