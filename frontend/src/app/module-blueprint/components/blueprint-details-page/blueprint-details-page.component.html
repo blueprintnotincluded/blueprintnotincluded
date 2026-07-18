@@ -172,6 +172,16 @@
               icon="pi pi-pencil"
               [routerLink]="['/b', details.id]"
             ></a>
+            <button
+              pButton
+              type="button"
+              class="p-button-outlined"
+              icon="pi pi-download"
+              i18n-label
+              label="Download"
+              [loading]="downloadWorking"
+              (click)="downloadBlueprint()"
+            ></button>
             <app-rating-widget
               [blueprintId]="details.id"
               [myRating]="details.myRating"
