@@ -63,6 +63,13 @@ export interface Blueprint extends Document {
   // BlueprintCounterService, not per request
   viewCount?: number;
   downloadCount?: number;
+  // Materialized trending score ("new but also good"), computed by
+  // lib computeHotScore and refreshed on every engagement write (ratings,
+  // download flush) + at creation. Static per document (recency term is keyed
+  // on createdAt, not the clock), so the trending sort is a plain indexed
+  // sort. No schema default: docs predating the backfill lack it and sort last
+  // under { hotScore: -1 } until the migration runs.
+  hotScore?: number;
 }
 
 export class BlueprintModel {
@@ -127,6 +134,9 @@ export class BlueprintModel {
       forkCount: { type: Number, default: 0 },
       viewCount: { type: Number, default: 0 },
       downloadCount: { type: Number, default: 0 },
+      // No default: absent = not yet materialized (pre-backfill), so those
+      // docs sort last under { hotScore: -1 } rather than tying at 0.
+      hotScore: { type: Number },
     });
 
     // Listing query: filter by createdAt range, sort by createdAt desc
@@ -156,6 +166,10 @@ export class BlueprintModel {
     // "Most viewed" / "Most downloaded" sorts
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, viewCount: -1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, downloadCount: -1, createdAt: -1 });
+    // "Trending" sort — materialized hotScore. Unfiltered feed only for now;
+    // filter-scoped (gameVersion/category/rooms) hotScore indexes are a
+    // metrics-gated TODO (spec/trending-hotscore-plan.md §6).
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, hotScore: -1, createdAt: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);
   }

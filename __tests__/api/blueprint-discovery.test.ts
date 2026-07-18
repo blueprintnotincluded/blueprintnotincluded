@@ -8,16 +8,15 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 process.env.NODE_ENV = 'test';
 
 import { TestSetup } from '../setup/testSetup';
-import { BlueprintController } from '../../app/api/blueprint-controller';
 import { BlueprintModel } from '../../app/api/models/blueprint';
-import { CommentModel } from '../../app/api/models/comment';
+import { computeHotScore } from '../../lib/index';
 import { Types } from 'mongoose';
 
 const TINY_PNG =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 async function makeBlueprint(owner: Types.ObjectId, overrides: Record<string, any> = {}) {
-  return BlueprintModel.model.create({
+  const doc: Record<string, any> = {
     owner,
     name: `Discovery Test Blueprint ${new Types.ObjectId().toString()}`,
     ratingCount: 0,
@@ -32,7 +31,18 @@ async function makeBlueprint(owner: Types.ObjectId, overrides: Record<string, an
     deletedAt: null,
     isPublished: true,
     ...overrides,
-  });
+  };
+  // saveBlueprint materializes hotScore on every write; fixtures bypass it, so
+  // mirror it here from the (possibly overridden) scoring inputs.
+  if (doc.hotScore == null) {
+    doc.hotScore = computeHotScore({
+      ratingCount: doc.ratingCount,
+      ratingAverage: doc.ratingAverage,
+      downloadCount: doc.downloadCount,
+      createdAt: doc.createdAt,
+    });
+  }
+  return BlueprintModel.model.create(doc);
 }
 
 function daysAgo(n: number): Date {
@@ -189,33 +199,28 @@ describe('Discovery: related blueprints + trending sort', function () {
       expect(trendingNames.indexOf(newSmall.name)).to.be.lessThan(trendingNames.indexOf(oldButLiked.name));
     });
 
-    it('factors live comment counts into the score', async function () {
-      const discussed = await makeBlueprint(testData.users.user1._id, {
-        name: 'Trending Discussed',
+    it('ranks a more-downloaded blueprint above a same-age, same-rating one', async function () {
+      const popular = await makeBlueprint(testData.users.user1._id, {
+        name: 'Trending More Downloads',
+        ratingCount: 4,
+        ratingAverage: 4,
+        downloadCount: 500,
         createdAt: new Date(),
       });
-      const quiet = await makeBlueprint(testData.users.user2._id, {
-        name: 'Trending Quiet',
+      const obscure = await makeBlueprint(testData.users.user2._id, {
+        name: 'Trending Few Downloads',
+        ratingCount: 4,
+        ratingAverage: 4,
+        downloadCount: 2,
         createdAt: new Date(),
       });
-
-      await CommentModel.model.create([
-        { blueprintId: discussed._id, authorId: testData.users.user2._id, body: 'one' },
-        { blueprintId: discussed._id, authorId: testData.users.user3._id, body: 'two' },
-        {
-          blueprintId: discussed._id,
-          authorId: testData.users.user3._id,
-          body: 'removed',
-          deletedAt: new Date(),
-        },
-      ]);
 
       const response = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now(), sort: 'trending' });
 
       const names: string[] = response.body.blueprints.map((b: any) => b.name);
-      expect(names.indexOf(discussed.name)).to.be.lessThan(names.indexOf(quiet.name));
+      expect(names.indexOf(popular.name)).to.be.lessThan(names.indexOf(obscure.name));
     });
 
     it('rejects an unknown sort value', async function () {
@@ -225,31 +230,20 @@ describe('Discovery: related blueprints + trending sort', function () {
       expect(response.status).to.equal(400);
     });
 
-    it('memoizes the ranking until the cache is cleared, but never the documents', async function () {
-      const first = await TestSetup.request()
-        .get('/api/getblueprints')
-        .query({ olderthan: Date.now(), sort: 'trending' });
-      expect(first.status).to.equal(200);
-
+    it('surfaces a newly created blueprint (no cache) with a materialized hotScore', async function () {
       const late = await makeBlueprint(testData.users.user2._id, {
         name: 'Trending Late Arrival',
         ratingCount: 99,
         ratingAverage: 5,
       });
 
-      const cached = await TestSetup.request()
-        .get('/api/getblueprints')
-        .query({ olderthan: Date.now(), sort: 'trending' });
-      expect(cached.body.blueprints.map((b: any) => b.name)).to.not.include(late.name);
-
-      BlueprintController.clearTrendingCache();
       const fresh = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now(), sort: 'trending' });
       expect(fresh.body.blueprints.map((b: any) => b.name)).to.include(late.name);
     });
 
-    it('drops a soft-deleted blueprint from a cached ranking immediately', async function () {
+    it('excludes a soft-deleted blueprint from the trending feed', async function () {
       const doomed = await makeBlueprint(testData.users.user1._id, { name: 'Trending Doomed' });
 
       const first = await TestSetup.request()

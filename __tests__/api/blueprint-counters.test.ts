@@ -10,6 +10,7 @@ process.env.NODE_ENV = 'test';
 import { TestSetup } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { BlueprintCounterService } from '../../app/api/services/blueprint-counter-service';
+import { computeHotScore } from '../../lib/index';
 import { Types } from 'mongoose';
 
 describe('Blueprint view/download counters', function () {
@@ -79,6 +80,37 @@ describe('Blueprint view/download counters', function () {
       const service = BlueprintCounterService.instance;
       service.record('view', new Types.ObjectId().toString(), 'user-a');
       await service.flush(); // must not throw
+    });
+
+    it('refreshes hotScore on a download flush using the post-increment total', async function () {
+      const service = BlueprintCounterService.instance;
+      const doc = await BlueprintModel.model
+        .findById(blueprintId)
+        .select('ratingCount ratingAverage downloadCount createdAt')
+        .lean();
+      const expected = computeHotScore({
+        ratingCount: doc?.ratingCount ?? 0,
+        ratingAverage: doc?.ratingAverage ?? 0,
+        downloadCount: (doc?.downloadCount ?? 0) + 1,
+        createdAt: doc!.createdAt,
+      });
+
+      service.record('download', blueprintId, 'dl-1');
+      await service.flush();
+
+      const after = await BlueprintModel.model.findById(blueprintId).select('hotScore').lean();
+      expect(after?.hotScore).to.be.closeTo(expected, 1e-9);
+    });
+
+    it('leaves hotScore untouched on a view-only flush', async function () {
+      const service = BlueprintCounterService.instance;
+      const before = (await BlueprintModel.model.findById(blueprintId).select('hotScore').lean())?.hotScore ?? null;
+
+      service.record('view', blueprintId, 'viewer-1');
+      await service.flush();
+
+      const after = (await BlueprintModel.model.findById(blueprintId).select('hotScore').lean())?.hotScore ?? null;
+      expect(after).to.equal(before);
     });
   });
 

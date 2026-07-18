@@ -8,6 +8,7 @@ process.env.NODE_ENV = 'test';
 
 import { TestSetup } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
+import { computeHotScore } from '../../lib/index';
 
 const TINY_PNG =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
@@ -398,6 +399,35 @@ describe('Blueprint metadata API', function () {
         .query({ olderthan: Date.now(), ratedBy: testData.users.user2._id.toString() });
 
       expect(response.status).to.equal(403);
+    });
+  });
+
+  describe('trending hotScore materialization on rating', function () {
+    it('refreshes hotScore when a rating lands', async function () {
+      const otherToken = testData.users.user2.generateJwt();
+      const created = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Rating Bumps HotScore' });
+      const id = created.body.id;
+
+      const before = (await BlueprintModel.model.findById(id).select('hotScore createdAt').lean())!;
+
+      await TestSetup.request()
+        .post('/api/rateblueprint')
+        .set('Authorization', `Bearer ${otherToken}`)
+        .send({ blueprintId: id, rating: 5 });
+
+      const after = (await BlueprintModel.model.findById(id).select('hotScore ratingCount ratingAverage downloadCount createdAt').lean())!;
+      const expected = computeHotScore({
+        ratingCount: after.ratingCount ?? 0,
+        ratingAverage: after.ratingAverage ?? 0,
+        downloadCount: after.downloadCount ?? 0,
+        createdAt: after.createdAt,
+      });
+      expect(after.hotScore).to.be.closeTo(expected, 1e-9);
+      // A first 5★ rating raises the quality term above the 0-vote baseline.
+      expect(after.hotScore).to.be.greaterThan(before.hotScore as number);
     });
   });
 });
