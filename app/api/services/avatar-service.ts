@@ -24,8 +24,9 @@ import {
 // for the price of one 512px generation (~$0.011 each). The full grid is kept
 // verbatim on an AvatarBatch row; tiles reference it via batchId.
 //
-// The committed duplicant style sheet is attached to every generation so
-// output matches the ONI portrait style specifically, not generic cartoon.
+// The committed duplicant style sheet and hats sheet are attached to every
+// generation so output matches the ONI portrait style specifically (not
+// generic cartoon) and hats come from the recognizable in-game set.
 //
 // Pool: avatars with { status: 'ready', assignedTo: null } are claimable.
 // Claiming is an atomic findOneAndUpdate on { _id, assignedTo: null }, so two
@@ -38,6 +39,7 @@ export const DISPLAY_SIZE = 256;
 export const GRID_TILES = 4;
 
 const STYLE_SHEET_PATH = 'assets/avatar-reference/duplicant-style-sheet.jpg';
+const HATS_SHEET_PATH = 'assets/avatar-reference/duplicant-hats-sheet.jpg';
 
 export interface GenerateOptions {
   sourceType: AvatarSourceType;
@@ -62,6 +64,7 @@ export class AvatarService {
   public readonly provider: AvatarImageProvider;
   private refillInFlight = false;
   private styleSheet: ReferenceImage | null | undefined; // undefined = not loaded yet
+  private hatsSheet: ReferenceImage | null | undefined;
 
   constructor(provider: AvatarImageProvider = new GeminiAvatarProvider()) {
     this.provider = provider;
@@ -78,21 +81,32 @@ export class AvatarService {
     return this.provider.isConfigured();
   }
 
-  // The committed style sheet, downscaled at build time (~1024px jpeg ≈ 1k
-  // input tokens ≈ $0.0005/call). Prompts hard-code attachment positions
-  // ("the first/second attached image is..."), so a missing sheet can't
+  // The committed reference sheets (~1024px jpegs ≈ ~1k input tokens ≈
+  // $0.0005/call each). Prompts hard-code attachment positions ("the
+  // first/second/third attached image is..."), so a missing sheet can't
   // degrade to sheet-less prompting without shifting every index and
   // corrupting the request — callers must fail closed instead.
   public getStyleSheet(): ReferenceImage | null {
-    if (this.styleSheet !== undefined) return this.styleSheet;
-    try {
-      const path = process.env.AVATAR_STYLE_REFERENCE || STYLE_SHEET_PATH;
-      this.styleSheet = { data: fs.readFileSync(path), mimeType: 'image/jpeg' };
-    } catch {
-      console.log(`[avatar] style sheet not found at ${STYLE_SHEET_PATH}`);
-      this.styleSheet = null;
+    if (this.styleSheet === undefined) {
+      this.styleSheet = this.loadSheet(process.env.AVATAR_STYLE_REFERENCE || STYLE_SHEET_PATH);
     }
     return this.styleSheet;
+  }
+
+  public getHatsSheet(): ReferenceImage | null {
+    if (this.hatsSheet === undefined) {
+      this.hatsSheet = this.loadSheet(process.env.AVATAR_HATS_REFERENCE || HATS_SHEET_PATH);
+    }
+    return this.hatsSheet;
+  }
+
+  private loadSheet(path: string): ReferenceImage | null {
+    try {
+      return { data: fs.readFileSync(path), mimeType: 'image/jpeg' };
+    } catch {
+      console.log(`[avatar] reference sheet not found at ${path}`);
+      return null;
+    }
   }
 
   // ─── Generation ────────────────────────────────────────────────────────────
@@ -108,13 +122,16 @@ export class AvatarService {
     log(`generate start source=${sourceType} template=${promptTemplate}`);
 
     const sheet = this.getStyleSheet();
-    if (!sheet) {
-      // Prompts assume the sheet occupies the first attachment slot; without
-      // it every other attachment index (e.g. the user photo) shifts, so the
-      // model would be told it's looking at the wrong image.
-      throw new Error('avatar style sheet unavailable — refusing to generate with mismatched prompt');
+    const hats = this.getHatsSheet();
+    if (!sheet || !hats) {
+      // Prompts assume the sheets occupy the first two attachment slots;
+      // without them every other attachment index (e.g. the user photo)
+      // shifts, so the model would be told it's looking at the wrong image.
+      throw new Error(
+        `avatar ${sheet ? 'hats' : 'style'} sheet unavailable — refusing to generate with mismatched prompt`
+      );
     }
-    const references: ReferenceImage[] = [sheet];
+    const references: ReferenceImage[] = [sheet, hats];
     if (options.reference) references.push(options.reference);
 
     try {

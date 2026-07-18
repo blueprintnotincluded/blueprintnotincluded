@@ -45,7 +45,9 @@ async function run() {
   console.log(
     `Generating ~${calls * GRID_TILES} pool avatars in ${calls} grid calls ` +
       `(~$${(calls * 0.09).toFixed(2)} observed per-grid cost)` +
-      (service.getStyleSheet() ? ' with the duplicant style sheet' : ' WITHOUT style sheet (missing!)')
+      (service.getStyleSheet() && service.getHatsSheet()
+        ? ' with the duplicant style + hats sheets'
+        : ' WITHOUT reference sheets (missing — generation will fail closed!)')
   );
 
   let ok = 0;
