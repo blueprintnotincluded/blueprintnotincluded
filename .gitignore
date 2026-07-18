@@ -24,3 +24,6 @@
 /graphify-out
 # Server-rendered blueprint preview image cache (regenerated on demand)
 /preview-cache
+
+# avatar smoke test scratch output
+avatar-smoke-test.png
