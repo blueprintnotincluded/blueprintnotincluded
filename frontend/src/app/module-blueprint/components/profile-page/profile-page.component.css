@@ -130,3 +130,88 @@
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 16px;
 }
+
+/* ─── Avatar management ─────────────────────────────────────────────────── */
+
+.avatar-block {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatar-image {
+  object-fit: cover;
+  padding: 0;
+  background: var(--bni-accent-tint);
+}
+
+.avatar-change {
+  font-size: 12px;
+}
+
+.avatar-panel {
+  margin: -12px 0 28px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.avatar-panel h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.avatar-hint {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--bni-text-dim, #8a9aa5);
+}
+
+.avatar-generate-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.avatar-option {
+  padding: 0;
+  border: 2.5px solid transparent;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.avatar-option img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bni-accent-tint);
+}
+
+.avatar-option:hover:not(:disabled),
+.avatar-option.selected {
+  border-color: var(--bni-accent);
+}
+
+.avatar-option:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.avatar-error {
+  color: var(--p-red-400, #e06c75);
+  font-size: 13px;
+}

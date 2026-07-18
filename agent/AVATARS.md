@@ -30,6 +30,7 @@ Operational reference for the duplicant-style avatar pipeline
 | `AVATAR_CLASSIFY_MODEL` | `gemini-3.5-flash` | cheap multimodal FACE/NOT_FACE pre-check |
 | `AVATAR_POOL_LOW_WATER` | `5` | refill trigger threshold (0 disables refill — tests use this) |
 | `AVATAR_POOL_REFILL` | `5` | avatars generated per refill |
+| `AVATAR_GENERATE_COOLDOWN_MS` | `86400000` (24h) | per-user generation limit window |
 
 ## Cost
 
@@ -86,7 +87,9 @@ Operational reference for the duplicant-style avatar pipeline
 | --- | --- | --- |
 | `GET /api/users/:username/avatar` | none | 256px png, ETag + 5min cache; 404 when unassigned |
 | `GET /api/avatars/:id/image` | none | any ready avatar by id (candidate previews), immutable cache |
-| `POST /api/users/me/avatar/generate` | user | optional raw `image/*` body (≤8mb) as seed; face ⇒ seeded prompt, else random; returns 4 candidates, first auto-assigned; 60s per-user cooldown; 503 unconfigured, 502 provider failure |
+| `GET /api/users/me/avatar/status` | user | `{ avatarId, nextGenerateAt, poolCount }` — profile-page bootstrap |
+| `GET /api/avatars/available` | user | random sample (≤60) of the unused pool + total; selection is free/unlimited |
+| `POST /api/users/me/avatar/generate` | user | optional raw `image/*` body (≤8mb) as seed; face ⇒ seeded prompt, else random; returns 4 candidates, first auto-assigned; **one generation per day** (durable via `avatarbatches.requestedBy`; failed calls don't consume it; 429 carries `retryAt`); 503 unconfigured, 502 provider failure |
 | `POST /api/users/me/avatar/select` | user | `{ avatarId }` — claim a specific ready+unassigned avatar (candidate flow); 409 if taken |
 | `POST /api/users/me/avatar/assign` | user | claim random unused pool avatar; 404 empty pool |
 | `DELETE /api/users/me/avatar` | user | release current avatar back to pool |
@@ -115,10 +118,18 @@ attaches [sheet, photo] in that order and refers to them positionally. To
 update the style, replace `assets/avatar-reference/duplicant-style-sheet.jpg`
 (keep it ~1024px jpeg; the full-res master lives outside the repo).
 
+## Frontend
+
+Profile page (`/profile/:username`, "My Profile" in the user menu) shows the
+avatar (immutable `/api/avatars/:id/image` url from `ProfileResponse.avatarId`,
+letter-circle fallback) and, on the own profile, a "Change avatar" panel:
+generate (optional photo upload, 1/day, disabled with unlock time) → pick from
+the four candidates, or pick any unused pool avatar for free.
+
 ## TODO / deferred
 
-- Frontend: no UI yet — needs the `user-badge` component + profile
-  generate/upload controls (spec/social/avatars-identity.md).
+- `user-badge` component to surface avatars site-wide (cards, comments,
+  follower lists) — spec/social/avatars-identity.md.
 - Refill + generation should move to a job queue if the API gets replicas.
 - Batch-tier pricing (half cost) is available via the provider's batch API —
   worth it if seed batches grow into the hundreds.

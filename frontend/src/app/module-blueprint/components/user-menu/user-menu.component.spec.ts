@@ -90,6 +90,30 @@ describe("UserMenuComponent", () => {
     });
   });
 
+  describe("My Profile", () => {
+    it("navigates to the current user's profile page", () => {
+      authService.getUserDetails.mockReturnValue(makeUser("user"));
+      component.myProfile();
+      expect(router.navigate).toHaveBeenCalledWith(["/profile", "alice"]);
+    });
+
+    it("is a menu item visible when logged in", () => {
+      authService.isLoggedIn.mockReturnValue(true);
+      authService.getUserDetails.mockReturnValue(makeUser("user"));
+      component.ngOnInit();
+      const item = component.userMenuItems.find(
+        (i) => i.label === "My Profile",
+      );
+      expect(item?.visible).toBe(true);
+    });
+
+    it("does nothing when no user is logged in", () => {
+      authService.getUserDetails.mockReturnValue(null);
+      component.myProfile();
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+  });
+
   describe("myBlueprintsRequested output", () => {
     it("emits BrowseData for the current user", () => {
       authService.getUserDetails.mockReturnValue(makeUser("user"));

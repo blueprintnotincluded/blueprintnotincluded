@@ -5,6 +5,7 @@ import { UserService } from "../../services/user-service";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import {
+  AvatarCandidate,
   BlueprintListItem,
   BlueprintListResponse,
   ProfileResponse,
@@ -15,6 +16,10 @@ const NO_RESULTS_STR = $localize`:profile.noResults:No blueprints yet`;
 const FOLLOW_LABEL = $localize`:profile.follow:Follow`;
 const UNFOLLOW_LABEL = $localize`:profile.unfollow:Unfollow`;
 const LOGIN_PROMPT = $localize`:profile.loginToFollow:Log in to follow`;
+const AVATAR_LOAD_ERROR = $localize`:profile.avatarLoadError:Could not load avatars`;
+const AVATAR_LIMIT_ERROR = $localize`:profile.avatarLimit:You can generate one avatar per day — come back tomorrow`;
+const AVATAR_GENERATE_ERROR = $localize`:profile.avatarGenerateError:Avatar generation failed, please try again`;
+const AVATAR_SELECT_ERROR = $localize`:profile.avatarSelectError:That avatar was just taken — pick another`;
 
 @Component({
   selector: "app-profile-page",
@@ -33,6 +38,18 @@ export class ProfilePageComponent implements OnInit {
   bioDraft = "";
   savingBio = false;
 
+  // Own-profile avatar management (lazy: nothing loads until the panel opens)
+  avatarPanelOpen = false;
+  avatarLoading = false;
+  nextGenerateAt: Date | null = null;
+  poolCount = 0;
+  availableAvatars: AvatarCandidate[] = [];
+  candidates: AvatarCandidate[] = [];
+  generating = false;
+  selectingAvatarId: string | null = null;
+  avatarError = "";
+  seedFile: File | null = null;
+
   blueprintListItems: BlueprintListItem[] = [];
   working = true;
   noMoreBlueprints = false;
@@ -47,6 +64,8 @@ export class ProfilePageComponent implements OnInit {
   readonly followLabel = FOLLOW_LABEL;
   readonly unfollowLabel = UNFOLLOW_LABEL;
   readonly loginPromptText = LOGIN_PROMPT;
+  readonly generateRandomLabel = $localize`:profile.generateRandom:Generate random`;
+  readonly generateFromPhotoLabel = $localize`:profile.generateFromPhoto:Generate from photo`;
 
   constructor(
     private route: ActivatedRoute,
@@ -113,6 +132,16 @@ export class ProfilePageComponent implements OnInit {
     this.editingBio = false;
     this.bioDraft = "";
     this.savingBio = false;
+    this.avatarPanelOpen = false;
+    this.avatarLoading = false;
+    this.nextGenerateAt = null;
+    this.poolCount = 0;
+    this.availableAvatars = [];
+    this.candidates = [];
+    this.generating = false;
+    this.selectingAvatarId = null;
+    this.avatarError = "";
+    this.seedFile = null;
     this.blueprintListItems = [];
     this.working = true;
     this.noMoreBlueprints = false;
@@ -141,6 +170,93 @@ export class ProfilePageComponent implements OnInit {
 
   get avatarLetter(): string {
     return this.username.charAt(0).toUpperCase();
+  }
+
+  // Immutable per-id URL — assignment changes swap the id, so no cache issues
+  get avatarUrl(): string | null {
+    return this.profile?.avatarId
+      ? `/api/avatars/${this.profile.avatarId}/image`
+      : null;
+  }
+
+  get canGenerate(): boolean {
+    return this.nextGenerateAt == null || this.nextGenerateAt <= new Date();
+  }
+
+  toggleAvatarPanel() {
+    this.avatarPanelOpen = !this.avatarPanelOpen;
+    if (this.avatarPanelOpen) this.refreshAvatarPanel();
+  }
+
+  private refreshAvatarPanel() {
+    this.avatarLoading = true;
+    this.avatarError = "";
+    this.userService.getAvatarStatus().subscribe({
+      next: (status) => {
+        this.nextGenerateAt = status.nextGenerateAt
+          ? new Date(status.nextGenerateAt)
+          : null;
+        this.poolCount = status.poolCount;
+      },
+      error: () => {},
+    });
+    this.userService.getAvailableAvatars().subscribe({
+      next: (available) => {
+        this.availableAvatars = available.avatars;
+        this.poolCount = available.total;
+        this.avatarLoading = false;
+      },
+      error: () => {
+        this.avatarLoading = false;
+        this.avatarError = AVATAR_LOAD_ERROR;
+      },
+    });
+  }
+
+  onSeedFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.seedFile = input.files?.[0] ?? null;
+  }
+
+  generateAvatar() {
+    if (!this.canGenerate || this.generating) return;
+    this.generating = true;
+    this.avatarError = "";
+    this.userService.generateAvatar(this.seedFile).subscribe({
+      next: (result) => {
+        this.generating = false;
+        this.seedFile = null;
+        this.candidates = result.candidates;
+        if (this.profile && result.avatarId)
+          this.profile.avatarId = result.avatarId;
+        this.refreshAvatarPanel();
+      },
+      error: (err) => {
+        this.generating = false;
+        const retryAt = err?.error?.retryAt;
+        if (retryAt) this.nextGenerateAt = new Date(retryAt);
+        this.avatarError =
+          err?.status === 429 ? AVATAR_LIMIT_ERROR : AVATAR_GENERATE_ERROR;
+      },
+    });
+  }
+
+  chooseAvatar(candidate: AvatarCandidate) {
+    if (this.selectingAvatarId) return;
+    this.selectingAvatarId = candidate.id;
+    this.avatarError = "";
+    this.userService.selectAvatar(candidate.id).subscribe({
+      next: () => {
+        this.selectingAvatarId = null;
+        if (this.profile) this.profile.avatarId = candidate.id;
+        // The claimed avatar left the pool; a released one may have joined it
+        this.refreshAvatarPanel();
+      },
+      error: () => {
+        this.selectingAvatarId = null;
+        this.avatarError = AVATAR_SELECT_ERROR;
+      },
+    });
   }
 
   loadProfile() {

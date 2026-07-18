@@ -36,7 +36,28 @@
 
     <ng-container *ngIf="!loadingProfile && !notFound && profile">
       <div class="profile-header bni-panel">
-        <div class="avatar">{{ avatarLetter }}</div>
+        <div class="avatar-block">
+          <img
+            *ngIf="avatarUrl"
+            class="avatar avatar-image"
+            [src]="avatarUrl"
+            [alt]="profile.username"
+            width="96"
+            height="96"
+          />
+          <div *ngIf="!avatarUrl" class="avatar">{{ avatarLetter }}</div>
+          <button
+            *ngIf="isOwnProfile"
+            type="button"
+            pButton
+            class="p-button-text p-button-sm avatar-change"
+            icon="pi pi-sparkles"
+            i18n-label
+            label="Change avatar"
+            [attr.aria-expanded]="avatarPanelOpen"
+            (click)="toggleAvatarPanel()"
+          ></button>
+        </div>
 
         <div class="profile-details">
           <h1>{{ profile.username }}</h1>
@@ -132,6 +153,83 @@
             (click)="toggleFollow()"
           ></button>
         </div>
+      </div>
+
+      <div
+        *ngIf="isOwnProfile && avatarPanelOpen"
+        class="avatar-panel bni-panel"
+      >
+        <div class="avatar-panel-section">
+          <h2 i18n>Generate a new avatar</h2>
+          <p class="avatar-hint" i18n>
+            One generation per day. Upload a photo of yourself to get a
+            duplicant that looks like you, or leave it empty for a surprise —
+            either way you'll get four to choose from.
+          </p>
+          <div class="avatar-generate-row">
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              [disabled]="generating || !canGenerate"
+              (change)="onSeedFileChange($event)"
+            />
+            <button
+              type="button"
+              pButton
+              icon="pi pi-sparkles"
+              [label]="seedFile ? generateFromPhotoLabel : generateRandomLabel"
+              [disabled]="generating || !canGenerate"
+              [loading]="generating"
+              (click)="generateAvatar()"
+            ></button>
+          </div>
+          <p *ngIf="!canGenerate && nextGenerateAt" class="avatar-hint" i18n>
+            Next generation available
+            {{ datepipe.transform(nextGenerateAt, "yyyy-MM-dd HH:mm") }}
+          </p>
+
+          <div *ngIf="candidates.length > 0" class="avatar-grid">
+            <button
+              *ngFor="let candidate of candidates"
+              type="button"
+              class="avatar-option"
+              [class.selected]="profile.avatarId === candidate.id"
+              [disabled]="selectingAvatarId !== null"
+              (click)="chooseAvatar(candidate)"
+            >
+              <img [src]="candidate.url" alt="" width="96" height="96" />
+            </button>
+          </div>
+        </div>
+
+        <div class="avatar-panel-section">
+          <h2 i18n>Or pick from the pool</h2>
+          <p class="avatar-hint" i18n>
+            Choosing from existing avatars is free and unlimited.
+            {{ poolCount }} available.
+          </p>
+          <div *ngIf="avatarLoading" class="avatar-hint" i18n>Loading…</div>
+          <div *ngIf="!avatarLoading" class="avatar-grid">
+            <button
+              *ngFor="let candidate of availableAvatars"
+              type="button"
+              class="avatar-option"
+              [disabled]="selectingAvatarId !== null"
+              (click)="chooseAvatar(candidate)"
+            >
+              <img [src]="candidate.url" alt="" width="96" height="96" />
+            </button>
+          </div>
+          <div
+            *ngIf="!avatarLoading && availableAvatars.length === 0"
+            class="avatar-hint"
+            i18n
+          >
+            No unused avatars right now — generate one!
+          </div>
+        </div>
+
+        <div *ngIf="avatarError" class="avatar-error">{{ avatarError }}</div>
       </div>
 
       <div class="view-mode-tabs bni-seg" *ngIf="isOwnProfile">

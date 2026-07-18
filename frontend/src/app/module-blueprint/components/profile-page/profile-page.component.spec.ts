@@ -40,6 +40,39 @@ describe("ProfilePageComponent", () => {
       getProfile: vi.fn().mockReturnValue(of(makeProfile())),
       follow: vi.fn().mockReturnValue(of({ follow: "OK" })),
       updateBio: vi.fn().mockReturnValue(of({ bio: "updated" })),
+      getAvatarStatus: vi
+        .fn()
+        .mockReturnValue(
+          of({ avatarId: null, nextGenerateAt: null, poolCount: 2 }),
+        ),
+      getAvailableAvatars: vi.fn().mockReturnValue(
+        of({
+          avatars: [
+            { id: "av-1", url: "/api/avatars/av-1/image" },
+            { id: "av-2", url: "/api/avatars/av-2/image" },
+          ],
+          total: 2,
+        }),
+      ),
+      generateAvatar: vi.fn().mockReturnValue(
+        of({
+          avatarId: "av-new",
+          url: "/api/users/alice/avatar",
+          candidates: [
+            { id: "av-new", url: "/api/avatars/av-new/image" },
+            { id: "av-n2", url: "/api/avatars/av-n2/image" },
+            { id: "av-n3", url: "/api/avatars/av-n3/image" },
+            { id: "av-n4", url: "/api/avatars/av-n4/image" },
+          ],
+          sourceType: "random",
+          faceLikely: null,
+        }),
+      ),
+      selectAvatar: vi
+        .fn()
+        .mockImplementation((id: string) =>
+          of({ avatarId: id, url: "/api/users/alice/avatar" }),
+        ),
     };
     blueprintService = {
       getBlueprints: vi.fn().mockReturnValue(of(makeBlueprintResponse())),
@@ -235,6 +268,93 @@ describe("ProfilePageComponent", () => {
       component.cancelEditingBio();
       expect(component.editingBio).toBe(false);
       expect(userService.updateBio).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("avatar display", () => {
+    it("uses the immutable image url when the profile has an avatar", () => {
+      userService.getProfile.mockReturnValue(
+        of(makeProfile({ avatarId: "av-7" })),
+      );
+      fixture.detectChanges();
+      expect(component.avatarUrl).toBe("/api/avatars/av-7/image");
+    });
+
+    it("falls back to the letter circle without an avatar", () => {
+      fixture.detectChanges();
+      expect(component.avatarUrl).toBeNull();
+      expect(component.avatarLetter).toBe("A");
+    });
+  });
+
+  describe("avatar management", () => {
+    beforeEach(() => {
+      // Own profile
+      authService.getUserDetails.mockReturnValue({ username: "alice" });
+      fixture.detectChanges();
+    });
+
+    it("opening the panel loads status and the available pool", () => {
+      component.toggleAvatarPanel();
+      expect(component.avatarPanelOpen).toBe(true);
+      expect(userService.getAvatarStatus).toHaveBeenCalled();
+      expect(userService.getAvailableAvatars).toHaveBeenCalled();
+      expect(component.availableAvatars).toHaveLength(2);
+      expect(component.poolCount).toBe(2);
+      expect(component.canGenerate).toBe(true);
+    });
+
+    it("generation is blocked while nextGenerateAt is in the future", () => {
+      userService.getAvatarStatus.mockReturnValue(
+        of({
+          avatarId: null,
+          nextGenerateAt: new Date(Date.now() + 60_000).toISOString(),
+          poolCount: 2,
+        }),
+      );
+      component.toggleAvatarPanel();
+      expect(component.canGenerate).toBe(false);
+
+      component.generateAvatar();
+      expect(userService.generateAvatar).not.toHaveBeenCalled();
+    });
+
+    it("generateAvatar stores candidates and adopts the assigned avatar", () => {
+      component.toggleAvatarPanel();
+      component.generateAvatar();
+
+      expect(userService.generateAvatar).toHaveBeenCalledWith(null);
+      expect(component.candidates).toHaveLength(4);
+      expect(component.profile?.avatarId).toBe("av-new");
+    });
+
+    it("shows the daily-limit message on a 429 with retryAt", () => {
+      const retryAt = new Date(Date.now() + 3_600_000).toISOString();
+      userService.generateAvatar.mockReturnValue(
+        throwError(() => ({ status: 429, error: { retryAt } })),
+      );
+      component.toggleAvatarPanel();
+      component.generateAvatar();
+
+      expect(component.avatarError).toContain("per day");
+      expect(component.canGenerate).toBe(false);
+    });
+
+    it("chooseAvatar claims the avatar and refreshes the pool", () => {
+      component.toggleAvatarPanel();
+      component.chooseAvatar({ id: "av-2", url: "/api/avatars/av-2/image" });
+
+      expect(userService.selectAvatar).toHaveBeenCalledWith("av-2");
+      expect(component.profile?.avatarId).toBe("av-2");
+    });
+
+    it("surfaces a friendly error when the avatar was just taken", () => {
+      userService.selectAvatar.mockReturnValue(
+        throwError(() => ({ status: 409 })),
+      );
+      component.toggleAvatarPanel();
+      component.chooseAvatar({ id: "av-2", url: "/api/avatars/av-2/image" });
+      expect(component.avatarError).toContain("taken");
     });
   });
 });
