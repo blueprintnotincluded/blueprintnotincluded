@@ -21,6 +21,7 @@ import {
   BlueprintDelete,
 } from "../../../../../lib/index";
 import * as yaml from "js-yaml";
+import sanitize from "sanitize-filename";
 
 export type BlueprintSort =
   | "recent"
@@ -322,6 +323,41 @@ export class BlueprintService implements IObsBlueprintChange {
       );
 
     return request;
+  }
+
+  // Downloads the game-ready .blueprint (json) file for a saved blueprint
+  // without disturbing the editor's currently-open blueprint state — used by
+  // the details page, which never opens the blueprint into the editor.
+  downloadBlueprintFile(id: string, friendlyName: string) {
+    return this.http
+      .get<BlueprintResponse>(
+        `/api/getblueprint/${id}`,
+        this.authService.isLoggedIn()
+          ? {
+              headers: {
+                Authorization: `Bearer ${this.authService.getToken()}`,
+              },
+            }
+          : {},
+      )
+      .pipe(
+        map((response: BlueprintResponse) => {
+          const blueprint = new Blueprint();
+          blueprint.importFromMdb(response.data);
+          const bniBlueprint = blueprint.toBniBlueprint(friendlyName);
+
+          const a = document.createElement("a");
+          document.body.append(a);
+          a.download = sanitize(friendlyName) + ".blueprint";
+          a.href = URL.createObjectURL(
+            new Blob([JSON.stringify(bniBlueprint)], {}),
+          );
+          a.click();
+          a.remove();
+
+          this.trackDownload(id);
+        }),
+      );
   }
 
   // Meta only (no blueprint data) — for the details page. Token is optional;

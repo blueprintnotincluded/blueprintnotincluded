@@ -196,6 +196,24 @@ export class BlueprintDetailsPageComponent implements OnInit {
       : "";
   }
 
+  downloadWorking = false;
+
+  downloadBlueprint() {
+    if (this.details == null || this.downloadWorking) return;
+    this.downloadWorking = true;
+    this.blueprintService
+      .downloadBlueprintFile(this.details.id, this.details.name)
+      .pipe(finalize(() => (this.downloadWorking = false)))
+      .subscribe({
+        error: () => {
+          this.messageService.add({
+            severity: "error",
+            summary: $localize`:downloadError:Could not download blueprint`,
+          });
+        },
+      });
+  }
+
   publishWorking = false;
 
   togglePublish(publish: boolean) {
