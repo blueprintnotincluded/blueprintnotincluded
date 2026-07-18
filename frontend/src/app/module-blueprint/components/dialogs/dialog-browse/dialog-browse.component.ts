@@ -54,8 +54,6 @@ export class DialogBrowseComponent implements OnInit {
       modifiedAt: tempDate,
       thumbnail: "svg",
       isPublished: true,
-      myRating: null,
-      ownedByMe: false,
       nbRatings: 0,
       rating: 0,
       commentCount: 0,
@@ -73,8 +71,6 @@ export class DialogBrowseComponent implements OnInit {
       modifiedAt: tempDate,
       thumbnail: "svg_nothing",
       isPublished: true,
-      myRating: null,
-      ownedByMe: false,
       nbRatings: 0,
       rating: 0,
       commentCount: 0,
@@ -97,6 +93,13 @@ export class DialogBrowseComponent implements OnInit {
 
   isReal(thumbnail: string): boolean {
     return thumbnail != "svg" && thumbnail != "svg_nothing";
+  }
+
+  // List responses are viewer-independent (edge-cacheable), so ownership is
+  // derived client-side from the JWT instead of a server-sent ownedByMe flag
+  ownedByMe(item: BlueprintListItem): boolean {
+    const myId = this.authService.getUserDetails()?._id;
+    return myId != null && item.ownerId === myId;
   }
 
   previewUrl(item: BlueprintListItem): string {

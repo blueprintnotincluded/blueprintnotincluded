@@ -440,9 +440,36 @@ describe("BlueprintService", () => {
       expect(url).toContain("sort=mostForked");
     });
 
-    it("uses getblueprintsSecure when logged in", () => {
+    it("uses the public getblueprints for general browsing even when logged in (edge-cacheable)", () => {
       mockAuth.isLoggedIn.mockReturnValue(true);
       service.getBlueprints(new Date(), null, null);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("/api/getblueprints?");
+      expect(mockHttp.get.mock.calls[0][1]).toBeUndefined();
+    });
+
+    it("uses getblueprintsSecure when logged in and listing a specific user", () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      service.getBlueprints(new Date(), "user123", null);
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).toContain("getblueprintsSecure");
+    });
+
+    it("uses getblueprintsSecure when logged in and listing rated-by-me", () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      service.getBlueprints(
+        new Date(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        undefined,
+        undefined,
+        null,
+        null,
+        "user123",
+      );
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("getblueprintsSecure");
     });

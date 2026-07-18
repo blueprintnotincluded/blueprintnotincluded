@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { UserModel, UserJwt } from './models/user';
 import { FollowModel } from './models/follow';
 import { BlueprintModel } from './models/blueprint';
-import { BlueprintController } from './blueprint-controller';
+import { BlueprintController, PUBLISHED_FILTER } from './blueprint-controller';
 import { ProfileResponse, FollowRequest, UpdateBioRequest, FollowListResponse } from '../../lib/index';
 import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
@@ -180,13 +180,20 @@ export class UserController {
 
         const browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
         BlueprintModel.model
-          .find({ owner: { $in: followeeIds }, deletedAt: null, createdAt: { $lt: dateFilter } })
+          .find({
+            owner: { $in: followeeIds },
+            deletedAt: null,
+            // Followees' drafts are private — following someone must not
+            // reveal their unpublished work
+            isPublished: PUBLISHED_FILTER,
+            createdAt: { $lt: dateFilter },
+          })
           .sort({ createdAt: -1 })
           .limit(browseIncrement * 2)
           .select('-data -thumbnail')
           .populate('owner')
           .then(blueprints => {
-            return BlueprintController.handleGetBlueprint(req, res, user._id, blueprints);
+            return BlueprintController.handleGetBlueprint(req, res, blueprints);
           })
           .catch(err => {
             console.log('getFeed blueprint find error');

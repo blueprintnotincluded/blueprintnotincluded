@@ -358,6 +358,26 @@ describe('Profile, Follow, Feed API', function () {
       expect(names).to.deep.equal(['Super Coal Generator Setup']);
     });
 
+    it('excludes followees\' drafts — following someone must not reveal unpublished work', async function () {
+      await FollowModel.model.create({
+        followerId: testData.users.user2._id,
+        followeeId: testData.users.user1._id,
+      });
+      await BlueprintModel.model.updateOne(
+        { _id: testData.blueprints.popularBlueprint._id },
+        { isPublished: false }
+      );
+
+      const token = testData.users.user2.generateJwt();
+      const response = await TestSetup.request()
+        .get('/api/feed')
+        .query({ olderthan: Date.now() })
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints).to.deep.equal([]);
+    });
+
     it('excludes soft-deleted blueprints', async function () {
       await FollowModel.model.create({
         followerId: testData.users.user2._id,

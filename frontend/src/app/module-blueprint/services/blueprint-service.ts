@@ -431,11 +431,18 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterRooms
     ).replace(/^&/, "");
 
-    const request = this.authService.isLoggedIn()
-      ? this.http.get("/api/getblueprintsSecure?" + parameters, {
-          headers: { Authorization: `Bearer ${this.authService.getToken()}` },
-        })
-      : this.http.get("/api/getblueprints?" + parameters);
+    // General browsing is a public, viewer-independent feed — always hit the
+    // anonymous endpoint (no token) so Cloudflare serves it from the edge for
+    // logged-in users too. The secure endpoint is only for lists that depend
+    // on who is asking: a specific user's list (own/admin view includes
+    // drafts) and the private rated-by-me list.
+    const needsAuth = filterUserId != null || filterRatedBy != null;
+    const request =
+      needsAuth && this.authService.isLoggedIn()
+        ? this.http.get("/api/getblueprintsSecure?" + parameters, {
+            headers: { Authorization: `Bearer ${this.authService.getToken()}` },
+          })
+        : this.http.get("/api/getblueprints?" + parameters);
 
     request.pipe(
       map((response: any) => {
