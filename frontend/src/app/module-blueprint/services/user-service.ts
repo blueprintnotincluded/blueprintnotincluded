@@ -8,6 +8,10 @@ import {
   UpdateBioRequest,
   BlueprintListResponse,
   FollowListResponse,
+  AvatarGenerateResponse,
+  AvatarStatusResponse,
+  AvailableAvatarsResponse,
+  AvatarSelectRequest,
 } from "../../../../../lib/index";
 
 @Injectable({ providedIn: "root" })
@@ -47,6 +51,45 @@ export class UserService {
     return this.http.patch<{ bio: string }>("/api/users/me", body, {
       headers: { Authorization: `Bearer ${this.authService.getToken()}` },
     });
+  }
+
+  private authHeaders(): { [header: string]: string } {
+    return { Authorization: `Bearer ${this.authService.getToken()}` };
+  }
+
+  getAvatarStatus(): Observable<AvatarStatusResponse> {
+    return this.http.get<AvatarStatusResponse>("/api/users/me/avatar/status", {
+      headers: this.authHeaders(),
+    });
+  }
+
+  getAvailableAvatars(): Observable<AvailableAvatarsResponse> {
+    return this.http.get<AvailableAvatarsResponse>("/api/avatars/available", {
+      headers: this.authHeaders(),
+    });
+  }
+
+  // Optional seed photo goes up as a raw image body; no body = random
+  generateAvatar(seedFile: File | null): Observable<AvatarGenerateResponse> {
+    const headers = seedFile
+      ? { ...this.authHeaders(), "Content-Type": seedFile.type || "image/jpeg" }
+      : this.authHeaders();
+    return this.http.post<AvatarGenerateResponse>(
+      "/api/users/me/avatar/generate",
+      seedFile,
+      { headers },
+    );
+  }
+
+  selectAvatar(
+    avatarId: string,
+  ): Observable<{ avatarId: string; url: string }> {
+    const body: AvatarSelectRequest = { avatarId };
+    return this.http.post<{ avatarId: string; url: string }>(
+      "/api/users/me/avatar/select",
+      body,
+      { headers: this.authHeaders() },
+    );
   }
 
   private getConnections(

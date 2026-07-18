@@ -45,6 +45,12 @@ export class UserMenuComponent implements OnInit {
     const loggedIn = this.authService.isLoggedIn();
     this.userMenuItems = [
       {
+        label: $localize`My Profile`,
+        icon: "pi pi-user",
+        command: () => this.myProfile(),
+        visible: loggedIn,
+      },
+      {
         label: $localize`My Blueprints`,
         icon: "pi pi-images",
         command: () => this.userProfile(),
@@ -94,6 +100,12 @@ export class UserMenuComponent implements OnInit {
         visible: loggedIn,
       },
     ];
+  }
+
+  myProfile() {
+    const user = this.authService.getUserDetails();
+    if (!user) return;
+    this.router.navigate(["/profile", user.username]);
   }
 
   userProfile() {
