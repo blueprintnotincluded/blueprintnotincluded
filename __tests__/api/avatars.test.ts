@@ -463,6 +463,33 @@ describe('Avatar generation & pool API', function () {
       expect(batch).to.not.be.null;
     });
 
+    it('415s on an unsupported image type instead of silently going random', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'image/gif')
+        .send(Buffer.from('GIF89a'));
+      expect(response.status).to.equal(415);
+      expect(fake.generateCalls).to.equal(0);
+    });
+
+    it('400s when the body is not a decodable image (limit not consumed)', async function () {
+      const token = testData.users.user1.generateJwt();
+      const bad = await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'image/png')
+        .send(Buffer.from('not actually a png'));
+      expect(bad.status).to.equal(400);
+      expect(bad.body.errors[0].title).to.contain('image');
+
+      const retry = await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`);
+      expect(retry.status).to.equal(200);
+    });
+
     it('does not consume the daily limit on provider failure', async function () {
       fake.failNext = true;
       const token = testData.users.user1.generateJwt();

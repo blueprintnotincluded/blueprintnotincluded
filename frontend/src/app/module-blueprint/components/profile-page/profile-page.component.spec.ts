@@ -340,6 +340,60 @@ describe("ProfilePageComponent", () => {
       expect(component.canGenerate).toBe(false);
     });
 
+    it("rejects files with a disallowed type before upload", () => {
+      const file = new File(["x"], "cat.gif", { type: "image/gif" });
+      const input = document.createElement("input");
+      Object.defineProperty(input, "files", { value: [file] });
+      component.onSeedFileChange({ target: input } as any);
+
+      expect(component.seedFile).toBeNull();
+      expect(component.avatarError).toContain("PNG");
+    });
+
+    it("rejects files over the 8 MB limit before upload", () => {
+      const file = new File(["x"], "huge.png", { type: "image/png" });
+      Object.defineProperty(file, "size", { value: 9 * 1024 * 1024 });
+      const input = document.createElement("input");
+      Object.defineProperty(input, "files", { value: [file] });
+      component.onSeedFileChange({ target: input } as any);
+
+      expect(component.seedFile).toBeNull();
+      expect(component.avatarError).toContain("8");
+    });
+
+    it("accepts a valid seed file", () => {
+      const file = new File(["x"], "me.jpg", { type: "image/jpeg" });
+      const input = document.createElement("input");
+      Object.defineProperty(input, "files", { value: [file] });
+      component.onSeedFileChange({ target: input } as any);
+
+      expect(component.seedFile).toBe(file);
+      expect(component.avatarError).toBe("");
+    });
+
+    it("shows the in-progress banner while generating", () => {
+      component.toggleAvatarPanel();
+      component.generating = true;
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".avatar-generating")),
+      ).toBeTruthy();
+    });
+
+    it("surfaces the server's message on a 400 bad-photo response", () => {
+      userService.generateAvatar.mockReturnValue(
+        throwError(() => ({
+          status: 400,
+          error: {
+            errors: [{ status: "400", title: "That file could not be read" }],
+          },
+        })),
+      );
+      component.toggleAvatarPanel();
+      component.generateAvatar();
+      expect(component.avatarError).toContain("could not be read");
+    });
+
     it("chooseAvatar claims the avatar and refreshes the pool", () => {
       component.toggleAvatarPanel();
       component.chooseAvatar({ id: "av-2", url: "/api/avatars/av-2/image" });
