@@ -200,19 +200,22 @@ describe('Discovery: related blueprints + trending sort', function () {
     });
 
     it('ranks a more-downloaded blueprint above a same-age, same-rating one', async function () {
+      // One shared timestamp so the recency term is identical — isolates the
+      // download signal as the only differentiator.
+      const createdAt = new Date();
       const popular = await makeBlueprint(testData.users.user1._id, {
         name: 'Trending More Downloads',
         ratingCount: 4,
         ratingAverage: 4,
         downloadCount: 500,
-        createdAt: new Date(),
+        createdAt,
       });
       const obscure = await makeBlueprint(testData.users.user2._id, {
         name: 'Trending Few Downloads',
         ratingCount: 4,
         ratingAverage: 4,
         downloadCount: 2,
-        createdAt: new Date(),
+        createdAt,
       });
 
       const response = await TestSetup.request()
@@ -220,6 +223,8 @@ describe('Discovery: related blueprints + trending sort', function () {
         .query({ olderthan: Date.now(), sort: 'trending' });
 
       const names: string[] = response.body.blueprints.map((b: any) => b.name);
+      expect(names).to.include(popular.name);
+      expect(names).to.include(obscure.name);
       expect(names.indexOf(popular.name)).to.be.lessThan(names.indexOf(obscure.name));
     });
 

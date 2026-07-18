@@ -27,7 +27,8 @@ const HOT_SCORE_EXPR = {
     vars: {
       v: { $ifNull: ['$ratingCount', 0] },
       r: { $ifNull: ['$ratingAverage', 0] },
-      d: { $ifNull: ['$downloadCount', 0] },
+      // clamp to >= 0 to match computeHotScore's Math.max(0, downloadCount)
+      d: { $max: [{ $ifNull: ['$downloadCount', 0] }, 0] },
     },
     in: {
       $let: {
