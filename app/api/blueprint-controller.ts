@@ -692,14 +692,18 @@ export class BlueprintController {
         ? { $and: [{ deletedAt: null }] }
         : { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
 
-      // Draft visibility: published blueprints for everyone, plus the viewer's
-      // own drafts. Admins browsing a specific user's list (filterUserId) see
-      // that user's drafts too, but drafts never leak into the general feed.
+      // Draft visibility: the general feed is published-only for every viewer.
+      // Owners see their own drafts when listing their own blueprints (the
+      // profile page always passes filterUserId), and admins see drafts when
+      // browsing a specific user's list — in both cases the owner clause below
+      // already bounds the query, so the published filter is simply dropped.
+      // Never combine the two as $or: [published, owner] — no index serves
+      // both branches under a count sort, so Mongo falls back to fetching
+      // every live 85KB doc into a blocking SORT (~16s on prod).
       const isAdmin = userJwt?.role === 'admin';
-      if (!(isAdmin && filterUserId != null)) {
-        const visibleTo: any[] = [{ isPublished: PUBLISHED_FILTER }];
-        if (userId !== '') visibleTo.push({ owner: userId });
-        filter.$and.push({ $or: visibleTo });
+      const viewerOwnsList = filterUserId != null && filterUserId === userId;
+      if (!viewerOwnsList && !(isAdmin && filterUserId != null)) {
+        filter.$and.push({ isPublished: PUBLISHED_FILTER });
       }
 
       if (filterUserId != null) filter.$and.push({ owner: filterUserId });

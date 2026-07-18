@@ -286,6 +286,21 @@ describe('Blueprint drafts (Mocha)', function () {
       expect(names).to.include('Secret Draft Base');
     });
 
+    it('owner general feed (no filterUserId) excludes own drafts — published-only fast path', async function () {
+      // Own drafts are intentionally absent from the general feed (they live on
+      // the profile page): keeping them there required an $or that forced a
+      // blocking fetch-everything sort on count sorts (~16s on prod).
+      const response = await TestSetup.request()
+        .get('/api/getblueprintsSecure')
+        .set('Authorization', `Bearer ${ownerToken}`)
+        .query({ olderthan: Date.now() });
+
+      expect(response.status).to.equal(200);
+      const names = response.body.blueprints.map((bp: any) => bp.name);
+      expect(names).to.not.include('Secret Draft Base');
+      expect(names).to.include('Super Coal Generator Setup');
+    });
+
     it('admin general feed (no filterUserId) does not include other users\' drafts', async function () {
       const response = await TestSetup.request()
         .get('/api/getblueprintsSecure')
