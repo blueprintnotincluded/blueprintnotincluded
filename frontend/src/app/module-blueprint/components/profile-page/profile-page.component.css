@@ -215,3 +215,29 @@
   color: var(--p-red-400, #e06c75);
   font-size: 13px;
 }
+
+.avatar-generating {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border: 1px solid var(--bni-accent-dim);
+  background: var(--bni-accent-tint);
+  border-radius: 4px;
+}
+
+.avatar-generating .pi-spinner {
+  font-size: 22px;
+  color: var(--bni-accent);
+}
+
+.avatar-generating b {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.avatar-generating span {
+  font-size: 13px;
+  color: var(--bni-text-dim, #8a9aa5);
+}

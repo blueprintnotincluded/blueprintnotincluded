@@ -20,6 +20,12 @@ const AVATAR_LOAD_ERROR = $localize`:profile.avatarLoadError:Could not load avat
 const AVATAR_LIMIT_ERROR = $localize`:profile.avatarLimit:You can generate one avatar per day — come back tomorrow`;
 const AVATAR_GENERATE_ERROR = $localize`:profile.avatarGenerateError:Avatar generation failed, please try again`;
 const AVATAR_SELECT_ERROR = $localize`:profile.avatarSelectError:That avatar was just taken — pick another`;
+const AVATAR_FILE_TYPE_ERROR = $localize`:profile.avatarFileType:Please choose a PNG, JPEG, or WebP photo`;
+const AVATAR_FILE_SIZE_ERROR = $localize`:profile.avatarFileSize:Photo is too large — 8 MB max`;
+
+// Keep in sync with the backend's ALLOWED_SEED_TYPES and 8mb raw-body limit
+const ALLOWED_SEED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const MAX_SEED_BYTES = 8 * 1024 * 1024;
 
 @Component({
   selector: "app-profile-page",
@@ -215,7 +221,22 @@ export class ProfilePageComponent implements OnInit {
 
   onSeedFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.seedFile = input.files?.[0] ?? null;
+    const file = input.files?.[0] ?? null;
+    this.avatarError = "";
+    this.seedFile = null;
+    if (!file) return;
+
+    if (!ALLOWED_SEED_TYPES.includes(file.type)) {
+      this.avatarError = AVATAR_FILE_TYPE_ERROR;
+      input.value = "";
+      return;
+    }
+    if (file.size > MAX_SEED_BYTES) {
+      this.avatarError = AVATAR_FILE_SIZE_ERROR;
+      input.value = "";
+      return;
+    }
+    this.seedFile = file;
   }
 
   generateAvatar() {
@@ -235,8 +256,13 @@ export class ProfilePageComponent implements OnInit {
         this.generating = false;
         const retryAt = err?.error?.retryAt;
         if (retryAt) this.nextGenerateAt = new Date(retryAt);
-        this.avatarError =
-          err?.status === 429 ? AVATAR_LIMIT_ERROR : AVATAR_GENERATE_ERROR;
+        if (err?.status === 429) {
+          this.avatarError = AVATAR_LIMIT_ERROR;
+        } else {
+          // 400/415 carry a self-explanatory title (bad photo, wrong format)
+          this.avatarError =
+            err?.error?.errors?.[0]?.title ?? AVATAR_GENERATE_ERROR;
+        }
       },
     });
   }

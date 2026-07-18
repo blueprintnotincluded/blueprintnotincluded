@@ -22,6 +22,9 @@ export class AvatarController {
   public static generateCooldownMs(): number {
     return parseInt(process.env.AVATAR_GENERATE_COOLDOWN_MS || String(24 * 60 * 60 * 1000), 10);
   }
+  // Formats sharp can decode reliably; keep in sync with the profile page's
+  // client-side check and the file input's accept attribute
+  public static ALLOWED_SEED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
   // Blocks a double-click racing two paid generations before the first batch
   // row lands
   private generateInFlight = new Set<string>();
@@ -198,9 +201,17 @@ export class AvatarController {
     // The route mounts express.raw({ type: 'image/*' }); any non-image body
     // arrives unparsed (req.body undefined or {}), which means "random"
     const body = req.body as unknown;
+    const contentType = (req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
+    // An image/* body outside the allowlist would silently skip the raw
+    // parser and come out as a random generation — reject it loudly instead
+    if (contentType.startsWith('image/') && !AvatarController.ALLOWED_SEED_TYPES.includes(contentType)) {
+      return res
+        .status(415)
+        .json(apiError(415, 'Unsupported image type — use a PNG, JPEG, or WebP photo'));
+    }
     const upload =
       Buffer.isBuffer(body) && body.length > 0
-        ? { bytes: body, contentType: req.headers['content-type'] ?? 'image/jpeg' }
+        ? { bytes: body, contentType: contentType || 'image/jpeg' }
         : null;
 
     this.generateInFlight.add(user._id);
@@ -214,6 +225,11 @@ export class AvatarController {
         faceLikely: result.faceLikely,
       });
     } catch (err) {
+      if (err instanceof Error && err.message === 'INVALID_SEED_IMAGE') {
+        return res
+          .status(400)
+          .json(apiError(400, 'That file could not be read as an image — try another photo'));
+      }
       console.log('avatar generate error');
       console.log(err);
       // A failed call writes no batch row, so the daily limit is not consumed

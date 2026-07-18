@@ -164,7 +164,8 @@
           <p class="avatar-hint" i18n>
             One generation per day. Upload a photo of yourself to get a
             duplicant that looks like you, or leave it empty for a surprise —
-            either way you'll get four to choose from.
+            either way you'll get four to choose from. PNG, JPEG, or WebP, up to
+            8&nbsp;MB.
           </p>
           <div class="avatar-generate-row">
             <input
@@ -188,13 +189,29 @@
             {{ datepipe.transform(nextGenerateAt, "yyyy-MM-dd HH:mm") }}
           </p>
 
-          <div *ngIf="candidates.length > 0" class="avatar-grid">
+          <div
+            *ngIf="generating"
+            class="avatar-generating"
+            role="status"
+            aria-live="polite"
+          >
+            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+            <div>
+              <b i18n>Drawing your duplicants…</b>
+              <span i18n
+                >This takes 10–20 seconds — the AI is sketching four candidates
+                for you to pick from. Hang tight!</span
+              >
+            </div>
+          </div>
+
+          <div *ngIf="!generating && candidates.length > 0" class="avatar-grid">
             <button
               *ngFor="let candidate of candidates"
               type="button"
               class="avatar-option"
               [class.selected]="profile.avatarId === candidate.id"
-              [disabled]="selectingAvatarId !== null"
+              [disabled]="selectingAvatarId !== null || generating"
               (click)="chooseAvatar(candidate)"
             >
               <img [src]="candidate.url" alt="" width="96" height="96" />
@@ -214,7 +231,7 @@
               *ngFor="let candidate of availableAvatars"
               type="button"
               class="avatar-option"
-              [disabled]="selectingAvatarId !== null"
+              [disabled]="selectingAvatarId !== null || generating"
               (click)="chooseAvatar(candidate)"
             >
               <img [src]="candidate.url" alt="" width="96" height="96" />

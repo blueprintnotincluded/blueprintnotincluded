@@ -275,11 +275,17 @@ export class AvatarService {
   ): Promise<AvatarSeedUpload> {
     // Re-encode through sharp: validates the payload is a real image and strips
     // anything weird before it is stored or forwarded to the provider.
-    const normalized = await sharp(bytes)
-      .rotate() // apply EXIF orientation
-      .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality: 90 })
-      .toBuffer({ resolveWithObject: true });
+    let normalized;
+    try {
+      normalized = await sharp(bytes)
+        .rotate() // apply EXIF orientation
+        .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 90 })
+        .toBuffer({ resolveWithObject: true });
+    } catch {
+      // Sentinel the controller maps to a 400 instead of a provider-failure 502
+      throw new Error('INVALID_SEED_IMAGE');
+    }
 
     const seedUpload = await AvatarSeedUploadModel.model.create({
       userId,
