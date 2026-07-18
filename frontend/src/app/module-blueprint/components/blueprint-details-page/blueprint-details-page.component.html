@@ -234,6 +234,17 @@
               [loading]="publishWorking"
               (click)="togglePublish(false)"
             ></button>
+            <button
+              *ngIf="details.ownedByMe"
+              pButton
+              type="button"
+              class="p-button-text p-button-danger details-delete"
+              icon="pi pi-trash"
+              i18n-label
+              label="Delete"
+              [loading]="deleteWorking"
+              (click)="deleteBlueprint()"
+            ></button>
           </div>
         </div>
       </div>

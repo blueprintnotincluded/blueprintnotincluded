@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { Location } from "@angular/common";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, finalize, switchMap, tap } from "rxjs/operators";
 import {
@@ -57,6 +57,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private location: Location,
+    private router: Router,
     private blueprintService: BlueprintService,
     private messageService: MessageService,
     public authService: AuthenticationService,
@@ -126,6 +127,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.loadError = false;
     this.previewFailed = false;
     this.publishWorking = false;
+    this.deleteWorking = false;
     this.relatedBlueprints = [];
 
     if (id == null) {
@@ -260,6 +262,40 @@ export class BlueprintDetailsPageComponent implements OnInit {
             summary: publish
               ? $localize`:publishError:Could not publish blueprint`
               : $localize`:unpublishError:Could not unpublish blueprint`,
+          });
+        },
+      });
+  }
+
+  deleteWorking = false;
+
+  // Soft-delete server-side, but there's no undo path exposed to users, so
+  // this is presented (confirm copy, redirect away) as permanent.
+  deleteBlueprint() {
+    if (this.details == null || this.deleteWorking) return;
+    const confirmed = window.confirm(
+      $localize`:deleteConfirm:Delete "${this.details.name}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    const details = this.details;
+    const returnLink = this.backLink;
+    this.deleteWorking = true;
+    this.blueprintService
+      .deleteBlueprint(details.id)
+      .pipe(finalize(() => (this.deleteWorking = false)))
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: "success",
+            summary: $localize`:deleteToast:${details.name} deleted`,
+          });
+          this.router.navigate(returnLink);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: "error",
+            summary: $localize`:deleteError:Could not delete blueprint`,
           });
         },
       });
