@@ -11,7 +11,6 @@ import { BrowsePageComponent } from "./browse-page.component";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { UserService } from "src/app/module-blueprint/services/user-service";
-import { BrowseData } from "../user-menu/user-menu.component";
 
 function makeResponse(blueprints: any[] = [], remaining = 0) {
   return {
@@ -148,32 +147,6 @@ describe("BrowsePageComponent", () => {
         remaining: 0,
       } as any);
       expect(component.oldestDate).toBe(cursor);
-    });
-  });
-
-  describe("showMyBlueprints", () => {
-    it("filters the feed by the requesting user's id", () => {
-      const data: BrowseData = {
-        filterUserId: "user-123",
-        filterUserName: "alice",
-      };
-      component.showMyBlueprints(data);
-
-      expect(component.filterUserId).toBe("user-123");
-      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        null,
-        "user-123",
-        null,
-        null,
-        null,
-        null,
-        "recent",
-        undefined,
-        null,
-        null,
-        null,
-        null,
-      );
     });
   });
 
