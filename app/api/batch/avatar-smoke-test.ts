@@ -1,15 +1,17 @@
-// Smoke test for the Gemini avatar integration: one real generation
-// (~$0.045), stored in the pool like any other paid asset, plus a PNG written
-// next to the repo for eyeballing. Optionally exercises the face-seeded path.
+// Smoke test for the Gemini avatar integration: one real grid generation
+// (~$0.045 → 4 avatars), stored in the pool like any other paid asset, plus
+// PNGs written next to the repo for eyeballing. Optionally exercises the
+// face-seeded path.
 //
 // Usage:
-//   npm run avatars:smoke                         random avatar
-//   npm run avatars:smoke -- --seed path/to.jpg   face-seeded avatar
+//   npm run avatars:smoke                         random grid
+//   npm run avatars:smoke -- --seed path/to.jpg   face-seeded grid
 
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import { AvatarModel } from '../models/avatar';
+import { AvatarBatchModel } from '../models/avatar-batch';
 import { AvatarSeedUploadModel } from '../models/avatar-seed-upload';
 import { UserModel } from '../models/user';
 import { AvatarService } from '../services/avatar-service';
@@ -24,9 +26,13 @@ async function run() {
   if (!service.isEnabled()) {
     throw new Error('GEMINI_API_KEY not set — add it to .env (see agent/AVATARS.md)');
   }
+  if (!service.getStyleSheet()) {
+    console.log('WARNING: duplicant style sheet missing — output will not match the ONI style');
+  }
 
   await mongoose.connect(mongoUri);
   AvatarModel.init();
+  AvatarBatchModel.init();
   AvatarSeedUploadModel.init();
   UserModel.init();
 
@@ -41,23 +47,30 @@ async function run() {
     console.log(`  faceLikely=${classification.faceLikely} raw="${classification.rawOutput}"`);
   }
 
-  console.log('Generating one avatar...');
-  const avatar =
+  console.log('Generating one 2x2 grid (4 avatars)...');
+  const avatars =
     reference != null
-      ? await service.generate({ sourceType: 'user-upload', reference })
-      : await service.generate({ sourceType: 'random' });
+      ? await service.generateBatch({ sourceType: 'user-upload', reference })
+      : await service.generateBatch({ sourceType: 'seed-batch' });
 
-  const outPath = 'avatar-smoke-test.png';
-  fs.writeFileSync(outPath, avatar.originalBytes as Buffer);
+  const batch = avatars[0]?.batchId
+    ? await AvatarBatchModel.model.findById(avatars[0].batchId)
+    : null;
+  if (batch) {
+    fs.writeFileSync('avatar-smoke-test.png', batch.bytes);
+  }
+  avatars.forEach((avatar, i) => {
+    fs.writeFileSync(`avatar-smoke-test-${i}.png`, avatar.bytes as Buffer);
+  });
 
   console.log('Smoke test OK:');
-  console.log(`  avatar id:     ${avatar.id} (stored in pool, status=${avatar.status})`);
-  console.log(`  model:         ${avatar.providerModel}`);
-  console.log(`  latency:       ${avatar.latencyMs}ms`);
-  console.log(`  original:      ${avatar.originalWidth}x${avatar.originalHeight} (${(avatar.originalBytes as Buffer).length} bytes)`);
-  console.log(`  display:       ${avatar.width}x${avatar.height} (${(avatar.bytes as Buffer).length} bytes)`);
-  console.log(`  usage:         ${JSON.stringify(avatar.usage ?? null)}`);
-  console.log(`  preview file:  ${outPath} (gitignored scratch output — delete freely)`);
+  console.log(`  avatars:       ${avatars.map(a => String(a.id)).join(', ')}`);
+  console.log(`  model:         ${avatars[0]?.providerModel}`);
+  console.log(`  grid:          ${batch ? `${batch.width}x${batch.height} (${batch.bytes.length} bytes)` : 'n/a'}`);
+  console.log(`  latency:       ${batch?.latencyMs}ms`);
+  console.log(`  usage:         ${JSON.stringify(batch?.usage ?? null)}`);
+  console.log('  preview files: avatar-smoke-test.png (grid) + avatar-smoke-test-{0..3}.png (tiles)');
+  console.log('                 (gitignored scratch output — delete freely)');
 
   await mongoose.disconnect();
 }

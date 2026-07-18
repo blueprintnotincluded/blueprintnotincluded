@@ -27,7 +27,9 @@ export interface FaceClassification {
 
 export interface AvatarImageProvider {
   isConfigured(): boolean;
-  generateImage(prompt: string, reference?: ReferenceImage): Promise<GeneratedImageResult>;
+  // references are attached in order after the prompt (order matters: prompts
+  // refer to "the first/second attached image")
+  generateImage(prompt: string, references?: ReferenceImage[]): Promise<GeneratedImageResult>;
   classifyFace(image: ReferenceImage): Promise<FaceClassification>;
 }
 
@@ -63,10 +65,13 @@ export class GeminiAvatarProvider implements AvatarImageProvider {
     return this.client;
   }
 
-  public async generateImage(prompt: string, reference?: ReferenceImage): Promise<GeneratedImageResult> {
+  public async generateImage(
+    prompt: string,
+    references: ReferenceImage[] = []
+  ): Promise<GeneratedImageResult> {
     const ai = this.getClient();
     const input: unknown[] = [{ type: 'text', text: prompt }];
-    if (reference) {
+    for (const reference of references) {
       input.push({
         type: 'image',
         mime_type: reference.mimeType,

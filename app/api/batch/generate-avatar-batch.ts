@@ -1,20 +1,19 @@
-// Seed-batch avatar generation: fills the unused-avatar pool by calling Gemini
-// once per avatar. Every run costs real money (~$0.045/image at 512px) — the
-// script prints a cost estimate and per-item progress.
+// Seed-batch avatar generation: fills the unused-avatar pool. Grid mode makes
+// each provider call (~$0.045) yield four 256px avatars, and the committed
+// duplicant style sheet is attached automatically.
 //
 // Usage:
 //   npm run avatars:seed-batch -- --count 20
-//   ts-node app/api/batch/generate-avatar-batch.ts --count 20 [--reference path/to/sheet.png]
+//   ts-node app/api/batch/generate-avatar-batch.ts --count 20
 //
-// --reference attaches a style reference sheet (many example duplicant
-// avatars) to every generation using the seed-batch prompt template.
+// --count is in avatars, rounded up to whole grids of 4.
 
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import * as fs from 'fs';
 import { AvatarModel } from '../models/avatar';
+import { AvatarBatchModel } from '../models/avatar-batch';
 import { UserModel } from '../models/user';
-import { AvatarService } from '../services/avatar-service';
+import { AvatarService, GRID_TILES } from '../services/avatar-service';
 
 dotenv.config();
 
@@ -24,15 +23,10 @@ function argValue(flag: string): string | null {
 }
 
 async function run() {
-  const count = parseInt(argValue('--count') ?? '10', 10);
-  if (!Number.isInteger(count) || count < 1 || count > 200) {
-    throw new Error('--count must be between 1 and 200');
+  const count = parseInt(argValue('--count') ?? '12', 10);
+  if (!Number.isInteger(count) || count < 1 || count > 400) {
+    throw new Error('--count must be between 1 and 400');
   }
-
-  const referencePath = argValue('--reference');
-  const reference = referencePath
-    ? { data: fs.readFileSync(referencePath), mimeType: 'image/png' }
-    : null;
 
   const mongoUri = process.env.DB_URI;
   if (!mongoUri) throw new Error('DB_URI not set in environment');
@@ -44,27 +38,32 @@ async function run() {
 
   await mongoose.connect(mongoUri);
   AvatarModel.init();
+  AvatarBatchModel.init();
   UserModel.init();
 
+  const calls = Math.ceil(count / GRID_TILES);
   console.log(
-    `Generating ${count} pool avatars (~$${(count * 0.045).toFixed(2)} at 512px standard pricing)` +
-      (reference ? ` with style reference ${referencePath}` : '')
+    `Generating ~${calls * GRID_TILES} pool avatars in ${calls} grid calls ` +
+      `(~$${(calls * 0.045).toFixed(2)} at 512px standard pricing)` +
+      (service.getStyleSheet() ? ' with the duplicant style sheet' : ' WITHOUT style sheet (missing!)')
   );
 
   let ok = 0;
   let failed = 0;
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < calls; i++) {
     try {
-      const avatar = await service.generate({ sourceType: 'seed-batch', reference });
-      ok++;
-      console.log(`[${i + 1}/${count}] ok avatar=${avatar.id} latencyMs=${avatar.latencyMs}`);
+      const avatars = await service.generateBatch({ sourceType: 'seed-batch' });
+      ok += avatars.length;
+      console.log(`[call ${i + 1}/${calls}] ok → ${avatars.length} avatars`);
     } catch (err) {
       failed++;
-      console.log(`[${i + 1}/${count}] FAILED: ${err instanceof Error ? err.message : err}`);
+      console.log(`[call ${i + 1}/${calls}] FAILED: ${err instanceof Error ? err.message : err}`);
     }
   }
 
-  console.log(`Done: ${ok} generated, ${failed} failed, pool now ${await service.poolCount()} unused`);
+  console.log(
+    `Done: ${ok} avatars from ${calls - failed}/${calls} calls, pool now ${await service.poolCount()} unused`
+  );
   await mongoose.disconnect();
   if (failed > 0 && ok === 0) process.exit(1);
 }

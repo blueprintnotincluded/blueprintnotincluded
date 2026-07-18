@@ -1,26 +1,33 @@
 // All avatar prompt templates in one place. Template ids are persisted on the
-// Avatar document (promptTemplate) so a stored asset can always be traced back
-// to the exact wording generation used.
+// Avatar/AvatarBatch documents so a stored asset can always be traced back to
+// the exact wording generation used.
 //
-// Style goal: "inspired by" Oxygen Not Included duplicants, not a copy — an
-// original character in the same spirit (cute cartoon space-colony worker),
-// which both fits the site and keeps us clear of reproducing Klei's art.
+// v2: every generation attaches the committed duplicant style sheet
+// (assets/avatar-reference/duplicant-style-sheet.jpg) and asks for a 2x2 grid
+// of four avatars in one 512px image — the service slices it into four 256px
+// assets, quartering the per-avatar cost. The point of the feature is that
+// results look like Klei's Oxygen Not Included duplicant portraits
+// specifically, so the style language leans hard on the sheet.
 
-export const AVATAR_TEMPLATE_RANDOM = 'random-duplicant-v1';
-export const AVATAR_TEMPLATE_FACE = 'face-duplicant-v1';
-export const AVATAR_TEMPLATE_SEED_BATCH = 'seed-batch-duplicant-v1';
+export const AVATAR_TEMPLATE_GRID = 'duplicant-grid-v2';
+export const AVATAR_TEMPLATE_FACE_GRID = 'face-duplicant-grid-v2';
 
-// Shared style clause used by every template
-const STYLE_BASE =
-  'A single square profile avatar of an original cute cartoon space-colony worker character, ' +
-  'strongly inspired by the general art style of the game Oxygen Not Included (chunky rounded ' +
-  'proportions, oversized head, small body, thick clean outlines, flat cel shading, warm muted ' +
-  'palette) but NOT a copy of any existing character. Head-and-shoulders portrait framing, ' +
-  'facing slightly off-center, simple readable silhouette, plain single-color background, ' +
-  'family-friendly, game-ready. No text, no watermark, no border.';
+// The sheet is always the first attached image
+const SHEET_CLAUSE =
+  'The first attached image is a reference sheet of avatar portraits from the game Oxygen Not ' +
+  'Included. Match its art style EXACTLY: bean-shaped oversized heads on tiny bodies, thick ' +
+  'clean dark outlines, flat cel shading, simple oval eyes, expressive cartoon mouths, chunky ' +
+  'striped knit jumpsuits, and the same muted blue-grey interior background. The result must ' +
+  'look like it was drawn by the same artist who drew the reference sheet.';
 
-// Variation axes for random generation — picked per call so a batch of random
-// avatars comes out visibly distinct instead of ten near-identical characters.
+const GRID_CLAUSE =
+  'Produce ONE square image divided into an exact 2x2 grid of four independent square avatar ' +
+  'portraits, each filling exactly one quarter of the image edge to edge. No borders, gutters, ' +
+  'dividing lines, or margins between or around the quarters. Each portrait is a ' +
+  'head-and-shoulders framing of a single character, family-friendly, no text, no watermark.';
+
+// Variation axes injected per call so grids and batches come out visibly
+// distinct instead of four near-identical characters.
 const HAIR = [
   'a tall gravity-defying pompadour',
   'a messy bun',
@@ -32,6 +39,8 @@ const HAIR = [
   'twin pigtails',
   'a mohawk',
   'shaggy medium-length hair',
+  'a wild cloud of curls',
+  'a neat bowl cut',
 ];
 
 const EXPRESSION = [
@@ -42,6 +51,7 @@ const EXPRESSION = [
   'a smug confident smirk',
   'a gentle content smile',
   'a mischievous grin',
+  'a proud thumbs-up pose',
 ];
 
 const ACCESSORY = [
@@ -49,51 +59,42 @@ const ACCESSORY = [
   'a hard hat',
   'a headlamp',
   'round glasses',
-  'a small earpiece communicator',
   'a bandana around the neck',
   'a snorkel mask resting on the head',
+  'a wrench in hand',
   'no accessory',
-];
-
-const OUTFIT = [
-  'an orange industrial jumpsuit',
-  'a teal lab coverall',
-  'a khaki engineer uniform with suspenders',
-  'a purple technician suit',
-  'a green agricultural overall',
 ];
 
 function pick<T>(arr: T[], rng: () => number): T {
   return arr[Math.floor(rng() * arr.length)];
 }
 
-// rng injectable for deterministic tests
-export function randomAvatarPrompt(rng: () => number = Math.random): string {
+// Four distinct character briefs, one per grid cell. rng injectable for
+// deterministic tests.
+export function gridAvatarPrompt(rng: () => number = Math.random): string {
+  const briefs = [0, 1, 2, 3]
+    .map(
+      i =>
+        `Character ${i + 1}: ${pick(HAIR, rng)}, ${pick(EXPRESSION, rng)}, ${pick(ACCESSORY, rng)}.`
+    )
+    .join(' ');
   return (
-    `${STYLE_BASE} The character has ${pick(HAIR, rng)}, ${pick(EXPRESSION, rng)}, ` +
-    `${pick(ACCESSORY, rng)}, and wears ${pick(OUTFIT, rng)}.`
+    `${SHEET_CLAUSE} ${GRID_CLAUSE} The four characters must be clearly different from each ` +
+    `other and from every character on the reference sheet — vary skin tone, hair color, hair ` +
+    `style and jumpsuit color across the four. ${briefs}`
   );
 }
 
-// Sent together with the user's uploaded photo as a reference image
-export function faceAvatarPrompt(): string {
+// Sent with two attachments: [style sheet, user photo]
+export function faceGridAvatarPrompt(): string {
   return (
-    `${STYLE_BASE} Use the attached photo only as loose inspiration for the character's ` +
-    'recognizable features — approximate hair style and color, skin tone, glasses or facial ' +
-    'hair if present, and overall vibe — while fully redrawing them as an original cartoon ' +
-    'character in the style described. Do not reproduce the photo itself, its background, ' +
-    'or any other people in it.'
-  );
-}
-
-// Future batch mode: caller attaches a reference sheet image of many example
-// avatars; index diversifies the batch the same way randomAvatarPrompt does.
-export function seedBatchPrompt(rng: () => number = Math.random): string {
-  return (
-    `${STYLE_BASE} Match the visual style, proportions and palette of the attached reference ` +
-    'sheet of example avatars, but invent a brand-new character not present on the sheet. ' +
-    `The character has ${pick(HAIR, rng)}, ${pick(EXPRESSION, rng)}, ${pick(ACCESSORY, rng)}, ` +
-    `and wears ${pick(OUTFIT, rng)}.`
+    `${SHEET_CLAUSE} The second attached image is a photo of a person. ${GRID_CLAUSE} All four ` +
+    'portraits are of the SAME new character: a cartoon version of the person in the photo, ' +
+    'carrying over their recognizable features — approximate hair style and color, skin tone, ' +
+    'glasses or facial hair if present, and overall vibe — fully redrawn in the reference-sheet ' +
+    'style. Give each of the four portraits a different expression and pose so the person can ' +
+    'pick their favorite. Do not reproduce the photo itself, its background, or any other ' +
+    'people in it.'
   );
 }
 

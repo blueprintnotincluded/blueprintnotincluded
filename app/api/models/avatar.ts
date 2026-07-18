@@ -17,6 +17,10 @@ export interface Avatar extends Document {
   prompt: string; // full prompt text as sent
   sourceType: AvatarSourceType;
   seedUploadId?: mongoose.Types.ObjectId | null;
+  // Grid mode: which provider call this tile came from, and where in the 2x2
+  // grid it sat (0..3, row-major). The batch row holds the verbatim grid.
+  batchId?: mongoose.Types.ObjectId | null;
+  gridIndex?: number | null;
 
   status: AvatarStatus;
   error?: string | null;
@@ -62,6 +66,8 @@ export class AvatarModel {
         prompt: { type: String, required: true },
         sourceType: { type: String, enum: ['random', 'user-upload', 'seed-batch'], required: true },
         seedUploadId: { type: Schema.Types.ObjectId, ref: 'AvatarSeedUpload', default: null },
+        batchId: { type: Schema.Types.ObjectId, ref: 'AvatarBatch', default: null },
+        gridIndex: { type: Number, default: null },
 
         status: { type: String, enum: ['ready', 'failed'], required: true },
         error: { type: String, default: null },
