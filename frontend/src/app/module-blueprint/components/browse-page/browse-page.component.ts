@@ -25,7 +25,6 @@ import { Subject, Subscription } from "rxjs";
 import { debounceTime } from "rxjs/operators";
 import { DialogAboutComponent } from "../dialogs/dialog-about/dialog-about.component";
 import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dialog.component";
-import { BrowseData } from "../user-menu/user-menu.component";
 
 const LOADING_STR = $localize`Loading...`;
 const NO_RESULTS_STR = $localize`:browse.noResults:No Results`;
@@ -67,7 +66,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   // here would make every page-1 URL unique and defeat the CDN cache.
   oldestDate: Date | null = null;
   filterName = "";
-  filterUserId: string | null = null;
   filterGameVersion: string | null = null;
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
@@ -557,7 +555,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
           this.userService.getFeed(this.oldestDate ?? new Date())
         : this.blueprintService.getBlueprints(
             this.oldestDate,
-            this.filterUserId,
+            null,
             this.filterName.trim() || null,
             this.filterGameVersion,
             this.filterCategory,
@@ -610,11 +608,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       return;
     }
     this.handleError();
-  }
-
-  showMyBlueprints(data: BrowseData) {
-    this.filterUserId = data.filterUserId;
-    this.transitionList();
   }
 
   handleError() {

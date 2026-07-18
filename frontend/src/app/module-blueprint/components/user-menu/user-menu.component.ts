@@ -1,6 +1,7 @@
 import {
   Component,
   EventEmitter,
+  Input,
   OnInit,
   Output,
   ViewChild,
@@ -23,6 +24,11 @@ export interface BrowseData {
 })
 export class UserMenuComponent implements OnInit {
   @ViewChild("userMenu") userMenu!: Menu;
+
+  // Only the in-editor menu wires this up (opens the browse dialog filtered
+  // to your own blueprints, for picking one to open) — the standalone site
+  // pages hide it since the profile page already covers "see my blueprints".
+  @Input() myBlueprintsEnabled = true;
 
   @Output() about = new EventEmitter<void>();
   @Output() sendFeedback = new EventEmitter<void>();
@@ -54,7 +60,7 @@ export class UserMenuComponent implements OnInit {
         label: $localize`My Blueprints`,
         icon: "pi pi-images",
         command: () => this.userProfile(),
-        visible: loggedIn,
+        visible: loggedIn && this.myBlueprintsEnabled,
       },
       {
         label: $localize`Switch account`,

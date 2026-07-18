@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { Location } from "@angular/common";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, finalize, switchMap, tap } from "rxjs/operators";
 import {
@@ -12,7 +12,6 @@ import { MessageService } from "primeng/api";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { VersionHistoryDialogComponent } from "../dialogs/version-history-dialog/version-history-dialog.component";
-import { BrowseData } from "../user-menu/user-menu.component";
 import {
   categoryTooltip,
   subcategoryTooltip,
@@ -56,16 +55,11 @@ export class BlueprintDetailsPageComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private location: Location,
     private blueprintService: BlueprintService,
     private messageService: MessageService,
     public authService: AuthenticationService,
   ) {}
-
-  goToProfile(data: BrowseData) {
-    this.router.navigate(["/profile", data.filterUserName]);
-  }
 
   // Complete singular/plural messages (not a conditional suffix) so
   // translators control each form

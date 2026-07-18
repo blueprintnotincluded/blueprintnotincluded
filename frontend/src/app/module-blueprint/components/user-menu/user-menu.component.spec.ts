@@ -114,6 +114,29 @@ describe("UserMenuComponent", () => {
     });
   });
 
+  describe("My Blueprints", () => {
+    it("is visible when logged in (default, e.g. the editor menu)", () => {
+      authService.isLoggedIn.mockReturnValue(true);
+      authService.getUserDetails.mockReturnValue(makeUser("user"));
+      component.ngOnInit();
+      const item = component.userMenuItems.find(
+        (i) => i.label === "My Blueprints",
+      );
+      expect(item?.visible).toBe(true);
+    });
+
+    it("is hidden when myBlueprintsEnabled is false (e.g. the site nav)", () => {
+      authService.isLoggedIn.mockReturnValue(true);
+      authService.getUserDetails.mockReturnValue(makeUser("user"));
+      component.myBlueprintsEnabled = false;
+      component.ngOnInit();
+      const item = component.userMenuItems.find(
+        (i) => i.label === "My Blueprints",
+      );
+      expect(item?.visible).toBe(false);
+    });
+  });
+
   describe("myBlueprintsRequested output", () => {
     it("emits BrowseData for the current user", () => {
       authService.getUserDetails.mockReturnValue(makeUser("user"));

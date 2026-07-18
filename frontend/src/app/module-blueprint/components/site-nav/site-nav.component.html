@@ -22,9 +22,9 @@
       *ngIf="authService.isLoggedIn()"
     ></app-notification-bell>
     <app-user-menu
+      [myBlueprintsEnabled]="false"
       (about)="about.emit()"
       (sendFeedback)="sendFeedback.emit()"
-      (myBlueprintsRequested)="myBlueprintsRequested.emit($event)"
     ></app-user-menu>
   </ng-template>
 </p-menubar>
