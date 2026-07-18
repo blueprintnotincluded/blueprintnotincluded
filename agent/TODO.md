@@ -52,6 +52,22 @@ guide items, both needing backend work:
   - **Likes cleanup migration**: `$unset` the orphaned `likes`/`likeCount` fields once
     the rollout is proven (they're out of the mongoose schema already).
 
+## Trending ranking (hotScore) follow-ups
+
+Trending is now a materialized, indexed `hotScore` ("new but also good": bayesian-shrunk
+rating + log downloads + a static recency term) and the default Discover sort. Design +
+calibration: `spec/trending-hotscore-plan.md`; scoring lives in `lib` `computeHotScore`.
+Deferred, both metrics-gated:
+
+- **Filter-scoped trending indexes** — only the unfiltered `{deletedAt, isPublished,
+  hotScore:-1, createdAt:-1}` index shipped. Whether to add gameVersion/category/rooms +
+  hotScore compound indexes depends on which filters users actually pair with trending;
+  instrument that first (filtered trending currently falls back to a non-covered sort).
+- **Re-tune constants against real data** — `PRIOR_MEAN` (`C`, provisional 3.5) and
+  `W_RECENCY` (0.18 → ~2-week window) were set before there was meaningful rating volume.
+  Revisit once ratings/downloads accumulate; any change is a one-line edit to `HOT_SCORE`
+  plus a fresh backfill migration to re-materialize.
+
 ## Future directions (product)
 
 - **Blueprint forks** — fork/remix an existing blueprint with attribution (was queued with
