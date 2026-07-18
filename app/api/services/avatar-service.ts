@@ -79,15 +79,17 @@ export class AvatarService {
   }
 
   // The committed style sheet, downscaled at build time (~1024px jpeg ≈ 1k
-  // input tokens ≈ $0.0005/call). Missing file degrades to sheet-less
-  // prompting rather than failing generation.
+  // input tokens ≈ $0.0005/call). Prompts hard-code attachment positions
+  // ("the first/second attached image is..."), so a missing sheet can't
+  // degrade to sheet-less prompting without shifting every index and
+  // corrupting the request — callers must fail closed instead.
   public getStyleSheet(): ReferenceImage | null {
     if (this.styleSheet !== undefined) return this.styleSheet;
     try {
       const path = process.env.AVATAR_STYLE_REFERENCE || STYLE_SHEET_PATH;
       this.styleSheet = { data: fs.readFileSync(path), mimeType: 'image/jpeg' };
     } catch {
-      console.log(`[avatar] style sheet not found at ${STYLE_SHEET_PATH} — generating without it`);
+      console.log(`[avatar] style sheet not found at ${STYLE_SHEET_PATH}`);
       this.styleSheet = null;
     }
     return this.styleSheet;
@@ -105,9 +107,14 @@ export class AvatarService {
     const log = (msg: string) => console.log(`[avatar] ${msg}`);
     log(`generate start source=${sourceType} template=${promptTemplate}`);
 
-    const references: ReferenceImage[] = [];
     const sheet = this.getStyleSheet();
-    if (sheet) references.push(sheet);
+    if (!sheet) {
+      // Prompts assume the sheet occupies the first attachment slot; without
+      // it every other attachment index (e.g. the user photo) shifts, so the
+      // model would be told it's looking at the wrong image.
+      throw new Error('avatar style sheet unavailable — refusing to generate with mismatched prompt');
+    }
+    const references: ReferenceImage[] = [sheet];
     if (options.reference) references.push(options.reference);
 
     try {
