@@ -30,7 +30,7 @@ Operational reference for the duplicant-style avatar pipeline
 | `AVATAR_CLASSIFY_MODEL` | `gemini-3.5-flash` | cheap multimodal FACE/NOT_FACE pre-check |
 | `AVATAR_POOL_LOW_WATER` | `5` | refill trigger threshold (0 disables refill — tests use this) |
 | `AVATAR_POOL_REFILL` | `5` | avatars generated per refill |
-| `AVATAR_GENERATE_COOLDOWN_MS` | `86400000` (24h) | per-user generation limit window |
+| `AVATAR_GENERATE_COOLDOWN_MS` | `86400000` (24h) | per-user limit: one generation per rolling 24h window since their last batch, not a calendar-day/midnight reset |
 
 ## Cost
 
