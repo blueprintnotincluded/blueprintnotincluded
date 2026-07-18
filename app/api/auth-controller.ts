@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserModel } from './models/user';
 import { WorkOSService } from './services/workos-service';
 import { apiError } from './utils/apiError';
+import { AvatarService } from './services/avatar-service';
 
 /**
  * Find a unique username by appending incrementing counters.
@@ -68,6 +69,9 @@ async function resolveLocalUser(workosUser: {
         authProvider: 'workos',
       });
       await localUser.save();
+      // Best-effort: new users get a pool avatar; empty pool or provider
+      // trouble must never block login/registration
+      AvatarService.instance.tryAssignOnSignup((localUser._id as any).toString());
 
       try {
         await WorkOSService.updateUser(workosUser.id, { externalId: (localUser._id as any).toString() });
@@ -195,6 +199,7 @@ export class AuthController {
         authProvider: 'workos',
       });
       await localUser.save();
+      AvatarService.instance.tryAssignOnSignup((localUser._id as any).toString());
 
       // Write externalId back to WorkOS
       try {

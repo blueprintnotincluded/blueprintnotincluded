@@ -11,7 +11,8 @@ export type AvatarStatus = 'ready' | 'failed';
 
 export interface Avatar extends Document {
   provider: string; // 'gemini'
-  model: string;
+  // 'model' would shadow Document.model(), hence the prefix
+  providerModel: string;
   promptTemplate: string; // template id from avatar-prompts.ts
   prompt: string; // full prompt text as sent
   sourceType: AvatarSourceType;
@@ -56,7 +57,7 @@ export class AvatarModel {
     const avatarSchema = new mongoose.Schema(
       {
         provider: { type: String, required: true, default: 'gemini' },
-        model: { type: String, required: true },
+        providerModel: { type: String, required: true },
         promptTemplate: { type: String, required: true },
         prompt: { type: String, required: true },
         sourceType: { type: String, enum: ['random', 'user-upload', 'seed-batch'], required: true },

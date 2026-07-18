@@ -16,6 +16,7 @@ import { UserController } from './api/user-controller';
 import { CommentController } from './api/comment-controller';
 import { NotificationController } from './api/notification-controller';
 import { PreviewController } from './api/preview-controller';
+import { AvatarController } from './api/avatar-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
@@ -29,6 +30,7 @@ export class Routes {
   public commentController = new CommentController();
   public notificationController = new NotificationController();
   public previewController = new PreviewController();
+  public avatarController = new AvatarController();
 
   public routes(app: Application): void {
     // Admin-only middleware: requires role === 'admin' in the JWT (set from WorkOS platform org membership)
@@ -77,6 +79,7 @@ export class Routes {
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
     app.route('/api/users/:username/profile').get(this.userController.getProfile);
+    app.route('/api/users/:username/avatar').get(this.avatarController.getAvatar);
     app.route('/api/users/:username/followers').get(this.userController.getFollowers);
     app.route('/api/users/:username/following').get(this.userController.getFollowing);
     app.route('/api/blueprints/:id').get(this.uploadBlueprintController.getBlueprintDetails);
@@ -102,6 +105,13 @@ export class Routes {
     app.route('/api/users/:username/profileSecure').get(auth, this.userController.getProfile);
     app.route('/api/follow').post(auth, this.userController.follow);
     app.route('/api/users/me').patch(auth, this.userController.updateBio);
+    // Optional seed photo arrives as a raw image/* body (no multipart in this
+    // API surface); anything else falls through to random generation
+    app
+      .route('/api/users/me/avatar/generate')
+      .post(auth, express.raw({ type: 'image/*', limit: '8mb' }), this.avatarController.generate);
+    app.route('/api/users/me/avatar/assign').post(auth, this.avatarController.assign);
+    app.route('/api/users/me/avatar').delete(auth, this.avatarController.remove);
     app.route('/api/feed').get(auth, this.userController.getFeed);
     app.route('/api/blueprints/:id/comments').post(auth, this.commentController.create);
     app.route('/api/comments/:id').patch(auth, this.commentController.edit);
@@ -120,6 +130,7 @@ export class Routes {
     // Admin-only API
     app.route('/api/admin/feedback').get(auth, adminAuth, this.feedbackController.list);
     app.route('/api/admin/feedback/:id').patch(auth, adminAuth, this.feedbackController.updateStatus);
+    app.route('/api/admin/avatars/batch').post(auth, adminAuth, this.avatarController.adminBatch);
 
     // Admin app — served at /admin when built; skipped in dev (admin runs on port 4201)
     const adminIndexHtml = path.join(__dirname, 'public', 'admin', 'index.html');
