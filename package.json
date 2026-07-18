@@ -48,6 +48,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^2.12.0",
     "@workos-inc/node": "^8.11.1",
     "adm-zip": "^0.5.10",
     "canvas": "^3.2.3",
