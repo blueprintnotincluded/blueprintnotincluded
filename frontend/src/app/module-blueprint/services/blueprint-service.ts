@@ -495,20 +495,9 @@ export class BlueprintService implements IObsBlueprintChange {
   deleteBlueprint(id: string) {
     const body: BlueprintDelete = { blueprintId: id };
 
-    const request = this.http
-      .post("/api/deleteblueprint", body, {
-        headers: { Authorization: `Bearer ${this.authService.getToken()}` },
-      })
-      .pipe(
-        map((response: any) => {
-          if (response.id) {
-            this.id = response.id;
-          }
-          return response;
-        }),
-      );
-
-    return request;
+    return this.http.post("/api/deleteblueprint", body, {
+      headers: { Authorization: `Bearer ${this.authService.getToken()}` },
+    });
   }
 
   metadata: Partial<
