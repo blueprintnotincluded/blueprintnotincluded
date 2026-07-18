@@ -172,28 +172,42 @@ export class AvatarService {
           continue;
         }
 
-        const avatar = await AvatarModel.model.create({
-          provider: 'gemini',
-          providerModel: result.model,
-          promptTemplate,
-          prompt,
-          sourceType,
-          seedUploadId: options.seedUpload?._id ?? null,
-          batchId: batch._id,
-          gridIndex: i,
-          status: 'ready',
-          bytes: tileBytes,
-          contentType: 'image/png',
-          width: DISPLAY_SIZE,
-          height: DISPLAY_SIZE,
-          originalBytes: tileBytes,
-          originalContentType: 'image/png',
-          originalWidth: DISPLAY_SIZE,
-          originalHeight: DISPLAY_SIZE,
-          sha256: tileSha256,
-          interactionId: result.interactionId ?? null,
-          latencyMs: result.latencyMs,
-        });
+        let avatar: Avatar;
+        try {
+          avatar = await AvatarModel.model.create({
+            provider: 'gemini',
+            providerModel: result.model,
+            promptTemplate,
+            prompt,
+            sourceType,
+            seedUploadId: options.seedUpload?._id ?? null,
+            batchId: batch._id,
+            gridIndex: i,
+            status: 'ready',
+            bytes: tileBytes,
+            contentType: 'image/png',
+            width: DISPLAY_SIZE,
+            height: DISPLAY_SIZE,
+            originalBytes: tileBytes,
+            originalContentType: 'image/png',
+            originalWidth: DISPLAY_SIZE,
+            originalHeight: DISPLAY_SIZE,
+            sha256: tileSha256,
+            interactionId: result.interactionId ?? null,
+            latencyMs: result.latencyMs,
+          });
+        } catch (createErr) {
+          // Unique sha256 index: a concurrent generation stored this exact
+          // tile between our findOne and create — use theirs.
+          const raced =
+            (createErr as { code?: number })?.code === 11000
+              ? await AvatarModel.model.findOne({ sha256: tileSha256 })
+              : null;
+          if (!raced) throw createErr;
+          log(`tile ${i} dedupe race → existing avatar ${raced.id}`);
+          avatars.push(raced);
+          continue;
+        }
         avatars.push(avatar);
       }
       log(`stored batch ${batch.id} → ${avatars.length} avatars`);
@@ -340,7 +354,12 @@ export class AvatarService {
         { new: true }
       );
       if (claimed) {
-        await this.pointUserAt(userId, claimed);
+        try {
+          await this.pointUserAt(userId, claimed);
+        } catch (err) {
+          await this.undoClaim(userId, String(claimed._id));
+          throw err;
+        }
         this.maybeRefill();
         return claimed;
       }
@@ -362,16 +381,50 @@ export class AvatarService {
       console.log(`[avatar] assignSpecificAvatar skipped: ${avatar.id} is assigned to another user`);
       return false;
     }
-    await this.pointUserAt(userId, claimed);
+    try {
+      await this.pointUserAt(userId, claimed);
+    } catch (err) {
+      await this.undoClaim(userId, String(claimed._id));
+      throw err;
+    }
     return true;
   }
 
+  // No transactions on this deployment (standalone mongod in dev/CI), so the
+  // claim → pointer-update → release-previous chain is kept consistent by
+  // compensating writes instead: any failure restores the prior state before
+  // the error propagates.
   private async pointUserAt(userId: string, avatar: Avatar): Promise<void> {
     const previous = await UserModel.model.findByIdAndUpdate(userId, { avatarId: avatar._id });
     const previousAvatarId = previous?.avatarId;
     if (previousAvatarId && String(previousAvatarId) !== String(avatar._id)) {
-      await this.release(String(previousAvatarId));
+      try {
+        await this.release(String(previousAvatarId));
+      } catch (err) {
+        // The previous avatar is still assigned to this user — point them back
+        // at it so the records stay consistent; the caller undoes the new claim.
+        await UserModel.model
+          .findByIdAndUpdate(userId, { avatarId: previousAvatarId })
+          .catch(restoreErr =>
+            console.log('[avatar] failed to restore avatarId after release failure', restoreErr)
+          );
+        throw err;
+      }
     }
+  }
+
+  // Undo a claim whose pointer update failed: return the avatar to the pool,
+  // unless the user record does point at it (re-selecting an avatar they
+  // already own — releasing it then would let another user steal it).
+  private async undoClaim(userId: string, avatarId: string): Promise<void> {
+    const user = await UserModel.model
+      .findById(userId)
+      .select('avatarId')
+      .catch(() => null);
+    if (user?.avatarId && String(user.avatarId) === avatarId) return;
+    await this.release(avatarId).catch(err =>
+      console.log(`[avatar] failed to undo claim of ${avatarId}`, err)
+    );
   }
 
   // Back to the pool: the asset stays and becomes claimable again

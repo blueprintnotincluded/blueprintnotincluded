@@ -49,13 +49,14 @@ async function run(dryRun: boolean) {
   let skipped = 0;
   for (const user of users) {
     const avatar = await service.assignRandomFromPool(String(user._id));
-    if (avatar) {
-      assigned++;
-      console.log(`assigned ${avatar.id} → ${user.username}`);
-    } else {
-      skipped++;
-      console.log(`pool empty — skipped ${user.username}`);
+    if (!avatar) {
+      // Pool exhausted — no point querying for the remaining users
+      skipped = users.length - assigned;
+      console.log(`pool empty — skipping remaining ${skipped} users`);
+      break;
     }
+    assigned++;
+    console.log(`assigned ${avatar.id} → ${user.username}`);
   }
 
   console.log(`Done: ${assigned} assigned, ${skipped} skipped, pool now ${await service.poolCount()}`);
