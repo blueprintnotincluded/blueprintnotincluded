@@ -493,15 +493,9 @@ describe("BlueprintService", () => {
       );
     });
 
-    it("sets service.id from response.id when provided", () => {
-      mockHttp.post.mockReturnValue(of({ id: "deleted-id" }));
-      service.deleteBlueprint("bp-1").subscribe(() => {});
-      expect(service.id).toBe("deleted-id");
-    });
-
-    it("does not change service.id when response has no id", () => {
+    it("never mutates service.id, even if the response carries one", () => {
       service.id = "original-id";
-      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.post.mockReturnValue(of({ id: "deleted-id" }));
       service.deleteBlueprint("bp-1").subscribe(() => {});
       expect(service.id).toBe("original-id");
     });
