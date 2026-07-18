@@ -50,6 +50,7 @@ export class ProfilePageComponent implements OnInit {
   nextGenerateAt: Date | null = null;
   poolCount = 0;
   availableAvatars: AvatarCandidate[] = [];
+  avatarsLoaded = false;
   candidates: AvatarCandidate[] = [];
   generating = false;
   selectingAvatarId: string | null = null;
@@ -143,6 +144,7 @@ export class ProfilePageComponent implements OnInit {
     this.nextGenerateAt = null;
     this.poolCount = 0;
     this.availableAvatars = [];
+    this.avatarsLoaded = false;
     this.candidates = [];
     this.generating = false;
     this.selectingAvatarId = null;
@@ -206,11 +208,13 @@ export class ProfilePageComponent implements OnInit {
       },
       error: () => {},
     });
+    this.avatarsLoaded = false;
     this.userService.getAvailableAvatars().subscribe({
       next: (available) => {
         this.availableAvatars = available.avatars;
         this.poolCount = available.total;
         this.avatarLoading = false;
+        this.avatarsLoaded = true;
       },
       error: () => {
         this.avatarLoading = false;
