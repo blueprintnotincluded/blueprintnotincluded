@@ -66,6 +66,11 @@
   font-style: italic;
 }
 
+.bio-edit-trigger {
+  flex: none;
+  min-width: 7em;
+}
+
 .bio-edit textarea {
   width: 100%;
   max-width: 500px;
