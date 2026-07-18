@@ -20,6 +20,7 @@ import {
   roomTooltip,
 } from "../../utils/chip-tooltip";
 import { roomTypeLabel } from "../../utils/room-labels";
+import sanitize from "sanitize-filename";
 
 const BACK_TO_DISCOVER = $localize`:blueprintDetails.backToDiscover:Back to Discover`;
 const BACK_TO_PROFILE = $localize`:blueprintDetails.backToProfile:Back to Profile`;
@@ -196,9 +197,29 @@ export class BlueprintDetailsPageComponent implements OnInit {
       : "";
   }
 
+  // Same URL the in-game mod fetches by id (records its own download counter
+  // server-side) — exposed as the button's href so curl/scripts can hit it
+  // directly. Anonymous requests 404 on drafts, same as the details page
+  // itself, so this only ever works where it's safe to.
+  get downloadUrl(): string {
+    return this.details == null
+      ? ""
+      : `/api/getblueprintmod/${this.details.id}`;
+  }
+
+  get downloadFileName(): string {
+    return this.details == null
+      ? ""
+      : sanitize(this.details.name) + ".blueprint";
+  }
+
   downloadWorking = false;
 
-  downloadBlueprint() {
+  // Intercepted so the browser click still goes through the authenticated
+  // client-side export (needed for an owner viewing their own draft, which
+  // the plain href above can't reach) — see downloadUrl.
+  downloadBlueprint(event: Event) {
+    event.preventDefault();
     if (this.details == null || this.downloadWorking) return;
     this.downloadWorking = true;
     this.blueprintService
