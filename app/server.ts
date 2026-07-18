@@ -9,6 +9,15 @@ import { PreviewImageService } from './api/services/preview-image-service';
 import { BlueprintCounterService } from './api/services/blueprint-counter-service';
 import { startMemoryHeartbeat } from './api/services/memory-heartbeat';
 
+// Loud, unmissable startup check — avatar endpoints answer 503 until the key
+// exists, but the server still boots so a missing key can't take the site down.
+if (!process.env.GEMINI_API_KEY) {
+  console.error(
+    '[avatar] GEMINI_API_KEY is not set — avatar generation DISABLED. ' +
+      'Create a key at https://aistudio.google.com/apikey (see agent/AVATARS.md).'
+  );
+}
+
 const PORT = 3000;
 const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
