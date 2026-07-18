@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { By } from "@angular/platform-browser";
 import { Location } from "@angular/common";
-import { ActivatedRoute, convertToParamMap } from "@angular/router";
+import { ActivatedRoute, Router, convertToParamMap } from "@angular/router";
 import { of, throwError, Subject } from "rxjs";
 
 import { MessageService } from "primeng/api";
@@ -46,15 +46,18 @@ describe("BlueprintDetailsPageComponent", () => {
   let blueprintService: any;
   let authService: any;
   let messageService: any;
+  let router: any;
 
   beforeEach(async () => {
     blueprintService = {
       getBlueprintDetails: vi.fn().mockReturnValue(of(makeDetails())),
       getRelatedBlueprints: vi.fn().mockReturnValue(of({ blueprints: [] })),
       setPublished: vi.fn().mockReturnValue(of({ isPublished: true })),
+      deleteBlueprint: vi.fn().mockReturnValue(of({ deleteBlueprint: "OK" })),
     };
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
     messageService = { add: vi.fn() };
+    router = { navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
       declarations: [BlueprintDetailsPageComponent],
@@ -63,6 +66,7 @@ describe("BlueprintDetailsPageComponent", () => {
         { provide: BlueprintService, useValue: blueprintService },
         { provide: AuthenticationService, useValue: authService },
         { provide: MessageService, useValue: messageService },
+        { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -526,6 +530,71 @@ describe("BlueprintDetailsPageComponent", () => {
       const shareButton = fixture.debugElement.query(By.css(".details-share"));
       expect(shareButton.nativeElement.disabled).toBe(true);
       expect(component.shareTitle).toContain("Publish");
+    });
+  });
+
+  describe("delete", () => {
+    it("hides Delete for a blueprint owned by someone else", () => {
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css(".details-delete"))).toBe(null);
+    });
+
+    it("shows Delete for the owner", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true })),
+      );
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css(".details-delete"))).not.toBe(
+        null,
+      );
+    });
+
+    it("does nothing when the confirm is dismissed", () => {
+      vi.spyOn(window, "confirm").mockReturnValue(false);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true })),
+      );
+      fixture.detectChanges();
+
+      component.deleteBlueprint();
+
+      expect(blueprintService.deleteBlueprint).not.toHaveBeenCalled();
+    });
+
+    it("deletes, toasts success, and navigates back on confirm", () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true })),
+      );
+      fixture.detectChanges();
+
+      component.deleteBlueprint();
+
+      expect(blueprintService.deleteBlueprint).toHaveBeenCalledWith("bp1");
+      expect(component.deleteWorking).toBe(false);
+      expect(messageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: "success" }),
+      );
+      expect(router.navigate).toHaveBeenCalledWith(component.backLink);
+    });
+
+    it("keeps the user on the page and toasts an error on failure", () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      blueprintService.deleteBlueprint.mockReturnValue(
+        throwError(() => new Error("boom")),
+      );
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ ownedByMe: true })),
+      );
+      fixture.detectChanges();
+
+      component.deleteBlueprint();
+
+      expect(component.deleteWorking).toBe(false);
+      expect(router.navigate).not.toHaveBeenCalled();
+      expect(messageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: "error" }),
+      );
     });
   });
 });
