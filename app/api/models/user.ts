@@ -22,6 +22,7 @@ export interface User extends Document {
 
 
   bio?: string;
+  avatarId?: mongoose.Types.ObjectId | null;
 
   setPassword(password: string): void;
   validPassword(password: string): boolean;
@@ -66,6 +67,7 @@ export class UserModel {
       resetToken: String,
       resetTokenExpiration: Date,
       bio: { type: String, maxlength: [500, 'Bio must be 500 characters or fewer'], default: '' },
+      avatarId: { type: mongoose.Schema.Types.ObjectId, ref: 'Avatar', default: null },
     });
 
     // Password reset lookup: findOne({ resetToken, resetTokenExpiration: { $gt: ... } })

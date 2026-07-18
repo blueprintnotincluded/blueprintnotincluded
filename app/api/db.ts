@@ -9,6 +9,8 @@ import { NotificationModel } from './models/notification';
 import { PreviewImageModel } from './models/preview-image';
 import { BlueprintEventModel } from './models/blueprint-event';
 import { BlueprintRatingModel } from './models/blueprint-rating';
+import { AvatarModel } from './models/avatar';
+import { AvatarSeedUploadModel } from './models/avatar-seed-upload';
 
 export class Database {
   constructor() {
@@ -34,6 +36,8 @@ export class Database {
       PreviewImageModel.init();
       BlueprintEventModel.init();
       BlueprintRatingModel.init();
+      AvatarModel.init();
+      AvatarSeedUploadModel.init();
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {
