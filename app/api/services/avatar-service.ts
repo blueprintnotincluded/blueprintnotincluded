@@ -142,11 +142,20 @@ export class AvatarService {
       // exactly 512) and normalize every tile to the display size
       const halfW = Math.floor((gridMeta.width ?? DISPLAY_SIZE * 2) / 2);
       const halfH = Math.floor((gridMeta.height ?? DISPLAY_SIZE * 2) / 2);
+      // The model tends to draw thin frames around grid cells despite the
+      // prompt; a ~4% inset crops them and is invisible when absent
+      const insetW = Math.round(halfW * 0.04);
+      const insetH = Math.round(halfH * 0.04);
 
       const avatars: Avatar[] = [];
       for (let i = 0; i < GRID_TILES; i++) {
         const tileBytes = await sharp(result.buffer)
-          .extract({ left: (i % 2) * halfW, top: Math.floor(i / 2) * halfH, width: halfW, height: halfH })
+          .extract({
+            left: (i % 2) * halfW + insetW,
+            top: Math.floor(i / 2) * halfH + insetH,
+            width: halfW - 2 * insetW,
+            height: halfH - 2 * insetH,
+          })
           .resize(DISPLAY_SIZE, DISPLAY_SIZE, { fit: 'cover' })
           .png()
           .toBuffer();

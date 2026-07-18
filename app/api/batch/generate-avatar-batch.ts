@@ -44,7 +44,7 @@ async function run() {
   const calls = Math.ceil(count / GRID_TILES);
   console.log(
     `Generating ~${calls * GRID_TILES} pool avatars in ${calls} grid calls ` +
-      `(~$${(calls * 0.045).toFixed(2)} at 512px standard pricing)` +
+      `(~$${(calls * 0.09).toFixed(2)} observed per-grid cost)` +
       (service.getStyleSheet() ? ' with the duplicant style sheet' : ' WITHOUT style sheet (missing!)')
   );
 
