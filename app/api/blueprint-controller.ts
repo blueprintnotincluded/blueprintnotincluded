@@ -20,6 +20,7 @@ import {
   ROOM_TYPE_IDS,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
+import { computeHotScore } from '../../lib/index';
 import { UserModel, UserJwt } from './models/user';
 import { CommentModel } from './models/comment';
 import { BlueprintRatingModel } from './models/blueprint-rating';
@@ -365,10 +366,26 @@ export class BlueprintController {
       { $project: { _id: 0, count: 1, average: 1 } },
     ]);
     const aggregate = rows[0] ?? { count: 0, average: 0 };
-    await BlueprintModel.model.updateOne(
-      { _id: blueprintId },
-      { $set: { ratingCount: aggregate.count, ratingAverage: aggregate.average } }
-    );
+    const update: Record<string, number> = {
+      ratingCount: aggregate.count,
+      ratingAverage: aggregate.average,
+    };
+    // Refresh the materialized trending score with the new rating aggregate.
+    // Needs the doc's createdAt + current downloadCount (the other scoring
+    // inputs) — one small projected read, off the request-critical path.
+    const doc = await BlueprintModel.model
+      .findById(blueprintId)
+      .select('createdAt downloadCount')
+      .lean();
+    if (doc?.createdAt != null) {
+      update.hotScore = computeHotScore({
+        ratingCount: aggregate.count,
+        ratingAverage: aggregate.average,
+        downloadCount: doc.downloadCount ?? 0,
+        createdAt: doc.createdAt,
+      });
+    }
+    await BlueprintModel.model.updateOne({ _id: blueprintId }, { $set: update });
     return aggregate;
   }
 
@@ -736,29 +753,25 @@ export class BlueprintController {
       else if (sort === 'mostForked') sortSpec = { forkCount: -1, createdAt: -1 };
       else if (sort === 'mostViewed') sortSpec = { viewCount: -1, createdAt: -1 };
       else if (sort === 'mostDownloaded') sortSpec = { downloadCount: -1, createdAt: -1 };
+      // Trending sorts on the materialized hotScore (lib computeHotScore),
+      // refreshed on every engagement write — so it's a plain indexed sort
+      // like every other sort, not a full-collection aggregation.
+      else if (sort === 'trending') sortSpec = { hotScore: -1, createdAt: -1 };
 
       let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
       let skipAmount = usesOffsetPagination ? skip : 0;
       let limit = browseIncrement * 2;
 
-      // Trending has no single indexed field to sort on — it's a computed,
-      // time-decayed score — so it goes through an aggregation instead of
-      // the plain find().sort() every other sort uses.
       // -data -thumbnail: the list renders neither blueprint contents (~85KB
       // avg) nor the inline thumbnail data URI (~10-20KB) — together they
       // dominate the query's fetch cost otherwise
-      let blueprintsPromise: Promise<Blueprint[]> =
-        sort === 'trending'
-          ? BlueprintController.getTrendingBlueprints(filter, skipAmount, limit)
-          : BlueprintModel.model
-              .find(filter)
-              .sort(sortSpec)
-              .skip(skipAmount)
-              .limit(limit)
-              .select('-data -thumbnail')
-              .populate('owner');
-
-      blueprintsPromise
+      BlueprintModel.model
+        .find(filter)
+        .sort(sortSpec)
+        .skip(skipAmount)
+        .limit(limit)
+        .select('-data -thumbnail')
+        .populate('owner')
         .then(blueprints => {
           return BlueprintController.handleGetBlueprint(req, res, blueprints);
         })
@@ -768,129 +781,6 @@ export class BlueprintController {
           res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
         });
     }
-  }
-
-  // Trending rankings are cached briefly (ordered ids only, keyed by the
-  // exact filter+page): the score is a full pass over every matching
-  // blueprint by design, and "what's trending" tolerates a few minutes of
-  // staleness. Documents are still fetched fresh on every request, so
-  // counts/names/thumbnails never go stale — only the ordering does.
-  private static trendingIdCache = new Map<string, { expiresAt: number; ids: mongoose.Types.ObjectId[] }>();
-  private static readonly TRENDING_CACHE_TTL_MS = 5 * 60 * 1000;
-  // The key embeds the whole filter (name search strings, skip, per-viewer
-  // clauses), so arbitrary requests can mint unlimited distinct keys within
-  // one TTL window — cap the map and evict oldest-inserted first.
-  private static readonly TRENDING_CACHE_MAX_ENTRIES = 200;
-
-  public static clearTrendingCache() {
-    BlueprintController.trendingIdCache.clear();
-  }
-
-  // Time-decayed engagement score (ratings + weighted forks/comments/views,
-  // divided down by age) computed in an aggregation since it isn't a stored
-  // field. Only the ordered ids come out of the aggregation; the actual
-  // documents are then fetched + populated normally and put back in that
-  // order — cheaper than populating owner inside the pipeline via $lookup.
-  private static async getTrendingBlueprints(
-    filter: Record<string, unknown>,
-    skip: number,
-    limit: number
-  ): Promise<Blueprint[]> {
-    const cacheKey = JSON.stringify({ filter, skip, limit });
-    const cached = BlueprintController.trendingIdCache.get(cacheKey);
-    if (cached != null && cached.expiresAt > Date.now()) {
-      return BlueprintController.fetchInOrder(cached.ids, filter);
-    }
-    const commentLookupStage: mongoose.PipelineStage[] =
-      CommentModel.model == null
-        ? []
-        : [
-            {
-              $lookup: {
-                from: CommentModel.model.collection.name,
-                let: { blueprintId: '$_id' },
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: { $and: [{ $eq: ['$blueprintId', '$$blueprintId'] }, { $eq: ['$deletedAt', null] }] },
-                    },
-                  },
-                  { $count: 'count' },
-                ],
-                as: 'commentAgg',
-              },
-            },
-          ];
-
-    const rows: { _id: mongoose.Types.ObjectId }[] = await BlueprintModel.model.aggregate([
-      { $match: filter },
-      // Slim each doc to the scoring inputs before the $lookup so the full
-      // blueprint data blobs (~85KB avg) never stream through the pipeline
-      { $project: { ratingCount: 1, forkCount: 1, viewCount: 1, createdAt: 1 } },
-      ...commentLookupStage,
-      {
-        $addFields: {
-          commentCount: { $ifNull: [{ $arrayElemAt: ['$commentAgg.count', 0] }, 0] },
-          ageInDays: { $divide: [{ $subtract: ['$$NOW', '$createdAt'] }, 1000 * 60 * 60 * 24] },
-        },
-      },
-      {
-        $addFields: {
-          trendingScore: {
-            $divide: [
-              {
-                $add: [
-                  { $ifNull: ['$ratingCount', 0] },
-                  { $multiply: [{ $ifNull: ['$forkCount', 0] }, 3] },
-                  { $multiply: ['$commentCount', 2] },
-                  { $multiply: [{ $ifNull: ['$viewCount', 0] }, 0.05] },
-                ],
-              },
-              { $pow: [{ $add: ['$ageInDays', 2] }, 1.5] },
-            ],
-          },
-        },
-      },
-      { $sort: { trendingScore: -1, createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit },
-      { $project: { _id: 1 } },
-    ]);
-
-    const orderedIds = rows.map(row => row._id);
-
-    const now = Date.now();
-    for (const [key, entry] of BlueprintController.trendingIdCache) {
-      if (entry.expiresAt <= now) BlueprintController.trendingIdCache.delete(key);
-    }
-    while (BlueprintController.trendingIdCache.size >= BlueprintController.TRENDING_CACHE_MAX_ENTRIES) {
-      const oldestKey = BlueprintController.trendingIdCache.keys().next().value as string;
-      BlueprintController.trendingIdCache.delete(oldestKey);
-    }
-    BlueprintController.trendingIdCache.set(cacheKey, {
-      expiresAt: now + BlueprintController.TRENDING_CACHE_TTL_MS,
-      ids: orderedIds,
-    });
-
-    return BlueprintController.fetchInOrder(orderedIds, filter);
-  }
-
-  // Re-applies the visibility filter so a blueprint deleted or unpublished
-  // after the ranking was cached drops out immediately — only the ordering
-  // is ever stale, never visibility.
-  private static async fetchInOrder(
-    orderedIds: mongoose.Types.ObjectId[],
-    filter: Record<string, unknown>
-  ): Promise<Blueprint[]> {
-    if (orderedIds.length === 0) return [];
-    const docs = await BlueprintModel.model
-      .find({ $and: [{ _id: { $in: orderedIds } }, filter] })
-      .select('-data -thumbnail')
-      .populate('owner');
-    const byId = new Map(docs.map(doc => [(doc._id as mongoose.Types.ObjectId).toString(), doc]));
-    return orderedIds
-      .map(id => byId.get(id.toString()))
-      .filter((doc): doc is NonNullable<typeof doc> => doc != null);
   }
 
   // Visible (non-deleted) comment counts for a page of blueprints, one aggregate.
@@ -1450,6 +1340,16 @@ export class BlueprintController {
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();
     blueprint.modifiedAt = new Date();
+
+    // Materialize the trending score so a newly created (or resurrected)
+    // blueprint is sortable by trending immediately — new docs enter at the
+    // prior-mean quality baseline + a high recency term (see computeHotScore).
+    blueprint.hotScore = computeHotScore({
+      ratingCount: blueprint.ratingCount ?? 0,
+      ratingAverage: blueprint.ratingAverage ?? 0,
+      downloadCount: blueprint.downloadCount ?? 0,
+      createdAt: blueprint.createdAt,
+    });
 
     let newBlueprint;
     try {

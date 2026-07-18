@@ -1,5 +1,6 @@
 import { AnyBulkWriteOperation } from 'mongoose';
 import { BlueprintModel } from '../models/blueprint';
+import { computeHotScore } from '../../../lib/index';
 
 export type CounterKind = 'view' | 'download';
 
@@ -83,13 +84,51 @@ export class BlueprintCounterService {
     const batch = this.pending;
     this.pending = new Map();
 
+    // Downloads feed the trending hot-score, so those blueprints need their
+    // materialized score refreshed. Views don't (not a scoring input), so
+    // view-only ids skip the read entirely. One projected read of just the
+    // download-affected ids — the batch is only what changed this interval.
+    const downloadIds = [...batch].filter(([, c]) => c.downloads > 0).map(([id]) => id);
+    const scoringInputs = new Map<string, { ratingCount: number; ratingAverage: number; downloadCount: number; createdAt: Date }>();
+    if (downloadIds.length > 0) {
+      try {
+        const docs = await BlueprintModel.model
+          .find({ _id: { $in: downloadIds } })
+          .select('ratingCount ratingAverage downloadCount createdAt')
+          .lean();
+        for (const d of docs) {
+          if (d.createdAt == null) continue;
+          scoringInputs.set(String(d._id), {
+            ratingCount: d.ratingCount ?? 0,
+            ratingAverage: d.ratingAverage ?? 0,
+            downloadCount: d.downloadCount ?? 0,
+            createdAt: d.createdAt,
+          });
+        }
+      } catch (err) {
+        console.log('blueprint counter hotScore read error');
+        console.log(err);
+      }
+    }
+
     const operations: AnyBulkWriteOperation[] = [];
     for (const [blueprintId, counts] of batch) {
       const inc: Record<string, number> = {};
       if (counts.views > 0) inc.viewCount = counts.views;
       if (counts.downloads > 0) inc.downloadCount = counts.downloads;
+      const set: Record<string, number> = {};
+      const inputs = scoringInputs.get(blueprintId);
+      if (inputs != null) {
+        // Score the post-increment download total (applied in this same write).
+        set.hotScore = computeHotScore({
+          ...inputs,
+          downloadCount: inputs.downloadCount + counts.downloads,
+        });
+      }
+      const update: Record<string, Record<string, number>> = { $inc: inc };
+      if (set.hotScore != null) update.$set = set;
       operations.push({
-        updateOne: { filter: { _id: blueprintId }, update: { $inc: inc } },
+        updateOne: { filter: { _id: blueprintId }, update },
       });
     }
 
