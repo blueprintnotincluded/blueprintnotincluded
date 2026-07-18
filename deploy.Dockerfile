@@ -17,7 +17,7 @@ COPY ./scripts/copy_lib.sh ./scripts/
 RUN ./scripts/copy_lib.sh
 COPY ./tsconfig.json ./
 COPY ./app ./app
-COPY ./scripts/copy_assets.sh ./scripts/
+COPY ./scripts/copy_assets.sh ./scripts/batch.sh ./scripts/
 RUN ./scripts/copy_assets.sh
 COPY ./scripts/copy_views.sh ./scripts/
 RUN ./scripts/copy_views.sh

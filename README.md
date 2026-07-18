@@ -36,6 +36,40 @@ docker compose up
 Visit http://localhost:3000
 To check incoming emails visit: http://localhost:8025
 
+## Running batch tasks in production (DigitalOcean console)
+
+The deploy image (`deploy.Dockerfile`) ships only compiled output under `/bpni/build`:
+compiled JS, `assets/`, `package.json`, `migrations/`, and `scripts/batch.sh`. There are
+**no TypeScript sources and no devDependencies** (`npm ci --omit=dev`), so anything that
+needs `ts-node` cannot run there.
+
+Run npm tasks by name from the build directory — same task names as local dev:
+
+```bash
+cd /bpni/build
+npm run migrate:status
+npm run migrate:up
+npm run avatars:smoke
+npm run avatars:seed-batch -- --count 10
+npm run derive-metadata:dry-run
+npm run backfill-previews
+```
+
+Batch tasks dispatch through `scripts/batch.sh`, which runs the compiled
+`app/api/batch/<name>.js` when it exists (deploy image) and falls back to `ts-node` on the
+`.ts` source (dev checkout). Direct invocation also works as a fallback:
+`node app/api/batch/<name>.js [args]` (no `--` separator needed).
+
+**Shipping new batch/asset code — deploy-image checklist.** Code that works locally can
+still fail in the image; before relying on something in production, confirm:
+
+- Runtime file reads (assets, fixtures) resolve relative to `/bpni/build` and the files
+  actually land there — via `scripts/copy_assets.sh` *and* a `COPY` line in
+  `deploy.Dockerfile` (the build stage only copies what's explicitly listed).
+- Any package the script imports is in `dependencies`, not `devDependencies`.
+- New npm tasks meant for production go through `scripts/batch.sh` (plain `ts-node`
+  invocations will not run in the image).
+
 ## Docker image building
 
 Build the image

@@ -107,6 +107,12 @@ npm run avatars:backfill                   # assign pool avatars to all users la
 npm run migrate:up                         # avatar-init migration (indexes only)
 ```
 
+All of these work unchanged in the DO deploy console from `/bpni/build` (batch tasks
+dispatch via `scripts/batch.sh` to the compiled JS; see README "Running batch tasks in
+production"). The reference sheets must be present at
+`/bpni/build/assets/avatar-reference/` — shipped by deploy.Dockerfile + copy_assets.sh —
+or every generation fails closed with "avatar style sheet unavailable".
+
 Rollout order: migrate → seed-batch (pool ≥ user count) → backfill.
 
 ## Prompts
