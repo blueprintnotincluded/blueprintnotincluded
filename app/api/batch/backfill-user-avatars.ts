@@ -12,6 +12,11 @@ import { AvatarModel } from '../models/avatar';
 import { UserModel } from '../models/user';
 import { AvatarService } from '../services/avatar-service';
 
+// This script consumes the existing pool only — disable the
+// assignment-triggered auto-refill so the loop can't fire paid generations.
+// Set before dotenv so a .env value can't re-enable it (dotenv never
+// overrides existing vars).
+process.env.AVATAR_POOL_LOW_WATER = '0';
 dotenv.config();
 
 async function run(dryRun: boolean) {
