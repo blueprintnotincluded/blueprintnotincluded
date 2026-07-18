@@ -16,8 +16,6 @@ function makeItem(overrides: any = {}) {
     thumbnail: "real",
     nbRatings: 7,
     rating: 4.5,
-    myRating: null,
-    ownedByMe: false,
     commentCount: 4,
     nbForks: 3,
     nbViews: 25,

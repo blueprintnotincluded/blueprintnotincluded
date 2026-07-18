@@ -22,8 +22,6 @@ export interface BlueprintListItem {
   // out of band so the algorithm can evolve — plain average for now)
   nbRatings: number;
   rating: number; // average 1–5; 0 = unrated
-  myRating: number | null;
-  ownedByMe: boolean;
   commentCount: number;
   gameVersion?: string | null;
   category?: string | null;
@@ -44,9 +42,14 @@ export interface BlueprintListItem {
 }
 
 // Meta-only view for the blueprint details page — everything the list item
-// carries, without the heavy `data` payload the editor loads separately
+// carries, without the heavy `data` payload the editor loads separately.
+// Per-viewer fields (myRating/ownedByMe) live only here: list responses are
+// identical for every viewer so the CDN can serve them from the edge; the
+// details page is the one surface that personalizes.
 export interface BlueprintDetailsResponse extends BlueprintListItem {
   researchTier?: string | null;
+  myRating: number | null;
+  ownedByMe: boolean;
 }
 
 // "You might also like" shelf on the details page

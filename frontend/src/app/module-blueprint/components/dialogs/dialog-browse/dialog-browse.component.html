@@ -99,7 +99,7 @@
             ></b
           >
           <div
-            *ngIf="isReal(item.thumbnail) && item.ownedByMe"
+            *ngIf="isReal(item.thumbnail) && ownedByMe(item)"
             class="owner-actions"
           >
             <button

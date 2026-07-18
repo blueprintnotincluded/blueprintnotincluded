@@ -14,8 +14,6 @@ export interface BlueprintListItem {
     thumbnail: string;
     nbRatings: number;
     rating: number;
-    myRating: number | null;
-    ownedByMe: boolean;
     commentCount: number;
     gameVersion?: string | null;
     category?: string | null;
@@ -31,6 +29,8 @@ export interface BlueprintListItem {
 }
 export interface BlueprintDetailsResponse extends BlueprintListItem {
     researchTier?: string | null;
+    myRating: number | null;
+    ownedByMe: boolean;
 }
 export interface RelatedBlueprintsResponse {
     blueprints: BlueprintListItem[];

@@ -799,8 +799,6 @@ describe("BrowsePageComponent", () => {
       thumbnail: "real",
       nbRatings: 7,
       rating: 4.5,
-      myRating: null,
-      ownedByMe: false,
       nbForks: 3,
     } as any;
 

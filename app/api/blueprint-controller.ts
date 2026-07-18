@@ -53,7 +53,7 @@ const RELATED_LIMIT = 6;
 // the old { $ne: false } — but $in gives the planner point bounds, so the
 // isPublished-prefixed indexes can still provide sort order for the
 // count/rating sorts instead of fetching every live doc into a blocking SORT.
-const PUBLISHED_FILTER = { $in: [true, null] };
+export const PUBLISHED_FILTER = { $in: [true, null] };
 
 // Anonymous feed responses are viewer-independent, so Cloudflare can cache
 // them at the edge; slightly stale lists are fine. Responses to requests
@@ -760,7 +760,7 @@ export class BlueprintController {
 
       blueprintsPromise
         .then(blueprints => {
-          return BlueprintController.handleGetBlueprint(req, res, userId, blueprints);
+          return BlueprintController.handleGetBlueprint(req, res, blueprints);
         })
         .catch(err => {
           console.log('Blueprint find error');
@@ -924,12 +924,7 @@ export class BlueprintController {
     );
   }
 
-  public static async handleGetBlueprint(
-    req: Request,
-    res: Response,
-    userId: string,
-    blueprints: Blueprint[]
-  ) {
+  public static async handleGetBlueprint(req: Request, res: Response, blueprints: Blueprint[]) {
     let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
     setFeedCacheControl(req, res);
 
@@ -972,22 +967,10 @@ export class BlueprintController {
         console.log(err);
       }
 
-      let myRatings = new Map<string, number>();
-      try {
-        myRatings = await BlueprintController.getMyRatings(
-          page.map(blueprint => blueprint._id as mongoose.Types.ObjectId),
-          userId
-        );
-      } catch (err) {
-        // Decoration on the list — never fail the browse for it
-        console.log('my-ratings lookup error');
-        console.log(err);
-      }
-
       for (const blueprint of page) {
         if (blueprint.createdAt < returnValue.oldest) returnValue.oldest = blueprint.createdAt;
         returnValue.blueprints.push(
-          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames, myRatings)
+          BlueprintController.buildListItem(blueprint, commentCounts, forkedFromNames)
         );
       }
 
@@ -996,13 +979,14 @@ export class BlueprintController {
   }
 
   // Shared blueprint-document -> BlueprintListItem mapping, used by the browse
-  // list, and the details page's related-blueprints shelf.
+  // list, and the details page's related-blueprints shelf. Deliberately
+  // viewer-independent: no per-viewer fields, so responses built from it are
+  // byte-identical for every viewer and safe to cache at the edge. Per-viewer
+  // state (myRating/ownedByMe) belongs to the details response only.
   private static buildListItem(
     blueprint: Blueprint,
-    userId: string,
     commentCounts: Map<string, number>,
-    forkedFromNames: Map<string, string | null>,
-    myRatings: Map<string, number>
+    forkedFromNames: Map<string, string | null>
   ): BlueprintListItem {
     const id = (blueprint._id as any).toString();
 
@@ -1012,9 +996,6 @@ export class BlueprintController {
       username = blueprint.owner.username as string;
       ownerId = blueprint.owner.id as string;
     }
-
-    let ownedByMe = false;
-    if (userId != null && ownerId == userId) ownedByMe = true;
 
     return {
       id,
@@ -1029,8 +1010,6 @@ export class BlueprintController {
       thumbnail: blueprint.thumbnailType ?? 'real',
       nbRatings: blueprint.ratingCount ?? 0,
       rating: blueprint.ratingAverage ?? 0,
-      myRating: myRatings.get(id) ?? null,
-      ownedByMe,
       commentCount: commentCounts.get(id) ?? 0,
       gameVersion: blueprint.gameVersion ?? null,
       category: blueprint.category ?? null,
@@ -1080,7 +1059,6 @@ export class BlueprintController {
         return;
       }
 
-      const userId = viewer?._id ?? '';
       const sourceOwnerId = ownerIdOf(source);
 
       const pools = await Promise.all([
@@ -1163,20 +1141,9 @@ export class BlueprintController {
         console.log(err);
       }
 
-      let myRatings = new Map<string, number>();
-      try {
-        myRatings = await BlueprintController.getMyRatings(
-          page.map(blueprint => blueprint._id as mongoose.Types.ObjectId),
-          userId
-        );
-      } catch (err) {
-        console.log('related my-ratings lookup error');
-        console.log(err);
-      }
-
       const response: RelatedBlueprintsResponse = {
         blueprints: page.map(blueprint =>
-          BlueprintController.buildListItem(blueprint, userId, commentCounts, forkedFromNames, myRatings)
+          BlueprintController.buildListItem(blueprint, commentCounts, forkedFromNames)
         ),
       };
       setFeedCacheControl(req, res);
