@@ -57,6 +57,7 @@ export class UserController {
           followerCount,
           followingCount,
           followedByMe,
+          avatarId: targetUser.avatarId ? targetUser.avatarId.toString() : null,
         };
         res.json(response);
       })

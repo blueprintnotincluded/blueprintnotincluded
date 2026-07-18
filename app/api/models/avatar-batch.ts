@@ -11,6 +11,10 @@ export interface AvatarBatch extends Document {
   prompt: string;
   sourceType: string;
   seedUploadId?: mongoose.Types.ObjectId | null;
+  // The user whose generate request paid for this call (null for admin/seed
+  // batches and refills) — the basis of the one-generation-per-day limit,
+  // durable across restarts unlike an in-process cooldown map
+  requestedBy?: mongoose.Types.ObjectId | null;
 
   bytes: Buffer;
   contentType: string;
@@ -39,6 +43,7 @@ export class AvatarBatchModel {
         prompt: { type: String, required: true },
         sourceType: { type: String, required: true },
         seedUploadId: { type: Schema.Types.ObjectId, ref: 'AvatarSeedUpload', default: null },
+        requestedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
 
         bytes: { type: Buffer, required: true },
         contentType: { type: String, required: true },
@@ -54,6 +59,8 @@ export class AvatarBatchModel {
     );
 
     batchSchema.index({ sha256: 1 }, { unique: true, sparse: true });
+    // Rate-limit lookup: latest generation by user
+    batchSchema.index({ requestedBy: 1, createdAt: -1 }, { sparse: true });
 
     AvatarBatchModel.model =
       (mongoose.models['AvatarBatch'] as Model<AvatarBatch>) ??

@@ -7,6 +7,7 @@ export interface ProfileResponse {
     followerCount: number;
     followingCount: number;
     followedByMe: boolean;
+    avatarId?: string | null;
 }
 export interface FollowRequest {
     followeeId: string;
@@ -19,6 +20,29 @@ export interface FollowListEntry {
     id: string;
     username: string;
     followedByMe: boolean;
+}
+export interface AvatarCandidate {
+    id: string;
+    url: string;
+}
+export interface AvatarGenerateResponse {
+    avatarId: string | null;
+    url: string;
+    candidates: AvatarCandidate[];
+    sourceType: string | null;
+    faceLikely: boolean | null;
+}
+export interface AvatarStatusResponse {
+    avatarId: string | null;
+    nextGenerateAt: string | null;
+    poolCount: number;
+}
+export interface AvailableAvatarsResponse {
+    avatars: AvatarCandidate[];
+    total: number;
+}
+export interface AvatarSelectRequest {
+    avatarId: string;
 }
 export interface FollowListResponse {
     users: FollowListEntry[];

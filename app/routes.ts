@@ -111,6 +111,8 @@ export class Routes {
     app
       .route('/api/users/me/avatar/generate')
       .post(auth, express.raw({ type: 'image/*', limit: '8mb' }), this.avatarController.generate);
+    app.route('/api/users/me/avatar/status').get(auth, this.avatarController.getStatus);
+    app.route('/api/avatars/available').get(auth, this.avatarController.getAvailable);
     app.route('/api/users/me/avatar/select').post(auth, this.avatarController.select);
     app.route('/api/users/me/avatar/assign').post(auth, this.avatarController.assign);
     app.route('/api/users/me/avatar').delete(auth, this.avatarController.remove);
