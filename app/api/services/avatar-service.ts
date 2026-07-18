@@ -1,6 +1,8 @@
 import crypto from 'crypto';
+import fs from 'fs';
 import sharp from 'sharp';
 import { Avatar, AvatarModel, AvatarSourceType } from '../models/avatar';
+import { AvatarBatchModel } from '../models/avatar-batch';
 import { AvatarSeedUpload, AvatarSeedUploadModel } from '../models/avatar-seed-upload';
 import { UserModel } from '../models/user';
 import {
@@ -9,20 +11,21 @@ import {
   ReferenceImage,
 } from './gemini-avatar-provider';
 import {
-  AVATAR_TEMPLATE_FACE,
-  AVATAR_TEMPLATE_RANDOM,
-  AVATAR_TEMPLATE_SEED_BATCH,
-  faceAvatarPrompt,
-  randomAvatarPrompt,
-  seedBatchPrompt,
+  AVATAR_TEMPLATE_FACE_GRID,
+  AVATAR_TEMPLATE_GRID,
+  faceGridAvatarPrompt,
+  gridAvatarPrompt,
 } from './avatar-prompts';
 
 // Avatar pipeline + pool management (spec/social/avatars-identity.md).
 //
-// Pipeline shape is deterministic: normalize upload → classify face → pick
-// prompt template → one provider call → store original + 256px derivative +
-// metadata. Every provider call produces a row (failed ones included) — the
-// images are paid assets and the rows are the cost/debug log.
+// Grid mode: every provider call asks for one 512px image holding a 2x2 grid
+// of four avatars, sliced server-side into four 256px assets — four avatars
+// for the price of one 512px generation (~$0.011 each). The full grid is kept
+// verbatim on an AvatarBatch row; tiles reference it via batchId.
+//
+// The committed duplicant style sheet is attached to every generation so
+// output matches the ONI portrait style specifically, not generic cartoon.
 //
 // Pool: avatars with { status: 'ready', assignedTo: null } are claimable.
 // Claiming is an atomic findOneAndUpdate on { _id, assignedTo: null }, so two
@@ -32,6 +35,9 @@ import {
 // real job runner if the API is ever replicated.
 
 export const DISPLAY_SIZE = 256;
+export const GRID_TILES = 4;
+
+const STYLE_SHEET_PATH = 'assets/avatar-reference/duplicant-style-sheet.jpg';
 
 export interface GenerateOptions {
   sourceType: AvatarSourceType;
@@ -52,6 +58,7 @@ export class AvatarService {
 
   public readonly provider: AvatarImageProvider;
   private refillInFlight = false;
+  private styleSheet: ReferenceImage | null | undefined; // undefined = not loaded yet
 
   constructor(provider: AvatarImageProvider = new GeminiAvatarProvider()) {
     this.provider = provider;
@@ -68,59 +75,116 @@ export class AvatarService {
     return this.provider.isConfigured();
   }
 
+  // The committed style sheet, downscaled at build time (~1024px jpeg ≈ 1k
+  // input tokens ≈ $0.0005/call). Missing file degrades to sheet-less
+  // prompting rather than failing generation.
+  public getStyleSheet(): ReferenceImage | null {
+    if (this.styleSheet !== undefined) return this.styleSheet;
+    try {
+      const path = process.env.AVATAR_STYLE_REFERENCE || STYLE_SHEET_PATH;
+      this.styleSheet = { data: fs.readFileSync(path), mimeType: 'image/jpeg' };
+    } catch {
+      console.log(`[avatar] style sheet not found at ${STYLE_SHEET_PATH} — generating without it`);
+      this.styleSheet = null;
+    }
+    return this.styleSheet;
+  }
+
   // ─── Generation ────────────────────────────────────────────────────────────
 
-  // One provider call → one Avatar row (ready or failed). Returns the ready
-  // avatar, or the pre-existing one when the provider output deduped by hash.
-  public async generate(options: GenerateOptions): Promise<Avatar> {
+  // One provider call in grid mode → one AvatarBatch + up to four Avatar rows
+  // (fewer when a tile dedupes against an existing avatar, in which case the
+  // existing avatar is returned in its place).
+  public async generateBatch(options: GenerateOptions): Promise<Avatar[]> {
     const { sourceType } = options;
     const { prompt, promptTemplate } = this.buildPrompt(options);
 
     const log = (msg: string) => console.log(`[avatar] ${msg}`);
     log(`generate start source=${sourceType} template=${promptTemplate}`);
 
+    const references: ReferenceImage[] = [];
+    const sheet = this.getStyleSheet();
+    if (sheet) references.push(sheet);
+    if (options.reference) references.push(options.reference);
+
     try {
-      const result = await this.provider.generateImage(prompt, options.reference ?? undefined);
+      const result = await this.provider.generateImage(prompt, references);
       log(
         `provider ok model=${result.model} latencyMs=${result.latencyMs} bytes=${result.buffer.length}`
       );
 
-      const sha256 = crypto.createHash('sha256').update(result.buffer).digest('hex');
-      const existing = await AvatarModel.model.findOne({ sha256 });
-      if (existing) {
-        log(`dedupe hit sha256=${sha256.slice(0, 12)} → existing avatar ${existing.id}`);
-        return existing;
+      const gridSha256 = crypto.createHash('sha256').update(result.buffer).digest('hex');
+      const existingBatch = await AvatarBatchModel.model.findOne({ sha256: gridSha256 });
+      if (existingBatch) {
+        log(`grid dedupe hit → existing batch ${existingBatch.id}`);
+        return AvatarModel.model.find({ batchId: existingBatch._id, status: 'ready' });
       }
 
-      const originalMeta = await sharp(result.buffer).metadata();
-      const displayBytes = await sharp(result.buffer)
-        .resize(DISPLAY_SIZE, DISPLAY_SIZE, { fit: 'cover' })
-        .png()
-        .toBuffer();
-
-      const avatar = await AvatarModel.model.create({
+      const gridMeta = await sharp(result.buffer).metadata();
+      const batch = await AvatarBatchModel.model.create({
         provider: 'gemini',
         providerModel: result.model,
         promptTemplate,
         prompt,
         sourceType,
         seedUploadId: options.seedUpload?._id ?? null,
-        status: 'ready',
-        bytes: displayBytes,
-        contentType: 'image/png',
-        width: DISPLAY_SIZE,
-        height: DISPLAY_SIZE,
-        originalBytes: result.buffer,
-        originalContentType: result.mimeType,
-        originalWidth: originalMeta.width,
-        originalHeight: originalMeta.height,
-        sha256,
+        bytes: result.buffer,
+        contentType: result.mimeType,
+        width: gridMeta.width,
+        height: gridMeta.height,
+        sha256: gridSha256,
         interactionId: result.interactionId ?? null,
         usage: result.usage,
         latencyMs: result.latencyMs,
       });
-      log(`stored avatar ${avatar.id} (${originalMeta.width}x${originalMeta.height} original)`);
-      return avatar;
+
+      // Slice quadrants from the actual dimensions (the model may not return
+      // exactly 512) and normalize every tile to the display size
+      const halfW = Math.floor((gridMeta.width ?? DISPLAY_SIZE * 2) / 2);
+      const halfH = Math.floor((gridMeta.height ?? DISPLAY_SIZE * 2) / 2);
+
+      const avatars: Avatar[] = [];
+      for (let i = 0; i < GRID_TILES; i++) {
+        const tileBytes = await sharp(result.buffer)
+          .extract({ left: (i % 2) * halfW, top: Math.floor(i / 2) * halfH, width: halfW, height: halfH })
+          .resize(DISPLAY_SIZE, DISPLAY_SIZE, { fit: 'cover' })
+          .png()
+          .toBuffer();
+        const tileSha256 = crypto.createHash('sha256').update(tileBytes).digest('hex');
+
+        const existing = await AvatarModel.model.findOne({ sha256: tileSha256 });
+        if (existing) {
+          log(`tile ${i} dedupe hit → existing avatar ${existing.id}`);
+          avatars.push(existing);
+          continue;
+        }
+
+        const avatar = await AvatarModel.model.create({
+          provider: 'gemini',
+          providerModel: result.model,
+          promptTemplate,
+          prompt,
+          sourceType,
+          seedUploadId: options.seedUpload?._id ?? null,
+          batchId: batch._id,
+          gridIndex: i,
+          status: 'ready',
+          bytes: tileBytes,
+          contentType: 'image/png',
+          width: DISPLAY_SIZE,
+          height: DISPLAY_SIZE,
+          originalBytes: tileBytes,
+          originalContentType: 'image/png',
+          originalWidth: DISPLAY_SIZE,
+          originalHeight: DISPLAY_SIZE,
+          sha256: tileSha256,
+          interactionId: result.interactionId ?? null,
+          latencyMs: result.latencyMs,
+        });
+        avatars.push(avatar);
+      }
+      log(`stored batch ${batch.id} → ${avatars.length} avatars`);
+      return avatars;
     } catch (err) {
       // Failed attempts are recorded too — they cost money on the provider
       // side and the row is where latency/usage forensics start.
@@ -143,24 +207,25 @@ export class AvatarService {
   }
 
   private buildPrompt(options: GenerateOptions): { prompt: string; promptTemplate: string } {
-    switch (options.sourceType) {
-      case 'user-upload':
-        return { prompt: faceAvatarPrompt(), promptTemplate: AVATAR_TEMPLATE_FACE };
-      case 'seed-batch':
-        return options.reference
-          ? { prompt: seedBatchPrompt(), promptTemplate: AVATAR_TEMPLATE_SEED_BATCH }
-          : { prompt: randomAvatarPrompt(), promptTemplate: AVATAR_TEMPLATE_RANDOM };
-      default:
-        return { prompt: randomAvatarPrompt(), promptTemplate: AVATAR_TEMPLATE_RANDOM };
+    if (options.sourceType === 'user-upload') {
+      return { prompt: faceGridAvatarPrompt(), promptTemplate: AVATAR_TEMPLATE_FACE_GRID };
     }
+    return { prompt: gridAvatarPrompt(), promptTemplate: AVATAR_TEMPLATE_GRID };
   }
 
   // Full user flow: optional uploaded photo → face check → seeded or random
-  // generation → assign the fresh avatar to the user (old one returns to pool).
+  // grid → four candidates. The first is auto-assigned (the user immediately
+  // has an avatar); the rest go to the pool and can be claimed via the select
+  // endpoint. A previously assigned avatar returns to the pool.
   public async generateForUser(
     userId: string,
     upload?: { bytes: Buffer; contentType: string } | null
-  ): Promise<{ avatar: Avatar; faceLikely: boolean | null; seedUploadId: string | null }> {
+  ): Promise<{
+    assigned: Avatar | null;
+    candidates: Avatar[];
+    faceLikely: boolean | null;
+    seedUploadId: string | null;
+  }> {
     let seedUpload: AvatarSeedUpload | null = null;
     let faceLikely: boolean | null = null;
 
@@ -169,21 +234,24 @@ export class AvatarService {
       faceLikely = seedUpload.faceLikely ?? null;
     }
 
-    const avatar =
+    const candidates =
       seedUpload && faceLikely
-        ? await this.generate({
+        ? await this.generateBatch({
             sourceType: 'user-upload',
             seedUpload,
             reference: { data: seedUpload.bytes, mimeType: seedUpload.contentType },
           })
-        : await this.generate({ sourceType: 'random', seedUpload });
+        : await this.generateBatch({ sourceType: 'random', seedUpload });
 
-    const assigned = await this.assignSpecificAvatar(userId, avatar);
-    if (!assigned) {
-      // Deduped onto someone else's avatar — give this user a pool avatar instead
-      await this.assignRandomFromPool(userId);
+    let assigned: Avatar | null = null;
+    for (const candidate of candidates) {
+      if (await this.assignSpecificAvatar(userId, candidate)) {
+        assigned = candidate;
+        break;
+      }
+      // Deduped onto an avatar assigned to someone else — try the next tile
     }
-    return { avatar, faceLikely, seedUploadId: seedUpload ? String(seedUpload.id) : null };
+    return { assigned, candidates, faceLikely, seedUploadId: seedUpload ? String(seedUpload.id) : null };
   }
 
   private async storeSeedUpload(
@@ -262,11 +330,11 @@ export class AvatarService {
     return null;
   }
 
-  // Atomic like the pool claim: a sha256-dedupe hit can hand back an avatar
-  // that is already assigned to someone else, and that must not be stolen.
+  // Atomic like the pool claim: an avatar assigned to someone else must not
+  // be stolen (candidates from a dedupe hit can be anyone's).
   public async assignSpecificAvatar(userId: string, avatar: Avatar): Promise<boolean> {
     const claimed = await AvatarModel.model.findOneAndUpdate(
-      { _id: avatar._id, $or: [{ assignedTo: null }, { assignedTo: userId }] },
+      { _id: avatar._id, status: 'ready', $or: [{ assignedTo: null }, { assignedTo: userId }] },
       { $set: { assignedTo: userId, assignedAt: new Date() } },
       { new: true }
     );
@@ -323,11 +391,13 @@ export class AvatarService {
       try {
         const count = await this.poolCount();
         if (count >= this.lowWaterMark) return;
-        const target = this.refillBatchSize;
-        console.log(`[avatar] pool low (${count} < ${this.lowWaterMark}), generating ${target}`);
-        for (let i = 0; i < target; i++) {
-          await this.generate({ sourceType: 'random' }).catch(() => {
-            // already logged and recorded by generate()
+        const calls = Math.ceil(this.refillBatchSize / GRID_TILES);
+        console.log(
+          `[avatar] pool low (${count} < ${this.lowWaterMark}), generating ${calls} grid(s)`
+        );
+        for (let i = 0; i < calls; i++) {
+          await this.generateBatch({ sourceType: 'seed-batch' }).catch(() => {
+            // already logged and recorded by generateBatch()
           });
         }
         console.log(`[avatar] refill done, pool now ${await this.poolCount()}`);

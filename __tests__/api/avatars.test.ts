@@ -10,6 +10,7 @@ process.env.NODE_ENV = 'test';
 import sharp from 'sharp';
 import { TestSetup } from '../setup/testSetup';
 import { AvatarModel } from '../../app/api/models/avatar';
+import { AvatarBatchModel } from '../../app/api/models/avatar-batch';
 import { AvatarSeedUploadModel } from '../../app/api/models/avatar-seed-upload';
 import { UserModel } from '../../app/api/models/user';
 import { AvatarService } from '../../app/api/services/avatar-service';
@@ -19,43 +20,57 @@ import {
   GeneratedImageResult,
   ReferenceImage,
 } from '../../app/api/services/gemini-avatar-provider';
-import { randomAvatarPrompt, faceAvatarPrompt } from '../../app/api/services/avatar-prompts';
+import { gridAvatarPrompt, faceGridAvatarPrompt } from '../../app/api/services/avatar-prompts';
 
-// Deterministic in-memory provider: unique PNG per call (so sha256 dedupe
-// doesn't collapse pool avatars), face verdict scripted per test.
+// Deterministic in-memory provider: each call returns a 512px 2x2 grid whose
+// four quadrants are distinct solid colors, unique per call (so sha256 dedupe
+// doesn't collapse pool avatars). Face verdict scripted per test.
 class FakeProvider implements AvatarImageProvider {
   public configured = true;
   public faceLikely = false;
   public failNext = false;
   public generateCalls = 0;
   public classifyCalls = 0;
-  private counter = 0;
+  public lastReferences: ReferenceImage[] = [];
+  public counter = 0;
 
   isConfigured(): boolean {
     return this.configured;
   }
 
-  async generateImage(_prompt: string, _reference?: ReferenceImage): Promise<GeneratedImageResult> {
+  async generateImage(_prompt: string, references: ReferenceImage[] = []): Promise<GeneratedImageResult> {
     this.generateCalls++;
+    this.lastReferences = references;
     if (this.failNext) {
       this.failNext = false;
       throw new Error('fake provider failure');
     }
     this.counter++;
-    // Unique solid-color 512px png per call
+    const tile = (r: number, g: number, b: number) =>
+      sharp({ create: { width: 256, height: 256, channels: 3, background: { r, g, b } } })
+        .png()
+        .toBuffer();
+    const c = this.counter * 16;
+    const tiles = await Promise.all([
+      tile((c + 10) % 256, 0, 0),
+      tile(0, (c + 20) % 256, 0),
+      tile(0, 0, (c + 30) % 256),
+      tile((c + 40) % 256, (c + 40) % 256, 0),
+    ]);
     const buffer = await sharp({
-      create: {
-        width: 512,
-        height: 512,
-        channels: 3,
-        background: { r: (this.counter * 37) % 256, g: (this.counter * 91) % 256, b: 128 },
-      },
+      create: { width: 512, height: 512, channels: 3, background: { r: 0, g: 0, b: 0 } },
     })
-      .png()
+      .composite([
+        { input: tiles[0], left: 0, top: 0 },
+        { input: tiles[1], left: 256, top: 0 },
+        { input: tiles[2], left: 0, top: 256 },
+        { input: tiles[3], left: 256, top: 256 },
+      ])
+      .jpeg()
       .toBuffer();
     return {
       buffer,
-      mimeType: 'image/png',
+      mimeType: 'image/jpeg',
       model: 'fake-image-model',
       latencyMs: 5,
       interactionId: `fake-${this.counter}`,
@@ -79,6 +94,7 @@ describe('Avatar generation & pool API', function () {
 
   before(function () {
     AvatarModel.init();
+    AvatarBatchModel.init();
     AvatarSeedUploadModel.init();
     // Refill fires asynchronously after assignments; a mid-test refill of fake
     // avatars would race the count assertions and afterEach cleanup
@@ -93,6 +109,7 @@ describe('Avatar generation & pool API', function () {
     this.timeout(10000);
     testData = await TestSetup.beforeEach();
     await AvatarModel.model.deleteMany({});
+    await AvatarBatchModel.model.deleteMany({});
     await AvatarSeedUploadModel.model.deleteMany({});
     fake = new FakeProvider();
     AvatarService.setInstanceForTest(new AvatarService(fake));
@@ -102,6 +119,7 @@ describe('Avatar generation & pool API', function () {
     this.timeout(5000);
     AvatarService.setInstanceForTest(null);
     await AvatarModel.model.deleteMany({});
+    await AvatarBatchModel.model.deleteMany({});
     await AvatarSeedUploadModel.model.deleteMany({});
     await TestSetup.afterEach();
   });
@@ -109,53 +127,76 @@ describe('Avatar generation & pool API', function () {
   // ─── Prompts ────────────────────────────────────────────────────────────────
 
   describe('prompt templates', function () {
-    it('random prompt varies with the rng and stays duplicant-styled', function () {
-      const a = randomAvatarPrompt(() => 0.01);
-      const b = randomAvatarPrompt(() => 0.99);
+    it('grid prompt varies with the rng and anchors on the ONI reference sheet', function () {
+      const a = gridAvatarPrompt(() => 0.01);
+      const b = gridAvatarPrompt(() => 0.99);
       expect(a).to.not.equal(b);
       expect(a).to.contain('Oxygen Not Included');
-      expect(a).to.contain('avatar');
+      expect(a).to.contain('2x2 grid');
+      expect(a).to.contain('reference sheet');
     });
 
     it('face prompt asks for inspiration, not reproduction', function () {
-      expect(faceAvatarPrompt()).to.contain('Do not reproduce the photo');
+      const prompt = faceGridAvatarPrompt();
+      expect(prompt).to.contain('Do not reproduce the photo');
+      expect(prompt).to.contain('second attached image');
     });
   });
 
   // ─── Service pipeline ───────────────────────────────────────────────────────
 
-  describe('AvatarService.generate', function () {
-    it('stores original + 256px derivative + metadata', async function () {
+  describe('AvatarService.generateBatch', function () {
+    it('slices one grid call into four distinct 256px avatars + a batch row', async function () {
       const service = AvatarService.instance;
-      const avatar = await service.generate({ sourceType: 'random' });
+      const avatars = await service.generateBatch({ sourceType: 'seed-batch' });
 
-      expect(avatar.status).to.equal('ready');
-      expect(avatar.providerModel).to.equal('fake-image-model');
-      expect(avatar.promptTemplate).to.equal('random-duplicant-v1');
-      expect(avatar.sha256).to.have.length(64);
-      expect(avatar.width).to.equal(256);
-      expect(avatar.originalWidth).to.equal(512);
-      expect(avatar.interactionId).to.equal('fake-1');
-      const displayMeta = await sharp(avatar.bytes as Buffer).metadata();
-      expect(displayMeta.width).to.equal(256);
-      expect(displayMeta.height).to.equal(256);
+      expect(avatars).to.have.length(4);
+      expect(fake.generateCalls).to.equal(1);
+
+      const batch = await AvatarBatchModel.model.findById(avatars[0].batchId);
+      expect(batch).to.not.be.null;
+      expect(batch!.width).to.equal(512);
+      expect(batch!.interactionId).to.equal('fake-1');
+      expect(batch!.usage).to.deep.equal({ total_tokens: 1290 });
+
+      const shas = new Set(avatars.map(a => a.sha256));
+      expect(shas.size).to.equal(4); // all tiles distinct
+      for (const [i, avatar] of avatars.entries()) {
+        expect(avatar.status).to.equal('ready');
+        expect(avatar.gridIndex).to.equal(i);
+        expect(String(avatar.batchId)).to.equal(String(batch!._id));
+        const meta = await sharp(avatar.bytes as Buffer).metadata();
+        expect(meta.width).to.equal(256);
+        expect(meta.height).to.equal(256);
+      }
     });
 
-    it('dedupes identical provider output by sha256', async function () {
+    it('attaches the style sheet as the first reference', async function () {
       const service = AvatarService.instance;
-      const first = await service.generate({ sourceType: 'random' });
-      // Same counter output again: rewind the fake
-      (fake as any).counter = 0;
-      const second = await service.generate({ sourceType: 'random' });
-      expect(String(second._id)).to.equal(String(first._id));
-      expect(await AvatarModel.model.countDocuments({})).to.equal(1);
+      await service.generateBatch({ sourceType: 'seed-batch' });
+      // Committed sheet exists in the repo, so it must be attached
+      expect(fake.lastReferences.length).to.be.greaterThan(0);
+      expect(fake.lastReferences[0].mimeType).to.equal('image/jpeg');
+    });
+
+    it('dedupes an identical grid wholesale', async function () {
+      const service = AvatarService.instance;
+      const first = await service.generateBatch({ sourceType: 'seed-batch' });
+      fake.counter = 0; // rewind → identical grid bytes
+      const second = await service.generateBatch({ sourceType: 'seed-batch' });
+
+      expect(second.map(a => String(a._id)).sort()).to.deep.equal(
+        first.map(a => String(a._id)).sort()
+      );
+      expect(await AvatarModel.model.countDocuments({})).to.equal(4);
+      expect(await AvatarBatchModel.model.countDocuments({})).to.equal(1);
     });
 
     it('records failed generations as failed rows', async function () {
       const service = AvatarService.instance;
       fake.failNext = true;
       try {
-        await service.generate({ sourceType: 'random' });
+        await service.generateBatch({ sourceType: 'seed-batch' });
         expect.fail('should have thrown');
       } catch (err: any) {
         expect(err.message).to.contain('fake provider failure');
@@ -164,6 +205,7 @@ describe('Avatar generation & pool API', function () {
       expect(failedRow).to.not.be.null;
       expect(failedRow!.error).to.contain('fake provider failure');
       expect(failedRow!.bytes).to.be.undefined;
+      expect(await AvatarBatchModel.model.countDocuments({})).to.equal(0);
     });
   });
 
@@ -172,7 +214,7 @@ describe('Avatar generation & pool API', function () {
   describe('pool assignment', function () {
     it('assigns an unused avatar atomically and updates the user', async function () {
       const service = AvatarService.instance;
-      await service.generate({ sourceType: 'seed-batch' });
+      await service.generateBatch({ sourceType: 'seed-batch' });
       const userId = String(testData.users.user1._id);
 
       const avatar = await service.assignRandomFromPool(userId);
@@ -181,14 +223,12 @@ describe('Avatar generation & pool API', function () {
 
       const user = await UserModel.model.findById(userId);
       expect(String(user!.avatarId)).to.equal(String(avatar!._id));
-      expect(await service.poolCount()).to.equal(0);
+      expect(await service.poolCount()).to.equal(3);
     });
 
     it('never hands the same avatar to two users concurrently', async function () {
       const service = AvatarService.instance;
-      await service.generate({ sourceType: 'seed-batch' });
-      await service.generate({ sourceType: 'seed-batch' });
-      await service.generate({ sourceType: 'seed-batch' });
+      await service.generateBatch({ sourceType: 'seed-batch' });
 
       const userIds = [
         String(testData.users.user1._id),
@@ -199,7 +239,7 @@ describe('Avatar generation & pool API', function () {
 
       const ids = assigned.filter(a => a != null).map(a => String(a!._id));
       expect(new Set(ids).size).to.equal(ids.length); // all distinct
-      expect(await service.poolCount()).to.equal(3 - ids.length);
+      expect(await service.poolCount()).to.equal(4 - ids.length);
     });
 
     it('returns null on an empty pool', async function () {
@@ -210,8 +250,7 @@ describe('Avatar generation & pool API', function () {
 
     it('releases the previous avatar back to the pool on reassignment', async function () {
       const service = AvatarService.instance;
-      await service.generate({ sourceType: 'seed-batch' });
-      await service.generate({ sourceType: 'seed-batch' });
+      await service.generateBatch({ sourceType: 'seed-batch' });
       const userId = String(testData.users.user1._id);
 
       const first = await service.assignRandomFromPool(userId);
@@ -220,7 +259,7 @@ describe('Avatar generation & pool API', function () {
 
       const released = await AvatarModel.model.findById(first!._id);
       expect(released!.assignedTo).to.be.null; // reusable asset, back in pool
-      expect(await service.poolCount()).to.equal(1);
+      expect(await service.poolCount()).to.equal(3);
     });
   });
 
@@ -244,18 +283,25 @@ describe('Avatar generation & pool API', function () {
       });
 
       expect(result.faceLikely).to.equal(true);
-      expect(result.avatar.sourceType).to.equal('user-upload');
-      expect(result.avatar.promptTemplate).to.equal('face-duplicant-v1');
+      expect(result.candidates).to.have.length(4);
+      expect(result.assigned).to.not.be.null;
+      expect(String(result.assigned!._id)).to.equal(String(result.candidates[0]._id));
+      expect(result.assigned!.sourceType).to.equal('user-upload');
+      expect(result.assigned!.promptTemplate).to.equal('face-duplicant-grid-v2');
       expect(fake.classifyCalls).to.equal(1);
+      // References: [style sheet, user photo]
+      expect(fake.lastReferences).to.have.length(2);
 
       // Seed upload persisted and linked
       const seed = await AvatarSeedUploadModel.model.findById(result.seedUploadId);
       expect(seed).to.not.be.null;
       expect(seed!.faceLikely).to.equal(true);
-      expect(String(result.avatar.seedUploadId)).to.equal(String(seed!._id));
+      expect(String(result.assigned!.seedUploadId)).to.equal(String(seed!._id));
 
       const user = await UserModel.model.findById(userId);
-      expect(String(user!.avatarId)).to.equal(String(result.avatar._id));
+      expect(String(user!.avatarId)).to.equal(String(result.assigned!._id));
+      // The other three candidates stay claimable in the pool
+      expect(await AvatarService.instance.poolCount()).to.equal(3);
     });
 
     it('falls back to random when the upload is not a face (upload still kept)', async function () {
@@ -267,8 +313,8 @@ describe('Avatar generation & pool API', function () {
       });
 
       expect(result.faceLikely).to.equal(false);
-      expect(result.avatar.sourceType).to.equal('random');
-      expect(result.avatar.promptTemplate).to.equal('random-duplicant-v1');
+      expect(result.assigned!.sourceType).to.equal('random');
+      expect(result.assigned!.promptTemplate).to.equal('duplicant-grid-v2');
       // The non-face upload is still stored — nothing paid for is discarded
       expect(await AvatarSeedUploadModel.model.countDocuments({})).to.equal(1);
     });
@@ -286,7 +332,7 @@ describe('Avatar generation & pool API', function () {
 
     it('serves the assigned 256px png with an ETag', async function () {
       const service = AvatarService.instance;
-      await service.generate({ sourceType: 'seed-batch' });
+      await service.generateBatch({ sourceType: 'seed-batch' });
       await service.assignRandomFromPool(String(testData.users.user1._id));
 
       const response = await TestSetup.request().get(
@@ -305,6 +351,24 @@ describe('Avatar generation & pool API', function () {
     });
   });
 
+  describe('GET /api/avatars/:id/image', function () {
+    it('serves any ready avatar by id with immutable caching', async function () {
+      const avatars = await AvatarService.instance.generateBatch({ sourceType: 'seed-batch' });
+      const response = await TestSetup.request().get(`/api/avatars/${avatars[2].id}/image`);
+      expect(response.status).to.equal(200);
+      expect(response.headers['cache-control']).to.contain('immutable');
+      const meta = await sharp(response.body as Buffer).metadata();
+      expect(meta.width).to.equal(256);
+    });
+
+    it('404s for unknown or invalid ids', async function () {
+      expect((await TestSetup.request().get('/api/avatars/not-an-id/image')).status).to.equal(404);
+      expect(
+        (await TestSetup.request().get('/api/avatars/0123456789abcdef01234567/image')).status
+      ).to.equal(404);
+    });
+  });
+
   describe('POST /api/users/me/avatar/assign', function () {
     it('requires auth', async function () {
       const response = await TestSetup.request().post('/api/users/me/avatar/assign');
@@ -312,7 +376,7 @@ describe('Avatar generation & pool API', function () {
     });
 
     it('claims a pool avatar for the caller', async function () {
-      await AvatarService.instance.generate({ sourceType: 'seed-batch' });
+      await AvatarService.instance.generateBatch({ sourceType: 'seed-batch' });
       const token = testData.users.user1.generateJwt();
       const response = await TestSetup.request()
         .post('/api/users/me/avatar/assign')
@@ -342,7 +406,7 @@ describe('Avatar generation & pool API', function () {
       expect(response.status).to.equal(503);
     });
 
-    it('generates a random avatar without a body', async function () {
+    it('returns four candidates and auto-assigns the first', async function () {
       const token = testData.users.user1.generateJwt();
       const response = await TestSetup.request()
         .post('/api/users/me/avatar/generate')
@@ -351,6 +415,11 @@ describe('Avatar generation & pool API', function () {
       expect(response.status).to.equal(200);
       expect(response.body.sourceType).to.equal('random');
       expect(response.body.faceLikely).to.equal(null);
+      expect(response.body.candidates).to.have.length(4);
+      expect(response.body.avatarId).to.equal(response.body.candidates[0].id);
+      expect(response.body.candidates[1].url).to.equal(
+        `/api/avatars/${response.body.candidates[1].id}/image`
+      );
       expect(fake.generateCalls).to.equal(1);
     });
 
@@ -372,6 +441,7 @@ describe('Avatar generation & pool API', function () {
       expect(response.status).to.equal(200);
       expect(response.body.sourceType).to.equal('user-upload');
       expect(response.body.faceLikely).to.equal(true);
+      expect(response.body.candidates).to.have.length(4);
     });
 
     it('rate-limits repeat generation per user', async function () {
@@ -388,13 +458,56 @@ describe('Avatar generation & pool API', function () {
     });
   });
 
+  describe('POST /api/users/me/avatar/select', function () {
+    it('lets the user switch to another candidate; previous returns to pool', async function () {
+      const token = testData.users.user1.generateJwt();
+      const generated = await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`);
+      const firstId = generated.body.avatarId;
+      const otherId = generated.body.candidates[2].id;
+
+      const response = await TestSetup.request()
+        .post('/api/users/me/avatar/select')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ avatarId: otherId });
+
+      expect(response.status).to.equal(200);
+      const user = await UserModel.model.findById(testData.users.user1._id);
+      expect(String(user!.avatarId)).to.equal(otherId);
+      const previous = await AvatarModel.model.findById(firstId);
+      expect(previous!.assignedTo).to.be.null;
+    });
+
+    it("409s when the avatar is another user's", async function () {
+      const avatars = await AvatarService.instance.generateBatch({ sourceType: 'seed-batch' });
+      await AvatarService.instance.assignSpecificAvatar(String(testData.users.user2._id), avatars[0]);
+
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post('/api/users/me/avatar/select')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ avatarId: String(avatars[0].id) });
+      expect(response.status).to.equal(409);
+    });
+
+    it('400s on an invalid id', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post('/api/users/me/avatar/select')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ avatarId: 'nope' });
+      expect(response.status).to.equal(400);
+    });
+  });
+
   describe('DELETE /api/users/me/avatar', function () {
     it('releases the avatar back to the pool', async function () {
       const service = AvatarService.instance;
-      await service.generate({ sourceType: 'seed-batch' });
+      await service.generateBatch({ sourceType: 'seed-batch' });
       const userId = String(testData.users.user1._id);
       await service.assignRandomFromPool(userId);
-      expect(await service.poolCount()).to.equal(0);
+      expect(await service.poolCount()).to.equal(3);
 
       const token = testData.users.user1.generateJwt();
       const response = await TestSetup.request()
@@ -403,7 +516,7 @@ describe('Avatar generation & pool API', function () {
 
       expect(response.status).to.equal(200);
       expect(response.body.released).to.equal(true);
-      expect(await service.poolCount()).to.equal(1);
+      expect(await service.poolCount()).to.equal(4);
       const user = await UserModel.model.findById(userId);
       expect(user!.avatarId).to.be.null;
     });
@@ -419,17 +532,18 @@ describe('Avatar generation & pool API', function () {
       expect(response.status).to.equal(403);
     });
 
-    it('generates a capped batch for admins', async function () {
+    it('generates whole grids for admins, capped', async function () {
       const token = testData.users.user1.generateJwt('admin');
       const response = await TestSetup.request()
         .post('/api/admin/avatars/batch')
         .set('Authorization', `Bearer ${token}`)
-        .send({ count: 3 });
+        .send({ count: 5 }); // rounds up to 2 grid calls → 8 avatars
 
       expect(response.status).to.equal(200);
-      expect(response.body.created).to.have.length(3);
-      expect(response.body.failed).to.equal(0);
-      expect(response.body.poolCount).to.equal(3);
+      expect(response.body.created).to.have.length(8);
+      expect(response.body.failedCalls).to.equal(0);
+      expect(response.body.poolCount).to.equal(8);
+      expect(fake.generateCalls).to.equal(2);
 
       const tooMany = await TestSetup.request()
         .post('/api/admin/avatars/batch')

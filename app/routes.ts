@@ -80,6 +80,7 @@ export class Routes {
     app.route('/api/health').get(this.healthController.getHealth);
     app.route('/api/users/:username/profile').get(this.userController.getProfile);
     app.route('/api/users/:username/avatar').get(this.avatarController.getAvatar);
+    app.route('/api/avatars/:id/image').get(this.avatarController.getAvatarImage);
     app.route('/api/users/:username/followers').get(this.userController.getFollowers);
     app.route('/api/users/:username/following').get(this.userController.getFollowing);
     app.route('/api/blueprints/:id').get(this.uploadBlueprintController.getBlueprintDetails);
@@ -110,6 +111,7 @@ export class Routes {
     app
       .route('/api/users/me/avatar/generate')
       .post(auth, express.raw({ type: 'image/*', limit: '8mb' }), this.avatarController.generate);
+    app.route('/api/users/me/avatar/select').post(auth, this.avatarController.select);
     app.route('/api/users/me/avatar/assign').post(auth, this.avatarController.assign);
     app.route('/api/users/me/avatar').delete(auth, this.avatarController.remove);
     app.route('/api/feed').get(auth, this.userController.getFeed);
