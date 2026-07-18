@@ -79,10 +79,11 @@ export class GeminiAvatarProvider implements AvatarImageProvider {
       model: this.imageModel,
       input: input as never,
       // 512px 1:1 is the smallest/cheapest square the API supports; the
-      // service derives the 256px display asset from it.
+      // service derives the 256px display asset from it. jpeg is the only
+      // mime_type the live API accepts here (png is rejected).
       response_format: {
         type: 'image',
-        mime_type: 'image/png',
+        mime_type: 'image/jpeg',
         aspect_ratio: '1:1',
         image_size: '512',
       },
