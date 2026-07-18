@@ -48,6 +48,11 @@ const LIST_FADE_OUT_MS = 160;
  * fast response can't flash them for a single frame. */
 const MIN_PLACEHOLDER_MS = 300;
 
+/** Default Discover sort — "new but also good". Omitted from the URL (a bare
+ * /discover shows trending) and used as the fallback when the sort param is
+ * absent or invalid. */
+const DEFAULT_SORT: BlueprintSort = "trending";
+
 @Component({
   selector: "app-browse-page",
   templateUrl: "./browse-page.component.html",
@@ -73,7 +78,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   filterForkedFrom: string | null = null;
   filterRooms: string | null = null;
   remaining = 0;
-  sort: BlueprintSort = "recent";
+  sort: BlueprintSort = DEFAULT_SORT;
   skipCount = 0;
   private requestId = 0;
 
@@ -92,8 +97,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   private placeholdersShownAt = 0;
 
   readonly sortOptions: { label: string; value: BlueprintSort }[] = [
-    { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
+    // Trending is the default (DEFAULT_SORT) — listed first.
     { label: $localize`:browse.sortTrending:Trending`, value: "trending" },
+    { label: $localize`:browse.sortNewest:Newest`, value: "recent" },
     { label: $localize`:browse.sortTopRated:Top rated`, value: "popular" },
     {
       label: $localize`:browse.sortMostForked:Most forked`,
@@ -320,7 +326,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       (option) => option.value === rawSort,
     )
       ? (rawSort as BlueprintSort)
-      : "recent";
+      : DEFAULT_SORT;
 
     const changed =
       name !== this.filterName ||
@@ -516,7 +522,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (this.filterForkedFrom)
       queryParams["forkedFrom"] = this.filterForkedFrom;
     if (this.filterRooms) queryParams["rooms"] = this.filterRooms;
-    if (this.sort !== "recent") queryParams["sort"] = this.sort;
+    if (this.sort !== DEFAULT_SORT) queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
 

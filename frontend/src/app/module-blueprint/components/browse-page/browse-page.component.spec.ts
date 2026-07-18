@@ -162,8 +162,8 @@ describe("BrowsePageComponent", () => {
         "spacedOut",
         null,
         null,
-        "recent",
-        undefined,
+        "trending",
+        0,
         null,
         null,
         null,
@@ -182,8 +182,8 @@ describe("BrowsePageComponent", () => {
         null,
         "power",
         null,
-        "recent",
-        undefined,
+        "trending",
+        0,
         null,
         null,
         null,
@@ -203,8 +203,8 @@ describe("BrowsePageComponent", () => {
         null,
         "power",
         "generator",
-        "recent",
-        undefined,
+        "trending",
+        0,
         null,
         null,
         null,
@@ -223,8 +223,8 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        "recent",
-        undefined,
+        "trending",
+        0,
         true,
         null,
         null,
@@ -243,8 +243,8 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        "recent",
-        undefined,
+        "trending",
+        0,
         null,
         "parent-1",
         null,
@@ -263,8 +263,8 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        "recent",
-        undefined,
+        "trending",
+        0,
         null,
         null,
         null,
@@ -375,7 +375,7 @@ describe("BrowsePageComponent", () => {
       });
     });
 
-    it("does not pass skip for the default recent sort", () => {
+    it("does not pass skip for the cursor-paginated recent sort", () => {
       component.sort = "recent";
       component.getBlueprints();
 
@@ -421,7 +421,7 @@ describe("BrowsePageComponent", () => {
       expect(component.sort).toBe("mostForked");
     });
 
-    it("accepts the count sorts and falls back to recent on junk", () => {
+    it("accepts the count sorts and falls back to the trending default on junk", () => {
       const route = TestBed.inject(ActivatedRoute) as any;
       route.queryParamMap = of(convertToParamMap({ sort: "mostViewed" }));
       component.ngOnInit();
@@ -433,7 +433,23 @@ describe("BrowsePageComponent", () => {
 
       route.queryParamMap = of(convertToParamMap({ sort: "bogus" }));
       component.ngOnInit();
-      expect(component.sort).toBe("recent");
+      expect(component.sort).toBe("trending");
+    });
+
+    it("defaults to trending and keeps it out of the URL", () => {
+      expect(component.sort).toBe("trending");
+
+      component.sort = "trending";
+      component.getBlueprints();
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[6]).toBe("trending");
+
+      // Switching back to the default must clear the sort query param.
+      (component as any).applyFiltersToUrl();
+      expect(router.navigate).toHaveBeenCalledWith([], {
+        queryParams: {},
+        replaceUrl: true,
+      });
     });
   });
 
@@ -539,7 +555,7 @@ describe("BrowsePageComponent", () => {
 
     it("selectSort is a no-op when the sort is already active", () => {
       const callsBefore = blueprintService.getBlueprints.mock.calls.length;
-      component.selectSort("recent");
+      component.selectSort("trending"); // the default/current sort
       expect(blueprintService.getBlueprints.mock.calls.length).toBe(
         callsBefore,
       );
