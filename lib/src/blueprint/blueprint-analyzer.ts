@@ -32,6 +32,60 @@ export function deriveModded(prefabIds: string[], knownIds: Set<string>): boolea
   return prefabIds.some(id => !knownIds.has(id));
 }
 
+// --- Trending "hot score" ----------------------------------------------
+//
+// A materialized, indexable trending score: "new but also good". Unlike a
+// time-decay score that references the current clock, time enters here only as
+// the blueprint's own createdAt, so the value is STATIC per document and only
+// needs recomputing when engagement (ratings/downloads) changes — which lets
+// it be stored and sorted on a plain index instead of a full-collection
+// aggregation. Newer blueprints are minted with a higher recency term and
+// naturally sort above older ones as content flows in; nothing has to decay.
+//
+// Design rationale, worked examples, and calibration: spec/trending-hotscore-plan.md.
+
+export interface HotScoreInputs {
+  ratingCount: number; // number of ratings (v)
+  ratingAverage: number; // mean rating 1..5 (R)
+  downloadCount: number; // lifetime downloads (d)
+  createdAt: Date;
+}
+
+// All tunables live here — changing any is a one-line edit; re-run the backfill
+// migration (blueprint-hotscore-backfill) to re-materialize stored scores.
+export const HOT_SCORE = {
+  // Bayesian shrinkage: blend each blueprint's average toward a prior so a
+  // brand-new 1-vote 5★ can't rocket to the top. PRIOR_MEAN is provisional —
+  // ratings are too new to have a meaningful mean yet (see spec §6).
+  PRIOR_MEAN: 3.5, // C — prior/global mean rating
+  SHRINK_VOTES: 3, // m — prior votes blended in
+  // Signal weights.
+  W_RATING: 1.0, // bayesianRating spans ~2.5–5
+  W_DOWNLOAD: 0.5, // log10(downloads+1) spans ~0–3.5
+  // Recency in quality-points per day of newness. 0.18 gives a ~2-week
+  // visibility window for a great blueprint (spec §3).
+  W_RECENCY: 0.18,
+  // Convert createdAt to epoch-days for the (static) recency term.
+  MS_PER_DAY: 86_400_000,
+} as const;
+
+// Noise-resistant quality: an IMDb-style weighted rating that pulls
+// low-vote-count averages toward the prior mean. 0 votes → exactly PRIOR_MEAN.
+export function bayesianRating(ratingCount: number, ratingAverage: number): number {
+  const v = Math.max(0, ratingCount);
+  const m = HOT_SCORE.SHRINK_VOTES;
+  return (v / (v + m)) * ratingAverage + (m / (v + m)) * HOT_SCORE.PRIOR_MEAN;
+}
+
+// Materialized trending score. Higher = more "trending". See HotScoreInputs.
+export function computeHotScore(i: HotScoreInputs): number {
+  const quality =
+    HOT_SCORE.W_RATING * bayesianRating(i.ratingCount, i.ratingAverage) +
+    HOT_SCORE.W_DOWNLOAD * Math.log10(Math.max(0, i.downloadCount) + 1);
+  const recency = HOT_SCORE.W_RECENCY * (i.createdAt.getTime() / HOT_SCORE.MS_PER_DAY);
+  return quality + recency;
+}
+
 // --- Category derivation -----------------------------------------------
 //
 // The game's own buildMenuCategories/buildMenuItems taxonomy is a build-menu
