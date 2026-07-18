@@ -7,6 +7,7 @@ RUN npm ci --ignore-scripts && npm cache clean --force
 
 # TODO separate build build stage for asset extract
 COPY ./assets/database/database-2024.json ./assets/database/database-2024.json
+COPY ./assets/avatar-reference ./assets/avatar-reference
 
 FROM extract as build-backend
 WORKDIR /bpni
