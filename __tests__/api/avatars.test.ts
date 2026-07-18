@@ -127,19 +127,31 @@ describe('Avatar generation & pool API', function () {
   // ─── Prompts ────────────────────────────────────────────────────────────────
 
   describe('prompt templates', function () {
-    it('grid prompt varies with the rng and anchors on the ONI reference sheet', function () {
+    it('grid prompt varies with the rng and anchors on the ONI reference sheets', function () {
       const a = gridAvatarPrompt(() => 0.01);
       const b = gridAvatarPrompt(() => 0.99);
       expect(a).to.not.equal(b);
       expect(a).to.contain('Oxygen Not Included');
       expect(a).to.contain('2x2 grid');
       expect(a).to.contain('reference sheet');
+      expect(a).to.contain('reference sheet of hats');
+    });
+
+    it('grid prompt keeps exactly one character hatless', function () {
+      for (const seed of [0.01, 0.3, 0.6, 0.99]) {
+        const prompt = gridAvatarPrompt(() => seed);
+        expect(prompt).to.contain('Exactly ONE of the four characters wears no hat');
+        const hatless = prompt.match(/no hat\./g) || [];
+        expect(hatless).to.have.length(1);
+        expect(prompt.match(/wearing /g)).to.have.length(3);
+      }
     });
 
     it('face prompt asks for inspiration, not reproduction', function () {
       const prompt = faceGridAvatarPrompt();
       expect(prompt).to.contain('Do not reproduce the photo');
-      expect(prompt).to.contain('second attached image');
+      expect(prompt).to.contain('third attached image');
+      expect(prompt).to.contain('reference sheet of hats');
     });
   });
 
@@ -171,12 +183,27 @@ describe('Avatar generation & pool API', function () {
       }
     });
 
-    it('attaches the style sheet as the first reference', async function () {
+    it('attaches the style and hats sheets as the first two references', async function () {
       const service = AvatarService.instance;
       await service.generateBatch({ sourceType: 'seed-batch' });
-      // Committed sheet exists in the repo, so it must be attached
-      expect(fake.lastReferences.length).to.be.greaterThan(0);
+      // Committed sheets exist in the repo, so both must be attached
+      expect(fake.lastReferences).to.have.length(2);
       expect(fake.lastReferences[0].mimeType).to.equal('image/jpeg');
+      expect(fake.lastReferences[1].mimeType).to.equal('image/jpeg');
+    });
+
+    it('fails closed when the hats sheet is missing (attachment slots would shift)', async function () {
+      process.env.AVATAR_HATS_REFERENCE = '/nonexistent/hats.jpg';
+      try {
+        const service = new AvatarService(fake);
+        await service.generateBatch({ sourceType: 'seed-batch' });
+        expect.fail('should have thrown');
+      } catch (err: any) {
+        expect(err.message).to.contain('hats sheet unavailable');
+      } finally {
+        delete process.env.AVATAR_HATS_REFERENCE;
+      }
+      expect(fake.generateCalls).to.equal(0); // never reached the provider
     });
 
     it('dedupes an identical grid wholesale', async function () {
@@ -287,10 +314,10 @@ describe('Avatar generation & pool API', function () {
       expect(result.assigned).to.not.be.null;
       expect(String(result.assigned!._id)).to.equal(String(result.candidates[0]._id));
       expect(result.assigned!.sourceType).to.equal('user-upload');
-      expect(result.assigned!.promptTemplate).to.equal('face-duplicant-grid-v2');
+      expect(result.assigned!.promptTemplate).to.equal('face-duplicant-grid-v3');
       expect(fake.classifyCalls).to.equal(1);
-      // References: [style sheet, user photo]
-      expect(fake.lastReferences).to.have.length(2);
+      // References: [style sheet, hats sheet, user photo]
+      expect(fake.lastReferences).to.have.length(3);
 
       // Seed upload persisted and linked
       const seed = await AvatarSeedUploadModel.model.findById(result.seedUploadId);
@@ -314,7 +341,7 @@ describe('Avatar generation & pool API', function () {
 
       expect(result.faceLikely).to.equal(false);
       expect(result.assigned!.sourceType).to.equal('random');
-      expect(result.assigned!.promptTemplate).to.equal('duplicant-grid-v2');
+      expect(result.assigned!.promptTemplate).to.equal('duplicant-grid-v3');
       // The non-face upload is still stored — nothing paid for is discarded
       expect(await AvatarSeedUploadModel.model.countDocuments({})).to.equal(1);
     });

@@ -26,8 +26,8 @@ async function run() {
   if (!service.isEnabled()) {
     throw new Error('GEMINI_API_KEY not set — add it to .env (see agent/AVATARS.md)');
   }
-  if (!service.getStyleSheet()) {
-    console.log('WARNING: duplicant style sheet missing — output will not match the ONI style');
+  if (!service.getStyleSheet() || !service.getHatsSheet()) {
+    console.log('WARNING: reference sheet missing — generation will fail closed');
   }
 
   await mongoose.connect(mongoUri);

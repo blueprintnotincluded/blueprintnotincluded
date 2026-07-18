@@ -26,7 +26,8 @@ Operational reference for the duplicant-style avatar pipeline
 | --- | --- | --- |
 | `GEMINI_API_KEY` | unset | unset ⇒ loud startup error, avatar endpoints 503, everything else unaffected |
 | `AVATAR_IMAGE_MODEL` | `gemini-3.1-flash-image` | 512px 1:1 jpeg output (`image/jpeg` is the only accepted `response_format.mime_type`) |
-| `AVATAR_STYLE_REFERENCE` | `assets/avatar-reference/duplicant-style-sheet.jpg` | committed 1024px jpeg of the duplicant portrait sheet; attached to every generation |
+| `AVATAR_STYLE_REFERENCE` | `assets/avatar-reference/duplicant-style-sheet.jpg` | committed jpeg of the duplicant portrait sheet; attached first to every generation |
+| `AVATAR_HATS_REFERENCE` | `assets/avatar-reference/duplicant-hats-sheet.jpg` | committed jpeg of the in-game hats sheet; attached second to every generation |
 | `AVATAR_CLASSIFY_MODEL` | `gemini-3.5-flash` | cheap multimodal FACE/NOT_FACE pre-check |
 | `AVATAR_POOL_LOW_WATER` | `5` | refill trigger threshold (0 disables refill — tests use this) |
 | `AVATAR_POOL_REFILL` | `5` | avatars generated per refill |
@@ -40,9 +41,10 @@ Operational reference for the duplicant-style avatar pipeline
   grid trick is also what gets us native-resolution 256px tiles). Tiles are
   sliced with a ~4% inset because the model tends to draw thin frames around
   grid cells despite the prompt.
-- The style sheet reference adds only ~260 input tokens (~$0.0001/call) —
-  attaching it always is effectively free, and it is what makes output match
-  Klei's duplicant portraits instead of generic cartoon.
+- The style + hats sheet references add only a few hundred input tokens each
+  (~$0.0001/call) — attaching them always is effectively free, and they are
+  what make output match Klei's duplicant portraits and recognizable in-game
+  hats instead of generic cartoon.
 - Face classification: ~1,200 tokens of `gemini-3.5-flash` per upload —
   fractions of a cent. Chosen over local face detection because proper on-box
   detection means TensorFlow/OpenCV native builds.
@@ -110,13 +112,18 @@ Rollout order: migrate → seed-batch (pool ≥ user count) → backfill.
 ## Prompts
 
 All templates in `app/api/services/avatar-prompts.ts`, versioned ids
-(`duplicant-grid-v2`, `face-duplicant-grid-v2`) persisted per avatar/batch.
-Every prompt anchors on the attached reference sheet ("drawn by the same
+(`duplicant-grid-v3`, `face-duplicant-grid-v3`) persisted per avatar/batch.
+Every prompt anchors on the two attached reference sheets ("drawn by the same
 artist") and demands four clearly different characters per grid; variation
-axes (hair, expression, accessory) are injected per call. The face template
-attaches [sheet, photo] in that order and refers to them positionally. To
-update the style, replace `assets/avatar-reference/duplicant-style-sheet.jpg`
-(keep it ~1024px jpeg; the full-res master lives outside the repo).
+axes (hair, expression, hat) are injected per call. Hat rule: exactly one of
+the four characters is bare-headed, the other three wear different hats — the
+per-character hat briefs mostly name hats that appear on the hats sheet
+(exact copies or close riffs) with a couple of "invent your own in this
+style" entries mixed in. Attachment order is [style sheet, hats sheet(,
+photo)] and prompts refer to slots positionally, so generation fails closed
+if either sheet is missing. To update the style or hat set, replace the jpegs
+in `assets/avatar-reference/` (keep them ~1024–2048px jpeg; full-res masters
+live outside the repo).
 
 ## Frontend
 
