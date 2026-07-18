@@ -444,7 +444,7 @@ describe('Avatar generation & pool API', function () {
       expect(response.body.candidates).to.have.length(4);
     });
 
-    it('rate-limits repeat generation per user', async function () {
+    it('enforces one generation per day per user (durable, with retryAt)', async function () {
       const token = testData.users.user3.generateJwt();
       const first = await TestSetup.request()
         .post('/api/users/me/avatar/generate')
@@ -455,6 +455,72 @@ describe('Avatar generation & pool API', function () {
         .post('/api/users/me/avatar/generate')
         .set('Authorization', `Bearer ${token}`);
       expect(second.status).to.equal(429);
+      expect(second.body.retryAt).to.exist;
+      // The limit is tracked on the batch row, not in process memory
+      const batch = await AvatarBatchModel.model.findOne({
+        requestedBy: testData.users.user3._id,
+      });
+      expect(batch).to.not.be.null;
+    });
+
+    it('does not consume the daily limit on provider failure', async function () {
+      fake.failNext = true;
+      const token = testData.users.user1.generateJwt();
+      const failed = await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`);
+      expect(failed.status).to.equal(502);
+
+      const retry = await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`);
+      expect(retry.status).to.equal(200);
+    });
+  });
+
+  describe('GET /api/users/me/avatar/status', function () {
+    it('reports avatar, generation availability, and pool size', async function () {
+      const token = testData.users.user1.generateJwt();
+      const before = await TestSetup.request()
+        .get('/api/users/me/avatar/status')
+        .set('Authorization', `Bearer ${token}`);
+      expect(before.status).to.equal(200);
+      expect(before.body.avatarId).to.equal(null);
+      expect(before.body.nextGenerateAt).to.equal(null);
+      expect(before.body.poolCount).to.equal(0);
+
+      await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`);
+
+      const after = await TestSetup.request()
+        .get('/api/users/me/avatar/status')
+        .set('Authorization', `Bearer ${token}`);
+      expect(after.body.avatarId).to.not.equal(null);
+      expect(new Date(after.body.nextGenerateAt).getTime()).to.be.greaterThan(Date.now());
+      expect(after.body.poolCount).to.equal(3); // the three unclaimed candidates
+    });
+  });
+
+  describe('GET /api/avatars/available', function () {
+    it('lists unused pool avatars with image urls', async function () {
+      await AvatarService.instance.generateBatch({ sourceType: 'seed-batch' });
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .get('/api/avatars/available')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).to.equal(200);
+      expect(response.body.total).to.equal(4);
+      expect(response.body.avatars).to.have.length(4);
+      expect(response.body.avatars[0].url).to.contain('/api/avatars/');
+
+      // Assigned avatars drop out of the listing
+      await AvatarService.instance.assignRandomFromPool(String(testData.users.user2._id));
+      const trimmed = await TestSetup.request()
+        .get('/api/avatars/available')
+        .set('Authorization', `Bearer ${token}`);
+      expect(trimmed.body.total).to.equal(3);
     });
   });
 

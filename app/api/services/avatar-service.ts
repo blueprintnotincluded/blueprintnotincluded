@@ -43,6 +43,9 @@ export interface GenerateOptions {
   sourceType: AvatarSourceType;
   seedUpload?: AvatarSeedUpload | null;
   reference?: ReferenceImage | null;
+  // User whose request triggered (and is billed against) this generation —
+  // recorded on the batch, drives the per-day limit
+  requestedBy?: string | null;
 }
 
 export class AvatarService {
@@ -128,6 +131,7 @@ export class AvatarService {
         prompt,
         sourceType,
         seedUploadId: options.seedUpload?._id ?? null,
+        requestedBy: options.requestedBy ?? null,
         bytes: result.buffer,
         contentType: result.mimeType,
         width: gridMeta.width,
@@ -249,8 +253,9 @@ export class AvatarService {
             sourceType: 'user-upload',
             seedUpload,
             reference: { data: seedUpload.bytes, mimeType: seedUpload.contentType },
+            requestedBy: userId,
           })
-        : await this.generateBatch({ sourceType: 'random', seedUpload });
+        : await this.generateBatch({ sourceType: 'random', seedUpload, requestedBy: userId });
 
     let assigned: Avatar | null = null;
     for (const candidate of candidates) {
