@@ -217,17 +217,18 @@
   inset: 0;
   z-index: var(--bni-z-backdrop);
   background-color: var(--bni-grid-field);
-  /* major lines painted last so they sit over the minor grid */
+  /* major lines listed first so they paint over the minor grid
+   * (earlier background layers render on top) */
   background-image:
-    linear-gradient(var(--bni-grid-minor-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-grid-minor-line) 1px, transparent 1px),
     linear-gradient(var(--bni-grid-major-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-grid-major-line) 1px, transparent 1px);
+    linear-gradient(90deg, var(--bni-grid-major-line) 1px, transparent 1px),
+    linear-gradient(var(--bni-grid-minor-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bni-grid-minor-line) 1px, transparent 1px);
   background-size:
-    var(--bni-grid-minor) var(--bni-grid-minor),
-    var(--bni-grid-minor) var(--bni-grid-minor),
     var(--bni-grid-major) var(--bni-grid-major),
-    var(--bni-grid-major) var(--bni-grid-major);
+    var(--bni-grid-major) var(--bni-grid-major),
+    var(--bni-grid-minor) var(--bni-grid-minor),
+    var(--bni-grid-minor) var(--bni-grid-minor);
 }
 
 .bni-cave::after {
