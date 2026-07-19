@@ -31,6 +31,7 @@ import {
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { DrawMiniUi } from "../../drawing/draw-mini-ui";
 import { DrawRoomOverlay } from "../../drawing/draw-room-overlay";
+import { DrawNotesOverlay } from "../../drawing/draw-notes-overlay";
 import { RoomDetectionService } from "../../services/room-detection-service";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 import JSZip from "jszip";
@@ -76,6 +77,7 @@ export class ComponentCanvasComponent
 
   drawPixi: DrawPixi;
   drawRoomOverlay!: DrawRoomOverlay;
+  drawNotesOverlay!: DrawNotesOverlay;
 
   private cameraService: CameraService;
 
@@ -113,6 +115,7 @@ export class ComponentCanvasComponent
       this.drawPixi.InitAnimation();
       this.cameraService.container = this.drawPixi.blueprintContainer;
       this.drawRoomOverlay = new DrawRoomOverlay(this.drawPixi);
+      this.drawNotesOverlay = new DrawNotesOverlay(this.drawPixi);
 
       if (this.forceSize) {
         const miniUi = new DrawMiniUi();
@@ -1073,6 +1076,13 @@ export class ComponentCanvasComponent
             this.cameraService,
           );
         else this.drawRoomOverlay.clear();
+
+        // World-note pins from a BlueprintsV2 import — annotations that sit
+        // above buildings like the mod's own preview.
+        this.drawNotesOverlay.draw(
+          this.blueprint.worldNotes,
+          this.cameraService,
+        );
       }
     }
 
