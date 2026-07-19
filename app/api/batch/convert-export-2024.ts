@@ -158,9 +158,138 @@ function filesDiffer(src: string, dest: string): boolean {
   return !fs.readFileSync(src).equals(fs.readFileSync(dest));
 }
 
+// The 2024 export is NOT byte-deterministic across game updates: Klei re-rasterizes untouched
+// vector art on every build, so a pure byte compare churns hundreds of visually-identical
+// sprites on re-import. The noise is always sub-pixel edge jitter — re-rasterization sprays a
+// ~1px anti-aliasing halo along every icon edge. On densely-textured sprites (e.g. the
+// diamond-mesh doors, or the gas-element blobs) that halo can be thousands of pixels, so a raw
+// per-pixel count cannot tell jitter from a real redraw. What CAN: a small Gaussian blur.
+// Blurring both images by ~1px averages out the ±1px edge jitter (it collapses to zero) while
+// a genuine fill/shape/colour change survives. So the guard premultiplies alpha (matching what
+// renders over the dark UI), blurs PNG_BLUR_PASSES times, and counts pixels still differing by
+// more than PNG_BLUR_DELTA. Verified across a full game-update import: every re-encode-only
+// sprite (all gas overlays + all automation port indicators) collapses to 0 changed pixels,
+// while the smallest genuine redraw stays > 2000 — so PNG_MAX_INCIDENTAL_PIXELS sits in an
+// enormous gap. Dimension changes and decode failures always count as changed.
+const PNG_BLUR_PASSES = 2; // 5-tap Gaussian composed twice ~= sigma 1.2
+const PNG_BLUR_DELTA = 12; // per-channel (0-255) on blurred, alpha-premultiplied RGB
+const PNG_MAX_INCIDENTAL_PIXELS = 64;
+
+// Decode a PNG to raw RGBA using canvas (already a dependency for connection-scale).
+function decodePng(file: string): { w: number; h: number; data: Uint8ClampedArray } {
+  const img = new Image();
+  img.src = fs.readFileSync(file);
+  const w = img.width;
+  const h = img.height;
+  const ctx = createCanvas(w, h).getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return { w, h, data: ctx.getImageData(0, 0, w, h).data };
+}
+
+// One pass of a separable 5-tap Gaussian ([1 4 6 4 1]/16, sigma ~0.85), edge-clamped.
+function blurPlane(src: Float32Array, w: number, h: number): Float32Array {
+  const k0 = 6 / 16;
+  const k1 = 4 / 16;
+  const k2 = 1 / 16;
+  const tmp = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const r = y * w;
+    for (let x = 0; x < w; x++) {
+      tmp[r + x] =
+        k2 * src[r + Math.max(0, x - 2)] +
+        k1 * src[r + Math.max(0, x - 1)] +
+        k0 * src[r + x] +
+        k1 * src[r + Math.min(w - 1, x + 1)] +
+        k2 * src[r + Math.min(w - 1, x + 2)];
+    }
+  }
+  const out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const r = y * w;
+    const m2 = Math.max(0, y - 2) * w;
+    const m1 = Math.max(0, y - 1) * w;
+    const p1 = Math.min(h - 1, y + 1) * w;
+    const p2 = Math.min(h - 1, y + 2) * w;
+    for (let x = 0; x < w; x++) {
+      out[r + x] =
+        k2 * tmp[m2 + x] +
+        k1 * tmp[m1 + x] +
+        k0 * tmp[r + x] +
+        k1 * tmp[p1 + x] +
+        k2 * tmp[p2 + x];
+    }
+  }
+  return out;
+}
+
+// The three alpha-premultiplied RGB planes of an image, each blurred PNG_BLUR_PASSES times.
+function blurredPremultPlanes(img: {
+  w: number;
+  h: number;
+  data: Uint8ClampedArray;
+}): [Float32Array, Float32Array, Float32Array] {
+  const n = img.w * img.h;
+  const r = new Float32Array(n);
+  const g = new Float32Array(n);
+  const b = new Float32Array(n);
+  for (let p = 0, i = 0; p < n; p++, i += 4) {
+    const alpha = img.data[i + 3] / 255;
+    r[p] = img.data[i] * alpha;
+    g[p] = img.data[i + 1] * alpha;
+    b[p] = img.data[i + 2] * alpha;
+  }
+  const planes: [Float32Array, Float32Array, Float32Array] = [r, g, b];
+  for (let c = 0; c < 3; c++)
+    for (let pass = 0; pass < PNG_BLUR_PASSES; pass++)
+      planes[c] = blurPlane(planes[c], img.w, img.h);
+  return planes;
+}
+
+// True when two PNGs are visually identical: same dimensions and, after alpha-premultiplying
+// and blurring both, at most PNG_MAX_INCIDENTAL_PIXELS pixels still differ by more than
+// PNG_BLUR_DELTA on any channel. The blur absorbs sub-pixel edge jitter; genuine art changes
+// survive it. Any decode failure or dimension change returns false (treat as changed, so we
+// never silently drop a real update).
+function pngVisuallyEqual(src: string, dest: string): boolean {
+  let a: { w: number; h: number; data: Uint8ClampedArray };
+  let b: { w: number; h: number; data: Uint8ClampedArray };
+  try {
+    a = decodePng(src);
+    b = decodePng(dest);
+  } catch {
+    return false;
+  }
+  if (!a.w || !a.h || a.w !== b.w || a.h !== b.h) return false;
+  const [ar, ag, ab] = blurredPremultPlanes(a);
+  const [br, bg, bb] = blurredPremultPlanes(b);
+  let changed = 0;
+  for (let p = 0; p < ar.length; p++) {
+    const d = Math.max(
+      Math.abs(ar[p] - br[p]),
+      Math.abs(ag[p] - bg[p]),
+      Math.abs(ab[p] - bb[p])
+    );
+    if (d > PNG_BLUR_DELTA && ++changed > PNG_MAX_INCIDENTAL_PIXELS) return false;
+  }
+  return true;
+}
+
+type SpriteVerdict = 'identical' | 'preserved' | 'changed';
+
+// Decide whether a synced sprite should be rewritten. Byte-identical files are 'identical'
+// (skip, keep mtime). PNGs whose bytes changed but whose pixels are visually identical are
+// 'preserved' (keep the committed file, so re-import doesn't churn on export re-encode
+// jitter). Everything else is 'changed' and gets copied.
+function classifySprite(src: string, dest: string): SpriteVerdict {
+  if (!filesDiffer(src, dest)) return 'identical';
+  if (dest.toLowerCase().endsWith('.png') && pngVisuallyEqual(src, dest)) return 'preserved';
+  return 'changed';
+}
+
 interface MirrorStats {
   copied: number;
   skipped: number;
+  preserved: number;
   removed: number;
 }
 
@@ -192,11 +321,16 @@ function mirrorDir(src: string, dest: string, stats: MirrorStats): void {
       // Clear a same-named dir before writing a file (type changed src->dest).
       if (fs.existsSync(destPath) && fs.statSync(destPath).isDirectory())
         fs.rmSync(destPath, { recursive: true, force: true });
-      if (filesDiffer(srcPath, destPath)) {
-        fs.copyFileSync(srcPath, destPath);
-        stats.copied++;
-      } else {
-        stats.skipped++;
+      switch (classifySprite(srcPath, destPath)) {
+        case 'changed':
+          fs.copyFileSync(srcPath, destPath);
+          stats.copied++;
+          break;
+        case 'preserved':
+          stats.preserved++;
+          break;
+        default:
+          stats.skipped++;
       }
     }
   }
@@ -209,14 +343,15 @@ function syncAssetDir(src: string, targets: string[], label: string): void {
     return;
   }
   for (const target of targets) {
-    const stats: MirrorStats = { copied: 0, skipped: 0, removed: 0 };
+    const stats: MirrorStats = { copied: 0, skipped: 0, preserved: 0, removed: 0 };
     mirrorDir(src, target, stats);
     console.log(
       '--- synced',
       label,
       '->',
       path.normalize(target),
-      `(updated ${stats.copied}, unchanged ${stats.skipped}, removed ${stats.removed}) ---`
+      `(updated ${stats.copied}, unchanged ${stats.skipped}, ` +
+        `preserved ${stats.preserved} re-encoded, removed ${stats.removed}) ---`
     );
   }
 }
@@ -696,7 +831,7 @@ export function convertExport2024(opts: ConvertOptions): void {
   for (const name of UTILITY_INDICATOR_NAMES) {
     const src = path.join(uiImageDir, name + '.png');
     const dest = path.join(imagesDir, name + '.png');
-    if (fs.existsSync(src) && filesDiffer(src, dest)) {
+    if (fs.existsSync(src) && classifySprite(src, dest) === 'changed') {
       fs.copyFileSync(src, dest);
       indicatorsCopied++;
     }
