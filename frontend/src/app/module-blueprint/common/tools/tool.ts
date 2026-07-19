@@ -6,6 +6,7 @@ export enum ToolType {
   build,
   elementReport,
   scissors,
+  planning,
 }
 
 export interface ITool {

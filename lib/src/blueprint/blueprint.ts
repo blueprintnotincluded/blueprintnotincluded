@@ -6,7 +6,7 @@ import { BlueprintItemElement } from './blueprint-item-element';
 import { Vector2 } from '../vector2';
 import { OniTemplate } from '../io/oni/oni-template';
 import { OniItem } from '../oni-item';
-import { BniBlueprint, BniWorldNote } from '../io/bni/bni-blueprint';
+import { BniBlueprint, BniPlanShape, BniWorldNote } from '../io/bni/bni-blueprint';
 import { MdbBlueprint } from '../io/mdb/mdb-blueprint';
 import { BniBuilding } from '../io/bni/bni-building';
 import { Overlay } from '../enums/overlay';
@@ -33,6 +33,9 @@ export class Blueprint {
   // they survive destroyAndCopyItems into the rendered blueprint and can be
   // drawn as an editor overlay. Display-only; never part of the round-trip.
   worldNotes: BniWorldNote[] = [];
+  // Decorative cells from the separate Planning Tool mod. Unlike world notes,
+  // these are editable and therefore live in the normal MDB/undo model.
+  planningToolShapes: BniPlanShape[] = [];
 
   // We need a utility map because some objects have utilities outside of their size (HighWattageWireBridge)
   utilities: UtilityConnectionTracker[][] = [];
@@ -51,6 +54,7 @@ export class Blueprint {
     this.unknownBuildingDefs = [];
     this.bniMetadata = null;
     this.worldNotes = [];
+    this.planningToolShapes = [];
 
     // Copy the buildings
     for (let building of oniBlueprint.buildings) {
@@ -106,6 +110,9 @@ export class Blueprint {
     this.unknownBuildingDefs = [];
     this.bniMetadata = bniBlueprint;
     this.worldNotes = bniBlueprint.worldNotes ?? [];
+    this.planningToolShapes = (bniBlueprint.planningtoolmod_shapecollection ?? []).map(shape => ({
+      ...shape,
+    }));
 
     for (let building of bniBlueprint.buildings ?? []) {
       try {
@@ -132,6 +139,7 @@ export class Blueprint {
     this.unknownBuildingDefs = [];
     this.bniMetadata = null;
     this.worldNotes = [];
+    this.planningToolShapes = (mdbBlueprint.planningToolShapes ?? []).map(shape => ({ ...shape }));
 
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       let newTemplateItem = BlueprintHelpers.createInstance(originalTemplateItem.id);
@@ -191,6 +199,7 @@ export class Blueprint {
     // World notes live on the source (fresh import); carry them onto the
     // rendered blueprint so the editor overlay can draw them.
     this.worldNotes = source.worldNotes ?? [];
+    this.planningToolShapes = source.planningToolShapes.map(shape => ({ ...shape }));
 
     this.pauseChangeEvents();
     for (let blueprintItem of source.blueprintItems) this.addBlueprintItem(blueprintItem);
@@ -398,6 +407,9 @@ export class Blueprint {
       blueprintItems: [],
     };
 
+    if (this.planningToolShapes.length > 0)
+      returnValue.planningToolShapes = this.planningToolShapes.map(shape => ({ ...shape }));
+
     for (let originalTemplateItem of this.blueprintItems)
       returnValue.blueprintItems.push(originalTemplateItem.toMdbBuilding());
 
@@ -414,6 +426,15 @@ export class Blueprint {
     for (let originalTemplateItem of this.blueprintItems)
       if (originalTemplateItem.id != OniItem.elementId && originalTemplateItem.id != OniItem.infoId)
         returnValue.buildings.push(originalTemplateItem.toBniBuilding());
+
+    if (this.planningToolShapes.length > 0) {
+      returnValue.blueprintVersion = 3;
+      returnValue.planningtoolmod_shapecollection = this.planningToolShapes.map(shape => ({
+        ...shape,
+      }));
+      // Planning Tool shapes are represented by dig commands in BlueprintsV2.
+      returnValue.digcommands = this.planningToolShapes.map(({ x, y }) => ({ x, y }));
+    }
 
     return returnValue;
   }
@@ -439,6 +460,13 @@ export class Blueprint {
         if (bottomRight.x < position.x) bottomRight.x = position.x;
         if (bottomRight.y < position.y) bottomRight.y = position.y;
       });
+    });
+
+    this.planningToolShapes.forEach(shape => {
+      if (topLeft.x > shape.x) topLeft.x = shape.x;
+      if (topLeft.y > shape.y) topLeft.y = shape.y;
+      if (bottomRight.x < shape.x) bottomRight.x = shape.x;
+      if (bottomRight.y < shape.y) bottomRight.y = shape.y;
     });
 
     return [topLeft, bottomRight];

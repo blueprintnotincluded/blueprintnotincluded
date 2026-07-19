@@ -24,6 +24,9 @@
       </app-selection-tool>
       <app-build-tool #buildTool [hidden]="!toolService.buildTool.visible">
       </app-build-tool>
+      <app-planning-tool
+        [hidden]="!toolService.planningTool.visible"
+      ></app-planning-tool>
     </div>
     <div class="side-panel-right">
       <app-element-report-tool *ngIf="showElementReport" #elementReportTool>
@@ -41,6 +44,13 @@
       i18n-label
       [active]="toolService.selectTool.visible"
       (buttonClick)="toolService.changeTool(ToolType.select)"
+    ></app-toolbar-button>
+    <app-toolbar-button
+      iconUrl="assets/images/icon-planning.svg"
+      label="Planning Notes"
+      i18n-label
+      [active]="toolService.planningTool.visible"
+      (buttonClick)="toolService.changeTool(ToolType.planning)"
     ></app-toolbar-button>
     <app-toolbar-button
       iconUrl="assets/images/icon-scissors.png"

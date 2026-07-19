@@ -106,6 +106,8 @@ import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-li
 import { NotificationBellComponent } from "./components/notification-bell/notification-bell.component";
 import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-button.component";
 import { SupportedModsPageComponent } from "./components/supported-mods-page/supported-mods-page.component";
+import { PlanningTool } from "./common/tools/planning-tool";
+import { PlanningToolComponent } from "./components/side-bar/planning-tool/planning-tool.component";
 
 @NgModule({
   declarations: [
@@ -168,6 +170,7 @@ import { SupportedModsPageComponent } from "./components/supported-mods-page/sup
     ToolbarButtonComponent,
     NoteEditPanelComponent,
     SupportedModsPageComponent,
+    PlanningToolComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [
@@ -214,6 +217,7 @@ import { SupportedModsPageComponent } from "./components/supported-mods-page/sup
     SelectTool,
     BuildTool,
     ScissorsTool,
+    PlanningTool,
     ElementReport,
     DatePipe,
     MessageService,

@@ -1,7 +1,7 @@
 import { BlueprintItem } from './blueprint-item';
 import { Vector2 } from '../vector2';
 import { OniTemplate } from '../io/oni/oni-template';
-import { BniBlueprint, BniWorldNote } from '../io/bni/bni-blueprint';
+import { BniBlueprint, BniPlanShape, BniWorldNote } from '../io/bni/bni-blueprint';
 import { MdbBlueprint } from '../io/mdb/mdb-blueprint';
 import { Overlay } from '../enums/overlay';
 import { UtilityConnectionTracker } from '../utility-connection';
@@ -12,6 +12,7 @@ export declare class Blueprint {
     unknownBuildingDefs: string[];
     bniMetadata: BniBlueprint | null;
     worldNotes: BniWorldNote[];
+    planningToolShapes: BniPlanShape[];
     utilities: UtilityConnectionTracker[][];
     innerYaml: any;
     constructor();

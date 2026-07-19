@@ -1,0 +1,45 @@
+<div class="box-card ui-widget planning-card">
+  <div class="box-card-title" i18n>Planning Notes</div>
+  <div class="section-label" i18n>Shape</div>
+  <div class="shape-grid">
+    <button
+      *ngFor="let shape of shapes"
+      type="button"
+      class="choice-button"
+      [class.selected]="!tool.erase && tool.shape === shape.value"
+      (click)="tool.erase = false; tool.shape = shape.value"
+      [attr.aria-label]="shape.label"
+      [pTooltip]="shape.label"
+    >
+      <span
+        class="shape"
+        [class.circle]="shape.value === 1"
+        [class.diamond]="shape.value === 2"
+      ></span>
+    </button>
+  </div>
+  <div class="section-label" i18n>Color</div>
+  <div class="color-grid">
+    <button
+      *ngFor="let color of colors"
+      type="button"
+      class="color-button"
+      [class.selected]="!tool.erase && tool.color === color.value"
+      [style.background-color]="color.css"
+      (click)="tool.erase = false; tool.color = color.value"
+      [attr.aria-label]="'Color ' + color.value"
+    ></button>
+  </div>
+  <button
+    type="button"
+    class="eraser-button"
+    [class.selected]="tool.erase"
+    (click)="tool.erase = !tool.erase"
+    i18n
+  >
+    Erase planning notes
+  </button>
+  <p class="hint" i18n>
+    Click or drag on the blueprint to paint. Right-click to return to Select.
+  </p>
+</div>
