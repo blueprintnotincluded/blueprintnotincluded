@@ -11,7 +11,7 @@ import { drawPlanningShape } from "../../drawing/draw-planning-overlay";
 import { ITool, ToolType } from "./tool";
 import { ToolService } from "../../services/tool-service";
 
-@Injectable()
+@Injectable({ providedIn: "root" })
 export class PlanningTool implements ITool {
   parent!: ToolService;
   shape = 0;
