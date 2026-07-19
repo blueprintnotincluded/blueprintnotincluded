@@ -29,7 +29,7 @@ describe("parseNoteTintHex", () => {
   });
 
   it("falls back to the default badge colour for junk or missing tint", () => {
-    for (const bad of [undefined, "", "xyz", "12345"])
+    for (const bad of [undefined, "", "xyz", "12345", "1234567", "123456789"])
       expect(parseNoteTintHex(bad as string)).to.deep.equal({
         color: 0x3b82f6,
         alpha: 1,

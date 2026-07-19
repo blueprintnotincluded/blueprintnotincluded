@@ -47,6 +47,10 @@ export class Blueprint {
 
   public importFromOni(oniBlueprint: OniTemplate) {
     this.blueprintItems = [];
+    this.hadUnknownBuildings = false;
+    this.unknownBuildingDefs = [];
+    this.bniMetadata = null;
+    this.worldNotes = [];
 
     // Copy the buildings
     for (let building of oniBlueprint.buildings) {
