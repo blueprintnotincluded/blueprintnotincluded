@@ -55,63 +55,6 @@ export function noteBadgeColor(
   };
 }
 
-// Display-ready note for the click-to-read popup.
-export interface WorldNoteContent {
-  kind: "text" | "element";
-  title: string;
-  body: string; // text notes only
-  detail: string; // element notes only (mass / temperature)
-  colorCss: string; // "#rrggbb" for the popup swatch
-  cell: { x: number; y: number };
-}
-
-export function resolveNoteContent(
-  note: BniWorldNote,
-  resolveElement: (tag: number) => BuildableElement | undefined,
-): WorldNoteContent {
-  const { color } = noteBadgeColor(note, resolveElement);
-  const colorCss =
-    "#" + ((color >>> 0) & 0xffffff).toString(16).padStart(6, "0");
-  const cell = { x: note.x, y: note.y };
-
-  if (note.type === TEXT_NOTE) {
-    return {
-      kind: "text",
-      title: stripNoteMarkup(note.title ?? "") || "Note",
-      body: stripNoteMarkup(note.text ?? ""),
-      detail: "",
-      colorCss,
-      cell,
-    };
-  }
-
-  const element = note.id != null ? resolveElement(note.id) : undefined;
-  return {
-    kind: "element",
-    title: element != null ? stripNoteMarkup(element.name) : "Unknown element",
-    body: "",
-    detail: formatElementDetail(note.mass, note.temp),
-    colorCss,
-    cell,
-  };
-}
-
-// "791.8 kg · 23.0 °C" from the note's mass (kg) and temperature (Kelvin).
-function formatElementDetail(
-  mass: number | undefined,
-  tempKelvin: number | undefined,
-): string {
-  const parts: string[] = [];
-  if (mass != null) parts.push(`${roundTo(mass, 1)} kg`);
-  if (tempKelvin != null) parts.push(`${roundTo(tempKelvin - 273.15, 1)} °C`);
-  return parts.join(" · ");
-}
-
-function roundTo(value: number, decimals: number): number {
-  const f = 10 ** decimals;
-  return Math.round(value * f) / f;
-}
-
 // "RRGGBBAA" (the mod's Color.ToHexString) -> PIXI colour + alpha. Anything
 // unparseable falls back to the default badge colour, fully opaque.
 export function parseNoteTintHex(hex: string | undefined): {
@@ -168,7 +111,11 @@ export class DrawNotesOverlay {
     this.graphics.clear();
   }
 
-  draw(notes: BniWorldNote[] | null | undefined, camera: CameraService) {
+  draw(
+    notes: BniWorldNote[] | null | undefined,
+    camera: CameraService,
+    selected?: BniWorldNote | null,
+  ) {
     if (notes == null || notes.length === 0) {
       this.clear();
       this.lastNotes = notes ?? null;
@@ -200,6 +147,16 @@ export class DrawNotesOverlay {
       // Cell centre, matching BlueprintItem.drawPixi's +0.5 convention.
       const screenX = (note.x + offset.x + 0.5) * zoom;
       const screenY = (offset.y - note.y + 0.5) * zoom;
+
+      // Highlight ring behind the badge for the note being edited.
+      if (selected != null && selected.x === note.x && selected.y === note.y) {
+        this.graphics.lineStyle(Math.max(2, 0.07 * zoom), 0xffffff, 1);
+        this.graphics.drawCircle(
+          screenX,
+          screenY,
+          radius + outline + 0.06 * zoom,
+        );
+      }
 
       this.graphics.lineStyle(outline, BADGE_OUTLINE, 1);
       this.graphics.beginFill(note.color, note.alpha);

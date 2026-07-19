@@ -4,7 +4,6 @@ import {
   parseNoteTintHex,
   stripNoteMarkup,
   noteBadgeColor,
-  resolveNoteContent,
 } from "./draw-notes-overlay";
 
 const noElement = () => undefined;
@@ -76,72 +75,5 @@ describe("noteBadgeColor", () => {
       ).color,
     ).to.equal(0xd95e63);
     expect(noteBadgeColor(note, noElement).color).to.equal(0x3b82f6);
-  });
-});
-
-describe("resolveNoteContent", () => {
-  it("resolves a text note to title + body with a css colour", () => {
-    const note: BniWorldNote = {
-      x: 15,
-      y: 3,
-      type: 0,
-      title: "important title!",
-      text: '<link="X">read me</link>',
-      tinthex: "0000FFFF",
-    };
-    expect(resolveNoteContent(note, noElement)).to.deep.equal({
-      kind: "text",
-      title: "important title!",
-      body: "read me",
-      detail: "",
-      colorCss: "#0000ff",
-      cell: { x: 15, y: 3 },
-    });
-  });
-
-  it("defaults an empty text-note title to 'Note'", () => {
-    const note: BniWorldNote = {
-      x: 0,
-      y: 0,
-      type: 0,
-      title: "",
-      text: "",
-      tinthex: "FFFFFFFF",
-    };
-    expect(resolveNoteContent(note, noElement).title).to.equal("Note");
-  });
-
-  it("resolves an element note to name + mass/temp detail (°C from Kelvin)", () => {
-    const note: BniWorldNote = {
-      x: 4,
-      y: 2,
-      type: 1,
-      id: -1736594426,
-      mass: 791.79,
-      temp: 296.15,
-    };
-    const content = resolveNoteContent(note, (tag) =>
-      tag === -1736594426
-        ? fakeElement('<link="CUPRITE">Copper Ore</link>', 0xd95e63)
-        : undefined,
-    );
-    expect(content.kind).to.equal("element");
-    expect(content.title).to.equal("Copper Ore");
-    expect(content.detail).to.equal("791.8 kg · 23 °C");
-    expect(content.colorCss).to.equal("#d95e63");
-  });
-
-  it("labels an unknown (modded) element gracefully", () => {
-    const note: BniWorldNote = {
-      x: 1,
-      y: 1,
-      type: 1,
-      id: 999,
-      mass: 5,
-      temp: 0,
-    };
-    const content = resolveNoteContent(note, noElement);
-    expect(content.title).to.equal("Unknown element");
-    expect(content.colorCss).to.equal("#3b82f6");
   });
 });
