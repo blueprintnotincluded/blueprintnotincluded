@@ -72,9 +72,14 @@ run the single repeatable step:
   The `database-2024.zip` (both roots) is a **gitignored** build derivative: the backend
   reads the JSON directly, the frontend regenerates the zip from it via `prebuild`/
   `prestart` (`frontend/scripts/build-database-zip.js`). The converter emits no `.zip`.
-- Sprite sync only rewrites files whose bytes changed and prunes removed ones, so
-  unchanged icons keep their mtime; the deterministic export means git shows only real
-  changes. Re-importing the same export is a near no-op.
+- Sprite sync rewrites a file only when it actually changed and prunes removed ones, so
+  unchanged icons keep their mtime and git shows only real changes. The export is NOT
+  byte-deterministic across game updates (Klei re-rasterizes untouched art), so a PNG
+  that differs in bytes is additionally checked *perceptually* (`pngVisuallyEqual`:
+  alpha-premultiply → small Gaussian blur → count pixels still differing) and preserved
+  when the pixels are visually identical. The blur is what distinguishes real redraws from
+  sub-pixel re-rasterization jitter even on densely-textured sprites. Re-importing the same
+  export is a near no-op.
 - `ui_image_facade/` is intentionally skipped (unused by the app); one-line flip in
   `app/api/batch/convert-export-2024.ts` to enable.
 - After import: restart `npm run dev` (backend reads `database-2024.json` at startup) and

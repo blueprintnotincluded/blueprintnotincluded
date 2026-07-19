@@ -25,9 +25,16 @@ Steps:
 3. Detect connectables (a `connection_sprites/<prefabId>/` dir exists) and **measure**
    each one's render scale from its `15.png`.
 4. Mirror `ui_image/` and `connection_sprites/` into both asset roots **content-aware**:
-   only files whose bytes changed are rewritten, only removed files are pruned, so
-   unchanged icons keep their mtime (no churn). `ui_image_facade/` is skipped (unused;
-   one-line flip near the top of the converter to enable).
+   a file is rewritten only when it actually changed, only removed files are pruned, so
+   unchanged icons keep their mtime (no churn). The export is **not byte-deterministic**
+   across game updates — Klei re-rasterizes untouched art, spraying sub-pixel anti-aliasing
+   jitter along icon edges — so a byte-different PNG is additionally compared *perceptually*
+   (`pngVisuallyEqual`: alpha-premultiply → 2-pass Gaussian blur → count pixels still
+   differing by more than a threshold) and **preserved** when visually identical. The blur
+   is what separates genuine redraws from re-rasterization jitter even on densely-textured
+   sprites (doors, gas blobs), where a raw pixel count cannot. Sync logs report the preserved
+   count as `preserved N re-encoded`. `ui_image_facade/` is skipped (unused; one-line flip
+   near the top of the converter to enable).
 5. Flatten `database/po_string.json` into `frontend/src/assets/strings/strings.json` —
    the English game-string map the website resolves display names against (element,
    building, category names + overlay labels). Keys are prefixed with `STRINGS.` to match
