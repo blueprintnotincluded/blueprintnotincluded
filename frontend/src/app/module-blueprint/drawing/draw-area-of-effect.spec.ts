@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { AreaOfEffect, Orientation } from "../../../../../lib/index";
+import { AreaOfEffect, Orientation, Vector2 } from "../../../../../lib/index";
 import {
   AREA_OF_EFFECT_ALPHA,
   areaOfEffectColor,
   drawAreaOfEffectItem,
   drawAreaOfEffects,
+  isLightCellObstructed,
+  solidFoundationCells,
 } from "./draw-area-of-effect";
 
 const effect = (partial: Partial<AreaOfEffect> = {}): AreaOfEffect => ({
@@ -86,6 +88,83 @@ describe("area-of-effect renderer", () => {
     expect(drawTileRectangle.mock.invocationCallOrder[1]).toBeLessThan(
       drawBlueprintDashedLine.mock.invocationCallOrder[0],
     );
+  });
+
+  it("blocks light at solid foundation cells and every cell behind them", () => {
+    const solids = new Set(["1,0"]);
+    expect(
+      isLightCellObstructed(new Vector2(0, 0), new Vector2(1, 0), solids),
+    ).toBe(true);
+    expect(
+      isLightCellObstructed(new Vector2(0, 0), new Vector2(3, 0), solids),
+    ).toBe(true);
+    expect(
+      isLightCellObstructed(new Vector2(0, 0), new Vector2(0, 3), solids),
+    ).toBe(false);
+  });
+
+  it("prevents light leaking diagonally through solid tile corners", () => {
+    expect(
+      isLightCellObstructed(
+        new Vector2(0, 0),
+        new Vector2(2, 2),
+        new Set(["1,0"]),
+      ),
+    ).toBe(true);
+  });
+
+  it("collects only foundation footprints as light blockers", () => {
+    const items = [
+      {
+        oniItem: { isFoundation: true },
+        position: { x: 4, y: 5 },
+        topLeft: { x: 4, y: 5 },
+        bottomRight: { x: 5, y: 4 },
+      },
+      {
+        oniItem: { isFoundation: false },
+        position: { x: 8, y: 8 },
+        topLeft: { x: 8, y: 8 },
+        bottomRight: { x: 8, y: 8 },
+      },
+    ] as any;
+    expect([...solidFoundationCells(items)].sort()).toEqual([
+      "4,4",
+      "4,5",
+      "5,4",
+      "5,5",
+    ]);
+  });
+
+  it("clips only blocked light effects while leaving other effect kinds nominal", () => {
+    const drawTileRectangle = vi.fn();
+    const drawPixi = {
+      drawTileRectangle,
+      drawBlueprintDashedLine: vi.fn(),
+    } as any;
+    const item = {
+      oniItem: {
+        areasOfEffect: [
+          effect({
+            kind: "light",
+            origin: { x: 0, y: 0 },
+            cells: [
+              [0, 0],
+              [1, 0],
+              [2, 0],
+            ],
+          }),
+          effect({ kind: "operationRange", cells: [[2, 0]] }),
+        ],
+      },
+      orientation: Orientation.Neutral,
+      position: { x: 0, y: 0 },
+    } as any;
+    drawAreaOfEffectItem(drawPixi, item, {} as any, new Set(["1,0"]));
+    expect(drawTileRectangle).toHaveBeenCalledTimes(2);
+    expect(drawTileRectangle.mock.calls.map((call) => call[5])).toEqual([
+      0xffd45c, 0xf2a65a,
+    ]);
   });
 
   it("fails silently when metadata is missing or params-only geometry is unsupported", () => {

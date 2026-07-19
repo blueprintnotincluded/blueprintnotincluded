@@ -18,6 +18,65 @@ const EFFECT_COLORS: Readonly<Record<string, number>> = {
   skyScan: 0x8da0ff,
 };
 
+const cellKey = (cell: { x: number; y: number }): string =>
+  `${cell.x},${cell.y}`;
+
+export function solidFoundationCells(items: BlueprintItem[]): Set<string> {
+  const cells = new Set<string>();
+  for (const item of items) {
+    if (!item.oniItem.isFoundation) continue;
+    const left = Math.round(item.topLeft?.x ?? item.position.x);
+    const right = Math.round(item.bottomRight?.x ?? item.position.x);
+    const top = Math.round(item.topLeft?.y ?? item.position.y);
+    const bottom = Math.round(item.bottomRight?.y ?? item.position.y);
+    for (let x = left; x <= right; x++)
+      for (let y = top; y >= bottom; y--) cells.add(`${x},${y}`);
+  }
+  return cells;
+}
+
+/** Supercover grid ray: touching a solid tile corner also casts a shadow. */
+export function isLightCellObstructed(
+  emitter: Vector2,
+  target: Vector2,
+  solidCells: ReadonlySet<string>,
+): boolean {
+  let x = emitter.x;
+  let y = emitter.y;
+  const dx = target.x - emitter.x;
+  const dy = target.y - emitter.y;
+  const nx = Math.abs(dx);
+  const ny = Math.abs(dy);
+  const stepX = Math.sign(dx);
+  const stepY = Math.sign(dy);
+  let ix = 0;
+  let iy = 0;
+
+  while (ix < nx || iy < ny) {
+    const decision = (1 + 2 * ix) * ny - (1 + 2 * iy) * nx;
+    if (decision === 0) {
+      // The ray crosses a grid corner. Either adjoining tile blocks diagonal leakage.
+      if (
+        solidCells.has(`${x + stepX},${y}`) ||
+        solidCells.has(`${x},${y + stepY}`)
+      )
+        return true;
+      x += stepX;
+      y += stepY;
+      ix++;
+      iy++;
+    } else if (decision < 0) {
+      x += stepX;
+      ix++;
+    } else {
+      y += stepY;
+      iy++;
+    }
+    if (solidCells.has(`${x},${y}`)) return true;
+  }
+  return false;
+}
+
 function colorChannel(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return Math.round(Math.max(0, Math.min(1, value)) * 255);
@@ -38,14 +97,32 @@ export function drawAreaOfEffectItem(
   drawPixi: DrawPixi,
   item: BlueprintItem,
   camera: CameraService,
+  solidCells: ReadonlySet<string> = new Set<string>(),
 ): void {
   for (const effect of item.oniItem.areasOfEffect ?? []) {
     const color = areaOfEffectColor(effect);
-    const cells = resolveAreaOfEffectCells(effect).map((localCell) => {
+    let cells = resolveAreaOfEffectCells(effect).map((localCell) => {
       const cell = orientAreaOfEffectCell(localCell, item.orientation);
       return new Vector2(item.position.x + cell.x, item.position.y + cell.y);
     });
-    const occupied = new Set(cells.map((cell) => `${cell.x},${cell.y}`));
+    if (
+      effect.kind === "light" &&
+      effect.blockedBySolids &&
+      solidCells.size > 0
+    ) {
+      const localEmitter = orientAreaOfEffectCell(
+        new Vector2(effect.origin.x, effect.origin.y),
+        item.orientation,
+      );
+      const emitter = new Vector2(
+        item.position.x + localEmitter.x,
+        item.position.y + localEmitter.y,
+      );
+      cells = cells.filter(
+        (cell) => !isLightCellObstructed(emitter, cell, solidCells),
+      );
+    }
+    const occupied = new Set(cells.map(cellKey));
 
     for (const { x, y } of cells) {
       drawPixi.drawTileRectangle(
@@ -107,9 +184,10 @@ export function drawAreaOfEffects(
   buildToolVisible: boolean,
   camera: CameraService,
 ): void {
+  const solidCells = solidFoundationCells(items);
   for (const item of items) {
-    if (item.selected) drawAreaOfEffectItem(drawPixi, item, camera);
+    if (item.selected) drawAreaOfEffectItem(drawPixi, item, camera, solidCells);
   }
   if (buildToolVisible && buildCandidate?.isBuildCandidate)
-    drawAreaOfEffectItem(drawPixi, buildCandidate, camera);
+    drawAreaOfEffectItem(drawPixi, buildCandidate, camera, solidCells);
 }
