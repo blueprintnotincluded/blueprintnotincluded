@@ -47,7 +47,8 @@ export interface BBuildingDef2024 {
   name: string;
   // `nameString` is the rich-text display name (e.g. `<link="WOOD">Wood</link>`).
   nameString: string;
-  kPrefabID: BKPrefabID2024;
+  // Absent only on offlineMerged entries (no in-game registration to read it from).
+  kPrefabID?: BKPrefabID2024;
   tags: BTag2024[] | null;
 
   widthInCells: number;
@@ -98,6 +99,15 @@ export interface BBuildingDef2024 {
   passiveElementConsumers?: unknown[];
   storage?: unknown;
   battery?: unknown;
+
+  // Steam workshop id of the mod that registered this building; absent ⇒ vanilla
+  // (never emitted as null). Stable key for grouping/filtering/tagging.
+  mod?: string;
+  // Display title from the mod's own metadata; may change across mod updates.
+  modTitle?: string;
+  // Reduced-schema entries appended by the offline DLL pipeline (none in the
+  // current export — tolerated, not featured; see spec/WEBSITE_MOD_IMPORT.md §3).
+  offlineMerged?: true;
 }
 
 // One per-building utility port from `bBuildingDefList[].utilities`.
@@ -131,6 +141,12 @@ export interface BBuildingFile2024 extends BExport2024Meta {
   // `tags` intersected with this set yields its roomTags (see BBuilding.roomTags).
   roomConstraintTags?: BTag2024[] | null;
   requiredSkillPerkMap?: unknown;
+  // Root roster of mods the game exported natively this run. Metadata only —
+  // NOT the source of truth (that's the distinct `mod` values across
+  // bBuildingDefList; see the handoff §2 warning).
+  mods?: { id: string; title: string; buildings: string[] }[];
+  // Present only when the offline fallback merge ran (never in current exports).
+  modMergeInfo?: unknown;
 }
 
 // ---------------------------------------------------------------------------

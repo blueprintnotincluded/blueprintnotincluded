@@ -25,6 +25,12 @@ export class OniItem {
   dlcIds: string[] = [];
   // Room-system tags (see BBuilding.roomTags) — consumed by the room detector.
   roomTags: string[] = [];
+  // Steam workshop id of the source mod; undefined ⇒ vanilla building.
+  mod?: string;
+  modTitle?: string;
+  get isModded(): boolean {
+    return this.mod != null;
+  }
 
   // imageId here is used for some stuff (generating white background textures)
   imageId: string = '';
@@ -122,6 +128,8 @@ export class OniItem {
     this.name = original.name;
     this.dlcIds = original.dlcIds ?? [];
     this.roomTags = original.roomTags ?? [];
+    this.mod = original.mod;
+    this.modTitle = original.modTitle;
     this.size = original.sizeInCells;
     this.isWire = original.isUtility;
     this.isBridge = original.isBridge;

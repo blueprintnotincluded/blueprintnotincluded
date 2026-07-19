@@ -72,6 +72,10 @@ export class BBuilding {
   // (see BBuildingDef2024.uiImageRect). When present the renderer draws the icon at this
   // rectangle (allowing overhang) instead of stretching it to fill the footprint box.
   uiImageRect?: { x: number; y: number; w: number; h: number };
+
+  // Steam workshop id of the source mod; undefined ⇒ vanilla building.
+  mod?: string;
+  modTitle?: string;
 }
 
 // All sprites for a building

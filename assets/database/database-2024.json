@@ -95,6 +95,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -156,6 +164,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -353,6 +369,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -655,6 +679,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -716,6 +748,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -820,6 +860,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -2182,6 +2230,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -2468,6 +2524,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -2527,6 +2591,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -2591,6 +2663,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -2663,6 +2743,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -3293,6 +3381,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -3406,6 +3502,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -3613,6 +3717,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -3907,6 +4019,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -4034,6 +4154,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -4634,6 +4762,14 @@
           },
           "type": 7,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -4916,6 +5052,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -5064,6 +5208,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -5133,6 +5285,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -5893,6 +6053,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -6416,6 +6584,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -7096,6 +7272,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -7898,6 +8082,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -7961,6 +8153,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -8032,6 +8232,14 @@
           },
           "type": 7,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -8095,6 +8303,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -8219,6 +8435,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -8333,6 +8557,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -9279,6 +9511,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -9398,6 +9638,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -9758,6 +10006,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -10081,6 +10337,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -10204,6 +10468,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -10592,6 +10864,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -10793,6 +11073,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -11551,6 +11839,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -15325,6 +15621,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -15445,6 +15749,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -15626,6 +15938,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -15748,6 +16068,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -15997,6 +16325,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -16074,6 +16410,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -16495,6 +16839,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -16565,6 +16917,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -16628,6 +16988,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -16757,6 +17125,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -16829,6 +17205,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -16903,6 +17287,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -16975,6 +17367,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -17049,6 +17449,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -17121,6 +17529,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -17702,6 +18118,14 @@
           },
           "type": 7,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -17849,6 +18273,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -18035,6 +18467,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -18427,6 +18867,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -18941,6 +19389,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -19381,6 +19837,14 @@
           },
           "type": 1,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -19451,6 +19915,14 @@
             "y": 0
           },
           "type": 1,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -20043,6 +20515,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -20187,6 +20667,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -20502,6 +20990,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -20614,6 +21110,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -20675,6 +21179,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -20965,6 +21477,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -21198,6 +21718,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -21441,6 +21969,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -21803,6 +22339,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -22023,6 +22567,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -22213,6 +22765,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -22428,6 +22988,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -23188,6 +23756,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -24419,6 +24995,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -24486,6 +25070,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -24607,6 +25199,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -24668,6 +25268,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -24785,6 +25393,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -24913,6 +25529,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -25838,6 +26462,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -26050,6 +26682,14 @@
             "y": 0
           },
           "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
           "isSecondary": false
         }
       ],
@@ -27583,6 +28223,14 @@
           },
           "type": 0,
           "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
         }
       ],
       "uiScreens": [],
@@ -27788,6 +28436,1832 @@
       ],
       "materialMass": [
         200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"DRAIN\">Drain</link>",
+      "prefabId": "Drain",
+      "kanimPrefix": "Drain_",
+      "textureName": "Drain",
+      "uiImage": "Drain",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 30,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "1866754178",
+      "modTitle": "Drains",
+      "uiImageRect": {
+        "x": -0.065,
+        "y": 0.025,
+        "w": 1.135,
+        "h": 1.135
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        100
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"PAIRLOCKDOOR\">Airlock Door</link>",
+      "prefabId": "PAirlockDoor",
+      "kanimPrefix": "PAirlockDoor_",
+      "textureName": "PAirlockDoor",
+      "uiImage": "PAirlockDoor",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 2
+      },
+      "sceneLayer": 16,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 0,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "2094698134",
+      "modTitle": "Airlock Door",
+      "uiImageRect": {
+        "x": -0.015,
+        "y": -0.095,
+        "w": 3.095,
+        "h": 2.22
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"PAIRLOCKDOORINSULATED\">Insulated Airlock Door</link>",
+      "prefabId": "PAirlockDoorInsulated",
+      "kanimPrefix": "PAirlockDoorInsulated_",
+      "textureName": "PAirlockDoorInsulated",
+      "uiImage": "PAirlockDoorInsulated",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 2
+      },
+      "sceneLayer": 16,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 0,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "2094698134",
+      "modTitle": "Airlock Door",
+      "uiImageRect": {
+        "x": -0.015,
+        "y": -0.095,
+        "w": 3.095,
+        "h": 2.22
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Insulator",
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        400,
+        100
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "Decompression Gas Valve",
+      "prefabId": "DecompressionGasValve",
+      "kanimPrefix": "DecompressionGasValve_",
+      "textureName": "DecompressionGasValve",
+      "uiImage": "DecompressionGasValve",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 1
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.055,
+        "y": 0.05,
+        "w": 1.795,
+        "h": 0.885
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 2,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 3,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Polypropylene"
+      ],
+      "materialMass": [
+        50,
+        20
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "Decompression Liquid Valve",
+      "prefabId": "DecompressionLiquidValve",
+      "kanimPrefix": "DecompressionLiquidValve_",
+      "textureName": "DecompressionLiquidValve",
+      "uiImage": "DecompressionLiquidValve",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 1
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.145,
+        "y": 0.115,
+        "w": 1.63,
+        "h": 0.73
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 4,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Polypropylene"
+      ],
+      "materialMass": [
+        50,
+        20
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "High Pressure Gas Conduit Bridge",
+      "prefabId": "HighPressureGasConduitBridge",
+      "kanimPrefix": "HighPressureGasConduitBridge_",
+      "textureName": "HighPressureGasConduitBridge",
+      "uiImage": "HighPressureGasConduitBridge",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 1
+      },
+      "sceneLayer": 4,
+      "objectLayer": 15,
+      "permittedRotations": 2,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.045,
+        "y": 0.04,
+        "w": 2.91,
+        "h": 1.325
+      },
+      "buildLocationRule": 8,
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 2,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 3,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Plastic"
+      ],
+      "materialMass": [
+        10,
+        5
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "High Pressure Gas Conduit",
+      "prefabId": "HighPressureGasConduit",
+      "kanimPrefix": "HighPressureGasConduit_",
+      "textureName": "HighPressureGasConduit",
+      "uiImage": "HighPressureGasConduit",
+      "isTile": true,
+      "isFoundation": false,
+      "isUtility": true,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": true,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 3,
+      "objectLayer": 12,
+      "permittedRotations": 0,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": true,
+      "connectionScale": {
+        "x": 1.0679611650485437,
+        "y": 1.0679611650485437
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.22,
+        "y": 0.215,
+        "w": 0.585,
+        "h": 0.575
+      },
+      "buildLocationRule": 0,
+      "utilities": [],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Plastic"
+      ],
+      "materialMass": [
+        10,
+        5
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "High Pressure Liquid Conduit Bridge",
+      "prefabId": "HighPressureLiquidConduitBridge",
+      "kanimPrefix": "HighPressureLiquidConduitBridge_",
+      "textureName": "HighPressureLiquidConduitBridge",
+      "uiImage": "HighPressureLiquidConduitBridge",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 1
+      },
+      "sceneLayer": 6,
+      "objectLayer": 19,
+      "permittedRotations": 2,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.135,
+        "y": 0.12,
+        "w": 2.73,
+        "h": 1.075
+      },
+      "buildLocationRule": 8,
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 4,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Plastic"
+      ],
+      "materialMass": [
+        10,
+        5
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "High Pressure Liquid Pipe",
+      "prefabId": "HighPressureLiquidConduit",
+      "kanimPrefix": "HighPressureLiquidConduit_",
+      "textureName": "HighPressureLiquidConduit",
+      "uiImage": "HighPressureLiquidConduit",
+      "isTile": true,
+      "isFoundation": false,
+      "isUtility": true,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": true,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 5,
+      "objectLayer": 16,
+      "permittedRotations": 0,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": true,
+      "connectionScale": {
+        "x": 1.02803738317757,
+        "y": 1.02803738317757
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.305,
+        "y": 0.305,
+        "w": 0.375,
+        "h": 0.37
+      },
+      "buildLocationRule": 0,
+      "utilities": [],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Plastic"
+      ],
+      "materialMass": [
+        10,
+        5
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "High Pressure Gas Pump",
+      "prefabId": "PressureGasPump",
+      "kanimPrefix": "PressureGasPump_",
+      "textureName": "PressureGasPump",
+      "uiImage": "PressureGasPump",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 1,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.055,
+        "y": 0.04,
+        "w": 2.155,
+        "h": 2.925
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "type": 3,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Polypropylene"
+      ],
+      "materialMass": [
+        400,
+        200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "High Pressure Liquid Pump",
+      "prefabId": "PressureLiquidPump",
+      "kanimPrefix": "PressureLiquidPump_",
+      "textureName": "PressureLiquidPump",
+      "uiImage": "PressureLiquidPump",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 1,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
+      "mod": "2806200110",
+      "modTitle": "High Pressure Applications",
+      "uiImageRect": {
+        "x": 0.055,
+        "y": -0.55,
+        "w": 2.7,
+        "h": 3.43
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 1,
+            "y": 2
+          },
+          "type": 5,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel",
+        "Polypropylene"
+      ],
+      "materialMass": [
+        400,
+        200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"MJSPLITTERMKIIGAS\">AeroSplitter Mk.II</link>",
+      "prefabId": "MJSplitterMKIIGas",
+      "kanimPrefix": "MJSplitterMKIIGas_",
+      "textureName": "MJSplitterMKIIGas",
+      "uiImage": "MJSplitterMKIIGas",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 1
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
+      "mod": "3544371748",
+      "modTitle": "Splitters MK II",
+      "uiImageRect": {
+        "x": 0.015,
+        "y": -0.28,
+        "w": 2.965,
+        "h": 1.435
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 2,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 3,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 3,
+          "isSecondary": true
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"MJSPLITTERMKIILIQUID\">AquaSplitter Mk.II</link>",
+      "prefabId": "MJSplitterMKIILiquid",
+      "kanimPrefix": "MJSplitterMKIILiquid_",
+      "textureName": "MJSplitterMKIILiquid",
+      "uiImage": "MJSplitterMKIILiquid",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 1
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
+      "mod": "3544371748",
+      "modTitle": "Splitters MK II",
+      "uiImageRect": {
+        "x": 0.015,
+        "y": -0.28,
+        "w": 2.965,
+        "h": 1.435
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 4,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": true
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"MJSPLITTERMKIISOLID\">SolidSplitter Mk.II</link>",
+      "prefabId": "MJSplitterMKIISolid",
+      "kanimPrefix": "MJSplitterMKIISolid_",
+      "textureName": "MJSplitterMKIISolid",
+      "uiImage": "MJSplitterMKIISolid",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 1
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 6,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
+      "mod": "3544371748",
+      "modTitle": "Splitters MK II",
+      "uiImageRect": {
+        "x": 0.015,
+        "y": -0.28,
+        "w": 2.965,
+        "h": 1.435
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 8,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 9,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 9,
+          "isSecondary": true
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"PETERHANFILTEREDGASPUMP\">Filtered Gas Pump</link>",
+      "prefabId": "PeterHan_FilteredGasPump",
+      "kanimPrefix": "PeterHan_FilteredGasPump_",
+      "textureName": "PeterHan_FilteredGasPump",
+      "uiImage": "PeterHan_FilteredGasPump",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "1887986467",
+      "modTitle": "Smart Pumps",
+      "uiImageRect": {
+        "x": -0.16,
+        "y": -0.095,
+        "w": 2.225,
+        "h": 2.15
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 1,
+            "y": 1
+          },
+          "type": 3,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal",
+        "BuildingGasket"
+      ],
+      "materialMass": [
+        50,
+        1
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"PETERHANFILTEREDLIQUIDPUMP\">Filtered Liquid Pump</link>",
+      "prefabId": "PeterHan_FilteredLiquidPump",
+      "kanimPrefix": "PeterHan_FilteredLiquidPump_",
+      "textureName": "PeterHan_FilteredLiquidPump",
+      "uiImage": "PeterHan_FilteredLiquidPump",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
+      "mod": "1887986467",
+      "modTitle": "Smart Pumps",
+      "uiImageRect": {
+        "x": -0.12,
+        "y": -0.55,
+        "w": 2.165,
+        "h": 2.55
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 1,
+            "y": 1
+          },
+          "type": 5,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal",
+        "BuildingGasket"
+      ],
+      "materialMass": [
+        200,
+        1
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"FILTEREDGASPUMP\">Filtered Gas Pump</link>",
+      "prefabId": "FilteredGasPump",
+      "kanimPrefix": "FilteredGasPump_",
+      "textureName": "FilteredGasPump",
+      "uiImage": "FilteredGasPump",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "1887986467",
+      "modTitle": "Smart Pumps",
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 1,
+            "y": 1
+          },
+          "type": 3,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal",
+        "Plastic"
+      ],
+      "materialMass": [
+        50,
+        25
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"FILTEREDLIQUIDPUMP\">Filtered Liquid Pump</link>",
+      "prefabId": "FilteredLiquidPump",
+      "kanimPrefix": "FilteredLiquidPump_",
+      "textureName": "FilteredLiquidPump",
+      "uiImage": "FilteredLiquidPump",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [
+        "Submergible"
+      ],
+      "mod": "1887986467",
+      "modTitle": "Smart Pumps",
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 1,
+            "y": 1
+          },
+          "type": 5,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal",
+        "Plastic"
+      ],
+      "materialMass": [
+        200,
+        50
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"VACUUMPUMP\">Vacuum Pump</link>",
+      "prefabId": "VacuumPump",
+      "kanimPrefix": "VacuumPump_",
+      "textureName": "VacuumPump",
+      "uiImage": "VacuumPump",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "1887986467",
+      "modTitle": "Smart Pumps",
+      "uiImageRect": {
+        "x": -0.015,
+        "y": -0.01,
+        "w": 1.015,
+        "h": 1.855
+      },
+      "buildLocationRule": 0,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 3,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Rubber&Plastic",
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        50,
+        25
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"FAIRLIQUIDWALLVENT\">Liquid wall vent</link>",
+      "prefabId": "FairLiquidWallVent",
+      "kanimPrefix": "FairLiquidWallVent_",
+      "textureName": "FairLiquidWallVent",
+      "uiImage": "FairLiquidWallVent",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 30,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "3113986230",
+      "modTitle": "Wall Pumps",
+      "uiImageRect": {
+        "x": -0.075,
+        "y": -0.015,
+        "w": 1.12,
+        "h": 1.1
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 4,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"VENTHIGHPRESSURE\">High pressure gas wall vent</link>",
+      "prefabId": "VentHighPressure",
+      "kanimPrefix": "VentHighPressure_",
+      "textureName": "VentHighPressure",
+      "uiImage": "VentHighPressure",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 30,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "3113986230",
+      "modTitle": "Wall Pumps",
+      "uiImageRect": {
+        "x": -0.075,
+        "y": -0.015,
+        "w": 1.12,
+        "h": 1.1
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 2,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal",
+        "Plastic"
+      ],
+      "materialMass": [
+        200,
+        50
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"FAIRGASWALLVENT\">Gas wall vent</link>",
+      "prefabId": "FairGasWallVent",
+      "kanimPrefix": "FairGasWallVent_",
+      "textureName": "FairGasWallVent",
+      "uiImage": "FairGasWallVent",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 30,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "3113986230",
+      "modTitle": "Wall Pumps",
+      "uiImageRect": {
+        "x": -0.075,
+        "y": -0.015,
+        "w": 1.12,
+        "h": 1.1
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 2,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        50
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"FAIRLIQUIDWALLPUMP\">Liquid wall pump</link>",
+      "prefabId": "FairLiquidWallPump",
+      "kanimPrefix": "FairLiquidWallPump_",
+      "textureName": "FairLiquidWallPump",
+      "uiImage": "FairLiquidWallPump",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 30,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "3113986230",
+      "modTitle": "Wall Pumps",
+      "uiImageRect": {
+        "x": -0.075,
+        "y": -0.015,
+        "w": 1.12,
+        "h": 1.1
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        100
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"FAIRGASWALLPUMP\">Gas wall pump</link>",
+      "prefabId": "FairGasWallPump",
+      "kanimPrefix": "FairGasWallPump_",
+      "textureName": "FairGasWallPump",
+      "uiImage": "FairGasWallPump",
+      "isTile": true,
+      "isFoundation": true,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 30,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 3,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "3113986230",
+      "modTitle": "Wall Pumps",
+      "uiImageRect": {
+        "x": -0.075,
+        "y": -0.015,
+        "w": 1.12,
+        "h": 1.1
+      },
+      "buildLocationRule": 6,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 3,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        100
       ]
     }
   ],
@@ -37671,6 +40145,534 @@
       }
     },
     {
+      "name": "Drain",
+      "textureName": "Drain",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 227,
+        "y": 227
+      },
+      "realSize": {
+        "x": 227,
+        "y": 227
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "PAirlockDoor",
+      "textureName": "PAirlockDoor",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 619,
+        "y": 444
+      },
+      "realSize": {
+        "x": 619,
+        "y": 444
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "PAirlockDoorInsulated",
+      "textureName": "PAirlockDoorInsulated",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 619,
+        "y": 444
+      },
+      "realSize": {
+        "x": 619,
+        "y": 444
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "DecompressionGasValve",
+      "textureName": "DecompressionGasValve",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 359,
+        "y": 177
+      },
+      "realSize": {
+        "x": 359,
+        "y": 177
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "DecompressionLiquidValve",
+      "textureName": "DecompressionLiquidValve",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 326,
+        "y": 146
+      },
+      "realSize": {
+        "x": 326,
+        "y": 146
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "HighPressureGasConduitBridge",
+      "textureName": "HighPressureGasConduitBridge",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 582,
+        "y": 265
+      },
+      "realSize": {
+        "x": 582,
+        "y": 265
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "HighPressureGasConduit",
+      "textureName": "HighPressureGasConduit",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 117,
+        "y": 115
+      },
+      "realSize": {
+        "x": 117,
+        "y": 115
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "HighPressureLiquidConduitBridge",
+      "textureName": "HighPressureLiquidConduitBridge",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 546,
+        "y": 215
+      },
+      "realSize": {
+        "x": 546,
+        "y": 215
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "HighPressureLiquidConduit",
+      "textureName": "HighPressureLiquidConduit",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 75,
+        "y": 74
+      },
+      "realSize": {
+        "x": 75,
+        "y": 74
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "PressureGasPump",
+      "textureName": "PressureGasPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 431,
+        "y": 585
+      },
+      "realSize": {
+        "x": 431,
+        "y": 585
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "PressureLiquidPump",
+      "textureName": "PressureLiquidPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 540,
+        "y": 686
+      },
+      "realSize": {
+        "x": 540,
+        "y": 686
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "MJSplitterMKIIGas",
+      "textureName": "MJSplitterMKIIGas",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 593,
+        "y": 287
+      },
+      "realSize": {
+        "x": 593,
+        "y": 287
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "MJSplitterMKIILiquid",
+      "textureName": "MJSplitterMKIILiquid",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 593,
+        "y": 287
+      },
+      "realSize": {
+        "x": 593,
+        "y": 287
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "MJSplitterMKIISolid",
+      "textureName": "MJSplitterMKIISolid",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 593,
+        "y": 287
+      },
+      "realSize": {
+        "x": 593,
+        "y": 287
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "PeterHan_FilteredGasPump",
+      "textureName": "PeterHan_FilteredGasPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 445,
+        "y": 430
+      },
+      "realSize": {
+        "x": 445,
+        "y": 430
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "PeterHan_FilteredLiquidPump",
+      "textureName": "PeterHan_FilteredLiquidPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 433,
+        "y": 510
+      },
+      "realSize": {
+        "x": 433,
+        "y": 510
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "FilteredGasPump",
+      "textureName": "FilteredGasPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 118,
+        "y": 128
+      },
+      "realSize": {
+        "x": 118,
+        "y": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "FilteredLiquidPump",
+      "textureName": "FilteredLiquidPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 134,
+        "y": 116
+      },
+      "realSize": {
+        "x": 134,
+        "y": 116
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "VacuumPump",
+      "textureName": "VacuumPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 203,
+        "y": 371
+      },
+      "realSize": {
+        "x": 203,
+        "y": 371
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "FairLiquidWallVent",
+      "textureName": "FairLiquidWallVent",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 224,
+        "y": 220
+      },
+      "realSize": {
+        "x": 224,
+        "y": 220
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "VentHighPressure",
+      "textureName": "VentHighPressure",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 224,
+        "y": 220
+      },
+      "realSize": {
+        "x": 224,
+        "y": 220
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "FairGasWallVent",
+      "textureName": "FairGasWallVent",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 224,
+        "y": 220
+      },
+      "realSize": {
+        "x": 224,
+        "y": 220
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "FairLiquidWallPump",
+      "textureName": "FairLiquidWallPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 224,
+        "y": 220
+      },
+      "realSize": {
+        "x": 224,
+        "y": 220
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "FairGasWallPump",
+      "textureName": "FairGasWallPump",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 224,
+        "y": 220
+      },
+      "realSize": {
+        "x": 224,
+        "y": 220
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "element_tile_back",
       "textureName": "element_tile_back",
       "isIcon": false,
@@ -38667,7 +41669,15 @@
     },
     {
       "category": -2955855,
+      "buildingId": "PAirlockDoorInsulated"
+    },
+    {
+      "category": -2955855,
       "buildingId": "PressureDoor"
+    },
+    {
+      "category": -2955855,
+      "buildingId": "PAirlockDoor"
     },
     {
       "category": -2955855,
@@ -39067,6 +42077,14 @@
     },
     {
       "category": -1014650956,
+      "buildingId": "FilteredLiquidPump"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "PeterHan_FilteredLiquidPump"
+    },
+    {
+      "category": -1014650956,
       "buildingId": "LiquidVent"
     },
     {
@@ -39110,6 +42128,38 @@
       "buildingId": "ContactConductivePipeBridge"
     },
     {
+      "category": -1014650956,
+      "buildingId": "MJSplitterMKIILiquid"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "DecompressionLiquidValve"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "PressureLiquidPump"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "HighPressureLiquidConduit"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "HighPressureLiquidConduitBridge"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "FairLiquidWallPump"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "FairLiquidWallVent"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "Drain"
+    },
+    {
       "category": 557910864,
       "buildingId": "DevPumpGas"
     },
@@ -39144,6 +42194,18 @@
     {
       "category": 557910864,
       "buildingId": "GasMiniPump"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "FilteredGasPump"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "PeterHan_FilteredGasPump"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "VacuumPump"
     },
     {
       "category": 557910864,
@@ -39200,6 +42262,38 @@
     {
       "category": 557910864,
       "buildingId": "GasConduitTemperatureSensor"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "MJSplitterMKIIGas"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "DecompressionGasValve"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "PressureGasPump"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "HighPressureGasConduit"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "HighPressureGasConduitBridge"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "FairGasWallPump"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "FairGasWallVent"
+    },
+    {
+      "category": 557910864,
+      "buildingId": "VentHighPressure"
     },
     {
       "category": 8593386,
@@ -39916,6 +43010,10 @@
     {
       "category": -1745293257,
       "buildingId": "ModularLaunchpadPortSolidUnloader"
+    },
+    {
+      "category": -1745293257,
+      "buildingId": "MJSplitterMKIISolid"
     },
     {
       "category": 104161307,
@@ -43261,6 +46359,68 @@
       "conduitColor": 16777215,
       "uiColor": 16711689,
       "icon": "COMPOSITION"
+    }
+  ],
+  "mods": [
+    {
+      "id": "2094698134",
+      "title": "Airlock Door",
+      "buildings": [
+        "PAirlockDoor",
+        "PAirlockDoorInsulated"
+      ]
+    },
+    {
+      "id": "1866754178",
+      "title": "Drains",
+      "buildings": [
+        "Drain"
+      ]
+    },
+    {
+      "id": "2806200110",
+      "title": "High Pressure Applications",
+      "buildings": [
+        "DecompressionGasValve",
+        "DecompressionLiquidValve",
+        "HighPressureGasConduit",
+        "HighPressureGasConduitBridge",
+        "HighPressureLiquidConduit",
+        "HighPressureLiquidConduitBridge",
+        "PressureGasPump",
+        "PressureLiquidPump"
+      ]
+    },
+    {
+      "id": "1887986467",
+      "title": "Smart Pumps",
+      "buildings": [
+        "FilteredGasPump",
+        "FilteredLiquidPump",
+        "PeterHan_FilteredGasPump",
+        "PeterHan_FilteredLiquidPump",
+        "VacuumPump"
+      ]
+    },
+    {
+      "id": "3544371748",
+      "title": "Splitters MK II",
+      "buildings": [
+        "MJSplitterMKIIGas",
+        "MJSplitterMKIILiquid",
+        "MJSplitterMKIISolid"
+      ]
+    },
+    {
+      "id": "3113986230",
+      "title": "Wall Pumps",
+      "buildings": [
+        "FairGasWallPump",
+        "FairGasWallVent",
+        "FairLiquidWallPump",
+        "FairLiquidWallVent",
+        "VentHighPressure"
+      ]
     }
   ]
 }

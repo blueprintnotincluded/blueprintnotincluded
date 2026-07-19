@@ -55,8 +55,11 @@ describe('Database Asset Validation', () => {
       database = readDatabase();
     });
 
-    it('should have 449 buildings and 212 elements', () => {
-      expect(database.buildings.length).to.equal(449);
+    it('should have 473 buildings and 212 elements', () => {
+      // 449 vanilla + 24 modded (6 Steam Workshop mods) — see
+      // spec/WEBSITE_MOD_IMPORT.md. Import defensively: this count varies
+      // with whatever mods were enabled at export time.
+      expect(database.buildings.length).to.equal(473);
       expect(database.elements.length).to.equal(212);
     });
 

@@ -18,6 +18,9 @@ export declare class OniItem {
     name: string;
     dlcIds: string[];
     roomTags: string[];
+    mod?: string;
+    modTitle?: string;
+    get isModded(): boolean;
     imageId: string;
     iconUrl: string;
     flatIconId: string;
