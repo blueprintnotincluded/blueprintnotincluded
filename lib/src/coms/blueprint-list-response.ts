@@ -88,4 +88,9 @@ export interface BlueprintResponse {
   modded?: boolean | null;
   rooms?: string[] | null;
   isPublished: boolean;
+  // True when the server holds the verbatim BlueprintsV2 upload — downloads
+  // should fetch GET /api/blueprints/:id/raw instead of regenerating the
+  // file from the parsed data.
+  hasRawSource?: boolean;
+  rawSourceFormat?: string | null;
 }

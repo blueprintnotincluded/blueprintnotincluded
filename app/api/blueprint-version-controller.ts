@@ -311,6 +311,10 @@ export class BlueprintVersionController {
       blueprint.modifiedAt = new Date();
       // The live content changed, so the derived room tags change with it.
       blueprint.rooms = deriveRooms(version.data);
+      // A stored verbatim upload no longer matches the restored data — drop
+      // it rather than serve an original that disagrees with the render.
+      blueprint.rawSource = null;
+      blueprint.rawSourceFormat = null;
       await blueprint.save();
 
       // Render-on-write: warm the preview cache with the restored data (Phase 2).

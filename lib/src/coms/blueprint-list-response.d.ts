@@ -62,5 +62,7 @@ export interface BlueprintResponse {
     modded?: boolean | null;
     rooms?: string[] | null;
     isPublished: boolean;
+    hasRawSource?: boolean;
+    rawSourceFormat?: string | null;
 }
 //# sourceMappingURL=blueprint-list-response.d.ts.map

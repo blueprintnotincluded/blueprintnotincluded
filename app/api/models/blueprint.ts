@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { GAME_VERSIONS, CATEGORIES, RESEARCH_TIERS, ROOM_TYPE_IDS } from '../../../lib/index';
+import {
+  GAME_VERSIONS,
+  CATEGORIES,
+  RESEARCH_TIERS,
+  ROOM_TYPE_IDS,
+  RAW_SOURCE_FORMATS,
+  RawSourceFormat,
+} from '../../../lib/index';
 
 // Discriminator for the stored thumbnail: 'real' = data-URI image, the other
 // two are placeholder sentinels stored verbatim in `thumbnail`. Exists so list
@@ -63,6 +70,14 @@ export interface Blueprint extends Document {
   // BlueprintCounterService, not per request
   viewCount?: number;
   downloadCount?: number;
+  // Verbatim BlueprintsV2 upload (the .blueprint JSON text or share-string)
+  // — the byte-exact source of truth for re-download (spec/blueprintsv2-
+  // import-spec.md §8). Present only while the stored `data` still matches
+  // the imported content: any edit-save or version restore clears it, so a
+  // served raw file can never disagree with the rendered blueprint. Must be
+  // excluded from every list query (like `data`).
+  rawSource?: string | null;
+  rawSourceFormat?: RawSourceFormat | null;
   // Materialized trending score ("new but also good"), computed by
   // lib computeHotScore and refreshed on every engagement write (ratings,
   // download flush) + at creation. Static per document (recency term is keyed
@@ -134,6 +149,8 @@ export class BlueprintModel {
       forkCount: { type: Number, default: 0 },
       viewCount: { type: Number, default: 0 },
       downloadCount: { type: Number, default: 0 },
+      rawSource: { type: String, default: null },
+      rawSourceFormat: { type: String, enum: [...RAW_SOURCE_FORMATS, null], default: null },
       // No default: absent = not yet materialized (pre-backfill), so those
       // docs sort last under { hotScore: -1 } rather than tying at 0.
       hotScore: { type: Number },

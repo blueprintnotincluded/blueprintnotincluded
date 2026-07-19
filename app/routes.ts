@@ -89,6 +89,8 @@ export class Routes {
     // Fallback image for cards when the preview render errors — the stored
     // save-time thumbnail decoded from its data URI
     app.route('/api/blueprints/:id/thumbnail').get(this.uploadBlueprintController.getBlueprintThumbnail);
+    // Verbatim BlueprintsV2 upload (byte-exact round-trip); 404 when absent
+    app.route('/api/blueprints/:id/raw').get(this.uploadBlueprintController.getBlueprintRawSource);
     app.route('/api/blueprints/:id/comments').get(this.commentController.list);
     app.route('/api/blueprints/:id/versions').get(this.blueprintVersionController.listVersions);
     // Download beacon: anonymous (the editor's file export works logged out);
