@@ -1,4 +1,5 @@
 import { ForkedFromDto } from './blueprint-version';
+import { RawSourceFormat } from '../io/bni/bni-share-string';
 
 export interface BlueprintListResponse {
   blueprints: BlueprintListItem[];
@@ -92,5 +93,5 @@ export interface BlueprintResponse {
   // should fetch GET /api/blueprints/:id/raw instead of regenerating the
   // file from the parsed data.
   hasRawSource?: boolean;
-  rawSourceFormat?: string | null;
+  rawSourceFormat?: RawSourceFormat | null;
 }

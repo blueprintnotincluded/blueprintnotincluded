@@ -654,17 +654,17 @@ describe("BlueprintService", () => {
   });
 
   describe("loadJsonBlueprint()", () => {
-    it("sets name from the BNI blueprint friendlyname", () => {
+    it("sets name from the BNI blueprint friendlyname", async () => {
       const json = JSON.stringify({
         friendlyname: "My JSON Blueprint",
         buildings: [],
         digcommands: [],
       });
-      (service as any).loadJsonBlueprint(json);
+      await (service as any).loadJsonBlueprint(json);
       expect(service.name).toBe("My JSON Blueprint");
     });
 
-    it("notifies observers with a Blueprint instance", () => {
+    it("notifies observers with a Blueprint instance", async () => {
       const obs = { blueprintChanged: vi.fn() };
       service.subscribeBlueprintChanged(obs);
       obs.blueprintChanged.mockClear();
@@ -673,7 +673,7 @@ describe("BlueprintService", () => {
         buildings: [],
         digcommands: [],
       });
-      (service as any).loadJsonBlueprint(json);
+      await (service as any).loadJsonBlueprint(json);
       expect(obs.blueprintChanged).toHaveBeenCalled();
     });
   });
@@ -719,6 +719,34 @@ describe("BlueprintService", () => {
       await expect(
         service.openBlueprintFromShareString("not a blueprint at all"),
       ).rejects.toThrow();
+    });
+
+    it("leaves the current session state untouched when the paste is invalid", async () => {
+      service.id = "open-blueprint";
+      service.metadata = { description: "existing" };
+      await expect(
+        service.openBlueprintFromShareString("not a blueprint at all"),
+      ).rejects.toThrow();
+      expect(service.id).toBe("open-blueprint");
+      expect(service.metadata.description).toBe("existing");
+    });
+
+    it("notifies import-error observers when a file upload fails to parse", async () => {
+      const onError = vi.fn();
+      service.subscribeImportError(onError);
+      const reader = {
+        readAsText: vi.fn(),
+        onloadend: null as null | (() => void),
+        result: "garbage that is not a blueprint",
+      };
+      vi.stubGlobal(
+        "FileReader",
+        vi.fn(() => reader),
+      );
+      (service as any).openJsonBlueprint({} as File);
+      reader.onloadend!();
+      await vi.waitFor(() => expect(onError).toHaveBeenCalled());
+      vi.unstubAllGlobals();
     });
 
     it("getValidRawSource returns the import while content is unedited", async () => {
@@ -817,6 +845,34 @@ describe("BlueprintService", () => {
       service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
 
       expect(saveSpy).toHaveBeenCalledWith("SHARE-STRING", "My Blueprint.txt");
+    });
+
+    it("falls back to generating the file when the raw fetch fails", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.get.mockImplementation((url: string) =>
+        url.endsWith("/raw")
+          ? throwError(() => new Error("404"))
+          : of({
+              hasRawSource: true,
+              rawSourceFormat: "bpv2-json",
+              data: { blueprintItems: [] },
+            }),
+      );
+
+      service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
+
+      expect(saveSpy).toHaveBeenCalledWith(
+        expect.stringContaining("friendlyname"),
+        "My Blueprint.blueprint",
+      );
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/blueprints/bp1/downloads",
+        {},
+        expect.anything(),
+      );
     });
 
     it("generates the file from parsed data when no raw is stored", () => {

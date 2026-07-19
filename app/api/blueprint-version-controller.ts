@@ -261,6 +261,10 @@ export class BlueprintVersionController {
           .sort({ createdAt: -1 });
         // liveCount > 1 guarantees a next version exists
         blueprint.currentVersionId = next!._id as mongoose.Types.ObjectId;
+        // The live content changed — a stored verbatim upload no longer
+        // matches it (same rule as restoreVersion)
+        blueprint.rawSource = null;
+        blueprint.rawSourceFormat = null;
         await blueprint.save();
       }
 

@@ -166,6 +166,7 @@ export class ComponentBlueprintParentComponent
     BuildableElement.init();
 
     this.blueprintService.subscribeBlueprintChanged(this);
+    this.blueprintService.subscribeImportError(this.onImportError);
 
     this.fetchDatabase().then(() => {
       if (!this.forceSize) {
@@ -218,7 +219,18 @@ export class ComponentBlueprintParentComponent
 
   ngOnDestroy() {
     this.blueprintService.unsubscribeBlueprintChanged(this);
+    this.blueprintService.unsubscribeImportError(this.onImportError);
   }
+
+  // File-upload imports fail inside a FileReader callback — the service
+  // surfaces them here so the user sees more than a console line
+  private onImportError = (_error: unknown) => {
+    this.messageService.add({
+      severity: "error",
+      summary: $localize`Could not import blueprint`,
+      detail: $localize`The file is not a valid .blueprint file or blueprint share string`,
+    });
+  };
 
   blueprintChanged(blueprint: Blueprint) {
     this.loadTemplateIntoCanvas(blueprint);
