@@ -54,7 +54,7 @@ export function parseNoteTintHex(hex: string | undefined): {
   color: number;
   alpha: number;
 } {
-  if (hex == null || !/^[0-9a-fA-F]{6,8}$/.test(hex))
+  if (hex == null || !/^(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(hex))
     return { color: DEFAULT_BADGE_COLOR, alpha: 1 };
   const color = parseInt(hex.slice(0, 6), 16);
   const alpha = hex.length >= 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1;
@@ -176,15 +176,12 @@ export class DrawNotesOverlay {
     }
   }
 
-  // One "i" glyph and one label per note, indexed like this.prepared. Pooled
-  // so restyling text (which re-rasterizes) only happens when notes change.
+  // One "i" glyph and one label per note, indexed like this.prepared. The
+  // pool arrays are never truncated: entries are reused by index and any
+  // beyond the current note count are hidden (not dropped), so every text
+  // object we ever created stays tracked and reusable rather than leaking as
+  // an orphaned-but-attached container child when the note set shrinks.
   private syncText() {
-    for (const g of this.glyphs) g.visible = false;
-    for (const l of this.labels) l.visible = false;
-
-    const glyphs: any[] = [];
-    const labels: any[] = [];
-
     for (let i = 0; i < this.prepared.length; i++) {
       const note = this.prepared[i];
 
@@ -193,21 +190,24 @@ export class DrawNotesOverlay {
         glyph = this.drawPixi.getNewText("i", GLYPH_STYLE);
         glyph.anchor.set(0.5, 0.5);
         this.container.addChild(glyph);
+        this.glyphs[i] = glyph;
       }
       glyph.visible = true;
-      glyphs.push(glyph);
 
       let label = this.labels[i];
       if (label == null) {
         label = this.drawPixi.getNewText(note.label, LABEL_STYLE);
         label.anchor.set(0.5, 0);
         this.container.addChild(label);
+        this.labels[i] = label;
       } else if (label.text !== note.label) label.text = note.label;
       label.visible = note.label.length > 0;
-      labels.push(label);
     }
 
-    this.glyphs = glyphs;
-    this.labels = labels;
+    // Hide pooled objects beyond the current note count; kept for reuse.
+    for (let i = this.prepared.length; i < this.glyphs.length; i++)
+      this.glyphs[i].visible = false;
+    for (let i = this.prepared.length; i < this.labels.length; i++)
+      this.labels[i].visible = false;
   }
 }
