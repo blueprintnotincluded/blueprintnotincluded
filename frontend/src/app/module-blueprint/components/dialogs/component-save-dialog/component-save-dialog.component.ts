@@ -178,10 +178,14 @@ export class ComponentSaveDialogComponent {
     const gameVersion = deriveGameVersion(buildingDlcIds);
 
     const knownIds = new Set(OniItem.oniItems.map((i) => i.id));
+    const modByPrefabId = new Map(
+      OniItem.oniItems.filter((i) => i.mod != null).map((i) => [i.id, i.mod!]),
+    );
     const mdbBlueprint = blueprint.toMdbBlueprint();
     const prefabIds = mdbBlueprint.blueprintItems.map((b) => b.id);
     const modded =
-      blueprint.hadUnknownBuildings || deriveModded(prefabIds, knownIds);
+      blueprint.hadUnknownBuildings ||
+      deriveModded(prefabIds, knownIds, modByPrefabId);
 
     this.saveBlueprintForm.patchValue({ gameVersion, modded });
 

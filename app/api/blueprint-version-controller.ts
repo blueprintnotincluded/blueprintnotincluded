@@ -91,6 +91,7 @@ export class BlueprintVersionController {
         description: source.description ?? null,
         researchTier: source.researchTier ?? null,
         modded: source.modded ?? null,
+        mods: source.mods ?? [],
         forkedFrom: {
           blueprintId: source._id,
           versionId: sourceVersion._id,

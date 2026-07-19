@@ -17,6 +17,7 @@ import { CommentController } from './api/comment-controller';
 import { NotificationController } from './api/notification-controller';
 import { PreviewController } from './api/preview-controller';
 import { AvatarController } from './api/avatar-controller';
+import { ModController } from './api/mod-controller';
 export class Routes {
   public staticController = new StaticController();
   public uploadBlueprintController = new BlueprintController();
@@ -31,6 +32,7 @@ export class Routes {
   public notificationController = new NotificationController();
   public previewController = new PreviewController();
   public avatarController = new AvatarController();
+  public modController = new ModController();
 
   public routes(app: Application): void {
     // Admin-only middleware: requires role === 'admin' in the JWT (set from WorkOS platform org membership)
@@ -78,6 +80,7 @@ export class Routes {
     app.route('/api/getblueprints').get(this.uploadBlueprintController.getBlueprints);
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
+    app.route('/api/mods').get(this.modController.getMods);
     app.route('/api/users/:username/profile').get(this.userController.getProfile);
     app.route('/api/users/:username/avatar').get(this.avatarController.getAvatar);
     app.route('/api/avatars/:id/image').get(this.avatarController.getAvatarImage);

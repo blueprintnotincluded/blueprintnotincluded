@@ -21,6 +21,7 @@ export interface BlueprintListItem {
     subcategory?: string | null;
     description?: string | null;
     modded?: boolean | null;
+    mods?: string[];
     rooms?: string[] | null;
     isPublished: boolean;
     nbForks: number;
@@ -61,6 +62,7 @@ export interface BlueprintResponse {
     description?: string | null;
     researchTier?: string | null;
     modded?: boolean | null;
+    mods?: string[];
     rooms?: string[] | null;
     isPublished: boolean;
     hasRawSource?: boolean;

@@ -244,17 +244,20 @@ const FOLLOWS: Array<[string, string]> = [
 function buildLookups(dbPath: string): {
   dlcIdsMap: Map<string, string[]>;
   knownIds: Set<string>;
+  modByPrefabId: Map<string, string>;
   categoryLookup: CategoryLookup;
 } {
   const raw = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
   const dlcIdsMap = new Map<string, string[]>();
   const knownIds = new Set<string>();
+  const modByPrefabId = new Map<string, string>();
   for (const building of raw.buildings) {
     dlcIdsMap.set(building.prefabId, building.dlcIds ?? []);
     knownIds.add(building.prefabId);
+    if (building.mod) modByPrefabId.set(building.prefabId, building.mod);
   }
   const categoryLookup = buildCategoryLookup(raw.buildMenuCategories, raw.buildMenuItems);
-  return { dlcIdsMap, knownIds, categoryLookup };
+  return { dlcIdsMap, knownIds, modByPrefabId, categoryLookup };
 }
 
 function blueprintData(prefabIds: string[]) {
@@ -451,7 +454,7 @@ async function run() {
   if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not set — cannot mint dev login tokens');
 
   const dbPath = path.resolve(__dirname, '../../../assets/database/database-2024.json');
-  const { dlcIdsMap, knownIds, categoryLookup } = buildLookups(dbPath);
+  const { dlcIdsMap, knownIds, modByPrefabId, categoryLookup } = buildLookups(dbPath);
 
   await mongoose.connect(mongoUri);
   initModels();
@@ -472,7 +475,7 @@ async function run() {
   for (const spec of SOURCE_SPECS) {
     const buildingDlcIds = spec.prefabIds.map(id => dlcIdsMap.get(id) ?? []);
     const gameVersion = deriveGameVersion(buildingDlcIds);
-    const modded = deriveModded(spec.prefabIds, knownIds);
+    const modded = deriveModded(spec.prefabIds, knownIds, modByPrefabId);
     const category = deriveCategory(spec.prefabIds, categoryLookup);
 
     const raterIds = spec.ratedBy.map(u => idOf(u).toString());
@@ -526,7 +529,7 @@ async function run() {
     category: deriveCategory(myPrefabs, categoryLookup),
     subcategory: 'generator',
     description: 'Owned by the protected dev_you account — your validation sandbox.',
-    modded: deriveModded(myPrefabs, knownIds),
+    modded: deriveModded(myPrefabs, knownIds, modByPrefabId),
     createdAt: myCreated,
     modifiedAt: myCreated,
     deletedAt: null,

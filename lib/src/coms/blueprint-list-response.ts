@@ -29,6 +29,9 @@ export interface BlueprintListItem {
   subcategory?: string | null;
   description?: string | null;
   modded?: boolean | null;
+  // Workshop ids of the mods this blueprint's buildings come from
+  // (see Blueprint.mods); absent = never derived, [] = derived, no known mods.
+  mods?: string[];
   // Server-derived room types contained in the blueprint (see RoomTypeId);
   // null = never derived or too large for detection
   rooms?: string[] | null;
@@ -87,6 +90,7 @@ export interface BlueprintResponse {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
+  mods?: string[];
   rooms?: string[] | null;
   isPublished: boolean;
   // True when the server holds the verbatim BlueprintsV2 upload — downloads

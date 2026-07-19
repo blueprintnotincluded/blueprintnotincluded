@@ -25,11 +25,34 @@ export function deriveGameVersion(buildingDlcIds: DlcId[][]): GameVersion {
   return GAME_VERSIONS[best];
 }
 
-// Returns true when any building ID in the blueprint is not in the known set.
-// The known set is built from the loaded database (OniItem.oniItemsMap or the
-// database JSON). Blueprints with unknown IDs were created with mods.
-export function deriveModded(prefabIds: string[], knownIds: Set<string>): boolean {
-  return prefabIds.some(id => !knownIds.has(id));
+// Distinct, sorted workshop ids of the mods a blueprint's buildings come from.
+// modByPrefabId: prefabId -> workshop id, built from the loaded database
+// (entries whose building has `mod` set). Unknown prefab ids contribute nothing
+// here — they're the unknown-id leg of deriveModded.
+export function deriveBlueprintMods(
+  prefabIds: string[],
+  modByPrefabId: Map<string, string>
+): string[] {
+  const mods = new Set<string>();
+  for (const id of prefabIds) {
+    const mod = modByPrefabId.get(id);
+    if (mod !== undefined) mods.add(mod);
+  }
+  return [...mods].sort();
+}
+
+// True when the blueprint uses any known-mod building OR contains ids unknown
+// to the database (mods we don't ship, or buildings stripped at import — the
+// caller may also OR in Blueprint.hadUnknownBuildings for the stripped case).
+export function deriveModded(
+  prefabIds: string[],
+  knownIds: Set<string>,
+  modByPrefabId: Map<string, string>
+): boolean {
+  return (
+    deriveBlueprintMods(prefabIds, modByPrefabId).length > 0 ||
+    prefabIds.some(id => !knownIds.has(id))
+  );
 }
 
 // --- Trending "hot score" ----------------------------------------------

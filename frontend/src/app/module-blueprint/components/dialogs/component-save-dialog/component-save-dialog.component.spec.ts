@@ -203,6 +203,60 @@ describe("ComponentSaveDialogComponent", () => {
     });
   });
 
+  describe("computeDerivedMetadata modded detection", () => {
+    afterEach(() => {
+      (OniItem as any).oniItemsMap = undefined;
+      (BuildMenuCategory as any).buildMenuCategories = undefined;
+      (BuildMenuItem as any).buildMenuItems = undefined;
+    });
+
+    // Mirrors loadFakeDatabase() above, plus one known-mod building so
+    // deriveModded's mod leg has something to match against. `id` must be
+    // set on each fake OniItem: computeDerivedMetadata builds knownIds from
+    // OniItem.oniItems.map(i => i.id), so an id-less mock would make every
+    // real prefab look "unknown" and always derive modded: true.
+    function loadFakeDatabaseWithMod() {
+      OniItem.oniItemsMap = new Map([
+        ["Electrolyzer", { id: "Electrolyzer" } as any],
+        ["PAirlockDoor", { id: "PAirlockDoor", mod: "2094698134" } as any],
+      ]);
+      BuildMenuCategory.buildMenuCategories = [];
+      BuildMenuItem.buildMenuItems = [];
+    }
+
+    function fakeBlueprint(prefabIds: string[]) {
+      return {
+        blueprintItems: prefabIds.map(() => ({ oniItem: { dlcIds: [] } })),
+        hadUnknownBuildings: false,
+        toMdbBlueprint: () => ({
+          blueprintItems: prefabIds.map((id) => ({ id })),
+        }),
+      } as any;
+    }
+
+    it("derives modded: true when the blueprint contains a known-mod building", () => {
+      loadFakeDatabaseWithMod();
+      const blueprintService = TestBed.inject(BlueprintService);
+      blueprintService.blueprint = fakeBlueprint(["PAirlockDoor"]);
+
+      component.showDialog();
+
+      // modded is a disabled control — disabled controls are excluded from
+      // FormGroup.value, so read it directly off the control.
+      expect(component.saveBlueprintForm.controls.modded.value).toBe(true);
+    });
+
+    it("derives modded: false for a vanilla-only blueprint", () => {
+      loadFakeDatabaseWithMod();
+      const blueprintService = TestBed.inject(BlueprintService);
+      blueprintService.blueprint = fakeBlueprint(["Electrolyzer"]);
+
+      component.showDialog();
+
+      expect(component.saveBlueprintForm.controls.modded.value).toBe(false);
+    });
+  });
+
   it("renders Save & Publish and Save as draft buttons on a first save", async () => {
     vi.useFakeTimers();
     try {
