@@ -14,6 +14,7 @@ import { BuildMenuItem, BuildMenuCategory } from './b-export/b-build-order';
 import { BuildLocationRule } from './enums/build-location-rule';
 import { ConnectionType } from './enums/connection-type';
 import { ImageSource } from './drawing/image-source';
+import { AreaOfEffect, dedupeAreasOfEffect } from './area-of-effect';
 
 export class OniItem {
   static elementId = 'Element';
@@ -51,6 +52,7 @@ export class OniItem {
   size: Vector2 = new Vector2();
   tileOffset: Vector2 = new Vector2();
   utilityConnections: UtilityConnection[] = [];
+  areasOfEffect: AreaOfEffect[] = [];
   backColor: number = 0x000000;
   frontColor: number = 0xffffff;
   orientations: Orientation[] = [];
@@ -135,6 +137,7 @@ export class OniItem {
     this.isBridge = original.isBridge;
     this.isTile = original.isTile;
     this.isFoundation = original.isFoundation ?? false;
+    this.areasOfEffect = dedupeAreasOfEffect(original.areasOfEffect);
 
     this.spriteModifierId = original.kanimPrefix;
     if (original.uiImage) {
@@ -293,6 +296,7 @@ export class OniItem {
     if (this.isElement == null) this.isElement = false;
     if (this.size == null) this.size = new Vector2();
     if (this.utilityConnections == null) this.utilityConnections = [];
+    if (this.areasOfEffect == null) this.areasOfEffect = [];
     if (this.zIndex == null) this.zIndex = ZIndex.Building;
     if (this.permittedRotations == null) this.permittedRotations = PermittedRotations.Unrotatable;
     if (this.backColor == null) this.backColor = 0x000000;

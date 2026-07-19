@@ -85,6 +85,40 @@ describe('Database Asset Validation', () => {
       });
     });
 
+    it('should preserve representative areas of effect and omit empty arrays', () => {
+      const byId = new Map<string, BBuilding>(
+        (database.buildings as BBuilding[]).map(building => [building.prefabId, building])
+      );
+      const expectedKinds = new Map([
+        ['FloorLamp', 'light'],
+        ['AirFilter', 'elementIntake'],
+        ['SolidTransferArm', 'operationRange'],
+        ['RadiationLight', 'radiation'],
+        ['CometDetector', 'skyScan'],
+      ]);
+      for (const [prefabId, kind] of expectedKinds) {
+        const building = byId.get(prefabId);
+        expect(building, `${prefabId} should exist`).not.to.equal(undefined);
+        expect(building!.areasOfEffect, `${prefabId} areasOfEffect`).to.be.an('array').that.is.not
+          .empty;
+        expect(building!.areasOfEffect!.some(effect => effect.kind === kind)).to.equal(true);
+      }
+
+      const rawBuildingFile = JSON.parse(
+        fs.readFileSync(path.join(__dirname, '../../export/database/building.json'), 'utf8')
+      );
+      const rawFloorLamp = rawBuildingFile.bBuildingDefList.find(
+        (building: { name: string }) => building.name === 'FloorLamp'
+      );
+      expect(byId.get('FloorLamp')!.areasOfEffect).to.deep.equal(rawFloorLamp.areasOfEffect);
+
+      for (const building of database.buildings as BBuilding[])
+        expect(
+          building.areasOfEffect,
+          `${building.prefabId} empty areasOfEffect`
+        ).not.to.deep.equal([]);
+    });
+
     it('should have overlay info sprites in uiSprites', () => {
       const infoSprites = (database.uiSprites as BSpriteInfo[]).filter(
         si => si.name && (si.name.includes('info') || si.name.includes('tile'))

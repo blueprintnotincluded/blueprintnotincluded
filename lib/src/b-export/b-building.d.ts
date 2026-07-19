@@ -7,6 +7,7 @@ import { BUiScreen } from '../b-export/b-ui-screen';
 import { Vector2 } from '../vector2';
 import { ZIndex } from '../enums/z-index';
 import { BuildLocationRule } from '../enums/build-location-rule';
+import { AreaOfEffect } from '../area-of-effect';
 export declare class BBuilding {
     name: string;
     prefabId: string;
@@ -25,6 +26,7 @@ export declare class BBuilding {
     spriteInfos: BSpriteInfo[];
     spriteModifiers: BSpriteModifier[];
     utilities: UtilityConnection[];
+    areasOfEffect?: AreaOfEffect[];
     materialCategory: string[];
     materialMass: number[];
     uiScreens: BUiScreen[];

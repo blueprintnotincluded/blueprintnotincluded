@@ -89,6 +89,9 @@ export interface BBuildingDef2024 {
   // to the ConnectionType int via CONNECTION_TYPE_BY_NAME. Absent on buildings with no ports.
   utilities?: BUtilityConnection2024[];
 
+  // Nominal, unobstructed reach previews. Omitted when the building has none.
+  areasOfEffect?: import('../area-of-effect').AreaOfEffect[];
+
   // Domain payloads (kept opaque — not needed for rendering/build-menu).
   energyGenerator?: unknown;
   conduitConsumer?: unknown;

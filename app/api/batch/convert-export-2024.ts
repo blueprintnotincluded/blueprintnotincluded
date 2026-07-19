@@ -989,6 +989,7 @@ function buildingRecord(
     ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),
     buildLocationRule: b.buildLocationRule,
     utilities: utilitiesRecord(b, unknownConnectionTypes),
+    ...(b.areasOfEffect?.length ? { areasOfEffect: b.areasOfEffect } : {}),
     uiScreens: [],
     sprites: { groupName: 'all sprites', spriteNames: [] }, // flat icon: no atlas sprites
     materialCategory: b.materialCategory ?? [],

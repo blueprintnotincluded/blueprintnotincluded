@@ -45,6 +45,7 @@ export interface BBuildingDef2024 {
         h: number;
     };
     utilities?: BUtilityConnection2024[];
+    areasOfEffect?: import('../area-of-effect').AreaOfEffect[];
     energyGenerator?: unknown;
     conduitConsumer?: unknown;
     conduitDispenser?: unknown;
