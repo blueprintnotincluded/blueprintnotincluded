@@ -33,6 +33,7 @@ import { DrawPixi } from "../../drawing/draw-pixi";
 import { DrawMiniUi } from "../../drawing/draw-mini-ui";
 import { DrawRoomOverlay } from "../../drawing/draw-room-overlay";
 import { DrawNotesOverlay } from "../../drawing/draw-notes-overlay";
+import { DrawPlanningOverlay } from "../../drawing/draw-planning-overlay";
 import { RoomDetectionService } from "../../services/room-detection-service";
 import { WorldNoteService } from "../../services/world-note.service";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
@@ -80,6 +81,7 @@ export class ComponentCanvasComponent
   drawPixi: DrawPixi;
   drawRoomOverlay!: DrawRoomOverlay;
   drawNotesOverlay!: DrawNotesOverlay;
+  drawPlanningOverlay!: DrawPlanningOverlay;
 
   private cameraService: CameraService;
 
@@ -119,6 +121,7 @@ export class ComponentCanvasComponent
       this.cameraService.container = this.drawPixi.blueprintContainer;
       this.drawRoomOverlay = new DrawRoomOverlay(this.drawPixi);
       this.drawNotesOverlay = new DrawNotesOverlay(this.drawPixi);
+      this.drawPlanningOverlay = new DrawPlanningOverlay(this.drawPixi);
 
       if (this.forceSize) {
         const miniUi = new DrawMiniUi();
@@ -239,7 +242,10 @@ export class ComponentCanvasComponent
       new Vector2(rect.width - rect.left, rect.height - rect.top),
     );
 
-    if (source.blueprintItems.length > 0) {
+    if (
+      source.blueprintItems.length > 0 ||
+      source.planningToolShapes.length > 0
+    ) {
       const boundingBox = this.blueprint.getBoundingBox();
       const topLeft = boundingBox[0];
       const bottomRight = boundingBox[1];
@@ -1089,6 +1095,13 @@ export class ComponentCanvasComponent
       }
 
       this.toolService.draw(this.drawPixi, this.cameraService);
+
+      // Planning Tool cells are blueprint content, so include them in the
+      // editor, thumbnails, and exported images.
+      this.drawPlanningOverlay.draw(
+        this.blueprint.planningToolShapes,
+        this.cameraService,
+      );
 
       // Room overlay: cavity tints + labels above everything. Only the main
       // editor canvas drives detection activity — export/thumbnail canvases

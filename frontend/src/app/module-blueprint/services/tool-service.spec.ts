@@ -28,18 +28,21 @@ describe("ToolService", () => {
   let mockBuild: ReturnType<typeof makeTool>;
   let mockElementReport: any;
   let mockScissors: ReturnType<typeof makeTool>;
+  let mockPlanning: ReturnType<typeof makeTool>;
 
   beforeEach(() => {
     mockSelect = makeTool(ToolType.select);
     mockBuild = makeTool(ToolType.build);
     mockElementReport = {};
     mockScissors = makeTool(ToolType.scissors);
+    mockPlanning = makeTool(ToolType.planning);
 
     service = new ToolService(
       mockSelect as any,
       mockBuild as any,
       mockElementReport,
       mockScissors as any,
+      mockPlanning as any,
     );
   });
 
@@ -54,6 +57,10 @@ describe("ToolService", () => {
 
     it("returns scissorsTool for ToolType.scissors", () => {
       expect(service.getTool(ToolType.scissors)).toBe(mockScissors);
+    });
+
+    it("returns planningTool for ToolType.planning", () => {
+      expect(service.getTool(ToolType.planning)).toBe(mockPlanning);
     });
   });
 

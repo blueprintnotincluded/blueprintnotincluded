@@ -1,0 +1,58 @@
+.planning-card {
+  padding: 12px;
+}
+.section-label {
+  margin: 12px 0 6px;
+  font-weight: 600;
+}
+.shape-grid,
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.choice-button,
+.color-button,
+.eraser-button {
+  border: 2px solid #6a6256;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.choice-button {
+  width: 52px;
+  height: 52px;
+  background: #d5c5a7;
+}
+.shape {
+  display: inline-block;
+  width: 27px;
+  height: 27px;
+  background: #4169e1;
+  border: 2px solid #4a4134;
+}
+.shape.circle {
+  border-radius: 50%;
+}
+.shape.diamond {
+  transform: rotate(45deg);
+  width: 23px;
+  height: 23px;
+}
+.color-button {
+  width: 32px;
+  height: 32px;
+}
+.selected {
+  outline: 3px solid #fff;
+  box-shadow: 0 0 0 5px #3b82f6;
+}
+.eraser-button {
+  display: block;
+  margin-top: 14px;
+  padding: 8px 10px;
+  background: #d5c5a7;
+}
+.hint {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+}
