@@ -10,6 +10,7 @@ import { Overlay } from './enums/overlay';
 import { BBuilding } from './b-export/b-building';
 import { BuildMenuCategory } from './b-export/b-build-order';
 import { BuildLocationRule } from './enums/build-location-rule';
+import { AreaOfEffect } from './area-of-effect';
 export declare class OniItem {
     static elementId: string;
     static infoId: string;
@@ -34,6 +35,7 @@ export declare class OniItem {
     size: Vector2;
     tileOffset: Vector2;
     utilityConnections: UtilityConnection[];
+    areasOfEffect: AreaOfEffect[];
     backColor: number;
     frontColor: number;
     orientations: Orientation[];

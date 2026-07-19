@@ -34,6 +34,7 @@ import { DrawMiniUi } from "../../drawing/draw-mini-ui";
 import { DrawRoomOverlay } from "../../drawing/draw-room-overlay";
 import { DrawNotesOverlay } from "../../drawing/draw-notes-overlay";
 import { DrawPlanningOverlay } from "../../drawing/draw-planning-overlay";
+import { drawAreaOfEffects } from "../../drawing/draw-area-of-effect";
 import { RoomDetectionService } from "../../services/room-detection-service";
 import { WorldNoteService } from "../../services/world-note.service";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
@@ -1088,6 +1089,15 @@ export class ComponentCanvasComponent
     }
 
     if (this.blueprint != null) {
+      const buildCandidate = this.toolService.buildTool.templateItemToBuild;
+      drawAreaOfEffects(
+        this.drawPixi,
+        this.blueprint.blueprintItems,
+        buildCandidate,
+        this.toolService.buildTool.visible,
+        this.cameraService,
+      );
+
       for (const templateItem of this.blueprint.blueprintItems) {
         //templateItem.updateTileables(this.blueprint);
         this.drawPixi.drawTemplateItem(templateItem, this.cameraService);

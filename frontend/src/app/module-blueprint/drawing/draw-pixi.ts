@@ -160,6 +160,47 @@ export class DrawPixi implements PixiUtil {
     this.backGraphics.moveTo(start.x, start.y);
     this.backGraphics.lineTo(end.x, end.y);
   }
+
+  drawBlueprintDashedLine(
+    camera: CameraService,
+    start: Vector2,
+    end: Vector2,
+    color: number,
+    alpha = 0.9,
+  ) {
+    const startScreen = new Vector2(
+      (start.x + camera.cameraOffset.x) * camera.currentZoom,
+      (-start.y + camera.cameraOffset.y) * camera.currentZoom,
+    );
+    const endScreen = new Vector2(
+      (end.x + camera.cameraOffset.x) * camera.currentZoom,
+      (-end.y + camera.cameraOffset.y) * camera.currentZoom,
+    );
+    const dx = endScreen.x - startScreen.x;
+    const dy = endScreen.y - startScreen.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length === 0) return;
+
+    const dashLength = Math.max(5, Math.min(12, camera.currentZoom * 0.24));
+    const gapLength = Math.max(3, Math.min(8, camera.currentZoom * 0.14));
+    const stride = dashLength + gapLength;
+    this.backGraphics.lineStyle(
+      Math.max(1.5, Math.min(4, camera.currentZoom * 0.045)),
+      color,
+      alpha,
+    );
+    for (let distance = 0; distance < length; distance += stride) {
+      const dashEnd = Math.min(distance + dashLength, length);
+      this.backGraphics.moveTo(
+        startScreen.x + (dx * distance) / length,
+        startScreen.y + (dy * distance) / length,
+      );
+      this.backGraphics.lineTo(
+        startScreen.x + (dx * dashEnd) / length,
+        startScreen.y + (dy * dashEnd) / length,
+      );
+    }
+  }
   drawTemplateItem(templateItem: BlueprintItem, camera: CameraService) {
     templateItem.drawPixi(camera, this);
   }
@@ -186,6 +227,9 @@ export class DrawPixi implements PixiUtil {
 
     const graphics = frontGraphics ? this.frontGraphics : this.backGraphics;
 
+    // PIXI retains the previous line style. A borderless rectangle drawn after
+    // another primitive must explicitly disable that stroke or it gets an outline.
+    if (borderWidth <= 0) graphics.lineStyle(0, borderColor, 0);
     graphics.beginFill(fillColor, fillAlpha);
     graphics.drawRect(
       rectanglePosition.x,
