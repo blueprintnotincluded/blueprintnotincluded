@@ -4,6 +4,7 @@ import {
   CameraService,
   orientAreaOfEffectCell,
   resolveAreaOfEffectCells,
+  ROOM_BOUNDARY_DOORS,
   Vector2,
 } from "../../../../../lib/index";
 import { DrawPixi } from "./draw-pixi";
@@ -22,9 +23,24 @@ const cellKey = (cell: { x: number; y: number }): string =>
   `${cell.x},${cell.y}`;
 
 export function solidFoundationCells(items: BlueprintItem[]): Set<string> {
+  return blockerCells(items, false);
+}
+
+export function solidAndDoorBlockerCells(items: BlueprintItem[]): Set<string> {
+  return blockerCells(items, true);
+}
+
+function blockerCells(
+  items: BlueprintItem[],
+  includeDoors: boolean,
+): Set<string> {
   const cells = new Set<string>();
   for (const item of items) {
-    if (!item.oniItem.isFoundation) continue;
+    if (
+      !item.oniItem.isFoundation &&
+      !(includeDoors && ROOM_BOUNDARY_DOORS.has(item.oniItem.id))
+    )
+      continue;
     const left = Math.round(item.topLeft?.x ?? item.position.x);
     const right = Math.round(item.bottomRight?.x ?? item.position.x);
     const top = Math.round(item.topLeft?.y ?? item.position.y);
@@ -98,6 +114,7 @@ export function drawAreaOfEffectItem(
   item: BlueprintItem,
   camera: CameraService,
   solidCells: ReadonlySet<string> = new Set<string>(),
+  solidAndDoorBlockers: ReadonlySet<string> = solidCells,
 ): void {
   for (const effect of item.oniItem.areasOfEffect ?? []) {
     const color = areaOfEffectColor(effect);
@@ -105,11 +122,15 @@ export function drawAreaOfEffectItem(
       const cell = orientAreaOfEffectCell(localCell, item.orientation);
       return new Vector2(item.position.x + cell.x, item.position.y + cell.y);
     });
-    if (
-      effect.kind === "light" &&
-      effect.blockedBySolids &&
-      solidCells.size > 0
-    ) {
+    const blockers =
+      effect.kind === "light"
+        ? solidCells
+        : effect.kind === "operationRange" || effect.kind === "skyScan"
+          ? solidAndDoorBlockers
+          : undefined;
+    // TODO: Radiation needs material-dependent attenuation, not binary cell occlusion.
+    // Keep its exported nominal footprint until element/material data can be sampled here.
+    if (effect.blockedBySolids && blockers && blockers.size > 0) {
       const localEmitter = orientAreaOfEffectCell(
         new Vector2(effect.origin.x, effect.origin.y),
         item.orientation,
@@ -119,7 +140,7 @@ export function drawAreaOfEffectItem(
         item.position.y + localEmitter.y,
       );
       cells = cells.filter(
-        (cell) => !isLightCellObstructed(emitter, cell, solidCells),
+        (cell) => !isLightCellObstructed(emitter, cell, blockers),
       );
     }
     const occupied = new Set(cells.map(cellKey));
@@ -185,9 +206,23 @@ export function drawAreaOfEffects(
   camera: CameraService,
 ): void {
   const solidCells = solidFoundationCells(items);
+  const solidAndDoorBlockers = solidAndDoorBlockerCells(items);
   for (const item of items) {
-    if (item.selected) drawAreaOfEffectItem(drawPixi, item, camera, solidCells);
+    if (item.selected)
+      drawAreaOfEffectItem(
+        drawPixi,
+        item,
+        camera,
+        solidCells,
+        solidAndDoorBlockers,
+      );
   }
   if (buildToolVisible && buildCandidate?.isBuildCandidate)
-    drawAreaOfEffectItem(drawPixi, buildCandidate, camera, solidCells);
+    drawAreaOfEffectItem(
+      drawPixi,
+      buildCandidate,
+      camera,
+      solidCells,
+      solidAndDoorBlockers,
+    );
 }

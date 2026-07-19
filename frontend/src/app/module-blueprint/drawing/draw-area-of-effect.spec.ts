@@ -6,6 +6,7 @@ import {
   drawAreaOfEffectItem,
   drawAreaOfEffects,
   isLightCellObstructed,
+  solidAndDoorBlockerCells,
   solidFoundationCells,
 } from "./draw-area-of-effect";
 
@@ -136,7 +137,26 @@ describe("area-of-effect renderer", () => {
     ]);
   });
 
-  it("clips only blocked light effects while leaving other effect kinds nominal", () => {
+  it("adds doors to operation-range blockers without blocking ordinary buildings", () => {
+    const items = [
+      {
+        oniItem: { id: "Door", isFoundation: false },
+        position: { x: 2, y: 0 },
+        topLeft: { x: 2, y: 1 },
+        bottomRight: { x: 2, y: 0 },
+      },
+      {
+        oniItem: { id: "StorageLocker", isFoundation: false },
+        position: { x: 4, y: 0 },
+        topLeft: { x: 4, y: 1 },
+        bottomRight: { x: 4, y: 0 },
+      },
+    ] as any;
+    expect([...solidFoundationCells(items)]).toEqual([]);
+    expect([...solidAndDoorBlockerCells(items)].sort()).toEqual(["2,0", "2,1"]);
+  });
+
+  it("clips blocked light while leaving non-occluded effect kinds nominal", () => {
     const drawTileRectangle = vi.fn();
     const drawPixi = {
       drawTileRectangle,
@@ -154,7 +174,7 @@ describe("area-of-effect renderer", () => {
               [2, 0],
             ],
           }),
-          effect({ kind: "operationRange", cells: [[2, 0]] }),
+          effect({ kind: "elementIntake", cells: [[2, 0]] }),
         ],
       },
       orientation: Orientation.Neutral,
@@ -163,8 +183,71 @@ describe("area-of-effect renderer", () => {
     drawAreaOfEffectItem(drawPixi, item, {} as any, new Set(["1,0"]));
     expect(drawTileRectangle).toHaveBeenCalledTimes(2);
     expect(drawTileRectangle.mock.calls.map((call) => call[5])).toEqual([
-      0xffd45c, 0xf2a65a,
+      0xffd45c, 0x58c7e8,
     ]);
+  });
+
+  it("clips operation ranges behind tiles and doors", () => {
+    const drawTileRectangle = vi.fn();
+    const item = {
+      oniItem: {
+        areasOfEffect: [
+          effect({
+            kind: "operationRange",
+            origin: { x: 0, y: 0 },
+            cells: [
+              [0, 0],
+              [1, 0],
+              [2, 0],
+            ],
+          }),
+        ],
+      },
+      orientation: Orientation.Neutral,
+      position: { x: 0, y: 0 },
+    } as any;
+    drawAreaOfEffectItem(
+      { drawTileRectangle, drawBlueprintDashedLine: vi.fn() } as any,
+      item,
+      {} as any,
+      new Set(),
+      new Set(["1,0"]),
+    );
+    expect(drawTileRectangle).toHaveBeenCalledTimes(1);
+    const topLeft = drawTileRectangle.mock.calls[0][1];
+    expect([topLeft.x, topLeft.y]).toEqual([0, 0]);
+  });
+
+  it("clips sky-scan columns at tiles and doors", () => {
+    const drawTileRectangle = vi.fn();
+    const item = {
+      oniItem: {
+        areasOfEffect: [
+          effect({
+            kind: "skyScan",
+            shape: "skyColumns",
+            origin: { x: 0, y: 0 },
+            cells: [
+              [0, 0],
+              [0, 1],
+              [0, 2],
+            ],
+          }),
+        ],
+      },
+      orientation: Orientation.Neutral,
+      position: { x: 0, y: 0 },
+    } as any;
+    drawAreaOfEffectItem(
+      { drawTileRectangle, drawBlueprintDashedLine: vi.fn() } as any,
+      item,
+      {} as any,
+      new Set(),
+      new Set(["0,1"]),
+    );
+    expect(drawTileRectangle).toHaveBeenCalledTimes(1);
+    const topLeft = drawTileRectangle.mock.calls[0][1];
+    expect([topLeft.x, topLeft.y]).toEqual([0, 0]);
   });
 
   it("fails silently when metadata is missing or params-only geometry is unsupported", () => {
