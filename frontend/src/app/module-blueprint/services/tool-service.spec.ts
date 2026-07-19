@@ -1,6 +1,7 @@
 import { ToolService } from "./tool-service";
 import { ToolType } from "../common/tools/tool";
 import { Vector2 } from "../../../../../lib/index";
+import { PlanningTool } from "../common/tools/planning-tool";
 
 const makeTool = (toolType: ToolType, toolGroup = 1) => ({
   toolType,
@@ -42,7 +43,7 @@ describe("ToolService", () => {
       mockBuild as any,
       mockElementReport,
       mockScissors as any,
-      mockPlanning as any,
+      mockPlanning as unknown as PlanningTool,
     );
   });
 

@@ -18,7 +18,7 @@ export class PlanningTool implements ITool {
   color = 1;
   erase = false;
   private hoverTile: Vector2 | null = null;
-  private preview: any = null;
+  private preview: PIXI.Graphics | null = null;
 
   constructor(private blueprintService: BlueprintService) {}
 
@@ -77,15 +77,18 @@ export class PlanningTool implements ITool {
   keyDown(_keyCode: string) {}
 
   draw(drawPixi: DrawPixi, camera: CameraService) {
-    if (this.preview == null) {
-      this.preview = drawPixi.getNewGraphics();
-      drawPixi.pixiApp.stage.addChild(this.preview);
+    let preview = this.preview;
+    if (preview == null) {
+      const created = drawPixi.getNewGraphics() as PIXI.Graphics;
+      drawPixi.pixiApp.stage.addChild(created);
+      this.preview = created;
+      preview = created;
     }
-    this.preview.clear();
-    this.preview.visible = this.hoverTile != null && !this.erase;
-    if (this.preview.visible)
+    preview.clear();
+    preview.visible = this.hoverTile != null && !this.erase;
+    if (preview.visible)
       drawPlanningShape(
-        this.preview,
+        preview,
         { ...this.hoverTile!, shape: this.shape, color: this.color },
         camera,
         0.55,

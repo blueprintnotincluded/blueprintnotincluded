@@ -9,7 +9,7 @@ export const PLANNING_COLORS = [
 const OUTLINE = 0x4a4134;
 
 export function drawPlanningShape(
-  graphics: any,
+  graphics: PIXI.Graphics,
   plan: BniPlanShape,
   camera: CameraService,
   alpha = 0.9,
@@ -48,7 +48,7 @@ export function drawPlanningShape(
 
 /** Cell-sized decorative markers written by the Planning Tool mod. */
 export class DrawPlanningOverlay {
-  private graphics: any;
+  private graphics: PIXI.Graphics;
 
   constructor(drawPixi: DrawPixi) {
     this.graphics = drawPixi.getNewGraphics();

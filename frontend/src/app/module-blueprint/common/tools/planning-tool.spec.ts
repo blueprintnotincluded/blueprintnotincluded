@@ -1,14 +1,21 @@
 import { PlanningTool } from "./planning-tool";
 import { ToolType } from "./tool";
-import { Vector2 } from "../../../../../../lib/index";
+import { BniPlanShape, Vector2 } from "../../../../../../lib/index";
+import { BlueprintService } from "../../services/blueprint-service";
+
+interface PlanningBlueprintMock {
+  planningToolShapes: BniPlanShape[];
+  emitBlueprintChanged: ReturnType<typeof vi.fn>;
+}
 
 describe("PlanningTool", () => {
   let tool: PlanningTool;
-  let blueprint: any;
+  let blueprint: PlanningBlueprintMock;
 
   beforeEach(() => {
     blueprint = { planningToolShapes: [], emitBlueprintChanged: vi.fn() };
-    tool = new PlanningTool({ blueprint } as any);
+    const blueprintService = { blueprint } as unknown as BlueprintService;
+    tool = new PlanningTool(blueprintService);
   });
 
   it("is an exclusive input tool", () => {
