@@ -569,6 +569,19 @@ export function convertExport2024(opts: ConvertOptions): void {
     });
   }
 
+  // --- Mods index: distinct `mod` values across bBuildingDefList (NOT the root
+  // `mods` roster, which is metadata-only — see spec/WEBSITE_MOD_IMPORT.md §2). ---
+  const modsById = new Map<string, { id: string; title: string; buildings: string[] }>();
+  for (const b of buildingFile.bBuildingDefList) {
+    if (!b.mod) continue;
+    const entry = modsById.get(b.mod) ?? { id: b.mod, title: b.modTitle ?? b.mod, buildings: [] };
+    entry.buildings.push(b.name);
+    modsById.set(b.mod, entry);
+  }
+  const mods = [...modsById.values()]
+    .map((m) => ({ ...m, buildings: [...m.buildings].sort() }))
+    .sort((a, b) => a.title.localeCompare(b.title));
+
   // --- Elements: elementTable dict -> array ---
   const elements = Object.values(elementsFile.elementTable).map((e) => ({
     name: e.name,
@@ -662,6 +675,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     buildMenuCategories,
     buildMenuItems,
     elements,
+    mods,
   };
 
   // --- Report ---
@@ -674,6 +688,13 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  buildMenuItems     :', buildMenuItems.length);
   console.log('  ui_image PNGs      :', uiImageFiles.size);
   console.log('  english strings    :', Object.keys(englishStrings).length);
+  console.log(
+    '  modded buildings   :',
+    buildings.filter((b) => b.mod).length,
+    'from',
+    mods.length,
+    'mods'
+  );
   console.log('--- validation ---');
   console.log('  po_string.json present             :', hasPoStrings);
   console.log('  utility indicator PNGs missing     :', missingIndicatorPngs.length);
@@ -961,6 +982,8 @@ function buildingRecord(
     connectionScale,
     dlcIds: normalizeDlcIds(b.kPrefabID?.requiredDlcIds),
     roomTags: roomTagsRecord(b, roomTagVocabulary),
+    ...(b.mod ? { mod: b.mod, modTitle: b.modTitle } : {}),
+    ...(b.offlineMerged ? { offlineMerged: true } : {}),
     // Optional flat-icon placement (cells, footprint-relative). Passed through from the
     // export when present; absent ⇒ renderer stretches the icon to the footprint (legacy).
     ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),

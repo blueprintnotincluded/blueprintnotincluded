@@ -21,7 +21,7 @@ export interface BKPrefabID2024 {
 export interface BBuildingDef2024 {
     name: string;
     nameString: string;
-    kPrefabID: BKPrefabID2024;
+    kPrefabID?: BKPrefabID2024;
     tags: BTag2024[] | null;
     widthInCells: number;
     heightInCells: number;
@@ -54,6 +54,9 @@ export interface BBuildingDef2024 {
     passiveElementConsumers?: unknown[];
     storage?: unknown;
     battery?: unknown;
+    mod?: string;
+    modTitle?: string;
+    offlineMerged?: true;
 }
 export interface BUtilityConnection2024 {
     offset: {
@@ -80,6 +83,12 @@ export interface BBuildingFile2024 extends BExport2024Meta {
     };
     roomConstraintTags?: BTag2024[] | null;
     requiredSkillPerkMap?: unknown;
+    mods?: {
+        id: string;
+        title: string;
+        buildings: string[];
+    }[];
+    modMergeInfo?: unknown;
 }
 export interface BElement2024 {
     name: string;

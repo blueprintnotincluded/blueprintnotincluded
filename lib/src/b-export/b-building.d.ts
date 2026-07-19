@@ -45,6 +45,8 @@ export declare class BBuilding {
         w: number;
         h: number;
     };
+    mod?: string;
+    modTitle?: string;
 }
 export declare class BSpriteGroup {
     groupName: string;

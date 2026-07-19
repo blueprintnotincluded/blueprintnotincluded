@@ -13,8 +13,13 @@ import {
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
 // BlueprintsV2 v3 import coverage (spec/blueprintsv2-import-spec.md), driven
-// by a real mod export: 70 buildings, material overrides, custom icon, both
-// note kinds, and one modded building (PAirlockDoor) we don't know.
+// by a real mod export: 71 buildings, material overrides, custom icon, both
+// note kinds. PAirlockDoor was originally an unsupported modded building in
+// this fixture; the site now ships Airlock Door mod support (see
+// spec/WEBSITE_MOD_IMPORT.md), so it imports as a known (modded) building
+// like the other 70. The unknown-building code path (hadUnknownBuildings,
+// unknownBuildingDefs) is covered independently in blueprint-import.test.ts
+// with a synthetic id.
 const FIXTURE_PATH = path.join(__dirname, '../fixtures/bpv2-example-meta.blueprint');
 
 describe('BlueprintsV2 import', function () {
@@ -35,15 +40,19 @@ describe('BlueprintsV2 import', function () {
       blueprint.importFromBni(fixture);
     });
 
-    it('imports every known building and skips only the modded one', () => {
-      // 71 buildings in the file, exactly 1 (the modded PAirlockDoor) unknown
+    it('imports every building in the file, including the now-known modded one', () => {
+      // 71 buildings in the file; PAirlockDoor is a known modded building
+      // now that the site ships Airlock Door mod support.
       expect(fixture.buildings).to.have.length(71);
-      expect(blueprint.blueprintItems).to.have.length(70);
+      expect(blueprint.blueprintItems).to.have.length(71);
     });
 
-    it('collects the unknown building defs (Q8) instead of dropping silently', () => {
-      expect(blueprint.hadUnknownBuildings).to.equal(true);
-      expect(blueprint.unknownBuildingDefs).to.deep.equal(['PAirlockDoor']);
+    it('does not flag PAirlockDoor as unknown now that its mod is supported', () => {
+      expect(blueprint.hadUnknownBuildings).to.equal(false);
+      expect(blueprint.unknownBuildingDefs).to.deep.equal([]);
+      const airlockDoor = blueprint.blueprintItems.find(item => item.id == 'PAirlockDoor');
+      expect(airlockDoor).to.not.equal(undefined);
+      expect(airlockDoor!.oniItem.mod).to.equal('2094698134');
     });
 
     it('resolves material tag hashes to elements (P1/Q1)', () => {
