@@ -16,7 +16,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { deriveGameVersion, deriveModded, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
+import { deriveGameVersion, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { MdbBlueprint } from '../../../lib/index';
 
@@ -25,25 +25,28 @@ dotenv.config();
 function buildLookups(dbPath: string): {
   dlcIdsMap: Map<string, string[]>;
   knownIds: Set<string>;
+  modByPrefabId: Map<string, string>;
   categoryLookup: CategoryLookup;
 } {
   const raw = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
   const dlcIdsMap = new Map<string, string[]>();
   const knownIds = new Set<string>();
+  const modByPrefabId = new Map<string, string>();
 
   for (const building of raw.buildings) {
     dlcIdsMap.set(building.prefabId, building.dlcIds ?? []);
     knownIds.add(building.prefabId);
+    if (building.mod) modByPrefabId.set(building.prefabId, building.mod);
   }
 
   const categoryLookup = buildCategoryLookup(raw.buildMenuCategories, raw.buildMenuItems);
 
-  return { dlcIdsMap, knownIds, categoryLookup };
+  return { dlcIdsMap, knownIds, modByPrefabId, categoryLookup };
 }
 
 async function run(dryRun: boolean) {
   const dbPath = path.resolve(__dirname, '../../../assets/database/database-2024.json');
-  const { dlcIdsMap, knownIds, categoryLookup } = buildLookups(dbPath);
+  const { dlcIdsMap, knownIds, modByPrefabId, categoryLookup } = buildLookups(dbPath);
 
   const mongoUri = process.env.DB_URI;
   if (!mongoUri) throw new Error('DB_URI not set in environment');
@@ -57,6 +60,8 @@ async function run(dryRun: boolean) {
   let tagged = 0;
   let alreadyTagged = 0;
   let leftUntagged = 0;
+  let blueprintsWithMods = 0;
+  const distinctMods = new Set<string>();
 
   for await (const doc of cursor) {
     const mdb = doc.data as MdbBlueprint;
@@ -66,7 +71,8 @@ async function run(dryRun: boolean) {
     const gameVersion = deriveGameVersion(buildingDlcIds);
     // Only trust a positive modded=true: unknown buildings were stripped at import,
     // so false here means "no remaining IDs are unknown" — not "definitely vanilla".
-    const derivedModded = deriveModded(prefabIds, knownIds);
+    const derivedModded = deriveModded(prefabIds, knownIds, modByPrefabId);
+    const derivedMods = deriveBlueprintMods(prefabIds, modByPrefabId);
 
     if (doc.category != null) alreadyTagged++;
     const derivedCategory = doc.category == null ? deriveCategory(prefabIds, categoryLookup) : null;
@@ -80,21 +86,28 @@ async function run(dryRun: boolean) {
     const changed =
       doc.gameVersion !== gameVersion ||
       (derivedModded && doc.modded !== true) ||
+      JSON.stringify(doc.mods ?? null) !== JSON.stringify(derivedMods) ||
       derivedCategory != null;
 
     if (changed) {
       updated++;
       if (!dryRun) {
-        const $set: Record<string, unknown> = { gameVersion };
+        const $set: Record<string, unknown> = { gameVersion, mods: derivedMods };
         if (derivedModded) $set.modded = true;
         if (derivedCategory != null) $set.category = derivedCategory;
         await BlueprintModel.model.updateOne({ _id: doc._id }, { $set });
       }
     }
+
+    if (derivedMods.length > 0) {
+      blueprintsWithMods++;
+      for (const mod of derivedMods) distinctMods.add(mod);
+    }
   }
 
   console.log(`Processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
   console.log(`Category — tagged: ${tagged}, left untagged: ${leftUntagged}, already set: ${alreadyTagged}`);
+  console.log(`mods tagged: ${blueprintsWithMods} blueprints reference ${distinctMods.size} distinct mods`);
   await mongoose.disconnect();
 }
 

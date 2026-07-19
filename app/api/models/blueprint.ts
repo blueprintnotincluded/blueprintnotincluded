@@ -55,6 +55,10 @@ export interface Blueprint extends Document {
   description?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
+  // Workshop ids of the mods this blueprint's buildings come from. Server-derived
+  // on every save (mod-derivation-service); absent on legacy docs until the
+  // derive-metadata backfill runs. [] = derived, no known-mod buildings.
+  mods?: string[];
   // Room types detected in the blueprint content, server-derived on every save
   // (never client-supplied). null/absent = never derived or blueprint too large
   // for detection; [] = derived, no rooms found.
@@ -127,6 +131,11 @@ export class BlueprintModel {
       description: { type: String, maxlength: 500 },
       researchTier: { type: String, enum: [...RESEARCH_TIERS, null] },
       modded: { type: Boolean },
+      // default: undefined (NOT []) — a schema default would make every hydrated
+      // legacy doc appear to have mods:[] and get written back on unrelated saves,
+      // destroying the "absent until backfilled" signal. Same convention as the
+      // draft-blueprints fields.
+      mods: { type: [String], default: undefined },
       // No default: absent means "never derived", distinct from [] = "derived,
       // none found" (mirrors the gameVersion nullability convention).
       rooms: { type: [String], enum: ROOM_TYPE_IDS, default: undefined },

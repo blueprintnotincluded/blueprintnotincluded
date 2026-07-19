@@ -41,6 +41,7 @@ import {
 } from './services/blueprint-version-service';
 import { PreviewImageService } from './services/preview-image-service';
 import { deriveRooms } from './services/room-derivation-service';
+import { deriveMods } from './services/mod-derivation-service';
 import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
@@ -489,6 +490,7 @@ export class BlueprintController {
         description: blueprint.description ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
+        mods: blueprint.mods ?? [],
         rooms: blueprint.rooms ?? null,
         isPublished: blueprint.isPublished !== false,
         hasRawSource: blueprint.rawSource != null,
@@ -989,6 +991,7 @@ export class BlueprintController {
       subcategory: blueprint.subcategory ?? null,
       description: blueprint.description ?? null,
       modded: blueprint.modded ?? null,
+      mods: blueprint.mods ?? [],
       rooms: blueprint.rooms ?? null,
       isPublished: blueprint.isPublished !== false,
       nbForks: blueprint.forkCount ?? 0,
@@ -1282,6 +1285,7 @@ export class BlueprintController {
         description: blueprint.description ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
+        mods: blueprint.mods ?? [],
         rooms: blueprint.rooms ?? null,
         isPublished: blueprint.isPublished !== false,
         nbForks: blueprint.forkCount ?? 0,
@@ -1412,6 +1416,8 @@ export class BlueprintController {
     // Derived fact, never client-supplied — any `rooms` key in the request
     // body is ignored (same policy as a client trying to set ratingCount).
     blueprint.rooms = deriveRooms(data);
+    // Derived fact, never client-supplied (same policy as rooms).
+    blueprint.mods = deriveMods(data);
     // Set on every save: absence clears a previously stored raw so it can
     // never go stale relative to `data` (see the model field comment).
     blueprint.rawSource = rawSource?.source ?? null;
@@ -1424,6 +1430,9 @@ export class BlueprintController {
       blueprint.description = metadata.description;
       blueprint.researchTier = metadata.researchTier;
       blueprint.modded = metadata.modded;
+      // A blueprint using known-mod buildings is modded regardless of what the
+      // client derived (protects against stale clients shipping the old heuristic).
+      if (blueprint.mods.length > 0) blueprint.modded = true;
     }
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();

@@ -3,6 +3,7 @@ import db from "../assets/database/database-2024.json";
 import {
   deriveGameVersion,
   deriveModded,
+  deriveBlueprintMods,
   deriveCategory,
   buildCategoryLookup,
   CATEGORIES,
@@ -60,31 +61,97 @@ describe("deriveGameVersion", () => {
 
 describe("deriveModded", () => {
   const knownIds = new Set(["WireRefinedHighWattage", "GasPipe", "LiquidPipe"]);
+  const noMods = new Map<string, string>();
 
   it("returns false when all building IDs are known", () => {
-    expect(deriveModded(["WireRefinedHighWattage", "GasPipe"], knownIds)).toBe(
-      false,
-    );
+    expect(
+      deriveModded(["WireRefinedHighWattage", "GasPipe"], knownIds, noMods),
+    ).toBe(false);
   });
 
   it("returns true when any building ID is unknown", () => {
     expect(
-      deriveModded(["WireRefinedHighWattage", "ModdedSuperFurnace"], knownIds),
+      deriveModded(
+        ["WireRefinedHighWattage", "ModdedSuperFurnace"],
+        knownIds,
+        noMods,
+      ),
     ).toBe(true);
   });
 
   it("returns false for an empty blueprint", () => {
-    expect(deriveModded([], knownIds)).toBe(false);
+    expect(deriveModded([], knownIds, noMods)).toBe(false);
   });
 
   it("returns true when all buildings are unknown", () => {
-    expect(deriveModded(["Mod1", "Mod2"], knownIds)).toBe(true);
+    expect(deriveModded(["Mod1", "Mod2"], knownIds, noMods)).toBe(true);
   });
 
   it("single unknown building triggers modded", () => {
     expect(
-      deriveModded(["LiquidPipe", "GasPipe", "Unknown123"], knownIds),
+      deriveModded(["LiquidPipe", "GasPipe", "Unknown123"], knownIds, noMods),
     ).toBe(true);
+  });
+
+  describe("truth table with known-mod buildings", () => {
+    const modByPrefabId = new Map([["PAirlockDoor", "2094698134"]]);
+
+    it("true when a known-mod building is present and all ids are known", () => {
+      expect(
+        deriveModded(["GasPipe", "PAirlockDoor"], knownIds, modByPrefabId),
+      ).toBe(true);
+    });
+
+    it("true when an unknown id is present, no known-mod building", () => {
+      expect(
+        deriveModded(["GasPipe", "Unknown123"], knownIds, modByPrefabId),
+      ).toBe(true);
+    });
+
+    it("true when both a known-mod building and an unknown id are present", () => {
+      expect(
+        deriveModded(["PAirlockDoor", "Unknown123"], knownIds, modByPrefabId),
+      ).toBe(true);
+    });
+
+    it("false when only known vanilla buildings are present", () => {
+      expect(
+        deriveModded(["GasPipe", "LiquidPipe"], knownIds, modByPrefabId),
+      ).toBe(false);
+    });
+  });
+});
+
+describe("deriveBlueprintMods", () => {
+  const modByPrefabId = new Map([
+    ["PAirlockDoor", "2094698134"],
+    ["PAirlockDoorInsulated", "2094698134"],
+    ["Drain", "1866754178"],
+  ]);
+
+  it("returns [] for a vanilla-only blueprint", () => {
+    expect(
+      deriveBlueprintMods(["GasPipe", "LiquidPipe"], modByPrefabId),
+    ).toEqual([]);
+  });
+
+  it("returns the sorted distinct mod ids for a mixed blueprint", () => {
+    expect(
+      deriveBlueprintMods(["GasPipe", "PAirlockDoor", "Drain"], modByPrefabId),
+    ).toEqual(["1866754178", "2094698134"]);
+  });
+
+  it("collapses duplicate buildings from the same mod", () => {
+    expect(
+      deriveBlueprintMods(
+        ["PAirlockDoor", "PAirlockDoor", "PAirlockDoorInsulated"],
+        modByPrefabId,
+      ),
+    ).toEqual(["2094698134"]);
+  });
+
+  it("ignores ids unknown to the mod map", () => {
+    expect(deriveBlueprintMods(["Unknown123"], modByPrefabId)).toEqual([]);
   });
 });
 
