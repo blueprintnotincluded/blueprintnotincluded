@@ -65,3 +65,7 @@
   (saveImages)="saveImages($event)"
 ></app-dialog-export-images>
 <app-feedback-dialog *ngIf="!forceSize" #feedbackDialog></app-feedback-dialog>
+<app-dialog-import-string
+  *ngIf="!forceSize"
+  #importStringDialog
+></app-dialog-import-string>

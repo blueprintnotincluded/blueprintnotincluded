@@ -53,6 +53,7 @@ import { BuildTool } from "./common/tools/build-tool";
 import { ScissorsTool } from "./common/tools/scissors-tool";
 import { ComponentSaveDialogComponent } from "./components/dialogs/component-save-dialog/component-save-dialog.component";
 import { DialogShareUrlComponent } from "./components/dialogs/dialog-share-url/dialog-share-url.component";
+import { DialogImportStringComponent } from "./components/dialogs/dialog-import-string/dialog-import-string.component";
 import { ComponentSideBuildToolComponent } from "./components/side-bar/build-tool/build-tool.component";
 import { ItemCollectionInfoComponent } from "./components/side-bar/item-collection-info/item-collection-info.component";
 import { DialogBrowseComponent } from "./components/dialogs/dialog-browse/dialog-browse.component";
@@ -120,6 +121,7 @@ import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-butt
     ComponentSideBuildToolComponent,
     ComponentSideSelectionToolComponent,
     DialogShareUrlComponent,
+    DialogImportStringComponent,
     ItemCollectionInfoComponent,
     DialogBrowseComponent,
     DialogExportImagesComponent,

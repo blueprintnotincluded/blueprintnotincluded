@@ -11,7 +11,6 @@ import {
 import { ActivatedRoute, Params, UrlSegment } from "@angular/router";
 import JSZip from "jszip";
 import { MessageService } from "primeng/api";
-import sanitize from "sanitize-filename";
 import {
   BBuilding,
   Blueprint,
@@ -49,6 +48,7 @@ import { DialogBrowseComponent } from "../dialogs/dialog-browse/dialog-browse.co
 import { DialogExportImagesComponent } from "../dialogs/dialog-export-images/dialog-export-images.component";
 import { DialogShareUrlComponent } from "../dialogs/dialog-share-url/dialog-share-url.component";
 import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dialog.component";
+import { DialogImportStringComponent } from "../dialogs/dialog-import-string/dialog-import-string.component";
 import { ComponentSideBuildToolComponent } from "../side-bar/build-tool/build-tool.component";
 import { ComponentSideSelectionToolComponent } from "../side-bar/selection-tool/selection-tool.component";
 
@@ -102,6 +102,9 @@ export class ComponentBlueprintParentComponent
 
   @ViewChild("feedbackDialog", { static: false })
   feedbackDialog!: FeedbackDialogComponent;
+
+  @ViewChild("importStringDialog", { static: false })
+  importStringDialog!: DialogImportStringComponent;
 
   // The left ui panel is not static, because when in a iframe we don't load it
   @ViewChild("sidePanelLeft", { static: false })
@@ -360,6 +363,8 @@ export class ComponentBlueprintParentComponent
       this.addElementsTiles();
     else if (menuCommand.type == MenuCommandType.sendFeedback)
       this.feedbackDialog.open();
+    else if (menuCommand.type == MenuCommandType.importBlueprintText)
+      this.importStringDialog.showDialog();
   }
 
   saveImages(exportOptions: ExportImageOptions) {
@@ -377,6 +382,16 @@ export class ComponentBlueprintParentComponent
       summary: $localize`Loaded blueprint: ${this.blueprintService.name}`,
       detail: $localize`${template.blueprintItems.length} items loaded`,
     });
+
+    // Q8: unknown (modded) buildings are skipped in the render but retained
+    // in the stored raw file — tell the user instead of dropping silently
+    if (template.unknownBuildingDefs.length > 0)
+      this.messageService.add({
+        severity: "warn",
+        summary: $localize`Unrecognized buildings`,
+        detail: $localize`${template.unknownBuildingDefs.length} building types are not in our database (probably from mods) and are not shown: ${template.unknownBuildingDefs.join(", ")}`,
+        sticky: true,
+      });
   }
 
   saveBlueprint() {
@@ -410,21 +425,9 @@ export class ComponentBlueprintParentComponent
       if (this.blueprintService.name != undefined)
         friendlyname = this.blueprintService.name;
 
-      const bniBlueprint =
-        this.blueprintService.blueprint.toBniBlueprint(friendlyname);
-
-      const a = document.createElement("a");
-      document.body.append(a);
-      a.download = sanitize(friendlyname) + ".blueprint";
-      a.href = URL.createObjectURL(
-        new Blob([JSON.stringify(bniBlueprint)], {}),
-      );
-      a.click();
-      a.remove();
-
-      // Only saved blueprints have a counter to increment
-      if (this.blueprintService.id != null)
-        this.blueprintService.trackDownload(this.blueprintService.id);
+      // Serves the byte-exact imported file when the blueprint is an
+      // unedited import; otherwise generates from the parsed model
+      this.blueprintService.exportBlueprintFile(friendlyname);
     }
   }
 

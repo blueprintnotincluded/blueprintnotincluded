@@ -694,4 +694,183 @@ describe("BlueprintService", () => {
       expect(obs.blueprintChanged).toHaveBeenCalled();
     });
   });
+
+  describe("BlueprintsV2 raw source round-trip", () => {
+    const BNI_JSON = JSON.stringify({
+      blueprintVersion: 3,
+      friendlyname: "Imported",
+      userdesc: "a description from the mod",
+      buildings: [],
+      digcommands: [],
+    });
+
+    it("keeps the verbatim import text and format after a JSON import", async () => {
+      await service.openBlueprintFromShareString(BNI_JSON);
+      expect(service.rawSource).toBe(BNI_JSON);
+      expect(service.rawSourceFormat).toBe("bpv2-json");
+    });
+
+    it("prefills metadata.description from userdesc", async () => {
+      await service.openBlueprintFromShareString(BNI_JSON);
+      expect(service.metadata.description).toBe("a description from the mod");
+    });
+
+    it("rejects text that is neither JSON nor a share-string", async () => {
+      await expect(
+        service.openBlueprintFromShareString("not a blueprint at all"),
+      ).rejects.toThrow();
+    });
+
+    it("getValidRawSource returns the import while content is unedited", async () => {
+      await service.openBlueprintFromShareString(BNI_JSON);
+      expect(service.getValidRawSource()).toEqual({
+        text: BNI_JSON,
+        format: "bpv2-json",
+      });
+    });
+
+    it("getValidRawSource returns null once the blueprint diverges", async () => {
+      await service.openBlueprintFromShareString(BNI_JSON);
+      vi.spyOn(service.blueprint, "toMdbBlueprint").mockReturnValue({
+        blueprintItems: [{ id: "Tile" }],
+      } as any);
+      expect(service.getValidRawSource()).toBeNull();
+    });
+
+    it("getValidRawSource returns null when nothing was imported", () => {
+      expect(service.getValidRawSource()).toBeNull();
+    });
+
+    it("saveBlueprint sends rawSource only while the import is unedited", async () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      mockHttp.post.mockReturnValue(of({ id: "new-id" }));
+      await service.openBlueprintFromShareString(BNI_JSON);
+
+      service.saveBlueprint(false).subscribe();
+      const body = mockHttp.post.mock.calls[0][1];
+      expect(body.rawSource).toBe(BNI_JSON);
+      expect(body.rawSourceFormat).toBe("bpv2-json");
+      expect(service.serverHasRawSource).toBe(true);
+    });
+
+    it("saveBlueprint omits rawSource for edited content", async () => {
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      mockHttp.post.mockReturnValue(of({ id: "new-id" }));
+      await service.openBlueprintFromShareString(BNI_JSON);
+      vi.spyOn(service.blueprint, "toMdbBlueprint").mockReturnValue({
+        blueprintItems: [{ id: "Tile" }],
+      } as any);
+
+      service.saveBlueprint(false).subscribe();
+      const body = mockHttp.post.mock.calls[0][1];
+      expect(body.rawSource).toBeUndefined();
+      expect(body.rawSourceFormat).toBeUndefined();
+      expect(service.serverHasRawSource).toBe(false);
+    });
+
+    it("reset clears the held raw source", async () => {
+      await service.openBlueprintFromShareString(BNI_JSON);
+      service.reset();
+      expect(service.rawSource).toBeNull();
+      expect(service.getValidRawSource()).toBeNull();
+    });
+  });
+
+  describe("downloadBlueprintFile()", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("serves the server's raw copy byte-exact when available", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+      mockHttp.get.mockImplementation((url: string) =>
+        url.endsWith("/raw")
+          ? of("RAW-TEXT")
+          : of({ hasRawSource: true, rawSourceFormat: "bpv2-json" }),
+      );
+
+      service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
+
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/blueprints/bp1/raw", {
+        responseType: "text",
+      });
+      expect(saveSpy).toHaveBeenCalledWith(
+        "RAW-TEXT",
+        "My Blueprint.blueprint",
+      );
+      // The raw endpoint records the download server-side — no beacon
+      expect(mockHttp.post).not.toHaveBeenCalled();
+    });
+
+    it("uses a .txt extension for share-string raws", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+      mockHttp.get.mockImplementation((url: string) =>
+        url.endsWith("/raw")
+          ? of("SHARE-STRING")
+          : of({ hasRawSource: true, rawSourceFormat: "bpv2-sharestring" }),
+      );
+
+      service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
+
+      expect(saveSpy).toHaveBeenCalledWith("SHARE-STRING", "My Blueprint.txt");
+    });
+
+    it("generates the file from parsed data when no raw is stored", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.get.mockReturnValue(
+        of({ hasRawSource: false, data: { blueprintItems: [] } }),
+      );
+
+      service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
+
+      expect(saveSpy).toHaveBeenCalledWith(
+        expect.stringContaining("friendlyname"),
+        "My Blueprint.blueprint",
+      );
+      // Client-side generation reports the download via the beacon
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/blueprints/bp1/downloads",
+        {},
+        expect.anything(),
+      );
+    });
+  });
+
+  describe("exportBlueprintFile()", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("serves the held raw import when the blueprint is unedited", async () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+      const json = JSON.stringify({ friendlyname: "T", buildings: [] });
+      await service.openBlueprintFromShareString(json);
+
+      service.exportBlueprintFile("T");
+
+      expect(saveSpy).toHaveBeenCalledWith(json, "T.blueprint");
+    });
+
+    it("generates from the parsed model when there is no raw", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+
+      service.exportBlueprintFile("Fresh");
+
+      expect(saveSpy).toHaveBeenCalledWith(
+        expect.stringContaining("friendlyname"),
+        "Fresh.blueprint",
+      );
+    });
+  });
 });

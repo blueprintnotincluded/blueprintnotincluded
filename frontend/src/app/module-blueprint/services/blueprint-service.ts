@@ -2,8 +2,10 @@ import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "./authentification-service";
-import { map, tap } from "rxjs/operators";
+import { map, switchMap, tap } from "rxjs/operators";
 import {
+  decodeBniShareString,
+  RawSourceFormat,
   Blueprint,
   IObsBlueprintChange,
   BlueprintItem,
@@ -124,21 +126,53 @@ export class BlueprintService implements IObsBlueprintChange {
   private openJsonBlueprint(file: File) {
     const reader = new FileReader();
     reader.onloadend = () => {
-      this.loadJsonBlueprint(reader.result as string);
+      this.loadJsonBlueprint(reader.result as string).catch((error) =>
+        console.error("Blueprint import failed", error),
+      );
     };
     reader.readAsText(file);
   }
 
-  private loadJsonBlueprint(template: string) {
-    const templateJson: BniBlueprint = JSON.parse(template);
+  // Accepts both BlueprintsV2 transports: the .blueprint JSON file text and
+  // the mod's clipboard share-string (base64 + 4-byte length header + gzip).
+  // The original text is kept verbatim (rawSource) so a save can offer the
+  // byte-exact file back to downloaders.
+  private async loadJsonBlueprint(template: string) {
+    let templateJson: BniBlueprint;
+    let format: RawSourceFormat = "bpv2-json";
+    try {
+      templateJson = JSON.parse(template);
+    } catch {
+      templateJson = JSON.parse(await decodeBniShareString(template));
+      format = "bpv2-sharestring";
+    }
 
     const newBlueprint = new Blueprint();
     this.name = templateJson.friendlyname;
     newBlueprint.importFromBni(templateJson);
 
+    this.rawSource = template;
+    this.rawSourceFormat = format;
+    // Fingerprint of the imported content: the raw text is only sent along
+    // with a save while the blueprint still hashes to this (edits invalidate
+    // the original file, which must never disagree with the stored data).
+    this.rawSourceMdbHash = this.hashMdb(newBlueprint.toMdbBlueprint());
+
+    // The mod's user description maps onto our description metadata
+    if (templateJson.userdesc && !this.metadata.description)
+      this.metadata.description = String(templateJson.userdesc).slice(0, 500);
+
     this.observersBlueprintChanged.map((observer) => {
       observer.blueprintChanged(newBlueprint);
     });
+  }
+
+  // Paste-import of the mod's copy-to-clipboard share-string (also tolerates
+  // raw .blueprint JSON, mirroring the mod's own tolerant import)
+  async openBlueprintFromShareString(text: string) {
+    this.reset();
+    await this.loadJsonBlueprint(text);
+    this.resetUndoStates();
   }
 
   private openBsonBlueprint(file: File) {
@@ -182,6 +216,35 @@ export class BlueprintService implements IObsBlueprintChange {
     this.rating = 0;
     this.nbRatings = 0;
     this.metadata = {};
+    this.clearRawSource();
+  }
+
+  // Verbatim BlueprintsV2 import text (file or share-string) held for the
+  // next save; see loadJsonBlueprint. serverHasRawSource mirrors whether the
+  // currently open saved blueprint has a stored raw on the server.
+  rawSource: string | null = null;
+  rawSourceFormat: RawSourceFormat | null = null;
+  private rawSourceMdbHash: number | null = null;
+  serverHasRawSource = false;
+  private serverRawSourceFormat: string | null = null;
+  private serverRawSourceMdbHash: number | null = null;
+
+  private clearRawSource() {
+    this.rawSource = null;
+    this.rawSourceFormat = null;
+    this.rawSourceMdbHash = null;
+    this.serverHasRawSource = false;
+    this.serverRawSourceFormat = null;
+    this.serverRawSourceMdbHash = null;
+  }
+
+  // The held raw text, provided the open blueprint still matches the import
+  // it came from — null once the user edits anything.
+  getValidRawSource(): { text: string; format: RawSourceFormat } | null {
+    if (this.rawSource == null || this.rawSourceFormat == null) return null;
+    if (this.rawSourceMdbHash !== this.hashMdb(this.blueprint.toMdbBlueprint()))
+      return null;
+    return { text: this.rawSource, format: this.rawSourceFormat };
   }
 
   suppressChanges!: boolean;
@@ -308,6 +371,9 @@ export class BlueprintService implements IObsBlueprintChange {
             this.rating = response.rating;
             this.myRating = response.myRating;
             this.isPublished = response.isPublished;
+            this.clearRawSource();
+            this.serverHasRawSource = response.hasRawSource === true;
+            this.serverRawSourceFormat = response.rawSourceFormat ?? null;
             this.metadata = {
               gameVersion: response.gameVersion ?? null,
               category: response.category ?? null,
@@ -316,6 +382,13 @@ export class BlueprintService implements IObsBlueprintChange {
               modded: response.modded ?? null,
             };
             blueprint.importFromMdb(response.data);
+            // Fingerprint the opened content through the same serializer the
+            // editor uses, so the Download menu can tell "unedited since
+            // open" and serve the server's byte-exact raw copy
+            if (this.serverHasRawSource)
+              this.serverRawSourceMdbHash = this.hashMdb(
+                blueprint.toMdbBlueprint(),
+              );
             return blueprint;
           }
           return undefined;
@@ -328,6 +401,9 @@ export class BlueprintService implements IObsBlueprintChange {
   // Downloads the game-ready .blueprint (json) file for a saved blueprint
   // without disturbing the editor's currently-open blueprint state — used by
   // the details page, which never opens the blueprint into the editor.
+  // When the server holds the verbatim uploaded file it is served byte-exact
+  // (spec/blueprintsv2-import-spec.md §8); otherwise the file is generated
+  // from the parsed data as before.
   downloadBlueprintFile(id: string, friendlyName: string) {
     return this.http
       .get<BlueprintResponse>(
@@ -341,25 +417,105 @@ export class BlueprintService implements IObsBlueprintChange {
           : {},
       )
       .pipe(
-        tap((response: BlueprintResponse) => {
+        switchMap((response: BlueprintResponse) => {
+          if (response.hasRawSource)
+            return this.http
+              .get(`/api/blueprints/${id}/raw`, { responseType: "text" })
+              .pipe(
+                tap((raw: string) => {
+                  const extension =
+                    response.rawSourceFormat === "bpv2-sharestring"
+                      ? ".txt"
+                      : ".blueprint";
+                  BlueprintService.saveTextFile(
+                    raw,
+                    sanitize(friendlyName) + extension,
+                  );
+                  // The raw endpoint records the download server-side —
+                  // no beacon needed
+                }),
+              );
+
           const blueprint = new Blueprint();
           blueprint.importFromMdb(response.data);
           const bniBlueprint = blueprint.toBniBlueprint(friendlyName);
 
-          const url = URL.createObjectURL(
-            new Blob([JSON.stringify(bniBlueprint)], {}),
+          BlueprintService.saveTextFile(
+            JSON.stringify(bniBlueprint),
+            sanitize(friendlyName) + ".blueprint",
           );
-          const a = document.createElement("a");
-          document.body.append(a);
-          a.download = sanitize(friendlyName) + ".blueprint";
-          a.href = url;
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
 
           this.trackDownload(id);
+          return [response];
         }),
       );
+  }
+
+  // Editor "Download → Blueprint (json)": serve byte-exact raw when the open
+  // blueprint is an unedited import (local raw text, or the server's stored
+  // raw for a blueprint opened by id); otherwise generate from the parsed
+  // model as before.
+  exportBlueprintFile(friendlyName: string) {
+    const localRaw = this.getValidRawSource();
+    if (localRaw != null) {
+      BlueprintService.saveTextFile(
+        localRaw.text,
+        sanitize(friendlyName) +
+          (localRaw.format === "bpv2-sharestring" ? ".txt" : ".blueprint"),
+      );
+      if (this.id != null) this.trackDownload(this.id);
+      return;
+    }
+
+    const generate = () => {
+      const bniBlueprint = this.blueprint.toBniBlueprint(friendlyName);
+      BlueprintService.saveTextFile(
+        JSON.stringify(bniBlueprint),
+        sanitize(friendlyName) + ".blueprint",
+      );
+      if (this.id != null) this.trackDownload(this.id);
+    };
+
+    if (
+      this.id != null &&
+      this.serverHasRawSource &&
+      this.serverRawSourceMdbHash != null &&
+      this.serverRawSourceMdbHash ===
+        this.hashMdb(this.blueprint.toMdbBlueprint())
+    ) {
+      const extension =
+        this.serverRawSourceFormat === "bpv2-sharestring"
+          ? ".txt"
+          : ".blueprint";
+      this.http
+        .get(`/api/blueprints/${this.id}/raw`, { responseType: "text" })
+        .subscribe({
+          next: (raw) => {
+            // Raw endpoint records the download server-side
+            BlueprintService.saveTextFile(
+              raw,
+              sanitize(friendlyName) + extension,
+            );
+          },
+          // The raw copy may have vanished (e.g. concurrent edit) — fall
+          // back to the generated file rather than failing the download
+          error: () => generate(),
+        });
+      return;
+    }
+
+    generate();
+  }
+
+  static saveTextFile(text: string, filename: string) {
+    const url = URL.createObjectURL(new Blob([text], {}));
+    const a = document.createElement("a");
+    document.body.append(a);
+    a.download = filename;
+    a.href = url;
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   // Meta only (no blueprint data) — for the details page. Token is optional;
@@ -522,6 +678,14 @@ export class BlueprintService implements IObsBlueprintChange {
     // blueprint, name it as the source — the server records forkedFrom when
     // the save creates a copy because the requester isn't the owner
     if (this.id != null) body.sourceBlueprintId = this.id;
+    // Byte-exact round-trip: send the verbatim imported file only while the
+    // saved content still matches it; an edited blueprint saves without raw
+    // (the server clears any previously stored raw on such saves)
+    const validRaw = this.getValidRawSource();
+    if (validRaw != null) {
+      body.rawSource = validRaw.text;
+      body.rawSourceFormat = validRaw.format;
+    }
     Object.assign(body, this.metadata);
     const request = this.http
       .post("/api/uploadblueprint", body, {
@@ -535,6 +699,12 @@ export class BlueprintService implements IObsBlueprintChange {
             this.location.replaceState(`/b/${this.id}`);
             if (publish === true) this.isPublished = true;
             else if (isNewBlueprint) this.isPublished = false;
+            // The save either stored the raw import verbatim or cleared any
+            // previously stored raw (edited content)
+            this.serverHasRawSource = validRaw != null;
+            this.serverRawSourceFormat = validRaw?.format ?? null;
+            this.serverRawSourceMdbHash =
+              validRaw != null ? this.rawSourceMdbHash : null;
           }
           return response;
         }),
@@ -615,6 +785,10 @@ export class SaveBlueprintMessage {
   subcategory?: string | null;
   description?: string | null;
   modded?: boolean | null;
+  // Verbatim BlueprintsV2 import text, present only when the saved data still
+  // equals the imported content (byte-exact round-trip, §8)
+  rawSource?: string;
+  rawSourceFormat?: RawSourceFormat;
 }
 
 export enum BlueprintFileType {

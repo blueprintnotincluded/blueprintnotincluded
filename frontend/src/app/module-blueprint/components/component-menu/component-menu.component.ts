@@ -239,6 +239,15 @@ export class ComponentMenuComponent
                   this.uploadBsonTemplate();
                 },
               },
+              {
+                label: $localize`Blueprint (paste text)`,
+                command: (_event: any) => {
+                  this.menuCommand.emit({
+                    type: MenuCommandType.importBlueprintText,
+                    data: null,
+                  });
+                },
+              },
             ],
           },
           {
@@ -472,6 +481,7 @@ export enum MenuCommandType {
   newBlueprint,
   uploadBlueprint,
   uploadYaml,
+  importBlueprintText,
   changeTool,
   changeOverlay,
   about,
