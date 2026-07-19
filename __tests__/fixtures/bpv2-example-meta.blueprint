@@ -1,0 +1,1605 @@
+{
+  "blueprintVersion": 3,
+  "friendlyname": "example meta",
+  "userdesc": "this blueprint has a custom icon and also material overides",
+  "icon": "Snow",
+  "icontint": "FF0000FF",
+  "buildings": [
+    {
+      "offset": {
+        "x": 2,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 3
+      },
+      "buildingdef": "LiquidBottler",
+      "selected_elements": [
+        -1921520130
+      ],
+      "buildingData": [
+        {
+          "Key": "Prioritizable",
+          "Value": {
+            "masterPrioritySetting": "{\"priority_class\":0,\"priority_value\":9}"
+          }
+        },
+        {
+          "Key": "BuildingEnabledButton",
+          "Value": {
+            "IsEnabled": true
+          }
+        },
+        {
+          "Key": "IUserControlledCapacity",
+          "Value": {
+            "UserMaxCapacity": 200.0
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 2,
+        "y": 5
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 2
+    },
+    {
+      "offset": {
+        "x": 2,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 3
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 4
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 4
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 12
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 5
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 15
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 6
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 14
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 7
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 10
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 3
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 6
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 4
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 12
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 5
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 7
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 5
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 10
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 6
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 15
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 7
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 11
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 3
+      },
+      "buildingdef": "FabricatedWoodMaker",
+      "selected_elements": [
+        -1921520130
+      ],
+      "buildingData": [
+        {
+          "Key": "BuildingEnabledButton",
+          "Value": {
+            "IsEnabled": true
+          }
+        },
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 3
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 3
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 5
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 5
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 5
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 3
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 6
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 13
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 7
+      },
+      "buildingdef": "LiquidValve",
+      "selected_elements": [
+        -1921520130
+      ],
+      "orientation": 1,
+      "buildingData": [
+        {
+          "Key": "Valve",
+          "Value": {
+            "DesiredFlow": 4.832
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 7
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        -1921520130
+      ],
+      "flags": 9
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 3
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 7
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 4
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 10
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 5
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 3
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 3
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 7
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 4
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 11
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 5
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 1
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 5
+      },
+      "buildingdef": "WireRubberBridge",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 1
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 7
+      },
+      "buildingdef": "LogicPressureSensorGas",
+      "selected_elements": [
+        -1725038055
+      ],
+      "buildingData": [
+        {
+          "Key": "Switch",
+          "Value": {
+            "switchedOn": true
+          }
+        },
+        {
+          "Key": "IThresholdSwitch",
+          "Value": {
+            "Threshold": 6.63,
+            "ActivateAboveThreshold": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 3
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 3
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 4
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 3
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 7
+      },
+      "buildingdef": "LogicSwitch",
+      "selected_elements": [
+        -1725038055
+      ],
+      "buildingData": [
+        {
+          "Key": "Switch",
+          "Value": {
+            "switchedOn": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 3
+      },
+      "buildingdef": "PressureDoor",
+      "selected_elements": [
+        -1921520130
+      ],
+      "buildingData": [
+        {
+          "Key": "AccessControl",
+          "Value": {
+            "defaultPermissionByTag": "[]",
+            "savedPermissionsById": "[{\"Key\":6190,\"Value\":1},{\"Key\":6305,\"Value\":2},{\"Key\":6312,\"Value\":3},{\"Key\":6317,\"Value\":0}]"
+          }
+        },
+        {
+          "Key": "Door",
+          "Value": {
+            "requestedState": 0
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 3
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 5
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 4
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 13
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 5
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        -1142341158
+      ],
+      "flags": 8
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 10,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 11,
+        "y": 3
+      },
+      "buildingdef": "Chlorinator",
+      "selected_elements": [
+        -1725038055
+      ],
+      "buildingData": [
+        {
+          "Key": "BuildingEnabledButton",
+          "Value": {
+            "IsEnabled": true
+          }
+        },
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 10,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 11,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 11,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 12,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 12,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 13,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 3
+      },
+      "buildingdef": "ChemicalRefinery",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "BuildingEnabledButton",
+          "Value": {
+            "IsEnabled": true
+          }
+        },
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 13,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 15,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 15,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 16,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 16,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 2
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 3
+      },
+      "buildingdef": "StorageLocker",
+      "selected_elements": [
+        -1921520130
+      ],
+      "buildingData": [
+        {
+          "Key": "BuildingEnabledButton",
+          "Value": {
+            "IsEnabled": true
+          }
+        },
+        {
+          "Key": "TreeFilterable",
+          "Value": {
+            "acceptedTagSet": "[{\"Name\":\"BasicSingleHarvestPlantSeed\",\"IsValid\":true},{\"Name\":\"DreckoEgg\",\"IsValid\":true},{\"Name\":\"HatchEgg\",\"IsValid\":true},{\"Name\":\"PacuEgg\",\"IsValid\":true},{\"Name\":\"LightBugEgg\",\"IsValid\":true}]",
+            "onlyFetchMarkedItems": false
+          }
+        },
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        },
+        {
+          "Key": "IUserControlledCapacity",
+          "Value": {
+            "UserMaxCapacity": 20000.0
+          }
+        },
+        {
+          "Key": "UserNameable",
+          "Value": {
+            "savedName": "<link=\"STORAGELOCKER\">Storage Bin</link>"
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 6
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ],
+      "buildingData": [
+        {
+          "Key": "Automatable",
+          "Value": {
+            "automationOnly": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 19,
+        "y": 3
+      },
+      "buildingdef": "PAirlockDoor",
+      "selected_elements": [
+        -1725038055
+      ],
+      "buildingData": [
+        {
+          "Key": "AccessControl",
+          "Value": {
+            "defaultPermissionByTag": "[]",
+            "savedPermissionsById": "[]"
+          }
+        }
+      ]
+    }
+  ],
+  "digcommands": [
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 1
+    },
+    {
+      "x": 0,
+      "y": 2
+    },
+    {
+      "x": 0,
+      "y": 3
+    },
+    {
+      "x": 0,
+      "y": 4
+    },
+    {
+      "x": 0,
+      "y": 5
+    },
+    {
+      "x": 0,
+      "y": 6
+    },
+    {
+      "x": 0,
+      "y": 7
+    },
+    {
+      "x": 0,
+      "y": 8
+    },
+    {
+      "x": 0,
+      "y": 9
+    },
+    {
+      "x": 1,
+      "y": 0
+    },
+    {
+      "x": 1,
+      "y": 1
+    },
+    {
+      "x": 1,
+      "y": 2
+    },
+    {
+      "x": 1,
+      "y": 3
+    },
+    {
+      "x": 1,
+      "y": 4
+    },
+    {
+      "x": 1,
+      "y": 5
+    },
+    {
+      "x": 1,
+      "y": 6
+    },
+    {
+      "x": 1,
+      "y": 7
+    },
+    {
+      "x": 1,
+      "y": 8
+    },
+    {
+      "x": 1,
+      "y": 9
+    },
+    {
+      "x": 2,
+      "y": 0
+    },
+    {
+      "x": 2,
+      "y": 1
+    },
+    {
+      "x": 2,
+      "y": 7
+    },
+    {
+      "x": 2,
+      "y": 8
+    },
+    {
+      "x": 2,
+      "y": 9
+    },
+    {
+      "x": 3,
+      "y": 0
+    },
+    {
+      "x": 3,
+      "y": 1
+    },
+    {
+      "x": 3,
+      "y": 8
+    },
+    {
+      "x": 3,
+      "y": 9
+    },
+    {
+      "x": 4,
+      "y": 0
+    },
+    {
+      "x": 4,
+      "y": 1
+    },
+    {
+      "x": 4,
+      "y": 8
+    },
+    {
+      "x": 4,
+      "y": 9
+    },
+    {
+      "x": 5,
+      "y": 0
+    },
+    {
+      "x": 5,
+      "y": 1
+    },
+    {
+      "x": 5,
+      "y": 8
+    },
+    {
+      "x": 5,
+      "y": 9
+    },
+    {
+      "x": 6,
+      "y": 0
+    },
+    {
+      "x": 6,
+      "y": 1
+    },
+    {
+      "x": 6,
+      "y": 8
+    },
+    {
+      "x": 6,
+      "y": 9
+    },
+    {
+      "x": 7,
+      "y": 0
+    },
+    {
+      "x": 7,
+      "y": 1
+    },
+    {
+      "x": 7,
+      "y": 8
+    },
+    {
+      "x": 7,
+      "y": 9
+    },
+    {
+      "x": 8,
+      "y": 0
+    },
+    {
+      "x": 8,
+      "y": 1
+    },
+    {
+      "x": 8,
+      "y": 8
+    },
+    {
+      "x": 8,
+      "y": 9
+    },
+    {
+      "x": 9,
+      "y": 0
+    },
+    {
+      "x": 9,
+      "y": 1
+    },
+    {
+      "x": 9,
+      "y": 7
+    },
+    {
+      "x": 9,
+      "y": 8
+    },
+    {
+      "x": 9,
+      "y": 9
+    },
+    {
+      "x": 10,
+      "y": 0
+    },
+    {
+      "x": 10,
+      "y": 1
+    },
+    {
+      "x": 10,
+      "y": 7
+    },
+    {
+      "x": 10,
+      "y": 8
+    },
+    {
+      "x": 10,
+      "y": 9
+    },
+    {
+      "x": 11,
+      "y": 0
+    },
+    {
+      "x": 11,
+      "y": 1
+    },
+    {
+      "x": 11,
+      "y": 7
+    },
+    {
+      "x": 11,
+      "y": 8
+    },
+    {
+      "x": 11,
+      "y": 9
+    },
+    {
+      "x": 12,
+      "y": 0
+    },
+    {
+      "x": 12,
+      "y": 1
+    },
+    {
+      "x": 12,
+      "y": 7
+    },
+    {
+      "x": 12,
+      "y": 8
+    },
+    {
+      "x": 12,
+      "y": 9
+    },
+    {
+      "x": 13,
+      "y": 0
+    },
+    {
+      "x": 13,
+      "y": 1
+    },
+    {
+      "x": 13,
+      "y": 7
+    },
+    {
+      "x": 13,
+      "y": 8
+    },
+    {
+      "x": 13,
+      "y": 9
+    },
+    {
+      "x": 14,
+      "y": 0
+    },
+    {
+      "x": 14,
+      "y": 1
+    },
+    {
+      "x": 14,
+      "y": 7
+    },
+    {
+      "x": 14,
+      "y": 8
+    },
+    {
+      "x": 14,
+      "y": 9
+    },
+    {
+      "x": 15,
+      "y": 0
+    },
+    {
+      "x": 15,
+      "y": 1
+    },
+    {
+      "x": 15,
+      "y": 7
+    },
+    {
+      "x": 15,
+      "y": 8
+    },
+    {
+      "x": 15,
+      "y": 9
+    },
+    {
+      "x": 16,
+      "y": 0
+    },
+    {
+      "x": 16,
+      "y": 1
+    },
+    {
+      "x": 16,
+      "y": 7
+    },
+    {
+      "x": 16,
+      "y": 8
+    },
+    {
+      "x": 16,
+      "y": 9
+    },
+    {
+      "x": 17,
+      "y": 0
+    },
+    {
+      "x": 17,
+      "y": 1
+    },
+    {
+      "x": 17,
+      "y": 5
+    },
+    {
+      "x": 17,
+      "y": 7
+    },
+    {
+      "x": 17,
+      "y": 8
+    },
+    {
+      "x": 17,
+      "y": 9
+    },
+    {
+      "x": 18,
+      "y": 0
+    },
+    {
+      "x": 18,
+      "y": 1
+    },
+    {
+      "x": 18,
+      "y": 2
+    },
+    {
+      "x": 18,
+      "y": 5
+    },
+    {
+      "x": 18,
+      "y": 6
+    },
+    {
+      "x": 18,
+      "y": 7
+    },
+    {
+      "x": 18,
+      "y": 8
+    },
+    {
+      "x": 18,
+      "y": 9
+    },
+    {
+      "x": 19,
+      "y": 0
+    },
+    {
+      "x": 19,
+      "y": 1
+    },
+    {
+      "x": 19,
+      "y": 2
+    },
+    {
+      "x": 19,
+      "y": 5
+    },
+    {
+      "x": 19,
+      "y": 6
+    },
+    {
+      "x": 19,
+      "y": 7
+    },
+    {
+      "x": 19,
+      "y": 8
+    },
+    {
+      "x": 19,
+      "y": 9
+    },
+    {
+      "x": 20,
+      "y": 0
+    },
+    {
+      "x": 20,
+      "y": 1
+    },
+    {
+      "x": 20,
+      "y": 2
+    },
+    {
+      "x": 20,
+      "y": 5
+    },
+    {
+      "x": 20,
+      "y": 6
+    },
+    {
+      "x": 20,
+      "y": 7
+    },
+    {
+      "x": 20,
+      "y": 8
+    },
+    {
+      "x": 20,
+      "y": 9
+    },
+    {
+      "x": 21,
+      "y": 0
+    },
+    {
+      "x": 21,
+      "y": 1
+    },
+    {
+      "x": 21,
+      "y": 2
+    },
+    {
+      "x": 21,
+      "y": 3
+    },
+    {
+      "x": 21,
+      "y": 4
+    },
+    {
+      "x": 21,
+      "y": 5
+    },
+    {
+      "x": 21,
+      "y": 6
+    },
+    {
+      "x": 21,
+      "y": 7
+    },
+    {
+      "x": 21,
+      "y": 8
+    },
+    {
+      "x": 21,
+      "y": 9
+    }
+  ],
+  "worldNotes": [
+    {
+      "x": 4,
+      "y": 2,
+      "type": 1,
+      "id": -1736594426,
+      "mass": 791.79,
+      "temp": 296.15
+    },
+    {
+      "x": 15,
+      "y": 3,
+      "type": 0,
+      "title": "important title!",
+      "text": "important title!",
+      "tinthex": "0000FFFF"
+    },
+    {
+      "x": 16,
+      "y": 4,
+      "type": 0,
+      "title": "Unnamed Note",
+      "text": "Unnamed Note",
+      "tinthex": "FFFFFFFF"
+    }
+  ]
+}

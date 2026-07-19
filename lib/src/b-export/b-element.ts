@@ -64,6 +64,14 @@ export class BuildableElement {
     throw new Error('BuildableElement.getElement : Element not found');
   }
 
+  // Resolve a Klei tag hash (BlueprintsV2 selected_elements / element-note id)
+  // to an element. Returns undefined for unknown hashes — callers keep the
+  // default material rather than failing the import.
+  public static getElementByTag(tag: number): BuildableElement | undefined {
+    for (let element of BuildableElement.elements) if (element.tag == tag) return element;
+    return undefined;
+  }
+
   // Get a list of elements that have the parameter tag
   public static getElementsFromTag(tag: string): BuildableElement[] {
     let returnValue: BuildableElement[] = [];

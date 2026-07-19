@@ -19,6 +19,15 @@ export class Blueprint {
   // Set to true when any building ID was not found in OniItem.oniItemsMap during
   // import. Indicates the blueprint was created with mods installed.
   hadUnknownBuildings: boolean = false;
+  // Distinct building defs that were skipped during import because they are
+  // not in our database (modded prefabs, e.g. 'PAirlockDoor') — surfaced as a
+  // "contains N unrecognized buildings" hint. The entries themselves survive
+  // in the verbatim raw upload stored server-side (Q8).
+  unknownBuildingDefs: string[] = [];
+  // BlueprintsV2 metadata parsed from the imported file (userdesc, icon,
+  // icontint, worldNotes, …) — display/prefill only, never the round-trip
+  // source of truth.
+  bniMetadata: BniBlueprint | null = null;
 
   // We need a utility map because some objects have utilities outside of their size (HighWattageWireBridge)
   utilities: UtilityConnectionTracker[][] = [];
@@ -85,12 +94,16 @@ export class Blueprint {
   public importFromBni(bniBlueprint: BniBlueprint) {
     this.blueprintItems = [];
     this.hadUnknownBuildings = false;
+    this.unknownBuildingDefs = [];
+    this.bniMetadata = bniBlueprint;
 
-    for (let building of bniBlueprint.buildings) {
+    for (let building of bniBlueprint.buildings ?? []) {
       try {
         let newTemplateItem = BlueprintHelpers.createInstance(building.buildingdef);
         if (newTemplateItem == null) {
           this.hadUnknownBuildings = true;
+          if (this.unknownBuildingDefs.indexOf(building.buildingdef) == -1)
+            this.unknownBuildingDefs.push(building.buildingdef);
           continue;
         }
 
@@ -106,6 +119,8 @@ export class Blueprint {
   public importFromMdb(mdbBlueprint: MdbBlueprint) {
     this.blueprintItems = [];
     this.hadUnknownBuildings = false;
+    this.unknownBuildingDefs = [];
+    this.bniMetadata = null;
 
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       let newTemplateItem = BlueprintHelpers.createInstance(originalTemplateItem.id);
@@ -113,6 +128,8 @@ export class Blueprint {
       // Don't import buildings we don't recognise
       if (newTemplateItem == null) {
         this.hadUnknownBuildings = true;
+        if (this.unknownBuildingDefs.indexOf(originalTemplateItem.id) == -1)
+          this.unknownBuildingDefs.push(originalTemplateItem.id);
         continue;
       }
 
