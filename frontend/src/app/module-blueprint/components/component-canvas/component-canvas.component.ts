@@ -26,12 +26,18 @@ import {
   BSpriteModifier,
   Vector2,
   SpriteTag,
+  BniWorldNote,
+  BuildableElement,
 } from "../../../../../../lib/index";
 
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { DrawMiniUi } from "../../drawing/draw-mini-ui";
 import { DrawRoomOverlay } from "../../drawing/draw-room-overlay";
-import { DrawNotesOverlay } from "../../drawing/draw-notes-overlay";
+import {
+  DrawNotesOverlay,
+  resolveNoteContent,
+  WorldNoteContent,
+} from "../../drawing/draw-notes-overlay";
 import { RoomDetectionService } from "../../services/room-detection-service";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 import JSZip from "jszip";
@@ -69,6 +75,15 @@ export class ComponentCanvasComponent
 
   @ViewChild("divCalcHeight", { static: true })
   divCalcHeight!: ElementRef;
+
+  @ViewChild("notePopup")
+  notePopupRef?: ElementRef;
+
+  // The world note the user clicked open (null = none). `openNote` drives the
+  // read-only popup template (set inside the Angular zone on click); its cell
+  // is re-projected to a screen position every frame in drawAll so the popup
+  // tracks pan/zoom.
+  openNote: WorldNoteContent | null = null;
 
   @Input()
   forceSize!: boolean;
@@ -225,6 +240,7 @@ export class ComponentCanvasComponent
     // TODO make sure nothing creates a "real  blueprint" before this
     // TODO fixme
     this.startRenderMetric(source);
+    this.closeNote();
     this.blueprint.destroyAndCopyItems(source);
 
     this.cameraService.overlay = Overlay.Base;
@@ -307,11 +323,57 @@ export class ComponentCanvasComponent
   mouseClick(event: any) {
     // Don't send the clicks to the tools if we are in an iframe
     if (!this.forceSize) {
-      if (event.button == 0)
-        this.toolService.leftClick(this.getCurrentTile(event));
-      else if (event.button == 2)
+      if (event.button == 0) {
+        const tile = this.getCurrentTile(event);
+        // World notes are a top annotation layer: a left click on a note opens
+        // it to read and is consumed, so it never falls through to the tool.
+        const note = this.findNoteAt(tile);
+        if (note != null) {
+          this.openNote = resolveNoteContent(note, (tag) =>
+            BuildableElement.getElementByTag(tag),
+          );
+          this.positionNotePopup();
+          return;
+        }
+        this.closeNote();
+        this.toolService.leftClick(tile);
+      } else if (event.button == 2) {
+        this.closeNote();
         this.toolService.rightClick(this.getCurrentTile(event));
+      }
     }
+  }
+
+  private findNoteAt(tile: Vector2): BniWorldNote | null {
+    const notes = this.blueprint?.worldNotes;
+    if (notes == null) return null;
+    // Last wins so the topmost drawn note (drawn last) is the one selected.
+    for (let i = notes.length - 1; i >= 0; i--)
+      if (notes[i].x == tile.x && notes[i].y == tile.y) return notes[i];
+    return null;
+  }
+
+  closeNote() {
+    this.openNote = null;
+  }
+
+  // Re-project the open note's cell to a viewport position and place the popup
+  // just above it. Runs every frame (outside Angular) via direct DOM writes,
+  // so it tracks pan/zoom without triggering change detection.
+  private positionNotePopup() {
+    if (this.forceSize || this.openNote == null) return;
+    const el = this.notePopupRef?.nativeElement;
+    if (el == null) return;
+
+    const zoom = this.cameraService.currentZoom;
+    const offset = this.cameraService.cameraOffset;
+    const cell = this.openNote.cell;
+    const screenX = (cell.x + offset.x + 0.5) * zoom;
+    const screenTop = (offset.y - cell.y) * zoom;
+
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    el.style.left = `${rect.left + screenX}px`;
+    el.style.top = `${rect.top + screenTop}px`;
   }
 
   storePreviousTileFloat: Vector2 | null = null;
@@ -381,6 +443,7 @@ export class ComponentCanvasComponent
 
   keyPress(event: any) {
     //console.log(event.key)
+    if (event.key == "Escape") this.closeNote();
     this.toolService.keyDown(event.key);
 
     if (document.body == document.activeElement) {
@@ -1083,6 +1146,8 @@ export class ComponentCanvasComponent
           this.blueprint.worldNotes,
           this.cameraService,
         );
+        // Keep an open note's read popup glued to its cell as the camera moves.
+        if (this.openNote != null) this.positionNotePopup();
       }
     }
 

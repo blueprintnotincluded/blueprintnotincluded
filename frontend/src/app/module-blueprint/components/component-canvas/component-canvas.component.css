@@ -7,3 +7,68 @@
      touch gestures as native scroll/pinch-zoom before they reach it. */
   touch-action: none;
 }
+
+/* Read popup for a clicked world note. Fixed to the viewport and re-anchored
+   above the note's cell each frame (positionNotePopup); left/top are the
+   cell's top-centre, so translate up-and-centred to sit just above it. */
+.note-popup {
+  position: fixed;
+  z-index: 500;
+  transform: translate(-50%, calc(-100% - 10px));
+  max-width: 260px;
+  min-width: 120px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(20, 24, 30, 0.96);
+  color: #f1f1f1;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+  pointer-events: auto;
+}
+
+.note-popup-close {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  border: none;
+  background: none;
+  color: #cfcfcf;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.note-popup-close:hover {
+  color: #fff;
+}
+
+.note-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 14px;
+  font-weight: bold;
+}
+
+.note-popup-swatch {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+.note-popup-title {
+  word-break: break-word;
+}
+
+.note-popup-body {
+  margin-top: 4px;
+  color: #d6d6d6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

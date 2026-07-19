@@ -19,3 +19,32 @@
 >
   Your browser does not support canvas.
 </canvas>
+
+<!-- Read-only popup for a clicked BlueprintsV2 world note. Positioned above the
+     note's cell each frame by positionNotePopup(). -->
+<div
+  #notePopup
+  class="note-popup"
+  *ngIf="openNote as note"
+  (click)="$event.stopPropagation()"
+>
+  <button
+    type="button"
+    class="note-popup-close"
+    (click)="closeNote()"
+    aria-label="Close note"
+    i18n-aria-label
+  >
+    ×
+  </button>
+  <div class="note-popup-header">
+    <span class="note-popup-swatch" [style.background]="note.colorCss"></span>
+    <span class="note-popup-title">{{ note.title }}</span>
+  </div>
+  <div class="note-popup-body" *ngIf="note.kind === 'text' && note.body">
+    {{ note.body }}
+  </div>
+  <div class="note-popup-body" *ngIf="note.kind === 'element' && note.detail">
+    {{ note.detail }}
+  </div>
+</div>
