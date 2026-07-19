@@ -78,6 +78,7 @@ function normalizeDegrees(value: number): number {
 
 function isInsideArc(dx: number, dy: number, direction: number, angle: number): boolean {
   if (angle >= 360) return true;
+  if (dx === 0 && dy === 0) return true;
   const cellAngle = normalizeDegrees((Math.atan2(dy, dx) * 180) / Math.PI);
   const delta = Math.abs(normalizeDegrees(cellAngle - normalizeDegrees(direction) + 180) - 180);
   return delta <= angle / 2 + Number.EPSILON;
@@ -91,6 +92,7 @@ export function resolveAreaOfEffectCells(effect: AreaOfEffect): Vector2[] {
         (cell): cell is [number, number] =>
           Array.isArray(cell) && cell.length >= 2 && finiteNumber(cell[0]) && finiteNumber(cell[1])
       )
+      .slice(0, AREA_OF_EFFECT_GENERATED_CELL_LIMIT)
       .map(([x, y]) => new Vector2(x, y));
   }
 

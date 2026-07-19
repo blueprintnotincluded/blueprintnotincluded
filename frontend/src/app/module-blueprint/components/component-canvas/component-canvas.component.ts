@@ -1089,12 +1089,13 @@ export class ComponentCanvasComponent
     }
 
     if (this.blueprint != null) {
-      const buildCandidate = this.toolService.buildTool.templateItemToBuild;
+      const buildTool = this.toolService.buildTool;
+      const buildCandidate = buildTool?.templateItemToBuild;
       drawAreaOfEffects(
         this.drawPixi,
         this.blueprint.blueprintItems,
         buildCandidate,
-        this.toolService.buildTool.visible,
+        buildTool?.visible ?? false,
         this.cameraService,
       );
 
