@@ -1,4 +1,5 @@
 import { ForkedFromDto } from './blueprint-version';
+import { RawSourceFormat } from '../io/bni/bni-share-string';
 export interface BlueprintListResponse {
     blueprints: BlueprintListItem[];
     oldest: Date;
@@ -63,6 +64,6 @@ export interface BlueprintResponse {
     rooms?: string[] | null;
     isPublished: boolean;
     hasRawSource?: boolean;
-    rawSourceFormat?: string | null;
+    rawSourceFormat?: RawSourceFormat | null;
 }
 //# sourceMappingURL=blueprint-list-response.d.ts.map
