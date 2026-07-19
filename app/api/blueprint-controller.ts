@@ -18,6 +18,8 @@ import {
   SUBCATEGORIES,
   RESEARCH_TIERS,
   ROOM_TYPE_IDS,
+  RAW_SOURCE_FORMATS,
+  RawSourceFormat,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { computeHotScore } from '../../lib/index';
@@ -48,6 +50,11 @@ type BlueprintSort = (typeof SORTS)[number];
 
 // How many "you might also like" cards the details page shows
 const RELATED_LIMIT = 6;
+
+// Upper bound for the verbatim BlueprintsV2 upload we store for byte-exact
+// re-download. Real .blueprint files are tens of KB; the cap only guards the
+// 16MB Mongo document limit (data + thumbnail + rawSource share it).
+const MAX_RAW_SOURCE_BYTES = 2 * 1024 * 1024;
 
 // Public-visibility clause for feed queries. $in's null matches docs that
 // predate the isPublished backfill (deploy→migrate window), same coverage as
@@ -157,6 +164,25 @@ export class BlueprintController {
 
       const metadata = { gameVersion, category, subcategory, description, researchTier, modded };
 
+      // Verbatim BlueprintsV2 source for byte-exact re-download (§8). The
+      // client only sends it when the saved data still equals the imported
+      // content; absence clears any previously stored raw so a stale original
+      // can never be served for edited data.
+      let rawSource: { source: string; format: RawSourceFormat } | null = null;
+      if (req.body.rawSource != null) {
+        const source = req.body.rawSource;
+        const format = req.body.rawSourceFormat;
+        if (typeof source !== 'string' || Buffer.byteLength(source, 'utf8') > MAX_RAW_SOURCE_BYTES) {
+          res.status(400).json(apiError(400, 'rawSource must be a string of at most 2MB'));
+          return;
+        }
+        if (!(RAW_SOURCE_FORMATS as readonly string[]).includes(format)) {
+          res.status(400).json(apiError(400, `rawSourceFormat must be one of ${RAW_SOURCE_FORMATS.join(', ')}`));
+          return;
+        }
+        rawSource = { source, format };
+      }
+
       // Copy-as-fork: when the editor saves a blueprint it loaded from
       // someone else's document, the client passes the source id so the new
       // copy is attributed as a fork. Malformed ids are treated as absent —
@@ -183,7 +209,9 @@ export class BlueprintController {
                 thumbnail,
                 false,
                 metadata,
-                publish
+                publish,
+                null,
+                rawSource
               );
             else res.json({ overwrite: true });
           } else {
@@ -204,7 +232,8 @@ export class BlueprintController {
               true,
               metadata,
               publish,
-              forkSource
+              forkSource,
+              rawSource
             );
           }
         })
@@ -462,6 +491,8 @@ export class BlueprintController {
         modded: blueprint.modded ?? null,
         rooms: blueprint.rooms ?? null,
         isPublished: blueprint.isPublished !== false,
+        hasRawSource: blueprint.rawSource != null,
+        rawSourceFormat: blueprint.rawSourceFormat ?? null,
       };
 
       // Editor open counts as a view; the dedupe window makes the common
@@ -509,6 +540,58 @@ export class BlueprintController {
       console.log('Blueprint find error');
       console.log(err);
       res.status(500).json(apiError(500, 'Failed to retrieve blueprint'));
+    }
+  }
+
+  // GET /api/blueprints/:id/raw — the verbatim BlueprintsV2 upload, served
+  // byte-exact (spec/blueprintsv2-import-spec.md §8). 404 when the blueprint
+  // has no stored raw (never imported, or edited since import). Never
+  // regenerated from the parsed model.
+  public async getBlueprintRawSource(req: Request, res: Response): Promise<void> {
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
+    }
+
+    const id = String(req.params.id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).send();
+      return;
+    }
+
+    try {
+      const blueprint = await BlueprintModel.model
+        .findOne({ _id: id, deletedAt: null })
+        .select('name owner isPublished rawSource rawSourceFormat')
+        .lean();
+      if (
+        !blueprint ||
+        !canViewBlueprint(blueprint, optionalViewer(req)) ||
+        blueprint.rawSource == null
+      ) {
+        res.status(404).json(apiError(404, 'No raw blueprint source available'));
+        return;
+      }
+
+      // Fetching the original file is a download
+      BlueprintController.recordCounter('download', req, blueprint);
+
+      // Blueprint names are schema-restricted to [a-zA-Z0-9-_ ], safe to
+      // embed in the disposition header as-is.
+      const isShareString = blueprint.rawSourceFormat === 'bpv2-sharestring';
+      res.set(
+        'Content-Type',
+        isShareString ? 'text/plain; charset=utf-8' : 'application/json; charset=utf-8'
+      );
+      res.set(
+        'Content-Disposition',
+        `attachment; filename="${blueprint.name}${isShareString ? '.txt' : '.blueprint'}"`
+      );
+      res.send(blueprint.rawSource);
+    } catch (err) {
+      console.log('Blueprint raw source error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprint source'));
     }
   }
 
@@ -770,7 +853,7 @@ export class BlueprintController {
         .sort(sortSpec)
         .skip(skipAmount)
         .limit(limit)
-        .select('-data -thumbnail')
+        .select('-data -thumbnail -rawSource')
         .populate('owner')
         .then(blueprints => {
           return BlueprintController.handleGetBlueprint(req, res, blueprints);
@@ -962,7 +1045,7 @@ export class BlueprintController {
               })
               .sort({ ratingAverage: -1, ratingCount: -1, createdAt: -1 })
               .limit(RELATED_LIMIT * 4)
-              .select('-data -thumbnail')
+              .select('-data -thumbnail -rawSource')
               .populate('owner')
           : Promise.resolve([]),
         BlueprintModel.model
@@ -974,7 +1057,7 @@ export class BlueprintController {
           })
           .sort({ createdAt: -1 })
           .limit(RELATED_LIMIT * 4)
-          .select('-data -thumbnail')
+          .select('-data -thumbnail -rawSource')
           .populate('owner'),
       ]);
 
@@ -988,7 +1071,7 @@ export class BlueprintController {
           .find({ deletedAt: null, isPublished: PUBLISHED_FILTER, _id: { $ne: blueprintId } })
           .sort({ createdAt: -1 })
           .limit(RELATED_LIMIT * 4)
-          .select('-data -thumbnail')
+          .select('-data -thumbnail -rawSource')
           .populate('owner');
         for (const candidate of fallback) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
       }
@@ -1298,7 +1381,8 @@ export class BlueprintController {
       modded: boolean | null;
     },
     publish?: boolean | null,
-    forkSource?: { source: Blueprint; versionId: mongoose.Types.ObjectId } | null
+    forkSource?: { source: Blueprint; versionId: mongoose.Types.ObjectId } | null,
+    rawSource?: { source: string; format: RawSourceFormat } | null
   ): Promise<void> {
     // New blueprints start as drafts (set explicitly — see the schema comment
     // on isPublished for why there is no schema default). Resurrect-via-
@@ -1328,6 +1412,10 @@ export class BlueprintController {
     // Derived fact, never client-supplied — any `rooms` key in the request
     // body is ignored (same policy as a client trying to set ratingCount).
     blueprint.rooms = deriveRooms(data);
+    // Set on every save: absence clears a previously stored raw so it can
+    // never go stale relative to `data` (see the model field comment).
+    blueprint.rawSource = rawSource?.source ?? null;
+    blueprint.rawSourceFormat = rawSource?.format ?? null;
 
     if (metadata) {
       blueprint.gameVersion = metadata.gameVersion;
