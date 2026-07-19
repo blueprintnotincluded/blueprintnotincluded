@@ -95,6 +95,24 @@ describe('BlueprintsV2 import', function () {
       // Sample note is Copper Ore (Cuprite)
       expect(element!.id).to.equal('Cuprite');
     });
+
+    it('exposes world notes as a first-class field for the editor overlay', () => {
+      // worldNotes lives on the blueprint (not just bniMetadata) so it can be
+      // carried through destroyAndCopyItems and drawn.
+      expect(blueprint.worldNotes).to.have.length(3);
+      expect(blueprint.worldNotes).to.deep.equal(blueprint.bniMetadata!.worldNotes);
+    });
+
+    it('carries world notes through destroyAndCopyItems and drops them on an MDB reimport', () => {
+      const rendered = new Blueprint();
+      rendered.destroyAndCopyItems(blueprint, false);
+      expect(rendered.worldNotes).to.have.length(3);
+
+      // Round-tripping through the MDB model (a normal save/load) has no notes.
+      const reimported = new Blueprint();
+      reimported.importFromMdb(rendered.toMdbBlueprint());
+      expect(reimported.worldNotes).to.have.length(0);
+    });
   });
 
   describe('share-string transport (P2, §1.2)', function () {

@@ -6,7 +6,7 @@ import { BlueprintItemElement } from './blueprint-item-element';
 import { Vector2 } from '../vector2';
 import { OniTemplate } from '../io/oni/oni-template';
 import { OniItem } from '../oni-item';
-import { BniBlueprint } from '../io/bni/bni-blueprint';
+import { BniBlueprint, BniWorldNote } from '../io/bni/bni-blueprint';
 import { MdbBlueprint } from '../io/mdb/mdb-blueprint';
 import { BniBuilding } from '../io/bni/bni-building';
 import { Overlay } from '../enums/overlay';
@@ -28,6 +28,11 @@ export class Blueprint {
   // icontint, worldNotes, …) — display/prefill only, never the round-trip
   // source of truth.
   bniMetadata: BniBlueprint | null = null;
+  // World-note annotation pins parsed from a BlueprintsV2 import (text +
+  // element notes). Kept as a first-class field (not just on bniMetadata) so
+  // they survive destroyAndCopyItems into the rendered blueprint and can be
+  // drawn as an editor overlay. Display-only; never part of the round-trip.
+  worldNotes: BniWorldNote[] = [];
 
   // We need a utility map because some objects have utilities outside of their size (HighWattageWireBridge)
   utilities: UtilityConnectionTracker[][] = [];
@@ -96,6 +101,7 @@ export class Blueprint {
     this.hadUnknownBuildings = false;
     this.unknownBuildingDefs = [];
     this.bniMetadata = bniBlueprint;
+    this.worldNotes = bniBlueprint.worldNotes ?? [];
 
     for (let building of bniBlueprint.buildings ?? []) {
       try {
@@ -121,6 +127,7 @@ export class Blueprint {
     this.hadUnknownBuildings = false;
     this.unknownBuildingDefs = [];
     this.bniMetadata = null;
+    this.worldNotes = [];
 
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       let newTemplateItem = BlueprintHelpers.createInstance(originalTemplateItem.id);
@@ -176,6 +183,10 @@ export class Blueprint {
 
   public destroyAndCopyItems(source: Blueprint, emitChanges: boolean = true) {
     this.destroy(emitChanges);
+
+    // World notes live on the source (fresh import); carry them onto the
+    // rendered blueprint so the editor overlay can draw them.
+    this.worldNotes = source.worldNotes ?? [];
 
     this.pauseChangeEvents();
     for (let blueprintItem of source.blueprintItems) this.addBlueprintItem(blueprintItem);
