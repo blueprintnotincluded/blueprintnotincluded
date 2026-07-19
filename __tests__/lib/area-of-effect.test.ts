@@ -84,6 +84,14 @@ describe('area-of-effect geometry', () => {
     expect(full).to.have.length(5);
   });
 
+  it('always includes an ellipse arc emitter cell', () => {
+    const cells = pairs(
+      base({ shape: 'ellipseArc', radiusX: 2, radiusY: 2, arcDirection: 180, arcAngle: 10 })
+    );
+    expect(cells).to.deep.include([0, 0]);
+    expect(cells).not.to.deep.include([1, 0]);
+  });
+
   it('derives inclusive sky columns with a fixed 25-cell preview height', () => {
     const cells = pairs(
       base({ shape: 'skyColumns', origin: { x: 10, y: 5 }, scanMinX: -1, scanMaxX: 1 })
@@ -106,5 +114,32 @@ describe('area-of-effect geometry', () => {
     expect(pairs(base({ shape: 'skyColumns', scanMinX: 0, scanMaxX: tooWide - 1 }))).to.deep.equal(
       []
     );
+  });
+
+  it('filters then caps explicit exported cells', () => {
+    const oversized = Array.from(
+      { length: AREA_OF_EFFECT_GENERATED_CELL_LIMIT + 10 },
+      (_, index): [number, number] => [index, 0]
+    );
+    const capped = pairs(base({ cells: oversized }));
+    expect(capped).to.have.length(AREA_OF_EFFECT_GENERATED_CELL_LIMIT);
+    expect(capped[capped.length - 1]).to.deep.equal([AREA_OF_EFFECT_GENERATED_CELL_LIMIT - 1, 0]);
+
+    const invalidThenValid = pairs(
+      base({
+        cells: [
+          ...Array.from(
+            { length: AREA_OF_EFFECT_GENERATED_CELL_LIMIT + 1 },
+            (): [number, number] => [Number.NaN, 0]
+          ),
+          [7, 8],
+          [9, 10],
+        ],
+      })
+    );
+    expect(invalidThenValid).to.deep.equal([
+      [7, 8],
+      [9, 10],
+    ]);
   });
 });
