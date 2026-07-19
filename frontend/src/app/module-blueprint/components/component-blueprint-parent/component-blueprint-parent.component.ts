@@ -404,6 +404,21 @@ export class ComponentBlueprintParentComponent
         detail: $localize`${template.unknownBuildingDefs.length} building types are not in our database (probably from mods) and are not shown: ${template.unknownBuildingDefs.join(", ")}`,
         sticky: true,
       });
+
+    const modTitles = [
+      ...new Set(
+        this.blueprintService.blueprint.blueprintItems
+          .map((item) => item.oniItem)
+          .filter((oniItem) => oniItem.mod != null)
+          .map((oniItem) => oniItem.modTitle ?? oniItem.mod!),
+      ),
+    ].sort();
+    if (modTitles.length > 0)
+      this.messageService.add({
+        severity: "info",
+        summary: $localize`This blueprint uses mods`,
+        detail: modTitles.join(", "),
+      });
   }
 
   saveBlueprint() {

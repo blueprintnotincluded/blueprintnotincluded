@@ -105,6 +105,7 @@ import { ProfilePageComponent } from "./components/profile-page/profile-page.com
 import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-list/dialog-follow-list.component";
 import { NotificationBellComponent } from "./components/notification-bell/notification-bell.component";
 import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-button.component";
+import { SupportedModsPageComponent } from "./components/supported-mods-page/supported-mods-page.component";
 
 @NgModule({
   declarations: [
@@ -166,6 +167,7 @@ import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-butt
     NotificationBellComponent,
     ToolbarButtonComponent,
     NoteEditPanelComponent,
+    SupportedModsPageComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [

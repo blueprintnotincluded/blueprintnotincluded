@@ -186,6 +186,22 @@ describe("ComponentSideBuildToolComponent", () => {
     });
   });
 
+  describe("itemTooltip", () => {
+    it("returns the building name for a vanilla building", () => {
+      expect(component.itemTooltip({ name: "Tile" } as OniItem)).toBe("Tile");
+    });
+
+    it("identifies the source mod for a modded building", () => {
+      expect(
+        component.itemTooltip({
+          name: "Filtered Gas Pump",
+          mod: "1887986467",
+          modTitle: "Smart Pumps",
+        } as OniItem),
+      ).toBe("Filtered Gas Pump — from Smart Pumps (mod)");
+    });
+  });
+
   describe("changeElement", () => {
     it("flags the template for a camera reload", () => {
       buildTool.templateItemToBuild.reloadCamera = false;

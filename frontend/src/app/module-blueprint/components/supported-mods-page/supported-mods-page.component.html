@@ -1,0 +1,26 @@
+<div class="mods-page bni-skin">
+  <h1 i18n>Supported mods</h1>
+  <p i18n>
+    Blueprints on this site can use buildings from these Steam Workshop mods.
+  </p>
+  <div class="mod-card bni-card" *ngFor="let mod of mods">
+    <h2>
+      <a
+        [href]="
+          'https://steamcommunity.com/sharedfiles/filedetails/?id=' + mod.id
+        "
+        target="_blank"
+        rel="noopener"
+        >{{ mod.title }}</a
+      >
+    </h2>
+    <div class="mod-buildings">
+      <img
+        *ngFor="let building of mod.buildings"
+        [src]="'assets/ui_image/' + building + '.png'"
+        [title]="building"
+        height="40"
+      />
+    </div>
+  </div>
+</div>

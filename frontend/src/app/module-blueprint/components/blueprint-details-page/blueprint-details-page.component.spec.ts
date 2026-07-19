@@ -10,6 +10,7 @@ import { MessageService } from "primeng/api";
 import { BlueprintDetailsPageComponent } from "./blueprint-details-page.component";
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
+import { ModsService } from "../../services/mods-service";
 
 function makeDetails(overrides: any = {}) {
   return {
@@ -47,6 +48,7 @@ describe("BlueprintDetailsPageComponent", () => {
   let authService: any;
   let messageService: any;
   let router: any;
+  let modsService: any;
 
   beforeEach(async () => {
     blueprintService = {
@@ -58,6 +60,17 @@ describe("BlueprintDetailsPageComponent", () => {
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
     messageService = { add: vi.fn() };
     router = { navigate: vi.fn() };
+    modsService = {
+      getMods: vi.fn().mockReturnValue(
+        of([
+          {
+            id: "1887986467",
+            title: "Smart Pumps",
+            buildings: ["FilteredGasPump"],
+          },
+        ]),
+      ),
+    };
 
     await TestBed.configureTestingModule({
       declarations: [BlueprintDetailsPageComponent],
@@ -66,6 +79,7 @@ describe("BlueprintDetailsPageComponent", () => {
         { provide: BlueprintService, useValue: blueprintService },
         { provide: AuthenticationService, useValue: authService },
         { provide: MessageService, useValue: messageService },
+        { provide: ModsService, useValue: modsService },
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
@@ -305,6 +319,24 @@ describe("BlueprintDetailsPageComponent", () => {
     component.ngOnInit();
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css(".bni-chip--room"))).toBeNull();
+  });
+
+  it("renders a workshop chip per mod with an id fallback and links to the mods page", () => {
+    blueprintService.getBlueprintDetails.mockReturnValue(
+      of(makeDetails({ mods: ["1887986467", "removed-mod"] })),
+    );
+    fixture.detectChanges();
+
+    const chips = fixture.debugElement.queryAll(By.css(".bni-chip--mod"));
+    expect(chips.length).toBe(2);
+    expect(chips[0].nativeElement.textContent.trim()).toBe("Smart Pumps");
+    expect(chips[0].properties["href"]).toBe(
+      "https://steamcommunity.com/sharedfiles/filedetails/?id=1887986467",
+    );
+    expect(chips[1].nativeElement.textContent.trim()).toBe("removed-mod");
+
+    const allMods = fixture.debugElement.query(By.css(".bni-chip--ghost"));
+    expect(allMods.properties["routerLink"]).toEqual(["/mods"]);
   });
 
   it("links the fork count to a discover page filtered by forkedFrom", () => {

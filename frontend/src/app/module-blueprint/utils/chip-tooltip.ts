@@ -24,3 +24,7 @@ export function roomTooltip(roomLabel: string): string {
 export function moddedTooltip(): string {
   return $localize`:chipTooltip.modded:Uses mods not included in the base game`;
 }
+
+export function modChipTooltip(title: string): string {
+  return $localize`:chipTooltip.mod:Requires the "${title}" mod — opens its Steam Workshop page`;
+}
