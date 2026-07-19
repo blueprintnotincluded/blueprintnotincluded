@@ -3,7 +3,8 @@ import { BniWorldNote, BuildableElement } from "../../../../../lib/index";
 import {
   parseNoteTintHex,
   stripNoteMarkup,
-  prepareWorldNote,
+  noteBadgeColor,
+  resolveNoteContent,
 } from "./draw-notes-overlay";
 
 const noElement = () => undefined;
@@ -28,7 +29,7 @@ describe("parseNoteTintHex", () => {
     });
   });
 
-  it("falls back to the default badge colour for junk or missing tint", () => {
+  it("falls back to the default badge colour for junk or bad-length tint", () => {
     for (const bad of [undefined, "", "xyz", "12345", "1234567", "123456789"])
       expect(parseNoteTintHex(bad as string)).to.deep.equal({
         color: 0x3b82f6,
@@ -44,48 +45,73 @@ describe("stripNoteMarkup", () => {
     );
   });
 
-  it("collapses whitespace and trims", () => {
+  it("collapses whitespace and trims but keeps full length", () => {
     expect(stripNoteMarkup("  a\n  b   c ")).to.equal("a b c");
-  });
-
-  it("caps overly long text with an ellipsis", () => {
-    const out = stripNoteMarkup("x".repeat(80));
-    expect(out).to.have.length(40);
-    expect(out.endsWith("…")).to.equal(true);
+    const long = "x".repeat(80);
+    expect(stripNoteMarkup(long)).to.equal(long);
   });
 });
 
-describe("prepareWorldNote", () => {
-  it("prepares a text note from its tint and title", () => {
+describe("noteBadgeColor", () => {
+  it("tints a text note by its hex tint", () => {
+    const note: BniWorldNote = {
+      x: 0,
+      y: 0,
+      type: 0,
+      title: "t",
+      text: "b",
+      tinthex: "0000FFFF",
+    };
+    expect(noteBadgeColor(note, noElement)).to.deep.equal({
+      color: 0x0000ff,
+      alpha: 1,
+    });
+  });
+
+  it("tints an element note by the resolved element uiColor, default when unknown", () => {
+    const note: BniWorldNote = { x: 4, y: 2, type: 1, id: 7, mass: 0, temp: 0 };
+    expect(
+      noteBadgeColor(note, (t) =>
+        t === 7 ? fakeElement("Copper Ore", 0xd95e63) : undefined,
+      ).color,
+    ).to.equal(0xd95e63);
+    expect(noteBadgeColor(note, noElement).color).to.equal(0x3b82f6);
+  });
+});
+
+describe("resolveNoteContent", () => {
+  it("resolves a text note to title + body with a css colour", () => {
     const note: BniWorldNote = {
       x: 15,
       y: 3,
       type: 0,
       title: "important title!",
-      text: "body",
+      text: '<link="X">read me</link>',
       tinthex: "0000FFFF",
     };
-    expect(prepareWorldNote(note, noElement)).to.deep.equal({
-      x: 15,
-      y: 3,
-      color: 0x0000ff,
-      alpha: 1,
-      label: "important title!",
+    expect(resolveNoteContent(note, noElement)).to.deep.equal({
+      kind: "text",
+      title: "important title!",
+      body: "read me",
+      detail: "",
+      colorCss: "#0000ff",
+      cell: { x: 15, y: 3 },
     });
   });
 
-  it("falls back to the note body when there is no title", () => {
+  it("defaults an empty text-note title to 'Note'", () => {
     const note: BniWorldNote = {
       x: 0,
       y: 0,
       type: 0,
-      text: "body only",
+      title: "",
+      text: "",
       tinthex: "FFFFFFFF",
     };
-    expect(prepareWorldNote(note, noElement).label).to.equal("body only");
+    expect(resolveNoteContent(note, noElement).title).to.equal("Note");
   });
 
-  it("colours an element note by the resolved element and labels it by name", () => {
+  it("resolves an element note to name + mass/temp detail (°C from Kelvin)", () => {
     const note: BniWorldNote = {
       x: 4,
       y: 2,
@@ -94,27 +120,28 @@ describe("prepareWorldNote", () => {
       mass: 791.79,
       temp: 296.15,
     };
-    const prepared = prepareWorldNote(note, (tag) =>
+    const content = resolveNoteContent(note, (tag) =>
       tag === -1736594426
         ? fakeElement('<link="CUPRITE">Copper Ore</link>', 0xd95e63)
         : undefined,
     );
-    expect(prepared.color).to.equal(0xd95e63);
-    expect(prepared.alpha).to.equal(1);
-    expect(prepared.label).to.equal("Copper Ore");
+    expect(content.kind).to.equal("element");
+    expect(content.title).to.equal("Copper Ore");
+    expect(content.detail).to.equal("791.8 kg · 23 °C");
+    expect(content.colorCss).to.equal("#d95e63");
   });
 
-  it("degrades gracefully when the element tag is unknown (modded)", () => {
+  it("labels an unknown (modded) element gracefully", () => {
     const note: BniWorldNote = {
       x: 1,
       y: 1,
       type: 1,
       id: 999,
-      mass: 0,
+      mass: 5,
       temp: 0,
     };
-    const prepared = prepareWorldNote(note, noElement);
-    expect(prepared.color).to.equal(0x3b82f6);
-    expect(prepared.label).to.equal("");
+    const content = resolveNoteContent(note, noElement);
+    expect(content.title).to.equal("Unknown element");
+    expect(content.colorCss).to.equal("#3b82f6");
   });
 });
