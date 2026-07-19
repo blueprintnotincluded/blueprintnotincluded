@@ -21,6 +21,11 @@ Open items only (import pipeline, render cutover, legacy-pipeline removal, and E
   `multiEntities`, `tags`, `attribute`, `db` — future capabilities (critters/recipes/etc.),
   nothing wired yet. Non-English i18n still open: site has zh/ru/ko but the export ships
   English only.
+- **Modded buildings — data layer shipped** (`mod`/`modTitle` on buildings, mods index in
+  the DB, `blueprint.mods` server-derived + latched `modded: true`, `GET /api/mods`). 473
+  buildings (449 vanilla + 24 modded from 6 Steam Workshop mods) as of this export. UI
+  (build-menu badges, details-page mod chips, `/mods` page, editor-open mod notice) is a
+  separate follow-up PR — nothing consumes `mods` client-side yet.
 
 ## Steam reskin follow-ups
 
