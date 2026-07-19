@@ -1,0 +1,6478 @@
+{
+  "blueprintVersion": 3,
+  "friendlyname": "Kitchen Sink - One of Everything",
+  "userdesc": "Generated from database-2024.json for manual QA. Contains every catalogued building and one element note for every catalogued element.",
+  "icon": "Tile",
+  "icontint": "FFFFFFFF",
+  "buildings": [
+    {
+      "offset": {
+        "x": 1,
+        "y": 0
+      },
+      "buildingdef": "AdvancedApothecary",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 0
+      },
+      "buildingdef": "AdvancedDoctorStation",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 10,
+        "y": 0
+      },
+      "buildingdef": "AdvancedResearchCenter",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 15,
+        "y": 0
+      },
+      "buildingdef": "AirBorneCritterCondo",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 19,
+        "y": 0
+      },
+      "buildingdef": "AirConditioner",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 23,
+        "y": 0
+      },
+      "buildingdef": "AirFilter",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 26,
+        "y": 0
+      },
+      "buildingdef": "AirborneCreatureLure",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 30,
+        "y": 0
+      },
+      "buildingdef": "AlgaeDistillery",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 0
+      },
+      "buildingdef": "AlgaeHabitat",
+      "selected_elements": [
+        1624244999
+      ]
+    },
+    {
+      "offset": {
+        "x": 37,
+        "y": 0
+      },
+      "buildingdef": "Apothecary",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 42,
+        "y": 0
+      },
+      "buildingdef": "ArcadeMachine",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 47,
+        "y": 0
+      },
+      "buildingdef": "ArtifactAnalysisStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 53,
+        "y": 0
+      },
+      "buildingdef": "ArtifactCargoBay",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 59,
+        "y": 0
+      },
+      "buildingdef": "AstronautTrainingCenter",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 65,
+        "y": 0
+      },
+      "buildingdef": "AtomicGarden",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 70,
+        "y": 0
+      },
+      "buildingdef": "AutoMiner",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 74,
+        "y": 0
+      },
+      "buildingdef": "Battery",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 77,
+        "y": 0
+      },
+      "buildingdef": "BatteryMedium",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 82,
+        "y": 0
+      },
+      "buildingdef": "BatteryModule",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 86,
+        "y": 0
+      },
+      "buildingdef": "BatterySmart",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 90,
+        "y": 0
+      },
+      "buildingdef": "BeachChair",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 94,
+        "y": 0
+      },
+      "buildingdef": "Bed",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 101,
+        "y": 0
+      },
+      "buildingdef": "BiodieselEngineCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 107,
+        "y": 0
+      },
+      "buildingdef": "BottleEmptierConduitGas",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 110,
+        "y": 0
+      },
+      "buildingdef": "BottleEmptierConduitLiquid",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 113,
+        "y": 0
+      },
+      "buildingdef": "BottleEmptier",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 116,
+        "y": 0
+      },
+      "buildingdef": "BottleEmptierGas",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 7
+      },
+      "buildingdef": "BunkerDoor",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 7
+      },
+      "buildingdef": "BunkerTile",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 10,
+        "y": 7
+      },
+      "buildingdef": "CO2Engine",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 7
+      },
+      "buildingdef": "CO2Scrubber",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 18,
+        "y": 7
+      },
+      "buildingdef": "Campfire",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 21,
+        "y": 7
+      },
+      "buildingdef": "Canvas",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 25,
+        "y": 7
+      },
+      "buildingdef": "CanvasTall",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 30,
+        "y": 7
+      },
+      "buildingdef": "CanvasWide",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 7
+      },
+      "buildingdef": "CarpetTile",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 37,
+        "y": 7
+      },
+      "buildingdef": "CeilingLight",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 40,
+        "y": 7
+      },
+      "buildingdef": "Checkpoint",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 44,
+        "y": 7
+      },
+      "buildingdef": "ChemicalRefinery",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 7
+      },
+      "buildingdef": "Chlorinator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 55,
+        "y": 7
+      },
+      "buildingdef": "ClothingAlterationStation",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 61,
+        "y": 7
+      },
+      "buildingdef": "ClothingFabricator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 67,
+        "y": 7
+      },
+      "buildingdef": "ClusterTelescope",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 72,
+        "y": 7
+      },
+      "buildingdef": "ClusterTelescopeEnclosed",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 77,
+        "y": 7
+      },
+      "buildingdef": "CometDetector",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 81,
+        "y": 7
+      },
+      "buildingdef": "Compost",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 85,
+        "y": 7
+      },
+      "buildingdef": "GasConduitDiseaseSensor",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 88,
+        "y": 7
+      },
+      "buildingdef": "LiquidConduitDiseaseSensor",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 91,
+        "y": 7
+      },
+      "buildingdef": "GasConduitElementSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 94,
+        "y": 7
+      },
+      "buildingdef": "LiquidConduitElementSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 97,
+        "y": 7
+      },
+      "buildingdef": "GasConduitTemperatureSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 100,
+        "y": 7
+      },
+      "buildingdef": "LiquidConduitTemperatureSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 104,
+        "y": 7
+      },
+      "buildingdef": "ContactConductivePipeBridge",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 109,
+        "y": 7
+      },
+      "buildingdef": "CookingStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 113,
+        "y": 7
+      },
+      "buildingdef": "CornerMoulding",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 116,
+        "y": 7
+      },
+      "buildingdef": "CraftingTable",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 0,
+        "y": 15
+      },
+      "buildingdef": "CreatureDeliveryPoint",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 15
+      },
+      "buildingdef": "CreatureFeeder",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 15
+      },
+      "buildingdef": "CreatureTrap",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 12,
+        "y": 15
+      },
+      "buildingdef": "CrewCapsule",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 18,
+        "y": 15
+      },
+      "buildingdef": "CritterCondo",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 22,
+        "y": 15
+      },
+      "buildingdef": "CritterDropOff",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 25,
+        "y": 15
+      },
+      "buildingdef": "CritterPickUp",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 28,
+        "y": 15
+      },
+      "buildingdef": "CrownMoulding",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 32,
+        "y": 15
+      },
+      "buildingdef": "DLC1CosmicResearchCenter",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 37,
+        "y": 15
+      },
+      "buildingdef": "DecontaminationShower",
+      "selected_elements": [
+        28407099,
+        -755153220
+      ]
+    },
+    {
+      "offset": {
+        "x": 41,
+        "y": 15
+      },
+      "buildingdef": "Deepfryer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 45,
+        "y": 15
+      },
+      "buildingdef": "DevGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 48,
+        "y": 15
+      },
+      "buildingdef": "DevHEPSpawner",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 51,
+        "y": 15
+      },
+      "buildingdef": "DevHeater",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 54,
+        "y": 15
+      },
+      "buildingdef": "DevLifeSupport",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 57,
+        "y": 15
+      },
+      "buildingdef": "DevLightGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 60,
+        "y": 15
+      },
+      "buildingdef": "DevPumpGas",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 64,
+        "y": 15
+      },
+      "buildingdef": "DevPumpLiquid",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 68,
+        "y": 15
+      },
+      "buildingdef": "DevPumpSolid",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 72,
+        "y": 15
+      },
+      "buildingdef": "DevRadiationGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 76,
+        "y": 15
+      },
+      "buildingdef": "DiamondPress",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 80,
+        "y": 15
+      },
+      "buildingdef": "DiningTable",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 84,
+        "y": 15
+      },
+      "buildingdef": "DoctorStation",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 88,
+        "y": 15
+      },
+      "buildingdef": "Door",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 91,
+        "y": 15
+      },
+      "buildingdef": "EggCracker",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 95,
+        "y": 15
+      },
+      "buildingdef": "EggIncubator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 99,
+        "y": 15
+      },
+      "buildingdef": "Electrolyzer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 104,
+        "y": 15
+      },
+      "buildingdef": "EspressoMachine",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 109,
+        "y": 15
+      },
+      "buildingdef": "EthanolDistillery",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 115,
+        "y": 15
+      },
+      "buildingdef": "ExobaseHeadquarters",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 119,
+        "y": 15
+      },
+      "buildingdef": "ExteriorWall",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 36
+      },
+      "buildingdef": "FabricatedWoodMaker",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 36
+      },
+      "buildingdef": "FacilityBackWallWindow",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 36
+      },
+      "buildingdef": "FarmStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 13,
+        "y": 36
+      },
+      "buildingdef": "FarmTile",
+      "selected_elements": [
+        1624244999
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 36
+      },
+      "buildingdef": "FertilizerMaker",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 22,
+        "y": 36
+      },
+      "buildingdef": "FirePole",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 25,
+        "y": 36
+      },
+      "buildingdef": "FishDeliveryPoint",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 28,
+        "y": 36
+      },
+      "buildingdef": "FishFeeder",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 31,
+        "y": 36
+      },
+      "buildingdef": "FishPickUp",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 36
+      },
+      "buildingdef": "FishTrap",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 37,
+        "y": 36
+      },
+      "buildingdef": "FloorLamp",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 40,
+        "y": 36
+      },
+      "buildingdef": "FloorSwitch",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 43,
+        "y": 36
+      },
+      "buildingdef": "FlowerVase",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 46,
+        "y": 36
+      },
+      "buildingdef": "FlowerVaseHanging",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 49,
+        "y": 36
+      },
+      "buildingdef": "FlowerVaseHangingFancy",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 52,
+        "y": 36
+      },
+      "buildingdef": "FlowerVaseWall",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 55,
+        "y": 36
+      },
+      "buildingdef": "FlushToilet",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 59,
+        "y": 36
+      },
+      "buildingdef": "FlyingCreatureBait",
+      "selected_elements": [
+        28407099,
+        -877427037
+      ]
+    },
+    {
+      "offset": {
+        "x": 63,
+        "y": 36
+      },
+      "buildingdef": "FoodDehydrator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 67,
+        "y": 36
+      },
+      "buildingdef": "FoodRehydrator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 72,
+        "y": 36
+      },
+      "buildingdef": "FossilDig",
+      "selected_elements": [
+        1757792140
+      ]
+    },
+    {
+      "offset": {
+        "x": 79,
+        "y": 36
+      },
+      "buildingdef": "Gantry",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 86,
+        "y": 36
+      },
+      "buildingdef": "GasBottler",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 92,
+        "y": 36
+      },
+      "buildingdef": "GasCargoBayCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 98,
+        "y": 36
+      },
+      "buildingdef": "GasCargoBaySmall",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 103,
+        "y": 36
+      },
+      "buildingdef": "GasConduitBridge",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 107,
+        "y": 36
+      },
+      "buildingdef": "GasConduit",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 110,
+        "y": 36
+      },
+      "buildingdef": "GasConduitOverflow",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 114,
+        "y": 36
+      },
+      "buildingdef": "GasConduitPreferentialFlow",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 118,
+        "y": 36
+      },
+      "buildingdef": "GasConduitRadiant",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 44
+      },
+      "buildingdef": "GasFilter",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 44
+      },
+      "buildingdef": "GasLimitValve",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 44
+      },
+      "buildingdef": "GasLogicValve",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 11,
+        "y": 44
+      },
+      "buildingdef": "GasMiniPump",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 44
+      },
+      "buildingdef": "GasPermeableMembrane",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 44
+      },
+      "buildingdef": "GasPump",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 23,
+        "y": 44
+      },
+      "buildingdef": "GasReservoir",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 28,
+        "y": 44
+      },
+      "buildingdef": "GasValve",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 31,
+        "y": 44
+      },
+      "buildingdef": "GasVent",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 44
+      },
+      "buildingdef": "GasVentHighPressure",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 38,
+        "y": 44
+      },
+      "buildingdef": "Generator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 43,
+        "y": 44
+      },
+      "buildingdef": "GenericFabricator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 44
+      },
+      "buildingdef": "GeneticAnalysisStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 57,
+        "y": 44
+      },
+      "buildingdef": "GeoTuner",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 62,
+        "y": 44
+      },
+      "buildingdef": "GlassCeilingLight",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 65,
+        "y": 44
+      },
+      "buildingdef": "GlassExteriorWall",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 70,
+        "y": 44
+      },
+      "buildingdef": "GlassForge",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 75,
+        "y": 44
+      },
+      "buildingdef": "GlassTile",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 79,
+        "y": 44
+      },
+      "buildingdef": "GourmetCookingStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 83,
+        "y": 44
+      },
+      "buildingdef": "Grave",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 86,
+        "y": 44
+      },
+      "buildingdef": "GravitasBathroomStall",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 90,
+        "y": 44
+      },
+      "buildingdef": "GravitasContainer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 95,
+        "y": 44
+      },
+      "buildingdef": "GravitasCreatureManipulator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 99,
+        "y": 44
+      },
+      "buildingdef": "GravitasDoor",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 102,
+        "y": 44
+      },
+      "buildingdef": "GravitasLabLight",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 105,
+        "y": 44
+      },
+      "buildingdef": "GravitasPedestal",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 109,
+        "y": 44
+      },
+      "buildingdef": "HEPBattery",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 113,
+        "y": 44
+      },
+      "buildingdef": "HEPBridgeTile",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 2,
+        "y": 50
+      },
+      "buildingdef": "HEPEngine",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 50
+      },
+      "buildingdef": "HabitatModuleMedium",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 15,
+        "y": 50
+      },
+      "buildingdef": "HabitatModuleSmall",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 19,
+        "y": 50
+      },
+      "buildingdef": "HandSanitizer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 23,
+        "y": 50
+      },
+      "buildingdef": "Headquarters",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 29,
+        "y": 50
+      },
+      "buildingdef": "HeatCompressor",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 50
+      },
+      "buildingdef": "HighEnergyParticleRedirector",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 37,
+        "y": 50
+      },
+      "buildingdef": "HighEnergyParticleSpawner",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 42,
+        "y": 50
+      },
+      "buildingdef": "HijackedHeadquarters",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 49,
+        "y": 50
+      },
+      "buildingdef": "HotTub",
+      "selected_elements": [
+        28407099,
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 57,
+        "y": 50
+      },
+      "buildingdef": "HydrogenEngineCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 64,
+        "y": 50
+      },
+      "buildingdef": "HydrogenGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 69,
+        "y": 50
+      },
+      "buildingdef": "HydroponicFarm",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 72,
+        "y": 50
+      },
+      "buildingdef": "IceCooledFan",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 76,
+        "y": 50
+      },
+      "buildingdef": "IceKettle",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 80,
+        "y": 50
+      },
+      "buildingdef": "IceMachine",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 84,
+        "y": 50
+      },
+      "buildingdef": "IceSculpture",
+      "selected_elements": [
+        873952427
+      ]
+    },
+    {
+      "offset": {
+        "x": 88,
+        "y": 50
+      },
+      "buildingdef": "InsulatedGasConduit",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 91,
+        "y": 50
+      },
+      "buildingdef": "InsulatedLiquidConduit",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 94,
+        "y": 50
+      },
+      "buildingdef": "InsulationTile",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 97,
+        "y": 50
+      },
+      "buildingdef": "ItemPedestal",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 100,
+        "y": 50
+      },
+      "buildingdef": "JetSuitLocker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 104,
+        "y": 50
+      },
+      "buildingdef": "JetSuitMarker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 109,
+        "y": 50
+      },
+      "buildingdef": "Juicer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 116,
+        "y": 50
+      },
+      "buildingdef": "KeroseneEngineCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 57
+      },
+      "buildingdef": "KeroseneEngineClusterSmall",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 57
+      },
+      "buildingdef": "Kiln",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 57
+      },
+      "buildingdef": "LadderBed",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 13,
+        "y": 57
+      },
+      "buildingdef": "Ladder",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 16,
+        "y": 57
+      },
+      "buildingdef": "LadderFast",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 19,
+        "y": 57
+      },
+      "buildingdef": "LandingBeacon",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 22,
+        "y": 57
+      },
+      "buildingdef": "LargeBackwallFarm",
+      "selected_elements": [
+        28407099,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 29,
+        "y": 57
+      },
+      "buildingdef": "LaunchPad",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 35,
+        "y": 57
+      },
+      "buildingdef": "LeadSuitLocker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 39,
+        "y": 57
+      },
+      "buildingdef": "LeadSuitMarker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 44,
+        "y": 57
+      },
+      "buildingdef": "LiquidBottler",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 57
+      },
+      "buildingdef": "LiquidCargoBayCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 56,
+        "y": 57
+      },
+      "buildingdef": "LiquidCargoBaySmall",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 60,
+        "y": 57
+      },
+      "buildingdef": "LiquidConditioner",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 65,
+        "y": 57
+      },
+      "buildingdef": "LiquidConduitBridge",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 69,
+        "y": 57
+      },
+      "buildingdef": "LiquidConduit",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 72,
+        "y": 57
+      },
+      "buildingdef": "LiquidConduitOverflow",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 76,
+        "y": 57
+      },
+      "buildingdef": "LiquidConduitPreferentialFlow",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 80,
+        "y": 57
+      },
+      "buildingdef": "LiquidConduitRadiant",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 83,
+        "y": 57
+      },
+      "buildingdef": "LiquidCooledFan",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 88,
+        "y": 57
+      },
+      "buildingdef": "LiquidFilter",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 94,
+        "y": 57
+      },
+      "buildingdef": "LiquidFuelTankCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 100,
+        "y": 57
+      },
+      "buildingdef": "LiquidHeater",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 105,
+        "y": 57
+      },
+      "buildingdef": "LiquidLimitValve",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 108,
+        "y": 57
+      },
+      "buildingdef": "LiquidLogicValve",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 111,
+        "y": 57
+      },
+      "buildingdef": "LiquidMiniPump",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 114,
+        "y": 57
+      },
+      "buildingdef": "LiquidPump",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 118,
+        "y": 57
+      },
+      "buildingdef": "LiquidPumpingStation",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 0,
+        "y": 64
+      },
+      "buildingdef": "LiquidReservoir",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 64
+      },
+      "buildingdef": "LiquidValve",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 64
+      },
+      "buildingdef": "LiquidVent",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 10,
+        "y": 64
+      },
+      "buildingdef": "LogicAlarm",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 13,
+        "y": 64
+      },
+      "buildingdef": "LogicClusterLocationSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 16,
+        "y": 64
+      },
+      "buildingdef": "LogicCounter",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 19,
+        "y": 64
+      },
+      "buildingdef": "LogicCritterCountSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 22,
+        "y": 64
+      },
+      "buildingdef": "LogicDiseaseSensor",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 25,
+        "y": 64
+      },
+      "buildingdef": "LogicDuplicantSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 28,
+        "y": 64
+      },
+      "buildingdef": "LogicElementSensorGas",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 31,
+        "y": 64
+      },
+      "buildingdef": "LogicElementSensorLiquid",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 64
+      },
+      "buildingdef": "LogicGateAND",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 38,
+        "y": 64
+      },
+      "buildingdef": "LogicGateOR",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 42,
+        "y": 64
+      },
+      "buildingdef": "LogicGateXOR",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 46,
+        "y": 64
+      },
+      "buildingdef": "LogicGateNOT",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 64
+      },
+      "buildingdef": "LogicGateBUFFER",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 54,
+        "y": 64
+      },
+      "buildingdef": "LogicGateFILTER",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 59,
+        "y": 64
+      },
+      "buildingdef": "LogicGateMultiplexer",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 64,
+        "y": 64
+      },
+      "buildingdef": "LogicGateDemultiplexer",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 68,
+        "y": 64
+      },
+      "buildingdef": "LogicHEPSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 71,
+        "y": 64
+      },
+      "buildingdef": "LogicHammer",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 74,
+        "y": 64
+      },
+      "buildingdef": "LogicInterasteroidReceiver",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 77,
+        "y": 64
+      },
+      "buildingdef": "LogicInterasteroidSender",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 80,
+        "y": 64
+      },
+      "buildingdef": "LogicLightSensor",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 83,
+        "y": 64
+      },
+      "buildingdef": "LogicMemory",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 87,
+        "y": 64
+      },
+      "buildingdef": "LogicPowerRelay",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 90,
+        "y": 64
+      },
+      "buildingdef": "LogicPressureSensorGas",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 93,
+        "y": 64
+      },
+      "buildingdef": "LogicPressureSensorLiquid",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 96,
+        "y": 64
+      },
+      "buildingdef": "LogicRadiationSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 100,
+        "y": 64
+      },
+      "buildingdef": "LogicRibbonBridge",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 104,
+        "y": 64
+      },
+      "buildingdef": "LogicRibbon",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 107,
+        "y": 64
+      },
+      "buildingdef": "LogicRibbonReader",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 111,
+        "y": 64
+      },
+      "buildingdef": "LogicRibbonWriter",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 115,
+        "y": 64
+      },
+      "buildingdef": "LogicSwitch",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 118,
+        "y": 64
+      },
+      "buildingdef": "LogicTemperatureSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 0,
+        "y": 70
+      },
+      "buildingdef": "LogicTimeOfDaySensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 70
+      },
+      "buildingdef": "LogicTimerSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 70
+      },
+      "buildingdef": "LogicWattageSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 10,
+        "y": 70
+      },
+      "buildingdef": "LogicWireBridge",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 70
+      },
+      "buildingdef": "LogicWire",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 18,
+        "y": 70
+      },
+      "buildingdef": "LonelyMinionHouse",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 23,
+        "y": 70
+      },
+      "buildingdef": "LonelyMailBox",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 28,
+        "y": 70
+      },
+      "buildingdef": "LuxuryBed",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 70
+      },
+      "buildingdef": "MachineShop",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 39,
+        "y": 70
+      },
+      "buildingdef": "ManualGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 43,
+        "y": 70
+      },
+      "buildingdef": "ManualHighEnergyParticleSpawner",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 46,
+        "y": 70
+      },
+      "buildingdef": "ManualPressureDoor",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 49,
+        "y": 70
+      },
+      "buildingdef": "MarbleSculpture",
+      "selected_elements": [
+        -1705953114
+      ]
+    },
+    {
+      "offset": {
+        "x": 53,
+        "y": 70
+      },
+      "buildingdef": "MassageTable",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 58,
+        "y": 70
+      },
+      "buildingdef": "MassiveHeatSink",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 63,
+        "y": 70
+      },
+      "buildingdef": "MechanicalSurfboard",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 68,
+        "y": 70
+      },
+      "buildingdef": "MedicalCot",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 75,
+        "y": 70
+      },
+      "buildingdef": "MegaBrainTank",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 82,
+        "y": 70
+      },
+      "buildingdef": "MercuryCeilingLight",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 86,
+        "y": 70
+      },
+      "buildingdef": "MeshTile",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 90,
+        "y": 70
+      },
+      "buildingdef": "MetalRefinery",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 94,
+        "y": 70
+      },
+      "buildingdef": "MetalSculpture",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 97,
+        "y": 70
+      },
+      "buildingdef": "MetalTile",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 101,
+        "y": 70
+      },
+      "buildingdef": "MethaneGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 106,
+        "y": 70
+      },
+      "buildingdef": "MicrobeMusher",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 111,
+        "y": 70
+      },
+      "buildingdef": "MilkFatSeparator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 117,
+        "y": 70
+      },
+      "buildingdef": "MilkFeeder",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 0,
+        "y": 79
+      },
+      "buildingdef": "MilkPress",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 79
+      },
+      "buildingdef": "MilkingStation",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 79
+      },
+      "buildingdef": "MineralDeoxidizer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 11,
+        "y": 79
+      },
+      "buildingdef": "MiniFridge",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 15,
+        "y": 79
+      },
+      "buildingdef": "MissileLauncher",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 21,
+        "y": 79
+      },
+      "buildingdef": "MissileFabricator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 27,
+        "y": 79
+      },
+      "buildingdef": "MissionControlCluster",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 31,
+        "y": 79
+      },
+      "buildingdef": "ModularLaunchpadPortBridge",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 79
+      },
+      "buildingdef": "ModularLaunchpadPortGas",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 38,
+        "y": 79
+      },
+      "buildingdef": "ModularLaunchpadPortGasUnloader",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 42,
+        "y": 79
+      },
+      "buildingdef": "ModularLaunchpadPortLiquid",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 46,
+        "y": 79
+      },
+      "buildingdef": "ModularLaunchpadPortLiquidUnloader",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 79
+      },
+      "buildingdef": "ModularLaunchpadPortSolid",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 54,
+        "y": 79
+      },
+      "buildingdef": "ModularLaunchpadPortSolidUnloader",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 60,
+        "y": 79
+      },
+      "buildingdef": "MonumentBottom",
+      "selected_elements": [
+        -899253461,
+        -474151749
+      ]
+    },
+    {
+      "offset": {
+        "x": 67,
+        "y": 79
+      },
+      "buildingdef": "MonumentMiddle",
+      "selected_elements": [
+        -1467370314,
+        -1142341158,
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 74,
+        "y": 79
+      },
+      "buildingdef": "MonumentTop",
+      "selected_elements": [
+        623986332,
+        -2079931820,
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 81,
+        "y": 79
+      },
+      "buildingdef": "MorbRoverMaker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 86,
+        "y": 79
+      },
+      "buildingdef": "MouldingTile",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 91,
+        "y": 79
+      },
+      "buildingdef": "MultiMinionDiningTable",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 98,
+        "y": 79
+      },
+      "buildingdef": "NoseconeBasic",
+      "selected_elements": [
+        -1725038055,
+        -902240476
+      ]
+    },
+    {
+      "offset": {
+        "x": 105,
+        "y": 79
+      },
+      "buildingdef": "NoseconeHarvest",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 112,
+        "y": 79
+      },
+      "buildingdef": "NuclearReactor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 2,
+        "y": 87
+      },
+      "buildingdef": "NuclearResearchCenter",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 87
+      },
+      "buildingdef": "ObjectDispenser",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 11,
+        "y": 87
+      },
+      "buildingdef": "OilRefinery",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 87
+      },
+      "buildingdef": "OilWellCap",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 23,
+        "y": 87
+      },
+      "buildingdef": "OrbitalCargoModule",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 27,
+        "y": 87
+      },
+      "buildingdef": "OrbitalResearchCenter",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 32,
+        "y": 87
+      },
+      "buildingdef": "OreScrubber",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 36,
+        "y": 87
+      },
+      "buildingdef": "Outhouse",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 42,
+        "y": 87
+      },
+      "buildingdef": "OxidizerTankCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 49,
+        "y": 87
+      },
+      "buildingdef": "OxidizerTankLiquidCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 54,
+        "y": 87
+      },
+      "buildingdef": "OxygenMaskLocker",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 57,
+        "y": 87
+      },
+      "buildingdef": "OxygenMaskMarker",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 60,
+        "y": 87
+      },
+      "buildingdef": "OxygenMaskStation",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 65,
+        "y": 87
+      },
+      "buildingdef": "OxyliteRefinery",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 69,
+        "y": 87
+      },
+      "buildingdef": "Oxysconce",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 72,
+        "y": 87
+      },
+      "buildingdef": "POIBunkerExteriorDoor",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 75,
+        "y": 87
+      },
+      "buildingdef": "POIDlc2ShowroomDoor",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 79,
+        "y": 87
+      },
+      "buildingdef": "POIDoorInternal",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 82,
+        "y": 87
+      },
+      "buildingdef": "POIFacilityDoor",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 86,
+        "y": 87
+      },
+      "buildingdef": "ParkSign",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 90,
+        "y": 87
+      },
+      "buildingdef": "PetroleumGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 96,
+        "y": 87
+      },
+      "buildingdef": "Phonobox",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 102,
+        "y": 87
+      },
+      "buildingdef": "PioneerModule",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 107,
+        "y": 87
+      },
+      "buildingdef": "PixelPack",
+      "selected_elements": [
+        623986332,
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 112,
+        "y": 87
+      },
+      "buildingdef": "PlanterBox",
+      "selected_elements": [
+        1624244999
+      ]
+    },
+    {
+      "offset": {
+        "x": 115,
+        "y": 87
+      },
+      "buildingdef": "PlasticTile",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 94
+      },
+      "buildingdef": "Polymerizer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 94
+      },
+      "buildingdef": "PowerControlStation",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 10,
+        "y": 94
+      },
+      "buildingdef": "PowerTransformer",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 94
+      },
+      "buildingdef": "PowerTransformerSmall",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 18,
+        "y": 94
+      },
+      "buildingdef": "PressureDoor",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 21,
+        "y": 94
+      },
+      "buildingdef": "PressureSwitchGas",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 24,
+        "y": 94
+      },
+      "buildingdef": "PressureSwitchLiquid",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 27,
+        "y": 94
+      },
+      "buildingdef": "PropBeachChair",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 31,
+        "y": 94
+      },
+      "buildingdef": "PropGravitasLabWall",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 35,
+        "y": 94
+      },
+      "buildingdef": "PropGravitasLabWindow",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 40,
+        "y": 94
+      },
+      "buildingdef": "PropGravitasLabWindowHorizontal",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 44,
+        "y": 94
+      },
+      "buildingdef": "PropGravitasWall",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 47,
+        "y": 94
+      },
+      "buildingdef": "PropGravitasWallPurple",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 94
+      },
+      "buildingdef": "PropGravitasWallPurpleWhiteDiagonal",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 53,
+        "y": 94
+      },
+      "buildingdef": "RadiationLight",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 58,
+        "y": 94
+      },
+      "buildingdef": "RailGun",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 64,
+        "y": 94
+      },
+      "buildingdef": "RailGunPayloadOpener",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 68,
+        "y": 94
+      },
+      "buildingdef": "RanchStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 72,
+        "y": 94
+      },
+      "buildingdef": "RationBox",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 77,
+        "y": 94
+      },
+      "buildingdef": "ReefGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 81,
+        "y": 94
+      },
+      "buildingdef": "Refrigerator",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 84,
+        "y": 94
+      },
+      "buildingdef": "ResearchCenter",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 89,
+        "y": 94
+      },
+      "buildingdef": "ResearchClusterModule",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 94,
+        "y": 94
+      },
+      "buildingdef": "ResetSkillsStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 99,
+        "y": 94
+      },
+      "buildingdef": "RockCrusher",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 104,
+        "y": 94
+      },
+      "buildingdef": "RocketControlStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 108,
+        "y": 94
+      },
+      "buildingdef": "RocketEnvelopeWindowTile",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 111,
+        "y": 94
+      },
+      "buildingdef": "RocketInteriorGasInput",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 114,
+        "y": 94
+      },
+      "buildingdef": "RocketInteriorGasInputPort",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 117,
+        "y": 94
+      },
+      "buildingdef": "RocketInteriorGasOutput",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 0,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorGasOutputPort",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorLiquidInput",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 6,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorLiquidInputPort",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorLiquidOutput",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 12,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorLiquidOutputPort",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 15,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorPowerPlug",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 18,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorSolidInput",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 21,
+        "y": 102
+      },
+      "buildingdef": "RocketInteriorSolidOutput",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 24,
+        "y": 102
+      },
+      "buildingdef": "RocketWallTile",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 27,
+        "y": 102
+      },
+      "buildingdef": "RoleStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 32,
+        "y": 102
+      },
+      "buildingdef": "RubberMaker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 36,
+        "y": 102
+      },
+      "buildingdef": "RubberTile",
+      "selected_elements": [
+        -351425712
+      ]
+    },
+    {
+      "offset": {
+        "x": 39,
+        "y": 102
+      },
+      "buildingdef": "RustDeoxidizer",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 44,
+        "y": 102
+      },
+      "buildingdef": "Sauna",
+      "selected_elements": [
+        28407099,
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 102
+      },
+      "buildingdef": "ScannerModule",
+      "selected_elements": [
+        -899253461,
+        -1142341158
+      ]
+    },
+    {
+      "offset": {
+        "x": 56,
+        "y": 102
+      },
+      "buildingdef": "ScoutModule",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 60,
+        "y": 102
+      },
+      "buildingdef": "Sculpture",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 64,
+        "y": 102
+      },
+      "buildingdef": "ShearingStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 68,
+        "y": 102
+      },
+      "buildingdef": "Shelf",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 71,
+        "y": 102
+      },
+      "buildingdef": "Shower",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 76,
+        "y": 102
+      },
+      "buildingdef": "SludgePress",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 82,
+        "y": 102
+      },
+      "buildingdef": "SmallOxidizerTank",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 86,
+        "y": 102
+      },
+      "buildingdef": "SmallSculpture",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 89,
+        "y": 102
+      },
+      "buildingdef": "SnowTile",
+      "selected_elements": [
+        489261827
+      ]
+    },
+    {
+      "offset": {
+        "x": 92,
+        "y": 102
+      },
+      "buildingdef": "SodaFountain",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 99,
+        "y": 102
+      },
+      "buildingdef": "SolarPanel",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 106,
+        "y": 102
+      },
+      "buildingdef": "SolarPanelModule",
+      "selected_elements": [
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 112,
+        "y": 102
+      },
+      "buildingdef": "CargoBayCluster",
+      "selected_elements": [
+        -899253461
+      ]
+    },
+    {
+      "offset": {
+        "x": 118,
+        "y": 102
+      },
+      "buildingdef": "SolidCargoBaySmall",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 109
+      },
+      "buildingdef": "SolidConduitBridge",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 109
+      },
+      "buildingdef": "SolidConduit",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 109
+      },
+      "buildingdef": "SolidConduitInbox",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 11,
+        "y": 109
+      },
+      "buildingdef": "SolidConduitOutbox",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 14,
+        "y": 109
+      },
+      "buildingdef": "SolidConduitDiseaseSensor",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 109
+      },
+      "buildingdef": "SolidConduitElementSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 20,
+        "y": 109
+      },
+      "buildingdef": "SolidConduitTemperatureSensor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 24,
+        "y": 109
+      },
+      "buildingdef": "SolidFilter",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 28,
+        "y": 109
+      },
+      "buildingdef": "SolidLimitValve",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 31,
+        "y": 109
+      },
+      "buildingdef": "SolidLogicValve",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 35,
+        "y": 109
+      },
+      "buildingdef": "SolidTransferArm",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 39,
+        "y": 109
+      },
+      "buildingdef": "SolidVent",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 42,
+        "y": 109
+      },
+      "buildingdef": "SpaceHeater",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 47,
+        "y": 109
+      },
+      "buildingdef": "SpecialCargoBayCluster",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 51,
+        "y": 109
+      },
+      "buildingdef": "SpiceGrinder",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 55,
+        "y": 109
+      },
+      "buildingdef": "StaterpillarGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 58,
+        "y": 109
+      },
+      "buildingdef": "StaterpillarGasConnector",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 61,
+        "y": 109
+      },
+      "buildingdef": "StaterpillarLiquidConnector",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 67,
+        "y": 109
+      },
+      "buildingdef": "SteamEngineCluster",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 75,
+        "y": 109
+      },
+      "buildingdef": "SteamTurbine",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 82,
+        "y": 109
+      },
+      "buildingdef": "SteamTurbine2",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 87,
+        "y": 109
+      },
+      "buildingdef": "StorageLocker",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 90,
+        "y": 109
+      },
+      "buildingdef": "StorageLockerSmart",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 93,
+        "y": 109
+      },
+      "buildingdef": "StorageTile",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 96,
+        "y": 109
+      },
+      "buildingdef": "SublimationStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 101,
+        "y": 109
+      },
+      "buildingdef": "SugarEngine",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 106,
+        "y": 109
+      },
+      "buildingdef": "SuitFabricator",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 111,
+        "y": 109
+      },
+      "buildingdef": "SuitLocker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 114,
+        "y": 109
+      },
+      "buildingdef": "SuitMarker",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 117,
+        "y": 109
+      },
+      "buildingdef": "SunLamp",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 116
+      },
+      "buildingdef": "SupermaterialRefinery",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 7,
+        "y": 116
+      },
+      "buildingdef": "SushiBar",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 12,
+        "y": 116
+      },
+      "buildingdef": "SweepBotStation",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 16,
+        "y": 116
+      },
+      "buildingdef": "Switch",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 19,
+        "y": 116
+      },
+      "buildingdef": "Telephone",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 23,
+        "y": 116
+      },
+      "buildingdef": "TeleportalPad",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 28,
+        "y": 116
+      },
+      "buildingdef": "TemperatureControlledSwitch",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 32,
+        "y": 116
+      },
+      "buildingdef": "TemporalTearOpener",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 36,
+        "y": 116
+      },
+      "buildingdef": "ThermalBlock",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 39,
+        "y": 116
+      },
+      "buildingdef": "Tile",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 42,
+        "y": 116
+      },
+      "buildingdef": "TilePOI",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 45,
+        "y": 116
+      },
+      "buildingdef": "TravelTube",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 49,
+        "y": 116
+      },
+      "buildingdef": "TravelTubeEntrance",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 53,
+        "y": 116
+      },
+      "buildingdef": "TravelTubeWallBridge",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 57,
+        "y": 116
+      },
+      "buildingdef": "UnderwaterCritterCondo",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 61,
+        "y": 116
+      },
+      "buildingdef": "UnderwaterBreathingStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 65,
+        "y": 116
+      },
+      "buildingdef": "UnderwaterMilkFeeder",
+      "selected_elements": [
+        -1725038055,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 69,
+        "y": 116
+      },
+      "buildingdef": "UnderwaterMilkingStation",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 73,
+        "y": 116
+      },
+      "buildingdef": "UnderwaterRanchStation",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 78,
+        "y": 116
+      },
+      "buildingdef": "UnderwaterShearingStation",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 83,
+        "y": 116
+      },
+      "buildingdef": "UnderwaterVentDrill",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 89,
+        "y": 116
+      },
+      "buildingdef": "UraniumCentrifuge",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 95,
+        "y": 116
+      },
+      "buildingdef": "VerticalWindTunnel",
+      "selected_elements": [
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 100,
+        "y": 116
+      },
+      "buildingdef": "WallToilet",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 104,
+        "y": 116
+      },
+      "buildingdef": "WarpConduitReceiver",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 110,
+        "y": 116
+      },
+      "buildingdef": "WarpConduitSender",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 115,
+        "y": 116
+      },
+      "buildingdef": "WashBasin",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 0,
+        "y": 124
+      },
+      "buildingdef": "WashSink",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 4,
+        "y": 124
+      },
+      "buildingdef": "WaterCooler",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 9,
+        "y": 124
+      },
+      "buildingdef": "WaterPurifier",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 15,
+        "y": 124
+      },
+      "buildingdef": "WideFarmTile",
+      "selected_elements": [
+        28407099,
+        623986332
+      ]
+    },
+    {
+      "offset": {
+        "x": 20,
+        "y": 124
+      },
+      "buildingdef": "WireBridge",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 24,
+        "y": 124
+      },
+      "buildingdef": "WireBridgeHighWattage",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 27,
+        "y": 124
+      },
+      "buildingdef": "Wire",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 30,
+        "y": 124
+      },
+      "buildingdef": "HighWattageWire",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 34,
+        "y": 124
+      },
+      "buildingdef": "WireRefinedBridge",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 38,
+        "y": 124
+      },
+      "buildingdef": "WireRefinedBridgeHighWattage",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 41,
+        "y": 124
+      },
+      "buildingdef": "WireRefined",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 44,
+        "y": 124
+      },
+      "buildingdef": "WireRefinedHighWattage",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 48,
+        "y": 124
+      },
+      "buildingdef": "WireRubberBridge",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 52,
+        "y": 124
+      },
+      "buildingdef": "WireRubber",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 55,
+        "y": 124
+      },
+      "buildingdef": "WoodGasGenerator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 59,
+        "y": 124
+      },
+      "buildingdef": "WoodSculpture",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 63,
+        "y": 124
+      },
+      "buildingdef": "WoodStorage",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 67,
+        "y": 124
+      },
+      "buildingdef": "WoodTile",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 70,
+        "y": 124
+      },
+      "buildingdef": "WoodenDoor",
+      "selected_elements": [
+        16214647
+      ]
+    },
+    {
+      "offset": {
+        "x": 73,
+        "y": 124
+      },
+      "buildingdef": "CreatureAirTrap",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 77,
+        "y": 124
+      },
+      "buildingdef": "Desalinator",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 82,
+        "y": 124
+      },
+      "buildingdef": "InsulatedDoor",
+      "selected_elements": [
+        493438017
+      ]
+    },
+    {
+      "offset": {
+        "x": 85,
+        "y": 124
+      },
+      "buildingdef": "CreatureGroundTrap",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 89,
+        "y": 124
+      },
+      "buildingdef": "WaterTrap",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 92,
+        "y": 124
+      },
+      "buildingdef": "Drain",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 96,
+        "y": 124
+      },
+      "buildingdef": "PAirlockDoor",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 101,
+        "y": 124
+      },
+      "buildingdef": "PAirlockDoorInsulated",
+      "selected_elements": [
+        -902240476,
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 105,
+        "y": 124
+      },
+      "buildingdef": "DecompressionGasValve",
+      "selected_elements": [
+        -899253461,
+        -1142341158
+      ]
+    },
+    {
+      "offset": {
+        "x": 109,
+        "y": 124
+      },
+      "buildingdef": "DecompressionLiquidValve",
+      "selected_elements": [
+        -899253461,
+        -1142341158
+      ]
+    },
+    {
+      "offset": {
+        "x": 114,
+        "y": 124
+      },
+      "buildingdef": "HighPressureGasConduitBridge",
+      "selected_elements": [
+        -899253461,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 118,
+        "y": 124
+      },
+      "buildingdef": "HighPressureGasConduit",
+      "selected_elements": [
+        -899253461,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 129
+      },
+      "buildingdef": "HighPressureLiquidConduitBridge",
+      "selected_elements": [
+        -899253461,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 5,
+        "y": 129
+      },
+      "buildingdef": "HighPressureLiquidConduit",
+      "selected_elements": [
+        -899253461,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 8,
+        "y": 129
+      },
+      "buildingdef": "PressureGasPump",
+      "selected_elements": [
+        -899253461,
+        -1142341158
+      ]
+    },
+    {
+      "offset": {
+        "x": 12,
+        "y": 129
+      },
+      "buildingdef": "PressureLiquidPump",
+      "selected_elements": [
+        -899253461,
+        -1142341158
+      ]
+    },
+    {
+      "offset": {
+        "x": 17,
+        "y": 129
+      },
+      "buildingdef": "MJSplitterMKIIGas",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 22,
+        "y": 129
+      },
+      "buildingdef": "MJSplitterMKIILiquid",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 27,
+        "y": 129
+      },
+      "buildingdef": "MJSplitterMKIISolid",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 31,
+        "y": 129
+      },
+      "buildingdef": "PeterHan_FilteredGasPump",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 35,
+        "y": 129
+      },
+      "buildingdef": "PeterHan_FilteredLiquidPump",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 39,
+        "y": 129
+      },
+      "buildingdef": "FilteredGasPump",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 43,
+        "y": 129
+      },
+      "buildingdef": "FilteredLiquidPump",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 47,
+        "y": 129
+      },
+      "buildingdef": "VacuumPump",
+      "selected_elements": [
+        1220285359,
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 50,
+        "y": 129
+      },
+      "buildingdef": "FairLiquidWallVent",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 53,
+        "y": 129
+      },
+      "buildingdef": "VentHighPressure",
+      "selected_elements": [
+        -1725038055,
+        1220285359
+      ]
+    },
+    {
+      "offset": {
+        "x": 56,
+        "y": 129
+      },
+      "buildingdef": "FairGasWallVent",
+      "selected_elements": [
+        28407099
+      ]
+    },
+    {
+      "offset": {
+        "x": 59,
+        "y": 129
+      },
+      "buildingdef": "FairLiquidWallPump",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 62,
+        "y": 129
+      },
+      "buildingdef": "FairGasWallPump",
+      "selected_elements": [
+        -1725038055
+      ]
+    }
+  ],
+  "digcommands": [],
+  "worldNotes": [
+    {
+      "x": 0,
+      "y": 135,
+      "type": 1,
+      "id": 16214647,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 135,
+      "type": 1,
+      "id": 28407099,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 6,
+      "y": 135,
+      "type": 1,
+      "id": 59201595,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 9,
+      "y": 135,
+      "type": 1,
+      "id": 83003332,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 12,
+      "y": 135,
+      "type": 1,
+      "id": 100766521,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 15,
+      "y": 135,
+      "type": 1,
+      "id": 108179667,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 18,
+      "y": 135,
+      "type": 1,
+      "id": 118518245,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 21,
+      "y": 135,
+      "type": 1,
+      "id": 134298891,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 24,
+      "y": 135,
+      "type": 1,
+      "id": 166493482,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 27,
+      "y": 135,
+      "type": 1,
+      "id": 167973730,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 30,
+      "y": 135,
+      "type": 1,
+      "id": 183408504,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 33,
+      "y": 135,
+      "type": 1,
+      "id": 245514112,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 36,
+      "y": 135,
+      "type": 1,
+      "id": 361868060,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 39,
+      "y": 135,
+      "type": 1,
+      "id": 371787440,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 42,
+      "y": 135,
+      "type": 1,
+      "id": 381665462,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 45,
+      "y": 135,
+      "type": 1,
+      "id": 381796644,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 48,
+      "y": 135,
+      "type": 1,
+      "id": 431998133,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 51,
+      "y": 135,
+      "type": 1,
+      "id": 489261827,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 54,
+      "y": 135,
+      "type": 1,
+      "id": 493438017,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 57,
+      "y": 135,
+      "type": 1,
+      "id": 502659099,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 60,
+      "y": 135,
+      "type": 1,
+      "id": 505665536,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 63,
+      "y": 135,
+      "type": 1,
+      "id": 623986332,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 66,
+      "y": 135,
+      "type": 1,
+      "id": 641221190,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 69,
+      "y": 135,
+      "type": 1,
+      "id": 660593444,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 72,
+      "y": 135,
+      "type": 1,
+      "id": 663200452,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 75,
+      "y": 135,
+      "type": 1,
+      "id": 721531317,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 78,
+      "y": 135,
+      "type": 1,
+      "id": 758759285,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 81,
+      "y": 135,
+      "type": 1,
+      "id": 813320439,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 84,
+      "y": 135,
+      "type": 1,
+      "id": 867327137,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 87,
+      "y": 135,
+      "type": 1,
+      "id": 869554203,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 0,
+      "y": 138,
+      "type": 1,
+      "id": 873952427,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 138,
+      "type": 1,
+      "id": 874674022,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 6,
+      "y": 138,
+      "type": 1,
+      "id": 878488353,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 9,
+      "y": 138,
+      "type": 1,
+      "id": 878995724,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 12,
+      "y": 138,
+      "type": 1,
+      "id": 900133477,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 15,
+      "y": 138,
+      "type": 1,
+      "id": 905042813,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 18,
+      "y": 138,
+      "type": 1,
+      "id": 908179228,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 21,
+      "y": 138,
+      "type": 1,
+      "id": 947100397,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 24,
+      "y": 138,
+      "type": 1,
+      "id": 973502379,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 27,
+      "y": 138,
+      "type": 1,
+      "id": 976099455,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 30,
+      "y": 138,
+      "type": 1,
+      "id": 1000463219,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 33,
+      "y": 138,
+      "type": 1,
+      "id": 1064294988,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 36,
+      "y": 138,
+      "type": 1,
+      "id": 1071649902,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 39,
+      "y": 138,
+      "type": 1,
+      "id": 1102028305,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 42,
+      "y": 138,
+      "type": 1,
+      "id": 1120921638,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 45,
+      "y": 138,
+      "type": 1,
+      "id": 1157157570,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 48,
+      "y": 138,
+      "type": 1,
+      "id": 1183979137,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 51,
+      "y": 138,
+      "type": 1,
+      "id": 1205622264,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 54,
+      "y": 138,
+      "type": 1,
+      "id": 1220285359,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 57,
+      "y": 138,
+      "type": 1,
+      "id": 1244532348,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 60,
+      "y": 138,
+      "type": 1,
+      "id": 1254083875,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 63,
+      "y": 138,
+      "type": 1,
+      "id": 1262005685,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 66,
+      "y": 138,
+      "type": 1,
+      "id": 1282846257,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 69,
+      "y": 138,
+      "type": 1,
+      "id": 1291367123,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 72,
+      "y": 138,
+      "type": 1,
+      "id": 1306370440,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 75,
+      "y": 138,
+      "type": 1,
+      "id": 1318135165,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 78,
+      "y": 138,
+      "type": 1,
+      "id": 1320373807,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 81,
+      "y": 138,
+      "type": 1,
+      "id": 1323821489,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 84,
+      "y": 138,
+      "type": 1,
+      "id": 1347222069,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 87,
+      "y": 138,
+      "type": 1,
+      "id": 1362238252,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 0,
+      "y": 141,
+      "type": 1,
+      "id": 1376267226,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 141,
+      "type": 1,
+      "id": 1387581016,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 6,
+      "y": 141,
+      "type": 1,
+      "id": 1412740729,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 9,
+      "y": 141,
+      "type": 1,
+      "id": 1433229102,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 12,
+      "y": 141,
+      "type": 1,
+      "id": 1459013976,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 15,
+      "y": 141,
+      "type": 1,
+      "id": 1499134368,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 18,
+      "y": 141,
+      "type": 1,
+      "id": 1541626289,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 21,
+      "y": 141,
+      "type": 1,
+      "id": 1542131326,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 24,
+      "y": 141,
+      "type": 1,
+      "id": 1559722904,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 27,
+      "y": 141,
+      "type": 1,
+      "id": 1608833498,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 30,
+      "y": 141,
+      "type": 1,
+      "id": 1617031780,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 33,
+      "y": 141,
+      "type": 1,
+      "id": 1618409177,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 36,
+      "y": 141,
+      "type": 1,
+      "id": 1624244999,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 39,
+      "y": 141,
+      "type": 1,
+      "id": 1627140480,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 42,
+      "y": 141,
+      "type": 1,
+      "id": 1646675187,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 45,
+      "y": 141,
+      "type": 1,
+      "id": 1664334585,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 48,
+      "y": 141,
+      "type": 1,
+      "id": 1668719292,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 51,
+      "y": 141,
+      "type": 1,
+      "id": 1732126099,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 54,
+      "y": 141,
+      "type": 1,
+      "id": 1757792140,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 57,
+      "y": 141,
+      "type": 1,
+      "id": 1832607973,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 60,
+      "y": 141,
+      "type": 1,
+      "id": 1836671383,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 63,
+      "y": 141,
+      "type": 1,
+      "id": 1838482828,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 66,
+      "y": 141,
+      "type": 1,
+      "id": 1859051228,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 69,
+      "y": 141,
+      "type": 1,
+      "id": 1875790680,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 72,
+      "y": 141,
+      "type": 1,
+      "id": 1887387588,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 75,
+      "y": 141,
+      "type": 1,
+      "id": 1911997537,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 78,
+      "y": 141,
+      "type": 1,
+      "id": 1937241528,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 81,
+      "y": 141,
+      "type": 1,
+      "id": 1937473860,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 84,
+      "y": 141,
+      "type": 1,
+      "id": 1960575215,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 87,
+      "y": 141,
+      "type": 1,
+      "id": 1966552544,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 0,
+      "y": 144,
+      "type": 1,
+      "id": 2059777261,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 144,
+      "type": 1,
+      "id": 2071292326,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 6,
+      "y": 144,
+      "type": 1,
+      "id": 2079148957,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 9,
+      "y": 144,
+      "type": 1,
+      "id": 2108244480,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 12,
+      "y": 144,
+      "type": 1,
+      "id": 2128494380,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 15,
+      "y": 144,
+      "type": 1,
+      "id": -2123557039,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 18,
+      "y": 144,
+      "type": 1,
+      "id": -2079931820,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 21,
+      "y": 144,
+      "type": 1,
+      "id": -2070223827,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 24,
+      "y": 144,
+      "type": 1,
+      "id": -2008682336,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 27,
+      "y": 144,
+      "type": 1,
+      "id": -1960895024,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 30,
+      "y": 144,
+      "type": 1,
+      "id": -1927771704,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 33,
+      "y": 144,
+      "type": 1,
+      "id": -1921520130,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 36,
+      "y": 144,
+      "type": 1,
+      "id": -1901832310,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 39,
+      "y": 144,
+      "type": 1,
+      "id": -1870043872,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 42,
+      "y": 144,
+      "type": 1,
+      "id": -1792538178,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 45,
+      "y": 144,
+      "type": 1,
+      "id": -1779895821,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 48,
+      "y": 144,
+      "type": 1,
+      "id": -1774383478,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 51,
+      "y": 144,
+      "type": 1,
+      "id": -1767622480,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 54,
+      "y": 144,
+      "type": 1,
+      "id": -1736594426,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 57,
+      "y": 144,
+      "type": 1,
+      "id": -1725038055,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 60,
+      "y": 144,
+      "type": 1,
+      "id": -1714565729,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 63,
+      "y": 144,
+      "type": 1,
+      "id": -1713958528,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 66,
+      "y": 144,
+      "type": 1,
+      "id": -1708952091,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 69,
+      "y": 144,
+      "type": 1,
+      "id": -1705953114,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 72,
+      "y": 144,
+      "type": 1,
+      "id": -1675462177,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 75,
+      "y": 144,
+      "type": 1,
+      "id": -1624652107,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 78,
+      "y": 144,
+      "type": 1,
+      "id": -1624413844,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 81,
+      "y": 144,
+      "type": 1,
+      "id": -1561279013,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 84,
+      "y": 144,
+      "type": 1,
+      "id": -1495120499,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 87,
+      "y": 144,
+      "type": 1,
+      "id": -1467370314,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 0,
+      "y": 147,
+      "type": 1,
+      "id": -1411918265,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 147,
+      "type": 1,
+      "id": -1396791454,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 6,
+      "y": 147,
+      "type": 1,
+      "id": -1224086026,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 9,
+      "y": 147,
+      "type": 1,
+      "id": -1208854194,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 12,
+      "y": 147,
+      "type": 1,
+      "id": -1153056158,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 15,
+      "y": 147,
+      "type": 1,
+      "id": -1142341158,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 18,
+      "y": 147,
+      "type": 1,
+      "id": -1130501789,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 21,
+      "y": 147,
+      "type": 1,
+      "id": -1112594153,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 24,
+      "y": 147,
+      "type": 1,
+      "id": -1058835580,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 27,
+      "y": 147,
+      "type": 1,
+      "id": -1038746460,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 30,
+      "y": 147,
+      "type": 1,
+      "id": -902240476,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 33,
+      "y": 147,
+      "type": 1,
+      "id": -899253461,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 36,
+      "y": 147,
+      "type": 1,
+      "id": -877427037,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 39,
+      "y": 147,
+      "type": 1,
+      "id": -858172533,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 42,
+      "y": 147,
+      "type": 1,
+      "id": -839728230,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 45,
+      "y": 147,
+      "type": 1,
+      "id": -755153220,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 48,
+      "y": 147,
+      "type": 1,
+      "id": -729385479,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 51,
+      "y": 147,
+      "type": 1,
+      "id": -721320011,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 54,
+      "y": 147,
+      "type": 1,
+      "id": -690658692,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 57,
+      "y": 147,
+      "type": 1,
+      "id": -690060127,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 60,
+      "y": 147,
+      "type": 1,
+      "id": -553490514,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 63,
+      "y": 147,
+      "type": 1,
+      "id": -537625624,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 66,
+      "y": 147,
+      "type": 1,
+      "id": -497625153,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 69,
+      "y": 147,
+      "type": 1,
+      "id": -487705524,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 72,
+      "y": 147,
+      "type": 1,
+      "id": -474151749,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 75,
+      "y": 147,
+      "type": 1,
+      "id": -473261502,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 78,
+      "y": 147,
+      "type": 1,
+      "id": -389019570,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 81,
+      "y": 147,
+      "type": 1,
+      "id": -355957251,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 84,
+      "y": 147,
+      "type": 1,
+      "id": -351425712,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 87,
+      "y": 147,
+      "type": 1,
+      "id": -348942381,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 0,
+      "y": 150,
+      "type": 1,
+      "id": -328791769,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 150,
+      "type": 1,
+      "id": -325269471,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 6,
+      "y": 150,
+      "type": 1,
+      "id": -279785280,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 9,
+      "y": 150,
+      "type": 1,
+      "id": -233232444,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 12,
+      "y": 150,
+      "type": 1,
+      "id": -230085045,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 15,
+      "y": 150,
+      "type": 1,
+      "id": -226111914,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 18,
+      "y": 150,
+      "type": 1,
+      "id": -220644613,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 21,
+      "y": 150,
+      "type": 1,
+      "id": -220394187,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 24,
+      "y": 150,
+      "type": 1,
+      "id": -198894563,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 27,
+      "y": 150,
+      "type": 1,
+      "id": -105943486,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 30,
+      "y": 150,
+      "type": 1,
+      "id": -47820500,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 33,
+      "y": 150,
+      "type": 1,
+      "id": -2108601198,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 36,
+      "y": 150,
+      "type": 1,
+      "id": -2044124200,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 39,
+      "y": 150,
+      "type": 1,
+      "id": -1934139602,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 42,
+      "y": 150,
+      "type": 1,
+      "id": -1908044868,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 45,
+      "y": 150,
+      "type": 1,
+      "id": -1683093854,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 48,
+      "y": 150,
+      "type": 1,
+      "id": -1637472877,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 51,
+      "y": 150,
+      "type": 1,
+      "id": -1558864561,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 54,
+      "y": 150,
+      "type": 1,
+      "id": -1526513293,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 57,
+      "y": 150,
+      "type": 1,
+      "id": -1412059381,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 60,
+      "y": 150,
+      "type": 1,
+      "id": -1312713527,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 63,
+      "y": 150,
+      "type": 1,
+      "id": -1214831670,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 66,
+      "y": 150,
+      "type": 1,
+      "id": -1121662089,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 69,
+      "y": 150,
+      "type": 1,
+      "id": -1108652427,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 72,
+      "y": 150,
+      "type": 1,
+      "id": -1083496621,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 75,
+      "y": 150,
+      "type": 1,
+      "id": -1075911705,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 78,
+      "y": 150,
+      "type": 1,
+      "id": -878033482,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 81,
+      "y": 150,
+      "type": 1,
+      "id": -751997156,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 84,
+      "y": 150,
+      "type": 1,
+      "id": -746800379,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 87,
+      "y": 150,
+      "type": 1,
+      "id": -714505017,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 0,
+      "y": 153,
+      "type": 1,
+      "id": -645698215,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 153,
+      "type": 1,
+      "id": -509585641,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 6,
+      "y": 153,
+      "type": 1,
+      "id": -486269331,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 9,
+      "y": 153,
+      "type": 1,
+      "id": -422045879,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 12,
+      "y": 153,
+      "type": 1,
+      "id": -333255194,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 15,
+      "y": 153,
+      "type": 1,
+      "id": -324547888,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 18,
+      "y": 153,
+      "type": 1,
+      "id": -232430636,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 21,
+      "y": 153,
+      "type": 1,
+      "id": -123825053,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 24,
+      "y": 153,
+      "type": 1,
+      "id": -87974045,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 27,
+      "y": 153,
+      "type": 1,
+      "id": -20315850,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 30,
+      "y": 153,
+      "type": 1,
+      "id": -2120504832,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 33,
+      "y": 153,
+      "type": 1,
+      "id": -1988727339,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 36,
+      "y": 153,
+      "type": 1,
+      "id": -1946026749,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 39,
+      "y": 153,
+      "type": 1,
+      "id": -1858722091,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 42,
+      "y": 153,
+      "type": 1,
+      "id": -1616033402,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 45,
+      "y": 153,
+      "type": 1,
+      "id": -1554872654,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 48,
+      "y": 153,
+      "type": 1,
+      "id": -1528777920,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 51,
+      "y": 153,
+      "type": 1,
+      "id": -1429687642,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 54,
+      "y": 153,
+      "type": 1,
+      "id": -1406916018,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 57,
+      "y": 153,
+      "type": 1,
+      "id": -1324664829,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 60,
+      "y": 153,
+      "type": 1,
+      "id": -1046145888,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 63,
+      "y": 153,
+      "type": 1,
+      "id": -927923200,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 66,
+      "y": 153,
+      "type": 1,
+      "id": -899515856,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 69,
+      "y": 153,
+      "type": 1,
+      "id": -841236436,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 72,
+      "y": 153,
+      "type": 1,
+      "id": -839856666,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 75,
+      "y": 153,
+      "type": 1,
+      "id": -805366663,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 78,
+      "y": 153,
+      "type": 1,
+      "id": -756961258,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 81,
+      "y": 153,
+      "type": 1,
+      "id": -432557516,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 84,
+      "y": 153,
+      "type": 1,
+      "id": -314016756,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 87,
+      "y": 153,
+      "type": 1,
+      "id": -3376362,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 0,
+      "y": 156,
+      "type": 1,
+      "id": -1456075980,
+      "mass": 1,
+      "temp": 293.15
+    },
+    {
+      "x": 3,
+      "y": 156,
+      "type": 1,
+      "id": -1021084918,
+      "mass": 1,
+      "temp": 293.15
+    }
+  ]
+}
