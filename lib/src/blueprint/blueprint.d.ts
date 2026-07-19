@@ -9,6 +9,8 @@ export declare class Blueprint {
     blueprintItems: BlueprintItem[];
     templateTiles: BlueprintItem[][];
     hadUnknownBuildings: boolean;
+    unknownBuildingDefs: string[];
+    bniMetadata: BniBlueprint | null;
     utilities: UtilityConnectionTracker[][];
     innerYaml: any;
     constructor();

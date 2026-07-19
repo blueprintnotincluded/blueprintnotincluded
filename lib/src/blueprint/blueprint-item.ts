@@ -202,6 +202,20 @@ export class BlueprintItem {
 
     this.changeOrientation(building.orientation);
 
+    // Construction materials: each entry is a Klei tag hash in recipe order
+    // (BlueprintsV2 §2.3). Unknown hashes or surplus slots keep the default
+    // material — cleanUp() backfills every unset slot.
+    if (building.selected_elements != null)
+      for (
+        let indexElement = 0;
+        indexElement < building.selected_elements.length &&
+        indexElement < this.oniItem.buildableElementsArray.length;
+        indexElement++
+      ) {
+        let element = BuildableElement.getElementByTag(building.selected_elements[indexElement]);
+        if (element != null) this.setElement(element.id, indexElement);
+      }
+
     this.cleanUp();
     this.prepareBoundingBox();
   }

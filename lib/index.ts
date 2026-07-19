@@ -14,6 +14,7 @@ export * from './src/enums/build-location-rule';
 
 export * from './src/io/bni/bni-building';
 export * from './src/io/bni/bni-blueprint';
+export * from './src/io/bni/bni-share-string';
 export * from './src/io/mdb/mdb-building';
 export * from './src/io/mdb/mdb-blueprint';
 export * from './src/io/oni/oni-cell';
