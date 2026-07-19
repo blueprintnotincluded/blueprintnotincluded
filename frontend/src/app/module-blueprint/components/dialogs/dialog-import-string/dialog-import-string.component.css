@@ -1,0 +1,7 @@
+.import-textarea {
+  width: 100%;
+  margin-top: 0.75rem;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 0.85rem;
+}

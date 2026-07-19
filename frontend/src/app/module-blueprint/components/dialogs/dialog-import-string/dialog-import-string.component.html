@@ -1,0 +1,45 @@
+<p-dialog
+  i18n-header
+  header="Import blueprint from text"
+  [(visible)]="visible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [closable]="true"
+  [focusOnShow]="true"
+  [maximizable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '560px' }"
+  [breakpoints]="{ '640px': '92vw' }"
+>
+  <div i18n>
+    Paste a blueprint copied to the clipboard by the BlueprintsV2 mod (or the
+    contents of a .blueprint file):
+  </div>
+  <textarea
+    class="import-textarea"
+    rows="8"
+    [(ngModel)]="blueprintText"
+    i18n-placeholder
+    placeholder="Paste blueprint text here"
+  ></textarea>
+  <ng-template pTemplate="footer">
+    <button
+      pButton
+      type="button"
+      i18n-label
+      label="Cancel"
+      class="p-button-text"
+      (click)="hideDialog()"
+    ></button>
+    <button
+      pButton
+      type="button"
+      i18n-label
+      label="Import"
+      icon="pi pi-upload"
+      [disabled]="!canImport"
+      (click)="import()"
+    ></button>
+  </ng-template>
+</p-dialog>

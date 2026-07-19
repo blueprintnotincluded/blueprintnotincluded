@@ -258,6 +258,12 @@ export class ComponentSaveDialogComponent {
         subcategory: m.subcategory ?? null,
         description: m.description ?? null,
       });
+    } else if (this.blueprintService.metadata.description) {
+      // First save of an imported BlueprintsV2 file: its userdesc was mapped
+      // onto metadata.description at import — offer it as the description
+      this.saveBlueprintForm.patchValue({
+        description: this.blueprintService.metadata.description,
+      });
     }
 
     this.computeDerivedMetadata();
