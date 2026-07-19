@@ -12,6 +12,7 @@ import { BrowsePageComponent } from "./module-blueprint/components/browse-page/b
 import { ProfilePageComponent } from "./module-blueprint/components/profile-page/profile-page.component";
 import { BlueprintDetailsPageComponent } from "./module-blueprint/components/blueprint-details-page/blueprint-details-page.component";
 import { homeRedirectGuard } from "./module-blueprint/guards/home-redirect.guard";
+import { SupportedModsPageComponent } from "./module-blueprint/components/supported-mods-page/supported-mods-page.component";
 
 const routes: Routes = [
   {
@@ -22,6 +23,7 @@ const routes: Routes = [
   },
   { path: "editor", component: ComponentBlueprintParentComponent },
   { path: "discover", component: BrowsePageComponent },
+  { path: "mods", component: SupportedModsPageComponent },
   { path: "profile/:username", component: ProfilePageComponent },
   { path: "blueprint/:id", component: BlueprintDetailsPageComponent },
   { path: "b/:id", component: ComponentBlueprintParentComponent },

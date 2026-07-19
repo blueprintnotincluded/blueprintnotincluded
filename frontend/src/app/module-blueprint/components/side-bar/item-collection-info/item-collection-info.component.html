@@ -11,6 +11,18 @@
     />
     <div class="text-nb-items">{{ nbItems }}</div>
   </div>
+  <a
+    *ngIf="itemCollection.oniItem.mod !== undefined"
+    class="mod-badge"
+    [href]="
+      'https://steamcommunity.com/sharedfiles/filedetails/?id=' +
+      itemCollection.oniItem.mod
+    "
+    target="_blank"
+    rel="noopener"
+    i18n
+    >from {{ itemCollection.oniItem.modTitle }}</a
+  >
   <app-buildable-element-picker
     [currentElement]="itemCollection.items[0].buildableElements"
     [buildableElementsArray]="itemCollection.oniItem.buildableElementsArray"

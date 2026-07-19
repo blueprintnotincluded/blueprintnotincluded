@@ -141,6 +141,12 @@ export class ComponentSideBuildToolComponent
     this.uiItemChanged();
   }
 
+  itemTooltip(item: OniItem): string {
+    return item.mod != null
+      ? $localize`${item.name} — from ${item.modTitle} (mod)`
+      : item.name;
+  }
+
   changeElement(_elementChangeInfo: ElementChangeInfo) {
     this.toolService.buildTool.templateItemToBuild.reloadCamera = true;
     //this.toolService.buildTool.templateItemToBuild.setElement(elementChangeInfo.newElement.id, elementChangeInfo.index);

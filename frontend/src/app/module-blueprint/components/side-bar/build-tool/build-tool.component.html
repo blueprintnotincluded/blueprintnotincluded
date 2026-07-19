@@ -121,7 +121,7 @@
           *ngFor="let item of itemArray"
           class="ui-clickable-icon element-button"
           (click)="chooseItem(item)"
-          [pTooltip]="item.name"
+          [pTooltip]="itemTooltip(item)"
           tooltipPosition="bottom"
           tooltipEvent="both"
           life="5000"

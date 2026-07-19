@@ -140,6 +140,24 @@
               >Modded</a
             >
             <a
+              *ngFor="let mod of details.mods ?? []"
+              class="bni-chip bni-chip--mod"
+              [href]="
+                'https://steamcommunity.com/sharedfiles/filedetails/?id=' + mod
+              "
+              target="_blank"
+              rel="noopener"
+              [title]="modChipTooltip(modTitle(mod))"
+              >{{ modTitle(mod) }}</a
+            >
+            <a
+              *ngIf="(details.mods ?? []).length > 0"
+              class="bni-chip bni-chip--ghost"
+              [routerLink]="['/mods']"
+              i18n
+              >All supported mods</a
+            >
+            <a
               *ngFor="let room of details.rooms ?? []"
               class="bni-chip bni-chip--room"
               [routerLink]="['/discover']"

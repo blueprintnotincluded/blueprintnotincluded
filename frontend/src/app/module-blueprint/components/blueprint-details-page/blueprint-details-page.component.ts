@@ -17,10 +17,12 @@ import {
   subcategoryTooltip,
   gameVersionTooltip,
   moddedTooltip,
+  modChipTooltip,
   roomTooltip,
 } from "../../utils/chip-tooltip";
 import { roomTypeLabel } from "../../utils/room-labels";
 import sanitize from "sanitize-filename";
+import { ModsService } from "../../services/mods-service";
 
 const BACK_TO_DISCOVER = $localize`:blueprintDetails.backToDiscover:Back to Discover`;
 const BACK_TO_PROFILE = $localize`:blueprintDetails.backToProfile:Back to Profile`;
@@ -49,10 +51,12 @@ export class BlueprintDetailsPageComponent implements OnInit {
   readonly subcategoryTooltip = subcategoryTooltip;
   readonly gameVersionTooltip = gameVersionTooltip;
   readonly moddedTooltip = moddedTooltip;
+  readonly modChipTooltip = modChipTooltip;
   readonly roomTooltip = roomTooltip;
   readonly roomTypeLabel = roomTypeLabel;
 
   private pendingFragment: string | null = null;
+  private readonly modTitles = new Map<string, string>();
 
   constructor(
     private route: ActivatedRoute,
@@ -60,6 +64,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     private router: Router,
     private blueprintService: BlueprintService,
     private messageService: MessageService,
+    private modsService: ModsService,
     public authService: AuthenticationService,
   ) {}
 
@@ -84,6 +89,13 @@ export class BlueprintDetailsPageComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.modsService.getMods().subscribe({
+      next: (mods) => {
+        for (const mod of mods) this.modTitles.set(mod.id, mod.title);
+      },
+      error: () => undefined,
+    });
+
     this.route.paramMap
       .pipe(
         tap(() => this.updateBackLink()),
@@ -100,6 +112,10 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.route.fragment.subscribe((fragment) => {
       this.pendingFragment = fragment;
     });
+  }
+
+  modTitle(id: string): string {
+    return this.modTitles.get(id) ?? id;
   }
 
   scrollToFragment() {

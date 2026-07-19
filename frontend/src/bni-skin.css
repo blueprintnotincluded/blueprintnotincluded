@@ -444,6 +444,19 @@
   text-decoration: none;
 }
 
+/* Semantic hooks retain the deliberately monochrome chip treatment. */
+.bni-chip--mod,
+.bni-chip--modded,
+.bni-chip--room {
+  background: var(--bni-chip);
+}
+
+.bni-chip--ghost {
+  background: transparent;
+  border-color: var(--bni-line);
+  color: var(--bni-faint);
+}
+
 .bni-chip--untagged {
   font-style: italic;
   background: transparent;
