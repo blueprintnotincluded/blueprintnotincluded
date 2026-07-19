@@ -1,0 +1,116 @@
+/* Pinned bottom-right, modelled on the mod's in-game note edit screen. */
+.note-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 600;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  background: rgba(22, 26, 32, 0.98);
+  color: #f1f1f1;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.note-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #b5487a;
+  color: #fff;
+  font-weight: bold;
+}
+
+.note-panel-close {
+  border: none;
+  background: none;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.note-panel-close:hover {
+  color: #ffd6e7;
+}
+
+.note-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.note-panel-label {
+  margin-top: 6px;
+  font-weight: bold;
+  color: #d9a4bf;
+}
+
+.note-panel-input,
+.note-panel-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #10141a;
+  color: #f1f1f1;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.note-panel-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.note-panel-static {
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #10141a;
+  color: #f1f1f1;
+  font-size: 13px;
+}
+
+.note-panel-palette {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.note-panel-swatch {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.note-panel-swatch.selected {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.note-panel-delete {
+  margin-top: 12px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 4px;
+  background: #8a2b2b;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.note-panel-delete:hover {
+  background: #a83535;
+}

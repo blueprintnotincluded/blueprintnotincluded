@@ -1,0 +1,67 @@
+<div class="note-panel" *ngIf="note as n">
+  <div class="note-panel-header">
+    <span class="note-panel-title">{{ headerLabel }}</span>
+    <button
+      type="button"
+      class="note-panel-close"
+      (click)="close()"
+      aria-label="Close"
+      i18n-aria-label
+    >
+      ×
+    </button>
+  </div>
+
+  <div class="note-panel-body">
+    <ng-container *ngIf="isText; else elementFields">
+      <label class="note-panel-label" i18n>Note Name:</label>
+      <input
+        class="note-panel-input"
+        type="text"
+        maxlength="120"
+        [(ngModel)]="n.title"
+      />
+
+      <label class="note-panel-label" i18n>Note Text:</label>
+      <textarea
+        class="note-panel-textarea"
+        rows="4"
+        maxlength="1000"
+        [(ngModel)]="n.text"
+      ></textarea>
+
+      <label class="note-panel-label" i18n>Note Icon Color:</label>
+      <div class="note-panel-palette">
+        <button
+          type="button"
+          *ngFor="let c of palette"
+          class="note-panel-swatch"
+          [class.selected]="isSelectedColor(c)"
+          [style.background]="'#' + c"
+          [attr.aria-label]="c"
+          (click)="pickColor(c)"
+        ></button>
+      </div>
+    </ng-container>
+
+    <ng-template #elementFields>
+      <label class="note-panel-label" i18n>Element:</label>
+      <div class="note-panel-static">{{ elementName }}</div>
+
+      <label class="note-panel-label" i18n>Mass (kg):</label>
+      <input
+        class="note-panel-input"
+        type="number"
+        min="0"
+        [(ngModel)]="massKg"
+      />
+
+      <label class="note-panel-label" i18n>Temperature (°C):</label>
+      <input class="note-panel-input" type="number" [(ngModel)]="tempCelsius" />
+    </ng-template>
+
+    <button type="button" class="note-panel-delete" (click)="deleteNote()" i18n>
+      Delete note
+    </button>
+  </div>
+</div>

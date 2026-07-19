@@ -48,6 +48,7 @@ import { KeyboardDirective } from "./directives/keyboard.directive";
 import { AuthenticationService } from "./services/authentification-service";
 import { BlueprintService } from "./services/blueprint-service";
 import { ToolService } from "./services/tool-service";
+import { NoteEditPanelComponent } from "./components/note-edit-panel/note-edit-panel.component";
 import { SelectTool } from "./common/tools/select-tool";
 import { BuildTool } from "./common/tools/build-tool";
 import { ScissorsTool } from "./common/tools/scissors-tool";
@@ -164,6 +165,7 @@ import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-butt
     DialogFollowListComponent,
     NotificationBellComponent,
     ToolbarButtonComponent,
+    NoteEditPanelComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [
