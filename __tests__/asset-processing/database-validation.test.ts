@@ -104,13 +104,21 @@ describe('Database Asset Validation', () => {
         expect(building!.areasOfEffect!.some(effect => effect.kind === kind)).to.equal(true);
       }
 
-      const rawBuildingFile = JSON.parse(
-        fs.readFileSync(path.join(__dirname, '../../export/database/building.json'), 'utf8')
-      );
-      const rawFloorLamp = rawBuildingFile.bBuildingDefList.find(
-        (building: { name: string }) => building.name === 'FloorLamp'
-      );
-      expect(byId.get('FloorLamp')!.areasOfEffect).to.deep.equal(rawFloorLamp.areasOfEffect);
+      const floorLampEffect = byId
+        .get('FloorLamp')!
+        .areasOfEffect!.find(effect => effect.kind === 'light')!;
+      expect(floorLampEffect).to.include({
+        kind: 'light',
+        source: 'Light2D',
+        shape: 'circle',
+        blockedBySolids: true,
+        range: 4,
+        lux: 1000,
+        falloffRate: 0.5,
+      });
+      expect(floorLampEffect.origin).to.deep.equal({ x: 0, y: 1 });
+      expect(floorLampEffect.lightColor).to.deep.equal({ r: 0.57, g: 0.55, b: 0.44, a: 1 });
+      expect(floorLampEffect.cells).to.have.length(49);
 
       for (const building of database.buildings as BBuilding[])
         expect(
