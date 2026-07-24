@@ -1,10 +1,6 @@
 import { SelectTool } from "./select-tool";
-import {
-  BlueprintHelpers,
-  CameraService,
-  Vector2,
-} from "../../../../../../lib/index";
-import { ToolType } from "./tool";
+import { CameraService, Vector2 } from "../../../../../../lib/index";
+import { ShortcutAction } from "../../keybindings/shortcut-actions";
 
 const makeOniItem = (id: string, isElement = false, isInfo = false) => ({
   id,
@@ -313,63 +309,52 @@ describe("SelectTool", () => {
     });
   });
 
-  describe("keyDown()", () => {
-    it("destroys the currently selected collection on Delete", () => {
+  describe("handleShortcut()", () => {
+    it("destroys the currently selected collection on delete", () => {
       const item = {};
       const col = makeMockCollection(true, [item]);
       tool.sameItemCollections = [col] as any;
-      tool.keyDown("Delete");
+      expect(tool.handleShortcut(ShortcutAction.editDelete)).toBe(true);
       expect(
         mockBlueprintService.blueprint.destroyBlueprintItem,
       ).toHaveBeenCalledWith(item);
     });
 
-    it("does nothing on Delete when nothing is selected", () => {
+    // Declining lets the shortcut fall through to another handler instead of
+    // being swallowed by a tool that had nothing to do.
+    it("declines delete when nothing is selected", () => {
       tool.sameItemCollections = [makeMockCollection(false)] as any;
-      tool.keyDown("Delete");
+      expect(tool.handleShortcut(ShortcutAction.editDelete)).toBe(false);
       expect(
         mockBlueprintService.blueprint.destroyBlueprintItem,
       ).not.toHaveBeenCalled();
     });
 
-    it("switches to build tool on 'b' key", () => {
-      tool.parent = {
-        changeTool: vi.fn(),
-        buildTool: { changeItem: vi.fn() },
-      } as any;
-      tool.keyDown("b");
-      expect(tool.parent.changeTool).toHaveBeenCalledWith(ToolType.build);
+    it("deselects everything on cancel", () => {
+      tool.sameItemCollections = [makeMockCollection(true, [{}])] as any;
+      expect(tool.handleShortcut(ShortcutAction.interfaceCancel)).toBe(true);
+      expect(tool.sameItemCollections).toHaveLength(0);
     });
 
-    it("ignores 'b' key when an INPUT element is focused", () => {
-      tool.parent = {
-        changeTool: vi.fn(),
-        buildTool: { changeItem: vi.fn() },
-      } as any;
-      const input = document.createElement("input");
-      document.body.appendChild(input);
-      input.focus();
-      tool.keyDown("b");
-      expect(tool.parent.changeTool).not.toHaveBeenCalled();
-      document.body.removeChild(input);
+    it("declines cancel when there is no selection", () => {
+      expect(tool.handleShortcut(ShortcutAction.interfaceCancel)).toBe(false);
     });
 
-    it("ignores 'b' key when a TEXTAREA element is focused", () => {
-      tool.parent = {
-        changeTool: vi.fn(),
-        buildTool: { changeItem: vi.fn() },
-      } as any;
-      const textarea = document.createElement("textarea");
-      document.body.appendChild(textarea);
-      textarea.focus();
-      tool.keyDown("b");
-      expect(tool.parent.changeTool).not.toHaveBeenCalled();
-      document.body.removeChild(textarea);
+    it("declines actions it does not own", () => {
+      expect(tool.handleShortcut(ShortcutAction.buildRotate)).toBe(false);
+    });
+  });
+
+  describe("selectedItem getter", () => {
+    it("returns null when nothing is selected", () => {
+      tool.sameItemCollections = [makeMockCollection(false, [{}])] as any;
+      expect(tool.selectedItem).toBeNull();
     });
 
-    it("ignores unrecognised key codes", () => {
-      // should not throw
-      expect(() => tool.keyDown("Escape")).not.toThrow();
+    it("returns the first item of the selected collection", () => {
+      const item = { id: "Wire" };
+      tool.sameItemCollections = [makeMockCollection(true, [item])] as any;
+      expect(tool.selectedItem).toBe(item);
     });
   });
 
@@ -719,33 +704,6 @@ describe("SelectTool", () => {
       tool.selectAllLike(item1 as any);
       expect(tool.sameItemCollections).toHaveLength(1);
       expect(tool.sameItemCollections[0].items).toHaveLength(1);
-    });
-  });
-
-  describe("keyDown() b key with item selected", () => {
-    it("calls changeTool(build) and changeItem with the cloned item", () => {
-      const mockClonedItem = { id: "Wire" };
-      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
-        mockClonedItem as any,
-      );
-
-      const oniItem = makeOniItem("Wire");
-      const item = makeBlueprintItem(oniItem);
-      const col = { ...makeMockCollection(true, [item]), oniItem };
-      (col as any).items = [item];
-      tool.sameItemCollections = [col] as any;
-      tool.parent = {
-        changeTool: vi.fn(),
-        buildTool: { changeItem: vi.fn() },
-      } as any;
-
-      tool.keyDown("b");
-
-      expect(tool.parent.changeTool).toHaveBeenCalledWith(ToolType.build);
-      expect(tool.parent.buildTool.changeItem).toHaveBeenCalledWith(
-        mockClonedItem,
-      );
-      vi.restoreAllMocks();
     });
   });
 });

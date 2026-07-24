@@ -9,6 +9,10 @@ import { BlueprintService } from "../../services/blueprint-service";
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { drawPlanningShape } from "../../drawing/draw-planning-overlay";
 import { ITool, ToolType } from "./tool";
+import {
+  ShortcutAction,
+  ShortcutActionId,
+} from "../../keybindings/shortcut-actions";
 import { ToolService } from "../../services/tool-service";
 
 @Injectable({ providedIn: "root" })
@@ -74,7 +78,13 @@ export class PlanningTool implements ITool {
     this.apply(tileStop);
   }
   dragStop() {}
-  keyDown(_keyCode: string) {}
+  handleShortcut(action: ShortcutActionId): boolean {
+    if (action == ShortcutAction.interfaceCancel) {
+      this.parent.changeTool(ToolType.select);
+      return true;
+    }
+    return false;
+  }
 
   draw(drawPixi: DrawPixi, camera: CameraService) {
     let preview = this.preview;

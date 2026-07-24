@@ -1,4 +1,6 @@
-<div class="note-panel" *ngIf="note as n">
+<!-- Editor shortcuts never fire while a form field has focus, so the panel
+     handles its own Escape rather than relying on the global cancel action. -->
+<div class="note-panel" *ngIf="note as n" (keydown.escape)="close()">
   <div class="note-panel-header">
     <span class="note-panel-title">{{ headerLabel }}</span>
     <button

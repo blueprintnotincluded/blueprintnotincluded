@@ -11,6 +11,10 @@ import {
 } from "../../../../../../lib/index";
 import { Injectable, ApplicationRef } from "@angular/core";
 import { ITool, IChangeTool, ToolType } from "./tool";
+import {
+  ShortcutAction,
+  ShortcutActionId,
+} from "../../keybindings/shortcut-actions";
 import { DrawPixi } from "../../drawing/draw-pixi";
 
 // Bridges overlap other buildings freely; only their utility ports can conflict.
@@ -399,13 +403,21 @@ export class BuildTool implements ITool {
     // required for type
   }
 
-  keyDown(keyCode: string) {
-    if (keyCode == "o") {
-      if (this.templateItemToBuild != null) {
-        this.templateItemToBuild.nextOrientation();
-        this.updateBuildCandidateResult();
-      }
+  handleShortcut(action: ShortcutActionId): boolean {
+    if (action == ShortcutAction.buildRotate) {
+      if (this.templateItemToBuild == null) return false;
+      this.templateItemToBuild.nextOrientation();
+      this.updateBuildCandidateResult();
+      return true;
     }
+
+    // Leaving the build tool is the game's "Building Cancel" behaviour.
+    if (action == ShortcutAction.interfaceCancel) {
+      this.parent.changeTool(ToolType.select);
+      return true;
+    }
+
+    return false;
   }
 
   draw(drawPixi: DrawPixi, camera: CameraService) {

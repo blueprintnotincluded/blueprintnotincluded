@@ -1,0 +1,93 @@
+<p-dialog
+  i18n-header
+  header="Keyboard shortcuts"
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [style]="{ width: '720px', maxHeight: '85vh' }"
+  [breakpoints]="{ '780px': '95vw' }"
+  [draggable]="false"
+>
+  <div class="intro" i18n>
+    Click a key to unbind it, or "Add key" to bind another one. Defaults follow
+    Oxygen Not Included's own controls. Changes are saved in this browser.
+  </div>
+
+  <div class="conflict" *ngIf="conflictMessage">{{ conflictMessage }}</div>
+
+  <div class="scrollable">
+    <div class="category" *ngFor="let categoryView of categories">
+      <h3>{{ categoryView.category.label }}</h3>
+      <div class="binding-row" *ngFor="let row of categoryView.rows">
+        <div class="binding-label">{{ row.label }}</div>
+
+        <div class="binding-keys">
+          <button
+            type="button"
+            class="chord"
+            *ngFor="let chord of row.chords; let i = index"
+            [attr.aria-label]="'Unbind ' + row.chordLabels[i]"
+            i18n-title
+            title="Unbind this key"
+            (click)="removeChord(row.actionId, chord)"
+          >
+            {{ row.chordLabels[i] }}
+            <span class="chord-remove" aria-hidden="true">×</span>
+          </button>
+
+          <span class="unbound" *ngIf="row.chords.length === 0" i18n
+            >Not bound</span
+          >
+        </div>
+
+        <div class="binding-actions">
+          <button
+            pButton
+            type="button"
+            size="small"
+            class="p-button-text capture-button"
+            [class.capturing]="isCapturing(row.actionId)"
+            [label]="isCapturing(row.actionId) ? capturingLabel : addKeyLabel"
+            (click)="
+              isCapturing(row.actionId)
+                ? stopCapture()
+                : startCapture(row.actionId)
+            "
+          ></button>
+
+          <button
+            pButton
+            type="button"
+            size="small"
+            class="p-button-text"
+            icon="pi pi-replay"
+            [disabled]="!row.customized"
+            i18n-title
+            title="Reset to default"
+            (click)="resetAction(row.actionId)"
+          ></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button
+      pButton
+      type="button"
+      i18n-label
+      label="Reset all to defaults"
+      icon="pi pi-replay"
+      class="p-button-text"
+      [disabled]="!anyCustomized"
+      (click)="resetAll()"
+    ></button>
+    <button
+      pButton
+      type="button"
+      i18n-label
+      label="Close"
+      (click)="onVisibleChange(false)"
+    ></button>
+  </ng-template>
+</p-dialog>

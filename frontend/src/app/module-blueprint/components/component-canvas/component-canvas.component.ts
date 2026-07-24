@@ -45,6 +45,11 @@ import {
 } from "../../services/blueprint-service";
 import { ToolService, IObsToolChanged } from "../../services/tool-service";
 import { ToolType } from "../../common/tools/tool";
+import { KeyboardShortcutService } from "../../services/keyboard-shortcut.service";
+import {
+  ShortcutAction,
+  ShortcutActionId,
+} from "../../keybindings/shortcut-actions";
 
 import {} from "pixi.js-legacy";
 declare let PIXI: any;
@@ -52,6 +57,33 @@ declare let PIXI: any;
 // Hotspot is the sprite's center (32x54 baked cursor image).
 const SCISSORS_CURSOR =
   "url(assets/images/disconnect-none-cursor.png) 16 27, auto";
+
+// Which overlay each overlay shortcut switches to. Adding an overlay means one
+// entry here plus one entry in the shortcut action catalogue.
+const OVERLAY_BY_ACTION: [ShortcutActionId, Overlay][] = [
+  [ShortcutAction.overlayBuildings, Overlay.Base],
+  [ShortcutAction.overlayPower, Overlay.Power],
+  [ShortcutAction.overlayPlumbing, Overlay.Liquid],
+  [ShortcutAction.overlayVentilation, Overlay.Gas],
+  [ShortcutAction.overlayAutomation, Overlay.Automation],
+  [ShortcutAction.overlayShipment, Overlay.Conveyor],
+  [ShortcutAction.overlayRooms, Overlay.Room],
+];
+
+// Tool-scoped actions the active tool gets a chance to handle. The tool
+// decides whether it applies; anything it declines falls through.
+const TOOL_ACTIONS: ShortcutActionId[] = [
+  ShortcutAction.toolSelect,
+  ShortcutAction.toolBuild,
+  ShortcutAction.toolPlanning,
+  ShortcutAction.toolScissors,
+  ShortcutAction.buildRotate,
+  ShortcutAction.editDelete,
+  ShortcutAction.interfaceCancel,
+];
+
+// One tile per keypress, matching the arrow-key panning this replaced.
+const PAN_TILES = 1;
 
 @Component({
   selector: "app-component-canvas",
@@ -96,6 +128,7 @@ export class ComponentCanvasComponent
     private gaService: GoogleAnalyticsService,
     private roomDetectionService: RoomDetectionService,
     private worldNoteService: WorldNoteService,
+    private shortcutService: KeyboardShortcutService,
     drawPixi: DrawPixi,
   ) {
     this.drawPixi = drawPixi;
@@ -131,11 +164,81 @@ export class ComponentCanvasComponent
       }
     });
 
+    this.registerShortcuts();
+
     //this.drawAbstraction.Init(this.canvasRef, this)
   }
 
   ngOnDestroy() {
     this.running = false;
+    for (const unregister of this.shortcutSubscriptions) unregister();
+    this.shortcutSubscriptions = [];
+  }
+
+  private shortcutSubscriptions: (() => void)[] = [];
+
+  private registerShortcuts() {
+    const register = (
+      action: ShortcutActionId,
+      handler: () => boolean | void,
+    ) => {
+      this.shortcutSubscriptions.push(
+        this.shortcutService.register(action, handler),
+      );
+    };
+
+    // Registration order is priority order, lowest first: the dispatcher runs
+    // the most recently registered handler of an action first.
+
+    // Tool-scoped actions are the fallback layer - anything the active tool
+    // declines can still be claimed by a handler registered below.
+    if (!this.forceSize)
+      for (const action of TOOL_ACTIONS)
+        register(action, () => this.toolService.handleShortcut(action));
+
+    register(ShortcutAction.cameraPanUp, () => {
+      this.cameraService.cameraOffset.y += PAN_TILES;
+    });
+    register(ShortcutAction.cameraPanDown, () => {
+      this.cameraService.cameraOffset.y -= PAN_TILES;
+    });
+    register(ShortcutAction.cameraPanLeft, () => {
+      this.cameraService.cameraOffset.x += PAN_TILES;
+    });
+    register(ShortcutAction.cameraPanRight, () => {
+      this.cameraService.cameraOffset.x -= PAN_TILES;
+    });
+    register(ShortcutAction.cameraZoomIn, () => {
+      this.cameraService.zoom(1, this.previousMouse);
+    });
+    register(ShortcutAction.cameraZoomOut, () => {
+      this.cameraService.zoom(-1, this.previousMouse);
+    });
+    register(ShortcutAction.cameraHome, () => {
+      this.frameBlueprint();
+    });
+
+    for (const [action, overlay] of OVERLAY_BY_ACTION)
+      register(action, () => {
+        this.cameraService.overlay = overlay;
+      });
+
+    if (this.forceSize) return;
+
+    register(ShortcutAction.editUndo, () => {
+      this.blueprintService.undo();
+    });
+    register(ShortcutAction.editRedo, () => {
+      this.blueprintService.redo();
+    });
+
+    // The note layer sits on top of the tools, so it gets first refusal on
+    // cancel - registered last, which puts it ahead of the tool handler.
+    register(ShortcutAction.interfaceCancel, () => {
+      if (this.worldNoteService.selected == null) return false;
+      this.worldNoteService.clear();
+      return true;
+    });
   }
 
   // Render-time telemetry: how long it takes from "a blueprint is handed to the
@@ -236,6 +339,13 @@ export class ComponentCanvasComponent
     this.blueprint.destroyAndCopyItems(source);
 
     this.cameraService.overlay = Overlay.Base;
+
+    this.frameBlueprint();
+  }
+
+  // Zooms and centers the camera so the whole blueprint is in view - used both
+  // when a blueprint loads and by the "center on blueprint" shortcut.
+  frameBlueprint() {
     //let cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
 
     const rect = this.canvasRef.nativeElement.getBoundingClientRect();
@@ -244,8 +354,8 @@ export class ComponentCanvasComponent
     );
 
     if (
-      source.blueprintItems.length > 0 ||
-      source.planningToolShapes.length > 0
+      this.blueprint.blueprintItems.length > 0 ||
+      this.blueprint.planningToolShapes.length > 0
     ) {
       const boundingBox = this.blueprint.getBoundingBox();
       const topLeft = boundingBox[0];
@@ -411,24 +521,10 @@ export class ComponentCanvasComponent
     this.previousTileUnderMouse = currentTileUnderMouse;
   }
 
-  keyPress(event: any) {
-    //console.log(event.key)
-    if (event.key == "Escape") this.worldNoteService.clear();
-    this.toolService.keyDown(event.key);
-
-    if (document.body == document.activeElement) {
-      if (event.key == "ArrowLeft") this.cameraService.cameraOffset.x += 1;
-      if (event.key == "ArrowRight") this.cameraService.cameraOffset.x -= 1;
-      if (event.key == "ArrowUp") this.cameraService.cameraOffset.y += 1;
-      if (event.key == "ArrowDown") this.cameraService.cameraOffset.y -= 1;
-      if (event.key == "+") this.cameraService.zoom(1, this.previousMouse);
-      if (event.key == "-") this.cameraService.zoom(-1, this.previousMouse);
-    }
-
-    if (event.key == "z" && event.ctrlKey) this.blueprintService.undo();
-    if (event.key == "y" && event.ctrlKey) this.blueprintService.redo();
-
-    //this.canvasRef.nativeElement.click();
+  // Every key in the editor goes through the shortcut dispatcher, which maps
+  // it to an action via the (user-customizable) bindings.
+  keyPress(event: KeyboardEvent) {
+    this.shortcutService.handleKeyEvent(event);
   }
 
   prepareOverlayInfo() {
