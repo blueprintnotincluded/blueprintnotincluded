@@ -1,5 +1,6 @@
 import { CameraService, Vector2 } from "../../../../../../lib/index";
 import { DrawPixi } from "../../drawing/draw-pixi";
+import { ShortcutActionId } from "../../keybindings/shortcut-actions";
 
 export enum ToolType {
   select,
@@ -23,7 +24,10 @@ export interface ITool {
   hover(tile: Vector2): void;
   drag(tileStart: Vector2, tileStop: Vector2): void;
   dragStop(): void;
-  keyDown(keyCode: string): void;
+  // Tools receive abstract actions, never key codes - the binding that
+  // produced the action lives in KeybindingService. Return false when the
+  // action doesn't apply right now so the shortcut falls through.
+  handleShortcut(action: ShortcutActionId): boolean;
   draw(drawPixi: DrawPixi, camera: CameraService): void;
 
   // Tool switching

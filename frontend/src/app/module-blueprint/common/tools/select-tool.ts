@@ -1,6 +1,5 @@
 import { BlueprintService } from "../../services/blueprint-service";
 import {
-  BlueprintHelpers,
   BlueprintItem,
   CameraService,
   DrawHelpers,
@@ -10,6 +9,10 @@ import {
 } from "../../../../../../lib/index";
 import { Injectable } from "@angular/core";
 import { ITool, ToolType } from "./tool";
+import {
+  ShortcutAction,
+  ShortcutActionId,
+} from "../../keybindings/shortcut-actions";
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { SameItemCollection } from "./same-item-collection";
 import { ToolService } from "src/app/module-blueprint/services/tool-service";
@@ -410,36 +413,28 @@ export class SelectTool implements ITool {
     this.beginSelection = null; // Vector2 | null
   }
 
-  keyDown(keyCode: string) {
-    if (keyCode == "Delete") {
-      const itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
-      if (itemGroupToDestroyIndex != -1)
-        this.buildingsDestroy(
-          this.sameItemCollections[itemGroupToDestroyIndex],
-        );
-    } else if (keyCode == "b") {
-      // ignore keypress when a textbox is active
-      const textboxElements = ["INPUT", "TEXTAREA"];
-      const activeElement = document.activeElement?.tagName ?? "";
-      if (textboxElements.includes(activeElement)) {
-        return;
-      }
+  // The single selected item, if any - used by the build tool to copy it.
+  get selectedItem(): BlueprintItem | null {
+    const selectedIndex = this.currentMultipleSelectionIndex;
+    if (selectedIndex == -1) return null;
+    return this.sameItemCollections[selectedIndex].items[0] ?? null;
+  }
 
-      // find the currently selected item
-      let newItem = null;
+  handleShortcut(action: ShortcutActionId): boolean {
+    if (action == ShortcutAction.editDelete) {
       const itemGroupToDestroyIndex = this.currentMultipleSelectionIndex;
-      if (itemGroupToDestroyIndex != -1) {
-        newItem = BlueprintHelpers.cloneBlueprintItem(
-          this.sameItemCollections[itemGroupToDestroyIndex].items[0],
-        );
-      }
-
-      // change tool
-      this.parent.changeTool(ToolType.build);
-      if (newItem != null) {
-        this.parent.buildTool.changeItem(newItem);
-      }
+      if (itemGroupToDestroyIndex == -1) return false;
+      this.buildingsDestroy(this.sameItemCollections[itemGroupToDestroyIndex]);
+      return true;
     }
+
+    if (action == ShortcutAction.interfaceCancel) {
+      if (this.sameItemCollections.length == 0) return false;
+      this.deselectAll();
+      return true;
+    }
+
+    return false;
   }
 
   draw(drawPixi: DrawPixi, camera: CameraService) {

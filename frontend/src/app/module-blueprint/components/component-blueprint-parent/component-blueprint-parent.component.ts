@@ -35,6 +35,11 @@ import {
   IObsBlueprintChanged,
 } from "../../services/blueprint-service";
 import { GameStringService } from "../../services/game-string-service";
+import { KeyboardShortcutService } from "../../services/keyboard-shortcut.service";
+import {
+  ShortcutAction,
+  ShortcutActionId,
+} from "../../keybindings/shortcut-actions";
 import { ToolService } from "../../services/tool-service";
 import { ComponentCanvasComponent } from "../component-canvas/component-canvas.component";
 import {
@@ -44,6 +49,7 @@ import {
 } from "../component-menu/component-menu.component";
 import { ComponentSaveDialogComponent } from "../dialogs/component-save-dialog/component-save-dialog.component";
 import { DialogAboutComponent } from "../dialogs/dialog-about/dialog-about.component";
+import { DialogKeybindingsComponent } from "../dialogs/dialog-keybindings/dialog-keybindings.component";
 import { DialogBrowseComponent } from "../dialogs/dialog-browse/dialog-browse.component";
 import { DialogExportImagesComponent } from "../dialogs/dialog-export-images/dialog-export-images.component";
 import { DialogShareUrlComponent } from "../dialogs/dialog-share-url/dialog-share-url.component";
@@ -100,6 +106,9 @@ export class ComponentBlueprintParentComponent
   @ViewChild("aboutDialog")
   aboutDialog!: DialogAboutComponent;
 
+  @ViewChild("keybindingsDialog", { static: false })
+  keybindingsDialog!: DialogKeybindingsComponent;
+
   @ViewChild("feedbackDialog", { static: false })
   feedbackDialog!: FeedbackDialogComponent;
 
@@ -124,7 +133,10 @@ export class ComponentBlueprintParentComponent
     private renderer: Renderer2,
     private http: HttpClient,
     public gameStringService: GameStringService,
+    private shortcutService: KeyboardShortcutService,
   ) {}
+
+  private shortcutSubscriptions: (() => void)[] = [];
 
   get showElementReport() {
     if (CameraService.cameraService == null) return false;
@@ -136,12 +148,8 @@ export class ComponentBlueprintParentComponent
     else return CameraService.cameraService.showTemperatureScale;
   }
 
-  // Scissors only makes sense while looking at a connectable overlay
-  // (Power/Plumbing/Ventilation/etc) — there's nothing to cut on Buildings/None.
   get scissorsDisabled() {
-    if (CameraService.cameraService == null) return true;
-    const overlay = CameraService.cameraService.overlay;
-    return overlay == Overlay.Base || overlay == Overlay.None;
+    return this.toolService.scissorsDisabled;
   }
 
   forceSize: boolean = false;
@@ -207,6 +215,8 @@ export class ComponentBlueprintParentComponent
     this.renderer.listen("window", "resize", () => {
       this.resizeTools();
     });
+
+    this.registerShortcuts();
   }
 
   resizeTools() {
@@ -220,6 +230,8 @@ export class ComponentBlueprintParentComponent
   ngOnDestroy() {
     this.blueprintService.unsubscribeBlueprintChanged(this);
     this.blueprintService.unsubscribeImportError(this.onImportError);
+    for (const unregister of this.shortcutSubscriptions) unregister();
+    this.shortcutSubscriptions = [];
   }
 
   // File-upload imports fail inside a FileReader callback — the service
@@ -377,6 +389,41 @@ export class ComponentBlueprintParentComponent
       this.feedbackDialog.open();
     else if (menuCommand.type == MenuCommandType.importBlueprintText)
       this.importStringDialog.showDialog();
+    else if (menuCommand.type == MenuCommandType.keyboardShortcuts)
+      this.keybindingsDialog.toggleDialog();
+  }
+
+  // Editor-wide actions that live on this component (they open dialogs it
+  // owns). Registered once the shortcut service exists; see
+  // ComponentCanvasComponent for the camera/tool half of the catalogue.
+  private registerShortcuts() {
+    // The embedded (iframe) editor has none of these dialogs.
+    if (this.forceSize) return;
+
+    const register = (
+      action: ShortcutActionId,
+      handler: () => boolean | void,
+    ) => {
+      this.shortcutSubscriptions.push(
+        this.shortcutService.register(action, handler),
+      );
+    };
+
+    register(ShortcutAction.blueprintNew, () => {
+      this.blueprintService.newBlueprint();
+    });
+    register(ShortcutAction.blueprintSave, () => {
+      this.saveBlueprint();
+    });
+    register(ShortcutAction.blueprintBrowse, () => {
+      this.browseDialog.showDialog();
+    });
+    register(ShortcutAction.blueprintExportImages, () => {
+      this.exportImages();
+    });
+    register(ShortcutAction.interfaceKeyboardShortcuts, () => {
+      this.keybindingsDialog.toggleDialog();
+    });
   }
 
   saveImages(exportOptions: ExportImageOptions) {

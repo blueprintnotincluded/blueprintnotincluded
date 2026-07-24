@@ -1,7 +1,13 @@
 import { ToolService } from "./tool-service";
 import { ToolType } from "../common/tools/tool";
-import { Vector2 } from "../../../../../lib/index";
+import {
+  BlueprintHelpers,
+  CameraService,
+  Overlay,
+  Vector2,
+} from "../../../../../lib/index";
 import { PlanningTool } from "../common/tools/planning-tool";
+import { ShortcutAction } from "../keybindings/shortcut-actions";
 
 const makeTool = (toolType: ToolType, toolGroup = 1) => ({
   toolType,
@@ -18,9 +24,13 @@ const makeTool = (toolType: ToolType, toolGroup = 1) => ({
   hover: vi.fn(),
   drag: vi.fn(),
   dragStop: vi.fn(),
-  keyDown: vi.fn(),
+  handleShortcut: vi.fn().mockReturnValue(false),
   draw: vi.fn(),
   parent: null as any,
+  // SelectTool/BuildTool members ToolService reaches for when wiring the
+  // game's "copy building" shortcut.
+  selectedItem: null as any,
+  changeItem: vi.fn(),
 });
 
 describe("ToolService", () => {
@@ -45,6 +55,10 @@ describe("ToolService", () => {
       mockScissors as any,
       mockPlanning as unknown as PlanningTool,
     );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("getTool", () => {
@@ -172,9 +186,68 @@ describe("ToolService", () => {
       expect(mockSelect.mouseOut).toHaveBeenCalled();
     });
 
-    it("delegates keyDown", () => {
-      service.keyDown("Escape");
-      expect(mockSelect.keyDown).toHaveBeenCalledWith("Escape");
+    it("delegates unclaimed shortcuts to the active tool", () => {
+      mockSelect.handleShortcut.mockReturnValue(true);
+      expect(service.handleShortcut(ShortcutAction.editDelete)).toBe(true);
+      expect(mockSelect.handleShortcut).toHaveBeenCalledWith(
+        ShortcutAction.editDelete,
+      );
+    });
+  });
+
+  describe("handleShortcut tool switching", () => {
+    it("switches to the select tool", () => {
+      expect(service.handleShortcut(ShortcutAction.toolSelect)).toBe(true);
+      expect(mockSelect.visible).toBe(true);
+    });
+
+    it("switches to the planning tool", () => {
+      expect(service.handleShortcut(ShortcutAction.toolPlanning)).toBe(true);
+      expect(mockPlanning.visible).toBe(true);
+    });
+
+    it("declines the scissors shortcut while it is unavailable", () => {
+      vi.spyOn(CameraService, "cameraService", "get").mockReturnValue({
+        overlay: Overlay.Base,
+      } as any);
+      expect(service.handleShortcut(ShortcutAction.toolScissors)).toBe(false);
+      expect(mockScissors.visible).toBe(false);
+    });
+
+    it("switches to scissors on a connectable overlay", () => {
+      vi.spyOn(CameraService, "cameraService", "get").mockReturnValue({
+        overlay: Overlay.Power,
+      } as any);
+      expect(service.handleShortcut(ShortcutAction.toolScissors)).toBe(true);
+      expect(mockScissors.visible).toBe(true);
+    });
+  });
+
+  // The game's "Copy Building": B switches to the build tool and, when
+  // something is selected, loads a copy of it as the item to build.
+  describe("changeToBuildToolFromSelection", () => {
+    it("switches to the build tool without copying when nothing is selected", () => {
+      (mockSelect as any).selectedItem = null;
+      service.handleShortcut(ShortcutAction.toolBuild);
+      expect(mockBuild.visible).toBe(true);
+      expect(mockBuild.changeItem).not.toHaveBeenCalled();
+    });
+
+    it("loads a clone of the selected item into the build tool", () => {
+      const selected = { id: "Wire" };
+      const clone = { id: "Wire clone" };
+      (mockSelect as any).selectedItem = selected;
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
+        clone as any,
+      );
+
+      service.handleShortcut(ShortcutAction.toolBuild);
+
+      expect(BlueprintHelpers.cloneBlueprintItem).toHaveBeenCalledWith(
+        selected,
+      );
+      expect(mockBuild.visible).toBe(true);
+      expect(mockBuild.changeItem).toHaveBeenCalledWith(clone);
     });
   });
 });

@@ -6,6 +6,7 @@ import {
   BuildLocationRule,
 } from "../../../../../../lib/index";
 import { ToolType } from "./tool";
+import { ShortcutAction } from "../../keybindings/shortcut-actions";
 
 const makeOniItem = (overrides: any = {}) => ({
   buildLocationRule: BuildLocationRule.Anywhere,
@@ -273,20 +274,26 @@ describe("BuildTool", () => {
     });
   });
 
-  describe("keyDown", () => {
-    it("calls nextOrientation on 'o' key", () => {
-      tool.keyDown("o");
+  describe("handleShortcut", () => {
+    it("calls nextOrientation on the rotate action", () => {
+      expect(tool.handleShortcut(ShortcutAction.buildRotate)).toBe(true);
       expect(templateItem.nextOrientation).toHaveBeenCalled();
     });
 
-    it("ignores other keys", () => {
-      tool.keyDown("x");
+    it("declines actions it does not own", () => {
+      expect(tool.handleShortcut(ShortcutAction.editDelete)).toBe(false);
       expect(templateItem.nextOrientation).not.toHaveBeenCalled();
     });
 
-    it("does nothing when templateItemToBuild is null and key is 'o'", () => {
+    it("declines rotate when there is nothing to build", () => {
       tool.templateItemToBuild = null!;
-      expect(() => tool.keyDown("o")).not.toThrow();
+      expect(tool.handleShortcut(ShortcutAction.buildRotate)).toBe(false);
+    });
+
+    it("returns to the select tool on cancel", () => {
+      tool.parent = { changeTool: vi.fn() } as any;
+      expect(tool.handleShortcut(ShortcutAction.interfaceCancel)).toBe(true);
+      expect(tool.parent.changeTool).toHaveBeenCalledWith(ToolType.select);
     });
   });
 

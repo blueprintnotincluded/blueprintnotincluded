@@ -7,6 +7,10 @@ import {
   Vector2,
 } from "../../../../../../lib/index";
 import { ITool, ToolType } from "./tool";
+import {
+  ShortcutAction,
+  ShortcutActionId,
+} from "../../keybindings/shortcut-actions";
 import { DrawPixi } from "../../drawing/draw-pixi";
 import { ToolService } from "../../services/tool-service";
 
@@ -158,7 +162,13 @@ export class ScissorsTool implements ITool {
     this.direction = null;
   }
 
-  keyDown(_keyCode: string) {}
+  handleShortcut(action: ShortcutActionId): boolean {
+    if (action == ShortcutAction.interfaceCancel) {
+      this.parent.changeTool(ToolType.select);
+      return true;
+    }
+    return false;
+  }
 
   private ensureReadyIcon(drawPixi: DrawPixi): any {
     if (this.readyIcon == null) {

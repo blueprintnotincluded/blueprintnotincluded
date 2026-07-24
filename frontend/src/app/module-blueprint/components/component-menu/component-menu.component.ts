@@ -314,6 +314,17 @@ export class ComponentMenuComponent
               this.blueprintService.redo();
             },
           },
+          { separator: true },
+          {
+            label: $localize`Keyboard shortcuts`,
+            icon: "pi pi-th-large",
+            command: (_event: any) => {
+              this.menuCommand.emit({
+                type: MenuCommandType.keyboardShortcuts,
+                data: null,
+              });
+            },
+          },
         ],
       },
       {
@@ -485,6 +496,7 @@ export enum MenuCommandType {
   changeTool,
   changeOverlay,
   about,
+  keyboardShortcuts,
 
   browseBlueprints,
   saveBlueprint,

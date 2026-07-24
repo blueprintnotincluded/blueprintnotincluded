@@ -2,10 +2,16 @@ import { Injectable } from "@angular/core";
 import { ToolType, ITool, IChangeTool } from "../common/tools/tool";
 import { SelectTool } from "../common/tools/select-tool";
 import {
+  BlueprintHelpers,
   BlueprintItem,
   CameraService,
+  Overlay,
   Vector2,
 } from "../../../../../lib/index";
+import {
+  ShortcutAction,
+  ShortcutActionId,
+} from "../keybindings/shortcut-actions";
 import { DrawPixi } from "../drawing/draw-pixi";
 import { BuildTool } from "../common/tools/build-tool";
 import { ElementReport } from "../common/tools/element-report";
@@ -111,12 +117,45 @@ export class ToolService implements ITool, IChangeTool {
   dragStop() {
     this.currentTool.dragStop();
   }
-  keyDown(keyCode: string) {
-    // TODO This is hacky, but when I press B on the info icons, the UI changes tool.
-    // I have to figure out a way of suppressing key presses when in a text area
-    // if (keyCode == 'b' && this.currentTool.toolType != ToolType.build)
-    //   this.changeTool(ToolType.build);
-    this.currentTool.keyDown(keyCode);
+  // Scissors only makes sense while looking at a connectable overlay
+  // (Power/Plumbing/Ventilation/etc) - there's nothing to cut on Buildings/None.
+  get scissorsDisabled(): boolean {
+    if (CameraService.cameraService == null) return true;
+    const overlay = CameraService.cameraService.overlay;
+    return overlay == Overlay.Base || overlay == Overlay.None;
+  }
+
+  // Mirrors the game's "Copy Building": switch to the build tool, and if
+  // something is selected, load a copy of it as the item to build.
+  changeToBuildToolFromSelection() {
+    const selected = this.selectTool.selectedItem;
+    const copy =
+      selected == null ? null : BlueprintHelpers.cloneBlueprintItem(selected);
+
+    this.changeTool(ToolType.build);
+    if (copy != null) this.buildTool.changeItem(copy);
+  }
+
+  // Tool-scoped shortcuts: tool switching is handled here, everything else is
+  // offered to whichever tool currently owns the input.
+  handleShortcut(action: ShortcutActionId): boolean {
+    switch (action) {
+      case ShortcutAction.toolSelect:
+        this.changeTool(ToolType.select);
+        return true;
+      case ShortcutAction.toolBuild:
+        this.changeToBuildToolFromSelection();
+        return true;
+      case ShortcutAction.toolPlanning:
+        this.changeTool(ToolType.planning);
+        return true;
+      case ShortcutAction.toolScissors:
+        if (this.scissorsDisabled) return false;
+        this.changeTool(ToolType.scissors);
+        return true;
+      default:
+        return this.currentTool.handleShortcut(action);
+    }
   }
   draw(drawPixi: DrawPixi, camera: CameraService) {
     this.currentTool.draw(drawPixi, camera);

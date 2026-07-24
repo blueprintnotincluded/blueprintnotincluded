@@ -75,6 +75,7 @@ import { SingleSliderScreenComponent } from "./components/side-bar/ui-screens/si
 import { ThresholdSwhitchScreenComponent } from "./components/side-bar/ui-screens/threshold-switch-screen/threshold-switch-screen.component";
 import { ActiveRangeScreenComponent } from "./components/side-bar/ui-screens/active-range-screen/active-range-screen.component";
 import { DialogAboutComponent } from "./components/dialogs/dialog-about/dialog-about.component";
+import { DialogKeybindingsComponent } from "./components/dialogs/dialog-keybindings/dialog-keybindings.component";
 import { TemperaturePickerComponent } from "./components/side-bar/temperature-picker/temperature-picker.component";
 import { TemperatureScaleComponent } from "./components/side-bar/temperature-scale/temperature-scale.component";
 import { ElementIconComponent } from "./components/side-bar/element-icon/element-icon.component";
@@ -140,6 +141,7 @@ import { PlanningToolComponent } from "./components/side-bar/planning-tool/plann
     ThresholdSwhitchScreenComponent,
     ActiveRangeScreenComponent,
     DialogAboutComponent,
+    DialogKeybindingsComponent,
     TemperaturePickerComponent,
     TemperatureScaleComponent,
     ElementIconComponent,
