@@ -90,4 +90,27 @@ describe("shortcut action catalogue", () => {
       expect(getShortcutAction(actionId)?.defaults).toContain(code);
     });
   });
+
+  // Regression: these were bound to bare N and X, so one stray keystroke put
+  // the editor into a tool that edits on a single click. That reads as "the
+  // select tool is broken" while quietly painting on the blueprint.
+  describe("tools that edit on click", () => {
+    it.each([[ShortcutAction.toolPlanning], [ShortcutAction.toolScissors]])(
+      "ships %s unbound, since the game has no equivalent key",
+      (actionId) => {
+        expect(getShortcutAction(actionId)?.defaults).toEqual([]);
+      },
+    );
+
+    it("never binds a destructive tool to a bare letter", () => {
+      const bareLetter = (chord: string) => /^Key[A-Z]$/.test(chord);
+      for (const actionId of [
+        ShortcutAction.toolPlanning,
+        ShortcutAction.toolScissors,
+      ])
+        expect(
+          getShortcutAction(actionId)!.defaults.filter(bareLetter),
+        ).toEqual([]);
+    });
+  });
 });
