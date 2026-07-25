@@ -1,11 +1,13 @@
 import { Component, Input } from "@angular/core";
 import { BlueprintListItem } from "../../../../../../lib/index";
 import {
+  baseGameTooltip,
   categoryTooltip,
-  gameVersionTooltip,
+  dlcTooltip,
   moddedTooltip,
   roomTooltip,
 } from "../../utils/chip-tooltip";
+import { dlcLabel } from "../../../../../../lib/index";
 import { roomTypeLabel } from "../../utils/room-labels";
 
 const MAX_ROOM_CHIPS = 3;
@@ -24,10 +26,18 @@ export class BlueprintCardComponent {
   @Input() linkState: Record<string, unknown> | undefined = undefined;
 
   readonly categoryTooltip = categoryTooltip;
-  readonly gameVersionTooltip = gameVersionTooltip;
+  readonly dlcTooltip = dlcTooltip;
+  readonly baseGameTooltip = baseGameTooltip;
+  readonly dlcLabel = dlcLabel;
   readonly moddedTooltip = moddedTooltip;
   readonly roomTooltip = roomTooltip;
   readonly roomTypeLabel = roomTypeLabel;
+
+  // [] is a fact ("needs no DLC"); absent is not — blueprints saved before
+  // requirements were derived must not claim to be base game.
+  get isBaseGame(): boolean {
+    return this.item.requiredDlcs?.length === 0;
+  }
 
   // Cards stay compact: at most 3 room chips, the rest collapse into "+N".
   get visibleRooms(): string[] {

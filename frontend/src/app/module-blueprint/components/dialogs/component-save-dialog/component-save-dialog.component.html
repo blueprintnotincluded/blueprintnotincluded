@@ -86,15 +86,18 @@
         </div>
         <div class="save-detected-fields">
           <div class="save-field">
-            <label for="save-game-version" i18n>Game version</label>
-            <p-select
-              inputId="save-game-version"
-              formControlName="gameVersion"
-              [options]="gameVersionOptions"
-              placeholder=" "
-              optionLabel="label"
-              optionValue="value"
-            ></p-select>
+            <label i18n>DLC required</label>
+            <div class="save-dlc-chips">
+              <span class="save-dlc-chip" *ngFor="let dlc of requiredDlcs">{{
+                dlcLabel(dlc)
+              }}</span>
+              <span
+                class="save-dlc-chip save-dlc-chip--none"
+                *ngIf="requiredDlcs.length === 0"
+                i18n
+                >Base game</span
+              >
+            </div>
           </div>
           <label class="metadata-checkbox">
             <p-checkbox formControlName="modded" [binary]="true"></p-checkbox>

@@ -13,13 +13,15 @@ import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { VersionHistoryDialogComponent } from "../dialogs/version-history-dialog/version-history-dialog.component";
 import {
+  baseGameTooltip,
   categoryTooltip,
   subcategoryTooltip,
-  gameVersionTooltip,
+  dlcTooltip,
   moddedTooltip,
   modChipTooltip,
   roomTooltip,
 } from "../../utils/chip-tooltip";
+import { dlcLabel } from "../../../../../../lib/index";
 import { roomTypeLabel } from "../../utils/room-labels";
 import sanitize from "sanitize-filename";
 import { ModsService } from "../../services/mods-service";
@@ -49,11 +51,19 @@ export class BlueprintDetailsPageComponent implements OnInit {
 
   readonly categoryTooltip = categoryTooltip;
   readonly subcategoryTooltip = subcategoryTooltip;
-  readonly gameVersionTooltip = gameVersionTooltip;
+  readonly dlcTooltip = dlcTooltip;
+  readonly baseGameTooltip = baseGameTooltip;
+  readonly dlcLabel = dlcLabel;
   readonly moddedTooltip = moddedTooltip;
   readonly modChipTooltip = modChipTooltip;
   readonly roomTooltip = roomTooltip;
   readonly roomTypeLabel = roomTypeLabel;
+
+  // [] is a fact ("needs no DLC"); absent is not — blueprints saved before
+  // requirements were derived must not claim to be base game.
+  get isBaseGame(): boolean {
+    return this.details?.requiredDlcs?.length === 0;
+  }
 
   private pendingFragment: string | null = null;
   private readonly modTitles = new Map<string, string>();

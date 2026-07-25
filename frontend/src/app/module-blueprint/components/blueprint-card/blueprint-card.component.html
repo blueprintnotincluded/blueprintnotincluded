@@ -62,12 +62,15 @@
         >Untagged</span
       >
       <a
-        *ngIf="item.gameVersion"
-        class="bni-chip"
+        *ngFor="let dlc of item.requiredDlcs ?? []"
+        class="bni-chip bni-chip--dlc"
         [routerLink]="['/discover']"
-        [queryParams]="{ gameVersion: item.gameVersion }"
-        [title]="gameVersionTooltip(item.gameVersion)"
-        >{{ item.gameVersion }}</a
+        [queryParams]="{ dlc: dlc }"
+        [title]="dlcTooltip(dlc)"
+        >{{ dlcLabel(dlc) }}</a
+      >
+      <span *ngIf="isBaseGame" class="bni-chip" [title]="baseGameTooltip()" i18n
+        >Base game</span
       >
       <a
         *ngIf="item.modded"

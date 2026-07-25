@@ -445,6 +445,7 @@
 }
 
 /* Semantic hooks retain the deliberately monochrome chip treatment. */
+.bni-chip--dlc,
 .bni-chip--mod,
 .bni-chip--modded,
 .bni-chip--room {

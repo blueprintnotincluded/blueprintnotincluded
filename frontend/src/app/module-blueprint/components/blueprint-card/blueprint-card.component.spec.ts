@@ -21,7 +21,7 @@ function makeItem(overrides: any = {}) {
     nbViews: 25,
     nbDownloads: 6,
     category: null,
-    gameVersion: null,
+    requiredDlcs: [],
     modded: false,
     isPublished: true,
     ...overrides,
@@ -119,10 +119,10 @@ describe("BlueprintCardComponent", () => {
     expect(fixture.nativeElement.textContent).toContain("Modded");
   });
 
-  it("links the category, gameVersion, and modded chips to filtered discover pages", () => {
+  it("links the category, DLC, and modded chips to filtered discover pages", () => {
     component.item = makeItem({
       category: "power",
-      gameVersion: "spacedOut",
+      requiredDlcs: ["EXPANSION1_ID"],
       modded: true,
     });
     fixture.detectChanges();
@@ -132,17 +132,47 @@ describe("BlueprintCardComponent", () => {
     expect(category.properties["queryParams"]).toEqual({ category: "power" });
     expect(category.properties["title"]).toContain("power");
 
-    const gameVersion = fixture.debugElement.query(
-      By.css("a.bni-chip:not(.bni-chip--cat):not(.bni-chip--modded)"),
-    );
-    expect(gameVersion.properties["routerLink"]).toEqual(["/discover"]);
-    expect(gameVersion.properties["queryParams"]).toEqual({
-      gameVersion: "spacedOut",
-    });
+    const dlc = fixture.debugElement.query(By.css("a.bni-chip--dlc"));
+    expect(dlc.properties["routerLink"]).toEqual(["/discover"]);
+    expect(dlc.properties["queryParams"]).toEqual({ dlc: "EXPANSION1_ID" });
 
     const modded = fixture.debugElement.query(By.css(".bni-chip--modded"));
     expect(modded.properties["routerLink"]).toEqual(["/discover"]);
     expect(modded.properties["queryParams"]).toEqual({ modded: "true" });
+  });
+
+  // Labels come from lib's DLC_LABELS, never from the raw id — a chip reading
+  // "DLC3_ID" would be a regression, not a cosmetic detail.
+  it("renders one chip per required DLC, labelled not raw", () => {
+    component.item = makeItem({ requiredDlcs: ["DLC2_ID", "DLC3_ID"] });
+    fixture.detectChanges();
+
+    const chips = fixture.debugElement.queryAll(By.css("a.bni-chip--dlc"));
+    expect(chips.length).toBe(2);
+    expect(chips.map((chip) => chip.nativeElement.textContent.trim())).toEqual([
+      "The Frosty Planet Pack",
+      "The Bionic Booster Pack",
+    ]);
+    expect(fixture.nativeElement.textContent).not.toContain("DLC2_ID");
+  });
+
+  it("renders an empty requirement set as a base game chip", () => {
+    component.item = makeItem({ requiredDlcs: [] });
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.queryAll(By.css("a.bni-chip--dlc")).length,
+    ).toBe(0);
+    expect(fixture.nativeElement.textContent).toContain("Base game");
+  });
+
+  // Absent is not the same fact as empty: a blueprint saved before DLC
+  // derivation existed must not claim to be buildable without any DLC.
+  it("says nothing when requirements were never derived", () => {
+    component.item = makeItem({ requiredDlcs: undefined });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain("Base game");
   });
 
   it("renders a linked chip per detected room, using display labels", () => {

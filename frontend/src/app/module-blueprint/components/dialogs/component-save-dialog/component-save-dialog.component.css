@@ -65,6 +65,29 @@
   align-items: end;
 }
 
+/* Read-only DLC requirement list. Styled on --p-* tokens, not the .bni-chip
+   skin: the editor deliberately keeps the stock PrimeNG look. */
+.save-dlc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-bottom: 0.55rem;
+}
+
+.save-dlc-chip {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--p-content-border-radius, 6px);
+  background: var(--p-surface-700, var(--p-content-background));
+  color: var(--p-text-color);
+}
+
+.save-dlc-chip--none {
+  background: transparent;
+  border: 1px solid var(--p-content-border-color);
+  color: var(--p-text-muted-color);
+}
+
 .save-detected .metadata-checkbox {
   padding-bottom: 0.55rem;
 }

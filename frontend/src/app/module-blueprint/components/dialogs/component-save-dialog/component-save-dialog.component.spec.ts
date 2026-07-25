@@ -203,6 +203,54 @@ describe("ComponentSaveDialogComponent", () => {
     });
   });
 
+  describe("computeDerivedMetadata DLC requirements", () => {
+    afterEach(() => {
+      (OniItem as any).oniItemsMap = undefined;
+    });
+
+    function fakeBlueprint(buildingDlcIds: string[][]) {
+      return {
+        blueprintItems: buildingDlcIds.map((dlcIds) => ({
+          oniItem: { dlcIds },
+        })),
+        hadUnknownBuildings: false,
+        toMdbBlueprint: () => ({
+          blueprintItems: buildingDlcIds.map((_, i) => ({ id: `Fake${i}` })),
+        }),
+      } as any;
+    }
+
+    function showWith(buildingDlcIds: string[][]) {
+      OniItem.oniItemsMap = new Map([["Fake0", { id: "Fake0" } as any]]);
+      TestBed.inject(BlueprintService).blueprint =
+        fakeBlueprint(buildingDlcIds);
+      component.showDialog();
+    }
+
+    it("derives the union of every placed building's packs", () => {
+      showWith([["DLC3_ID"], ["DLC2_ID"], ["DLC3_ID"]]);
+      expect(component.requiredDlcs).toEqual(["DLC2_ID", "DLC3_ID"]);
+    });
+
+    it("derives [] for a base-game-only blueprint", () => {
+      showWith([[], []]);
+      expect(component.requiredDlcs).toEqual([]);
+    });
+
+    it("renders labelled chips, or Base game for an empty set", () => {
+      showWith([["DLC2_ID"]]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain(
+        "The Frosty Planet Pack",
+      );
+      expect(fixture.nativeElement.textContent).not.toContain("DLC2_ID");
+
+      showWith([[]]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain("Base game");
+    });
+  });
+
   describe("computeDerivedMetadata modded detection", () => {
     afterEach(() => {
       (OniItem as any).oniItemsMap = undefined;

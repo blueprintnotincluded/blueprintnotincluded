@@ -10,11 +10,12 @@ import { AuthenticationService } from "../../../services/authentification-servic
 import { BlueprintNameValidationDirective } from "src/app/module-blueprint/directives/blueprint-name-validation.directive";
 import {
   Display,
-  GAME_VERSIONS,
   CATEGORIES,
   SUBCATEGORIES,
   OniItem,
+  dlcLabel,
   deriveGameVersion,
+  deriveRequiredDlcs,
   deriveModded,
   deriveCategory,
   buildCategoryLookup,
@@ -34,11 +35,11 @@ export class ComponentSaveDialogComponent {
 
   @Output() updateThumbnail = new EventEmitter();
 
-  readonly gameVersionOptions = GAME_VERSIONS.map((v) => ({
-    label: v,
-    value: v,
-  }));
   readonly categoryOptions = CATEGORIES.map((c) => ({ label: c, value: c }));
+
+  readonly dlcLabel = dlcLabel;
+  /** Derived from the blueprint's content on open; [] = base game only. */
+  requiredDlcs: string[] = [];
 
   get subcategoryOptions(): { label: string; value: string }[] {
     const cat = this.saveBlueprintForm.value.category;
@@ -165,8 +166,9 @@ export class ComponentSaveDialogComponent {
     };
   }
 
-  // Derives gameVersion and modded from the current blueprint content and
-  // patches the disabled form controls so users see what was computed.
+  // Derives the DLC requirements, gameVersion and modded from the current
+  // blueprint content so users see what was computed. The server derives its
+  // own requiredDlcs on save — this is the preview, never the source.
   private computeDerivedMetadata() {
     const blueprint = this.blueprintService.blueprint;
     // oniItemsMap may be null in unit tests before the database loads
@@ -175,6 +177,7 @@ export class ComponentSaveDialogComponent {
     const buildingDlcIds = blueprint.blueprintItems.map(
       (item) => item.oniItem.dlcIds,
     );
+    this.requiredDlcs = deriveRequiredDlcs(buildingDlcIds);
     const gameVersion = deriveGameVersion(buildingDlcIds);
 
     const knownIds = new Set(OniItem.oniItems.map((i) => i.id));
@@ -309,6 +312,7 @@ export class ComponentSaveDialogComponent {
   reset() {
     this.working = false;
     this.thumbnailReady = false;
+    this.requiredDlcs = [];
     this.overwrite = false;
     this.pendingPublish = null;
     this._originalName = null;
