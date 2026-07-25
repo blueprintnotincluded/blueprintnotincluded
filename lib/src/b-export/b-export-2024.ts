@@ -161,12 +161,26 @@ export interface BElement2024 {
   id: string; // plain id (e.g. "WoodLog")
   tag: number; // SimHash as a signed int
   oreTags: string[] | null;
+  // Element.State. The export is inconsistent here: usually the enum's numeric
+  // value as a string ('5', '6', '20'), but the *name* ('Solid') for most
+  // solids. The low 2 bits are the phase, the rest are flags - see
+  // parseElementState() in convert-export-2024.ts.
   state: string;
   buildMenuSort: number;
   materialCategory: string;
   color: number;
   conduitColor: number;
   uiColor: number;
+
+  // Sim cell capacity and the load-time defaults the game's own UI seeds its
+  // mass/temperature pickers with. Masses are kg, temperatures Kelvin (same
+  // scale as lowTemp/highTemp). Gases get maxMass 1.8 / defaultMass 1.0
+  // applied at runtime, since gas.yaml ships without them.
+  maxMass: number;
+  defaultMass: number;
+  defaultTemperature: number;
+  lowTemp: number;
+  highTemp: number;
 }
 
 export interface BElementsFile2024 extends BExport2024Meta {

@@ -102,6 +102,11 @@ export interface BElement2024 {
     color: number;
     conduitColor: number;
     uiColor: number;
+    maxMass: number;
+    defaultMass: number;
+    defaultTemperature: number;
+    lowTemp: number;
+    highTemp: number;
 }
 export interface BElementsFile2024 extends BExport2024Meta {
     elementTable: {

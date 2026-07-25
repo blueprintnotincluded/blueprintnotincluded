@@ -44,6 +44,7 @@ import {
   BPoStringFile2024,
 } from '../../../lib';
 import { Overlay } from '../../../lib/src/enums/overlay';
+import { ElementState } from '../../../lib/src/enums/element-state';
 import {
   ROOM_BOUNDARY_DOORS,
   ROOM_TAGS_USED,
@@ -583,17 +584,44 @@ export function convertExport2024(opts: ConvertOptions): void {
     .sort((a, b) => a.title.localeCompare(b.title));
 
   // --- Elements: elementTable dict -> array ---
+  // maxMass/defaultMass/defaultTemperature are the game's own load-time defaults; the
+  // website seeds its mass and temperature pickers from them instead of the single
+  // hardcoded constant it used to apply to every element. lowTemp/highTemp come along
+  // because they bound the temperature picker. Masses are kg, temperatures Kelvin.
+  const unknownElementStates = new Set<string>();
   const elements = Object.values(elementsFile.elementTable).map((e) => ({
     name: e.name,
     id: e.id,
     tag: e.tag,
     oreTags: e.oreTags ?? [],
+    state: parseElementState(e.state, unknownElementStates),
     buildMenuSort: e.buildMenuSort,
     color: e.color,
     conduitColor: e.conduitColor,
     uiColor: e.uiColor,
     icon: e.id,
+    maxMass: e.maxMass,
+    defaultMass: e.defaultMass,
+    defaultTemperature: e.defaultTemperature,
+    lowTemp: e.lowTemp,
+    highTemp: e.highTemp,
   }));
+
+  // Element default invariants, per the export contract. Both are cheap and catch a
+  // whole class of upstream regression: if the exporter ever reads gas.yaml instead of
+  // the runtime Element, gases lose their 1.8/1.0 runtime defaults and every gas mass
+  // picker silently goes wrong.
+  const elementsMissingDefaults = elements.filter(
+    (e) =>
+      !Number.isFinite(e.maxMass) ||
+      !Number.isFinite(e.defaultMass) ||
+      !Number.isFinite(e.defaultTemperature)
+  );
+  const gasElements = elements.filter((e) => e.state === ElementState.Gas);
+  const gasesWithoutRuntimeDefaults = gasElements.filter(
+    (e) => e.maxMass !== GAS_MAX_MASS || e.defaultMass !== GAS_DEFAULT_MASS
+  );
+  const elementsOverMaxMass = elements.filter((e) => e.defaultMass > e.maxMass);
 
   // --- Build menu categories ---
   const buildMenuCategories = buildingFile.buildMenuCategories.map((c) => ({
@@ -697,6 +725,41 @@ export function convertExport2024(opts: ConvertOptions): void {
   );
   console.log('--- validation ---');
   console.log('  po_string.json present             :', hasPoStrings);
+  console.log(
+    '  elements by state                  :',
+    `${gasElements.length} gas,`,
+    `${elements.filter((e) => e.state === ElementState.Liquid).length} liquid,`,
+    `${elements.filter((e) => e.state === ElementState.Solid).length} solid,`,
+    `${elements.filter((e) => e.state === ElementState.Vacuum).length} vacuum`
+  );
+  console.log(
+    '  unknown element states             :',
+    unknownElementStates.size,
+    unknownElementStates.size ? '(' + [...unknownElementStates].join(', ') + ')' : ''
+  );
+  console.log(
+    '  elements missing mass/temp defaults:',
+    elementsMissingDefaults.length,
+    elementsMissingDefaults.length
+      ? '(' + elementsMissingDefaults.slice(0, 30).map((e) => e.id).join(', ') + ')'
+      : ''
+  );
+  console.log(
+    '  gases without runtime mass defaults:',
+    gasesWithoutRuntimeDefaults.length,
+    gasesWithoutRuntimeDefaults.length
+      ? '(exporter read gas.yaml, not the runtime Element: ' +
+      gasesWithoutRuntimeDefaults.slice(0, 30).map((e) => e.id).join(', ') +
+      ')'
+      : ''
+  );
+  console.log(
+    '  elements with defaultMass > maxMass:',
+    elementsOverMaxMass.length,
+    elementsOverMaxMass.length
+      ? '(' + elementsOverMaxMass.slice(0, 30).map((e) => e.id).join(', ') + ')'
+      : ''
+  );
   console.log('  utility indicator PNGs missing     :', missingIndicatorPngs.length);
   if (missingIndicatorPngs.length)
     console.log('    missing from export/ui_image (utility overlays will be broken):', missingIndicatorPngs.join(', '));
@@ -812,6 +875,10 @@ export function convertExport2024(opts: ConvertOptions): void {
     roomTagsUnmatched.length +
     roomTagsNotInVocabulary.length +
     roomDoorsMissing.length +
+    unknownElementStates.size +
+    elementsMissingDefaults.length +
+    gasesWithoutRuntimeDefaults.length +
+    elementsOverMaxMass.length +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
@@ -891,6 +958,38 @@ function normalizeDlcIds(raw: string[] | string | null | undefined): string[] {
   if (!raw) return [];
   if (typeof raw === 'string') return [raw];
   return raw.filter(Boolean);
+}
+
+// Element.State as emitted by the export -> ElementState int (lib/src/enums/element-state.ts).
+// Same quirk as ConnectionType below, but only half the time: the export writes the enum's
+// *name* for most solids ('Solid') and its raw numeric value for everything else ('5', '6',
+// '20'). The numeric value carries flag bits above the phase, so the low 2 bits are the
+// phase and the rest are masked off — that resolves all 212 U59 elements (32 gas, 52 liquid,
+// 125 solid, 3 vacuum) and matches the 32 gases the export contract documents.
+const ELEMENT_STATE_MASK = 3;
+
+// ElementLoader.CopyEntryToElement applies these to every gas at load time, because
+// gas.yaml ships without them. They are constants of the game, not of any one element.
+const GAS_MAX_MASS = 1.8;
+const GAS_DEFAULT_MASS = 1.0;
+
+const ELEMENT_STATE_BY_NAME: { [name: string]: number } = {
+  Vacuum: ElementState.Vacuum,
+  Gas: ElementState.Gas,
+  Liquid: ElementState.Liquid,
+  Solid: ElementState.Solid,
+};
+
+function parseElementState(raw: string, unknown: Set<string>): number {
+  const named = ELEMENT_STATE_BY_NAME[raw];
+  if (named !== undefined) return named;
+
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric)) {
+    unknown.add(raw);
+    return ElementState.Vacuum;
+  }
+  return numeric & ELEMENT_STATE_MASK;
 }
 
 // ConnectionType enum member name (as emitted by the U59 export) -> ConnectionType int

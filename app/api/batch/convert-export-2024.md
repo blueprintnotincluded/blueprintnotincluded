@@ -59,9 +59,9 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 | `connection_sprites/<prefabId>/<0..15>.png` | the 16 tiling states for connectables |
 | `ui_image_facade/` | nothing today (not copied) |
 
-Current output (449 buildings): 212 elements, 365 build-menu items, 15 categories,
-474 uiSprites (449 building icons + 17 injected element/info overlays + 8 utility-port
-indicators registered from the export's `ui_image/` PNGs), 31 connectables, 275 buildings
+Current output (487 buildings): 212 elements, 402 build-menu items, 15 categories,
+512 uiSprites (487 building icons + 17 injected element/info overlays + 8 utility-port
+indicators registered from the export's `ui_image/` PNGs), 33 connectables, 322 buildings
 with utility ports.
 
 ## Image model — two kinds, used differently
@@ -229,6 +229,37 @@ data:
 - Image filenames documented by display name; reality is prefab key.
 - `uiSpriteName` shown populated; actually `null` for all 449 buildings.
 - `kPrefabID.tags` / `requiredDlcIds` can be a space-separated **string** OR an array.
+- Element `state` is inconsistent: the enum *name* (`"Solid"`) for most solids, its raw
+  numeric value as a string (`"5"`, `"6"`, `"20"`) for everything else — and the numeric
+  form carries flag bits above the phase. `parseElementState()` accepts either and masks
+  to the low 2 bits, giving the `ElementState` enum (Vacuum/Gas/Liquid/Solid).
+
+## Element mass and temperature defaults
+
+`elements.json` carries the load-time constants the game seeds its own mass/temperature
+pickers with, so the website no longer applies one hardcoded default to every element:
+
+| field                | unit   | notes                                          |
+| -------------------- | ------ | ---------------------------------------------- |
+| `maxMass`            | kg     | sim cell capacity                              |
+| `defaultMass`        | kg     | what the game pre-fills                        |
+| `defaultTemperature` | Kelvin | same scale as `lowTemp` / `highTemp`           |
+| `lowTemp`/`highTemp` | Kelvin | phase-change bounds, used as the picker's range |
+
+These are independent values, not derivable from each other: Crude Oil defaults to 350 K
+inside a 233–673 K range, and Chlorine defaults to 600 kg against a 1000 kg capacity.
+
+Gases are the reason this can't be a static table. `gas.yaml` ships without `maxMass`,
+`defaultMass` or `highTemp`; `ElementLoader.CopyEntryToElement` applies `maxMass = 1.8`,
+`defaultMass = 1.0` and `highTemp = defaultTemperature + 100` at load time. The converter
+asserts both halves of that contract and fails the import on either:
+
+- every gas has `maxMass == 1.8` and `defaultMass == 1.0` — a violation means the exporter
+  read the YAML instead of the runtime `Element`, and every gas mass picker is wrong;
+- `defaultMass <= maxMass` for every element, which the game enforces itself in
+  `ElementLoader.CheckElements()`.
+
+Current export: 32 gas, 52 liquid, 125 solid, 3 vacuum.
 
 ## Unused export files (future capabilities, not wired up)
 
