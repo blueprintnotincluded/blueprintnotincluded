@@ -1,7 +1,25 @@
 import { CATEGORIES, Category, GAME_VERSIONS, GameVersion } from './blueprint-metadata';
+import { DlcId } from './dlc';
 
-// Raw DLC ID strings as exported by OniExtract2024.
-type DlcId = string;
+// The set of DLCs a blueprint needs in order to be built: the union of every
+// placed building's dlcIds, deduped and sorted so storage and diffs are stable.
+// [] means base game only.
+//
+// Multiple ids on one building are AND ("needs all" — RoboPilotModule requires
+// both Spaced Out and the Bionic Booster Pack), which makes a plain union the
+// correct composition across buildings, with no special cases: EXPANSION1_ID is
+// treated exactly like every other id. Requirements come from the blueprint's
+// content, never from the author's own setup.
+//
+// This supersedes deriveGameVersion, which collapses the set to a single
+// highest-priority value and therefore cannot express "needs Frosty AND Bionic"
+// (owning one pack implies nothing about the other). See
+// spec/dlc-requirements-plan.md.
+export function deriveRequiredDlcs(buildingDlcIds: DlcId[][]): DlcId[] {
+  const required = new Set<DlcId>();
+  for (const dlcIds of buildingDlcIds) for (const dlcId of dlcIds) required.add(dlcId);
+  return [...required].sort();
+}
 
 const DLC_TO_GAME_VERSION: Record<string, GameVersion> = {
   EXPANSION1_ID: 'spacedOut',
