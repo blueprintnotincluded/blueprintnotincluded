@@ -9,6 +9,7 @@ import {
   BuildMenuItem,
   CameraService,
   ConnectionType,
+  DLC_LABELS,
   SpriteInfo,
   SpriteModifier,
   ImageSource,
@@ -234,22 +235,16 @@ describe('Game structure contract (representative buildings)', () => {
       expect(unmapped, unmapped.join('; ')).to.be.empty;
     });
 
-    it('every DLC id in the database is known to the blueprint analyzer', () => {
-      // Must stay in sync with DLC_TO_GAME_VERSION in lib/src/blueprint/blueprint-analyzer.ts.
-      // A failure here means a new DLC arrived: add its GameVersion mapping there first.
-      const knownDlcIds = new Set(['EXPANSION1_ID', 'DLC2_ID', 'DLC5_ID']);
-      // Triaged, mapping deliberately deferred to its own change (see
-      // agent/TODO.md "gameVersion DLC mapping"): the U59-740622 export added
-      // these two, and wiring them up also means correcting DLC5_ID — which is
-      // currently labelled bionicBooster but is actually the aquatic pack — and
-      // re-running derive-metadata over stored blueprints. Listing them here
-      // keeps this guard live for any *other* new DLC id.
-      const pendingDlcIds = new Set(['DLC3_ID', 'DLC4_ID']);
-      const unknown = new Set<string>();
+    it('every DLC id in the database has a display label', () => {
+      // Must stay in sync with DLC_LABELS in lib/src/blueprint/dlc.ts. A failure
+      // here means a new DLC arrived in the export: add its label there (the
+      // game's own STRINGS.UI.<id>.NAME, see the frontend strings map) — the
+      // stored requiredDlcs need no change, since raw ids are what we persist.
+      const unlabelled = new Set<string>();
       for (const b of database.buildings)
         for (const dlcId of b.dlcIds ?? [])
-          if (!knownDlcIds.has(dlcId) && !pendingDlcIds.has(dlcId)) unknown.add(dlcId);
-      expect([...unknown], `unknown DLC ids: ${[...unknown].join(', ')}`).to.be.empty;
+          if (DLC_LABELS[dlcId] === undefined) unlabelled.add(dlcId);
+      expect([...unlabelled], `DLC ids without a label: ${[...unlabelled].join(', ')}`).to.be.empty;
     });
   });
 

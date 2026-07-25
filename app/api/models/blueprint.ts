@@ -50,6 +50,13 @@ export interface Blueprint extends Document {
   // in blueprint-controller) so those documents stay visible until the migration runs.
   isPublished?: boolean;
   gameVersion?: string | null;
+  // Raw Klei DLC ids (EXPANSION1_ID, DLC2_ID, …) required to build this
+  // blueprint — the union of its buildings' dlcIds, server-derived on every
+  // save (never client-supplied, same policy as rooms/mods). Unordered set:
+  // [] = base game only, absent = never derived (legacy docs, until the
+  // derive-metadata backfill runs). Stored raw so a display-name change can
+  // never invalidate stored data (spec/dlc-requirements-plan.md).
+  requiredDlcs?: string[];
   category?: string | null;
   subcategory?: string | null;
   description?: string | null;
@@ -126,6 +133,11 @@ export class BlueprintModel {
       // post-deploy here). Creation sites set false explicitly instead.
       isPublished: Boolean,
       gameVersion: { type: String, enum: [...GAME_VERSIONS, null], index: true },
+      // No enum: unknown-to-us DLC ids must still round-trip (a new pack ships
+      // in an export before we know its name). default: undefined for the same
+      // reason as mods — a schema default would make legacy docs read as
+      // "derived, base game" on hydration and lose the never-derived signal.
+      requiredDlcs: { type: [String], index: true, default: undefined },
       category: { type: String, enum: [...CATEGORIES, null], index: true },
       subcategory: { type: String, maxlength: 40 },
       description: { type: String, maxlength: 500 },
@@ -177,6 +189,11 @@ export class BlueprintModel {
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, category: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, category: 1, createdAt: -1 });
+    // DLC-requirement filters on the public feed (multikey on requiredDlcs).
+    // Compound equivalents of the gameVersion pair above — one array field per
+    // compound index, and category/createdAt are scalars, so both are legal.
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, requiredDlcs: 1, createdAt: -1 });
+    blueprintSchema.index({ deletedAt: 1, isPublished: 1, requiredDlcs: 1, category: 1, createdAt: -1 });
     // Room-type filter on the public feed (multikey on rooms)
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, rooms: 1, createdAt: -1 });
     // "Top rated" sort on the public feed
