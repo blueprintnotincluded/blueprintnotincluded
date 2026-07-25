@@ -126,6 +126,61 @@ describe('Discovery: related blueprints + trending sort', function () {
       expect(names).to.not.include(deleted.name);
     });
 
+    // Set overlap, not equality: the old single-valued gameVersion collapsed a
+    // Frosty+Bionic blueprint to one pack, so it never matched a Frosty one.
+    it('ranks blueprints sharing a required DLC above ones needing a different pack', async function () {
+      const source = await makeBlueprint(testData.users.user1._id, {
+        name: 'Related Dlc Source',
+        category: 'power',
+        requiredDlcs: ['DLC2_ID', 'DLC3_ID'],
+      });
+      // Created first, so createdAt ordering alone would put it last.
+      const sharesOnePack = await makeBlueprint(testData.users.user2._id, {
+        name: 'Related Dlc Overlap',
+        category: 'power',
+        requiredDlcs: ['DLC2_ID'],
+        createdAt: daysAgo(2),
+      });
+      const differentPack = await makeBlueprint(testData.users.user2._id, {
+        name: 'Related Dlc Disjoint',
+        category: 'power',
+        requiredDlcs: ['DLC5_ID'],
+      });
+
+      const response = await TestSetup.request().get(`/api/blueprints/${source._id}/related`);
+      expect(response.status).to.equal(200);
+      const names: string[] = response.body.blueprints.map((b: any) => b.name);
+
+      expect(names).to.include(sharesOnePack.name);
+      expect(names).to.include(differentPack.name);
+      expect(names.indexOf(sharesOnePack.name)).to.be.lessThan(names.indexOf(differentPack.name));
+    });
+
+    // Base-game-only is a shared property, not the absence of one — it is what
+    // the old gameVersion equality rewarded, and it survives the change.
+    it('ranks base-game blueprints above DLC ones for a base-game source', async function () {
+      const source = await makeBlueprint(testData.users.user1._id, {
+        name: 'Related Base Source',
+        category: 'power',
+        requiredDlcs: [],
+      });
+      const alsoBase = await makeBlueprint(testData.users.user2._id, {
+        name: 'Related Base Sibling',
+        category: 'power',
+        requiredDlcs: [],
+        createdAt: daysAgo(2),
+      });
+      const needsDlc = await makeBlueprint(testData.users.user2._id, {
+        name: 'Related Base Dlc Sibling',
+        category: 'power',
+        requiredDlcs: ['DLC3_ID'],
+      });
+
+      const response = await TestSetup.request().get(`/api/blueprints/${source._id}/related`);
+      const names: string[] = response.body.blueprints.map((b: any) => b.name);
+      expect(names.indexOf(alsoBase.name)).to.be.lessThan(names.indexOf(needsDlc.name));
+    });
+
     it('ranks same-author blueprints above signal-free ones', async function () {
       const owner = testData.users.user1._id;
       const source = await makeBlueprint(owner, { name: 'Related Author Source' });

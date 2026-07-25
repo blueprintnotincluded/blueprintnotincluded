@@ -99,6 +99,20 @@ function sniffImageMime(bytes: Buffer): string | null {
 }
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
+// "You might also like" relevance signal for DLC requirements: sharing a pack
+// means someone who can build the blueprint they're looking at can probably
+// build this one too. Set overlap, not equality — the old single-valued
+// gameVersion could only report one pack, so a Frosty+Bionic blueprint never
+// matched a Frosty one. Both-empty counts as a match: base-game-only is a real
+// shared property (and what the old equality test rewarded), not the absence
+// of one. Documents predating derivation read as empty here, which is the
+// existing untagged-blueprint behaviour — a constant across candidates, so it
+// cannot reorder the shelf.
+function sharesDlcRequirements(sourceDlcs: string[], candidateDlcs: string[]): boolean {
+  if (sourceDlcs.length === 0) return candidateDlcs.length === 0;
+  return candidateDlcs.some(dlcId => sourceDlcs.includes(dlcId));
+}
+
 export class BlueprintController {
   public uploadBlueprint(req: Request, res: Response) {
     console.log('uploadBlueprint' + req.clientIp);
@@ -1050,7 +1064,7 @@ export class BlueprintController {
     };
   }
 
-  // "You might also like": same category/subcategory/gameVersion, or same
+  // "You might also like": same category/subcategory/DLC requirements, or same
   // author, scored simply and merged. Two cheap indexed queries + in-memory
   // scoring — plenty at this catalog's size, and avoids an aggregation with
   // no single field to sort on. Backfills with recent public blueprints so
@@ -1071,7 +1085,7 @@ export class BlueprintController {
       const viewer = optionalViewer(req);
       const source = await BlueprintModel.model
         .findOne({ _id: blueprintId, deletedAt: null })
-        .select('owner category subcategory gameVersion isPublished')
+        .select('owner category subcategory requiredDlcs isPublished')
         .lean();
       if (source == null || !canViewBlueprint(source, viewer)) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
@@ -1122,11 +1136,13 @@ export class BlueprintController {
         for (const candidate of fallback) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
       }
 
+      const sourceDlcs = source.requiredDlcs ?? [];
+
       const scored = Array.from(candidates.values()).map(candidate => {
         let score = 0;
         if (source.category != null && candidate.category === source.category) score += 3;
         if (source.subcategory != null && candidate.subcategory === source.subcategory) score += 2;
-        if (source.gameVersion != null && candidate.gameVersion === source.gameVersion) score += 1;
+        if (sharesDlcRequirements(sourceDlcs, candidate.requiredDlcs ?? [])) score += 1;
         if (sourceOwnerId != null && ownerIdOf(candidate) === sourceOwnerId) score += 2;
         return { candidate, score };
       });
