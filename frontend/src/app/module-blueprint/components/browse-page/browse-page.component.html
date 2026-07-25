@@ -116,7 +116,7 @@
         </div>
 
         <div class="bni-facet-group">
-          <h4 class="bni-facet-label" i18n>DLC</h4>
+          <h4 class="bni-facet-label" i18n>DLC — show only</h4>
           <button
             type="button"
             class="bni-facet"
@@ -133,6 +133,29 @@
             [class.active]="isDlcSelected(opt.value)"
             [attr.aria-pressed]="isDlcSelected(opt.value)"
             (click)="toggleDlc(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
+        <div class="bni-facet-group">
+          <h4 class="bni-facet-label" i18n>DLC — hide</h4>
+          <button
+            type="button"
+            class="bni-facet"
+            [class.active]="excludeDlcs.length === 0"
+            (click)="clearExcludeDlcFilter()"
+            i18n
+          >
+            None
+          </button>
+          <button
+            *ngFor="let opt of dlcOptions"
+            type="button"
+            class="bni-facet bni-facet--exclude"
+            [class.active]="isDlcExcluded(opt.value)"
+            [attr.aria-pressed]="isDlcExcluded(opt.value)"
+            (click)="toggleExcludeDlc(opt.value)"
           >
             {{ opt.label }}
           </button>
@@ -198,6 +221,7 @@
             *ngFor="let chip of activeFilterChips; trackBy: trackChip"
             type="button"
             class="active-filter-chip"
+            [class.active-filter-chip--exclude]="chip.exclude"
             [attr.aria-label]="chip.ariaLabel"
             (click)="chip.remove()"
           >

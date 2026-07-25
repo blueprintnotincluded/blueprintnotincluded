@@ -40,6 +40,9 @@ interface ActiveFilterChip {
   label: string;
   ariaLabel: string;
   remove: () => void;
+  /** Styles the chip as an exclusion ("hide this") rather than a restriction
+   * ("show only this") so the two read as visually distinct in the bar. */
+  exclude?: boolean;
 }
 
 /** Grid fade-out duration when the list context changes (ms); must match the
@@ -79,6 +82,15 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   /** Selected DLC ids; empty = no DLC restriction. Multi-select: the server
    * matches blueprints requiring ANY of them ($in). */
   filterDlcs: string[] = [];
+  /** DLC ids to hide; empty = no exclusion. Multi-select: the server excludes
+   * blueprints requiring ANY of them ($nin). Persisted server-side as an
+   * account preference once the user actually toggles one — never applied
+   * until then, and never for a logged-out visitor. */
+  excludeDlcs: string[] = [];
+  /** True once the current URL has been read and it carried an explicit
+   * excludeDlc param (even an empty one) — an explicit param always wins over
+   * the stored account preference, so this gates whether ngOnInit applies it. */
+  private excludeDlcParamPresent = false;
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
   filterModded: boolean | null = null;
@@ -239,6 +251,23 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
           error: () => {},
         });
       }
+
+      // An explicit URL param always beats the stored preference — only
+      // fetch it when the URL didn't already decide. Never fetched at all
+      // for a logged-out visitor.
+      if (!this.excludeDlcParamPresent) {
+        this.userService.getDlcPreferences().subscribe({
+          next: (prefs) => {
+            if (this.excludeDlcParamPresent || prefs.excludedDlcs.length === 0)
+              return;
+            this.excludeDlcs = prefs.excludedDlcs.filter(
+              (id) => !this.filterDlcs.includes(id),
+            );
+            if (this.excludeDlcs.length > 0) this.transitionList();
+          },
+          error: () => {},
+        });
+      }
     }
   }
 
@@ -339,6 +368,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       .flatMap((value) => value.split(","))
       .map((dlcId) => dlcId.trim())
       .filter((dlcId) => dlcId.length > 0);
+    const excludeDlcParamPresent = params.has("excludeDlc");
+    const excludeDlcs = params
+      .getAll("excludeDlc")
+      .flatMap((value) => value.split(","))
+      .map((dlcId) => dlcId.trim())
+      .filter((dlcId) => dlcId.length > 0);
     const rawSort = params.get("sort");
     const sort: BlueprintSort = this.sortOptions.some(
       (option) => option.value === rawSort,
@@ -355,6 +390,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       forkedFrom !== this.filterForkedFrom ||
       rooms !== this.filterRooms ||
       dlcs.join(",") !== this.filterDlcs.join(",") ||
+      excludeDlcs.join(",") !== this.excludeDlcs.join(",") ||
       sort !== this.sort;
 
     this.filterName = name;
@@ -365,6 +401,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterForkedFrom = forkedFrom;
     this.filterRooms = rooms;
     this.filterDlcs = dlcs;
+    this.excludeDlcParamPresent = excludeDlcParamPresent;
+    // An explicit param always wins: only overwrite the (possibly
+    // preference-loaded) state when the URL actually carried one.
+    if (excludeDlcParamPresent) this.excludeDlcs = excludeDlcs;
     this.sort = sort;
     return changed;
   }
@@ -397,9 +437,16 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   /** Multi-select: packs are independent, so picking a second one widens the
    * result set ("needs any of these") instead of replacing the first. */
   toggleDlc(dlcId: string) {
-    this.filterDlcs = this.isDlcSelected(dlcId)
+    const wasSelected = this.isDlcSelected(dlcId);
+    this.filterDlcs = wasSelected
       ? this.filterDlcs.filter((id) => id !== dlcId)
       : [...this.filterDlcs, dlcId];
+    // A pack can't be both "show only" and "hide" at once — selecting it here
+    // wins and drops it from the exclusion side, persisting that change.
+    if (!wasSelected && this.isDlcExcluded(dlcId)) {
+      this.excludeDlcs = this.excludeDlcs.filter((id) => id !== dlcId);
+      this.persistDlcExclusionPreference();
+    }
     // same reasoning as selectGameVersion: subcategory is scoped to category
     this.filterFacetSubject.next();
   }
@@ -411,6 +458,39 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   }
 
   readonly dlcLabel = dlcLabel;
+
+  isDlcExcluded(dlcId: string): boolean {
+    return this.excludeDlcs.includes(dlcId);
+  }
+
+  /** Multi-select, symmetric to toggleDlc. Every call is a real interaction
+   * with the exclusion filter, so every call persists the resulting list as
+   * the user's account preference (a no-op for a logged-out visitor). */
+  toggleExcludeDlc(dlcId: string) {
+    const wasExcluded = this.isDlcExcluded(dlcId);
+    this.excludeDlcs = wasExcluded
+      ? this.excludeDlcs.filter((id) => id !== dlcId)
+      : [...this.excludeDlcs, dlcId];
+    if (!wasExcluded && this.isDlcSelected(dlcId)) {
+      this.filterDlcs = this.filterDlcs.filter((id) => id !== dlcId);
+    }
+    this.persistDlcExclusionPreference();
+    this.filterFacetSubject.next();
+  }
+
+  clearExcludeDlcFilter() {
+    if (this.excludeDlcs.length === 0) return;
+    this.excludeDlcs = [];
+    this.persistDlcExclusionPreference();
+    this.filterFacetSubject.next();
+  }
+
+  private persistDlcExclusionPreference() {
+    if (!this.loggedIn) return;
+    this.userService.updateDlcPreferences(this.excludeDlcs).subscribe({
+      error: () => {},
+    });
+  }
 
   selectSubcategory(value: string | null) {
     if (this.filterSubcategory === value) return;
@@ -452,7 +532,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         this.filterRooms,
         this.filterForkedFrom,
         this.filterModded !== null || null,
-      ].filter(Boolean).length + this.filterDlcs.length
+      ].filter(Boolean).length +
+      this.filterDlcs.length +
+      this.excludeDlcs.length
     );
   }
 
@@ -468,8 +550,15 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     key: string,
     label: string,
     remove: () => void,
+    exclude?: boolean,
   ): ActiveFilterChip {
-    return { key, label, ariaLabel: this.removeChipAriaLabel(label), remove };
+    return {
+      key,
+      label,
+      ariaLabel: this.removeChipAriaLabel(label),
+      remove,
+      exclude,
+    };
   }
 
   // Pinned above the grid (not the sidebar) so an active filter combination
@@ -514,6 +603,17 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     for (const dlcId of this.filterDlcs)
       chips.push(
         this.chip(`dlc-${dlcId}`, dlcLabel(dlcId), () => this.toggleDlc(dlcId)),
+      );
+    // Same one-chip-per-pack shape as the "show only" chips above, styled
+    // distinctly (exclude: true) so the two read as opposite intents.
+    for (const dlcId of this.excludeDlcs)
+      chips.push(
+        this.chip(
+          `exclude-dlc-${dlcId}`,
+          $localize`:browse filter chip:No ${dlcLabel(dlcId)}`,
+          () => this.toggleExcludeDlc(dlcId),
+          true,
+        ),
       );
     if (this.filterModded != null)
       chips.push(
@@ -574,6 +674,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (this.filterRooms) queryParams["rooms"] = this.filterRooms;
     if (this.filterDlcs.length > 0)
       queryParams["dlc"] = this.filterDlcs.join(",");
+    if (this.excludeDlcs.length > 0)
+      queryParams["excludeDlc"] = this.excludeDlcs.join(",");
     if (this.sort !== DEFAULT_SORT) queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
@@ -587,6 +689,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterForkedFrom = null;
     this.filterRooms = null;
     this.filterDlcs = [];
+    const hadExclusions = this.excludeDlcs.length > 0;
+    this.excludeDlcs = [];
+    if (hadExclusions) this.persistDlcExclusionPreference();
     this.applyFiltersToUrl();
     this.transitionList();
   }
@@ -626,6 +731,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             null,
             this.filterRooms,
             this.filterDlcs.length > 0 ? this.filterDlcs.join(",") : null,
+            this.excludeDlcs.length > 0 ? this.excludeDlcs.join(",") : null,
           );
 
     request$.subscribe({

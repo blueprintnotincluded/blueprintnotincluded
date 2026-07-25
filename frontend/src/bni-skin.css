@@ -796,6 +796,19 @@
   box-shadow: inset 2px 0 0 var(--bni-accent);
 }
 
+/* Exclusion ("hide this") facets use the danger accent instead of the
+   regular one, so "show only" and "hide" read as opposite intents rather
+   than two identical-looking button groups. */
+.bni-facet--exclude:hover {
+  color: var(--bni-danger);
+}
+
+.bni-facet--exclude.active {
+  background: var(--bni-panel2);
+  color: var(--bni-ink);
+  box-shadow: inset 2px 0 0 var(--bni-danger);
+}
+
 .bni-facet-count {
   font-size: 12px;
   color: var(--bni-faint);

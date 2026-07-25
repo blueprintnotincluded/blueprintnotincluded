@@ -12,6 +12,8 @@ import {
   AvatarStatusResponse,
   AvailableAvatarsResponse,
   AvatarSelectRequest,
+  DlcPreferencesResponse,
+  UpdateDlcPreferencesRequest,
 } from "../../../../../lib/index";
 
 @Injectable({ providedIn: "root" })
@@ -55,6 +57,26 @@ export class UserService {
 
   private authHeaders(): { [header: string]: string } {
     return { Authorization: `Bearer ${this.authService.getToken()}` };
+  }
+
+  // Private account state — which DLC packs the user wants hidden from
+  // Discover. Never fetched or written for a logged-out visitor.
+  getDlcPreferences(): Observable<DlcPreferencesResponse> {
+    return this.http.get<DlcPreferencesResponse>(
+      "/api/users/me/dlc-preferences",
+      { headers: this.authHeaders() },
+    );
+  }
+
+  updateDlcPreferences(
+    excludedDlcs: string[],
+  ): Observable<DlcPreferencesResponse> {
+    const body: UpdateDlcPreferencesRequest = { excludedDlcs };
+    return this.http.patch<DlcPreferencesResponse>(
+      "/api/users/me/dlc-preferences",
+      body,
+      { headers: this.authHeaders() },
+    );
   }
 
   getAvatarStatus(): Observable<AvatarStatusResponse> {

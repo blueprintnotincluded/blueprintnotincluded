@@ -164,6 +164,17 @@
   opacity: 0.7;
 }
 
+/* Exclusion chips ("hide this pack") read as the opposite of every other
+   chip in the bar, which all narrow the result set toward something. */
+.active-filter-chip--exclude {
+  color: var(--bni-danger);
+}
+
+.active-filter-chip--exclude:hover {
+  background: var(--bni-chip-hi);
+  color: var(--bni-danger);
+}
+
 .clear-filters--inline {
   padding: 3px 8px;
 }
