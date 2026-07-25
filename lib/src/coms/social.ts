@@ -21,6 +21,17 @@ export interface UpdateBioRequest {
   bio: string;
 }
 
+// Private account data — which DLC packs the user doesn't want to see in
+// Discover. Never part of ProfileResponse; only reachable by the owner via
+// /api/users/me/dlc-preferences.
+export interface DlcPreferencesResponse {
+  excludedDlcs: string[];
+}
+
+export interface UpdateDlcPreferencesRequest {
+  excludedDlcs: string[];
+}
+
 export interface FollowListEntry {
   id: string;
   username: string;

@@ -111,6 +111,8 @@ export class Routes {
     app.route('/api/users/:username/profileSecure').get(auth, this.userController.getProfile);
     app.route('/api/follow').post(auth, this.userController.follow);
     app.route('/api/users/me').patch(auth, this.userController.updateBio);
+    app.route('/api/users/me/dlc-preferences').get(auth, this.userController.getDlcPreferences);
+    app.route('/api/users/me/dlc-preferences').patch(auth, this.userController.updateDlcPreferences);
     // Optional seed photo arrives as a raw image/* body (no multipart in this
     // API surface); anything else falls through to random generation
     app
