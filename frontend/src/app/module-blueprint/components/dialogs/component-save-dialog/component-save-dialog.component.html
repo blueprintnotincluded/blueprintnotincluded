@@ -88,12 +88,14 @@
           <div class="save-field">
             <label i18n>DLC required</label>
             <div class="save-dlc-chips">
-              <span class="save-dlc-chip" *ngFor="let dlc of requiredDlcs">{{
-                dlcLabel(dlc)
-              }}</span>
+              <span
+                class="save-dlc-chip"
+                *ngFor="let dlc of requiredDlcs ?? []"
+                >{{ dlcLabel(dlc) }}</span
+              >
               <span
                 class="save-dlc-chip save-dlc-chip--none"
-                *ngIf="requiredDlcs.length === 0"
+                *ngIf="requiredDlcs?.length === 0"
                 i18n
                 >Base game</span
               >
