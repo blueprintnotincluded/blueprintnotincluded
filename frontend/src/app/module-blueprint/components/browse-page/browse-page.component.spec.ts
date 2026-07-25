@@ -54,6 +54,8 @@ describe("BrowsePageComponent", () => {
         }),
       ),
       getFeed: vi.fn().mockReturnValue(of(makeResponse())),
+      getDlcPreferences: vi.fn().mockReturnValue(of({ excludedDlcs: [] })),
+      updateDlcPreferences: vi.fn().mockReturnValue(of({ excludedDlcs: [] })),
     };
 
     router = { navigate: vi.fn() };
@@ -169,6 +171,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        null,
       );
     });
 
@@ -185,6 +188,7 @@ describe("BrowsePageComponent", () => {
         null,
         "trending",
         0,
+        null,
         null,
         null,
         null,
@@ -212,6 +216,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        null,
       );
     });
 
@@ -229,6 +234,7 @@ describe("BrowsePageComponent", () => {
         "trending",
         0,
         true,
+        null,
         null,
         null,
         null,
@@ -254,6 +260,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        null,
       );
     });
 
@@ -274,6 +281,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         "latrine",
+        null,
         null,
       );
     });
@@ -296,6 +304,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         "DLC2_ID,DLC3_ID",
+        null,
       );
     });
 
@@ -497,6 +506,225 @@ describe("BrowsePageComponent", () => {
       expect(blueprintService.getBlueprints.mock.calls.length).toBe(
         callsBefore,
       );
+    });
+  });
+
+  describe("DLC exclusion filter", () => {
+    it("initializes the exclusion from a comma-separated URL param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(
+        convertToParamMap({ excludeDlc: "DLC3_ID,DLC4_ID" }),
+      );
+      component.ngOnInit();
+      expect(component.excludeDlcs).toEqual(["DLC3_ID", "DLC4_ID"]);
+    });
+
+    it("initializes the exclusion from a repeated URL param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(
+        convertToParamMap({ excludeDlc: ["DLC3_ID", "DLC4_ID"] }),
+      );
+      component.ngOnInit();
+      expect(component.excludeDlcs).toEqual(["DLC3_ID", "DLC4_ID"]);
+    });
+
+    it("writes the exclusion back to the URL as a comma list under excludeDlc", () => {
+      vi.useFakeTimers();
+      component.toggleExcludeDlc("DLC3_ID");
+      component.toggleExcludeDlc("DLC4_ID");
+      vi.advanceTimersByTime(600);
+
+      expect(router.navigate).toHaveBeenLastCalledWith([], {
+        queryParams: { excludeDlc: "DLC3_ID,DLC4_ID" },
+        replaceUrl: true,
+      });
+    });
+
+    it("round-trips through the URL: what it writes, it reads back", () => {
+      vi.useFakeTimers();
+      component.toggleExcludeDlc("DLC3_ID");
+      component.toggleExcludeDlc("DLC4_ID");
+      vi.advanceTimersByTime(600);
+      const written = router.navigate.mock.calls.at(-1)[1].queryParams;
+      vi.useRealTimers();
+
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(convertToParamMap(written));
+      const reopened = TestBed.createComponent(BrowsePageComponent);
+      reopened.componentInstance.ngOnInit();
+
+      expect(reopened.componentInstance.excludeDlcs).toEqual([
+        "DLC3_ID",
+        "DLC4_ID",
+      ]);
+    });
+
+    it("omits the param entirely when nothing is excluded", () => {
+      vi.useFakeTimers();
+      component.toggleExcludeDlc("DLC3_ID");
+      component.toggleExcludeDlc("DLC3_ID"); // toggled back off
+      vi.advanceTimersByTime(600);
+
+      expect(component.excludeDlcs).toEqual([]);
+      expect(
+        router.navigate.mock.calls.at(-1)[1].queryParams,
+      ).not.toHaveProperty("excludeDlc");
+    });
+
+    it("toggles exclusions independently instead of replacing them", () => {
+      component.toggleExcludeDlc("DLC3_ID");
+      component.toggleExcludeDlc("DLC4_ID");
+      expect(component.excludeDlcs).toEqual(["DLC3_ID", "DLC4_ID"]);
+      expect(component.isDlcExcluded("DLC3_ID")).toBe(true);
+
+      component.toggleExcludeDlc("DLC3_ID");
+      expect(component.excludeDlcs).toEqual(["DLC4_ID"]);
+      expect(component.isDlcExcluded("DLC3_ID")).toBe(false);
+    });
+
+    it("counts each excluded pack as an active filter", () => {
+      component.excludeDlcs = ["DLC3_ID", "DLC4_ID"];
+      expect(component.activeFilterCount).toBe(2);
+      expect(component.hasActiveFilters).toBe(true);
+    });
+
+    it("shows one removable chip per excluded pack, marked as an exclusion", () => {
+      component.excludeDlcs = ["DLC3_ID"];
+
+      const chips = component.activeFilterChips.filter((c) =>
+        c.key.startsWith("exclude-dlc-"),
+      );
+      expect(chips).toHaveLength(1);
+      expect(chips[0].label).toContain("The Bionic Booster Pack");
+      expect(chips[0].exclude).toBe(true);
+
+      chips[0].remove();
+      expect(component.excludeDlcs).toEqual([]);
+    });
+
+    it("a show-only chip is not marked as an exclusion", () => {
+      component.filterDlcs = ["DLC3_ID"];
+      const chip = component.activeFilterChips.find(
+        (c) => c.key === "dlc-DLC3_ID",
+      );
+      expect(chip!.exclude).toBeFalsy();
+    });
+
+    it("clearExcludeDlcFilter is a no-op when nothing is excluded", () => {
+      const callsBefore = blueprintService.getBlueprints.mock.calls.length;
+      component.clearExcludeDlcFilter();
+      expect(blueprintService.getBlueprints.mock.calls.length).toBe(
+        callsBefore,
+      );
+      expect(userService.updateDlcPreferences).not.toHaveBeenCalled();
+    });
+
+    it("clearFilters also clears any active exclusion", () => {
+      component.excludeDlcs = ["DLC3_ID"];
+      component.clearFilters();
+      expect(component.excludeDlcs).toEqual([]);
+    });
+
+    // A pack can't be both "show only" and "hide" — whichever is chosen
+    // second wins and clears the other side.
+    it("selecting a pack as show-only clears it from the exclusion list", () => {
+      component.toggleExcludeDlc("DLC3_ID");
+      userService.updateDlcPreferences.mockClear();
+
+      component.toggleDlc("DLC3_ID");
+
+      expect(component.excludeDlcs).toEqual([]);
+      expect(component.filterDlcs).toEqual(["DLC3_ID"]);
+      expect(userService.updateDlcPreferences).toHaveBeenCalledWith([]);
+    });
+
+    it("excluding a pack clears it from the show-only list", () => {
+      component.toggleDlc("DLC3_ID");
+
+      component.toggleExcludeDlc("DLC3_ID");
+
+      expect(component.filterDlcs).toEqual([]);
+      expect(component.excludeDlcs).toEqual(["DLC3_ID"]);
+    });
+
+    it("passes the excluded DLCs to getBlueprints as a comma list", () => {
+      component.excludeDlcs = ["DLC3_ID", "DLC4_ID"];
+      component.getBlueprints();
+
+      const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
+      expect(lastCall[13]).toBe("DLC3_ID,DLC4_ID");
+    });
+  });
+
+  describe("DLC exclusion persistence", () => {
+    it("persists the exclusion list on every toggle", () => {
+      component.toggleExcludeDlc("DLC3_ID");
+      expect(userService.updateDlcPreferences).toHaveBeenLastCalledWith([
+        "DLC3_ID",
+      ]);
+
+      component.toggleExcludeDlc("DLC4_ID");
+      expect(userService.updateDlcPreferences).toHaveBeenLastCalledWith([
+        "DLC3_ID",
+        "DLC4_ID",
+      ]);
+    });
+
+    it("persists an empty list when clearing an active exclusion", () => {
+      component.excludeDlcs = ["DLC3_ID"];
+      component.clearExcludeDlcFilter();
+      expect(userService.updateDlcPreferences).toHaveBeenCalledWith([]);
+    });
+
+    it("does not persist for a logged-out visitor", () => {
+      authService.isLoggedIn.mockReturnValue(false);
+      component.toggleExcludeDlc("DLC3_ID");
+      expect(userService.updateDlcPreferences).not.toHaveBeenCalled();
+    });
+
+    it("does not fetch or apply a stored preference for a logged-out visitor", () => {
+      authService.isLoggedIn.mockReturnValue(false);
+      fixture.detectChanges();
+      expect(userService.getDlcPreferences).not.toHaveBeenCalled();
+      expect(component.excludeDlcs).toEqual([]);
+    });
+
+    it("nothing is excluded on first load when the stored preference is empty", () => {
+      fixture.detectChanges();
+      expect(userService.getDlcPreferences).toHaveBeenCalled();
+      expect(component.excludeDlcs).toEqual([]);
+      // The very first request must not have waited on the preference either.
+      const firstCall = blueprintService.getBlueprints.mock.calls[0];
+      expect(firstCall[13]).toBeNull();
+    });
+
+    it("applies a stored exclusion preference on load when the URL has no override", () => {
+      userService.getDlcPreferences.mockReturnValue(
+        of({ excludedDlcs: ["DLC3_ID"] }),
+      );
+      fixture.detectChanges();
+      expect(component.excludeDlcs).toEqual(["DLC3_ID"]);
+    });
+
+    it("merely loading the stored preference does not write it back", () => {
+      userService.getDlcPreferences.mockReturnValue(
+        of({ excludedDlcs: ["DLC3_ID"] }),
+      );
+      fixture.detectChanges();
+      expect(component.excludeDlcs).toEqual(["DLC3_ID"]);
+      expect(userService.updateDlcPreferences).not.toHaveBeenCalled();
+    });
+
+    it("an explicit excludeDlc URL param wins over the stored preference", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(convertToParamMap({ excludeDlc: "DLC4_ID" }));
+      userService.getDlcPreferences.mockReturnValue(
+        of({ excludedDlcs: ["DLC3_ID"] }),
+      );
+      fixture.detectChanges();
+
+      expect(userService.getDlcPreferences).not.toHaveBeenCalled();
+      expect(component.excludeDlcs).toEqual(["DLC4_ID"]);
     });
   });
 

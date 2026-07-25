@@ -608,6 +608,7 @@ export class BlueprintService implements IObsBlueprintChange {
     filterRatedBy?: string | null,
     filterRooms?: string | null,
     filterDlcs?: string | null,
+    filterExcludeDlcs?: string | null,
   ) {
     // olderthan is a cache-buster when it isn't doing real work, so send it
     // only where it is the pagination cursor: the recent sort past page 1
@@ -661,6 +662,10 @@ export class BlueprintService implements IObsBlueprintChange {
     let parameterDlcs = "";
     if (filterDlcs != null) parameterDlcs = "&dlc=" + filterDlcs;
 
+    let parameterExcludeDlcs = "";
+    if (filterExcludeDlcs != null)
+      parameterExcludeDlcs = "&excludeDlc=" + filterExcludeDlcs;
+
     const parameters = (
       parameterOlderThan +
       parameterFilterUserId +
@@ -673,7 +678,8 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterForkedFrom +
       parameterRatedBy +
       parameterRooms +
-      parameterDlcs
+      parameterDlcs +
+      parameterExcludeDlcs
     ).replace(/^&/, "");
 
     // General browsing is a public, viewer-independent feed — always hit the

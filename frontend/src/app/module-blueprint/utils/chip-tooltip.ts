@@ -11,6 +11,10 @@ export function baseGameTooltip(): string {
   return $localize`:chipTooltip.baseGame:Needs no DLC — buildable in the base game`;
 }
 
+export function excludeDlcTooltip(dlcId: string): string {
+  return $localize`:chipTooltip.excludeDlc:Hides blueprints that need the ${dlcLabel(dlcId)} DLC`;
+}
+
 const GAME_VERSION_TOOLTIPS: Record<string, string> = {
   base: $localize`:chipTooltip.base:Base game — no DLC required`,
   spacedOut: $localize`:chipTooltip.spacedOut:Spaced Out — requires the Spaced Out! DLC`,

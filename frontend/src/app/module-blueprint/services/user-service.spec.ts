@@ -83,6 +83,31 @@ describe("UserService", () => {
     });
   });
 
+  describe("getDlcPreferences", () => {
+    it("requests the stored exclusion preference with an auth header", () => {
+      service.getDlcPreferences().subscribe();
+      expect(mockHttp.get).toHaveBeenCalledWith(
+        "/api/users/me/dlc-preferences",
+        expect.objectContaining({
+          headers: { Authorization: "Bearer token123" },
+        }),
+      );
+    });
+  });
+
+  describe("updateDlcPreferences", () => {
+    it("patches the exclusion list with an auth header", () => {
+      service.updateDlcPreferences(["DLC3_ID", "DLC4_ID"]).subscribe();
+      expect(mockHttp.patch).toHaveBeenCalledWith(
+        "/api/users/me/dlc-preferences",
+        { excludedDlcs: ["DLC3_ID", "DLC4_ID"] },
+        expect.objectContaining({
+          headers: { Authorization: "Bearer token123" },
+        }),
+      );
+    });
+  });
+
   describe("getFeed", () => {
     it("requests the feed with an olderthan cursor", () => {
       const date = new Date("2024-01-01");
