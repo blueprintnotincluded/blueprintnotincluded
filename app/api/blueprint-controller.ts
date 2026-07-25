@@ -20,6 +20,8 @@ import {
   ROOM_TYPE_IDS,
   RAW_SOURCE_FORMATS,
   RawSourceFormat,
+  DLC_ID_PATTERN,
+  MAX_DLC_FILTER_IDS,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { computeHotScore } from '../../lib/index';
@@ -46,10 +48,6 @@ import { deriveDlcs } from './services/dlc-derivation-service';
 import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
-
-// Shape of a raw Klei DLC id (EXPANSION1_ID, DLC3_ID, …) — see lib/blueprint/dlc.ts
-const DLC_ID_PATTERN = /^[A-Z0-9_]{1,32}$/;
-const MAX_DLC_FILTER_IDS = 20;
 
 const SORTS = ['recent', 'popular', 'mostForked', 'mostViewed', 'mostDownloaded', 'trending'] as const;
 type BlueprintSort = (typeof SORTS)[number];
@@ -700,6 +698,7 @@ export class BlueprintController {
       let filterModded: boolean | null = null;
       let filterRooms: string[] | null = null;
       let filterDlcs: string[] | null = null;
+      let filterExcludeDlcs: string[] | null = null;
       let filterForkedFrom: string | null = null;
       let filterRatedBy: string | null = null;
       let sort: BlueprintSort;
@@ -796,6 +795,31 @@ export class BlueprintController {
           filterDlcs = requested;
         }
 
+        // ?excludeDlc=DLC3_ID,DLC4_ID -> blueprints requiring NONE of these
+        // packs. The complement of ?dlc= (membership vs. exclusion are
+        // separate params, not a third state on one), so it composes: both can
+        // be present at once. Same shape/size validation as dlc.
+        const rawExcludeDlc = req.query.excludeDlc;
+        if (rawExcludeDlc != null) {
+          const requested = (Array.isArray(rawExcludeDlc) ? rawExcludeDlc : [rawExcludeDlc])
+            .flatMap(value => String(value).split(','))
+            .map(dlcId => dlcId.trim())
+            .filter(dlcId => dlcId.length > 0);
+          const invalid = requested.filter(dlcId => !DLC_ID_PATTERN.test(dlcId));
+          if (requested.length === 0 || requested.length > MAX_DLC_FILTER_IDS || invalid.length > 0) {
+            res
+              .status(400)
+              .json(
+                apiError(
+                  400,
+                  `Invalid excludeDlc: must be a comma-separated list of up to ${MAX_DLC_FILTER_IDS} DLC ids (A-Z, 0-9 and _)`
+                )
+              );
+            return;
+          }
+          filterExcludeDlcs = requested;
+        }
+
         const rawForkedFrom = req.query.forkedFrom as string | undefined;
         if (rawForkedFrom != null && !mongoose.Types.ObjectId.isValid(rawForkedFrom)) {
           res.status(400).json(apiError(400, 'Invalid forkedFrom: must be a valid blueprint id'));
@@ -871,6 +895,15 @@ export class BlueprintController {
       // never matches a missing field, so they stay out of a dlc= result
       // rather than reading as base-game.
       if (filterDlcs != null) filter.$and.push({ requiredDlcs: { $in: filterDlcs } });
+      // $nin over an array field matches when NONE of its elements are in the
+      // list — true for [] (base game always survives exclusion) and true for
+      // a missing field (a never-derived doc can't be known to need the
+      // excluded pack, so it isn't hidden either). Note for the planner: $nin
+      // can't produce a bounded range the way $in does, so this clause is
+      // applied as a per-document filter during FETCH rather than narrowing an
+      // index scan — the sort-driven index still bounds the query, this just
+      // adds one field check per candidate.
+      if (filterExcludeDlcs != null) filter.$and.push({ requiredDlcs: { $nin: filterExcludeDlcs } });
       if (filterForkedFrom != null) filter.$and.push({ 'forkedFrom.blueprintId': filterForkedFrom });
       if (filterRatedBy != null) {
         // Ratings live in their own collection; resolve to ids first (the

@@ -247,6 +247,120 @@ describe('Blueprint DLC requirement derivation', function () {
     });
   });
 
+  describe('GET /api/getblueprints?excludeDlc=', function () {
+    let aquaticId: string;
+    let frostyId: string;
+    let baseId: string;
+
+    const list = (query: Record<string, unknown>) =>
+      TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), ...query });
+
+    const idsOf = (response: any) => response.body.blueprints.map((bp: any) => bp.id);
+
+    beforeEach(async function () {
+      this.timeout(15000);
+      aquaticId = (
+        await upload({
+          name: 'Aquatic Exclude Base',
+          blueprint: blueprintData([AQUATIC_PREFAB]),
+          category: 'power',
+        })
+      ).body.id;
+      frostyId = (
+        await upload({ name: 'Frosty Exclude Base', blueprint: blueprintData([FROSTY_PREFAB]) })
+      ).body.id;
+      baseId = (
+        await upload({ name: 'Base Exclude Base', blueprint: blueprintData([BASE_PREFAB]) })
+      ).body.id;
+    });
+
+    it('hides blueprints requiring a single excluded pack', async function () {
+      const response = await list({ excludeDlc: 'DLC5_ID' });
+      expect(response.status).to.equal(200);
+
+      const ids = idsOf(response);
+      expect(ids).to.not.include(aquaticId);
+      expect(ids).to.include(frostyId);
+      expect(ids).to.include(baseId);
+    });
+
+    it('hides blueprints requiring any of a comma-separated list', async function () {
+      const response = await list({ excludeDlc: 'DLC2_ID,DLC5_ID' });
+      expect(response.status).to.equal(200);
+
+      const ids = idsOf(response);
+      expect(ids).to.not.include(aquaticId);
+      expect(ids).to.not.include(frostyId);
+      expect(ids).to.include(baseId);
+    });
+
+    it('hides a blueprint needing two packs when either is excluded', async function () {
+      const bothId = (
+        await upload({ name: 'Two Pack Exclude', blueprint: blueprintData([AND_PREFAB]) })
+      ).body.id;
+
+      expect(idsOf(await list({ excludeDlc: 'DLC3_ID' }))).to.not.include(bothId);
+      expect(idsOf(await list({ excludeDlc: 'EXPANSION1_ID' }))).to.not.include(bothId);
+    });
+
+    it('base-game blueprints always survive exclusion', async function () {
+      const response = await list({
+        excludeDlc: 'DLC2_ID,DLC3_ID,DLC4_ID,DLC5_ID,EXPANSION1_ID',
+      });
+      expect(response.status).to.equal(200);
+      expect(idsOf(response)).to.include(baseId);
+    });
+
+    it('rejects a malformed id with 400', async function () {
+      expect((await list({ excludeDlc: 'dlc3_id' })).status).to.equal(400);
+      expect((await list({ excludeDlc: 'DLC3_ID;drop' })).status).to.equal(400);
+      expect((await list({ excludeDlc: ' , ' })).status).to.equal(400);
+    });
+
+    // A never-derived doc can't be known to need the excluded pack, so it
+    // isn't hidden either — the conservative reading for a filter whose whole
+    // point is to hide things, not the "excludes from dlc=" behaviour above.
+    it('never-derived blueprints survive exclusion', async function () {
+      await BlueprintModel.model.updateOne(
+        { _id: aquaticId },
+        { $unset: { requiredDlcs: '' } }
+      );
+
+      const response = await list({ excludeDlc: 'DLC5_ID' });
+      expect(response.status).to.equal(200);
+      expect(idsOf(response)).to.include(aquaticId);
+    });
+
+    it('rejects an oversized id list with 400', async function () {
+      const many = Array.from({ length: 21 }, (_, i) => `DLC${i}_ID`).join(',');
+      expect((await list({ excludeDlc: many })).status).to.equal(400);
+    });
+
+    it('combines coherently with dlc= (membership AND NOT exclusion)', async function () {
+      const bothId = (
+        await upload({ name: 'Two Pack Combo', blueprint: blueprintData([AND_PREFAB]) })
+      ).body.id;
+
+      // Needs EXPANSION1_ID and DLC3_ID both — asking for EXPANSION1_ID while
+      // excluding DLC3_ID must exclude it, since it also needs DLC3_ID.
+      const response = await list({ dlc: 'EXPANSION1_ID', excludeDlc: 'DLC3_ID' });
+      expect(response.status).to.equal(200);
+      expect(idsOf(response)).to.not.include(bothId);
+    });
+
+    it('combines with the category filter', async function () {
+      const conflicting = await list({ excludeDlc: 'DLC5_ID', category: 'power' });
+      expect(conflicting.status).to.equal(200);
+      expect(idsOf(conflicting)).to.not.include(aquaticId);
+
+      const matching = await list({ excludeDlc: 'DLC2_ID', category: 'power' });
+      expect(matching.status).to.equal(200);
+      expect(idsOf(matching)).to.include(aquaticId);
+    });
+  });
+
   describe('emit checks', function () {
     it('includes requiredDlcs in the list payload', async function () {
       const created = await upload({
