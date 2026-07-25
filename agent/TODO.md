@@ -29,8 +29,7 @@ Open items only (import pipeline, render cutover, legacy-pipeline removal, and E
 
 ## DLC requirements: replace ordered `gameVersion` with a requirement set
 
-**Step 1 shipped** (lib + backend + derivation, no visible change); steps 2–5 open. Full
-plan in `spec/dlc-requirements-plan.md`.
+**Steps 1–2 shipped**; steps 3–5 open. Full plan in `spec/dlc-requirements-plan.md`.
 
 DLCs are optional and unordered: anyone can own any combination, so a blueprint carries the
 *set* of DLCs it needs (`requiredDlcs: string[]`, `[]` = base game), not a single ordered
@@ -59,13 +58,29 @@ test in place of the retired `pendingDlcIds` allowlist. Labels are the game's ow
 `STRINGS.UI.<id>.NAME` — `DLC5_ID` is "The Aquatic Planet Pack", `DLC4_ID` "The Prehistoric
 Planet Pack" — which settles the plan's only open naming question.
 
-Still open: step 2 (`dlc=` filter + display chips), step 3 (`owned=` subset filter, and
-whether ownership becomes a stored user preference), step 4 (drop `gameVersion` from schema,
-responses, indexes and frontend once nothing reads it), step 5 (elements).
-Element-level DLC provenance is blocked upstream: `elements.json` carries no DLC field, so
-that needs an export-side request. Backfill is not a gate — `derive-metadata` recomputes
-from stored building ids whenever we choose to run it; until then old blueprints have no
-`requiredDlcs` and read as base-game.
+Shipped in step 2 (PR #178): `GET /api/getblueprints?dlc=` (comma-separated or repeated,
+`$in`, ids validated by *shape* so an unlabelled pack stays filterable, max 20), the "you
+might also like" scorer moved from `gameVersion` equality to `requiredDlcs` set overlap, a
+multi-select DLC facet on Discover round-tripping through the `dlc` URL param, and labelled
+DLC chips on the card, details page and save dialog (`[]` = "Base game", absent = say
+nothing). `gameVersion` is still read/sent/chipped on the browse page so old links work.
+
+**⚠️ Backfill is now a gate.** Step 1 could ship without it; a user-facing filter can't.
+As of 2026-07-25 prod has 4,596 live blueprints and **0** with `requiredDlcs`, so `?dlc=`
+matches nothing and every card reads "Base game" until this runs:
+
+```
+cd /bpni/build && npm run derive-metadata:dry-run   # then without :dry-run
+```
+
+Rehearsed on a restored prod snapshot (5,217 docs): 612 need ≥1 DLC (492 Spaced Out,
+9 Aquatic, 4 Frosty), 4,068 live base-game, 0 left underived. No Bionic or Prehistoric
+blueprints exist yet, so those facets are legitimately empty.
+
+Still open: step 3 (`owned=` subset filter, and whether ownership becomes a stored user
+preference), step 4 (drop `gameVersion` from schema, responses, indexes and frontend once
+nothing reads it), step 5 (elements). Element-level DLC provenance is blocked upstream:
+`elements.json` carries no DLC field, so that needs an export-side request.
 
 ## Steam reskin follow-ups
 

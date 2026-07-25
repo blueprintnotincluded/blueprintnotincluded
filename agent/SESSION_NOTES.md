@@ -1,3 +1,25 @@
+# Session Notes - 2026-07-25
+
+## What We Accomplished ✅
+
+### DLC requirements step 2 — the `dlc=` filter (PR #178, merged)
+
+- **API**: `GET /api/getblueprints?dlc=DLC2_ID,DLC3_ID` — `$in` membership like `rooms`,
+  repeatable or comma-separated. Ids validated by *shape* (`/^[A-Z0-9_]{1,32}$/`, max 20),
+  never against `DLC_LABELS`, so a pack that ships in an export before we have written its
+  label stays filterable. Documents with no `requiredDlcs` never match (tested, not assumed).
+- **Related shelf**: `gameVersion` equality → `requiredDlcs` set overlap, in its own commit
+  so it can be reverted alone. Both-empty still scores — base-game-only is a shared property.
+- **UI**: multi-select DLC facet on Discover (URL param `dlc`, CSV out, CSV-or-repeated in),
+  labelled chips on card / details / save dialog, `dlcTooltip()` built on lib's `dlcLabel()`.
+- **Review fix**: the save dialog seeded `requiredDlcs = []`, so an unloaded database made it
+  claim "Base game". Now `string[] | null` — same absent-vs-empty distinction as the card.
+
+**Outstanding operational step:** the prod backfill (`cd /bpni/build && npm run
+derive-metadata`) has not run. Until it does the filter returns nothing — see TODO.md.
+
+---
+
 # Session Notes - 2026-07-05
 
 ## What We Accomplished ✅
