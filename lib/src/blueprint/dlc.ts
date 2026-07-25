@@ -25,3 +25,13 @@ export const DLC_LABELS: Record<DlcId, string> = {
 export function dlcLabel(id: DlcId): string {
   return DLC_LABELS[id] ?? id;
 }
+
+// Shape of a raw Klei DLC id (EXPANSION1_ID, DLC3_ID, …). Shared by every place
+// that accepts a set of ids from a client — `?dlc=`, `?excludeDlc=`, and the
+// stored exclusion preference — validated by shape rather than against
+// DLC_LABELS, so a pack that ships in an export before we've written its label
+// stays usable everywhere.
+export const DLC_ID_PATTERN = /^[A-Z0-9_]{1,32}$/;
+
+// There are five packs today; this only bounds abuse, not real usage.
+export const MAX_DLC_FILTER_IDS = 20;
