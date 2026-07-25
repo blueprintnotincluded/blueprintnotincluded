@@ -27,22 +27,28 @@ Open items only (import pipeline, render cutover, legacy-pipeline removal, and E
   (build-menu badges, details-page mod chips, `/mods` page, editor-open mod notice) is a
   separate follow-up PR — nothing consumes `mods` client-side yet.
 
-## gameVersion DLC mapping (fix + extend)
+## DLC requirements: replace ordered `gameVersion` with a requirement set
 
-Decided, not implemented — full plan in `spec/dlc-game-version-mapping.md`.
+Designed, not implemented — full plan in `spec/dlc-requirements-plan.md`.
 
-`DLC5_ID` is mapped to `bionicBooster` in `blueprint-analyzer.ts` but is actually the
-aquatic pack (UnderwaterRanchStation, ReefGenerator, SushiBar, …); the real Bionic Booster
-content (electrobanks, gunk, robo-pilot) arrived with the U59-740622 export on `DLC3_ID`,
-alongside a Prehistoric pack on `DLC4_ID`. 15 aquatic buildings are therefore mislabelled,
-and `gameVersion` is stored per blueprint, so prod data is already affected.
+DLCs are optional and unordered: anyone can own any combination, so a blueprint carries the
+*set* of DLCs it needs (`requiredDlcs: string[]`, `[]` = base game), not a single ordered
+"version". The current `deriveGameVersion` returns only the highest-priority DLC found, which
+can't express "needs both Frosty and Bionic" and can't answer "does this fit what I own".
 
-Work: remap `DLC3_ID → bionicBooster`, add two `GAME_VERSIONS` entries for DLC4/DLC5,
-drop the `pendingDlcIds` allowlist in `game-structure-contract.test.ts`, update the
-frontend labels/facets, then backfill with `npm run derive-metadata`. **Blocked on naming
-the two new versions** — they're stored strings, so renaming later costs another backfill.
-Worth deciding at the same time whether `gameVersion` should become `requiredDlcs: string[]`
-now that packs are independent purchases rather than a stack.
+Two filters fall out: hide blueprints needing packs the player doesn't own, and show
+blueprints from one pack so they can judge whether it's worth buying.
+
+**Store Klei's raw DLC ids** (`DLC3_ID`), not our own slugs, with a display-label map in one
+place. That removes the naming blocker entirely and makes the existing mislabel impossible —
+`DLC5_ID` is currently tagged `bionicBooster` but is really the aquatic pack; the real Bionic
+Booster content is `DLC3_ID`, which arrived with the U59-740622 export alongside a
+Prehistoric pack on `DLC4_ID`.
+
+Phased in the plan; step 1 (lib + backend + derivation) lands with no visible change.
+Element-level DLC provenance is blocked upstream: `elements.json` carries no DLC field, so
+that needs an export-side request. Backfill is not a gate — `derive-metadata` recomputes
+from stored building ids whenever we choose to run it.
 
 ## Steam reskin follow-ups
 
