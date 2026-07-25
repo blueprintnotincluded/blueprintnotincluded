@@ -155,17 +155,23 @@ export const SHORTCUT_ACTIONS: ShortcutActionDefinition[] = [
     label: $localize`:keyboard shortcut:Build tool (copy selected building)`,
     defaults: ["KeyB"],
   },
+  // Planning and scissors ship UNBOUND on purpose. The game has no equivalent
+  // control, so any default here would be invented rather than familiar - and
+  // both tools *edit on a single click* (planning paints a cell, scissors cuts
+  // a connection). A stray letter key silently switching to one of them looks
+  // exactly like "the select tool stopped working", while quietly modifying
+  // the blueprint. Users who want them can bind a key in the settings dialog.
   {
     id: ShortcutAction.toolPlanning,
     category: "tools",
     label: $localize`:keyboard shortcut:Planning notes tool`,
-    defaults: ["KeyN"],
+    defaults: [],
   },
   {
     id: ShortcutAction.toolScissors,
     category: "tools",
     label: $localize`:keyboard shortcut:Scissors tool`,
-    defaults: ["KeyX"],
+    defaults: [],
   },
 
   {
