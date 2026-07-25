@@ -39,6 +39,12 @@ can't express "needs both Frosty and Bionic" and can't answer "does this fit wha
 Two filters fall out: hide blueprints needing packs the player doesn't own, and show
 blueprints from one pack so they can judge whether it's worth buying.
 
+Multiple `dlcIds` on one building mean AND, so union across buildings is the right
+composition. Spaced Out is deliberately *not* modelled as the mode it really is — treating
+`EXPANSION1_ID` like every other id keeps filtering explainable, and requirements come from
+blueprint content rather than the author's setup (a Spaced Out player building only classic
+content produces an empty set that anyone can build).
+
 **Store Klei's raw DLC ids** (`DLC3_ID`), not our own slugs, with a display-label map in one
 place. That removes the naming blocker entirely and makes the existing mislabel impossible —
 `DLC5_ID` is currently tagged `bionicBooster` but is really the aquatic pack; the real Bionic
