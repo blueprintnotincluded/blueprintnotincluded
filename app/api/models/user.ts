@@ -24,6 +24,15 @@ export interface User extends Document {
   bio?: string;
   avatarId?: mongoose.Types.ObjectId | null;
 
+  // Packs the user doesn't want to see in Discover ("?excludeDlc="), raw Klei
+  // ids like requiredDlcs. Never set until the user interacts with the DLC
+  // filters — [] and "never touched" are the same state, so no separate flag
+  // is needed. Private account data: never include in ProfileResponse or any
+  // other response reachable by another user.
+  dlcPreferences?: {
+    excludedDlcs: string[];
+  };
+
   setPassword(password: string): void;
   validPassword(password: string): boolean;
   generateJwt(role?: string): string;
@@ -68,6 +77,9 @@ export class UserModel {
       resetTokenExpiration: Date,
       bio: { type: String, maxlength: [500, 'Bio must be 500 characters or fewer'], default: '' },
       avatarId: { type: mongoose.Schema.Types.ObjectId, ref: 'Avatar', default: null },
+      dlcPreferences: {
+        excludedDlcs: { type: [String], default: [] },
+      },
     });
 
     // Password reset lookup: findOne({ resetToken, resetTokenExpiration: { $gt: ... } })

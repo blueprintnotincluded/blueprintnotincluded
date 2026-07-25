@@ -4,7 +4,15 @@ import { UserModel, UserJwt } from './models/user';
 import { FollowModel } from './models/follow';
 import { BlueprintModel } from './models/blueprint';
 import { BlueprintController, PUBLISHED_FILTER } from './blueprint-controller';
-import { ProfileResponse, FollowRequest, UpdateBioRequest, FollowListResponse } from '../../lib/index';
+import {
+  ProfileResponse,
+  FollowRequest,
+  UpdateBioRequest,
+  FollowListResponse,
+  UpdateDlcPreferencesRequest,
+  DLC_ID_PATTERN,
+  MAX_DLC_FILTER_IDS,
+} from '../../lib/index';
 import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
 import { parseOlderThan } from './utils/pagination';
@@ -19,6 +27,8 @@ export class UserController {
     this.getProfile = this.getProfile.bind(this);
     this.follow = this.follow.bind(this);
     this.updateBio = this.updateBio.bind(this);
+    this.getDlcPreferences = this.getDlcPreferences.bind(this);
+    this.updateDlcPreferences = this.updateDlcPreferences.bind(this);
     this.getFeed = this.getFeed.bind(this);
     this.getFollowers = this.getFollowers.bind(this);
     this.getFollowing = this.getFollowing.bind(this);
@@ -156,6 +166,62 @@ export class UserController {
         console.log('updateBio error');
         console.log(err);
         res.status(500).json(apiError(500, 'Failed to update bio'));
+      });
+  }
+
+  // Private account state — never merge this into getProfile/ProfileResponse,
+  // which is reachable by other users.
+  public getDlcPreferences(req: Request, res: Response): void {
+    const user = req.user as UserJwt;
+
+    UserModel.model
+      .findById(user._id)
+      .select('dlcPreferences')
+      .lean()
+      .then(found => {
+        if (!found) {
+          res.status(404).json(apiError(404, 'User not found'));
+          return;
+        }
+        res.json({ excludedDlcs: found.dlcPreferences?.excludedDlcs ?? [] });
+      })
+      .catch(err => {
+        console.log('getDlcPreferences error');
+        console.log(err);
+        res.status(500).json(apiError(500, 'Failed to retrieve DLC preferences'));
+      });
+  }
+
+  public updateDlcPreferences(req: Request, res: Response): void {
+    const user = req.user as UserJwt;
+    const { excludedDlcs } = req.body as UpdateDlcPreferencesRequest;
+
+    if (!Array.isArray(excludedDlcs) || excludedDlcs.length > MAX_DLC_FILTER_IDS) {
+      res
+        .status(400)
+        .json(apiError(400, `excludedDlcs must be an array of up to ${MAX_DLC_FILTER_IDS} DLC ids`));
+      return;
+    }
+    if (excludedDlcs.some(id => typeof id !== 'string' || !DLC_ID_PATTERN.test(id))) {
+      res
+        .status(400)
+        .json(apiError(400, 'excludedDlcs must contain only valid DLC ids (A-Z, 0-9 and _)'));
+      return;
+    }
+
+    UserModel.model
+      .findByIdAndUpdate(user._id, { 'dlcPreferences.excludedDlcs': excludedDlcs }, { new: true })
+      .then(updated => {
+        if (!updated) {
+          res.status(404).json(apiError(404, 'User not found'));
+          return;
+        }
+        res.json({ excludedDlcs: updated.dlcPreferences?.excludedDlcs ?? [] });
+      })
+      .catch(err => {
+        console.log('updateDlcPreferences error');
+        console.log(err);
+        res.status(500).json(apiError(500, 'Failed to update DLC preferences'));
       });
   }
 

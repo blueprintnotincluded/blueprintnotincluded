@@ -16,6 +16,12 @@ export interface FollowRequest {
 export interface UpdateBioRequest {
     bio: string;
 }
+export interface DlcPreferencesResponse {
+    excludedDlcs: string[];
+}
+export interface UpdateDlcPreferencesRequest {
+    excludedDlcs: string[];
+}
 export interface FollowListEntry {
     id: string;
     username: string;
