@@ -38,8 +38,10 @@ export class ComponentSaveDialogComponent {
   readonly categoryOptions = CATEGORIES.map((c) => ({ label: c, value: c }));
 
   readonly dlcLabel = dlcLabel;
-  /** Derived from the blueprint's content on open; [] = base game only. */
-  requiredDlcs: string[] = [];
+  /** Derived from the blueprint's content on open; [] = base game only, null =
+   * not derivable (the database has not loaded). Same distinction the card and
+   * details page make: "needs no DLC" is a fact we must have computed. */
+  requiredDlcs: string[] | null = null;
 
   get subcategoryOptions(): { label: string; value: string }[] {
     const cat = this.saveBlueprintForm.value.category;
@@ -312,7 +314,7 @@ export class ComponentSaveDialogComponent {
   reset() {
     this.working = false;
     this.thumbnailReady = false;
-    this.requiredDlcs = [];
+    this.requiredDlcs = null;
     this.overwrite = false;
     this.pendingPublish = null;
     this._originalName = null;

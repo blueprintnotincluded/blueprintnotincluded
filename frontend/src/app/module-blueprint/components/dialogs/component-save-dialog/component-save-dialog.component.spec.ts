@@ -237,6 +237,17 @@ describe("ComponentSaveDialogComponent", () => {
       expect(component.requiredDlcs).toEqual([]);
     });
 
+    // The database may not have loaded yet; an underived set must not claim
+    // the blueprint needs no DLC.
+    it("stays null and says nothing when the database is unavailable", () => {
+      (OniItem as any).oniItemsMap = undefined;
+      component.showDialog();
+      fixture.detectChanges();
+
+      expect(component.requiredDlcs).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain("Base game");
+    });
+
     it("renders labelled chips, or Base game for an empty set", () => {
       showWith([["DLC2_ID"]]);
       fixture.detectChanges();
