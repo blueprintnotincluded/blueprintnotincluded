@@ -63,6 +63,14 @@ describe("DialogKeybindingsComponent", () => {
       ]);
     });
 
+    // The chips read as "×" on their own, so each needs an accessible name
+    // naming the key it unbinds.
+    it("gives each key chip a localized accessible name", () => {
+      const row = rowFor(ShortcutAction.cameraPanUp);
+      expect(row.unbindLabels).toHaveLength(row.chords.length);
+      expect(row.unbindLabels[0]).toContain("W");
+    });
+
     it("re-renders when the bindings change underneath it", () => {
       keybindingService.setChords(ShortcutAction.cameraPanUp, [
         makeChord("KeyI"),

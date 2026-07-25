@@ -24,6 +24,8 @@ export interface KeybindingRow {
   label: string;
   chords: KeyChord[];
   chordLabels: string[];
+  // Screen-reader name for each chord's remove button, parallel to chordLabels.
+  unbindLabels: string[];
   customized: boolean;
 }
 
@@ -175,11 +177,18 @@ export class DialogKeybindingsComponent implements OnInit, OnDestroy {
       category,
       rows: getShortcutActionsByCategory(category.id).map((action) => {
         const chords = this.keybindingService.getChords(action.id);
+        const chordLabels = chords.map((chord) =>
+          formatChord(chord, this.isApple),
+        );
         return {
           actionId: action.id,
           label: action.label,
           chords,
-          chordLabels: chords.map((chord) => formatChord(chord, this.isApple)),
+          chordLabels,
+          unbindLabels: chordLabels.map(
+            (chordLabel) =>
+              $localize`:keyboard shortcut settings:Unbind ${chordLabel}:chord:`,
+          ),
           customized: this.keybindingService.isCustomized(action.id),
         };
       }),
