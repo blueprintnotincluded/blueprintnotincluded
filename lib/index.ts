@@ -5,6 +5,7 @@ export * from './src/area-of-effect';
 
 export * from './src/enums/connection-type';
 export * from './src/enums/display';
+export * from './src/enums/element-state';
 export * from './src/enums/orientation';
 export * from './src/enums/overlay';
 export * from './src/enums/permitted-rotations';

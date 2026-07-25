@@ -1,3 +1,4 @@
+import { ElementState } from '../enums/element-state';
 export declare class BuildableElement {
     id: string;
     name: string;
@@ -5,11 +6,20 @@ export declare class BuildableElement {
     oreTags: string[];
     icon: string;
     buildMenuSort: number;
+    state: ElementState;
     color: number;
     conduitColor: number;
     uiColor: number;
+    maxMass: number;
+    defaultMass: number;
+    defaultTemperature: number;
+    lowTemp: number;
+    highTemp: number;
     iconUrl: string;
     importFrom(original: BuildableElement): void;
+    get isGas(): boolean;
+    get isLiquid(): boolean;
+    get isSolid(): boolean;
     hasTag(tag: string): boolean;
     static elements: BuildableElement[];
     static init(): void;

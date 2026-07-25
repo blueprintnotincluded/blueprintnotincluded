@@ -1,3 +1,5 @@
+import { ElementState } from '../enums/element-state';
+
 // Elements that buildings can be made of (Exported from the game)
 // TODO we don't currently handle "exotic" elements (ie reed fibers for paintings, or bleach stone for sanitation stations)
 export class BuildableElement {
@@ -8,10 +10,20 @@ export class BuildableElement {
   oreTags: string[] = [];
   icon: string = '';
   buildMenuSort: number = 0;
+  state: ElementState = ElementState.Vacuum;
 
   color: number = 0;
   conduitColor: number = 0;
   uiColor: number = 0;
+
+  // The game's own load-time defaults, used to seed mass/temperature pickers per
+  // element rather than applying one hardcoded constant to all of them. Masses are
+  // kg; temperatures are Kelvin (convert for display only).
+  maxMass: number = 0;
+  defaultMass: number = 0;
+  defaultTemperature: number = 0;
+  lowTemp: number = 0;
+  highTemp: number = 0;
 
   // Generated
   iconUrl: string = '';
@@ -28,10 +40,32 @@ export class BuildableElement {
     this.iconUrl = this.icon ? 'assets/ui_image/' + this.icon + '.png' : '';
 
     this.buildMenuSort = original.buildMenuSort;
+    this.state = original.state ?? ElementState.Vacuum;
 
     this.color = original.color;
     this.conduitColor = original.conduitColor;
     this.uiColor = original.uiColor;
+
+    // Databases predating the element-defaults export carry none of these; fall
+    // back to 0 rather than NaN so a stale DB degrades to "no range" instead of
+    // poisoning every slider bound that reads them.
+    this.maxMass = original.maxMass ?? 0;
+    this.defaultMass = original.defaultMass ?? 0;
+    this.defaultTemperature = original.defaultTemperature ?? 0;
+    this.lowTemp = original.lowTemp ?? 0;
+    this.highTemp = original.highTemp ?? 0;
+  }
+
+  public get isGas(): boolean {
+    return this.state === ElementState.Gas;
+  }
+
+  public get isLiquid(): boolean {
+    return this.state === ElementState.Liquid;
+  }
+
+  public get isSolid(): boolean {
+    return this.state === ElementState.Solid;
   }
 
   public hasTag(tag: string) {
