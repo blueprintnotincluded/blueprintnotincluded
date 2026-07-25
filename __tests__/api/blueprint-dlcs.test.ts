@@ -138,6 +138,115 @@ describe('Blueprint DLC requirement derivation', function () {
     });
   });
 
+  describe('GET /api/getblueprints?dlc=', function () {
+    let aquaticId: string;
+    let frostyId: string;
+    let baseId: string;
+
+    const list = (query: Record<string, unknown>) =>
+      TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), ...query });
+
+    const idsOf = (response: any) => response.body.blueprints.map((bp: any) => bp.id);
+
+    beforeEach(async function () {
+      this.timeout(15000);
+      aquaticId = (
+        await upload({
+          name: 'Aquatic Filter Base',
+          blueprint: blueprintData([AQUATIC_PREFAB]),
+          category: 'power',
+        })
+      ).body.id;
+      frostyId = (
+        await upload({ name: 'Frosty Filter Base', blueprint: blueprintData([FROSTY_PREFAB]) })
+      ).body.id;
+      baseId = (await upload({ name: 'Base Filter Base', blueprint: blueprintData([BASE_PREFAB]) }))
+        .body.id;
+    });
+
+    it('filters by a single DLC id', async function () {
+      const response = await list({ dlc: 'DLC5_ID' });
+      expect(response.status).to.equal(200);
+
+      const ids = idsOf(response);
+      expect(ids).to.include(aquaticId);
+      expect(ids).to.not.include(frostyId);
+      expect(ids).to.not.include(baseId);
+    });
+
+    it('matches any of a comma-separated list', async function () {
+      const response = await list({ dlc: 'DLC2_ID,DLC5_ID' });
+      expect(response.status).to.equal(200);
+
+      const ids = idsOf(response);
+      expect(ids).to.include(aquaticId);
+      expect(ids).to.include(frostyId);
+      expect(ids).to.not.include(baseId);
+    });
+
+    it('matches any of a repeated dlc param', async function () {
+      const response = await list({ dlc: ['DLC2_ID', 'DLC5_ID'] });
+      expect(response.status).to.equal(200);
+
+      const ids = idsOf(response);
+      expect(ids).to.include(aquaticId);
+      expect(ids).to.include(frostyId);
+      expect(ids).to.not.include(baseId);
+    });
+
+    it('matches a blueprint needing two packs on either of them', async function () {
+      const bothId = (
+        await upload({ name: 'Two Pack Base', blueprint: blueprintData([AND_PREFAB]) })
+      ).body.id;
+
+      expect(idsOf(await list({ dlc: 'DLC3_ID' }))).to.include(bothId);
+      expect(idsOf(await list({ dlc: 'EXPANSION1_ID' }))).to.include(bothId);
+    });
+
+    // Unknown to us, but a valid id shape — a pack released before we've
+    // written its label must be filterable rather than a 400.
+    it('accepts an unknown but well-formed id and returns nothing', async function () {
+      const response = await list({ dlc: 'DLC99_ID' });
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints).to.deep.equal([]);
+    });
+
+    it('rejects a malformed id with 400', async function () {
+      expect((await list({ dlc: 'dlc3_id' })).status).to.equal(400);
+      expect((await list({ dlc: 'DLC3_ID;drop' })).status).to.equal(400);
+      expect((await list({ dlc: ' , ' })).status).to.equal(400);
+    });
+
+    it('rejects an oversized id list with 400', async function () {
+      const many = Array.from({ length: 21 }, (_, i) => `DLC${i}_ID`).join(',');
+      expect((await list({ dlc: many })).status).to.equal(400);
+    });
+
+    it('excludes blueprints whose requiredDlcs were never derived', async function () {
+      // Seeded fixtures predate DLC derivation (field absent, not empty).
+      await BlueprintModel.model.updateOne(
+        { _id: aquaticId },
+        { $unset: { requiredDlcs: '' } }
+      );
+
+      const response = await list({ dlc: 'DLC5_ID' });
+      expect(response.status).to.equal(200);
+      expect(idsOf(response)).to.not.include(aquaticId);
+    });
+
+    it('combines with the category filter', async function () {
+      const matching = await list({ dlc: 'DLC5_ID', category: 'power' });
+      expect(matching.status).to.equal(200);
+      expect(idsOf(matching)).to.include(aquaticId);
+
+      const conflicting = await list({ dlc: 'DLC5_ID', category: 'food' });
+      expect(conflicting.status).to.equal(200);
+      expect(idsOf(conflicting)).to.not.include(aquaticId);
+    });
+  });
+
   describe('emit checks', function () {
     it('includes requiredDlcs in the list payload', async function () {
       const created = await upload({
