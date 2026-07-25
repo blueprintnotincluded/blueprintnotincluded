@@ -123,12 +123,19 @@
               >{{ details.subcategory }}</a
             >
             <a
-              *ngIf="details.gameVersion"
-              class="bni-chip"
+              *ngFor="let dlc of details.requiredDlcs ?? []"
+              class="bni-chip bni-chip--dlc"
               [routerLink]="['/discover']"
-              [queryParams]="{ gameVersion: details.gameVersion }"
-              [title]="gameVersionTooltip(details.gameVersion)"
-              >{{ details.gameVersion }}</a
+              [queryParams]="{ dlc: dlc }"
+              [title]="dlcTooltip(dlc)"
+              >{{ dlcLabel(dlc) }}</a
+            >
+            <span
+              *ngIf="isBaseGame"
+              class="bni-chip"
+              [title]="baseGameTooltip()"
+              i18n
+              >Base game</span
             >
             <a
               *ngIf="details.modded"

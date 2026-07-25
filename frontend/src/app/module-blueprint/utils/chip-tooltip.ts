@@ -1,3 +1,16 @@
+import { dlcLabel } from "../../../../../lib/index";
+
+// Built on dlcLabel() rather than a map of its own: pack names live in lib
+// (one place, checked against the game's own strings), and an id we have no
+// label for still produces a usable tooltip instead of vanishing.
+export function dlcTooltip(dlcId: string): string {
+  return $localize`:chipTooltip.dlc:Requires the ${dlcLabel(dlcId)} DLC — browse blueprints that need it`;
+}
+
+export function baseGameTooltip(): string {
+  return $localize`:chipTooltip.baseGame:Needs no DLC — buildable in the base game`;
+}
+
 const GAME_VERSION_TOOLTIPS: Record<string, string> = {
   base: $localize`:chipTooltip.base:Base game — no DLC required`,
   spacedOut: $localize`:chipTooltip.spacedOut:Spaced Out — requires the Spaced Out! DLC`,
