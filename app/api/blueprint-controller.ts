@@ -47,6 +47,10 @@ import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
 
+// Shape of a raw Klei DLC id (EXPANSION1_ID, DLC3_ID, …) — see lib/blueprint/dlc.ts
+const DLC_ID_PATTERN = /^[A-Z0-9_]{1,32}$/;
+const MAX_DLC_FILTER_IDS = 20;
+
 const SORTS = ['recent', 'popular', 'mostForked', 'mostViewed', 'mostDownloaded', 'trending'] as const;
 type BlueprintSort = (typeof SORTS)[number];
 
@@ -681,6 +685,7 @@ export class BlueprintController {
       let filterSubcategory: string | null = null;
       let filterModded: boolean | null = null;
       let filterRooms: string[] | null = null;
+      let filterDlcs: string[] | null = null;
       let filterForkedFrom: string | null = null;
       let filterRatedBy: string | null = null;
       let sort: BlueprintSort;
@@ -744,6 +749,37 @@ export class BlueprintController {
             return;
           }
           filterRooms = requested;
+        }
+
+        // ?dlc=DLC2_ID,DLC3_ID -> blueprints requiring ANY of these packs.
+        // "Show me what the Bionic pack would unlock" is a membership question,
+        // so $in (same semantics as rooms) is the right reading; the subset
+        // test ("hide what I can't build") is a separate `owned=` param.
+        //
+        // Validated by *shape*, not against DLC_LABELS: a pack that ships in an
+        // export before we've written a label for it must still be filterable,
+        // which is the same reason the schema carries no enum.
+        const rawDlc = req.query.dlc;
+        if (rawDlc != null) {
+          const requested = (Array.isArray(rawDlc) ? rawDlc : [rawDlc])
+            .flatMap(value => String(value).split(','))
+            .map(dlcId => dlcId.trim())
+            .filter(dlcId => dlcId.length > 0);
+          const invalid = requested.filter(dlcId => !DLC_ID_PATTERN.test(dlcId));
+          // The cap only bounds the $in list — there are five packs today, so
+          // anything near the limit is abuse rather than a real query.
+          if (requested.length === 0 || requested.length > MAX_DLC_FILTER_IDS || invalid.length > 0) {
+            res
+              .status(400)
+              .json(
+                apiError(
+                  400,
+                  `Invalid dlc: must be a comma-separated list of up to ${MAX_DLC_FILTER_IDS} DLC ids (A-Z, 0-9 and _)`
+                )
+              );
+            return;
+          }
+          filterDlcs = requested;
         }
 
         const rawForkedFrom = req.query.forkedFrom as string | undefined;
@@ -817,6 +853,10 @@ export class BlueprintController {
       if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
       if (filterModded != null) filter.$and.push({ modded: filterModded });
       if (filterRooms != null) filter.$and.push({ rooms: { $in: filterRooms } });
+      // Documents predating DLC derivation have no requiredDlcs at all; $in
+      // never matches a missing field, so they stay out of a dlc= result
+      // rather than reading as base-game.
+      if (filterDlcs != null) filter.$and.push({ requiredDlcs: { $in: filterDlcs } });
       if (filterForkedFrom != null) filter.$and.push({ 'forkedFrom.blueprintId': filterForkedFrom });
       if (filterRatedBy != null) {
         // Ratings live in their own collection; resolve to ids first (the
