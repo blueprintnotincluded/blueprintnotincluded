@@ -168,6 +168,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        null,
       );
     });
 
@@ -184,6 +185,7 @@ describe("BrowsePageComponent", () => {
         null,
         "trending",
         0,
+        null,
         null,
         null,
         null,
@@ -209,6 +211,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        null,
       );
     });
 
@@ -226,6 +229,7 @@ describe("BrowsePageComponent", () => {
         "trending",
         0,
         true,
+        null,
         null,
         null,
         null,
@@ -249,6 +253,7 @@ describe("BrowsePageComponent", () => {
         "parent-1",
         null,
         null,
+        null,
       );
     });
 
@@ -269,6 +274,28 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         "latrine",
+        null,
+      );
+    });
+
+    it("passes the selected DLCs to getBlueprints as a comma list", () => {
+      component.filterDlcs = ["DLC2_ID", "DLC3_ID"];
+      component.getBlueprints();
+
+      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "trending",
+        0,
+        null,
+        null,
+        null,
+        null,
+        "DLC2_ID,DLC3_ID",
       );
     });
 
@@ -313,8 +340,10 @@ describe("BrowsePageComponent", () => {
       component.filterModded = true;
       component.filterForkedFrom = "parent-1";
       component.filterRooms = "latrine";
+      component.filterDlcs = ["DLC2_ID"];
       component.clearFilters();
 
+      expect(component.filterDlcs).toEqual([]);
       expect(component.filterGameVersion).toBeNull();
       expect(component.filterCategory).toBeNull();
       expect(component.filterSubcategory).toBeNull();
@@ -350,6 +379,124 @@ describe("BrowsePageComponent", () => {
       // The facetSubject fires asynchronously via debounceTime(0);
       // test that the field is cleared on the next tick
       expect(component.filterSubcategory).toBeNull();
+    });
+  });
+
+  describe("DLC filter", () => {
+    it("offers every known pack, labelled from lib rather than by raw id", () => {
+      const values = component.dlcOptions.map((o) => o.value);
+      expect(values).toContain("EXPANSION1_ID");
+      expect(values).toContain("DLC3_ID");
+      expect(
+        component.dlcOptions.find((o) => o.value === "DLC3_ID")!.label,
+      ).toBe("The Bionic Booster Pack");
+      // sorted by label, not by Klei's id numbering
+      expect(component.dlcOptions.map((o) => o.label)).toEqual(
+        [...component.dlcOptions.map((o) => o.label)].sort((a, b) =>
+          a.localeCompare(b),
+        ),
+      );
+    });
+
+    it("initializes the selection from a comma-separated URL param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(convertToParamMap({ dlc: "DLC2_ID,DLC3_ID" }));
+      component.ngOnInit();
+      expect(component.filterDlcs).toEqual(["DLC2_ID", "DLC3_ID"]);
+    });
+
+    it("initializes the selection from a repeated URL param", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(
+        convertToParamMap({ dlc: ["DLC2_ID", "DLC3_ID"] }),
+      );
+      component.ngOnInit();
+      expect(component.filterDlcs).toEqual(["DLC2_ID", "DLC3_ID"]);
+    });
+
+    it("writes the selection back to the URL as a comma list", () => {
+      vi.useFakeTimers();
+      component.toggleDlc("DLC2_ID");
+      component.toggleDlc("DLC3_ID");
+      vi.advanceTimersByTime(600);
+
+      expect(router.navigate).toHaveBeenLastCalledWith([], {
+        queryParams: { dlc: "DLC2_ID,DLC3_ID" },
+        replaceUrl: true,
+      });
+    });
+
+    it("round-trips through the URL: what it writes, it reads back", () => {
+      vi.useFakeTimers();
+      component.toggleDlc("DLC2_ID");
+      component.toggleDlc("DLC3_ID");
+      vi.advanceTimersByTime(600);
+      const written = router.navigate.mock.calls.at(-1)[1].queryParams;
+      vi.useRealTimers();
+
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(convertToParamMap(written));
+      const reopened = TestBed.createComponent(BrowsePageComponent);
+      reopened.componentInstance.ngOnInit();
+
+      expect(reopened.componentInstance.filterDlcs).toEqual([
+        "DLC2_ID",
+        "DLC3_ID",
+      ]);
+    });
+
+    it("omits the param entirely when nothing is selected", () => {
+      vi.useFakeTimers();
+      component.toggleDlc("DLC2_ID");
+      component.toggleDlc("DLC2_ID"); // toggled back off
+      vi.advanceTimersByTime(600);
+
+      expect(component.filterDlcs).toEqual([]);
+      expect(
+        router.navigate.mock.calls.at(-1)[1].queryParams,
+      ).not.toHaveProperty("dlc");
+    });
+
+    // Packs are independent: picking a second one widens the result set
+    // ("needs any of these") rather than replacing the first.
+    it("toggles selections independently instead of replacing them", () => {
+      component.toggleDlc("DLC2_ID");
+      component.toggleDlc("DLC3_ID");
+      expect(component.filterDlcs).toEqual(["DLC2_ID", "DLC3_ID"]);
+      expect(component.isDlcSelected("DLC2_ID")).toBe(true);
+
+      component.toggleDlc("DLC2_ID");
+      expect(component.filterDlcs).toEqual(["DLC3_ID"]);
+      expect(component.isDlcSelected("DLC2_ID")).toBe(false);
+    });
+
+    it("counts each selected pack as an active filter", () => {
+      component.filterDlcs = ["DLC2_ID", "DLC3_ID"];
+      expect(component.activeFilterCount).toBe(2);
+      expect(component.hasActiveFilters).toBe(true);
+    });
+
+    it("shows one chip per pack, labelled, each removable on its own", () => {
+      component.filterDlcs = ["DLC2_ID", "DLC3_ID"];
+
+      const chips = component.activeFilterChips.filter((c) =>
+        c.key.startsWith("dlc-"),
+      );
+      expect(chips.map((c) => c.label)).toEqual([
+        "The Frosty Planet Pack",
+        "The Bionic Booster Pack",
+      ]);
+
+      chips[0].remove();
+      expect(component.filterDlcs).toEqual(["DLC3_ID"]);
+    });
+
+    it("clearDlcFilter is a no-op when nothing is selected", () => {
+      const callsBefore = blueprintService.getBlueprints.mock.calls.length;
+      component.clearDlcFilter();
+      expect(blueprintService.getBlueprints.mock.calls.length).toBe(
+        callsBefore,
+      );
     });
   });
 

@@ -8,10 +8,11 @@ import {
 import {
   BlueprintListItem,
   BlueprintListResponse,
-  GAME_VERSIONS,
   CATEGORIES,
   SUBCATEGORIES,
   ROOM_TYPE_IDS,
+  DLC_LABELS,
+  dlcLabel,
 } from "../../../../../../lib/index";
 import { ROOM_TYPE_LABELS, roomTypeLabel } from "../../utils/room-labels";
 import {
@@ -71,7 +72,13 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   // here would make every page-1 URL unique and defeat the CDN cache.
   oldestDate: Date | null = null;
   filterName = "";
+  // Superseded by filterDlcs — no sidebar control writes it any more, but the
+  // param is still read, sent and shown as a chip so links predating the DLC
+  // filter keep working until gameVersion is dropped altogether.
   filterGameVersion: string | null = null;
+  /** Selected DLC ids; empty = no DLC restriction. Multi-select: the server
+   * matches blueprints requiring ANY of them ($in). */
+  filterDlcs: string[] = [];
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
   filterModded: boolean | null = null;
@@ -115,10 +122,14 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     },
   ];
 
-  readonly gameVersionOptions = [
-    { label: "All versions", value: null },
-    ...GAME_VERSIONS.map((v) => ({ label: v, value: v })),
-  ];
+  // Labels come from lib (checked against the game's own strings), never from
+  // pack names written out here. Ordered by label so the sidebar reads
+  // alphabetically rather than by Klei's id numbering.
+  readonly dlcOptions: { label: string; value: string }[] = Object.keys(
+    DLC_LABELS,
+  )
+    .map((id) => ({ label: dlcLabel(id), value: id }))
+    .sort((a, b) => a.label.localeCompare(b.label));
   readonly categoryOptions = [
     { label: "All categories", value: null },
     ...CATEGORIES.map((c) => ({ label: c, value: c })),
@@ -321,6 +332,13 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     // Kept as the raw param (the API accepts a comma list); the select simply
     // shows no selection for a multi-value URL, but the filter still applies.
     const rooms = params.get("rooms");
+    // Accepts both ?dlc=A&dlc=B and ?dlc=A,B — we write the CSV form, but a
+    // hand-built or shared link may use either.
+    const dlcs = params
+      .getAll("dlc")
+      .flatMap((value) => value.split(","))
+      .map((dlcId) => dlcId.trim())
+      .filter((dlcId) => dlcId.length > 0);
     const rawSort = params.get("sort");
     const sort: BlueprintSort = this.sortOptions.some(
       (option) => option.value === rawSort,
@@ -336,6 +354,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       modded !== this.filterModded ||
       forkedFrom !== this.filterForkedFrom ||
       rooms !== this.filterRooms ||
+      dlcs.join(",") !== this.filterDlcs.join(",") ||
       sort !== this.sort;
 
     this.filterName = name;
@@ -345,6 +364,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterModded = modded;
     this.filterForkedFrom = forkedFrom;
     this.filterRooms = rooms;
+    this.filterDlcs = dlcs;
     this.sort = sort;
     return changed;
   }
@@ -369,6 +389,28 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     // game-version change must not reset it
     this.filterFacetSubject.next();
   }
+
+  isDlcSelected(dlcId: string): boolean {
+    return this.filterDlcs.includes(dlcId);
+  }
+
+  /** Multi-select: packs are independent, so picking a second one widens the
+   * result set ("needs any of these") instead of replacing the first. */
+  toggleDlc(dlcId: string) {
+    this.filterDlcs = this.isDlcSelected(dlcId)
+      ? this.filterDlcs.filter((id) => id !== dlcId)
+      : [...this.filterDlcs, dlcId];
+    // same reasoning as selectGameVersion: subcategory is scoped to category
+    this.filterFacetSubject.next();
+  }
+
+  clearDlcFilter() {
+    if (this.filterDlcs.length === 0) return;
+    this.filterDlcs = [];
+    this.filterFacetSubject.next();
+  }
+
+  readonly dlcLabel = dlcLabel;
 
   selectSubcategory(value: string | null) {
     if (this.filterSubcategory === value) return;
@@ -401,15 +443,17 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   }
 
   get activeFilterCount(): number {
-    return [
-      this.filterName,
-      this.filterGameVersion,
-      this.filterCategory,
-      this.filterSubcategory,
-      this.filterRooms,
-      this.filterForkedFrom,
-      this.filterModded !== null || null,
-    ].filter(Boolean).length;
+    return (
+      [
+        this.filterName,
+        this.filterGameVersion,
+        this.filterCategory,
+        this.filterSubcategory,
+        this.filterRooms,
+        this.filterForkedFrom,
+        this.filterModded !== null || null,
+      ].filter(Boolean).length + this.filterDlcs.length
+    );
   }
 
   get hasActiveFilters(): boolean {
@@ -464,6 +508,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         this.chip("gameVersion", this.filterGameVersion, () =>
           this.selectGameVersion(null),
         ),
+      );
+    // One chip per pack, each removable on its own — unlike rooms, the sidebar
+    // control here really is multi-select, so removing one must not clear the rest.
+    for (const dlcId of this.filterDlcs)
+      chips.push(
+        this.chip(`dlc-${dlcId}`, dlcLabel(dlcId), () => this.toggleDlc(dlcId)),
       );
     if (this.filterModded != null)
       chips.push(
@@ -522,6 +572,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     if (this.filterForkedFrom)
       queryParams["forkedFrom"] = this.filterForkedFrom;
     if (this.filterRooms) queryParams["rooms"] = this.filterRooms;
+    if (this.filterDlcs.length > 0)
+      queryParams["dlc"] = this.filterDlcs.join(",");
     if (this.sort !== DEFAULT_SORT) queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
@@ -534,6 +586,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterModded = null;
     this.filterForkedFrom = null;
     this.filterRooms = null;
+    this.filterDlcs = [];
     this.applyFiltersToUrl();
     this.transitionList();
   }
@@ -572,6 +625,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.filterForkedFrom,
             null,
             this.filterRooms,
+            this.filterDlcs.length > 0 ? this.filterDlcs.join(",") : null,
           );
 
     request$.subscribe({

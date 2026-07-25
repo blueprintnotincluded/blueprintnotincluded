@@ -116,13 +116,23 @@
         </div>
 
         <div class="bni-facet-group">
-          <h4 class="bni-facet-label" i18n>Compatibility</h4>
+          <h4 class="bni-facet-label" i18n>DLC</h4>
           <button
-            *ngFor="let opt of gameVersionOptions"
             type="button"
             class="bni-facet"
-            [class.active]="filterGameVersion === opt.value"
-            (click)="selectGameVersion(opt.value)"
+            [class.active]="filterDlcs.length === 0"
+            (click)="clearDlcFilter()"
+            i18n
+          >
+            All
+          </button>
+          <button
+            *ngFor="let opt of dlcOptions"
+            type="button"
+            class="bni-facet"
+            [class.active]="isDlcSelected(opt.value)"
+            [attr.aria-pressed]="isDlcSelected(opt.value)"
+            (click)="toggleDlc(opt.value)"
           >
             {{ opt.label }}
           </button>
