@@ -49,6 +49,76 @@
     },
     {
       "DefaultAnimState": "off",
+      "name": "<link=\"ADVANCEDCRAFTINGTABLE\">Soldering Station</link>",
+      "prefabId": "AdvancedCraftingTable",
+      "kanimPrefix": "AdvancedCraftingTable_",
+      "textureName": "AdvancedCraftingTable",
+      "uiImage": "AdvancedCraftingTable",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 1,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [],
+      "uiImageRect": {
+        "x": -0.39,
+        "y": -0.025,
+        "w": 3.685,
+        "h": 3.32
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
       "name": "<link=\"ADVANCEDDOCTORSTATION\">Disease Clinic</link>",
       "prefabId": "AdvancedDoctorStation",
       "kanimPrefix": "AdvancedDoctorStation_",
@@ -3648,6 +3718,62 @@
       ]
     },
     {
+      "DefaultAnimState": "slab",
+      "name": "<link=\"CEILINGFOSSILSCULPTURE\">Hanging Fossil Block</link>",
+      "prefabId": "CeilingFossilSculpture",
+      "kanimPrefix": "CeilingFossilSculpture_",
+      "textureName": "CeilingFossilSculpture",
+      "uiImage": "CeilingFossilSculpture",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 3,
+      "viewMode": 7,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
+      "uiImageRect": {
+        "x": 0,
+        "y": -0.22,
+        "w": 3.355,
+        "h": 2.215
+      },
+      "buildLocationRule": 3,
+      "utilities": [],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Fossils"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
       "DefaultAnimState": "off",
       "name": "<link=\"CEILINGLIGHT\">Ceiling Light</link>",
       "prefabId": "CeilingLight",
@@ -5760,6 +5886,78 @@
         "y": -0.11,
         "w": 4.1,
         "h": 4.285
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"DATAMINER\">Data Miner</link>",
+      "prefabId": "DataMiner",
+      "kanimPrefix": "DataMiner_",
+      "textureName": "DataMiner",
+      "uiImage": "DataMiner",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 1,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
+      "uiImageRect": {
+        "x": -0.04,
+        "y": -0.08,
+        "w": 3.215,
+        "h": 2.4
       },
       "buildLocationRule": 1,
       "utilities": [
@@ -8395,6 +8593,78 @@
     },
     {
       "DefaultAnimState": "off",
+      "name": "<link=\"ELECTROBANKCHARGER\">Power Bank Charger</link>",
+      "prefabId": "ElectrobankCharger",
+      "kanimPrefix": "ElectrobankCharger_",
+      "textureName": "ElectrobankCharger",
+      "uiImage": "ElectrobankCharger",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 1,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
+      "uiImageRect": {
+        "x": -0.34,
+        "y": -0.025,
+        "w": 2.475,
+        "h": 2.345
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        100
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
       "name": "<link=\"ELECTROLYZER\">Electrolyzer</link>",
       "prefabId": "Electrolyzer",
       "kanimPrefix": "Electrolyzer_",
@@ -10676,6 +10946,62 @@
       ],
       "materialMass": [
         2000
+      ]
+    },
+    {
+      "DefaultAnimState": "slab",
+      "name": "<link=\"FOSSILSCULPTURE\">Fossil Block</link>",
+      "prefabId": "FossilSculpture",
+      "kanimPrefix": "FossilSculpture_",
+      "textureName": "FossilSculpture",
+      "uiImage": "FossilSculpture",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 3,
+      "viewMode": 7,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "roomTags": [
+        "Decoration",
+        "Submergible"
+      ],
+      "uiImageRect": {
+        "x": -0.04,
+        "y": -0.115,
+        "w": 3.295,
+        "h": 3.14
+      },
+      "buildLocationRule": 1,
+      "utilities": [],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Fossils"
+      ],
+      "materialMass": [
+        400
       ]
     },
     {
@@ -13271,6 +13597,65 @@
     },
     {
       "DefaultAnimState": "off",
+      "name": "<link=\"GUNKEMPTIER\">Gunk Extractor</link>",
+      "prefabId": "GunkEmptier",
+      "kanimPrefix": "GunkEmptier_",
+      "textureName": "GunkEmptier",
+      "uiImage": "GunkEmptier",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [
+        "FlushToiletType",
+        "ToiletType"
+      ],
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": -1,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
       "name": "<link=\"HEPBATTERY\">Radbolt Chamber</link>",
       "prefabId": "HEPBattery",
       "kanimPrefix": "HEPBattery_",
@@ -15663,6 +16048,78 @@
       ]
     },
     {
+      "DefaultAnimState": "off",
+      "name": "<link=\"LARGEELECTROBANKDISCHARGER\">Large Discharger</link>",
+      "prefabId": "LargeElectrobankDischarger",
+      "kanimPrefix": "LargeElectrobankDischarger_",
+      "textureName": "LargeElectrobankDischarger",
+      "uiImage": "LargeElectrobankDischarger",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 2,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 1,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery"
+      ],
+      "uiImageRect": {
+        "x": -0.07,
+        "y": -0.02,
+        "w": 2.27,
+        "h": 2.28
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "RefinedMetal"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
       "DefaultAnimState": "idle",
       "name": "<link=\"LAUNCHPAD\">Rocket Platform</link>",
       "prefabId": "LaunchPad",
@@ -16227,10 +16684,10 @@
       "dlcIds": [],
       "roomTags": [],
       "uiImageRect": {
-        "x": 0.27,
-        "y": 0.3,
-        "w": 0.44,
-        "h": 0.405
+        "x": -2,
+        "y": -0.655,
+        "w": 2.71,
+        "h": 1.36
       },
       "buildLocationRule": 0,
       "utilities": [],
@@ -24433,6 +24890,86 @@
     },
     {
       "DefaultAnimState": "off",
+      "name": "<link=\"OILCHANGER\">Lubrication Station</link>",
+      "prefabId": "OilChanger",
+      "kanimPrefix": "OilChanger_",
+      "textureName": "OilChanger",
+      "uiImage": "OilChanger",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [
+        "BionicUpkeep"
+      ],
+      "uiImageRect": {
+        "x": -0.135,
+        "y": -0.115,
+        "w": 3.27,
+        "h": 3.27
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 1,
+            "y": 2
+          },
+          "type": 4,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 1,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
       "name": "<link=\"OILREFINERY\">Oil Refinery</link>",
       "prefabId": "OilRefinery",
       "kanimPrefix": "OilRefinery_",
@@ -25557,6 +26094,81 @@
       ],
       "materialMass": [
         50
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"PEATGENERATOR\">Peat Burner</link>",
+      "prefabId": "PeatGenerator",
+      "kanimPrefix": "PeatGenerator_",
+      "textureName": "PeatGenerator",
+      "uiImage": "PeatGenerator",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 1,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "roomTags": [
+        "GeneratorType",
+        "HeavyDutyGeneratorType",
+        "IndustrialMachinery",
+        "PowerBuilding"
+      ],
+      "uiImageRect": {
+        "x": -0.03,
+        "y": -0.055,
+        "w": 3.1,
+        "h": 2.17
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        800
       ]
     },
     {
@@ -27270,6 +27882,284 @@
     },
     {
       "DefaultAnimState": "off",
+      "name": "<link=\"REMOTEWORKTERMINAL\">Remote Controller</link>",
+      "prefabId": "RemoteWorkTerminal",
+      "kanimPrefix": "RemoteWorkTerminal_",
+      "textureName": "RemoteWorkTerminal",
+      "uiImage": "RemoteWorkTerminal",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 0,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [],
+      "uiImageRect": {
+        "x": -0.09,
+        "y": -0.12,
+        "w": 2.89,
+        "h": 3.055
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        100
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"REMOTEWORKERDOCK\">Remote Worker Dock</link>",
+      "prefabId": "RemoteWorkerDock",
+      "kanimPrefix": "RemoteWorkerDock_",
+      "textureName": "RemoteWorkerDock",
+      "uiImage": "RemoteWorkerDock",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 2
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 2,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [],
+      "uiImageRect": {
+        "x": -0.14,
+        "y": -0.1,
+        "w": 1.31,
+        "h": 2.125
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "type": 4,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 5,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 0,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "areasOfEffect": [
+        {
+          "kind": "operationRange",
+          "source": "RangeVisualizer",
+          "shape": "rect",
+          "origin": {
+            "x": 0,
+            "y": 0
+          },
+          "blockedBySolids": true,
+          "cells": [
+            [
+              -12,
+              0
+            ],
+            [
+              -11,
+              0
+            ],
+            [
+              -10,
+              0
+            ],
+            [
+              -9,
+              0
+            ],
+            [
+              -8,
+              0
+            ],
+            [
+              -7,
+              0
+            ],
+            [
+              -6,
+              0
+            ],
+            [
+              -5,
+              0
+            ],
+            [
+              -4,
+              0
+            ],
+            [
+              -3,
+              0
+            ],
+            [
+              -2,
+              0
+            ],
+            [
+              -1,
+              0
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              9,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              11,
+              0
+            ],
+            [
+              12,
+              0
+            ]
+          ],
+          "rectMin": {
+            "x": -12,
+            "y": 0
+          },
+          "rectMax": {
+            "x": 12,
+            "y": 0
+          }
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Plastic"
+      ],
+      "materialMass": [
+        400
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
       "name": "<link=\"RESEARCHCENTER\">Research Station</link>",
       "prefabId": "ResearchCenter",
       "kanimPrefix": "ResearchCenter_",
@@ -27456,6 +28346,57 @@
       ],
       "materialMass": [
         400
+      ]
+    },
+    {
+      "DefaultAnimState": "grounded",
+      "name": "<link=\"ROBOPILOTMODULE\">Robo-Pilot Module</link>",
+      "prefabId": "RoboPilotModule",
+      "kanimPrefix": "RoboPilotModule_",
+      "textureName": "RoboPilotModule",
+      "uiImage": "RoboPilotModule",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 3,
+        "y": 4
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 0,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "EXPANSION1_ID",
+        "DLC3_ID"
+      ],
+      "roomTags": [
+        "IndustrialMachinery",
+        "Submergible"
+      ],
+      "buildLocationRule": 0,
+      "utilities": [],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Steel"
+      ],
+      "materialMass": [
+        200
       ]
     },
     {
@@ -29115,6 +30056,76 @@
       ]
     },
     {
+      "DefaultAnimState": "off",
+      "name": "<link=\"SMALLELECTROBANKDISCHARGER\">Compact Discharger</link>",
+      "prefabId": "SmallElectrobankDischarger",
+      "kanimPrefix": "SmallElectrobankDischarger_",
+      "textureName": "SmallElectrobankDischarger",
+      "uiImage": "SmallElectrobankDischarger",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 2,
+      "viewMode": 1,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC3_ID"
+      ],
+      "roomTags": [],
+      "uiImageRect": {
+        "x": -0.12,
+        "y": -0.065,
+        "w": 1.165,
+        "h": 1.37
+      },
+      "buildLocationRule": 14,
+      "utilities": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 1,
+          "isSecondary": false
+        },
+        {
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "type": 6,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        100
+      ]
+    },
+    {
       "DefaultAnimState": "grounded",
       "name": "<link=\"SMALLOXIDIZERTANK\">Small Solid Oxidizer Tank</link>",
       "prefabId": "SmallOxidizerTank",
@@ -29216,6 +30227,70 @@
       ],
       "materialMass": [
         200
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
+      "name": "<link=\"SMOKER\">Smoker</link>",
+      "prefabId": "Smoker",
+      "kanimPrefix": "Smoker_",
+      "textureName": "Smoker",
+      "uiImage": "Smoker",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 4,
+        "y": 3
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 0,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "roomTags": [
+        "CookTop"
+      ],
+      "uiImageRect": {
+        "x": -0.135,
+        "y": -0.055,
+        "w": 4.29,
+        "h": 2.595
+      },
+      "buildLocationRule": 1,
+      "utilities": [
+        {
+          "offset": {
+            "x": 1,
+            "y": 1
+          },
+          "type": 3,
+          "isSecondary": false
+        }
+      ],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Metal"
+      ],
+      "materialMass": [
+        400
       ]
     },
     {
@@ -40270,6 +41345,28 @@
       }
     },
     {
+      "name": "AdvancedCraftingTable",
+      "textureName": "AdvancedCraftingTable",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 737,
+        "y": 664
+      },
+      "realSize": {
+        "x": 737,
+        "y": 664
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "AdvancedDoctorStation",
       "textureName": "AdvancedDoctorStation",
       "isIcon": true,
@@ -41040,6 +42137,28 @@
       }
     },
     {
+      "name": "CeilingFossilSculpture",
+      "textureName": "CeilingFossilSculpture",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 671,
+        "y": 443
+      },
+      "realSize": {
+        "x": 671,
+        "y": 443
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "CeilingLight",
       "textureName": "CeilingLight",
       "isIcon": true,
@@ -41678,6 +42797,28 @@
       }
     },
     {
+      "name": "DataMiner",
+      "textureName": "DataMiner",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 643,
+        "y": 480
+      },
+      "realSize": {
+        "x": 643,
+        "y": 480
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "DecontaminationShower",
       "textureName": "DecontaminationShower",
       "isIcon": true,
@@ -42045,6 +43186,28 @@
       "realSize": {
         "x": 465,
         "y": 583
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "ElectrobankCharger",
+      "textureName": "ElectrobankCharger",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 495,
+        "y": 469
+      },
+      "realSize": {
+        "x": 495,
+        "y": 469
       },
       "pivot": {
         "x": 0.5,
@@ -42624,6 +43787,28 @@
       }
     },
     {
+      "name": "FossilSculpture",
+      "textureName": "FossilSculpture",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 659,
+        "y": 628
+      },
+      "realSize": {
+        "x": 659,
+        "y": 628
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "Gantry",
       "textureName": "Gantry",
       "isIcon": true,
@@ -42743,12 +43928,12 @@
         "y": 0
       },
       "uvSize": {
-        "x": 115,
-        "y": 118
+        "x": 105,
+        "y": 99
       },
       "realSize": {
-        "x": 115,
-        "y": 118
+        "x": 105,
+        "y": 99
       },
       "pivot": {
         "x": 0.5,
@@ -42809,12 +43994,12 @@
         "y": 0
       },
       "uvSize": {
-        "x": 115,
-        "y": 118
+        "x": 105,
+        "y": 99
       },
       "realSize": {
-        "x": 115,
-        "y": 118
+        "x": 105,
+        "y": 99
       },
       "pivot": {
         "x": 0.5,
@@ -43387,6 +44572,28 @@
       "realSize": {
         "x": 94,
         "y": 116
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "GunkEmptier",
+      "textureName": "GunkEmptier",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 113,
+        "y": 105
+      },
+      "realSize": {
+        "x": 113,
+        "y": 105
       },
       "pivot": {
         "x": 0.5,
@@ -44142,6 +45349,28 @@
       }
     },
     {
+      "name": "LargeElectrobankDischarger",
+      "textureName": "LargeElectrobankDischarger",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 454,
+        "y": 456
+      },
+      "realSize": {
+        "x": 454,
+        "y": 456
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "LaunchPad",
       "textureName": "LaunchPad",
       "isIcon": true,
@@ -44327,12 +45556,12 @@
         "y": 0
       },
       "uvSize": {
-        "x": 88,
-        "y": 81
+        "x": 542,
+        "y": 272
       },
       "realSize": {
-        "x": 88,
-        "y": 81
+        "x": 542,
+        "y": 272
       },
       "pivot": {
         "x": 0.5,
@@ -46518,6 +47747,28 @@
       }
     },
     {
+      "name": "OilChanger",
+      "textureName": "OilChanger",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 654,
+        "y": 654
+      },
+      "realSize": {
+        "x": 654,
+        "y": 654
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "OilRefinery",
       "textureName": "OilRefinery",
       "isIcon": true,
@@ -46907,6 +48158,28 @@
       "realSize": {
         "x": 251,
         "y": 459
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "PeatGenerator",
+      "textureName": "PeatGenerator",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 620,
+        "y": 434
+      },
+      "realSize": {
+        "x": 620,
+        "y": 434
       },
       "pivot": {
         "x": 0.5,
@@ -47508,6 +48781,50 @@
       }
     },
     {
+      "name": "RemoteWorkTerminal",
+      "textureName": "RemoteWorkTerminal",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 578,
+        "y": 611
+      },
+      "realSize": {
+        "x": 578,
+        "y": 611
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "RemoteWorkerDock",
+      "textureName": "RemoteWorkerDock",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 262,
+        "y": 425
+      },
+      "realSize": {
+        "x": 262,
+        "y": 425
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "ResearchCenter",
       "textureName": "ResearchCenter",
       "isIcon": true,
@@ -47567,6 +48884,28 @@
       "realSize": {
         "x": 676,
         "y": 637
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "RoboPilotModule",
+      "textureName": "RoboPilotModule",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 125,
+        "y": 124
+      },
+      "realSize": {
+        "x": 125,
+        "y": 124
       },
       "pivot": {
         "x": 0.5,
@@ -48168,6 +49507,28 @@
       }
     },
     {
+      "name": "SmallElectrobankDischarger",
+      "textureName": "SmallElectrobankDischarger",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 233,
+        "y": 274
+      },
+      "realSize": {
+        "x": 233,
+        "y": 274
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "SmallOxidizerTank",
       "textureName": "SmallOxidizerTank",
       "isIcon": true,
@@ -48205,6 +49566,28 @@
       "realSize": {
         "x": 214,
         "y": 429
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "Smoker",
+      "textureName": "Smoker",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 858,
+        "y": 519
+      },
+      "realSize": {
+        "x": 858,
+        "y": 519
       },
       "pivot": {
         "x": 0.5,
@@ -51750,6 +53133,10 @@
     },
     {
       "category": 517759365,
+      "buildingId": "PeatGenerator"
+    },
+    {
+      "category": 517759365,
       "buildingId": "ReefGenerator"
     },
     {
@@ -51830,6 +53217,18 @@
     },
     {
       "category": 517759365,
+      "buildingId": "ElectrobankCharger"
+    },
+    {
+      "category": 517759365,
+      "buildingId": "SmallElectrobankDischarger"
+    },
+    {
+      "category": 517759365,
+      "buildingId": "LargeElectrobankDischarger"
+    },
+    {
+      "category": 517759365,
       "buildingId": "PowerTransformerSmall"
     },
     {
@@ -51887,6 +53286,10 @@
     {
       "category": -1060175682,
       "buildingId": "FoodRehydrator"
+    },
+    {
+      "category": -1060175682,
+      "buildingId": "Smoker"
     },
     {
       "category": -1060175682,
@@ -52007,6 +53410,10 @@
     {
       "category": -1014650956,
       "buildingId": "Shower"
+    },
+    {
+      "category": -1014650956,
+      "buildingId": "GunkEmptier"
     },
     {
       "category": -1014650956,
@@ -52386,6 +53793,10 @@
     },
     {
       "category": -1098138447,
+      "buildingId": "OilChanger"
+    },
+    {
+      "category": -1098138447,
       "buildingId": "Apothecary"
     },
     {
@@ -52550,6 +53961,14 @@
     },
     {
       "category": -1264537710,
+      "buildingId": "FossilSculpture"
+    },
+    {
+      "category": -1264537710,
+      "buildingId": "CeilingFossilSculpture"
+    },
+    {
+      "category": -1264537710,
       "buildingId": "CrownMoulding"
     },
     {
@@ -52614,6 +54033,10 @@
     },
     {
       "category": -154862930,
+      "buildingId": "DataMiner"
+    },
+    {
+      "category": -154862930,
       "buildingId": "PowerControlStation"
     },
     {
@@ -52662,11 +54085,23 @@
     },
     {
       "category": -154862930,
+      "buildingId": "RemoteWorkerDock"
+    },
+    {
+      "category": -154862930,
+      "buildingId": "RemoteWorkTerminal"
+    },
+    {
+      "category": -154862930,
       "buildingId": "MissileFabricator"
     },
     {
       "category": -154862930,
       "buildingId": "CraftingTable"
+    },
+    {
+      "category": -154862930,
+      "buildingId": "AdvancedCraftingTable"
     },
     {
       "category": -154862930,
@@ -53125,11 +54560,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 9202506,
       "conduitColor": 5978907,
       "uiColor": 6637353,
-      "icon": "WoodLog"
+      "icon": "WoodLog",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 873.15
     },
     {
       "name": "<link=\"ELECTRUM\">Electrum</link>",
@@ -53141,11 +54582,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 6388144,
       "conduitColor": 6388144,
       "uiColor": 3436275,
-      "icon": "Electrum"
+      "icon": "Electrum",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1337
     },
     {
       "name": "<link=\"MILK\">Brackene</link>",
@@ -53155,11 +54602,17 @@
         "CritterDrinkable",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 8847268,
       "conduitColor": 13430504,
       "uiColor": 13430504,
-      "icon": "Milk"
+      "icon": "Milk",
+      "maxMass": 1100,
+      "defaultMass": 1100,
+      "defaultTemperature": 310,
+      "lowTemp": 256.65,
+      "highTemp": 353.15
     },
     {
       "name": "<link=\"SOLIDCARBONDIOXIDE\">Solid Carbon Dioxide</link>",
@@ -53169,11 +54622,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 5593696,
       "conduitColor": 7110032,
       "uiColor": 2039583,
-      "icon": "SolidCarbonDioxide"
+      "icon": "SolidCarbonDioxide",
+      "maxMass": 2000,
+      "defaultMass": 600,
+      "defaultTemperature": 192.15,
+      "lowTemp": 0,
+      "highTemp": 216.6
     },
     {
       "name": "<link=\"ALUMINUMGAS\">Aluminum Gas</link>",
@@ -53186,11 +54645,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 16777215,
       "conduitColor": 13619151,
       "uiColor": 13757944,
-      "icon": "AluminumGas"
+      "icon": "AluminumGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3200,
+      "lowTemp": 2743.15,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"COBALT\">Cobalt</link>",
@@ -53202,11 +54667,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 8684,
       "conduitColor": 8684,
       "uiColor": 8684,
-      "icon": "Cobalt"
+      "icon": "Cobalt",
+      "maxMass": 8900,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1768
     },
     {
       "name": "<link=\"CARBONFIBRE\">Carbon Fiber</link>",
@@ -53216,11 +54687,17 @@
         "BuildableAny",
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 3158064,
       "conduitColor": 3618615,
       "uiColor": 6316128,
-      "icon": "CarbonFibre"
+      "icon": "CarbonFibre",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 5000
     },
     {
       "name": "<link=\"URANIUMORE\">Uranium Ore</link>",
@@ -53232,11 +54709,17 @@
         "Noncrushable",
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 9559387,
       "conduitColor": 9559387,
       "uiColor": 8499200,
-      "icon": "UraniumOre"
+      "icon": "UraniumOre",
+      "maxMass": 200,
+      "defaultMass": 100,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 406
     },
     {
       "name": "<link=\"SOLIDPROPANE\">Solid Propane</link>",
@@ -53249,11 +54732,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 2580223,
       "conduitColor": 4215020,
       "uiColor": 7966929,
-      "icon": "SolidPropane"
+      "icon": "SolidPropane",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 60,
+      "lowTemp": 0,
+      "highTemp": 85
     },
     {
       "name": "<link=\"ALUMINUMORE\">Aluminum Ore</link>",
@@ -53266,11 +54755,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 8014142,
       "conduitColor": 8014142,
       "uiColor": 13386532,
-      "icon": "AluminumOre"
+      "icon": "AluminumOre",
+      "maxMass": 500,
+      "defaultMass": 500,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1357
     },
     {
       "name": "<link=\"SEDIMENTARYROCK\">Sedimentary Rock</link>",
@@ -53283,11 +54778,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 7174028,
       "conduitColor": 6977161,
       "uiColor": 4616908,
-      "icon": "SedimentaryRock"
+      "icon": "SedimentaryRock",
+      "maxMass": 1840,
+      "defaultMass": 1840,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1200
     },
     {
       "name": "<link=\"FULLERENE\">Fullerene</link>",
@@ -53297,11 +54798,17 @@
         "Solid",
         "RareMaterials"
       ],
+      "state": 3,
       "buildMenuSort": 52,
       "color": 7366257,
       "conduitColor": 7366257,
       "uiColor": 4144959,
-      "icon": "Fullerene"
+      "icon": "Fullerene",
+      "maxMass": 50,
+      "defaultMass": 30,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 4200
     },
     {
       "name": "<link=\"GOLDAMALGAM\">Gold Amalgam</link>",
@@ -53313,11 +54820,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 16429588,
       "conduitColor": 16429588,
       "uiColor": 16763162,
-      "icon": "GoldAmalgam"
+      "icon": "GoldAmalgam",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1337
     },
     {
       "name": "<link=\"LIQUIDMETHANE\">Liquid Methane</link>",
@@ -53326,11 +54839,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16739855,
       "conduitColor": 12410141,
       "uiColor": 16751872,
-      "icon": "LiquidMethane"
+      "icon": "LiquidMethane",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 100,
+      "lowTemp": 90.55,
+      "highTemp": 111.65
     },
     {
       "name": "<link=\"SALT\">Salt</link>",
@@ -53340,11 +54859,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 16773594,
       "conduitColor": 7364416,
       "uiColor": 16777215,
-      "icon": "Salt"
+      "icon": "Salt",
+      "maxMass": 2000,
+      "defaultMass": 500,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 1073
     },
     {
       "name": "<link=\"SAND\">Sand</link>",
@@ -53355,11 +54880,17 @@
         "Solid",
         "Filter"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 14071188,
       "conduitColor": 11048064,
       "uiColor": 13601834,
-      "icon": "Sand"
+      "icon": "Sand",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1986
     },
     {
       "name": "<link=\"TUNGSTENGAS\">Tungsten Gas</link>",
@@ -53371,11 +54902,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 3678489,
       "conduitColor": 6766385,
       "uiColor": 16711805,
-      "icon": "TungstenGas"
+      "icon": "TungstenGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 6500,
+      "lowTemp": 6203,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"SNOW\">Snow</link>",
@@ -53387,11 +54924,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 14349818,
       "conduitColor": 16777215,
       "uiColor": 11850239,
-      "icon": "Snow"
+      "icon": "Snow",
+      "maxMass": 20,
+      "defaultMass": 10,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 272.5
     },
     {
       "name": "<link=\"SANDSTONE\">Sandstone</link>",
@@ -53404,11 +54947,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10058852,
       "conduitColor": 9926751,
       "uiColor": 9994805,
-      "icon": "SandStone"
+      "icon": "SandStone",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1200
     },
     {
       "name": "<link=\"MOLTENIRON\">Molten Iron</link>",
@@ -53420,11 +54969,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 5512457,
       "conduitColor": 6766385,
       "uiColor": 6265005,
-      "icon": "MoltenIron"
+      "icon": "MoltenIron",
+      "maxMass": 7870,
+      "defaultMass": 1000,
+      "defaultTemperature": 2500,
+      "lowTemp": 1808,
+      "highTemp": 3023
     },
     {
       "name": "<link=\"MOLTENCARBON\">Liquid Carbon</link>",
@@ -53433,11 +54988,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 3613224,
       "conduitColor": 3613224,
       "uiColor": 8421504,
-      "icon": "MoltenCarbon"
+      "icon": "MoltenCarbon",
+      "maxMass": 4000,
+      "defaultMass": 600,
+      "defaultTemperature": 4600,
+      "lowTemp": 3825,
+      "highTemp": 5100
     },
     {
       "name": "<link=\"GLASS\">Glass</link>",
@@ -53449,11 +55010,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 14680062,
       "conduitColor": 14680062,
       "uiColor": 3801045,
-      "icon": "Glass"
+      "icon": "Glass",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1700
     },
     {
       "name": "<link=\"FROZENINK\">Frozen Squid Ink</link>",
@@ -53466,11 +55033,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 6,
       "color": 3354194,
       "conduitColor": 3614104,
       "uiColor": 3614104,
-      "icon": "FrozenInk"
+      "icon": "FrozenInk",
+      "maxMass": 1100,
+      "defaultMass": 1000,
+      "defaultTemperature": 232.15,
+      "lowTemp": 0,
+      "highTemp": 252.5
     },
     {
       "name": "<link=\"SYNGAS\">Molten Synthesis Gas</link>",
@@ -53479,11 +55052,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16740421,
       "conduitColor": 16777215,
       "uiColor": 65396,
-      "icon": "MoltenSyngas"
+      "icon": "MoltenSyngas",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 18,
+      "lowTemp": 14,
+      "highTemp": 21
     },
     {
       "name": "<link=\"FABRICATEDWOOD\">Plywood</link>",
@@ -53496,11 +55075,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 9207114,
       "conduitColor": 5983003,
       "uiColor": 6641193,
-      "icon": "FabricatedWood"
+      "icon": "FabricatedWood",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 823.15
     },
     {
       "name": "<link=\"CONTAMINATEDOXYGEN\">Polluted Oxygen</link>",
@@ -53510,11 +55095,17 @@
         "Gas",
         "Breathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 7631147,
       "conduitColor": 5469798,
       "uiColor": 2248512,
-      "icon": "ContaminatedOxygen"
+      "icon": "ContaminatedOxygen",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 90.19,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"VACUUM\">Vacuum</link>",
@@ -53524,11 +55115,17 @@
         "Vacuum",
         "Special"
       ],
+      "state": 0,
       "buildMenuSort": 1,
       "color": 16777215,
       "conduitColor": 16777215,
       "uiColor": 7887753,
-      "icon": "Vacuum"
+      "icon": "Vacuum",
+      "maxMass": 0,
+      "defaultMass": 0,
+      "defaultTemperature": 0,
+      "lowTemp": 0,
+      "highTemp": 0
     },
     {
       "name": "<link=\"MOLTENZINC\">Molten Zinc</link>",
@@ -53540,11 +55137,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 2009770,
       "conduitColor": 2009770,
       "uiColor": 2009770,
-      "icon": "MoltenZinc"
+      "icon": "MoltenZinc",
+      "maxMass": 3870,
+      "defaultMass": 1000,
+      "defaultTemperature": 900,
+      "lowTemp": 692.88,
+      "highTemp": 1180
     },
     {
       "name": "<link=\"CLAY\">Clay</link>",
@@ -53555,11 +55158,17 @@
         "Solid",
         "Farmable"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 10463315,
       "conduitColor": 10463315,
       "uiColor": 10067029,
-      "icon": "Clay"
+      "icon": "Clay",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 1200
     },
     {
       "name": "<link=\"TOXICSAND\">Polluted Dirt</link>",
@@ -53570,11 +55179,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 16777215,
       "conduitColor": 16777215,
       "uiColor": 2253568,
-      "icon": "ToxicSand"
+      "icon": "ToxicSand",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1986
     },
     {
       "name": "<link=\"ICE\">Ice</link>",
@@ -53587,11 +55202,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 16777215,
       "conduitColor": 16777215,
       "uiColor": 61183,
-      "icon": "Ice"
+      "icon": "Ice",
+      "maxMass": 1100,
+      "defaultMass": 1000,
+      "defaultTemperature": 232.15,
+      "lowTemp": 0,
+      "highTemp": 272.5
     },
     {
       "name": "<link=\"INK\">Squid Ink</link>",
@@ -53601,11 +55222,17 @@
         "CritterDrinkable",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 1775661,
       "conduitColor": 2957426,
       "uiColor": 2957426,
-      "icon": "Ink"
+      "icon": "Ink",
+      "maxMass": 1000,
+      "defaultMass": 1000,
+      "defaultTemperature": 320,
+      "lowTemp": 252.5,
+      "highTemp": 353.15
     },
     {
       "name": "<link=\"SUGARWATER\">Nectar</link>",
@@ -53615,11 +55242,17 @@
         "PlastifiableLiquid",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 15065779,
       "conduitColor": 14145994,
       "uiColor": 16777215,
-      "icon": "SugarWater"
+      "icon": "SugarWater",
+      "maxMass": 1100,
+      "defaultMass": 1100,
+      "defaultTemperature": 233.15,
+      "lowTemp": 190.65,
+      "highTemp": 433.15
     },
     {
       "name": "<link=\"GRAPHITE\">Graphite</link>",
@@ -53629,11 +55262,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 11,
       "color": 0,
       "conduitColor": 0,
       "uiColor": 4408131,
-      "icon": "Graphite"
+      "icon": "Graphite",
+      "maxMass": 600,
+      "defaultMass": 200,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 550
     },
     {
       "name": "<link=\"TOXICMUD\">Polluted Mud</link>",
@@ -53644,11 +55283,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 2118146,
       "conduitColor": 2118146,
       "uiColor": 2118146,
-      "icon": "ToxicMud"
+      "icon": "ToxicMud",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 372.84
     },
     {
       "name": "<link=\"LEADGAS\">Lead Gas</link>",
@@ -53661,11 +55306,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 14264081,
       "conduitColor": 14264081,
       "uiColor": 16769677,
-      "icon": "LeadGas"
+      "icon": "LeadGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3500,
+      "lowTemp": 2022.15,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"MUD\">Mud</link>",
@@ -53676,11 +55327,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 6498840,
       "conduitColor": 6498840,
       "uiColor": 6498840,
-      "icon": "Mud"
+      "icon": "Mud",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 372.84
     },
     {
       "name": "<link=\"CARBON\">Coal</link>",
@@ -53692,11 +55349,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 8418178,
       "conduitColor": 8418178,
       "uiColor": 12822481,
-      "icon": "Carbon"
+      "icon": "Carbon",
+      "maxMass": 4000,
+      "defaultMass": 600,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 550
     },
     {
       "name": "<link=\"SOLIDOXYGEN\">Solid Oxygen</link>",
@@ -53706,11 +55369,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 7915715,
       "conduitColor": 59354,
       "uiColor": 5892834,
-      "icon": "SolidOxygen"
+      "icon": "SolidOxygen",
+      "maxMass": 1000,
+      "defaultMass": 500,
+      "defaultTemperature": 30,
+      "lowTemp": 0,
+      "highTemp": 54.36
     },
     {
       "name": "<link=\"CREATURE\">Genetic Ooze</link>",
@@ -53720,11 +55389,17 @@
         "HideFromSpawnTool",
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 12565577,
       "conduitColor": 9407561,
       "uiColor": 4670726,
-      "icon": "Creature"
+      "icon": "Creature",
+      "maxMass": 200,
+      "defaultMass": 40,
+      "defaultTemperature": 310,
+      "lowTemp": 0,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"FALLOUT\">Nuclear Fallout</link>",
@@ -53735,11 +55410,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 65324,
       "conduitColor": 4194048,
       "uiColor": 65324,
-      "icon": "Fallout"
+      "icon": "Fallout",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 500,
+      "lowTemp": 340,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"DEPLETEDURANIUM\">Depleted Uranium</link>",
@@ -53750,11 +55431,17 @@
         "RefinedMetal",
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 9559387,
       "conduitColor": 9559387,
       "uiColor": 8499200,
-      "icon": "DepletedUranium"
+      "icon": "DepletedUranium",
+      "maxMass": 200,
+      "defaultMass": 100,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 406
     },
     {
       "name": "<link=\"KATAIRITE\">Abyssalite</link>",
@@ -53764,11 +55451,17 @@
         "Solid",
         "Other"
       ],
+      "state": 3,
       "buildMenuSort": 100,
       "color": 6179182,
       "conduitColor": 5390432,
       "uiColor": 3289421,
-      "icon": "Katairite"
+      "icon": "Katairite",
+      "maxMass": 3200,
+      "defaultMass": 500,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 3695
     },
     {
       "name": "<link=\"SYNGAS\">Synthesis Gas</link>",
@@ -53779,11 +55472,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 16740421,
       "conduitColor": 16777215,
       "uiColor": 15990528,
-      "icon": "Syngas"
+      "icon": "Syngas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 320,
+      "lowTemp": 21,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"PEARL\">Pearl</link>",
@@ -53796,11 +55495,17 @@
         "Solid",
         "Other"
       ],
+      "state": 3,
       "buildMenuSort": 7,
       "color": 16042239,
       "conduitColor": 16042239,
       "uiColor": 16042239,
-      "icon": "Pearl"
+      "icon": "Pearl",
+      "maxMass": 1840,
+      "defaultMass": 200,
+      "defaultTemperature": 303,
+      "lowTemp": 0,
+      "highTemp": 1098
     },
     {
       "name": "<link=\"NAPHTHA\">Liquid Naphtha</link>",
@@ -53810,11 +55515,17 @@
         "Oil",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 0,
       "conduitColor": 16777215,
       "uiColor": 11534591,
-      "icon": "Naphtha"
+      "icon": "Naphtha",
+      "maxMass": 740,
+      "defaultMass": 740,
+      "defaultTemperature": 350,
+      "lowTemp": 223,
+      "highTemp": 812
     },
     {
       "name": "<link=\"SOLIDMETHANE\">Solid Methane</link>",
@@ -53824,11 +55535,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 14916164,
       "conduitColor": 14915905,
       "uiColor": 9006626,
-      "icon": "SolidMethane"
+      "icon": "SolidMethane",
+      "maxMass": 750,
+      "defaultMass": 500,
+      "defaultTemperature": 50,
+      "lowTemp": 0,
+      "highTemp": 90.55
     },
     {
       "name": "<link=\"FISHMILKICE\">Frozen Ovolene</link>",
@@ -53841,11 +55558,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 14520525,
       "conduitColor": 14520525,
       "uiColor": 14520525,
-      "icon": "FishMilkIce"
+      "icon": "FishMilkIce",
+      "maxMass": 1100,
+      "defaultMass": 1000,
+      "defaultTemperature": 232.15,
+      "lowTemp": 0,
+      "highTemp": 256.65
     },
     {
       "name": "<link=\"HARDPOLYPROPYLENE\">Plastium</link>",
@@ -53858,11 +55581,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 6474751,
       "conduitColor": 35535,
       "uiColor": 35535,
-      "icon": "HardPolypropylene"
+      "icon": "HardPolypropylene",
+      "maxMass": 913,
+      "defaultMass": 913,
+      "defaultTemperature": 296,
+      "lowTemp": 0,
+      "highTemp": 2100
     },
     {
       "name": "<link=\"NATURALRESIN\">Resin</link>",
@@ -53872,11 +55601,17 @@
         "PlastifiableLiquid",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 13404952,
       "conduitColor": 13404952,
       "uiColor": 13404952,
-      "icon": "NaturalResin"
+      "icon": "NaturalResin",
+      "maxMass": 920,
+      "defaultMass": 920,
+      "defaultTemperature": 300,
+      "lowTemp": 293.15,
+      "highTemp": 398.15
     },
     {
       "name": "<link=\"NATURALSOLIDRESIN\">Solid Resin</link>",
@@ -53887,11 +55622,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 51,
       "color": 10247954,
       "conduitColor": 10247954,
       "uiColor": 10247954,
-      "icon": "NaturalSolidResin"
+      "icon": "NaturalSolidResin",
+      "maxMass": 1850,
+      "defaultMass": 30,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 293.15
     },
     {
       "name": "<link=\"OXYROCK\">Oxylite</link>",
@@ -53903,11 +55644,17 @@
         "Solid",
         "Sublimating"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 296070,
       "conduitColor": 296070,
       "uiColor": 296070,
-      "icon": "OxyRock"
+      "icon": "OxyRock",
+      "maxMass": 500,
+      "defaultMass": 200,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"MAFICROCK\">Mafic Rock</link>",
@@ -53918,11 +55665,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 20,
       "color": 5262420,
       "conduitColor": 5262420,
       "uiColor": 10722989,
-      "icon": "MaficRock"
+      "icon": "MaficRock",
+      "maxMass": 1840,
+      "defaultMass": 1840,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"MURKYBRINEICE\">Polluted Brine Ice</link>",
@@ -53935,11 +55688,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 5727071,
       "conduitColor": 5727071,
       "uiColor": 5727071,
-      "icon": "MurkyBrineIce"
+      "icon": "MurkyBrineIce",
+      "maxMass": 1100,
+      "defaultMass": 1000,
+      "defaultTemperature": 223.15,
+      "lowTemp": 0,
+      "highTemp": 247.65
     },
     {
       "name": "<link=\"IRON\">Iron</link>",
@@ -53950,11 +55709,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 8989963,
       "conduitColor": 8989963,
       "uiColor": 13386532,
-      "icon": "Iron"
+      "icon": "Iron",
+      "maxMass": 7870,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1808
     },
     {
       "name": "<link=\"MOLTENSUCROSE\">Liquid Sucrose</link>",
@@ -53963,11 +55728,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 8874020,
       "conduitColor": 15834788,
       "uiColor": 16777215,
-      "icon": "MoltenSucrose"
+      "icon": "MoltenSucrose",
+      "maxMass": 740,
+      "defaultMass": 190,
+      "defaultTemperature": 500,
+      "lowTemp": 459,
+      "highTemp": 503.15
     },
     {
       "name": "<link=\"NICKELGAS\">Nickel Gas</link>",
@@ -53980,11 +55751,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 12573132,
       "conduitColor": 12573132,
       "uiColor": 10678736,
-      "icon": "NickelGas"
+      "icon": "NickelGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3200,
+      "lowTemp": 3003,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"LIQUIDPHOSPHORUS\">Liquid Phosphorus</link>",
@@ -53994,11 +55771,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 4068389,
       "conduitColor": 3938605,
       "uiColor": 9472951,
-      "icon": "LiquidPhosphorus"
+      "icon": "LiquidPhosphorus",
+      "maxMass": 1000,
+      "defaultMass": 200,
+      "defaultTemperature": 500,
+      "lowTemp": 317.3,
+      "highTemp": 553.6
     },
     {
       "name": "<link=\"BASALT\">Basalt</link>",
@@ -54011,11 +55794,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 1973798,
       "conduitColor": 1973798,
       "uiColor": 1973798,
-      "icon": "Basalt"
+      "icon": "Basalt",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1530
     },
     {
       "name": "<link=\"REGOLITH\">Regolith</link>",
@@ -54026,11 +55815,17 @@
         "Solid",
         "Filter"
       ],
+      "state": 3,
       "buildMenuSort": 20,
       "color": 10262183,
       "conduitColor": 10590892,
       "uiColor": 9795245,
-      "icon": "Regolith"
+      "icon": "Regolith",
+      "maxMass": 1000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"SOLIDRESIN\">Solid Sap</link>",
@@ -54041,11 +55836,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 51,
       "color": 10247954,
       "conduitColor": 10247954,
       "uiColor": 10247954,
-      "icon": "SolidResin"
+      "icon": "SolidResin",
+      "maxMass": 1850,
+      "defaultMass": 30,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 293.15
     },
     {
       "name": "<link=\"NICKELORE\">Nickel Ore</link>",
@@ -54058,11 +55859,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 12573132,
       "conduitColor": 12573132,
       "uiColor": 9559480,
-      "icon": "NickelOre"
+      "icon": "NickelOre",
+      "maxMass": 1840,
+      "defaultMass": 400,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1728
     },
     {
       "name": "<link=\"SLABS\">Building Slab</link>",
@@ -54073,11 +55880,17 @@
         "Solid",
         "BuildableProcessed"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 5462634,
       "conduitColor": 4674154,
       "uiColor": 8031412,
-      "icon": "Slabs"
+      "icon": "Slabs",
+      "maxMass": 2000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"BITUMEN\">Bitumen</link>",
@@ -54088,11 +55901,17 @@
         "HideFromCodex",
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 3946295,
       "conduitColor": 3946295,
       "uiColor": 5066061,
-      "icon": "Bitumen"
+      "icon": "Bitumen",
+      "maxMass": 1840,
+      "defaultMass": 740,
+      "defaultTemperature": 232.15,
+      "lowTemp": 0,
+      "highTemp": 812
     },
     {
       "name": "<link=\"MOLTENSTEEL\">Molten Steel</link>",
@@ -54104,11 +55923,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 10555464,
       "conduitColor": 14484263,
       "uiColor": 15608913,
-      "icon": "MoltenSteel"
+      "icon": "MoltenSteel",
+      "maxMass": 3870,
+      "defaultMass": 900,
+      "defaultTemperature": 2000,
+      "lowTemp": 1357,
+      "highTemp": 4100
     },
     {
       "name": "<link=\"MOLTENNIOBIUM\">Molten Niobium</link>",
@@ -54120,11 +55945,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 3441243,
       "conduitColor": 3441243,
       "uiColor": 6225325,
-      "icon": "MoltenNiobium"
+      "icon": "MoltenNiobium",
+      "maxMass": 3870,
+      "defaultMass": 900,
+      "defaultTemperature": 3000,
+      "lowTemp": 2750,
+      "highTemp": 5017
     },
     {
       "name": "<link=\"IRONGAS\">Iron Gas</link>",
@@ -54137,11 +55968,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 8014142,
       "conduitColor": 8014142,
       "uiColor": 13386532,
-      "icon": "IronGas"
+      "icon": "IronGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 4000,
+      "lowTemp": 3023,
+      "highTemp": 10000
     },
     {
       "name": "Packed <link=\"SNOW\">Snow</link>",
@@ -54154,11 +55991,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 14349818,
       "conduitColor": 16777215,
       "uiColor": 11850239,
-      "icon": "StableSnow"
+      "icon": "StableSnow",
+      "maxMass": 20,
+      "defaultMass": 10,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 272.5
     },
     {
       "name": "<link=\"TEMPCONDUCTORSOLID\">Thermium</link>",
@@ -54172,11 +56015,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 61,
       "color": 13802920,
       "conduitColor": 13802920,
       "uiColor": 13802920,
-      "icon": "TempConductorSolid"
+      "icon": "TempConductorSolid",
+      "maxMass": 1800,
+      "defaultMass": 900,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 2950
     },
     {
       "name": "<link=\"IRONORE\">Iron Ore</link>",
@@ -54188,11 +56037,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 8014142,
       "conduitColor": 8014142,
       "uiColor": 13386532,
-      "icon": "IronOre"
+      "icon": "IronOre",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1808
     },
     {
       "name": "<link=\"ZINC\">Zinc</link>",
@@ -54204,11 +56059,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 2009770,
       "conduitColor": 2009770,
       "uiColor": 2009770,
-      "icon": "Zinc"
+      "icon": "Zinc",
+      "maxMass": 3870,
+      "defaultMass": 870,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 692.65
     },
     {
       "name": "<link=\"MUCUS\">Mucin</link>",
@@ -54218,11 +56079,17 @@
         "Slippery",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 11193770,
       "conduitColor": 11193770,
       "uiColor": 9350798,
-      "icon": "Mucus"
+      "icon": "Mucus",
+      "maxMass": 100,
+      "defaultMass": 100,
+      "defaultTemperature": 300,
+      "lowTemp": 263.15,
+      "highTemp": 363.15
     },
     {
       "name": "<link=\"DIRT\">Dirt</link>",
@@ -54233,11 +56100,17 @@
         "Solid",
         "Farmable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 6312515,
       "conduitColor": 6312515,
       "uiColor": 11238656,
-      "icon": "Dirt"
+      "icon": "Dirt",
+      "maxMass": 1840,
+      "defaultMass": 1840,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 600
     },
     {
       "name": "<link=\"CEMENT\">Cement</link>",
@@ -54248,11 +56121,17 @@
         "Solid",
         "BuildableProcessed"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 13290186,
       "conduitColor": 13290186,
       "uiColor": 9803157,
-      "icon": "Cement"
+      "icon": "Cement",
+      "maxMass": 2000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"FISHMILK\">Ovolene</link>",
@@ -54261,11 +56140,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 6300756,
       "conduitColor": 14520525,
       "uiColor": 14520525,
-      "icon": "FishMilk"
+      "icon": "FishMilk",
+      "maxMass": 1100,
+      "defaultMass": 1100,
+      "defaultTemperature": 310,
+      "lowTemp": 256.65,
+      "highTemp": 353.15
     },
     {
       "name": "<link=\"DIRTYICE\">Polluted Ice</link>",
@@ -54279,11 +56164,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 10208200,
       "conduitColor": 10208200,
       "uiColor": 8309974,
-      "icon": "DirtyIce"
+      "icon": "DirtyIce",
+      "maxMass": 800,
+      "defaultMass": 500,
+      "defaultTemperature": 230,
+      "lowTemp": 0,
+      "highTemp": 252.5
     },
     {
       "name": "<link=\"CEMENTMIX\">Cement Mix</link>",
@@ -54293,11 +56184,17 @@
         "BuildableAny",
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 13158600,
       "conduitColor": 13158600,
       "uiColor": 10592673,
-      "icon": "CementMix"
+      "icon": "CementMix",
+      "maxMass": 2000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"MERCURY\">Mercury</link>",
@@ -54307,11 +56204,17 @@
         "RefinedMetal",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 6917044,
       "conduitColor": 4094915,
       "uiColor": 7574452,
-      "icon": "Mercury"
+      "icon": "Mercury",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 320,
+      "lowTemp": 234.3,
+      "highTemp": 629.9
     },
     {
       "name": "<link=\"FOSSIL\">Fossil</link>",
@@ -54322,11 +56225,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 4,
       "color": 8021832,
       "conduitColor": 7364416,
       "uiColor": 16724480,
-      "icon": "Fossil"
+      "icon": "Fossil",
+      "maxMass": 1000,
+      "defaultMass": 500,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1612
     },
     {
       "name": "<link=\"DIRTYWATER\">Polluted Water</link>",
@@ -54337,11 +56246,17 @@
         "AnyWater",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 12565577,
       "conduitColor": 9407561,
       "uiColor": 4670726,
-      "icon": "DirtyWater"
+      "icon": "DirtyWater",
+      "maxMass": 1000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 252.5,
+      "highTemp": 392.5
     },
     {
       "name": "<link=\"WATER\">Water</link>",
@@ -54351,11 +56266,17 @@
         "AnyWater",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 5619410,
       "conduitColor": 3248805,
       "uiColor": 25599,
-      "icon": "Water"
+      "icon": "Water",
+      "maxMass": 1000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 272.5,
+      "highTemp": 372.5
     },
     {
       "name": "<link=\"UNOBTANIUM\">Neutronium</link>",
@@ -54365,11 +56286,17 @@
         "Solid",
         "Special"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 16777215,
       "conduitColor": 16777215,
       "uiColor": 16711935,
-      "icon": "Unobtanium"
+      "icon": "Unobtanium",
+      "maxMass": 20000,
+      "defaultMass": 20000,
+      "defaultTemperature": 1,
+      "lowTemp": 0,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"IRIDIUMGAS\">Iridium Gas</link>",
@@ -54381,11 +56308,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 11575482,
       "conduitColor": 11575482,
       "uiColor": 11575482,
-      "icon": "IridiumGas"
+      "icon": "IridiumGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 4500,
+      "lowTemp": 4403,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"CINNABAR\">Cinnabar Ore</link>",
@@ -54398,11 +56331,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 16731679,
       "conduitColor": 14370856,
       "uiColor": 16731679,
-      "icon": "Cinnabar"
+      "icon": "Cinnabar",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 856.65
     },
     {
       "name": "<link=\"PHOSPHORUSGAS\">Phosphorus Gas</link>",
@@ -54413,11 +56352,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 13122944,
       "conduitColor": 13122944,
       "uiColor": 10899321,
-      "icon": "PhosphorusGas"
+      "icon": "PhosphorusGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 700,
+      "lowTemp": 553.6,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"SALTWATER\">Salt Water</link>",
@@ -54427,11 +56372,17 @@
         "AnyWater",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 13554412,
       "conduitColor": 13554412,
       "uiColor": 13554412,
-      "icon": "SaltWater"
+      "icon": "SaltWater",
+      "maxMass": 1100,
+      "defaultMass": 1100,
+      "defaultTemperature": 300,
+      "lowTemp": 265.65,
+      "highTemp": 372.84
     },
     {
       "name": "<link=\"SOLIDETHANOL\">Solid Ethanol</link>",
@@ -54443,11 +56394,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 65482,
       "conduitColor": 65482,
       "uiColor": 65386,
-      "icon": "SolidEthanol"
+      "icon": "SolidEthanol",
+      "maxMass": 200,
+      "defaultMass": 100,
+      "defaultTemperature": 150,
+      "lowTemp": 0,
+      "highTemp": 159.1
     },
     {
       "name": "<link=\"MOLTENURANIUM\">Liquid Uranium</link>",
@@ -54459,11 +56416,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 13429063,
       "conduitColor": 12970311,
       "uiColor": 10673424,
-      "icon": "MoltenUranium"
+      "icon": "MoltenUranium",
+      "maxMass": 9970,
+      "defaultMass": 3000,
+      "defaultTemperature": 460,
+      "lowTemp": 406,
+      "highTemp": 4405
     },
     {
       "name": "<link=\"CARBONDIOXIDE\">Carbon Dioxide</link>",
@@ -54473,11 +56436,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 1973790,
       "conduitColor": 1973790,
       "uiColor": 0,
-      "icon": "CarbonDioxide"
+      "icon": "CarbonDioxide",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 225,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"COPPERGAS\">Copper Gas</link>",
@@ -54490,11 +56459,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 14373928,
       "conduitColor": 14373928,
       "uiColor": 16751624,
-      "icon": "CopperGas"
+      "icon": "CopperGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3200,
+      "lowTemp": 2834,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"FOOLSGOLD\">Pyrite</link>",
@@ -54506,11 +56481,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10980916,
       "conduitColor": 10980916,
       "uiColor": 16753421,
-      "icon": "FoolsGold"
+      "icon": "FoolsGold",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1357
     },
     {
       "name": "<link=\"GALENA\">Galena</link>",
@@ -54523,11 +56504,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 12498075,
       "conduitColor": 10985096,
       "uiColor": 12366489,
-      "icon": "Galena"
+      "icon": "Galena",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1387.15
     },
     {
       "name": "<link=\"MOLTENNICKEL\">Molten Nickel</link>",
@@ -54539,11 +56526,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 12573132,
       "conduitColor": 12573132,
       "uiColor": 12573132,
-      "icon": "MoltenNickel"
+      "icon": "MoltenNickel",
+      "maxMass": 7870,
+      "defaultMass": 900,
+      "defaultTemperature": 1800,
+      "lowTemp": 1728,
+      "highTemp": 3003
     },
     {
       "name": "<link=\"ALUMINUM\">Aluminum</link>",
@@ -54555,11 +56548,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 9806763,
       "conduitColor": 8369610,
       "uiColor": 8369610,
-      "icon": "Aluminum"
+      "icon": "Aluminum",
+      "maxMass": 1000,
+      "defaultMass": 200,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 933.45
     },
     {
       "name": "<link=\"MOLTENCOPPER\">Molten Copper</link>",
@@ -54571,11 +56570,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 14694670,
       "conduitColor": 14694670,
       "uiColor": 14694670,
-      "icon": "MoltenCopper"
+      "icon": "MoltenCopper",
+      "maxMass": 3870,
+      "defaultMass": 900,
+      "defaultTemperature": 1800,
+      "lowTemp": 1357,
+      "highTemp": 2834
     },
     {
       "name": "<link=\"CRUSHEDICE\">Crushed Ice</link>",
@@ -54587,11 +56592,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 14154495,
       "conduitColor": 14154495,
       "uiColor": 6413311,
-      "icon": "CrushedIce"
+      "icon": "CrushedIce",
+      "maxMass": 20,
+      "defaultMass": 10,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 272.5
     },
     {
       "name": "<link=\"DIAMOND\">Diamond</link>",
@@ -54604,11 +56615,17 @@
         "Solid",
         "Other"
       ],
+      "state": 3,
       "buildMenuSort": 6,
       "color": 13354473,
       "conduitColor": 13354473,
       "uiColor": 13354473,
-      "icon": "Diamond"
+      "icon": "Diamond",
+      "maxMass": 1840,
+      "defaultMass": 700,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 4200
     },
     {
       "name": "<link=\"AEROGEL\">Aerogel</link>",
@@ -54617,11 +56634,17 @@
       "oreTags": [
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 0,
       "conduitColor": 16777215,
       "uiColor": 55807,
-      "icon": "Aerogel"
+      "icon": "Aerogel",
+      "maxMass": 2,
+      "defaultMass": 1,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"ISORESIN\">Isosap</link>",
@@ -54632,11 +56655,17 @@
         "Solid",
         "RareMaterials"
       ],
+      "state": 3,
       "buildMenuSort": 51,
       "color": 16753408,
       "conduitColor": 16753408,
       "uiColor": 16753408,
-      "icon": "Isoresin"
+      "icon": "Isoresin",
+      "maxMass": 50,
+      "defaultMass": 30,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 473.15
     },
     {
       "name": "<link=\"SUCROSE\">Sucrose</link>",
@@ -54646,11 +56675,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 11,
       "color": 15073242,
       "conduitColor": 7106624,
       "uiColor": 16777215,
-      "icon": "Sucrose"
+      "icon": "Sucrose",
+      "maxMass": 2000,
+      "defaultMass": 500,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 459
     },
     {
       "name": "<link=\"PEAT\">Peat</link>",
@@ -54661,11 +56696,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 5523257,
       "conduitColor": 5523257,
       "uiColor": 5389574,
-      "icon": "Peat"
+      "icon": "Peat",
+      "maxMass": 4000,
+      "defaultMass": 400,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 500
     },
     {
       "name": "<link=\"ZINCORE\">Zinc Ore</link>",
@@ -54678,11 +56719,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 2009770,
       "conduitColor": 2009770,
       "uiColor": 2009770,
-      "icon": "ZincOre"
+      "icon": "ZincOre",
+      "maxMass": 1840,
+      "defaultMass": 870,
+      "defaultTemperature": 301.15,
+      "lowTemp": 0,
+      "highTemp": 692.65
     },
     {
       "name": "<link=\"PHOSPHATENODULES\">Phosphate Nodules</link>",
@@ -54692,11 +56739,17 @@
         "Solid",
         "Agriculture"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10899321,
       "conduitColor": 10899321,
       "uiColor": 12790131,
-      "icon": "PhosphateNodules"
+      "icon": "PhosphateNodules",
+      "maxMass": 1840,
+      "defaultMass": 600,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 700
     },
     {
       "name": "<link=\"ALGAE\">Algae</link>",
@@ -54706,11 +56759,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 3509302,
       "conduitColor": 3509302,
       "uiColor": 65327,
-      "icon": "Algae"
+      "icon": "Algae",
+      "maxMass": 300,
+      "defaultMass": 200,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 398.15
     },
     {
       "name": "<link=\"MILKFAT\">Brackwax</link>",
@@ -54721,11 +56780,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 9095343,
       "conduitColor": 9095343,
       "uiColor": 9095343,
-      "icon": "MilkFat"
+      "icon": "MilkFat",
+      "maxMass": 913,
+      "defaultMass": 913,
+      "defaultTemperature": 296,
+      "lowTemp": 0,
+      "highTemp": 433
     },
     {
       "name": "<link=\"NIOBIUM\">Niobium</link>",
@@ -54738,11 +56803,17 @@
         "Solid",
         "RareMaterials"
       ],
+      "state": 3,
       "buildMenuSort": 50,
       "color": 3441243,
       "conduitColor": 3441243,
       "uiColor": 6225325,
-      "icon": "Niobium"
+      "icon": "Niobium",
+      "maxMass": 50,
+      "defaultMass": 30,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 2750
     },
     {
       "name": "<link=\"NICKEL\">Nickel</link>",
@@ -54754,11 +56825,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 12573132,
       "conduitColor": 12573132,
       "uiColor": 10678736,
-      "icon": "Nickel"
+      "icon": "Nickel",
+      "maxMass": 2000,
+      "defaultMass": 900,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1728
     },
     {
       "name": "<link=\"MILKICE\">Frozen Brackene</link>",
@@ -54771,11 +56848,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 8847268,
       "conduitColor": 13430504,
       "uiColor": 13430504,
-      "icon": "MilkIce"
+      "icon": "MilkIce",
+      "maxMass": 1100,
+      "defaultMass": 1000,
+      "defaultTemperature": 232.15,
+      "lowTemp": 0,
+      "highTemp": 256.65
     },
     {
       "name": "<link=\"CUPRITE\">Copper Ore</link>",
@@ -54788,11 +56871,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 11099747,
       "conduitColor": 11296869,
       "uiColor": 14244707,
-      "icon": "Cuprite"
+      "icon": "Cuprite",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1357
     },
     {
       "name": "<link=\"COPPER\">Copper</link>",
@@ -54804,11 +56893,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 14373928,
       "conduitColor": 14373928,
       "uiColor": 16751624,
-      "icon": "Copper"
+      "icon": "Copper",
+      "maxMass": 3870,
+      "defaultMass": 900,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1357
     },
     {
       "name": "<link=\"CRUSHEDROCK\">Crushed Rock</link>",
@@ -54819,11 +56914,17 @@
         "Solid",
         "BuildableProcessed"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 11711154,
       "conduitColor": 11711154,
       "uiColor": 9211020,
-      "icon": "CrushedRock"
+      "icon": "CrushedRock",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"SUPERINSULATOR\">Insulite</link>",
@@ -54838,11 +56939,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 60,
       "color": 16711887,
       "conduitColor": 16711887,
       "uiColor": 16711887,
-      "icon": "SuperInsulator"
+      "icon": "SuperInsulator",
+      "maxMass": 1800,
+      "defaultMass": 900,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 3895
     },
     {
       "name": "<link=\"SHALE\">Shale</link>",
@@ -54855,11 +56962,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 9203080,
       "conduitColor": 9203080,
       "uiColor": 12806316,
-      "icon": "Shale"
+      "icon": "Shale",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1100
     },
     {
       "name": "<link=\"CORALLIUM\">Corallium</link>",
@@ -54871,11 +56984,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 10492745,
       "conduitColor": 10492745,
       "uiColor": 10492745,
-      "icon": "Corallium"
+      "icon": "Corallium",
+      "maxMass": 400,
+      "defaultMass": 200,
+      "defaultTemperature": 303.15,
+      "lowTemp": 0,
+      "highTemp": 398.15
     },
     {
       "name": "<link=\"PALMWOOD\">Gum Wood</link>",
@@ -54887,11 +57006,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 12353906,
       "conduitColor": 12353906,
       "uiColor": 12353906,
-      "icon": "PalmWood"
+      "icon": "PalmWood",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 873.15
     },
     {
       "name": "<link=\"TALLOW\">Tallow</link>",
@@ -54902,11 +57027,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 16769792,
       "conduitColor": 16751360,
       "uiColor": 16764672,
-      "icon": "Tallow"
+      "icon": "Tallow",
+      "maxMass": 2500,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 353.15
     },
     {
       "name": "<link=\"YELLOWCAKE\">Yellowcake</link>",
@@ -54915,11 +57046,17 @@
       "oreTags": [
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 16773120,
       "conduitColor": 16773120,
       "uiColor": 16773120,
-      "icon": "Yellowcake"
+      "icon": "Yellowcake",
+      "maxMass": 200,
+      "defaultMass": 100,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1132
     },
     {
       "name": "<link=\"BRINEICE\">Brine Ice</link>",
@@ -54932,11 +57069,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 16777215,
       "conduitColor": 16777215,
       "uiColor": 9304063,
-      "icon": "BrineIce"
+      "icon": "BrineIce",
+      "maxMass": 1100,
+      "defaultMass": 1000,
+      "defaultTemperature": 232.15,
+      "lowTemp": 0,
+      "highTemp": 256.65
     },
     {
       "name": "<link=\"SOLIDVISCOGEL\">Solid Visco-Gel</link>",
@@ -54947,11 +57090,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 63,
       "color": 5181623,
       "conduitColor": 5181623,
       "uiColor": 5181623,
-      "icon": "SolidViscoGel"
+      "icon": "SolidViscoGel",
+      "maxMass": 150,
+      "defaultMass": 100,
+      "defaultTemperature": 150,
+      "lowTemp": 0,
+      "highTemp": 242.5
     },
     {
       "name": "<link=\"CERAMIC\">Ceramic</link>",
@@ -54965,11 +57114,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 15521454,
       "conduitColor": 15521454,
       "uiColor": 15521454,
-      "icon": "Ceramic"
+      "icon": "Ceramic",
+      "maxMass": 2000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 2123
     },
     {
       "name": "<link=\"COBALTITE\">Cobalt Ore</link>",
@@ -54982,11 +57137,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 8684,
       "conduitColor": 8684,
       "uiColor": 8684,
-      "icon": "Cobaltite"
+      "icon": "Cobaltite",
+      "maxMass": 6300,
+      "defaultMass": 1250,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1768
     },
     {
       "name": "<link=\"FERTILIZER\">Fertilizer</link>",
@@ -54997,11 +57158,17 @@
         "Solid",
         "Agriculture"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 4024442,
       "conduitColor": 4024442,
       "uiColor": 2797029,
-      "icon": "Fertilizer"
+      "icon": "Fertilizer",
+      "maxMass": 300,
+      "defaultMass": 200,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 398.15
     },
     {
       "name": "<link=\"SOLIDCRUDEOIL\">Solid Crude Oil</link>",
@@ -55011,11 +57178,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 1250067,
       "conduitColor": 1645082,
       "uiColor": 0,
-      "icon": "SolidCrudeOil"
+      "icon": "SolidCrudeOil",
+      "maxMass": 1840,
+      "defaultMass": 870,
+      "defaultTemperature": 200,
+      "lowTemp": 0,
+      "highTemp": 233
     },
     {
       "name": "<link=\"WOLFRAMITE\">Wolframite</link>",
@@ -55027,11 +57200,17 @@
         "Solid",
         "Metal"
       ],
+      "state": 3,
       "buildMenuSort": 4,
       "color": 10794682,
       "conduitColor": 1610667,
       "uiColor": 9025535,
-      "icon": "Wolframite"
+      "icon": "Wolframite",
+      "maxMass": 1840,
+      "defaultMass": 600,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 3200
     },
     {
       "name": "<link=\"SLIMEMOLD\">Slime</link>",
@@ -55042,11 +57221,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 5665064,
       "conduitColor": 5665064,
       "uiColor": 9492060,
-      "icon": "SlimeMold"
+      "icon": "SlimeMold",
+      "maxMass": 300,
+      "defaultMass": 200,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 398.15
     },
     {
       "name": "<link=\"POLYPROPYLENE\">Plastic</link>",
@@ -55059,11 +57244,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 9886434,
       "conduitColor": 9886434,
       "uiColor": 58879,
-      "icon": "Polypropylene"
+      "icon": "Polypropylene",
+      "maxMass": 913,
+      "defaultMass": 913,
+      "defaultTemperature": 296,
+      "lowTemp": 0,
+      "highTemp": 433
     },
     {
       "name": "<link=\"AMBER\">Amber</link>",
@@ -55076,11 +57267,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 51,
       "color": 13654043,
       "conduitColor": 13654043,
       "uiColor": 13654043,
-      "icon": "Amber"
+      "icon": "Amber",
+      "maxMass": 1850,
+      "defaultMass": 60,
+      "defaultTemperature": 300.15,
+      "lowTemp": 0,
+      "highTemp": 368.15
     },
     {
       "name": "<link=\"SOLIDNAPHTHA\">Solid Naphtha</link>",
@@ -55090,11 +57287,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 13421772,
       "conduitColor": 12171704,
       "uiColor": 14075319,
-      "icon": "SolidNaphtha"
+      "icon": "SolidNaphtha",
+      "maxMass": 1840,
+      "defaultMass": 740,
+      "defaultTemperature": 200,
+      "lowTemp": 0,
+      "highTemp": 223
     },
     {
       "name": "<link=\"TUNGSTEN\">Tungsten</link>",
@@ -55106,11 +57309,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 4,
       "color": 8093316,
       "conduitColor": 16777215,
       "uiColor": 16774912,
-      "icon": "Tungsten"
+      "icon": "Tungsten",
+      "maxMass": 1000,
+      "defaultMass": 200,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 3695
     },
     {
       "name": "<link=\"SANDCEMENT\">Sand Cement</link>",
@@ -55121,11 +57330,17 @@
         "Solid",
         "BuildableProcessed"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 14404539,
       "conduitColor": 11249312,
       "uiColor": 13414018,
-      "icon": "SandCement"
+      "icon": "SandCement",
+      "maxMass": 2000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"REFINEDCARBON\">Refined Carbon</link>",
@@ -55136,11 +57351,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 5855577,
       "conduitColor": 8553090,
       "uiColor": 4408131,
-      "icon": "RefinedCarbon"
+      "icon": "RefinedCarbon",
+      "maxMass": 4000,
+      "defaultMass": 600,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 4600
     },
     {
       "name": "<link=\"STEEL\">Steel</link>",
@@ -55153,11 +57374,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 5994895,
       "conduitColor": 16777215,
       "uiColor": 5329451,
-      "icon": "Steel"
+      "icon": "Steel",
+      "maxMass": 10000,
+      "defaultMass": 400,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 2700
     },
     {
       "name": "<link=\"PHOSPHORITE\">Phosphorite</link>",
@@ -55168,11 +57395,17 @@
         "Solid",
         "Agriculture"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10899321,
       "conduitColor": 10899321,
       "uiColor": 13122944,
-      "icon": "Phosphorite"
+      "icon": "Phosphorite",
+      "maxMass": 1840,
+      "defaultMass": 600,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 517
     },
     {
       "name": "<link=\"SOLIDHYDROGEN\">Solid Hydrogen</link>",
@@ -55182,11 +57415,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10565764,
       "conduitColor": 15146415,
       "uiColor": 6751564,
-      "icon": "SolidHydrogen"
+      "icon": "SolidHydrogen",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 5,
+      "lowTemp": 0,
+      "highTemp": 14
     },
     {
       "name": "<link=\"BLEACHSTONE\">Bleach Stone</link>",
@@ -55197,11 +57436,17 @@
         "Solid",
         "Sublimating"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 14677503,
       "conduitColor": 14677503,
       "uiColor": 41471,
-      "icon": "BleachStone"
+      "icon": "BleachStone",
+      "maxMass": 500,
+      "defaultMass": 50,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 942
     },
     {
       "name": "<link=\"LEAD\">Lead</link>",
@@ -55212,11 +57457,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 16429588,
       "conduitColor": 16429588,
       "uiColor": 16763162,
-      "icon": "Lead"
+      "icon": "Lead",
+      "maxMass": 2000,
+      "defaultMass": 2000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 600.65
     },
     {
       "name": "<link=\"SULFUR\">Sulfur</link>",
@@ -55226,11 +57477,17 @@
         "Solid",
         "Other"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 16776960,
       "conduitColor": 16776960,
       "uiColor": 16776960,
-      "icon": "Sulfur"
+      "icon": "Sulfur",
+      "maxMass": 2000,
+      "defaultMass": 500,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 388.35
     },
     {
       "name": "<link=\"LIME\">Lime</link>",
@@ -55240,11 +57497,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 4,
       "color": 12830401,
       "conduitColor": 12106421,
       "uiColor": 16777215,
-      "icon": "Lime"
+      "icon": "Lime",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 290,
+      "lowTemp": 0,
+      "highTemp": 1330
     },
     {
       "name": "<link=\"SYNGAS\">Solid Synthesis Gas</link>",
@@ -55254,11 +57517,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 16740421,
       "conduitColor": 16777215,
       "uiColor": 16711710,
-      "icon": "SolidSyngas"
+      "icon": "SolidSyngas",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 5,
+      "lowTemp": 0,
+      "highTemp": 14
     },
     {
       "name": "<link=\"SOLIDCHLORINE\">Solid Chlorine</link>",
@@ -55268,11 +57537,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 12970311,
       "conduitColor": 12970311,
       "uiColor": 10673424,
-      "icon": "SolidChlorine"
+      "icon": "SolidChlorine",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 150,
+      "lowTemp": 0,
+      "highTemp": 172.17
     },
     {
       "name": "<link=\"SOLIDMUCUS\">Frozen Mucin</link>",
@@ -55284,11 +57559,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 11193770,
       "conduitColor": 11193770,
       "uiColor": 9350798,
-      "icon": "SolidMucus"
+      "icon": "SolidMucus",
+      "maxMass": 800,
+      "defaultMass": 500,
+      "defaultTemperature": 278.15,
+      "lowTemp": 0,
+      "highTemp": 263.15
     },
     {
       "name": "<link=\"SOLIDMERCURY\">Mercury</link>",
@@ -55299,11 +57580,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 5727641,
       "conduitColor": 6188713,
       "uiColor": 3229872,
-      "icon": "SolidMercury"
+      "icon": "SolidMercury",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 200,
+      "lowTemp": 0,
+      "highTemp": 234.3
     },
     {
       "name": "<link=\"SOLIDNUCLEARWASTE\">Solid Nuclear Waste</link>",
@@ -55314,11 +57601,17 @@
         "Solid",
         "Other"
       ],
+      "state": 3,
       "buildMenuSort": 0,
       "color": 9559387,
       "conduitColor": 9559387,
       "uiColor": 8499200,
-      "icon": "SolidNuclearWaste"
+      "icon": "SolidNuclearWaste",
+      "maxMass": 9970,
+      "defaultMass": 1840,
+      "defaultTemperature": 250,
+      "lowTemp": 0,
+      "highTemp": 300
     },
     {
       "name": "<link=\"COQUINA\">Coquina</link>",
@@ -55331,11 +57624,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 3356242,
       "conduitColor": 3356242,
       "uiColor": 3356242,
-      "icon": "Coquina"
+      "icon": "Coquina",
+      "maxMass": 1840,
+      "defaultMass": 1840,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1200
     },
     {
       "name": "<link=\"OBSIDIAN\">Obsidian</link>",
@@ -55349,11 +57648,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 3093820,
       "conduitColor": 4343889,
       "uiColor": 1250328,
-      "icon": "Obsidian"
+      "icon": "Obsidian",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 3000
     },
     {
       "name": "<link=\"SOLIDPETROLEUM\">Solid Petroleum</link>",
@@ -55363,11 +57668,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10259723,
       "conduitColor": 10259723,
       "uiColor": 15067402,
-      "icon": "SolidPetroleum"
+      "icon": "SolidPetroleum",
+      "maxMass": 1840,
+      "defaultMass": 740,
+      "defaultTemperature": 200,
+      "lowTemp": 0,
+      "highTemp": 216
     },
     {
       "name": "<link=\"SOLIDSUPERCOOLANT\">Solid Super Coolant</link>",
@@ -55377,11 +57688,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 62,
       "color": 3648915,
       "conduitColor": 3648915,
       "uiColor": 3648915,
-      "icon": "SolidSuperCoolant"
+      "icon": "SolidSuperCoolant",
+      "maxMass": 1840,
+      "defaultMass": 740,
+      "defaultTemperature": 80,
+      "lowTemp": 0,
+      "highTemp": 2
     },
     {
       "name": "<link=\"IGNEOUSROCK\">Igneous Rock</link>",
@@ -55394,11 +57711,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 7041408,
       "conduitColor": 7041408,
       "uiColor": 7763574,
-      "icon": "IgneousRock"
+      "icon": "IgneousRock",
+      "maxMass": 1840,
+      "defaultMass": 1840,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"RUBBER\">Rubber</link>",
@@ -55409,11 +57732,17 @@
         "Solid",
         "Other"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 4408131,
       "conduitColor": 7434609,
       "uiColor": 4408131,
-      "icon": "Rubber"
+      "icon": "Rubber",
+      "maxMass": 800,
+      "defaultMass": 200,
+      "defaultTemperature": 293.15,
+      "lowTemp": 0,
+      "highTemp": 493.15
     },
     {
       "name": "<link=\"ENRICHEDURANIUM\">Enriched Uranium</link>",
@@ -55423,11 +57752,17 @@
         "Solid",
         "ManufacturedMaterial"
       ],
+      "state": 3,
       "buildMenuSort": 20,
       "color": 9559387,
       "conduitColor": 9559387,
       "uiColor": 8499200,
-      "icon": "EnrichedUranium"
+      "icon": "EnrichedUranium",
+      "maxMass": 200,
+      "defaultMass": 100,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1132
     },
     {
       "name": "<link=\"SILTSTONE\">Siltstone</link>",
@@ -55440,11 +57775,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 11376750,
       "conduitColor": 11376750,
       "uiColor": 11376750,
-      "icon": "SiltStone"
+      "icon": "SiltStone",
+      "maxMass": 1840,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1200
     },
     {
       "name": "<link=\"BRICK\">Brick</link>",
@@ -55455,11 +57796,17 @@
         "Solid",
         "BuildableProcessed"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10570036,
       "conduitColor": 10570036,
       "uiColor": 16392960,
-      "icon": "Brick"
+      "icon": "Brick",
+      "maxMass": 2000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1683
     },
     {
       "name": "<link=\"GOLD\">Gold</link>",
@@ -55470,11 +57817,17 @@
         "Solid",
         "RefinedMetal"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 16429588,
       "conduitColor": 16429588,
       "uiColor": 16763162,
-      "icon": "Gold"
+      "icon": "Gold",
+      "maxMass": 9970,
+      "defaultMass": 870,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1337
     },
     {
       "name": "<link=\"RUST\">Rust</link>",
@@ -55484,11 +57837,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 8014142,
       "conduitColor": 8014142,
       "uiColor": 12341327,
-      "icon": "Rust"
+      "icon": "Rust",
+      "maxMass": 1840,
+      "defaultMass": 800,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1808
     },
     {
       "name": "<link=\"GUNK\">Solid Gunk</link>",
@@ -55500,11 +57859,17 @@
         "Solid",
         "Organics"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 5317472,
       "conduitColor": 5317472,
       "uiColor": 5317472,
-      "icon": "Gunk"
+      "icon": "Gunk",
+      "maxMass": 2500,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 265
     },
     {
       "name": "<link=\"FROZENPHYTOOIL\">Frozen Phyto Oil</link>",
@@ -55515,11 +57880,17 @@
         "Solid",
         "Liquifiable"
       ],
+      "state": 3,
       "buildMenuSort": 3,
       "color": 10004527,
       "conduitColor": 10004527,
       "uiColor": 10004527,
-      "icon": "FrozenPhytoOil"
+      "icon": "FrozenPhytoOil",
+      "maxMass": 870,
+      "defaultMass": 800,
+      "defaultTemperature": 220,
+      "lowTemp": 0,
+      "highTemp": 240
     },
     {
       "name": "<link=\"CORIUM\">Corium</link>",
@@ -55529,11 +57900,17 @@
         "Solid",
         "Other"
       ],
+      "state": 3,
       "buildMenuSort": 5,
       "color": 483350,
       "conduitColor": 483350,
       "uiColor": 483350,
-      "icon": "Corium"
+      "icon": "Corium",
+      "maxMass": 200,
+      "defaultMass": 200,
+      "defaultTemperature": 242.15,
+      "lowTemp": 0,
+      "highTemp": 900
     },
     {
       "name": "<link=\"PHOSPHORUS\">Refined Phosphorus</link>",
@@ -55544,11 +57921,17 @@
         "Solid",
         "ConsumableOre"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 10899321,
       "conduitColor": 10899321,
       "uiColor": 13122944,
-      "icon": "Phosphorus"
+      "icon": "Phosphorus",
+      "maxMass": 1000,
+      "defaultMass": 200,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 317.3
     },
     {
       "name": "<link=\"IRIDIUM\">Iridium</link>",
@@ -55560,11 +57943,17 @@
         "BuildableAny",
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 10,
       "color": 11575482,
       "conduitColor": 11575482,
       "uiColor": 11575482,
-      "icon": "Iridium"
+      "icon": "Iridium",
+      "maxMass": 10000,
+      "defaultMass": 400,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 2719
     },
     {
       "name": "<link=\"GRANITE\">Granite</link>",
@@ -55578,11 +57967,17 @@
         "Solid",
         "BuildableRaw"
       ],
+      "state": 3,
       "buildMenuSort": 2,
       "color": 9673375,
       "conduitColor": 9673375,
       "uiColor": 4408131,
-      "icon": "Granite"
+      "icon": "Granite",
+      "maxMass": 1840,
+      "defaultMass": 1840,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 942
     },
     {
       "name": "<link=\"RADIUM\">Radium</link>",
@@ -55591,11 +57986,17 @@
       "oreTags": [
         "Solid"
       ],
+      "state": 3,
       "buildMenuSort": 1,
       "color": 9559387,
       "conduitColor": 9559387,
       "uiColor": 8499200,
-      "icon": "Radium"
+      "icon": "Radium",
+      "maxMass": 200,
+      "defaultMass": 100,
+      "defaultTemperature": 300,
+      "lowTemp": 0,
+      "highTemp": 1233
     },
     {
       "name": "<link=\"LATEX\">Latex</link>",
@@ -55604,11 +58005,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 11657700,
       "conduitColor": 11657700,
       "uiColor": 11657700,
-      "icon": "Latex"
+      "icon": "Latex",
+      "maxMass": 950,
+      "defaultMass": 950,
+      "defaultTemperature": 290,
+      "lowTemp": 272.5,
+      "highTemp": 372.5
     },
     {
       "name": "<link=\"MURKYBRINE\">Polluted Brine</link>",
@@ -55618,11 +58025,17 @@
         "AnyWater",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 3556158,
       "conduitColor": 3556158,
       "uiColor": 3556158,
-      "icon": "MurkyBrine"
+      "icon": "MurkyBrine",
+      "maxMass": 1200,
+      "defaultMass": 1200,
+      "defaultTemperature": 282.15,
+      "lowTemp": 247.65,
+      "highTemp": 379.9
     },
     {
       "name": "<link=\"LIQUIDHELIUM\">Helium</link>",
@@ -55631,11 +58044,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 14168112,
       "conduitColor": 15877959,
       "uiColor": 9734839,
-      "icon": "LiquidHelium"
+      "icon": "LiquidHelium",
+      "maxMass": 1000,
+      "defaultMass": 200,
+      "defaultTemperature": 1,
+      "lowTemp": 0,
+      "highTemp": 4.22
     },
     {
       "name": "<link=\"LIQUIDOXYGEN\">Liquid Oxygen</link>",
@@ -55645,11 +58064,17 @@
         "Oxidizer",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 9625343,
       "conduitColor": 6937593,
       "uiColor": 5741225,
-      "icon": "LiquidOxygen"
+      "icon": "LiquidOxygen",
+      "maxMass": 500,
+      "defaultMass": 300,
+      "defaultTemperature": 74.36,
+      "lowTemp": 54.36,
+      "highTemp": 90.19
     },
     {
       "name": "<link=\"VISCOGEL\">Visco-Gel Fluid</link>",
@@ -55658,11 +58083,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 5181623,
       "conduitColor": 5181623,
       "uiColor": 5181623,
-      "icon": "ViscoGel"
+      "icon": "ViscoGel",
+      "maxMass": 100,
+      "defaultMass": 100,
+      "defaultTemperature": 238,
+      "lowTemp": 242.5,
+      "highTemp": 753
     },
     {
       "name": "<link=\"MOLTENALUMINUM\">Molten Aluminum</link>",
@@ -55674,11 +58105,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 12369084,
       "conduitColor": 11053224,
       "uiColor": 6265005,
-      "icon": "MoltenAluminum"
+      "icon": "MoltenAluminum",
+      "maxMass": 7870,
+      "defaultMass": 1000,
+      "defaultTemperature": 2000,
+      "lowTemp": 933.45,
+      "highTemp": 2743.15
     },
     {
       "name": "<link=\"MOLTENLEAD\">Molten Lead</link>",
@@ -55690,11 +58127,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16429588,
       "conduitColor": 16737536,
       "uiColor": 15815424,
-      "icon": "MoltenLead"
+      "icon": "MoltenLead",
+      "maxMass": 9970,
+      "defaultMass": 3000,
+      "defaultTemperature": 2000,
+      "lowTemp": 600.65,
+      "highTemp": 2022.15
     },
     {
       "name": "<link=\"LIQUIDCARBONDIOXIDE\">Liquid Carbon Dioxide</link>",
@@ -55703,11 +58146,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 855309,
       "conduitColor": 4604743,
       "uiColor": 8883895,
-      "icon": "LiquidCarbonDioxide"
+      "icon": "LiquidCarbonDioxide",
+      "maxMass": 2000,
+      "defaultMass": 600,
+      "defaultTemperature": 220,
+      "lowTemp": 216.6,
+      "highTemp": 225
     },
     {
       "name": "<link=\"CRUDEOIL\">Crude Oil</link>",
@@ -55719,11 +58168,17 @@
         "UnrefinedOil",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 0,
       "conduitColor": 0,
       "uiColor": 3150437,
-      "icon": "CrudeOil"
+      "icon": "CrudeOil",
+      "maxMass": 870,
+      "defaultMass": 870,
+      "defaultTemperature": 350,
+      "lowTemp": 233,
+      "highTemp": 673
     },
     {
       "name": "<link=\"MOLTENGLASS\">Molten Glass</link>",
@@ -55733,11 +58188,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 11993082,
       "conduitColor": 11993082,
       "uiColor": 7988991,
-      "icon": "MoltenGlass"
+      "icon": "MoltenGlass",
+      "maxMass": 1840,
+      "defaultMass": 200,
+      "defaultTemperature": 2215,
+      "lowTemp": 1400,
+      "highTemp": 2630
     },
     {
       "name": "<link=\"MOLTENIRIDIUM\">Molten Iridium</link>",
@@ -55748,11 +58209,17 @@
         "RefinedMetal",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 13400206,
       "conduitColor": 13400206,
       "uiColor": 13400206,
-      "icon": "MoltenIridium"
+      "icon": "MoltenIridium",
+      "maxMass": 3870,
+      "defaultMass": 900,
+      "defaultTemperature": 3500,
+      "lowTemp": 2719,
+      "highTemp": 4403
     },
     {
       "name": "<link=\"REFINEDLIPID\">Biodiesel</link>",
@@ -55763,11 +58230,17 @@
         "CombustibleLiquid",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 14797673,
       "conduitColor": 14797673,
       "uiColor": 14797673,
-      "icon": "RefinedLipid"
+      "icon": "RefinedLipid",
+      "maxMass": 870,
+      "defaultMass": 800,
+      "defaultTemperature": 293,
+      "lowTemp": 263.15,
+      "highTemp": 453.15
     },
     {
       "name": "<link=\"LIQUIDSULFUR\">Liquid Sulfur</link>",
@@ -55776,11 +58249,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16776960,
       "conduitColor": 16777215,
       "uiColor": 16776960,
-      "icon": "LiquidSulfur"
+      "icon": "LiquidSulfur",
+      "maxMass": 740,
+      "defaultMass": 190,
+      "defaultTemperature": 450,
+      "lowTemp": 388.35,
+      "highTemp": 610.15
     },
     {
       "name": "<link=\"MOLTENGOLD\">Molten Gold</link>",
@@ -55792,11 +58271,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16737536,
       "conduitColor": 16737536,
       "uiColor": 15815424,
-      "icon": "MoltenGold"
+      "icon": "MoltenGold",
+      "maxMass": 9970,
+      "defaultMass": 870,
+      "defaultTemperature": 2000,
+      "lowTemp": 1337,
+      "highTemp": 3129
     },
     {
       "name": "<link=\"MAGMA\">Magma</link>",
@@ -55806,11 +58291,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16718336,
       "conduitColor": 14891045,
       "uiColor": 11403264,
-      "icon": "Magma"
+      "icon": "Magma",
+      "maxMass": 1840,
+      "defaultMass": 1840,
+      "defaultTemperature": 2000,
+      "lowTemp": 1683,
+      "highTemp": 2630
     },
     {
       "name": "<link=\"CHLORINE\">Liquid Chlorine</link>",
@@ -55819,11 +58310,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 9561410,
       "conduitColor": 9490524,
       "uiColor": 3851056,
-      "icon": "Chlorine"
+      "icon": "Chlorine",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 200,
+      "lowTemp": 172.17,
+      "highTemp": 238.55
     },
     {
       "name": "<link=\"LIQUIDHYDROGEN\">Liquid Hydrogen</link>",
@@ -55832,11 +58329,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 14177421,
       "conduitColor": 14054547,
       "uiColor": 16711790,
-      "icon": "LiquidHydrogen"
+      "icon": "LiquidHydrogen",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 18,
+      "lowTemp": 14,
+      "highTemp": 21
     },
     {
       "name": "<link=\"RESIN\">Sap</link>",
@@ -55845,11 +58348,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 13404952,
       "conduitColor": 13404952,
       "uiColor": 13404952,
-      "icon": "Resin"
+      "icon": "Resin",
+      "maxMass": 920,
+      "defaultMass": 920,
+      "defaultTemperature": 300,
+      "lowTemp": 293.15,
+      "highTemp": 398.15
     },
     {
       "name": "<link=\"LIQUIDGUNK\">Gunk</link>",
@@ -55859,11 +58368,17 @@
         "Slippery",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 5317472,
       "conduitColor": 5317472,
       "uiColor": 5317472,
-      "icon": "LiquidGunk"
+      "icon": "LiquidGunk",
+      "maxMass": 870,
+      "defaultMass": 870,
+      "defaultTemperature": 310,
+      "lowTemp": 265,
+      "highTemp": 721
     },
     {
       "name": "<link=\"LIQUIDPROPANE\">Liquid Propane</link>",
@@ -55874,11 +58389,17 @@
         "HideFromCodex",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 2702591,
       "conduitColor": 4215020,
       "uiColor": 7247283,
-      "icon": "LiquidPropane"
+      "icon": "LiquidPropane",
+      "maxMass": 1000,
+      "defaultMass": 600,
+      "defaultTemperature": 200,
+      "lowTemp": 85,
+      "highTemp": 231
     },
     {
       "name": "<link=\"MOLTENTUNGSTEN\">Molten Tungsten</link>",
@@ -55889,11 +58410,17 @@
         "RefinedMetal",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 12594217,
       "conduitColor": 12327490,
       "uiColor": 15018254,
-      "icon": "MoltenTungsten"
+      "icon": "MoltenTungsten",
+      "maxMass": 3870,
+      "defaultMass": 200,
+      "defaultTemperature": 4000,
+      "lowTemp": 3695,
+      "highTemp": 6203
     },
     {
       "name": "<link=\"PETROLEUM\">Petroleum</link>",
@@ -55904,11 +58431,17 @@
         "PlastifiableLiquid",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16761637,
       "conduitColor": 16761637,
       "uiColor": 16761637,
-      "icon": "Petroleum"
+      "icon": "Petroleum",
+      "maxMass": 740,
+      "defaultMass": 740,
+      "defaultTemperature": 300,
+      "lowTemp": 216,
+      "highTemp": 812
     },
     {
       "name": "<link=\"MOLTENSALT\">Molten Salt</link>",
@@ -55917,11 +58450,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16711713,
       "conduitColor": 14250837,
       "uiColor": 16091504,
-      "icon": "MoltenSalt"
+      "icon": "MoltenSalt",
+      "maxMass": 740,
+      "defaultMass": 190,
+      "defaultTemperature": 450,
+      "lowTemp": 1073,
+      "highTemp": 1738
     },
     {
       "name": "<link=\"MOLTENCOBALT\">Molten Cobalt</link>",
@@ -55933,11 +58472,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 7630,
       "conduitColor": 7630,
       "uiColor": 7630,
-      "icon": "MoltenCobalt"
+      "icon": "MoltenCobalt",
+      "maxMass": 7870,
+      "defaultMass": 1000,
+      "defaultTemperature": 2500,
+      "lowTemp": 1768,
+      "highTemp": 3200
     },
     {
       "name": "<link=\"BRINE\">Brine</link>",
@@ -55947,11 +58492,17 @@
         "AnyWater",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 16777215,
       "conduitColor": 16777215,
       "uiColor": 11397605,
-      "icon": "Brine"
+      "icon": "Brine",
+      "maxMass": 1200,
+      "defaultMass": 1200,
+      "defaultTemperature": 282.15,
+      "lowTemp": 250.65,
+      "highTemp": 375.9
     },
     {
       "name": "<link=\"NUCLEARWASTE\">Liquid Nuclear Waste</link>",
@@ -55961,11 +58512,17 @@
         "EmitsLight",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 9559387,
       "conduitColor": 9559387,
       "uiColor": 8499200,
-      "icon": "NuclearWaste"
+      "icon": "NuclearWaste",
+      "maxMass": 1000,
+      "defaultMass": 500,
+      "defaultTemperature": 400,
+      "lowTemp": 300,
+      "highTemp": 800
     },
     {
       "name": "<link=\"SUPERCOOLANT\">Super Coolant</link>",
@@ -55974,11 +58531,17 @@
       "oreTags": [
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 3648915,
       "conduitColor": 3648915,
       "uiColor": 3648915,
-      "icon": "SuperCoolant"
+      "icon": "SuperCoolant",
+      "maxMass": 910,
+      "defaultMass": 800,
+      "defaultTemperature": 238,
+      "lowTemp": 2,
+      "highTemp": 710
     },
     {
       "name": "<link=\"ETHANOL\">Ethanol</link>",
@@ -55988,11 +58551,17 @@
         "CombustibleLiquid",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 65482,
       "conduitColor": 65482,
       "uiColor": 65386,
-      "icon": "Ethanol"
+      "icon": "Ethanol",
+      "maxMass": 1000,
+      "defaultMass": 1000,
+      "defaultTemperature": 300,
+      "lowTemp": 159.1,
+      "highTemp": 351.5
     },
     {
       "name": "<link=\"PHYTOOIL\">Phyto Oil</link>",
@@ -56004,11 +58573,17 @@
         "UnrefinedOil",
         "Liquid"
       ],
+      "state": 2,
       "buildMenuSort": 0,
       "color": 10004527,
       "conduitColor": 10004527,
       "uiColor": 10004527,
-      "icon": "PhytoOil"
+      "icon": "PhytoOil",
+      "maxMass": 870,
+      "defaultMass": 800,
+      "defaultTemperature": 293,
+      "lowTemp": 240,
+      "highTemp": 348.15
     },
     {
       "name": "<link=\"SULFURGAS\">Sulfur Gas</link>",
@@ -56018,11 +58593,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 16776960,
       "conduitColor": 16777215,
       "uiColor": 16776960,
-      "icon": "SulfurGas"
+      "icon": "SulfurGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 700,
+      "lowTemp": 610.15,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"ZINCGAS\">Zinc Gas</link>",
@@ -56035,11 +58616,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 2009770,
       "conduitColor": 2009770,
       "uiColor": 2009770,
-      "icon": "ZincGas"
+      "icon": "ZincGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3200,
+      "lowTemp": 1180,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"SALTGAS\">Salt Gas</link>",
@@ -56049,11 +58636,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 16762011,
       "conduitColor": 14851734,
       "uiColor": 16777215,
-      "icon": "SaltGas"
+      "icon": "SaltGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3000,
+      "lowTemp": 1738,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"PROPANE\">Propane Gas</link>",
@@ -56065,11 +58658,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 2580223,
       "conduitColor": 4215020,
       "uiColor": 7966929,
-      "icon": "Propane"
+      "icon": "Propane",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 350,
+      "lowTemp": 231,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"NIOBIUMGAS\">Niobium Gas</link>",
@@ -56082,11 +58681,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 3441243,
       "conduitColor": 3441243,
       "uiColor": 6225325,
-      "icon": "NiobiumGas"
+      "icon": "NiobiumGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 5500,
+      "lowTemp": 5017,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"HELIUM\">Helium</link>",
@@ -56096,11 +58701,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 13511724,
       "conduitColor": 15877959,
       "uiColor": 13148089,
-      "icon": "Helium"
+      "icon": "Helium",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 4.22,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"OXYGEN\">Oxygen</link>",
@@ -56110,11 +58721,17 @@
         "Gas",
         "Breathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 3064039,
       "conduitColor": 6937593,
       "uiColor": 12058623,
-      "icon": "Oxygen"
+      "icon": "Oxygen",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 90.19,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"COBALTGAS\">Cobalt Gas</link>",
@@ -56127,11 +58744,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 8684,
       "conduitColor": 8684,
       "uiColor": 8684,
-      "icon": "CobaltGas"
+      "icon": "CobaltGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 4000,
+      "lowTemp": 3200,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"STEELGAS\">Steel Gas</link>",
@@ -56145,11 +58768,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 3678489,
       "conduitColor": 6766385,
       "uiColor": 13344434,
-      "icon": "SteelGas"
+      "icon": "SteelGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 4500,
+      "lowTemp": 4100,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"CHLORINEGAS\">Chlorine Gas</link>",
@@ -56159,11 +58788,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 9821020,
       "conduitColor": 9490524,
       "uiColor": 305016,
-      "icon": "ChlorineGas"
+      "icon": "ChlorineGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 238.55,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"HYDROGEN\">Hydrogen Gas</link>",
@@ -56173,11 +58808,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 15295373,
       "conduitColor": 14054547,
       "uiColor": 12918667,
-      "icon": "Hydrogen"
+      "icon": "Hydrogen",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 21,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"SOURGAS\">Sour Gas</link>",
@@ -56187,11 +58828,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 7742557,
       "conduitColor": 7742557,
       "uiColor": 7742557,
-      "icon": "SourGas"
+      "icon": "SourGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 111.65,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"STEAM\">Steam</link>",
@@ -56201,11 +58848,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 8767714,
       "conduitColor": 11456511,
       "uiColor": 8767971,
-      "icon": "Steam"
+      "icon": "Steam",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 400,
+      "lowTemp": 372.5,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"METHANE\">Natural Gas</link>",
@@ -56216,11 +58869,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 16739855,
       "conduitColor": 12410141,
       "uiColor": 16739855,
-      "icon": "Methane"
+      "icon": "Methane",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 300,
+      "lowTemp": 111.65,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"MERCURYGAS\">Mercury Gas</link>",
@@ -56231,11 +58890,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 5341108,
       "conduitColor": 5341108,
       "uiColor": 5074378,
-      "icon": "MercuryGas"
+      "icon": "MercuryGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 850,
+      "lowTemp": 629.9,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"GOLDGAS\">Gold Gas</link>",
@@ -56248,11 +58913,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 14264081,
       "conduitColor": 14264081,
       "uiColor": 16769677,
-      "icon": "GoldGas"
+      "icon": "GoldGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3500,
+      "lowTemp": 3129,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"ETHANOLGAS\">Ethanol Gas</link>",
@@ -56262,11 +58933,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 65482,
       "conduitColor": 65482,
       "uiColor": 65386,
-      "icon": "EthanolGas"
+      "icon": "EthanolGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 390,
+      "lowTemp": 351.5,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"ROCKGAS\">Rock Gas</link>",
@@ -56277,11 +58954,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 9207678,
       "conduitColor": 14851734,
       "uiColor": 11711154,
-      "icon": "RockGas"
+      "icon": "RockGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 3000,
+      "lowTemp": 2630,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"CARBONGAS\">Carbon Gas</link>",
@@ -56292,11 +58975,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 1248295,
       "conduitColor": 2827330,
       "uiColor": 12231366,
-      "icon": "CarbonGas"
+      "icon": "CarbonGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 5700,
+      "lowTemp": 5100,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"SUPERCOOLANTGAS\">Super Coolant Gas</link>",
@@ -56306,11 +58995,17 @@
         "Gas",
         "Unbreathable"
       ],
+      "state": 1,
       "buildMenuSort": 0,
       "color": 3648915,
       "conduitColor": 3648915,
       "uiColor": 3648915,
-      "icon": "SuperCoolantGas"
+      "icon": "SuperCoolantGas",
+      "maxMass": 1.8,
+      "defaultMass": 1,
+      "defaultTemperature": 850,
+      "lowTemp": 710,
+      "highTemp": 10000
     },
     {
       "name": "<link=\"VOID\">Void</link>",
@@ -56320,11 +59015,17 @@
         "Vacuum",
         "Special"
       ],
+      "state": 0,
       "buildMenuSort": 1,
       "color": 14802059,
       "conduitColor": 16777215,
       "uiColor": 16776960,
-      "icon": "Void"
+      "icon": "Void",
+      "maxMass": 0,
+      "defaultMass": 0,
+      "defaultTemperature": 0,
+      "lowTemp": 0,
+      "highTemp": 0
     },
     {
       "name": "<link=\"COMPOSITION\">Composition</link>",
@@ -56335,11 +59036,17 @@
         "Vacuum",
         "Special"
       ],
+      "state": 0,
       "buildMenuSort": 1,
       "color": 0,
       "conduitColor": 16777215,
       "uiColor": 16711689,
-      "icon": "COMPOSITION"
+      "icon": "COMPOSITION",
+      "maxMass": 0,
+      "defaultMass": 0,
+      "defaultTemperature": 0,
+      "lowTemp": 0,
+      "highTemp": 0
     }
   ],
   "mods": [
