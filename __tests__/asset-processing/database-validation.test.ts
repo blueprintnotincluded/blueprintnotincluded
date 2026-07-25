@@ -6,6 +6,7 @@ import {
   BSpriteInfo,
   BSpriteModifier,
   BBuilding,
+  ElementState,
 } from '../../lib';
 
 describe('Database Asset Validation', () => {
@@ -55,11 +56,11 @@ describe('Database Asset Validation', () => {
       database = readDatabase();
     });
 
-    it('should have 473 buildings and 212 elements', () => {
-      // 449 vanilla + 24 modded (6 Steam Workshop mods) — see
+    it('should have 487 buildings and 212 elements', () => {
+      // 463 vanilla + 24 modded (6 Steam Workshop mods) — see
       // spec/WEBSITE_MOD_IMPORT.md. Import defensively: this count varies
       // with whatever mods were enabled at export time.
-      expect(database.buildings.length).to.equal(473);
+      expect(database.buildings.length).to.equal(487);
       expect(database.elements.length).to.equal(212);
     });
 
@@ -69,6 +70,85 @@ describe('Database Asset Validation', () => {
         expect(element.id, `Element ${index} id should be string`)
           .to.be.a('string')
           .with.length.greaterThan(0);
+      });
+    });
+
+    // The mass/temperature defaults the game seeds its own pickers with. The two
+    // invariants below are the export contract's (spec/elements-defaults.md) and
+    // exist to catch an upstream regression: if the exporter ever reads gas.yaml
+    // instead of the runtime Element, gases silently lose their 1.8/1.0 defaults.
+    describe('element mass and temperature defaults', () => {
+      const numericFields = [
+        'maxMass',
+        'defaultMass',
+        'defaultTemperature',
+        'lowTemp',
+        'highTemp',
+      ] as const;
+
+      it('should give every element finite mass and temperature defaults', () => {
+        for (const element of database.elements as BuildableElement[])
+          for (const field of numericFields)
+            expect(element[field], `${element.id}.${field}`).to.be.a('number').that.is.finite;
+      });
+
+      it('should give every gas the runtime mass defaults', () => {
+        const gases = (database.elements as BuildableElement[]).filter(
+          element => element.state === ElementState.Gas
+        );
+        // Vanilla U59 ships 32 gases; a sharp drop here means state parsing broke.
+        expect(gases.length).to.equal(32);
+        for (const gas of gases) {
+          expect(gas.maxMass, `${gas.id} maxMass`).to.equal(1.8);
+          expect(gas.defaultMass, `${gas.id} defaultMass`).to.equal(1.0);
+        }
+      });
+
+      it('should never default an element above its own capacity', () => {
+        for (const element of database.elements as BuildableElement[])
+          expect(
+            element.defaultMass,
+            `${element.id} defaultMass exceeds maxMass`
+          ).to.be.at.most(element.maxMass);
+      });
+
+      it('should match the values the export contract documents', () => {
+        const byId = new Map<string, BuildableElement>(
+          (database.elements as BuildableElement[]).map(element => [element.id, element])
+        );
+        const expected: [string, number, number, number, number][] = [
+          // id, state, maxMass, defaultMass, defaultTemperature (Kelvin)
+          ['Water', ElementState.Liquid, 1000, 1000, 300],
+          ['Ice', ElementState.Solid, 1100, 1000, 232.15],
+          ['CrudeOil', ElementState.Liquid, 870, 870, 350],
+          ['Chlorine', ElementState.Liquid, 1000, 600, 200],
+          ['Oxygen', ElementState.Gas, 1.8, 1.0, 300],
+          ['Steam', ElementState.Gas, 1.8, 1.0, 400],
+        ];
+        for (const [id, state, maxMass, defaultMass, defaultTemperature] of expected) {
+          const element = byId.get(id);
+          expect(element, `${id} should exist`).not.to.equal(undefined);
+          expect(element!.state, `${id} state`).to.equal(state);
+          expect(element!.maxMass, `${id} maxMass`).to.equal(maxMass);
+          expect(element!.defaultMass, `${id} defaultMass`).to.equal(defaultMass);
+          expect(element!.defaultTemperature, `${id} defaultTemperature`).to.equal(
+            defaultTemperature
+          );
+        }
+      });
+
+      // The export writes `state` as the enum name for most solids and its raw
+      // numeric value (with flag bits set) for everything else; the converter
+      // masks it down to the phase. Anything outside the enum means that broke.
+      it('should normalize every state to a known phase', () => {
+        const phases = [
+          ElementState.Vacuum,
+          ElementState.Gas,
+          ElementState.Liquid,
+          ElementState.Solid,
+        ];
+        for (const element of database.elements as BuildableElement[])
+          expect(phases, `${element.id} state ${element.state}`).to.include(element.state);
       });
     });
 

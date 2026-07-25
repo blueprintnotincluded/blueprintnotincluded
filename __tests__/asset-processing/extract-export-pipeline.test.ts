@@ -38,13 +38,13 @@ describe('Extract Export Pipeline Tests', () => {
     });
 
     it('should have correct record counts', () => {
-      // 449 vanilla + 24 modded (6 Steam Workshop mods) — see
+      // 463 vanilla + 24 modded (6 Steam Workshop mods) — see
       // spec/WEBSITE_MOD_IMPORT.md. Import defensively: these counts vary
       // with whatever mods were enabled at export time.
-      expect(db.buildings.length).to.equal(473);
+      expect(db.buildings.length).to.equal(487);
       expect(db.elements.length).to.equal(212);
       expect(db.buildMenuCategories.length).to.equal(15);
-      expect(db.buildMenuItems.length).to.equal(389);
+      expect(db.buildMenuItems.length).to.equal(402);
     });
 
     it('should have overlay info sprites in uiSprites', () => {
