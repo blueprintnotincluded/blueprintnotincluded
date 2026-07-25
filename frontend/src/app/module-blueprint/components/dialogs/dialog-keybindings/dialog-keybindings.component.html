@@ -13,7 +13,11 @@
     Oxygen Not Included's own controls. Changes are saved in this browser.
   </div>
 
-  <div class="conflict" *ngIf="conflictMessage">{{ conflictMessage }}</div>
+  <!-- The live region has to be in the DOM before the message appears, so the
+       wrapper is always rendered and only its content is conditional. -->
+  <div aria-live="polite">
+    <div class="conflict" *ngIf="conflictMessage">{{ conflictMessage }}</div>
+  </div>
 
   <div class="scrollable">
     <div class="category" *ngFor="let categoryView of categories">
@@ -26,7 +30,7 @@
             type="button"
             class="chord"
             *ngFor="let chord of row.chords; let i = index"
-            [attr.aria-label]="'Unbind ' + row.chordLabels[i]"
+            [attr.aria-label]="row.unbindLabels[i]"
             i18n-title
             title="Unbind this key"
             (click)="removeChord(row.actionId, chord)"
