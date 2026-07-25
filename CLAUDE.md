@@ -254,10 +254,22 @@ content — users no longer set these manually. `multiplayerSafe` has been remov
   backfill runs.
 - **`Blueprint.hadUnknownBuildings`** — set during `importFromBni`/`importFromMdb` when a building
   ID is not found; read by the save dialog to detect mods stripped during import.
-- **Save dialog** — `gameVersion` and `modded` are read-only disabled controls populated on open.
+- **`?dlc=` filter** — `GET /api/getblueprints?dlc=DLC2_ID,DLC3_ID` returns blueprints requiring
+  ANY of those packs (`$in`, like `rooms`; repeatable or comma-separated). Ids are validated by
+  shape (`/^[A-Z0-9_]{1,32}$/`, max 20), never against `DLC_LABELS` — a pack that ships in an
+  export before we've written its label must still be filterable. Docs with no `requiredDlcs`
+  never match. The subset test ("hide what I can't build") is a separate future `owned=` param.
+- **Display** — the blueprint card and details page render one linked chip per required DLC
+  (`dlcLabel()`, `dlcTooltip()` in `utils/chip-tooltip.ts`); `[]` renders "Base game", while an
+  absent set renders nothing. The Discover sidebar's DLC facet is multi-select and round-trips
+  through the `dlc` URL param.
+- **Save dialog** — the DLC requirement set and `modded` are read-only, derived from blueprint
+  content on open (`gameVersion` is still derived and submitted, but no longer displayed).
   `researchTier` is hidden (no tech-tree data in current export; field kept in schema for future use).
 - **Backfill** — `npm run derive-metadata` re-derives `gameVersion`, `requiredDlcs`, `mods`
-  and `modded` for all existing blueprints.
+  and `modded` for all existing blueprints. **The `?dlc=` filter matches nothing until this
+  runs** — no document written before the field existed has a set at all (prod: `cd /bpni/build
+  && npm run derive-metadata`, dry-run first).
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:
