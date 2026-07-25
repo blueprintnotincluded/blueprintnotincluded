@@ -256,13 +256,29 @@ content — users no longer set these manually. `multiplayerSafe` has been remov
   ID is not found; read by the save dialog to detect mods stripped during import.
 - **`?dlc=` filter** — `GET /api/getblueprints?dlc=DLC2_ID,DLC3_ID` returns blueprints requiring
   ANY of those packs (`$in`, like `rooms`; repeatable or comma-separated). Ids are validated by
-  shape (`/^[A-Z0-9_]{1,32}$/`, max 20), never against `DLC_LABELS` — a pack that ships in an
-  export before we've written its label must still be filterable. Docs with no `requiredDlcs`
-  never match. The subset test ("hide what I can't build") is a separate future `owned=` param.
+  shape (`DLC_ID_PATTERN` / `MAX_DLC_FILTER_IDS` in `lib/src/blueprint/dlc.ts`, max 20), never
+  against `DLC_LABELS` — a pack that ships in an export before we've written its label must
+  still be filterable. Docs with no `requiredDlcs` never match.
+- **`?excludeDlc=` filter** — the complement: `requiredDlcs: { $nin: [...] }`, same shape
+  validation, composes with `dlc=`/`category=`. This replaced the plan's `owned=` subset idea —
+  "I don't want Bionic blueprints" is more useful and more expressive than declaring what you
+  own. Base-game (`[]`) and never-derived docs both survive exclusion (conservative: absence of
+  DLC info is never treated as needing the excluded pack). A `$nin` on `requiredDlcs` gets no
+  help from the field's indexes (can't produce a bounded range, so the planner keeps the
+  `createdAt`-sorted index and applies the exclusion as a per-doc FETCH filter) — checked with
+  `explain()`, not a collscan, just no extra narrowing.
+- **DLC exclusion preference** — `dlcPreferences.excludedDlcs` on `User` (raw ids, `default:
+  []`), read/written via `GET`/`PATCH /api/users/me/dlc-preferences`. Applied automatically on
+  Discover load for a logged-in user *only* when the URL has no explicit `excludeDlc` param;
+  written back only on real interaction (toggle/clear), never merely from loading it, never for
+  a logged-out visitor. Private account data — never in `ProfileResponse` or any other
+  user-facing payload.
 - **Display** — the blueprint card and details page render one linked chip per required DLC
   (`dlcLabel()`, `dlcTooltip()` in `utils/chip-tooltip.ts`); `[]` renders "Base game", while an
-  absent set renders nothing. The Discover sidebar's DLC facet is multi-select and round-trips
-  through the `dlc` URL param.
+  absent set renders nothing. The Discover sidebar has two DLC facet groups — "show only" and
+  "hide" — each multi-select and round-tripping through its own URL param (`dlc` / `excludeDlc`);
+  a pack can't be in both, selecting it in one clears it from the other. Exclusion chips use the
+  danger accent (`exclude: true` on `ActiveFilterChip`) so the two read as opposite intents.
 - **Save dialog** — the DLC requirement set and `modded` are read-only, derived from blueprint
   content on open (`gameVersion` is still derived and submitted, but no longer displayed).
   `researchTier` is hidden (no tech-tree data in current export; field kept in schema for future use).
