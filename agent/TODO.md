@@ -29,7 +29,8 @@ Open items only (import pipeline, render cutover, legacy-pipeline removal, and E
 
 ## DLC requirements: replace ordered `gameVersion` with a requirement set
 
-Designed, not implemented — full plan in `spec/dlc-requirements-plan.md`.
+**Step 1 shipped** (lib + backend + derivation, no visible change); steps 2–5 open. Full
+plan in `spec/dlc-requirements-plan.md`.
 
 DLCs are optional and unordered: anyone can own any combination, so a blueprint carries the
 *set* of DLCs it needs (`requiredDlcs: string[]`, `[]` = base game), not a single ordered
@@ -51,10 +52,20 @@ place. That removes the naming blocker entirely and makes the existing mislabel 
 Booster content is `DLC3_ID`, which arrived with the U59-740622 export alongside a
 Prehistoric pack on `DLC4_ID`.
 
-Phased in the plan; step 1 (lib + backend + derivation) lands with no visible change.
+Shipped in step 1: `deriveRequiredDlcs` + `DLC_LABELS`/`dlcLabel` in lib, `requiredDlcs` on
+the blueprint schema (indexed, server-derived on every save/fork/version-restore), emitted in
+the list/details/editor responses, derived by `derive-metadata`, and a display-label contract
+test in place of the retired `pendingDlcIds` allowlist. Labels are the game's own
+`STRINGS.UI.<id>.NAME` — `DLC5_ID` is "The Aquatic Planet Pack", `DLC4_ID` "The Prehistoric
+Planet Pack" — which settles the plan's only open naming question.
+
+Still open: step 2 (`dlc=` filter + display chips), step 3 (`owned=` subset filter, and
+whether ownership becomes a stored user preference), step 4 (drop `gameVersion` from schema,
+responses, indexes and frontend once nothing reads it), step 5 (elements).
 Element-level DLC provenance is blocked upstream: `elements.json` carries no DLC field, so
 that needs an export-side request. Backfill is not a gate — `derive-metadata` recomputes
-from stored building ids whenever we choose to run it.
+from stored building ids whenever we choose to run it; until then old blueprints have no
+`requiredDlcs` and read as base-game.
 
 ## Steam reskin follow-ups
 
