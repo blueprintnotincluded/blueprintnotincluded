@@ -611,11 +611,12 @@ export function convertExport2024(opts: ConvertOptions): void {
   // whole class of upstream regression: if the exporter ever reads gas.yaml instead of
   // the runtime Element, gases lose their 1.8/1.0 runtime defaults and every gas mass
   // picker silently goes wrong.
-  const elementsMissingDefaults = elements.filter(
-    (e) =>
-      !Number.isFinite(e.maxMass) ||
-      !Number.isFinite(e.defaultMass) ||
-      !Number.isFinite(e.defaultTemperature)
+  // Every numeric field we carry, not just the mass ones: lowTemp/highTemp bound the
+  // temperature picker, so a non-finite value there is just as broken as a missing mass.
+  const elementsMissingDefaults = elements.filter((e) =>
+    [e.maxMass, e.defaultMass, e.defaultTemperature, e.lowTemp, e.highTemp].some(
+      (value) => !Number.isFinite(value)
+    )
   );
   const gasElements = elements.filter((e) => e.state === ElementState.Gas);
   const gasesWithoutRuntimeDefaults = gasElements.filter(
