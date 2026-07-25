@@ -176,7 +176,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Date**: 2026-07-12
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
-- **Tests**: ✅ Backend 530 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 750 passing (Vitest/jsdom)
+- **Tests**: ✅ Backend 530 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 981 passing (Vitest/jsdom)
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 - **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
@@ -210,6 +210,25 @@ converter details: `app/api/batch/convert-export-2024.md`.
 - **DLC data**: each building record now includes `dlcIds: string[]` (e.g. `['EXPANSION1_ID']`
   for Spaced Out buildings). The converter (`import:2024`) populates this from the raw export's
   `kPrefabID.requiredDlcIds`. Used by `BlueprintAnalyzer` to derive metadata.
+
+### Keyboard shortcuts
+Editor input goes through an action layer, never raw key comparisons.
+- **`frontend/src/app/module-blueprint/keybindings/shortcut-actions.ts`** — the catalogue of
+  rebindable actions (id, category, label, default chords). Defaults mirror Oxygen Not
+  Included's own controls where the game has an equivalent action; website-only actions take
+  keys the game leaves free. Adding a shortcut = one entry here + one handler registration.
+- **`keybindings/key-chord.ts`** — chord model over `KeyboardEvent.code` (physical key, like
+  the game), with pure parse/serialize/format helpers. Serialized modifier order is fixed
+  (`Ctrl+Alt+Shift+Meta+Code`); a spec fails on any default written out of order.
+- **`services/keybinding.service.ts`** — resolves chord → action, detects conflicts, and
+  persists **only the user's diff from the defaults** (`localStorage['bpni-keybindings-v1']`)
+  so future default changes still reach existing users.
+- **`services/keyboard-shortcut.service.ts`** — dispatcher. Components call
+  `register(actionId, handler)` and never see a key. Handlers are LIFO (a transient owner
+  shadows the editor-wide one) and returning `false` declines an action that doesn't apply
+  right now. Text inputs are guarded centrally here.
+- **Tools** implement `handleShortcut(action): boolean`, not `keyDown(keyCode)`.
+- **UI**: `components/dialogs/dialog-keybindings/` — Edit ▸ Keyboard shortcuts, or `Shift+/`.
 
 ### Blueprint metadata auto-derivation
 `gameVersion` and `modded` are derived deterministically from the blueprint content — users
