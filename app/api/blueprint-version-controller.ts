@@ -9,6 +9,7 @@ import { optionalViewer } from './utils/optionalViewer';
 import { canViewBlueprint } from './utils/blueprint-visibility';
 import { BlueprintEventService } from './services/blueprint-event-service';
 import { deriveRooms } from './services/room-derivation-service';
+import { deriveDlcs } from './services/dlc-derivation-service';
 import {
   ensureCurrentVersion,
   resolveCurrentData,
@@ -92,6 +93,10 @@ export class BlueprintVersionController {
         researchTier: source.researchTier ?? null,
         modded: source.modded ?? null,
         mods: source.mods ?? [],
+        // Re-derived rather than copied: the fork's content is the source's
+        // content, so deriving is equivalent — except for sources that predate
+        // the field, where copying would leave the fork never-derived too.
+        requiredDlcs: deriveDlcs(sourceVersion.data),
         forkedFrom: {
           blueprintId: source._id,
           versionId: sourceVersion._id,
@@ -316,6 +321,8 @@ export class BlueprintVersionController {
       blueprint.modifiedAt = new Date();
       // The live content changed, so the derived room tags change with it.
       blueprint.rooms = deriveRooms(version.data);
+      // …as does which DLCs the live content requires.
+      blueprint.requiredDlcs = deriveDlcs(version.data);
       // A stored verbatim upload no longer matches the restored data — drop
       // it rather than serve an original that disagrees with the render.
       blueprint.rawSource = null;

@@ -1,12 +1,14 @@
-// Backfill script: derive gameVersion, modded and category for all blueprints
-// in the database using the same logic as the save dialog.
+// Backfill script: derive gameVersion, requiredDlcs, modded and category for
+// all blueprints in the database using the same logic as the save dialog.
 //
 // Usage:
 //   ts-node app/api/batch/derive-blueprint-metadata.ts [--dry-run]
 //
 // The script loads database-2024.json to build the DLC, known-ID and category
 // maps, then iterates every blueprint document and recomputes gameVersion,
-// modded and category. modded is derived from whether any stored prefabId is
+// requiredDlcs, modded and category. requiredDlcs is the set of DLCs the
+// blueprint's buildings need; blueprints saved before it existed have no value
+// at all (they read as base-game) until this script runs. modded is derived from whether any stored prefabId is
 // absent from the current database (approximation — unknown buildings were
 // stripped before saving, so true mod detection was only possible at import
 // time). category is only ever set when currently null — a user's explicit
@@ -16,7 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { deriveGameVersion, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
+import { deriveGameVersion, deriveRequiredDlcs, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { MdbBlueprint } from '../../../lib/index';
 
@@ -62,6 +64,8 @@ async function run(dryRun: boolean) {
   let leftUntagged = 0;
   let blueprintsWithMods = 0;
   const distinctMods = new Set<string>();
+  let blueprintsWithDlcs = 0;
+  const distinctDlcs = new Set<string>();
 
   for await (const doc of cursor) {
     const mdb = doc.data as MdbBlueprint;
@@ -69,6 +73,7 @@ async function run(dryRun: boolean) {
 
     const buildingDlcIds = prefabIds.map(id => dlcIdsMap.get(id) ?? []);
     const gameVersion = deriveGameVersion(buildingDlcIds);
+    const requiredDlcs = deriveRequiredDlcs(buildingDlcIds);
     // Only trust a positive modded=true: unknown buildings were stripped at import,
     // so false here means "no remaining IDs are unknown" — not "definitely vanilla".
     const derivedModded = deriveModded(prefabIds, knownIds, modByPrefabId);
@@ -85,6 +90,7 @@ async function run(dryRun: boolean) {
 
     const changed =
       doc.gameVersion !== gameVersion ||
+      JSON.stringify(doc.requiredDlcs ?? null) !== JSON.stringify(requiredDlcs) ||
       (derivedModded && doc.modded !== true) ||
       JSON.stringify(doc.mods ?? null) !== JSON.stringify(derivedMods) ||
       derivedCategory != null;
@@ -92,7 +98,7 @@ async function run(dryRun: boolean) {
     if (changed) {
       updated++;
       if (!dryRun) {
-        const $set: Record<string, unknown> = { gameVersion, mods: derivedMods };
+        const $set: Record<string, unknown> = { gameVersion, requiredDlcs, mods: derivedMods };
         if (derivedModded) $set.modded = true;
         if (derivedCategory != null) $set.category = derivedCategory;
         await BlueprintModel.model.updateOne({ _id: doc._id }, { $set });
@@ -103,11 +109,19 @@ async function run(dryRun: boolean) {
       blueprintsWithMods++;
       for (const mod of derivedMods) distinctMods.add(mod);
     }
+
+    if (requiredDlcs.length > 0) {
+      blueprintsWithDlcs++;
+      for (const dlcId of requiredDlcs) distinctDlcs.add(dlcId);
+    }
   }
 
   console.log(`Processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
   console.log(`Category — tagged: ${tagged}, left untagged: ${leftUntagged}, already set: ${alreadyTagged}`);
   console.log(`mods tagged: ${blueprintsWithMods} blueprints reference ${distinctMods.size} distinct mods`);
+  console.log(
+    `requiredDlcs: ${blueprintsWithDlcs} blueprints need at least one DLC (${[...distinctDlcs].sort().join(', ') || 'none'})`
+  );
   await mongoose.disconnect();
 }
 

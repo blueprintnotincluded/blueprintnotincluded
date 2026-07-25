@@ -42,6 +42,7 @@ import {
 import { PreviewImageService } from './services/preview-image-service';
 import { deriveRooms } from './services/room-derivation-service';
 import { deriveMods } from './services/mod-derivation-service';
+import { deriveDlcs } from './services/dlc-derivation-service';
 import mongoose from 'mongoose';
 
 const MAX_SKIP = 10000;
@@ -485,6 +486,7 @@ export class BlueprintController {
         rating: blueprint.ratingAverage ?? 0,
         myRating,
         gameVersion: blueprint.gameVersion ?? null,
+        requiredDlcs: blueprint.requiredDlcs ?? [],
         category: blueprint.category ?? null,
         subcategory: blueprint.subcategory ?? null,
         description: blueprint.description ?? null,
@@ -987,6 +989,7 @@ export class BlueprintController {
       rating: blueprint.ratingAverage ?? 0,
       commentCount: commentCounts.get(id) ?? 0,
       gameVersion: blueprint.gameVersion ?? null,
+      requiredDlcs: blueprint.requiredDlcs ?? [],
       category: blueprint.category ?? null,
       subcategory: blueprint.subcategory ?? null,
       description: blueprint.description ?? null,
@@ -1280,6 +1283,7 @@ export class BlueprintController {
         ownedByMe: viewerId != null && ownerId === viewerId,
         commentCount: commentCounts.get((blueprint._id as any).toString()) ?? 0,
         gameVersion: blueprint.gameVersion ?? null,
+        requiredDlcs: blueprint.requiredDlcs ?? [],
         category: blueprint.category ?? null,
         subcategory: blueprint.subcategory ?? null,
         description: blueprint.description ?? null,
@@ -1418,6 +1422,9 @@ export class BlueprintController {
     blueprint.rooms = deriveRooms(data);
     // Derived fact, never client-supplied (same policy as rooms).
     blueprint.mods = deriveMods(data);
+    // Which DLCs the placed buildings require — also derived, never
+    // client-supplied, and independent of the author's own game setup.
+    blueprint.requiredDlcs = deriveDlcs(data);
     // Set on every save: absence clears a previously stored raw so it can
     // never go stale relative to `data` (see the model field comment).
     blueprint.rawSource = rawSource?.source ?? null;
