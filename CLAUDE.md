@@ -231,19 +231,33 @@ Editor input goes through an action layer, never raw key comparisons.
 - **UI**: `components/dialogs/dialog-keybindings/` — Edit ▸ Keyboard shortcuts, or `Shift+/`.
 
 ### Blueprint metadata auto-derivation
-`gameVersion` and `modded` are derived deterministically from the blueprint content — users
-no longer set these manually. `multiplayerSafe` has been removed entirely.
+`requiredDlcs`, `gameVersion` and `modded` are derived deterministically from the blueprint
+content — users no longer set these manually. `multiplayerSafe` has been removed entirely.
 
 - **`lib/src/blueprint/blueprint-analyzer.ts`** — pure functions (TDD-covered):
-  - `deriveGameVersion(buildingDlcIds: string[][]): GameVersion` — highest-priority DLC in blueprint
-    (`EXPANSION1_ID`→spacedOut, `DLC2_ID`→frostyPlanet, `DLC5_ID`→bionicBooster, none→base)
+  - `deriveRequiredDlcs(buildingDlcIds: string[][]): string[]` — the union of every placed
+    building's raw Klei DLC ids, deduped and sorted; `[]` = base game only. This is the
+    current model; `deriveGameVersion` below is retained only until the frontend stops
+    importing it (step 4 of `spec/dlc-requirements-plan.md`).
+  - `deriveGameVersion(buildingDlcIds: string[][]): GameVersion` — **superseded.** Collapses
+    the set to the highest-priority DLC found, so it can't express "needs Frosty *and*
+    Bionic", and its `DLC5_ID`→bionicBooster mapping is wrong (DLC5 is the Aquatic pack).
   - `deriveModded(prefabIds: string[], knownIds: Set<string>): boolean` — true if any ID is absent
     from the loaded database
+- **`lib/src/blueprint/dlc.ts`** — `DLC_LABELS`/`dlcLabel(id)`, the one place raw ids become
+  display names (game strings `STRINGS.UI.<id>.NAME`); unknown ids fall back to the raw id.
+  Stored data is always raw ids, never labels. A contract test fails if the export ships a
+  DLC id with no label.
+- **`Blueprint.requiredDlcs`** — server-derived on every save, fork and version restore
+  (`app/api/services/dlc-derivation-service.ts`), never client-supplied; returned in the
+  list/details/editor-open responses. Absent on documents predating the field until the
+  backfill runs.
 - **`Blueprint.hadUnknownBuildings`** — set during `importFromBni`/`importFromMdb` when a building
   ID is not found; read by the save dialog to detect mods stripped during import.
 - **Save dialog** — `gameVersion` and `modded` are read-only disabled controls populated on open.
   `researchTier` is hidden (no tech-tree data in current export; field kept in schema for future use).
-- **Backfill** — `npm run derive-metadata` re-derives both fields for all existing blueprints.
+- **Backfill** — `npm run derive-metadata` re-derives `gameVersion`, `requiredDlcs`, `mods`
+  and `modded` for all existing blueprints.
 
 ### Session Management Files
 Check these files in `agent/` directory for current status:
