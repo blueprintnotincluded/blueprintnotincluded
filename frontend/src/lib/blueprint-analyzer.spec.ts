@@ -217,6 +217,50 @@ describe("deriveCategory", () => {
     expect(deriveCategory(prefabIds, lookup)).toBe("automation");
   });
 
+  describe("conveyor logistics is support, not purpose", () => {
+    // The auto-sweeper and conveyor rail feed whatever build they're attached
+    // to, so they must not decide the category. Before this, transit was the
+    // largest bucket on the site and contained paku farms, boilers, ranches
+    // and geyser tamers.
+    const LOGISTICS = ["SolidTransferArm", "SolidConduit", "SolidConduitInbox"];
+
+    it("a swept ranch is ranching", () => {
+      expect(deriveCategory([...LOGISTICS, "RanchStation"], lookup)).toBe(
+        "ranching",
+      );
+    });
+
+    it("a swept steam turbine build is cooling", () => {
+      expect(deriveCategory([...LOGISTICS, "SteamTurbine2"], lookup)).toBe(
+        "cooling",
+      );
+    });
+
+    it("a swept refinery is refining", () => {
+      expect(deriveCategory([...LOGISTICS, "MetalRefinery"], lookup)).toBe(
+        "refining",
+      );
+    });
+
+    it("still tags a blueprint that is nothing but logistics", () => {
+      // The conveyance fallback survives at the capped 2, so a pure rail
+      // network is transit — it just can't outrank an appliance any more.
+      expect(deriveCategory(LOGISTICS, lookup)).toBe("transit");
+    });
+
+    it("keeps duplicant transit as a strong signal", () => {
+      // Travel tubes are the build's purpose, not plumbing for someone else's,
+      // so a tube network outranks an appliance outright rather than winning a
+      // tie on CATEGORIES order.
+      expect(
+        deriveCategory(
+          ["TravelTube", "TravelTubeEntrance", "MetalRefinery"],
+          lookup,
+        ),
+      ).toBe("transit");
+    });
+  });
+
   it("ranching signature overrides the game's food-tab placement", () => {
     // EggIncubator/FishFeeder/etc. are filed under the game's "food" build
     // tab but are unambiguously ranching buildings in blueprint terms.

@@ -203,11 +203,24 @@ export const SIGNATURE_PREFABS: Record<string, SignatureVote[]> = {
   Refrigerator: [{ category: 'food', weight: 1 }],
   FarmStation: [{ category: 'food', weight: 3 }],
 
-  // transit
+  // transit — duplicant transit only.
+  //
+  // SolidTransferArm (auto-sweeper) and SolidConduit (conveyor rail) used to
+  // sit here at weight 3 and 1, and between them they turned transit into the
+  // site's junk bucket: 624 blueprints containing paku farms, boilers, ranches,
+  // research labs and geyser tamers. Conveyor logistics is a *supporting*
+  // system — a sweeper feeds a ranch, a rail carries ore out of a refinery — so
+  // its presence says nothing about what a blueprint is for, and stacked
+  // (3 + 1 + the capped conveyance fallback) it out-scored the appliance that
+  // actually defined the build.
+  //
+  // Both are still conveyance in the game's own menu, so they keep voting via
+  // FALLBACK_GAME_CATEGORY: a blueprint that is genuinely nothing but rails and
+  // sweepers reaches the capped 2 and still tags transit, but it now loses to
+  // any real appliance. Travel tubes stay at 3 — moving duplicants IS the
+  // purpose of the build that contains them.
   TravelTube: [{ category: 'transit', weight: 3 }],
   TravelTubeEntrance: [{ category: 'transit', weight: 3 }],
-  SolidConduit: [{ category: 'transit', weight: 1 }],
-  SolidTransferArm: [{ category: 'transit', weight: 3 }],
 
   // refining
   MetalRefinery: [{ category: 'refining', weight: 3 }],
