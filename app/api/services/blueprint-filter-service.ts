@@ -251,6 +251,29 @@ export function buildBlueprintFilter(
     ? { $and: [{ deletedAt: null }] }
     : { $and: [{ createdAt: { $lt: parsed.dateFilter } }, { deletedAt: null }] };
 
+  filter.$and.push(...buildCommonClauses(parsed, ratedByIds, viewer));
+
+  const dims = buildDimensionClauses(parsed);
+  if (!omitted.has('category') && dims.category != null) filter.$and.push(dims.category);
+  if (!omitted.has('subcategory') && dims.subcategory != null) filter.$and.push(dims.subcategory);
+  if (!omitted.has('rooms') && dims.rooms != null) filter.$and.push(dims.rooms);
+  if (!omitted.has('dlc')) filter.$and.push(...dims.dlc);
+
+  return { filter, usesOffsetPagination };
+}
+
+// The clauses common to getblueprints and every blueprintfacets $facet
+// branch: draft visibility, owner, name, modded, forkedFrom and ratedBy.
+// Factored out once so the subtle visibility rules (viewerOwnsList, the
+// admin branch, PUBLISHED_FILTER, never $or-ing the two) can't drift between
+// the list endpoint and the facet-count aggregation.
+function buildCommonClauses(
+  parsed: ParsedBlueprintFilters,
+  ratedByIds: mongoose.Types.ObjectId[] | null,
+  viewer: BlueprintFilterViewer
+): Record<string, unknown>[] {
+  const clauses: Record<string, unknown>[] = [];
+
   // Draft visibility: the general feed is published-only for every viewer.
   // Owners see their own drafts when listing their own blueprints (the
   // profile page always passes filterUserId), and admins see drafts when
@@ -261,40 +284,75 @@ export function buildBlueprintFilter(
   // every live 85KB doc into a blocking SORT (~16s on prod).
   const viewerOwnsList = parsed.filterUserId != null && parsed.filterUserId === viewer.userId;
   if (!viewerOwnsList && !(viewer.isAdmin && parsed.filterUserId != null)) {
-    filter.$and.push({ isPublished: PUBLISHED_FILTER });
+    clauses.push({ isPublished: PUBLISHED_FILTER });
   }
 
-  if (parsed.filterUserId != null) filter.$and.push({ owner: parsed.filterUserId });
-  if (parsed.filterName != null) filter.$and.push({ name: { $regex: parsed.filterName, $options: 'i' } });
-  if (!omitted.has('category') && parsed.filterCategory != null) {
-    filter.$and.push({ category: parsed.filterCategory });
-  }
-  if (!omitted.has('subcategory') && parsed.filterSubcategory != null) {
-    filter.$and.push({ subcategory: parsed.filterSubcategory });
-  }
-  if (parsed.filterModded != null) filter.$and.push({ modded: parsed.filterModded });
-  if (!omitted.has('rooms') && parsed.filterRooms != null) {
-    filter.$and.push({ rooms: { $in: parsed.filterRooms } });
-  }
-  if (!omitted.has('dlc')) {
-    // Documents predating DLC derivation have no requiredDlcs at all; $in
-    // never matches a missing field, so they stay out of a dlc= result
-    // rather than reading as base-game.
-    if (parsed.filterDlcs != null) filter.$and.push({ requiredDlcs: { $in: parsed.filterDlcs } });
-    // $nin over an array field matches when NONE of its elements are in the
-    // list — true for [] (base game always survives exclusion) and true for
-    // a missing field (a never-derived doc can't be known to need the
-    // excluded pack, so it isn't hidden either). Note for the planner: $nin
-    // can't produce a bounded range the way $in does, so this clause is
-    // applied as a per-document filter during FETCH rather than narrowing an
-    // index scan — the sort-driven index still bounds the query, this just
-    // adds one field check per candidate.
-    if (parsed.filterExcludeDlcs != null) {
-      filter.$and.push({ requiredDlcs: { $nin: parsed.filterExcludeDlcs } });
-    }
-  }
-  if (parsed.filterForkedFrom != null) filter.$and.push({ 'forkedFrom.blueprintId': parsed.filterForkedFrom });
-  if (ratedByIds != null) filter.$and.push({ _id: { $in: ratedByIds } });
+  if (parsed.filterUserId != null) clauses.push({ owner: parsed.filterUserId });
+  if (parsed.filterName != null) clauses.push({ name: { $regex: parsed.filterName, $options: 'i' } });
+  if (parsed.filterModded != null) clauses.push({ modded: parsed.filterModded });
+  if (parsed.filterForkedFrom != null) clauses.push({ 'forkedFrom.blueprintId': parsed.filterForkedFrom });
+  if (ratedByIds != null) clauses.push({ _id: { $in: ratedByIds } });
 
-  return { filter, usesOffsetPagination };
+  return clauses;
+}
+
+interface DimensionClauses {
+  category: Record<string, unknown> | null;
+  subcategory: Record<string, unknown> | null;
+  rooms: Record<string, unknown> | null;
+  dlc: Record<string, unknown>[];
+}
+
+function buildDimensionClauses(parsed: ParsedBlueprintFilters): DimensionClauses {
+  const dlc: Record<string, unknown>[] = [];
+  // Documents predating DLC derivation have no requiredDlcs at all; $in
+  // never matches a missing field, so they stay out of a dlc= result
+  // rather than reading as base-game.
+  if (parsed.filterDlcs != null) dlc.push({ requiredDlcs: { $in: parsed.filterDlcs } });
+  // $nin over an array field matches when NONE of its elements are in the
+  // list — true for [] (base game always survives exclusion) and true for
+  // a missing field (a never-derived doc can't be known to need the
+  // excluded pack, so it isn't hidden either). Note for the planner: $nin
+  // can't produce a bounded range the way $in does, so this clause is
+  // applied as a per-document filter during FETCH rather than narrowing an
+  // index scan — the sort-driven index still bounds the query, this just
+  // adds one field check per candidate.
+  if (parsed.filterExcludeDlcs != null) dlc.push({ requiredDlcs: { $nin: parsed.filterExcludeDlcs } });
+
+  return {
+    category: parsed.filterCategory != null ? { category: parsed.filterCategory } : null,
+    subcategory: parsed.filterSubcategory != null ? { subcategory: parsed.filterSubcategory } : null,
+    rooms: parsed.filterRooms != null ? { rooms: { $in: parsed.filterRooms } } : null,
+    dlc,
+  };
+}
+
+// The blueprintfacets outer $match: every clause common to all five facet
+// branches, with NO dimension clauses at all (a $facet branch can only
+// narrow what the outer stage produced, so the outer stage must contain
+// only what every branch agrees on). Pagination (sort/skip/olderthan) is
+// deliberately never applied — counts describe the whole matching corpus,
+// not one page of it.
+export function buildFacetBaseFilter(
+  parsed: ParsedBlueprintFilters,
+  ratedByIds: mongoose.Types.ObjectId[] | null,
+  viewer: BlueprintFilterViewer
+): any {
+  return { $and: [{ deletedAt: null }, ...buildCommonClauses(parsed, ratedByIds, viewer)] };
+}
+
+// One facet group's own $match, applied inside its $facet branch on top of
+// buildFacetBaseFilter: every dimension's active clause EXCEPT `dimension`'s
+// own. This is the "drill-down" / self-excluding semantics — picking a
+// Spaced Out! filter must not zero out every other DLC's count. 'dlc' omits
+// both the dlc= and excludeDlc= clauses at once (the two DLC facet groups
+// share one count map over a single dimension).
+export function buildFacetDimensionMatch(parsed: ParsedBlueprintFilters, dimension: FilterDimension): any {
+  const dims = buildDimensionClauses(parsed);
+  const clauses: Record<string, unknown>[] = [];
+  if (dimension !== 'category' && dims.category != null) clauses.push(dims.category);
+  if (dimension !== 'subcategory' && dims.subcategory != null) clauses.push(dims.subcategory);
+  if (dimension !== 'rooms' && dims.rooms != null) clauses.push(dims.rooms);
+  if (dimension !== 'dlc') clauses.push(...dims.dlc);
+  return clauses.length > 0 ? { $and: clauses } : {};
 }

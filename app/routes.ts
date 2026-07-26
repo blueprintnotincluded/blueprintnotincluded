@@ -78,6 +78,7 @@ export class Routes {
     app.route('/api/getblueprint/:id').get(this.uploadBlueprintController.getBlueprint);
     app.route('/api/getblueprintmod/:id').get(this.uploadBlueprintController.getBlueprintMod);
     app.route('/api/getblueprints').get(this.uploadBlueprintController.getBlueprints);
+    app.route('/api/blueprintfacets').get(this.uploadBlueprintController.getBlueprintFacets);
     app.route('/api/version').get(this.versionController.getVersion);
     app.route('/api/health').get(this.healthController.getHealth);
     app.route('/api/mods').get(this.modController.getMods);
@@ -102,6 +103,7 @@ export class Routes {
 
     // Logged in access
     app.route('/api/getblueprintsSecure').get(auth, this.uploadBlueprintController.getBlueprints);
+    app.route('/api/blueprintfacetsSecure').get(auth, this.uploadBlueprintController.getBlueprintFacets);
     app.route('/api/uploadblueprint').post(auth, this.uploadBlueprintController.uploadBlueprint);
     app.route('/api/rateblueprint').post(auth, this.uploadBlueprintController.rateBlueprint);
     app.route('/api/deleteblueprint').post(auth, this.uploadBlueprintController.deleteBlueprint);
