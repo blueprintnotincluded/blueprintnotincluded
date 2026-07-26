@@ -29,6 +29,14 @@ export interface BlueprintListItem {
     nbDownloads: number;
     forkedFrom?: ForkedFromDto | null;
 }
+export interface BlueprintFacetsResponse {
+    total: number;
+    category: Record<string, number>;
+    subcategory: Record<string, number>;
+    rooms: Record<string, number>;
+    requiredDlcs: Record<string, number>;
+    baseGame: number;
+}
 export interface BlueprintDetailsResponse extends BlueprintListItem {
     researchTier?: string | null;
     myRating: number | null;

@@ -22,6 +22,7 @@ import {
   BlueprintDetailsResponse,
   RelatedBlueprintsResponse,
   BlueprintDelete,
+  BlueprintFacetsResponse,
 } from "../../../../../lib/index";
 import * as yaml from "js-yaml";
 import sanitize from "sanitize-filename";
@@ -696,6 +697,97 @@ export class BlueprintService implements IObsBlueprintChange {
     );
 
     return request;
+  }
+
+  // Self-excluding ("drill-down") facet counts for the Discover sidebar —
+  // GET /api/blueprintfacets(Secure), same params/validation as getBlueprints.
+  // Takes an options object rather than positional args: getBlueprints'
+  // thirteen-and-counting positional params are past the point a breaking
+  // shift (see the step-4 gameVersion removal) is tolerable, so this new
+  // method starts clean instead of adding a fourteenth position.
+  getBlueprintFacets(options: {
+    filterUserId?: string | null;
+    filterName?: string | null;
+    filterCategory?: string | null;
+    filterSubcategory?: string | null;
+    filterModded?: boolean | null;
+    filterForkedFrom?: string | null;
+    filterRatedBy?: string | null;
+    filterRooms?: string | null;
+    filterDlcs?: string | null;
+    filterExcludeDlcs?: string | null;
+  }) {
+    let parameterFilterUserId = "";
+    if (options.filterUserId != null)
+      parameterFilterUserId = "&filterUserId=" + options.filterUserId;
+
+    let parameterFilterName = "";
+    if (options.filterName != null)
+      parameterFilterName = "&filterName=" + options.filterName;
+
+    let parameterCategory = "";
+    if (options.filterCategory != null)
+      parameterCategory = "&category=" + options.filterCategory;
+
+    let parameterSubcategory = "";
+    if (options.filterSubcategory != null)
+      parameterSubcategory = "&subcategory=" + options.filterSubcategory;
+
+    let parameterModded = "";
+    if (options.filterModded != null)
+      parameterModded = "&modded=" + options.filterModded;
+
+    let parameterForkedFrom = "";
+    if (options.filterForkedFrom != null)
+      parameterForkedFrom = "&forkedFrom=" + options.filterForkedFrom;
+
+    let parameterRatedBy = "";
+    if (options.filterRatedBy != null)
+      parameterRatedBy = "&ratedBy=" + options.filterRatedBy;
+
+    let parameterRooms = "";
+    if (options.filterRooms != null)
+      parameterRooms = "&rooms=" + options.filterRooms;
+
+    let parameterDlcs = "";
+    if (options.filterDlcs != null)
+      parameterDlcs = "&dlc=" + options.filterDlcs;
+
+    let parameterExcludeDlcs = "";
+    if (options.filterExcludeDlcs != null)
+      parameterExcludeDlcs = "&excludeDlc=" + options.filterExcludeDlcs;
+
+    const parameters = (
+      parameterFilterUserId +
+      parameterFilterName +
+      parameterCategory +
+      parameterSubcategory +
+      parameterModded +
+      parameterForkedFrom +
+      parameterRatedBy +
+      parameterRooms +
+      parameterDlcs +
+      parameterExcludeDlcs
+    ).replace(/^&/, "");
+
+    // Same viewer-dependence rule as getBlueprints: a specific user's list
+    // (own/admin view includes drafts) or the private rated-by-me list needs
+    // the secure endpoint; general browsing stays anonymous/edge-cacheable.
+    const needsAuth =
+      options.filterUserId != null || options.filterRatedBy != null;
+    const url =
+      needsAuth && this.authService.isLoggedIn()
+        ? "/api/blueprintfacetsSecure?" + parameters
+        : "/api/blueprintfacets?" + parameters;
+
+    return this.http.get<BlueprintFacetsResponse>(
+      url,
+      needsAuth && this.authService.isLoggedIn()
+        ? {
+            headers: { Authorization: `Bearer ${this.authService.getToken()}` },
+          }
+        : {},
+    );
   }
 
   deleteBlueprint(id: string) {

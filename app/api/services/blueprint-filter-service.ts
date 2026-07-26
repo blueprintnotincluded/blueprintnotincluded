@@ -287,13 +287,24 @@ function buildCommonClauses(
     clauses.push({ isPublished: PUBLISHED_FILTER });
   }
 
-  if (parsed.filterUserId != null) clauses.push({ owner: parsed.filterUserId });
+  // Cast to ObjectId explicitly: buildBlueprintFilter's result goes through
+  // Mongoose's .find() (which casts query values against the schema
+  // automatically), but the facets aggregation pipeline hits the raw driver
+  // via .aggregate(), which does not — a bare string here would silently
+  // match nothing against the ObjectId-typed owner/forkedFrom fields.
+  if (parsed.filterUserId != null) clauses.push({ owner: toObjectIdIfValid(parsed.filterUserId) });
   if (parsed.filterName != null) clauses.push({ name: { $regex: parsed.filterName, $options: 'i' } });
   if (parsed.filterModded != null) clauses.push({ modded: parsed.filterModded });
-  if (parsed.filterForkedFrom != null) clauses.push({ 'forkedFrom.blueprintId': parsed.filterForkedFrom });
+  if (parsed.filterForkedFrom != null) {
+    clauses.push({ 'forkedFrom.blueprintId': toObjectIdIfValid(parsed.filterForkedFrom) });
+  }
   if (ratedByIds != null) clauses.push({ _id: { $in: ratedByIds } });
 
   return clauses;
+}
+
+function toObjectIdIfValid(id: string): string | mongoose.Types.ObjectId {
+  return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : id;
 }
 
 interface DimensionClauses {
@@ -346,8 +357,14 @@ export function buildFacetBaseFilter(
 // own. This is the "drill-down" / self-excluding semantics — picking a
 // Spaced Out! filter must not zero out every other DLC's count. 'dlc' omits
 // both the dlc= and excludeDlc= clauses at once (the two DLC facet groups
-// share one count map over a single dimension).
-export function buildFacetDimensionMatch(parsed: ParsedBlueprintFilters, dimension: FilterDimension): any {
+// share one count map over a single dimension). Pass `null` for the `total`
+// branch, which (unlike every facet group) must apply ALL active dimension
+// filters — it reports "docs matching every active filter", not a
+// self-excluding count.
+export function buildFacetDimensionMatch(
+  parsed: ParsedBlueprintFilters,
+  dimension: FilterDimension | null
+): any {
   const dims = buildDimensionClauses(parsed);
   const clauses: Record<string, unknown>[] = [];
   if (dimension !== 'category' && dims.category != null) clauses.push(dims.category);
