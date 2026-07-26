@@ -20,6 +20,18 @@ function makeResponse(blueprints: any[] = [], remaining = 0) {
   };
 }
 
+function makeFacets(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    total: 0,
+    category: {},
+    subcategory: {},
+    rooms: {},
+    requiredDlcs: {},
+    baseGame: 0,
+    ...overrides,
+  };
+}
+
 const EMPTY_PARAMS = convertToParamMap({});
 
 describe("BrowsePageComponent", () => {
@@ -33,6 +45,7 @@ describe("BrowsePageComponent", () => {
   beforeEach(async () => {
     blueprintService = {
       getBlueprints: vi.fn().mockReturnValue(of(makeResponse())),
+      getBlueprintFacets: vi.fn().mockReturnValue(of(makeFacets())),
     };
 
     authService = {
@@ -906,6 +919,111 @@ describe("BrowsePageComponent", () => {
 
       expect(component.activeFilterCount).toBe(3);
       expect(component.hasActiveFilters).toBe(true);
+    });
+  });
+
+  describe("facetCounts (sidebar facet counts)", () => {
+    it("is null before the facets request lands — every button renders unfiltered/enabled", () => {
+      expect(component.facetCounts).toBeNull();
+      expect(component.facetCount("category", "power")).toBeNull();
+      expect(component.isFacetEmpty("category", "power", false)).toBe(false);
+    });
+
+    it("fetches facet counts alongside the initial list load", () => {
+      fixture.detectChanges(); // ngOnInit
+      expect(blueprintService.getBlueprintFacets).toHaveBeenCalled();
+    });
+
+    it("populates facetCounts from the response, missing keys read as 0", () => {
+      blueprintService.getBlueprintFacets.mockReturnValue(
+        of(makeFacets({ total: 4, category: { power: 3 } })),
+      );
+      fixture.detectChanges(); // ngOnInit
+
+      expect(component.facetCounts?.total).toBe(4);
+      expect(component.facetCount("category", "power")).toBe(3);
+      expect(component.facetCount("category", "food")).toBe(0);
+    });
+
+    it("returns null for the un-scoped 'All'/'None' rows (value == null)", () => {
+      blueprintService.getBlueprintFacets.mockReturnValue(
+        of(makeFacets({ category: { power: 3 } })),
+      );
+      fixture.detectChanges();
+      expect(component.facetCount("category", null)).toBeNull();
+    });
+
+    it("zero-count facets are dimmed and disabled unless already selected", () => {
+      blueprintService.getBlueprintFacets.mockReturnValue(
+        of(makeFacets({ category: { power: 3 } })),
+      );
+      fixture.detectChanges();
+
+      // food has no docs -> disabled
+      expect(component.isFacetEmpty("category", "food", false)).toBe(true);
+      // ...unless it's the currently-selected filter, which must stay
+      // clickable so a dead-end combination can be cleared
+      expect(component.isFacetEmpty("category", "food", true)).toBe(false);
+      // power has docs -> never disabled
+      expect(component.isFacetEmpty("category", "power", false)).toBe(false);
+    });
+
+    it("a facets request failure degrades silently — facetCounts stays null, nothing disables", () => {
+      blueprintService.getBlueprintFacets.mockReturnValue(
+        throwError(() => new Error("network")),
+      );
+      fixture.detectChanges(); // ngOnInit
+
+      expect(component.facetCounts).toBeNull();
+      expect(component.isFacetEmpty("category", "power", false)).toBe(false);
+      // the list itself must still have loaded despite the facets failure
+      expect(blueprintService.getBlueprints).toHaveBeenCalled();
+    });
+
+    it("dlcAllCount mirrors total; the DLC 'hide' group's 'None' row has no equivalent", () => {
+      blueprintService.getBlueprintFacets.mockReturnValue(
+        of(makeFacets({ total: 7 })),
+      );
+      fixture.detectChanges();
+      expect(component.dlcAllCount).toBe(7);
+    });
+
+    it("wraps the count into the accessible label instead of leaving it bare", () => {
+      blueprintService.getBlueprintFacets.mockReturnValue(
+        of(makeFacets({ category: { power: 1 } })),
+      );
+      fixture.detectChanges();
+
+      expect(component.facetAriaLabel("Power", "category", "power")).toBe(
+        "Power, 1 blueprint",
+      );
+      expect(component.facetAriaLabel("Food", "category", "food")).toBe(
+        "Food, 0 blueprints",
+      );
+      // not yet loaded for a value with no counts at all -> bare label
+      expect(component.facetAriaLabel("Rooms", "rooms", null)).toBe("Rooms");
+    });
+
+    it("refetches on a filter change (transitionList) but not on loadMore (pagination)", () => {
+      fixture.detectChanges(); // ngOnInit
+      blueprintService.getBlueprintFacets.mockClear();
+
+      // selectRoom funnels straight into transitionList() (unlike
+      // selectCategory, which debounces via filterFacetSubject).
+      component.selectRoom("kitchen");
+      expect(blueprintService.getBlueprintFacets).toHaveBeenCalledTimes(1);
+
+      blueprintService.getBlueprintFacets.mockClear();
+      component.loadMore();
+      expect(blueprintService.getBlueprintFacets).not.toHaveBeenCalled();
+    });
+
+    it("is not fetched in feed view mode (no sidebar to populate)", () => {
+      fixture.detectChanges(); // ngOnInit (discover)
+      blueprintService.getBlueprintFacets.mockClear();
+
+      component.setViewMode("feed");
+      expect(blueprintService.getBlueprintFacets).not.toHaveBeenCalled();
     });
   });
 

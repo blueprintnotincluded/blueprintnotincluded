@@ -96,9 +96,22 @@
             type="button"
             class="bni-facet"
             [class.active]="filterCategory === opt.value"
+            [class.bni-facet--empty]="
+              isFacetEmpty('category', opt.value, filterCategory === opt.value)
+            "
+            [disabled]="
+              isFacetEmpty('category', opt.value, filterCategory === opt.value)
+            "
+            [attr.aria-label]="facetAriaLabel(opt.label, 'category', opt.value)"
             (click)="selectCategory(opt.value)"
           >
             {{ opt.label }}
+            <span
+              class="bni-facet-count"
+              *ngIf="facetCount('category', opt.value) !== null"
+              aria-hidden="true"
+              >{{ facetCount("category", opt.value) }}</span
+            >
           </button>
         </div>
 
@@ -109,9 +122,32 @@
             type="button"
             class="bni-facet"
             [class.active]="filterSubcategory === opt.value"
+            [class.bni-facet--empty]="
+              isFacetEmpty(
+                'subcategory',
+                opt.value,
+                filterSubcategory === opt.value
+              )
+            "
+            [disabled]="
+              isFacetEmpty(
+                'subcategory',
+                opt.value,
+                filterSubcategory === opt.value
+              )
+            "
+            [attr.aria-label]="
+              facetAriaLabel(opt.label, 'subcategory', opt.value)
+            "
             (click)="selectSubcategory(opt.value)"
           >
             {{ opt.label }}
+            <span
+              class="bni-facet-count"
+              *ngIf="facetCount('subcategory', opt.value) !== null"
+              aria-hidden="true"
+              >{{ facetCount("subcategory", opt.value) }}</span
+            >
           </button>
         </div>
 
@@ -121,20 +157,39 @@
             type="button"
             class="bni-facet"
             [class.active]="filterDlcs.length === 0"
+            [attr.aria-label]="dlcAllAriaLabel('All')"
             (click)="clearDlcFilter()"
-            i18n
           >
-            All
+            <ng-container i18n>All</ng-container>
+            <span
+              class="bni-facet-count"
+              *ngIf="dlcAllCount !== null"
+              aria-hidden="true"
+              >{{ dlcAllCount }}</span
+            >
           </button>
           <button
             *ngFor="let opt of dlcOptions"
             type="button"
             class="bni-facet"
             [class.active]="isDlcSelected(opt.value)"
+            [class.bni-facet--empty]="
+              isFacetEmpty('dlc', opt.value, isDlcSelected(opt.value))
+            "
+            [disabled]="
+              isFacetEmpty('dlc', opt.value, isDlcSelected(opt.value))
+            "
             [attr.aria-pressed]="isDlcSelected(opt.value)"
+            [attr.aria-label]="facetAriaLabel(opt.label, 'dlc', opt.value)"
             (click)="toggleDlc(opt.value)"
           >
             {{ opt.label }}
+            <span
+              class="bni-facet-count"
+              *ngIf="facetCount('dlc', opt.value) !== null"
+              aria-hidden="true"
+              >{{ facetCount("dlc", opt.value) }}</span
+            >
           </button>
         </div>
 
@@ -154,10 +209,23 @@
             type="button"
             class="bni-facet bni-facet--exclude"
             [class.active]="isDlcExcluded(opt.value)"
+            [class.bni-facet--empty]="
+              isFacetEmpty('dlc', opt.value, isDlcExcluded(opt.value))
+            "
+            [disabled]="
+              isFacetEmpty('dlc', opt.value, isDlcExcluded(opt.value))
+            "
             [attr.aria-pressed]="isDlcExcluded(opt.value)"
+            [attr.aria-label]="facetAriaLabel(opt.label, 'dlc', opt.value)"
             (click)="toggleExcludeDlc(opt.value)"
           >
             {{ opt.label }}
+            <span
+              class="bni-facet-count"
+              *ngIf="facetCount('dlc', opt.value) !== null"
+              aria-hidden="true"
+              >{{ facetCount("dlc", opt.value) }}</span
+            >
           </button>
         </div>
 
@@ -168,9 +236,22 @@
             type="button"
             class="bni-facet"
             [class.active]="filterRooms === opt.value"
+            [class.bni-facet--empty]="
+              isFacetEmpty('rooms', opt.value, filterRooms === opt.value)
+            "
+            [disabled]="
+              isFacetEmpty('rooms', opt.value, filterRooms === opt.value)
+            "
+            [attr.aria-label]="facetAriaLabel(opt.label, 'rooms', opt.value)"
             (click)="selectRoom(opt.value)"
           >
             {{ opt.label }}
+            <span
+              class="bni-facet-count"
+              *ngIf="facetCount('rooms', opt.value) !== null"
+              aria-hidden="true"
+              >{{ facetCount("rooms", opt.value) }}</span
+            >
           </button>
         </div>
 
