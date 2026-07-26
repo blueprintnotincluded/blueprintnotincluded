@@ -218,4 +218,30 @@ describe('Blueprint facet counts', function () {
       expect(secure.body.total).to.equal(anon.body.total);
     });
   });
+
+  describe('BLUEPRINT_FACETS_ENABLED kill switch', function () {
+    const originalEnv = process.env.BLUEPRINT_FACETS_ENABLED;
+
+    afterEach(function () {
+      if (originalEnv === undefined) delete process.env.BLUEPRINT_FACETS_ENABLED;
+      else process.env.BLUEPRINT_FACETS_ENABLED = originalEnv;
+    });
+
+    it('503s both endpoints without touching the database when disabled', async function () {
+      process.env.BLUEPRINT_FACETS_ENABLED = 'false';
+
+      expect((await facets()).status).to.equal(503);
+      expect((await facetsSecure({}, authToken)).status).to.equal(503);
+    });
+
+    it('is enabled by default (unset)', async function () {
+      delete process.env.BLUEPRINT_FACETS_ENABLED;
+      expect((await facets()).status).to.equal(200);
+    });
+
+    it('treats any value other than the literal "false" as enabled', async function () {
+      process.env.BLUEPRINT_FACETS_ENABLED = 'true';
+      expect((await facets()).status).to.equal(200);
+    });
+  });
 });

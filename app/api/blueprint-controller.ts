@@ -71,6 +71,36 @@ function setFeedCacheControl(req: Request, res: Response) {
   res.set('Cache-Control', req.headers.authorization == null ? ANON_CACHE_CONTROL : 'no-store');
 }
 
+// Facet counts tolerate more staleness than the list itself does — a sidebar
+// number off by a few blueprints for a few minutes is imperceptible, unlike
+// a stale card. Longer TTL than ANON_CACHE_CONTROL means fewer aggregations
+// hit Mongo at all for the by-far-most-common request (no filters, the
+// Discover page load), independent of the BLUEPRINT_FACETS_ENABLED switch
+// below. Browse-page always calls the anonymous endpoint (filterUserId/
+// ratedBy are never set from Discover), so this is the path real traffic
+// takes; blueprintfacetsSecure still gets `no-store` like every other authed
+// response.
+const FACETS_CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=1800';
+
+function setFacetsCacheControl(req: Request, res: Response) {
+  res.set('Cache-Control', req.headers.authorization == null ? FACETS_CACHE_CONTROL : 'no-store');
+}
+
+// Kill switch for the facet-counts sidebar feature: purely cosmetic and
+// additive (the frontend already treats any facets failure as advisory and
+// renders the sidebar unfiltered/enabled), so flipping this to 'false' in the
+// environment and restarting turns it off without a code revert or deploy.
+// Read live (not cached at module load) so a restart is all it takes.
+function facetsEnabled(): boolean {
+  return process.env.BLUEPRINT_FACETS_ENABLED !== 'false';
+}
+
+// Cheap greppable signal for prod ops (`doctl apps logs <app> --type run |
+// grep facets-slow`) until real APM exists — see agent/SESSION_NOTES.md /
+// project_feed_query_perf memory: New Relic was recommended but never wired
+// up, so this is the fastest lever available today.
+const FACETS_SLOW_THRESHOLD_MS = 200;
+
 // The stored thumbnail data URI is user-supplied, so its declared mime cannot
 // be trusted: a URI claiming image/svg+xml (scriptable when opened directly)
 // or mislabeled bytes must never be echoed back as a Content-Type. Sniff the
@@ -744,6 +774,13 @@ export class BlueprintController {
   // whole matching corpus, not one page of it.
   public async getBlueprintFacets(req: Request, res: Response) {
     console.log('getBlueprintFacets' + req.clientIp);
+    // Kill switch: the frontend already treats any non-200 here as advisory
+    // (sidebar renders unfiltered/enabled), so this is a clean off switch —
+    // no separate error handling to add, no code path to revert.
+    if (!facetsEnabled()) {
+      res.status(503).send();
+      return;
+    }
     if (BlueprintModel.model == null) {
       res.status(503).send();
       return;
@@ -778,6 +815,7 @@ export class BlueprintController {
     const roomsMatch = buildFacetDimensionMatch(parsed, 'rooms');
     const dlcMatch = buildFacetDimensionMatch(parsed, 'dlc');
 
+    const aggregationStart = Date.now();
     try {
       const [result] = await BlueprintModel.model.aggregate([
         { $match: outerMatch },
@@ -811,6 +849,11 @@ export class BlueprintController {
         },
       ]);
 
+      const aggregationMs = Date.now() - aggregationStart;
+      if (aggregationMs > FACETS_SLOW_THRESHOLD_MS) {
+        console.log(`facets-slow: ${aggregationMs}ms query=${req.originalUrl}`);
+      }
+
       const toCountMap = (rows: { _id: string | null; n: number }[]): Record<string, number> => {
         const map: Record<string, number> = {};
         for (const row of rows) {
@@ -828,7 +871,7 @@ export class BlueprintController {
         requiredDlcs: toCountMap(result?.requiredDlcs ?? []),
         baseGame: result?.baseGame?.[0]?.n ?? 0,
       };
-      setFeedCacheControl(req, res);
+      setFacetsCacheControl(req, res);
       res.status(200).json(facetsResponse);
     } catch (err) {
       console.log('Blueprint facets aggregation error');
