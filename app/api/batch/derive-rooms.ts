@@ -2,7 +2,12 @@
 // using the same shared detector as the save path (room-derivation-service).
 //
 // Usage:
-//   ts-node app/api/batch/derive-rooms.ts [--dry-run]
+//   ts-node app/api/batch/derive-rooms.ts [--dry-run] [--limit N]
+//
+// --limit N reads a random sample of N documents instead of the whole
+// collection (see batch-sampling.ts) — room detection parses every stored
+// blueprint into a real Blueprint, so a full pass is the slowest of these
+// scripts and a sampled dry run is the only one anyone will actually wait for.
 //
 // Loads database-2024.json and bootstraps the OniItem statics (same as the
 // server startup) because room derivation parses each document's stored data
@@ -26,6 +31,7 @@ import {
 } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { deriveRooms } from '../services/room-derivation-service';
+import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
 
 dotenv.config();
 
@@ -53,7 +59,7 @@ function sameRooms(a: string[] | null | undefined, b: string[] | null): boolean 
   return a.length === b.length && a.every((tag, i) => tag === b[i]);
 }
 
-async function run(dryRun: boolean) {
+async function run(dryRun: boolean, limit: number | null) {
   loadGameDatabase();
 
   const mongoUri = process.env.DB_URI;
@@ -62,7 +68,7 @@ async function run(dryRun: boolean) {
   await mongoose.connect(mongoUri);
   BlueprintModel.init();
 
-  const cursor = BlueprintModel.model.find({ deletedAt: null }).cursor();
+  const cursor = sampledCursor(BlueprintModel.model, { deletedAt: null }, limit);
   let processed = 0;
   let updated = 0;
   let unchanged = 0;
@@ -87,6 +93,7 @@ async function run(dryRun: boolean) {
     }
   }
 
+  console.log(describeScope(limit, dryRun));
   console.log(
     `Processed: ${processed}, updated: ${updated}, unchanged: ${unchanged}, not derivable: ${nullResults}${dryRun ? ' (dry run)' : ''}`
   );
@@ -98,8 +105,8 @@ async function run(dryRun: boolean) {
   await mongoose.disconnect();
 }
 
-const dryRun = process.argv.includes('--dry-run');
-run(dryRun).catch(err => {
+const { dryRun, limit } = parseBatchArgs(process.argv);
+run(dryRun, limit).catch(err => {
   console.error(err);
   process.exit(1);
 });
