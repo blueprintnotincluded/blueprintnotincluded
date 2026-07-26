@@ -2,7 +2,12 @@
 // all blueprints in the database using the same logic as the save dialog.
 //
 // Usage:
-//   ts-node app/api/batch/derive-blueprint-metadata.ts [--dry-run] [--recategorize]
+//   ts-node app/api/batch/derive-blueprint-metadata.ts [--dry-run] [--recategorize] [--limit N]
+//
+// --limit N reads a random sample of N documents instead of the whole
+// collection (see batch-sampling.ts). A full pass loads every stored blueprint
+// blob and takes ~10 minutes on the live corpus; the diagnostic reports below
+// are just as readable from 100 sampled documents.
 //
 // The script loads database-2024.json to build the DLC, known-ID and category
 // maps, then iterates every blueprint document and recomputes requiredDlcs,
@@ -34,6 +39,7 @@ import * as dotenv from 'dotenv';
 import { deriveRequiredDlcs, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { MdbBlueprint } from '../../../lib/index';
+import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
 
 dotenv.config();
 
@@ -63,7 +69,7 @@ function buildLookups(dbPath: string): {
   return { dlcIdsMap, knownIds, modByPrefabId, categoryLookup };
 }
 
-async function run(dryRun: boolean, recategorize: boolean) {
+async function run(dryRun: boolean, recategorize: boolean, limit: number | null) {
   const dbPath = path.resolve(__dirname, '../../../assets/database/database-2024.json');
   const { dlcIdsMap, knownIds, modByPrefabId, categoryLookup } = buildLookups(dbPath);
 
@@ -73,7 +79,7 @@ async function run(dryRun: boolean, recategorize: boolean) {
   await mongoose.connect(mongoUri);
   BlueprintModel.init();
 
-  const cursor = BlueprintModel.model.find({}).cursor();
+  const cursor = sampledCursor(BlueprintModel.model, {}, limit);
   let processed = 0;
   let updated = 0;
   let tagged = 0;
@@ -154,6 +160,7 @@ async function run(dryRun: boolean, recategorize: boolean) {
     }
   }
 
+  console.log(describeScope(limit, dryRun));
   console.log(`Processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
   console.log(`Category — tagged: ${tagged}, left untagged: ${leftUntagged}, already set: ${alreadyTagged}`);
   console.log(`mods tagged: ${blueprintsWithMods} blueprints reference ${distinctMods.size} distinct mods`);
@@ -187,9 +194,9 @@ async function run(dryRun: boolean, recategorize: boolean) {
   await mongoose.disconnect();
 }
 
-const dryRun = process.argv.includes('--dry-run');
+const { dryRun, limit } = parseBatchArgs(process.argv);
 const recategorize = process.argv.includes('--recategorize');
-run(dryRun, recategorize).catch(err => {
+run(dryRun, recategorize, limit).catch(err => {
   console.error(err);
   process.exit(1);
 });
