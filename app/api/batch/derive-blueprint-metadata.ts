@@ -36,7 +36,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { deriveRequiredDlcs, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
+import { deriveRequiredDlcs, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup, OniItem } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { MdbBlueprint } from '../../../lib/index';
 import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
@@ -47,7 +47,16 @@ dotenv.config();
 // screen; the total distinct count is always printed alongside.
 const UNKNOWN_ID_REPORT_LIMIT = 30;
 
-function buildLookups(dbPath: string): {
+// 'Element' and 'Info' are editor annotations (element overlays and info
+// icons), not buildings: OniItem.load synthesizes them at runtime, so they
+// exist in OniItem.oniItems but never in database-2024.json.buildings. A
+// knownIds set built from the file alone therefore counted every annotated
+// blueprint as modded — 51% of the prod corpus, from two ids. The runtime save
+// path builds knownIds from OniItem.oniItems and never had the bug; this
+// matches it.
+const SYNTHETIC_PREFAB_IDS = [OniItem.elementId, OniItem.infoId];
+
+export function buildLookups(dbPath: string): {
   dlcIdsMap: Map<string, string[]>;
   knownIds: Set<string>;
   modByPrefabId: Map<string, string>;
@@ -63,6 +72,7 @@ function buildLookups(dbPath: string): {
     knownIds.add(building.prefabId);
     if (building.mod) modByPrefabId.set(building.prefabId, building.mod);
   }
+  for (const id of SYNTHETIC_PREFAB_IDS) knownIds.add(id);
 
   const categoryLookup = buildCategoryLookup(raw.buildMenuCategories, raw.buildMenuItems);
 
@@ -96,6 +106,9 @@ async function run(dryRun: boolean, recategorize: boolean, limit: number | null)
   let blueprintsWithUnknownIds = 0;
   // from -> to counts for --recategorize, keyed 'oldCategory -> newCategory'.
   const recategorized = new Map<string, number>();
+  let moddedTrue = 0;
+  let moddedCleared = 0;
+  let moddedSet = 0;
 
   for await (const doc of cursor) {
     const mdb = doc.data as MdbBlueprint;
@@ -109,10 +122,23 @@ async function run(dryRun: boolean, recategorize: boolean, limit: number | null)
 
     const buildingDlcIds = prefabIds.map(id => dlcIdsMap.get(id) ?? []);
     const requiredDlcs = deriveRequiredDlcs(buildingDlcIds);
-    // Only trust a positive modded=true: unknown buildings were stripped at import,
-    // so false here means "no remaining IDs are unknown" — not "definitely vanilla".
-    const derivedModded = deriveModded(prefabIds, knownIds, modByPrefabId);
+    // modded is written in BOTH directions, unlike previous runs of this
+    // script, which only ever set it to true. That was safe while a false
+    // positive was impossible; the synthetic-id bug above produced 2,480 of
+    // them on prod, and a write-only-true backfill can never take them back.
+    //
+    // hadUnknownBuildings is the one case where false must not win: those
+    // documents had unknown buildings STRIPPED at import, so the ids are gone
+    // from the stored data and no amount of re-derivation can rediscover them.
+    // The import-time flag is the only surviving evidence, and it outranks
+    // whatever the remaining ids say — same rule the save dialog applies.
+    const derivedModded =
+      doc.hadUnknownBuildings === true || deriveModded(prefabIds, knownIds, modByPrefabId);
     const derivedMods = deriveBlueprintMods(prefabIds, modByPrefabId);
+
+    if (derivedModded) moddedTrue++;
+    if (doc.modded === true && !derivedModded) moddedCleared++;
+    if (doc.modded !== true && derivedModded) moddedSet++;
 
     if (doc.category != null) alreadyTagged++;
     const shouldDerive = recategorize || doc.category == null;
@@ -133,15 +159,14 @@ async function run(dryRun: boolean, recategorize: boolean, limit: number | null)
 
     const changed =
       JSON.stringify(doc.requiredDlcs ?? null) !== JSON.stringify(requiredDlcs) ||
-      (derivedModded && doc.modded !== true) ||
+      derivedModded !== (doc.modded === true) ||
       JSON.stringify(doc.mods ?? null) !== JSON.stringify(derivedMods) ||
       categoryChanged;
 
     if (changed) {
       updated++;
       if (!dryRun) {
-        const $set: Record<string, unknown> = { requiredDlcs, mods: derivedMods };
-        if (derivedModded) $set.modded = true;
+        const $set: Record<string, unknown> = { requiredDlcs, mods: derivedMods, modded: derivedModded };
         if (categoryChanged && derivedCategory != null) $set.category = derivedCategory;
         const update: Record<string, unknown> = { $set };
         if (categoryChanged && derivedCategory == null) update.$unset = { category: '' };
@@ -164,6 +189,9 @@ async function run(dryRun: boolean, recategorize: boolean, limit: number | null)
   console.log(`Processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
   console.log(`Category — tagged: ${tagged}, left untagged: ${leftUntagged}, already set: ${alreadyTagged}`);
   console.log(`mods tagged: ${blueprintsWithMods} blueprints reference ${distinctMods.size} distinct mods`);
+  console.log(
+    `modded: ${moddedTrue} derived true (${moddedSet} newly flagged, ${moddedCleared} cleared)`
+  );
   console.log(
     `requiredDlcs: ${blueprintsWithDlcs} blueprints need at least one DLC (${[...distinctDlcs].sort().join(', ') || 'none'})`
   );
@@ -194,9 +222,14 @@ async function run(dryRun: boolean, recategorize: boolean, limit: number | null)
   await mongoose.disconnect();
 }
 
-const { dryRun, limit } = parseBatchArgs(process.argv);
-const recategorize = process.argv.includes('--recategorize');
-run(dryRun, recategorize, limit).catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+// Only when run as a script: buildLookups is imported by
+// __tests__/lib/derive-metadata-lookups.test.ts, and importing this module
+// must not connect to a database or start a backfill.
+if (require.main === module) {
+  const { dryRun, limit } = parseBatchArgs(process.argv);
+  const recategorize = process.argv.includes('--recategorize');
+  run(dryRun, recategorize, limit).catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
