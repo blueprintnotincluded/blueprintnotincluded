@@ -16,11 +16,8 @@ import {
   CATEGORIES,
   SUBCATEGORIES,
   RESEARCH_TIERS,
-  ROOM_TYPE_IDS,
   RAW_SOURCE_FORMATS,
   RawSourceFormat,
-  DLC_ID_PATTERN,
-  MAX_DLC_FILTER_IDS,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { computeHotScore } from '../../lib/index';
@@ -30,7 +27,6 @@ import { BlueprintRatingModel } from './models/blueprint-rating';
 import { NotificationController } from './notification-controller';
 import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
-import { parseOlderThan } from './utils/pagination';
 import { optionalViewer } from './utils/optionalViewer';
 import { canViewBlueprint, ownerIdOf } from './utils/blueprint-visibility';
 import { BlueprintEventService } from './services/blueprint-event-service';
@@ -44,12 +40,15 @@ import { PreviewImageService } from './services/preview-image-service';
 import { deriveRooms } from './services/room-derivation-service';
 import { deriveMods } from './services/mod-derivation-service';
 import { deriveDlcs } from './services/dlc-derivation-service';
+import {
+  parseBlueprintFilters,
+  resolveRatedByIds,
+  buildBlueprintFilter,
+  PUBLISHED_FILTER,
+} from './services/blueprint-filter-service';
 import mongoose from 'mongoose';
 
-const MAX_SKIP = 10000;
-
-const SORTS = ['recent', 'popular', 'mostForked', 'mostViewed', 'mostDownloaded', 'trending'] as const;
-type BlueprintSort = (typeof SORTS)[number];
+export { PUBLISHED_FILTER };
 
 // How many "you might also like" cards the details page shows
 const RELATED_LIMIT = 6;
@@ -58,13 +57,6 @@ const RELATED_LIMIT = 6;
 // re-download. Real .blueprint files are tens of KB; the cap only guards the
 // 16MB Mongo document limit (data + thumbnail + rawSource share it).
 const MAX_RAW_SOURCE_BYTES = 2 * 1024 * 1024;
-
-// Public-visibility clause for feed queries. $in's null matches docs that
-// predate the isPublished backfill (deploy→migrate window), same coverage as
-// the old { $ne: false } — but $in gives the planner point bounds, so the
-// isPublished-prefixed indexes can still provide sort order for the
-// count/rating sorts instead of fetching every live doc into a blocking SORT.
-export const PUBLISHED_FILTER = { $in: [true, null] };
 
 // Anonymous feed responses are viewer-independent, so Cloudflare can cache
 // them at the edge; slightly stale lists are fine. Responses to requests
@@ -680,264 +672,63 @@ export class BlueprintController {
 
   public async getBlueprints(req: Request, res: Response) {
     console.log('getBlueprints' + req.clientIp);
-    if (BlueprintModel.model == null) res.status(503).send();
-    else {
-      let filterUserId: string;
-      let filterName: string;
-      let filterCategory: string | null = null;
-      let filterSubcategory: string | null = null;
-      let filterModded: boolean | null = null;
-      let filterRooms: string[] | null = null;
-      let filterDlcs: string[] | null = null;
-      let filterExcludeDlcs: string[] | null = null;
-      let filterForkedFrom: string | null = null;
-      let filterRatedBy: string | null = null;
-      let sort: BlueprintSort;
-      let skip = 0;
-
-      let userId = '';
-      let userJwt = req.user as UserJwt;
-      if (userJwt != null) userId = userJwt._id;
-
-      const dateFilter = parseOlderThan(req, res);
-      if (dateFilter == null) return;
-
-      try {
-        filterUserId = req.query.filterUserId as string;
-        const rawFilterName = req.query.filterName as string;
-        if (rawFilterName != null && rawFilterName.length > 60) {
-          res.status(400).json(apiError(400, 'filterName must be 60 characters or fewer'));
-          return;
-        }
-        filterName = rawFilterName;
-
-        const rawCategory = req.query.category as string | undefined;
-        if (rawCategory != null && !(CATEGORIES as readonly string[]).includes(rawCategory)) {
-          res.status(400).json(apiError(400, `Invalid category: must be one of ${CATEGORIES.join(', ')}`));
-          return;
-        }
-        filterCategory = rawCategory ?? null;
-
-        filterSubcategory = req.query.subcategory as string ?? null;
-
-        const rawModded = req.query.modded as string | undefined;
-        if (rawModded != null && rawModded !== 'true' && rawModded !== 'false') {
-          res.status(400).json(apiError(400, "Invalid modded: must be 'true' or 'false'"));
-          return;
-        }
-        filterModded = rawModded != null ? rawModded === 'true' : null;
-
-        // ?rooms=latrine,park -> blueprints containing ANY of the room types.
-        // Values validated against the shared enum (400 on garbage, consistent
-        // with category). Docs never derived (rooms null/absent) never match.
-        const rawRooms = req.query.rooms as string | undefined;
-        if (rawRooms != null) {
-          const requested = rawRooms
-            .split(',')
-            .map(room => room.trim())
-            .filter(room => room.length > 0);
-          const invalid = requested.filter(
-            room => !(ROOM_TYPE_IDS as readonly string[]).includes(room)
-          );
-          if (requested.length === 0 || invalid.length > 0) {
-            res
-              .status(400)
-              .json(apiError(400, `Invalid rooms: must be a comma-separated list of ${ROOM_TYPE_IDS.join(', ')}`));
-            return;
-          }
-          filterRooms = requested;
-        }
-
-        // ?dlc=DLC2_ID,DLC3_ID -> blueprints requiring ANY of these packs.
-        // "Show me what the Bionic pack would unlock" is a membership question,
-        // so $in (same semantics as rooms) is the right reading; the subset
-        // test ("hide what I can't build") is a separate `owned=` param.
-        //
-        // Validated by *shape*, not against DLC_LABELS: a pack that ships in an
-        // export before we've written a label for it must still be filterable,
-        // which is the same reason the schema carries no enum.
-        const rawDlc = req.query.dlc;
-        if (rawDlc != null) {
-          const requested = (Array.isArray(rawDlc) ? rawDlc : [rawDlc])
-            .flatMap(value => String(value).split(','))
-            .map(dlcId => dlcId.trim())
-            .filter(dlcId => dlcId.length > 0);
-          const invalid = requested.filter(dlcId => !DLC_ID_PATTERN.test(dlcId));
-          // The cap only bounds the $in list — there are five packs today, so
-          // anything near the limit is abuse rather than a real query.
-          if (requested.length === 0 || requested.length > MAX_DLC_FILTER_IDS || invalid.length > 0) {
-            res
-              .status(400)
-              .json(
-                apiError(
-                  400,
-                  `Invalid dlc: must be a comma-separated list of up to ${MAX_DLC_FILTER_IDS} DLC ids (A-Z, 0-9 and _)`
-                )
-              );
-            return;
-          }
-          filterDlcs = requested;
-        }
-
-        // ?excludeDlc=DLC3_ID,DLC4_ID -> blueprints requiring NONE of these
-        // packs. The complement of ?dlc= (membership vs. exclusion are
-        // separate params, not a third state on one), so it composes: both can
-        // be present at once. Same shape/size validation as dlc.
-        const rawExcludeDlc = req.query.excludeDlc;
-        if (rawExcludeDlc != null) {
-          const requested = (Array.isArray(rawExcludeDlc) ? rawExcludeDlc : [rawExcludeDlc])
-            .flatMap(value => String(value).split(','))
-            .map(dlcId => dlcId.trim())
-            .filter(dlcId => dlcId.length > 0);
-          const invalid = requested.filter(dlcId => !DLC_ID_PATTERN.test(dlcId));
-          if (requested.length === 0 || requested.length > MAX_DLC_FILTER_IDS || invalid.length > 0) {
-            res
-              .status(400)
-              .json(
-                apiError(
-                  400,
-                  `Invalid excludeDlc: must be a comma-separated list of up to ${MAX_DLC_FILTER_IDS} DLC ids (A-Z, 0-9 and _)`
-                )
-              );
-            return;
-          }
-          filterExcludeDlcs = requested;
-        }
-
-        const rawForkedFrom = req.query.forkedFrom as string | undefined;
-        if (rawForkedFrom != null && !mongoose.Types.ObjectId.isValid(rawForkedFrom)) {
-          res.status(400).json(apiError(400, 'Invalid forkedFrom: must be a valid blueprint id'));
-          return;
-        }
-        filterForkedFrom = rawForkedFrom ?? null;
-
-        const rawRatedBy = req.query.ratedBy as string | undefined;
-        if (rawRatedBy != null && !mongoose.Types.ObjectId.isValid(rawRatedBy)) {
-          res.status(400).json(apiError(400, 'Invalid ratedBy: must be a valid user id'));
-          return;
-        }
-        // Rated blueprints are private — only the owner can list their own ratings (matches
-        // the profile page's "Rated" tab, which is only ever rendered on your own profile).
-        if (rawRatedBy != null && rawRatedBy !== userId) {
-          res.status(403).json(apiError(403, 'Cannot view another user\'s rated blueprints'));
-          return;
-        }
-        filterRatedBy = rawRatedBy ?? null;
-
-        const rawSort = req.query.sort as string | undefined;
-        if (rawSort != null && !(SORTS as readonly string[]).includes(rawSort)) {
-          res.status(400).json(apiError(400, `Invalid sort: must be one of ${SORTS.join(', ')}`));
-          return;
-        }
-        sort = (rawSort as BlueprintSort) ?? 'recent';
-
-        const rawSkip = req.query.skip as string | undefined;
-        if (rawSkip != null) {
-          skip = parseInt(rawSkip);
-          // cap skip: MongoDB scans and discards skipped documents server-side,
-          // so an unbounded offset is a cheap way to force slow queries
-          if (isNaN(skip) || skip < 0 || skip > MAX_SKIP || String(skip) !== rawSkip) {
-            res.status(400).json(apiError(400, `Invalid skip parameter: must be an integer between 0 and ${MAX_SKIP}`));
-            return;
-          }
-        }
-      } catch (error) {
-        console.log(error);
-        res.status(400).json(apiError(400, 'Invalid query parameters'));
-        return;
-      }
-
-      // count-based sorts ignore the olderthan cursor (offset pagination via skip instead);
-      // the param stays accepted so the existing client call shape keeps working
-      const usesOffsetPagination = sort !== 'recent';
-      let filter: any = usesOffsetPagination
-        ? { $and: [{ deletedAt: null }] }
-        : { $and: [{ createdAt: { $lt: dateFilter } }, { deletedAt: null }] };
-
-      // Draft visibility: the general feed is published-only for every viewer.
-      // Owners see their own drafts when listing their own blueprints (the
-      // profile page always passes filterUserId), and admins see drafts when
-      // browsing a specific user's list — in both cases the owner clause below
-      // already bounds the query, so the published filter is simply dropped.
-      // Never combine the two as $or: [published, owner] — no index serves
-      // both branches under a count sort, so Mongo falls back to fetching
-      // every live 85KB doc into a blocking SORT (~16s on prod).
-      const isAdmin = userJwt?.role === 'admin';
-      const viewerOwnsList = filterUserId != null && filterUserId === userId;
-      if (!viewerOwnsList && !(isAdmin && filterUserId != null)) {
-        filter.$and.push({ isPublished: PUBLISHED_FILTER });
-      }
-
-      if (filterUserId != null) filter.$and.push({ owner: filterUserId });
-      if (filterName != null) filter.$and.push({ name: { $regex: filterName, $options: 'i' } });
-      if (filterCategory != null) filter.$and.push({ category: filterCategory });
-      if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
-      if (filterModded != null) filter.$and.push({ modded: filterModded });
-      if (filterRooms != null) filter.$and.push({ rooms: { $in: filterRooms } });
-      // Documents predating DLC derivation have no requiredDlcs at all; $in
-      // never matches a missing field, so they stay out of a dlc= result
-      // rather than reading as base-game.
-      if (filterDlcs != null) filter.$and.push({ requiredDlcs: { $in: filterDlcs } });
-      // $nin over an array field matches when NONE of its elements are in the
-      // list — true for [] (base game always survives exclusion) and true for
-      // a missing field (a never-derived doc can't be known to need the
-      // excluded pack, so it isn't hidden either). Note for the planner: $nin
-      // can't produce a bounded range the way $in does, so this clause is
-      // applied as a per-document filter during FETCH rather than narrowing an
-      // index scan — the sort-driven index still bounds the query, this just
-      // adds one field check per candidate.
-      if (filterExcludeDlcs != null) filter.$and.push({ requiredDlcs: { $nin: filterExcludeDlcs } });
-      if (filterForkedFrom != null) filter.$and.push({ 'forkedFrom.blueprintId': filterForkedFrom });
-      if (filterRatedBy != null) {
-        // Ratings live in their own collection; resolve to ids first (the
-        // {userId, updatedAt} index covers this)
-        try {
-          const ratedIds =
-            BlueprintRatingModel.model == null
-              ? []
-              : await BlueprintRatingModel.model.find({ userId: filterRatedBy }).distinct('blueprintId');
-          filter.$and.push({ _id: { $in: ratedIds } });
-        } catch (err) {
-          console.log('ratedBy lookup error');
-          console.log(err);
-          res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
-          return;
-        }
-      }
-
-      let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
-      if (sort === 'popular') sortSpec = { ratingAverage: -1, ratingCount: -1, createdAt: -1 };
-      else if (sort === 'mostForked') sortSpec = { forkCount: -1, createdAt: -1 };
-      else if (sort === 'mostViewed') sortSpec = { viewCount: -1, createdAt: -1 };
-      else if (sort === 'mostDownloaded') sortSpec = { downloadCount: -1, createdAt: -1 };
-      // Trending sorts on the materialized hotScore (lib computeHotScore),
-      // refreshed on every engagement write — so it's a plain indexed sort
-      // like every other sort, not a full-collection aggregation.
-      else if (sort === 'trending') sortSpec = { hotScore: -1, createdAt: -1 };
-
-      let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
-      let skipAmount = usesOffsetPagination ? skip : 0;
-      let limit = browseIncrement * 2;
-
-      // -data -thumbnail: the list renders neither blueprint contents (~85KB
-      // avg) nor the inline thumbnail data URI (~10-20KB) — together they
-      // dominate the query's fetch cost otherwise
-      BlueprintModel.model
-        .find(filter)
-        .sort(sortSpec)
-        .skip(skipAmount)
-        .limit(limit)
-        .select('-data -thumbnail -rawSource')
-        .populate('owner')
-        .then(blueprints => {
-          return BlueprintController.handleGetBlueprint(req, res, blueprints);
-        })
-        .catch(err => {
-          console.log('Blueprint find error');
-          console.log(err);
-          res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
-        });
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
     }
+
+    let userId = '';
+    let userJwt = req.user as UserJwt;
+    if (userJwt != null) userId = userJwt._id;
+
+    const parsed = parseBlueprintFilters(req, res, userId);
+    if (parsed == null) return;
+
+    let ratedByIds: mongoose.Types.ObjectId[] | null = null;
+    try {
+      ratedByIds = await resolveRatedByIds(parsed);
+    } catch (err) {
+      console.log('ratedBy lookup error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
+      return;
+    }
+
+    const isAdmin = userJwt?.role === 'admin';
+    const { filter, usesOffsetPagination } = buildBlueprintFilter(parsed, ratedByIds, { userId, isAdmin });
+
+    let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
+    if (parsed.sort === 'popular') sortSpec = { ratingAverage: -1, ratingCount: -1, createdAt: -1 };
+    else if (parsed.sort === 'mostForked') sortSpec = { forkCount: -1, createdAt: -1 };
+    else if (parsed.sort === 'mostViewed') sortSpec = { viewCount: -1, createdAt: -1 };
+    else if (parsed.sort === 'mostDownloaded') sortSpec = { downloadCount: -1, createdAt: -1 };
+    // Trending sorts on the materialized hotScore (lib computeHotScore),
+    // refreshed on every engagement write — so it's a plain indexed sort
+    // like every other sort, not a full-collection aggregation.
+    else if (parsed.sort === 'trending') sortSpec = { hotScore: -1, createdAt: -1 };
+
+    let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
+    let skipAmount = usesOffsetPagination ? parsed.skip : 0;
+    let limit = browseIncrement * 2;
+
+    // -data -thumbnail: the list renders neither blueprint contents (~85KB
+    // avg) nor the inline thumbnail data URI (~10-20KB) — together they
+    // dominate the query's fetch cost otherwise
+    BlueprintModel.model
+      .find(filter)
+      .sort(sortSpec)
+      .skip(skipAmount)
+      .limit(limit)
+      .select('-data -thumbnail -rawSource')
+      .populate('owner')
+      .then(blueprints => {
+        return BlueprintController.handleGetBlueprint(req, res, blueprints);
+      })
+      .catch(err => {
+        console.log('Blueprint find error');
+        console.log(err);
+        res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
+      });
   }
 
   // Visible (non-deleted) comment counts for a page of blueprints, one aggregate.
