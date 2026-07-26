@@ -8,6 +8,7 @@ import {
 import {
   BlueprintListItem,
   BlueprintListResponse,
+  BlueprintFacetsResponse,
   CATEGORIES,
   SUBCATEGORIES,
   ROOM_TYPE_IDS,
@@ -96,6 +97,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   sort: BlueprintSort = DEFAULT_SORT;
   skipCount = 0;
   private requestId = 0;
+  /** Advisory sidebar counts; null when not yet loaded or the request
+   * failed — the sidebar renders unfiltered/enabled either way. */
+  facetCounts: BlueprintFacetsResponse | null = null;
+  private facetRequestId = 0;
 
   viewMode: "discover" | "feed" = "discover";
   followingCount = 0;
@@ -234,6 +239,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         this.initialized = true;
         this.appendLoading();
         this.getBlueprints();
+        this.fetchFacetCounts();
       } else if (changed) {
         this.transitionList();
       }
@@ -290,6 +296,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
    */
   private transitionList() {
     this.resetPaging();
+    this.fetchFacetCounts();
     if (this.prefersReducedMotion()) {
       this.blueprintListItems = [];
       this.appendLoading();
@@ -716,6 +723,96 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         if (requestId === this.requestId) this.receiveListError();
       },
     });
+  }
+
+  /** Sidebar counts, fired in parallel with getBlueprints() (never chained —
+   * the list must not wait on counts). Advisory: a failure or a still-in-
+   * flight request just leaves facetCounts as-is, so the sidebar renders
+   * unfiltered/enabled rather than erroring. Not fetched for the feed tab,
+   * which has no sidebar. */
+  private fetchFacetCounts() {
+    if (this.viewMode === "feed") return;
+    const requestId = ++this.facetRequestId;
+    this.blueprintService
+      .getBlueprintFacets({
+        filterName: this.filterName.trim() || null,
+        filterCategory: this.filterCategory,
+        filterSubcategory: this.filterSubcategory,
+        filterModded: this.filterModded,
+        filterForkedFrom: this.filterForkedFrom,
+        filterRooms: this.filterRooms,
+        filterDlcs:
+          this.filterDlcs.length > 0 ? this.filterDlcs.join(",") : null,
+        filterExcludeDlcs:
+          this.excludeDlcs.length > 0 ? this.excludeDlcs.join(",") : null,
+      })
+      .subscribe({
+        next: (counts) => {
+          if (requestId === this.facetRequestId) this.facetCounts = counts;
+        },
+        error: () => {},
+      });
+  }
+
+  /** null = counts not loaded yet (or the request failed) — every facet
+   * button then renders unfiltered/enabled. `value == null` covers the
+   * un-scoped "All"/"None" reset rows, which never show a per-item count. */
+  facetCount(
+    group: "category" | "subcategory" | "rooms" | "dlc",
+    value: string | null,
+  ): number | null {
+    if (value == null || this.facetCounts == null) return null;
+    const map =
+      group === "category"
+        ? this.facetCounts.category
+        : group === "subcategory"
+          ? this.facetCounts.subcategory
+          : group === "rooms"
+            ? this.facetCounts.rooms
+            : this.facetCounts.requiredDlcs;
+    return map[value] ?? 0;
+  }
+
+  /** Zero renders dimmed + disabled — except when already selected, so a
+   * dead-end filter combination can always be cleared. */
+  isFacetEmpty(
+    group: "category" | "subcategory" | "rooms" | "dlc",
+    value: string | null,
+    selected: boolean,
+  ): boolean {
+    if (selected) return false;
+    return this.facetCount(group, value) === 0;
+  }
+
+  /** Wraps the count into the button's accessible name ("Spaced Out!, 492
+   * blueprints") instead of leaving the bare number in it — the visible
+   * `.bni-facet-count` span stays aria-hidden. */
+  facetAriaLabel(
+    label: string,
+    group: "category" | "subcategory" | "rooms" | "dlc",
+    value: string | null,
+  ): string {
+    return this.countAriaLabel(label, this.facetCount(group, value));
+  }
+
+  /** The DLC "show only" group's "All" reset row shows `total` — the only
+   * un-scoped row with a count, since clearing the DLC filter genuinely
+   * means "everything matching the rest of the sidebar". The "hide" group's
+   * "None" row deliberately shows nothing (see dlcAllCount vs no equivalent
+   * for exclusion). */
+  get dlcAllCount(): number | null {
+    return this.facetCounts?.total ?? null;
+  }
+
+  dlcAllAriaLabel(label: string): string {
+    return this.countAriaLabel(label, this.dlcAllCount);
+  }
+
+  private countAriaLabel(label: string, count: number | null): string {
+    if (count == null) return label;
+    return count === 1
+      ? $localize`:browse.facetAriaLabelOne:${label}, 1 blueprint`
+      : $localize`:browse.facetAriaLabel:${label}, ${count} blueprints`;
   }
 
   /** Gate responses through the transition: hold them until the fade-out

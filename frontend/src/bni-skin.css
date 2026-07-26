@@ -814,6 +814,23 @@
   color: var(--bni-faint);
 }
 
+/* Zero-count facets stay visible (so a legitimately-empty pack/room is
+   discoverable, not silently hidden) but read as unavailable — dimmed and
+   non-interactive. Never applied to the active/selected row: a dead-end
+   filter combination must stay clickable so it can be cleared. */
+.bni-facet--empty {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bni-facet--empty:hover {
+  color: var(--bni-body);
+}
+
+.bni-facet--exclude.bni-facet--empty:hover {
+  color: var(--bni-body);
+}
+
 /* ---- star rating (accent fill, display only) ---- */
 .bni-stars {
   display: inline-flex;
