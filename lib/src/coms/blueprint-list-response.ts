@@ -47,6 +47,23 @@ export interface BlueprintListItem {
   forkedFrom?: ForkedFromDto | null;
 }
 
+// Self-excluding ("drill-down") facet counts for the Discover sidebar —
+// GET /api/blueprintfacets(Secure), same query params as getblueprints.
+// Each group's counts apply every OTHER active filter but not its own
+// (picking a DLC must not zero out the rest of the DLC list); requiredDlcs
+// and baseGame share one count map with the excludeDlc= "hide" group, since
+// show-only/hide are two controls over a single dimension. Array-valued
+// dimensions (rooms, requiredDlcs) don't sum to `total`: a blueprint needing
+// two packs counts once under each. Omitting a key from a map means 0.
+export interface BlueprintFacetsResponse {
+  total: number;
+  category: Record<string, number>;
+  subcategory: Record<string, number>;
+  rooms: Record<string, number>;
+  requiredDlcs: Record<string, number>;
+  baseGame: number;
+}
+
 // Meta-only view for the blueprint details page — everything the list item
 // carries, without the heavy `data` payload the editor loads separately.
 // Per-viewer fields (myRating/ownedByMe) live only here: list responses are

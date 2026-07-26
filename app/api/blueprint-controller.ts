@@ -5,6 +5,7 @@ import {
   BlueprintResponse,
   BlueprintListItem,
   BlueprintListResponse,
+  BlueprintFacetsResponse,
   RelatedBlueprintsResponse,
   BlueprintRate,
   BlueprintRateResponse,
@@ -769,6 +770,9 @@ export class BlueprintController {
     const viewer = { userId, isAdmin };
     const outerMatch = buildFacetBaseFilter(parsed, ratedByIds, viewer);
 
+    // total applies every active dimension filter (omits none); every other
+    // branch applies every dimension EXCEPT its own (self-excluding counts).
+    const totalMatch = buildFacetDimensionMatch(parsed, null);
     const categoryMatch = buildFacetDimensionMatch(parsed, 'category');
     const subcategoryMatch = buildFacetDimensionMatch(parsed, 'subcategory');
     const roomsMatch = buildFacetDimensionMatch(parsed, 'rooms');
@@ -783,7 +787,7 @@ export class BlueprintController {
         { $project: { category: 1, subcategory: 1, rooms: 1, requiredDlcs: 1 } },
         {
           $facet: {
-            total: [{ $count: 'n' }],
+            total: [{ $match: totalMatch }, { $count: 'n' }],
             category: [{ $match: categoryMatch }, { $group: { _id: '$category', n: { $sum: 1 } } }],
             subcategory: [{ $match: subcategoryMatch }, { $group: { _id: '$subcategory', n: { $sum: 1 } } }],
             rooms: [
@@ -816,15 +820,16 @@ export class BlueprintController {
         return map;
       };
 
-      setFeedCacheControl(req, res);
-      res.status(200).json({
+      const facetsResponse: BlueprintFacetsResponse = {
         total: result?.total?.[0]?.n ?? 0,
         category: toCountMap(result?.category ?? []),
         subcategory: toCountMap(result?.subcategory ?? []),
         rooms: toCountMap(result?.rooms ?? []),
         requiredDlcs: toCountMap(result?.requiredDlcs ?? []),
         baseGame: result?.baseGame?.[0]?.n ?? 0,
-      });
+      };
+      setFeedCacheControl(req, res);
+      res.status(200).json(facetsResponse);
     } catch (err) {
       console.log('Blueprint facets aggregation error');
       console.log(err);
