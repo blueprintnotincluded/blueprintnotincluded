@@ -594,6 +594,43 @@ export class BlueprintService implements IObsBlueprintChange {
     );
   }
 
+  // Shared by getBlueprints and getBlueprintFacets: both endpoints accept the
+  // same filter params and validate them identically server-side, so the
+  // query-string mapping lives in one place rather than two.
+  private buildFilterQueryParams(filters: {
+    filterUserId?: string | null;
+    filterName?: string | null;
+    filterCategory?: string | null;
+    filterSubcategory?: string | null;
+    filterModded?: boolean | null;
+    filterForkedFrom?: string | null;
+    filterRatedBy?: string | null;
+    filterRooms?: string | null;
+    filterDlcs?: string | null;
+    filterExcludeDlcs?: string | null;
+  }): string {
+    const parts: string[] = [];
+    if (filters.filterUserId != null)
+      parts.push("filterUserId=" + filters.filterUserId);
+    if (filters.filterName != null)
+      parts.push("filterName=" + filters.filterName);
+    if (filters.filterCategory != null)
+      parts.push("category=" + filters.filterCategory);
+    if (filters.filterSubcategory != null)
+      parts.push("subcategory=" + filters.filterSubcategory);
+    if (filters.filterModded != null)
+      parts.push("modded=" + filters.filterModded);
+    if (filters.filterForkedFrom != null)
+      parts.push("forkedFrom=" + filters.filterForkedFrom);
+    if (filters.filterRatedBy != null)
+      parts.push("ratedBy=" + filters.filterRatedBy);
+    if (filters.filterRooms != null) parts.push("rooms=" + filters.filterRooms);
+    if (filters.filterDlcs != null) parts.push("dlc=" + filters.filterDlcs);
+    if (filters.filterExcludeDlcs != null)
+      parts.push("excludeDlc=" + filters.filterExcludeDlcs);
+    return parts.join("&");
+  }
+
   getBlueprints(
     olderThan: Date | null,
     filterUserId: string | null,
@@ -620,60 +657,29 @@ export class BlueprintService implements IObsBlueprintChange {
         ? "olderthan=" + olderThan.getTime().toString()
         : "";
 
-    let parameterFilterUserId = "";
-    if (filterUserId != null)
-      parameterFilterUserId = "&filterUserId=" + filterUserId;
-
-    let parameterFilterName = "";
-    if (filterName != null) parameterFilterName = "&filterName=" + filterName;
-
-    let parameterCategory = "";
-    if (filterCategory != null)
-      parameterCategory = "&category=" + filterCategory;
-
-    let parameterSubcategory = "";
-    if (filterSubcategory != null)
-      parameterSubcategory = "&subcategory=" + filterSubcategory;
-
     let parameterSort = "";
     if (sort != null && sort !== "recent") {
       parameterSort = "&sort=" + sort;
       if (skip != null) parameterSort += "&skip=" + skip;
     }
 
-    let parameterModded = "";
-    if (filterModded != null) parameterModded = "&modded=" + filterModded;
-
-    let parameterForkedFrom = "";
-    if (filterForkedFrom != null)
-      parameterForkedFrom = "&forkedFrom=" + filterForkedFrom;
-
-    let parameterRatedBy = "";
-    if (filterRatedBy != null) parameterRatedBy = "&ratedBy=" + filterRatedBy;
-
-    let parameterRooms = "";
-    if (filterRooms != null) parameterRooms = "&rooms=" + filterRooms;
-
-    let parameterDlcs = "";
-    if (filterDlcs != null) parameterDlcs = "&dlc=" + filterDlcs;
-
-    let parameterExcludeDlcs = "";
-    if (filterExcludeDlcs != null)
-      parameterExcludeDlcs = "&excludeDlc=" + filterExcludeDlcs;
+    const filterParams = this.buildFilterQueryParams({
+      filterUserId,
+      filterName,
+      filterCategory,
+      filterSubcategory,
+      filterModded,
+      filterForkedFrom,
+      filterRatedBy,
+      filterRooms,
+      filterDlcs,
+      filterExcludeDlcs,
+    });
 
     const parameters = (
       parameterOlderThan +
-      parameterFilterUserId +
-      parameterFilterName +
-      parameterCategory +
-      parameterSubcategory +
-      parameterSort +
-      parameterModded +
-      parameterForkedFrom +
-      parameterRatedBy +
-      parameterRooms +
-      parameterDlcs +
-      parameterExcludeDlcs
+      (filterParams.length > 0 ? "&" + filterParams : "") +
+      parameterSort
     ).replace(/^&/, "");
 
     // General browsing is a public, viewer-independent feed — always hit the
@@ -717,58 +723,7 @@ export class BlueprintService implements IObsBlueprintChange {
     filterDlcs?: string | null;
     filterExcludeDlcs?: string | null;
   }) {
-    let parameterFilterUserId = "";
-    if (options.filterUserId != null)
-      parameterFilterUserId = "&filterUserId=" + options.filterUserId;
-
-    let parameterFilterName = "";
-    if (options.filterName != null)
-      parameterFilterName = "&filterName=" + options.filterName;
-
-    let parameterCategory = "";
-    if (options.filterCategory != null)
-      parameterCategory = "&category=" + options.filterCategory;
-
-    let parameterSubcategory = "";
-    if (options.filterSubcategory != null)
-      parameterSubcategory = "&subcategory=" + options.filterSubcategory;
-
-    let parameterModded = "";
-    if (options.filterModded != null)
-      parameterModded = "&modded=" + options.filterModded;
-
-    let parameterForkedFrom = "";
-    if (options.filterForkedFrom != null)
-      parameterForkedFrom = "&forkedFrom=" + options.filterForkedFrom;
-
-    let parameterRatedBy = "";
-    if (options.filterRatedBy != null)
-      parameterRatedBy = "&ratedBy=" + options.filterRatedBy;
-
-    let parameterRooms = "";
-    if (options.filterRooms != null)
-      parameterRooms = "&rooms=" + options.filterRooms;
-
-    let parameterDlcs = "";
-    if (options.filterDlcs != null)
-      parameterDlcs = "&dlc=" + options.filterDlcs;
-
-    let parameterExcludeDlcs = "";
-    if (options.filterExcludeDlcs != null)
-      parameterExcludeDlcs = "&excludeDlc=" + options.filterExcludeDlcs;
-
-    const parameters = (
-      parameterFilterUserId +
-      parameterFilterName +
-      parameterCategory +
-      parameterSubcategory +
-      parameterModded +
-      parameterForkedFrom +
-      parameterRatedBy +
-      parameterRooms +
-      parameterDlcs +
-      parameterExcludeDlcs
-    ).replace(/^&/, "");
+    const parameters = this.buildFilterQueryParams(options);
 
     // Same viewer-dependence rule as getBlueprints: a specific user's list
     // (own/admin view includes drafts) or the private rated-by-me list needs

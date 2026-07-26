@@ -229,21 +229,16 @@ export async function resolveRatedByIds(
   return BlueprintRatingModel.model.find({ userId: parsed.filterRatedBy }).distinct('blueprintId');
 }
 
-// Builds the mongo filter shared by getblueprints and blueprintfacets.
-// `omitDimensions` drops the listed facet groups' own clauses so a $facet
-// branch can compute self-excluding ("drill-down") counts for those groups;
-// 'dlc' drops both the dlc= and excludeDlc= clauses at once, since the two
-// DLC facet groups (show-only, hide) share a single count map over one
-// dimension. The blueprintfacets outer $match omits all four at once.
+// Builds the mongo filter for getblueprints. blueprintfacets does not call
+// this — its per-branch, dimension-omitting filters are built separately by
+// buildFacetBaseFilter/buildFacetDimensionMatch below, which share
+// buildCommonClauses/buildDimensionClauses with this function so the
+// draft-visibility rules can't drift between the two endpoints.
 export function buildBlueprintFilter(
   parsed: ParsedBlueprintFilters,
   ratedByIds: mongoose.Types.ObjectId[] | null,
-  viewer: BlueprintFilterViewer,
-  omitDimensions?: FilterDimension | FilterDimension[]
+  viewer: BlueprintFilterViewer
 ): { filter: any; usesOffsetPagination: boolean } {
-  const omitted = new Set(
-    omitDimensions == null ? [] : Array.isArray(omitDimensions) ? omitDimensions : [omitDimensions]
-  );
   // count-based sorts ignore the olderthan cursor (offset pagination via skip instead);
   // the param stays accepted so the existing client call shape keeps working
   const usesOffsetPagination = parsed.sort !== 'recent';
@@ -254,10 +249,10 @@ export function buildBlueprintFilter(
   filter.$and.push(...buildCommonClauses(parsed, ratedByIds, viewer));
 
   const dims = buildDimensionClauses(parsed);
-  if (!omitted.has('category') && dims.category != null) filter.$and.push(dims.category);
-  if (!omitted.has('subcategory') && dims.subcategory != null) filter.$and.push(dims.subcategory);
-  if (!omitted.has('rooms') && dims.rooms != null) filter.$and.push(dims.rooms);
-  if (!omitted.has('dlc')) filter.$and.push(...dims.dlc);
+  if (dims.category != null) filter.$and.push(dims.category);
+  if (dims.subcategory != null) filter.$and.push(dims.subcategory);
+  if (dims.rooms != null) filter.$and.push(dims.rooms);
+  filter.$and.push(...dims.dlc);
 
   return { filter, usesOffsetPagination };
 }
@@ -293,7 +288,13 @@ function buildCommonClauses(
   // via .aggregate(), which does not — a bare string here would silently
   // match nothing against the ObjectId-typed owner/forkedFrom fields.
   if (parsed.filterUserId != null) clauses.push({ owner: toObjectIdIfValid(parsed.filterUserId) });
-  if (parsed.filterName != null) clauses.push({ name: { $regex: parsed.filterName, $options: 'i' } });
+  // Escaped so filterName is a literal substring search: unescaped, a name
+  // containing regex metacharacters ('(', '*', '[', ...) either 400s on an
+  // invalid pattern or changes what it matches instead of searching for the
+  // literal text the user typed.
+  if (parsed.filterName != null) {
+    clauses.push({ name: { $regex: escapeRegExp(parsed.filterName), $options: 'i' } });
+  }
   if (parsed.filterModded != null) clauses.push({ modded: parsed.filterModded });
   if (parsed.filterForkedFrom != null) {
     clauses.push({ 'forkedFrom.blueprintId': toObjectIdIfValid(parsed.filterForkedFrom) });
@@ -305,6 +306,10 @@ function buildCommonClauses(
 
 function toObjectIdIfValid(id: string): string | mongoose.Types.ObjectId {
   return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : id;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 interface DimensionClauses {

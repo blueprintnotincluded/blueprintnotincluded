@@ -831,6 +831,18 @@
   color: var(--bni-body);
 }
 
+/* Read-only summary row (e.g. "Base game" under DLC — show only): same
+   space-between layout as a facet button, but there is nothing to click —
+   there is no `dlc=` sentinel for "requires no pack" to filter on. */
+.bni-facet--info {
+  cursor: default;
+  color: var(--bni-faint);
+}
+
+.bni-facet--info:hover {
+  color: var(--bni-faint);
+}
+
 /* ---- star rating (accent fill, display only) ---- */
 .bni-stars {
   display: inline-flex;

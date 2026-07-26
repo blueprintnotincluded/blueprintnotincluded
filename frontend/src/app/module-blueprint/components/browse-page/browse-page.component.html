@@ -191,6 +191,16 @@
               >{{ facetCount("dlc", opt.value) }}</span
             >
           </button>
+          <div
+            *ngIf="baseGameCount !== null"
+            class="bni-facet bni-facet--info"
+            [attr.aria-label]="baseGameAriaLabel"
+          >
+            <ng-container i18n>Base game</ng-container>
+            <span class="bni-facet-count" aria-hidden="true">{{
+              baseGameCount
+            }}</span>
+          </div>
         </div>
 
         <div class="bni-facet-group">

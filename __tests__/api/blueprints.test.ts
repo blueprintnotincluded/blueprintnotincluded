@@ -202,6 +202,17 @@ describe('Blueprint API (Mocha)', function () {
       expect(lower.body.blueprints.map((bp: any) => bp.name)).to.include('Legacy Food System');
       expect(upper.body.blueprints.map((bp: any) => bp.name)).to.include('Legacy Food System');
     });
+
+    it('treats filterName as a literal substring, not a regex', async function () {
+      // Unescaped, '(' is an invalid/unbalanced regex group and would 500;
+      // it must instead search for the literal text and simply match nothing.
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), filterName: 'oxygen(' });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints).to.deep.equal([]);
+    });
   });
 
   describe('GET /api/getblueprints?sort=popular', function () {
