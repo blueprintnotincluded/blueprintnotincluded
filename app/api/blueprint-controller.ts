@@ -13,7 +13,6 @@ import {
 //   Overlay,
 //   ImageSource,
   BlueprintDelete,
-  GAME_VERSIONS,
   CATEGORIES,
   SUBCATEGORIES,
   RESEARCH_TIERS,
@@ -137,12 +136,6 @@ export class BlueprintController {
         return;
       }
 
-      const gameVersion = req.body.gameVersion ?? null;
-      if (gameVersion != null && !(GAME_VERSIONS as readonly string[]).includes(gameVersion)) {
-        res.status(400).json(apiError(400, `Invalid gameVersion: must be one of ${GAME_VERSIONS.join(', ')}`));
-        return;
-      }
-
       const category = req.body.category ?? null;
       if (category != null && !(CATEGORIES as readonly string[]).includes(category)) {
         res.status(400).json(apiError(400, `Invalid category: must be one of ${CATEGORIES.join(', ')}`));
@@ -180,7 +173,7 @@ export class BlueprintController {
       // state (new blueprints start as drafts via the schema default)
       const publish = req.body.publish != null ? Boolean(req.body.publish) : null;
 
-      const metadata = { gameVersion, category, subcategory, description, researchTier, modded };
+      const metadata = { category, subcategory, description, researchTier, modded };
 
       // Verbatim BlueprintsV2 source for byte-exact re-download (§8). The
       // client only sends it when the saved data still equals the imported
@@ -501,7 +494,6 @@ export class BlueprintController {
         nbRatings: blueprint.ratingCount ?? 0,
         rating: blueprint.ratingAverage ?? 0,
         myRating,
-        gameVersion: blueprint.gameVersion ?? null,
         requiredDlcs: blueprint.requiredDlcs ?? [],
         category: blueprint.category ?? null,
         subcategory: blueprint.subcategory ?? null,
@@ -692,7 +684,6 @@ export class BlueprintController {
     else {
       let filterUserId: string;
       let filterName: string;
-      let filterGameVersion: string | null = null;
       let filterCategory: string | null = null;
       let filterSubcategory: string | null = null;
       let filterModded: boolean | null = null;
@@ -719,13 +710,6 @@ export class BlueprintController {
           return;
         }
         filterName = rawFilterName;
-
-        const rawGameVersion = req.query.gameVersion as string | undefined;
-        if (rawGameVersion != null && !(GAME_VERSIONS as readonly string[]).includes(rawGameVersion)) {
-          res.status(400).json(apiError(400, `Invalid gameVersion: must be one of ${GAME_VERSIONS.join(', ')}`));
-          return;
-        }
-        filterGameVersion = rawGameVersion ?? null;
 
         const rawCategory = req.query.category as string | undefined;
         if (rawCategory != null && !(CATEGORIES as readonly string[]).includes(rawCategory)) {
@@ -886,7 +870,6 @@ export class BlueprintController {
 
       if (filterUserId != null) filter.$and.push({ owner: filterUserId });
       if (filterName != null) filter.$and.push({ name: { $regex: filterName, $options: 'i' } });
-      if (filterGameVersion != null) filter.$and.push({ gameVersion: filterGameVersion });
       if (filterCategory != null) filter.$and.push({ category: filterCategory });
       if (filterSubcategory != null) filter.$and.push({ subcategory: filterSubcategory });
       if (filterModded != null) filter.$and.push({ modded: filterModded });
@@ -1075,7 +1058,6 @@ export class BlueprintController {
       nbRatings: blueprint.ratingCount ?? 0,
       rating: blueprint.ratingAverage ?? 0,
       commentCount: commentCounts.get(id) ?? 0,
-      gameVersion: blueprint.gameVersion ?? null,
       requiredDlcs: blueprint.requiredDlcs ?? [],
       category: blueprint.category ?? null,
       subcategory: blueprint.subcategory ?? null,
@@ -1371,7 +1353,6 @@ export class BlueprintController {
         myRating: detailsMyRating,
         ownedByMe: viewerId != null && ownerId === viewerId,
         commentCount: commentCounts.get((blueprint._id as any).toString()) ?? 0,
-        gameVersion: blueprint.gameVersion ?? null,
         requiredDlcs: blueprint.requiredDlcs ?? [],
         category: blueprint.category ?? null,
         subcategory: blueprint.subcategory ?? null,
@@ -1470,7 +1451,6 @@ export class BlueprintController {
     thumbnail: string,
     overwriteCreateDate: boolean,
     metadata?: {
-      gameVersion: string | null;
       category: string | null;
       subcategory: string | null;
       description: string | null;
@@ -1520,7 +1500,6 @@ export class BlueprintController {
     blueprint.rawSourceFormat = rawSource?.format ?? null;
 
     if (metadata) {
-      blueprint.gameVersion = metadata.gameVersion;
       blueprint.category = metadata.category;
       blueprint.subcategory = metadata.subcategory;
       blueprint.description = metadata.description;

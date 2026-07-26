@@ -86,7 +86,6 @@ export class BlueprintVersionController {
         deletedAt: null,
         // Forks start as drafts, like any new blueprint
         isPublished: false,
-        gameVersion: source.gameVersion ?? null,
         category: source.category ?? null,
         subcategory: source.subcategory ?? null,
         description: source.description ?? null,

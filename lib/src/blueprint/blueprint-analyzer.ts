@@ -1,4 +1,4 @@
-import { CATEGORIES, Category, GAME_VERSIONS, GameVersion } from './blueprint-metadata';
+import { CATEGORIES, Category } from './blueprint-metadata';
 import { DlcId } from './dlc';
 
 // The set of DLCs a blueprint needs in order to be built: the union of every
@@ -11,36 +11,10 @@ import { DlcId } from './dlc';
 // treated exactly like every other id. Requirements come from the blueprint's
 // content, never from the author's own setup.
 //
-// This supersedes deriveGameVersion, which collapses the set to a single
-// highest-priority value and therefore cannot express "needs Frosty AND Bionic"
-// (owning one pack implies nothing about the other). See
-// spec/dlc-requirements-plan.md.
 export function deriveRequiredDlcs(buildingDlcIds: DlcId[][]): DlcId[] {
   const required = new Set<DlcId>();
   for (const dlcIds of buildingDlcIds) for (const dlcId of dlcIds) required.add(dlcId);
   return [...required].sort();
-}
-
-const DLC_TO_GAME_VERSION: Record<string, GameVersion> = {
-  EXPANSION1_ID: 'spacedOut',
-  DLC2_ID: 'frostyPlanet',
-  DLC5_ID: 'bionicBooster',
-};
-
-// Returns the minimum game version required to use a blueprint, based on which
-// DLC IDs each building requires. Priority follows the GAME_VERSIONS order
-// (highest index wins). Unknown DLC IDs are ignored.
-export function deriveGameVersion(buildingDlcIds: DlcId[][]): GameVersion {
-  let best = 0; // index into GAME_VERSIONS
-  for (const dlcIds of buildingDlcIds) {
-    for (const dlcId of dlcIds) {
-      const version = DLC_TO_GAME_VERSION[dlcId];
-      if (version === undefined) continue;
-      const idx = GAME_VERSIONS.indexOf(version);
-      if (idx > best) best = idx;
-    }
-  }
-  return GAME_VERSIONS[best];
 }
 
 // Distinct, sorted workshop ids of the mods a blueprint's buildings come from.

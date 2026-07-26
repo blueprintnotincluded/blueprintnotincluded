@@ -75,10 +75,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   // here would make every page-1 URL unique and defeat the CDN cache.
   oldestDate: Date | null = null;
   filterName = "";
-  // Superseded by filterDlcs — no sidebar control writes it any more, but the
-  // param is still read, sent and shown as a chip so links predating the DLC
-  // filter keep working until gameVersion is dropped altogether.
-  filterGameVersion: string | null = null;
   /** Selected DLC ids; empty = no DLC restriction. Multi-select: the server
    * matches blueprints requiring ANY of them ($in). */
   filterDlcs: string[] = [];
@@ -351,7 +347,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   /** Sync filter state from URL params; true if anything changed. */
   private readFiltersFromParams(params: ParamMap): boolean {
     const name = params.get("name") ?? "";
-    const gameVersion = params.get("gameVersion");
     const category = params.get("category");
     const subcategory = params.get("subcategory");
     const rawModded = params.get("modded");
@@ -383,7 +378,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
     const changed =
       name !== this.filterName ||
-      gameVersion !== this.filterGameVersion ||
       category !== this.filterCategory ||
       subcategory !== this.filterSubcategory ||
       modded !== this.filterModded ||
@@ -394,7 +388,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       sort !== this.sort;
 
     this.filterName = name;
-    this.filterGameVersion = gameVersion;
     this.filterCategory = category;
     this.filterSubcategory = subcategory;
     this.filterModded = modded;
@@ -422,14 +415,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.onFacetChange();
   }
 
-  selectGameVersion(value: string | null) {
-    if (this.filterGameVersion === value) return;
-    this.filterGameVersion = value;
-    // not onFacetChange(): subcategory is scoped to category, so a
-    // game-version change must not reset it
-    this.filterFacetSubject.next();
-  }
-
   isDlcSelected(dlcId: string): boolean {
     return this.filterDlcs.includes(dlcId);
   }
@@ -447,7 +432,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       this.excludeDlcs = this.excludeDlcs.filter((id) => id !== dlcId);
       this.persistDlcExclusionPreference();
     }
-    // same reasoning as selectGameVersion: subcategory is scoped to category
+    // not onFacetChange(): subcategory is scoped to category, not DLC
     this.filterFacetSubject.next();
   }
 
@@ -526,7 +511,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     return (
       [
         this.filterName,
-        this.filterGameVersion,
         this.filterCategory,
         this.filterSubcategory,
         this.filterRooms,
@@ -590,12 +574,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       chips.push(
         this.chip("subcategory", this.filterSubcategory, () =>
           this.selectSubcategory(null),
-        ),
-      );
-    if (this.filterGameVersion)
-      chips.push(
-        this.chip("gameVersion", this.filterGameVersion, () =>
-          this.selectGameVersion(null),
         ),
       );
     // One chip per pack, each removable on its own — unlike rooms, the sidebar
@@ -662,8 +640,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   private applyFiltersToUrl() {
     const queryParams: Record<string, string | null> = {};
     if (this.filterName) queryParams["name"] = this.filterName;
-    if (this.filterGameVersion)
-      queryParams["gameVersion"] = this.filterGameVersion;
     if (this.filterCategory) queryParams["category"] = this.filterCategory;
     if (this.filterSubcategory)
       queryParams["subcategory"] = this.filterSubcategory;
@@ -682,7 +658,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   clearFilters() {
     this.filterName = "";
-    this.filterGameVersion = null;
     this.filterCategory = null;
     this.filterSubcategory = null;
     this.filterModded = null;
@@ -721,7 +696,6 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.oldestDate,
             null,
             this.filterName.trim() || null,
-            this.filterGameVersion,
             this.filterCategory,
             this.filterSubcategory,
             this.sort,

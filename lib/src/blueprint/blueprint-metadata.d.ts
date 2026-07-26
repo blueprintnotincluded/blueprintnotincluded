@@ -1,5 +1,3 @@
-export declare const GAME_VERSIONS: readonly ["base", "spacedOut", "frostyPlanet", "bionicBooster"];
-export type GameVersion = typeof GAME_VERSIONS[number];
 export declare const CATEGORIES: readonly ["oxygenGen", "power", "cooling", "food", "ranching", "automation", "transit", "refining", "rooms", "decor"];
 export type Category = typeof CATEGORIES[number];
 export declare const SUBCATEGORIES: Record<Category, readonly string[]>;

@@ -14,7 +14,6 @@ import {
   SUBCATEGORIES,
   OniItem,
   dlcLabel,
-  deriveGameVersion,
   deriveRequiredDlcs,
   deriveModded,
   deriveCategory,
@@ -61,7 +60,6 @@ export class ComponentSaveDialogComponent {
       BlueprintNameValidationDirective.validateBlueprintName,
     ]),
     description: new UntypedFormControl(null),
-    gameVersion: new UntypedFormControl({ value: null, disabled: true }),
     category: new UntypedFormControl(null),
     subcategory: new UntypedFormControl(null),
     modded: new UntypedFormControl({ value: null, disabled: true }),
@@ -160,7 +158,6 @@ export class ComponentSaveDialogComponent {
   private applyMetadataToService() {
     const v = this.saveBlueprintForm.getRawValue();
     this.blueprintService.metadata = {
-      gameVersion: v.gameVersion ?? null,
       category: v.category ?? null,
       subcategory: v.subcategory ?? null,
       description: v.description?.trim() || null,
@@ -168,9 +165,9 @@ export class ComponentSaveDialogComponent {
     };
   }
 
-  // Derives the DLC requirements, gameVersion and modded from the current
-  // blueprint content so users see what was computed. The server derives its
-  // own requiredDlcs on save — this is the preview, never the source.
+  // Derives the DLC requirements and modded from the current blueprint
+  // content so users see what was computed. The server derives its own
+  // requiredDlcs on save — this is the preview, never the source.
   private computeDerivedMetadata() {
     const blueprint = this.blueprintService.blueprint;
     // oniItemsMap may be null in unit tests before the database loads
@@ -180,7 +177,6 @@ export class ComponentSaveDialogComponent {
       (item) => item.oniItem.dlcIds,
     );
     this.requiredDlcs = deriveRequiredDlcs(buildingDlcIds);
-    const gameVersion = deriveGameVersion(buildingDlcIds);
 
     const knownIds = new Set(OniItem.oniItems.map((i) => i.id));
     const modByPrefabId = new Map(
@@ -192,7 +188,7 @@ export class ComponentSaveDialogComponent {
       blueprint.hadUnknownBuildings ||
       deriveModded(prefabIds, knownIds, modByPrefabId);
 
-    this.saveBlueprintForm.patchValue({ gameVersion, modded });
+    this.saveBlueprintForm.patchValue({ modded });
 
     // Pre-fill category only when the control is empty: a fresh save gets
     // the suggestion, but the update flow in showDialog() restores the

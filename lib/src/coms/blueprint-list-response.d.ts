@@ -16,7 +16,6 @@ export interface BlueprintListItem {
     nbRatings: number;
     rating: number;
     commentCount: number;
-    gameVersion?: string | null;
     requiredDlcs?: string[];
     category?: string | null;
     subcategory?: string | null;
@@ -57,7 +56,6 @@ export interface BlueprintResponse {
     nbRatings: number;
     rating: number;
     myRating: number | null;
-    gameVersion?: string | null;
     requiredDlcs?: string[];
     category?: string | null;
     subcategory?: string | null;

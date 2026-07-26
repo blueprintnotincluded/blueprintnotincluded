@@ -72,10 +72,7 @@ describe("ComponentSaveDialogComponent", () => {
       expect(component.saveBlueprintForm.value.description).toBeNull();
     });
 
-    it("gameVersion and modded controls are disabled (auto-detected)", () => {
-      expect(component.saveBlueprintForm.controls.gameVersion.disabled).toBe(
-        true,
-      );
+    it("modded control is disabled (auto-detected)", () => {
       expect(component.saveBlueprintForm.controls.modded.disabled).toBe(true);
     });
 
@@ -110,8 +107,7 @@ describe("ComponentSaveDialogComponent", () => {
         subcategory: "generator",
         description: "A power setup",
       });
-      // gameVersion and modded are disabled — patch via the control
-      component.saveBlueprintForm.controls.gameVersion.setValue("spacedOut");
+      // modded is disabled — patch via the control
       component.saveBlueprintForm.controls.modded.setValue(true);
       // Simulate thumbnail ready to allow submit
       (blueprintService as any).thumbnail = "data:image/png;base64,test";
@@ -119,7 +115,6 @@ describe("ComponentSaveDialogComponent", () => {
       component.onSubmit();
 
       expect(blueprintService.metadata).toMatchObject({
-        gameVersion: "spacedOut",
         category: "power",
         subcategory: "generator",
         description: "A power setup",

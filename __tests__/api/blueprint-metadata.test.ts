@@ -44,7 +44,6 @@ describe('Blueprint metadata API', function () {
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           ...BASE_BODY,
-          gameVersion: 'spacedOut',
           category: 'power',
           subcategory: 'generator',
           description: 'A great power setup',
@@ -56,7 +55,6 @@ describe('Blueprint metadata API', function () {
       const id = upload.body.id;
 
       const saved = await BlueprintModel.model.findById(id);
-      expect(saved!.gameVersion).to.equal('spacedOut');
       expect(saved!.category).to.equal('power');
       expect(saved!.subcategory).to.equal('generator');
       expect(saved!.description).to.equal('A great power setup');
@@ -70,7 +68,6 @@ describe('Blueprint metadata API', function () {
       expect(list.status).to.equal(200);
       const item = list.body.blueprints.find((bp: any) => bp.id === id);
       expect(item).to.exist;
-      expect(item.gameVersion).to.equal('spacedOut');
       expect(item.category).to.equal('power');
       expect(item.description).to.equal('A great power setup');
       expect(item.modded).to.be.true;
@@ -90,7 +87,6 @@ describe('Blueprint metadata API', function () {
 
       const item = list.body.blueprints.find((bp: any) => bp.name === 'Meta Test Blueprint');
       expect(item).to.exist;
-      expect(item.gameVersion ?? null).to.be.null;
       expect(item.category ?? null).to.be.null;
     });
 
@@ -114,16 +110,6 @@ describe('Blueprint metadata API', function () {
       const roomsSaved = await BlueprintModel.model.findById(roomsUpload.body.id);
       expect(roomsSaved!.category).to.equal('rooms');
       expect(roomsSaved!.subcategory).to.equal('barracks');
-    });
-
-    it('rejects unknown gameVersion with 400', async function () {
-      const response = await TestSetup.request()
-        .post('/api/uploadblueprint')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ ...BASE_BODY, gameVersion: 'notARealVersion' });
-
-      expect(response.status).to.equal(400);
-      expect(response.body.errors).to.be.an('array');
     });
 
     it('rejects unknown category with 400', async function () {
@@ -183,23 +169,12 @@ describe('Blueprint metadata API', function () {
       await TestSetup.request()
         .post('/api/uploadblueprint')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ ...BASE_BODY, name: 'Power Blueprint', gameVersion: 'base', category: 'power' });
+        .send({ ...BASE_BODY, name: 'Power Blueprint', category: 'power' });
 
       await TestSetup.request()
         .post('/api/uploadblueprint')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ ...BASE_BODY, name: 'Oxygen Blueprint', gameVersion: 'spacedOut', category: 'oxygenGen' });
-    });
-
-    it('filters by gameVersion', async function () {
-      const response = await TestSetup.request()
-        .get('/api/getblueprints')
-        .query({ olderthan: Date.now(), gameVersion: 'base' });
-
-      expect(response.status).to.equal(200);
-      const names = response.body.blueprints.map((bp: any) => bp.name);
-      expect(names).to.include('Power Blueprint');
-      expect(names).to.not.include('Oxygen Blueprint');
+        .send({ ...BASE_BODY, name: 'Oxygen Blueprint', category: 'oxygenGen' });
     });
 
     it('filters by category', async function () {
@@ -211,25 +186,6 @@ describe('Blueprint metadata API', function () {
       const names = response.body.blueprints.map((bp: any) => bp.name);
       expect(names).to.include('Oxygen Blueprint');
       expect(names).to.not.include('Power Blueprint');
-    });
-
-    it('filters by gameVersion and category together', async function () {
-      const response = await TestSetup.request()
-        .get('/api/getblueprints')
-        .query({ olderthan: Date.now(), gameVersion: 'spacedOut', category: 'oxygenGen' });
-
-      expect(response.status).to.equal(200);
-      const names = response.body.blueprints.map((bp: any) => bp.name);
-      expect(names).to.include('Oxygen Blueprint');
-      expect(names).to.not.include('Power Blueprint');
-    });
-
-    it('returns 400 for unknown gameVersion filter', async function () {
-      const response = await TestSetup.request()
-        .get('/api/getblueprints')
-        .query({ olderthan: Date.now(), gameVersion: 'notAVersion' });
-
-      expect(response.status).to.equal(400);
     });
 
     it('returns 400 for unknown category filter', async function () {

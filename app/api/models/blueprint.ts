@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import {
-  GAME_VERSIONS,
   CATEGORIES,
   RESEARCH_TIERS,
   ROOM_TYPE_IDS,
@@ -49,7 +48,6 @@ export interface Blueprint extends Document {
   // (same coverage as $ne: false, but point index bounds — see PUBLISHED_FILTER
   // in blueprint-controller) so those documents stay visible until the migration runs.
   isPublished?: boolean;
-  gameVersion?: string | null;
   // Raw Klei DLC ids (EXPANSION1_ID, DLC2_ID, …) required to build this
   // blueprint — the union of its buildings' dlcIds, server-derived on every
   // save (never client-supplied, same policy as rooms/mods). Unordered set:
@@ -132,7 +130,6 @@ export class BlueprintModel {
       // read as a draft in the deploy→migrate window (migrations run
       // post-deploy here). Creation sites set false explicitly instead.
       isPublished: Boolean,
-      gameVersion: { type: String, enum: [...GAME_VERSIONS, null], index: true },
       // No enum: unknown-to-us DLC ids must still round-trip (a new pack ships
       // in an export before we know its name). default: undefined for the same
       // reason as mods — a schema default would make legacy docs read as
@@ -149,7 +146,7 @@ export class BlueprintModel {
       // draft-blueprints fields.
       mods: { type: [String], default: undefined },
       // No default: absent means "never derived", distinct from [] = "derived,
-      // none found" (mirrors the gameVersion nullability convention).
+      // none found" (mirrors the requiredDlcs nullability convention).
       rooms: { type: [String], enum: ROOM_TYPE_IDS, default: undefined },
       currentVersionId: {
         type: Schema.Types.ObjectId,
@@ -186,12 +183,9 @@ export class BlueprintModel {
 
     // Discovery feed indexes (deletedAt: null AND isPublished: true = public)
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, createdAt: -1 });
-    blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, category: 1, createdAt: -1 });
-    blueprintSchema.index({ deletedAt: 1, isPublished: 1, gameVersion: 1, category: 1, createdAt: -1 });
-    // DLC-requirement filters on the public feed (multikey on requiredDlcs).
-    // Compound equivalents of the gameVersion pair above — one array field per
-    // compound index, and category/createdAt are scalars, so both are legal.
+    // DLC-requirement filters on the public feed (multikey on requiredDlcs;
+    // one array field per compound index, category/createdAt are scalars).
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, requiredDlcs: 1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, requiredDlcs: 1, category: 1, createdAt: -1 });
     // Room-type filter on the public feed (multikey on rooms)
@@ -210,8 +204,8 @@ export class BlueprintModel {
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, viewCount: -1, createdAt: -1 });
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, downloadCount: -1, createdAt: -1 });
     // "Trending" sort — materialized hotScore. Unfiltered feed only for now;
-    // filter-scoped (gameVersion/category/rooms) hotScore indexes are a
-    // metrics-gated TODO (spec/trending-hotscore-plan.md §6).
+    // filter-scoped (category/rooms) hotScore indexes are a metrics-gated
+    // TODO (spec/trending-hotscore-plan.md §6).
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, hotScore: -1, createdAt: -1 });
 
     BlueprintModel.model = mongoose.model<Blueprint>('Blueprint', blueprintSchema);

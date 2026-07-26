@@ -1,12 +1,12 @@
-// Backfill script: derive gameVersion, requiredDlcs, modded and category for
+// Backfill script: derive requiredDlcs, modded and category for
 // all blueprints in the database using the same logic as the save dialog.
 //
 // Usage:
 //   ts-node app/api/batch/derive-blueprint-metadata.ts [--dry-run]
 //
 // The script loads database-2024.json to build the DLC, known-ID and category
-// maps, then iterates every blueprint document and recomputes gameVersion,
-// requiredDlcs, modded and category. requiredDlcs is the set of DLCs the
+// maps, then iterates every blueprint document and recomputes requiredDlcs,
+// modded and category. requiredDlcs is the set of DLCs the
 // blueprint's buildings need; blueprints saved before it existed have no value
 // at all (they read as base-game) until this script runs. modded is derived from whether any stored prefabId is
 // absent from the current database (approximation — unknown buildings were
@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { deriveGameVersion, deriveRequiredDlcs, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
+import { deriveRequiredDlcs, deriveModded, deriveBlueprintMods, deriveCategory, buildCategoryLookup, CategoryLookup } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { MdbBlueprint } from '../../../lib/index';
 
@@ -72,7 +72,6 @@ async function run(dryRun: boolean) {
     const prefabIds = (mdb?.blueprintItems ?? []).map((b: any) => String(b.id));
 
     const buildingDlcIds = prefabIds.map(id => dlcIdsMap.get(id) ?? []);
-    const gameVersion = deriveGameVersion(buildingDlcIds);
     const requiredDlcs = deriveRequiredDlcs(buildingDlcIds);
     // Only trust a positive modded=true: unknown buildings were stripped at import,
     // so false here means "no remaining IDs are unknown" — not "definitely vanilla".
@@ -89,7 +88,6 @@ async function run(dryRun: boolean) {
     processed++;
 
     const changed =
-      doc.gameVersion !== gameVersion ||
       JSON.stringify(doc.requiredDlcs ?? null) !== JSON.stringify(requiredDlcs) ||
       (derivedModded && doc.modded !== true) ||
       JSON.stringify(doc.mods ?? null) !== JSON.stringify(derivedMods) ||
@@ -98,7 +96,7 @@ async function run(dryRun: boolean) {
     if (changed) {
       updated++;
       if (!dryRun) {
-        const $set: Record<string, unknown> = { gameVersion, requiredDlcs, mods: derivedMods };
+        const $set: Record<string, unknown> = { requiredDlcs, mods: derivedMods };
         if (derivedModded) $set.modded = true;
         if (derivedCategory != null) $set.category = derivedCategory;
         await BlueprintModel.model.updateOne({ _id: doc._id }, { $set });

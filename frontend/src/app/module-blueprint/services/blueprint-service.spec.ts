@@ -403,7 +403,6 @@ describe("BlueprintService", () => {
         null,
         null,
         null,
-        null,
         "popular",
         10,
       );
@@ -427,15 +426,7 @@ describe("BlueprintService", () => {
     });
 
     it("includes sort=mostForked when provided", () => {
-      service.getBlueprints(
-        new Date(),
-        null,
-        null,
-        null,
-        null,
-        null,
-        "mostForked",
-      );
+      service.getBlueprints(new Date(), null, null, null, null, "mostForked");
       const url: string = mockHttp.get.mock.calls[0][0];
       expect(url).toContain("sort=mostForked");
     });
@@ -459,7 +450,6 @@ describe("BlueprintService", () => {
       mockAuth.isLoggedIn.mockReturnValue(true);
       service.getBlueprints(
         new Date(),
-        null,
         null,
         null,
         null,

@@ -33,7 +33,7 @@ import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import {
-  deriveGameVersion,
+  deriveRequiredDlcs,
   deriveModded,
   deriveCategory,
   buildCategoryLookup,
@@ -107,7 +107,7 @@ const DEV_USERS: DevUserSpec[] = [
 ];
 
 // Placeholder blueprints keyed by real prefab IDs so the categorization algorithms
-// (deriveCategory / deriveGameVersion / deriveModded) actually fire — gameVersion,
+// (deriveCategory / deriveRequiredDlcs / deriveModded) actually fire — requiredDlcs,
 // category and modded are DERIVED below exactly as production does, never hand-set.
 // The comment on each spec is the expected derivation outcome (a manual assertion of
 // what the algorithm should produce), which the run-summary prints back for checking.
@@ -198,8 +198,8 @@ const SOURCE_SPECS: SourceSpec[] = [
     owner: 'dev_creator_alpha',
     name: 'Spaced Out Oxygen',
     subcategory: 'electrolyzer',
-    description: 'Electrolyzer + a Spaced Out battery module — category oxygenGen, gameVersion spacedOut.',
-    prefabIds: ['Electrolyzer', 'BatteryModule'], // -> oxygenGen / spacedOut (BatteryModule = EXPANSION1_ID)
+    description: 'Electrolyzer + a Spaced Out battery module — category oxygenGen, requiredDlcs [EXPANSION1_ID].',
+    prefabIds: ['Electrolyzer', 'BatteryModule'], // -> oxygenGen / [EXPANSION1_ID] (BatteryModule requires Spaced Out)
     daysAgo: 4,
     ratedBy: ['dev_forker', 'dev_lurker', 'dev_admin'],
   },
@@ -340,7 +340,7 @@ async function forkBlueprint(source: Blueprint, ownerId: mongoose.Types.ObjectId
     createdAt: now,
     modifiedAt: now,
     deletedAt: null,
-    gameVersion: source.gameVersion ?? null,
+    requiredDlcs: source.requiredDlcs ?? [],
     category: source.category ?? null,
     subcategory: source.subcategory ?? null,
     description: source.description ?? null,
@@ -471,10 +471,10 @@ async function run() {
 
   // Source blueprints, with metadata derived exactly like production
   const sourcesByName = new Map<string, Blueprint>();
-  const derivedRows: Array<{ name: string; gameVersion: string; category: string; modded: boolean }> = [];
+  const derivedRows: Array<{ name: string; requiredDlcs: string[]; category: string; modded: boolean }> = [];
   for (const spec of SOURCE_SPECS) {
     const buildingDlcIds = spec.prefabIds.map(id => dlcIdsMap.get(id) ?? []);
-    const gameVersion = deriveGameVersion(buildingDlcIds);
+    const requiredDlcs = deriveRequiredDlcs(buildingDlcIds);
     const modded = deriveModded(spec.prefabIds, knownIds, modByPrefabId);
     const category = deriveCategory(spec.prefabIds, categoryLookup);
 
@@ -486,7 +486,7 @@ async function run() {
       thumbnail: THUMBNAIL,
       thumbnailType: thumbnailTypeOf(THUMBNAIL),
       data: blueprintData(spec.prefabIds),
-      gameVersion,
+      requiredDlcs,
       category,
       subcategory: spec.subcategory,
       description: spec.description,
@@ -498,7 +498,7 @@ async function run() {
     await blueprint.save();
     await seedRatings(blueprint, raterIds);
     sourcesByName.set(spec.name, blueprint);
-    derivedRows.push({ name: spec.name, gameVersion, category: category ?? 'Untagged', modded });
+    derivedRows.push({ name: spec.name, requiredDlcs, category: category ?? 'Untagged', modded });
   }
 
   // Forks (real BlueprintVersion + forkedFrom + forkCount), including a fork-of-fork.
@@ -525,7 +525,7 @@ async function run() {
     thumbnail: THUMBNAIL,
     thumbnailType: thumbnailTypeOf(THUMBNAIL),
     data: blueprintData(myPrefabs),
-    gameVersion: deriveGameVersion(myPrefabs.map(id => dlcIdsMap.get(id) ?? [])),
+    requiredDlcs: deriveRequiredDlcs(myPrefabs.map(id => dlcIdsMap.get(id) ?? [])),
     category: deriveCategory(myPrefabs, categoryLookup),
     subcategory: 'generator',
     description: 'Owned by the protected dev_you account — your validation sandbox.',
@@ -664,7 +664,8 @@ async function run() {
 
   console.log('\nDerived metadata (verify categorization):');
   for (const r of derivedRows) {
-    console.log(`  ${r.name.padEnd(24)} category=${r.category.padEnd(10)} gameVersion=${r.gameVersion.padEnd(11)} modded=${r.modded}`);
+    const dlcs = r.requiredDlcs.length > 0 ? r.requiredDlcs.join('+') : 'base';
+    console.log(`  ${r.name.padEnd(24)} category=${r.category.padEnd(10)} requiredDlcs=${dlcs.padEnd(15)} modded=${r.modded}`);
   }
 
   console.log('\n=== Dev login — paste into the browser console on the site origin, then reload ===');
