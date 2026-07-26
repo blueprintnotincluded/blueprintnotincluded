@@ -988,6 +988,32 @@ describe("BrowsePageComponent", () => {
       expect(component.dlcAllCount).toBe(7);
     });
 
+    it("baseGameCount surfaces the read-only base-game summary row", () => {
+      expect(component.baseGameCount).toBeNull();
+
+      blueprintService.getBlueprintFacets.mockReturnValue(
+        of(makeFacets({ baseGame: 5 })),
+      );
+      fixture.detectChanges();
+
+      expect(component.baseGameCount).toBe(5);
+      expect(component.baseGameAriaLabel).toBe("Base game, 5 blueprints");
+
+      const row = fixture.debugElement.query(By.css(".bni-facet--info"));
+      expect(row).toBeTruthy();
+      expect(row.nativeElement.textContent).toContain("5");
+    });
+
+    it("hides the base-game row until counts have loaded", () => {
+      const pending = new Subject<any>();
+      blueprintService.getBlueprintFacets.mockReturnValue(pending);
+      fixture.detectChanges(); // ngOnInit — facets request now in flight
+
+      expect(component.baseGameCount).toBeNull();
+      const row = fixture.debugElement.query(By.css(".bni-facet--info"));
+      expect(row).toBeFalsy();
+    });
+
     it("wraps the count into the accessible label instead of leaving it bare", () => {
       blueprintService.getBlueprintFacets.mockReturnValue(
         of(makeFacets({ category: { power: 1 } })),

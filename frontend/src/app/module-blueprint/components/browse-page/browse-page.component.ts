@@ -808,6 +808,20 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     return this.countAriaLabel(label, this.dlcAllCount);
   }
 
+  /** Read-only summary count under DLC — show only: how many blueprints need
+   * no pack at all. Not a clickable filter — there is no `dlc=` sentinel for
+   * "requires nothing" to toggle on. */
+  get baseGameCount(): number | null {
+    return this.facetCounts?.baseGame ?? null;
+  }
+
+  get baseGameAriaLabel(): string {
+    return this.countAriaLabel(
+      $localize`:browse.baseGame:Base game`,
+      this.baseGameCount,
+    );
+  }
+
   private countAriaLabel(label: string, count: number | null): string {
     if (count == null) return label;
     return count === 1
