@@ -30,7 +30,7 @@ const GAME_VERSIONS = ['base', 'spacedOut', 'frostyPlanet', 'bionicBooster'];
 const DLC_TO_GAME_VERSION = {
   EXPANSION1_ID: 'spacedOut',
   DLC2_ID: 'frostyPlanet',
-  DLC5_ID: 'bionicBooster',
+  DLC3_ID: 'bionicBooster',
 };
 
 const OLD_INDEXES = [
@@ -72,15 +72,19 @@ module.exports = {
       await dropIfExists(blueprints, indexName(keys));
     }
 
-    const result = await blueprints.updateMany({}, { $unset: { gameVersion: '' } });
-    console.log(`unset gameVersion on ${result.modifiedCount} blueprints`);
+    await blueprints.updateMany({}, { $unset: { gameVersion: '' } });
+
+    const remaining = await blueprints.countDocuments({ gameVersion: { $exists: true } });
+    if (remaining !== 0) {
+      throw new Error(`drop-game-version: ${remaining} blueprint(s) still have gameVersion set after $unset`);
+    }
+    console.log('gameVersion unset on all blueprints');
   },
 
   async down(db) {
     const blueprints = db.collection('blueprints');
 
     const cursor = blueprints.find({}).project({ requiredDlcs: 1 });
-    let restored = 0;
     let ops = [];
     for await (const doc of cursor) {
       ops.push({
@@ -91,15 +95,19 @@ module.exports = {
       });
       if (ops.length >= 1000) {
         await blueprints.bulkWrite(ops);
-        restored += ops.length;
         ops = [];
       }
     }
     if (ops.length > 0) {
       await blueprints.bulkWrite(ops);
-      restored += ops.length;
     }
-    console.log(`restored gameVersion on ${restored} blueprints`);
+
+    const total = await blueprints.countDocuments({});
+    const restored = await blueprints.countDocuments({ gameVersion: { $exists: true } });
+    if (restored !== total) {
+      throw new Error(`drop-game-version rollback: expected gameVersion on all ${total} blueprints, found ${restored}`);
+    }
+    console.log(`gameVersion restored on all ${total} blueprints`);
 
     for (const keys of OLD_INDEXES) {
       await blueprints.createIndex(keys, { background: true, name: indexName(keys) });
