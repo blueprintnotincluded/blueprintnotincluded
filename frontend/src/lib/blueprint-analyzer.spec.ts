@@ -181,6 +181,42 @@ describe("deriveCategory", () => {
     expect(deriveCategory(["LogicSwitch", "Tile"], lookup)).toBeNull();
   });
 
+  const MANY_LOGIC_PREFABS = [
+    "LogicSwitch",
+    "LogicGateAND",
+    "LogicGateOR",
+    "LogicGateNOT",
+    "LogicRibbon",
+    "LogicTimerSensor",
+    "LogicDuplicantSensor",
+    "LogicTemperatureSensor",
+  ];
+
+  it("incidental automation cannot out-vote a signature building", () => {
+    // Fallback votes are 1 per unique prefab and used to accumulate without
+    // limit, so eight distinct logic pieces scored 8 and beat the generator's
+    // signature 3 — which is why automation and transit were the two largest
+    // categories on the live corpus. The cap makes a real appliance win.
+    expect(
+      deriveCategory([...MANY_LOGIC_PREFABS, "PetroleumGenerator"], lookup),
+    ).toBe("power");
+  });
+
+  it("still tags a genuinely fallback-only blueprint", () => {
+    // The cap must not make fallback-only categories underivable: with no
+    // signature building anywhere, the capped automation score still clears
+    // MIN_CATEGORY_SCORE.
+    expect(deriveCategory(MANY_LOGIC_PREFABS, lookup)).toBe("automation");
+  });
+
+  it("caps fallback per category rather than globally", () => {
+    // Conveyance (transit) and automation each cap independently, so a build
+    // that is mostly logic with a couple of tubes still reads as automation
+    // via its own capped score, not as a tie broken by category order.
+    const prefabIds = [...MANY_LOGIC_PREFABS, "Ladder"];
+    expect(deriveCategory(prefabIds, lookup)).toBe("automation");
+  });
+
   it("ranching signature overrides the game's food-tab placement", () => {
     // EggIncubator/FishFeeder/etc. are filed under the game's "food" build
     // tab but are unambiguously ranching buildings in blueprint terms.

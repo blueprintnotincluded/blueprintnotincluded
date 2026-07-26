@@ -255,25 +255,47 @@ const FALLBACK_GAME_CATEGORY: Partial<Record<string, Category>> = {
 // blueprint; require the winning category to clear this score.
 const MIN_CATEGORY_SCORE = 2;
 
+// Fallback votes are worth 1 per unique prefab and used to accumulate without
+// limit, so incidental infrastructure could out-vote a real appliance: a
+// blueprint carrying a dozen distinct logic pieces scored 12 on automation and
+// beat a petroleum generator's signature 3. On the live corpus that made
+// automation and transit — the two most incidental systems in the game — the
+// two largest buckets.
+//
+// Capping the per-category fallback total at MIN_CATEGORY_SCORE keeps a
+// genuinely fallback-only build taggable (an all-logic blueprint still reaches
+// the threshold and tags automation, as do the decor-only fixtures) while
+// guaranteeing a signature building always wins when one is present. Signature
+// votes are deliberately left uncapped — they're curated per prefab.
+const MAX_FALLBACK_SCORE = MIN_CATEGORY_SCORE;
+
 // Returns the best-scoring function category for a blueprint's buildings, or
 // null ("Untagged") when there isn't enough signal. Duplicate prefabs count
 // once — a SPOM with 4 electrolyzers isn't 4x more oxygen-y than one with 1.
 export function deriveCategory(prefabIds: string[], lookup: CategoryLookup): Category | null {
   const uniqueIds = new Set(prefabIds);
-  const scores = new Map<Category, number>();
-  const addScore = (category: Category, weight: number) =>
-    scores.set(category, (scores.get(category) ?? 0) + weight);
+  const signatureScores = new Map<Category, number>();
+  const fallbackScores = new Map<Category, number>();
+  const addScore = (target: Map<Category, number>, category: Category, weight: number) =>
+    target.set(category, (target.get(category) ?? 0) + weight);
 
   for (const id of uniqueIds) {
     const signature = SIGNATURE_PREFABS[id];
     if (signature) {
-      for (const vote of signature) addScore(vote.category, vote.weight);
+      for (const vote of signature) addScore(signatureScores, vote.category, vote.weight);
       continue;
     }
 
     const gameCategory = lookup.gameCategoryByPrefabId.get(id);
     const mapped = gameCategory !== undefined ? FALLBACK_GAME_CATEGORY[gameCategory] : undefined;
-    if (mapped !== undefined) addScore(mapped, 1);
+    if (mapped !== undefined) addScore(fallbackScores, mapped, 1);
+  }
+
+  const scores = new Map<Category, number>();
+  for (const category of CATEGORIES) {
+    const signatureScore = signatureScores.get(category) ?? 0;
+    const fallbackScore = Math.min(fallbackScores.get(category) ?? 0, MAX_FALLBACK_SCORE);
+    if (signatureScore + fallbackScore > 0) scores.set(category, signatureScore + fallbackScore);
   }
 
   let best: Category | null = null;
