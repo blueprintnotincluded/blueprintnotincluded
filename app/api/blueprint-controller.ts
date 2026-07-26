@@ -44,6 +44,8 @@ import {
   parseBlueprintFilters,
   resolveRatedByIds,
   buildBlueprintFilter,
+  buildFacetBaseFilter,
+  buildFacetDimensionMatch,
   PUBLISHED_FILTER,
 } from './services/blueprint-filter-service';
 import mongoose from 'mongoose';
@@ -729,6 +731,105 @@ export class BlueprintController {
         console.log(err);
         res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
       });
+  }
+
+  // Self-excluding ("drill-down") facet counts for the Discover sidebar: one
+  // $facet aggregation, same query params and validation as getBlueprints.
+  // Each group's count applies every active filter except that group's own
+  // (buildFacetDimensionMatch) — the outer $match (buildFacetBaseFilter)
+  // therefore carries none of the four dimension clauses, only what every
+  // branch agrees on. sort/skip/olderthan are accepted (so the client can
+  // reuse its existing query string) but never applied — counts describe the
+  // whole matching corpus, not one page of it.
+  public async getBlueprintFacets(req: Request, res: Response) {
+    console.log('getBlueprintFacets' + req.clientIp);
+    if (BlueprintModel.model == null) {
+      res.status(503).send();
+      return;
+    }
+
+    let userId = '';
+    let userJwt = req.user as UserJwt;
+    if (userJwt != null) userId = userJwt._id;
+
+    const parsed = parseBlueprintFilters(req, res, userId);
+    if (parsed == null) return;
+
+    let ratedByIds: mongoose.Types.ObjectId[] | null = null;
+    try {
+      ratedByIds = await resolveRatedByIds(parsed);
+    } catch (err) {
+      console.log('ratedBy lookup error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprint facets'));
+      return;
+    }
+
+    const isAdmin = userJwt?.role === 'admin';
+    const viewer = { userId, isAdmin };
+    const outerMatch = buildFacetBaseFilter(parsed, ratedByIds, viewer);
+
+    const categoryMatch = buildFacetDimensionMatch(parsed, 'category');
+    const subcategoryMatch = buildFacetDimensionMatch(parsed, 'subcategory');
+    const roomsMatch = buildFacetDimensionMatch(parsed, 'rooms');
+    const dlcMatch = buildFacetDimensionMatch(parsed, 'dlc');
+
+    try {
+      const [result] = await BlueprintModel.model.aggregate([
+        { $match: outerMatch },
+        // Trims to the four dimension fields before $facet fans out into five
+        // branches — the list query's -data/-thumbnail/-rawSource projection
+        // for the same reason (neither is needed to count).
+        { $project: { category: 1, subcategory: 1, rooms: 1, requiredDlcs: 1 } },
+        {
+          $facet: {
+            total: [{ $count: 'n' }],
+            category: [{ $match: categoryMatch }, { $group: { _id: '$category', n: { $sum: 1 } } }],
+            subcategory: [{ $match: subcategoryMatch }, { $group: { _id: '$subcategory', n: { $sum: 1 } } }],
+            rooms: [
+              { $match: roomsMatch },
+              { $unwind: '$rooms' },
+              { $group: { _id: '$rooms', n: { $sum: 1 } } },
+            ],
+            requiredDlcs: [
+              { $match: dlcMatch },
+              { $unwind: '$requiredDlcs' },
+              { $group: { _id: '$requiredDlcs', n: { $sum: 1 } } },
+            ],
+            // Array-valued dimensions are unwound above, so a multi-pack
+            // blueprint counts once per pack — deliberately not summing to
+            // `total`. baseGame is the complementary { $size: 0 } case.
+            baseGame: [
+              { $match: { ...dlcMatch, requiredDlcs: { $size: 0 } } },
+              { $count: 'n' },
+            ],
+          },
+        },
+      ]);
+
+      const toCountMap = (rows: { _id: string | null; n: number }[]): Record<string, number> => {
+        const map: Record<string, number> = {};
+        for (const row of rows) {
+          if (row._id == null) continue;
+          map[row._id] = row.n;
+        }
+        return map;
+      };
+
+      setFeedCacheControl(req, res);
+      res.status(200).json({
+        total: result?.total?.[0]?.n ?? 0,
+        category: toCountMap(result?.category ?? []),
+        subcategory: toCountMap(result?.subcategory ?? []),
+        rooms: toCountMap(result?.rooms ?? []),
+        requiredDlcs: toCountMap(result?.requiredDlcs ?? []),
+        baseGame: result?.baseGame?.[0]?.n ?? 0,
+      });
+    } catch (err) {
+      console.log('Blueprint facets aggregation error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprint facets'));
+    }
   }
 
   // Visible (non-deleted) comment counts for a page of blueprints, one aggregate.
