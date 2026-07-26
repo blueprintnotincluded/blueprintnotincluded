@@ -386,7 +386,6 @@ export class ProfilePageComponent implements OnInit {
             undefined,
             undefined,
             undefined,
-            undefined,
             this.profile.id,
           )
         : this.blueprintService.getBlueprints(

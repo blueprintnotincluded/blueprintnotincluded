@@ -413,7 +413,6 @@ export class BlueprintService implements IObsBlueprintChange {
             this.serverHasRawSource = response.hasRawSource === true;
             this.serverRawSourceFormat = response.rawSourceFormat ?? null;
             this.metadata = {
-              gameVersion: response.gameVersion ?? null,
               category: response.category ?? null,
               subcategory: response.subcategory ?? null,
               description: response.description ?? null,
@@ -598,7 +597,6 @@ export class BlueprintService implements IObsBlueprintChange {
     olderThan: Date | null,
     filterUserId: string | null,
     filterName: string | null,
-    filterGameVersion?: string | null,
     filterCategory?: string | null,
     filterSubcategory?: string | null,
     sort?: BlueprintSort,
@@ -627,10 +625,6 @@ export class BlueprintService implements IObsBlueprintChange {
 
     let parameterFilterName = "";
     if (filterName != null) parameterFilterName = "&filterName=" + filterName;
-
-    let parameterGameVersion = "";
-    if (filterGameVersion != null)
-      parameterGameVersion = "&gameVersion=" + filterGameVersion;
 
     let parameterCategory = "";
     if (filterCategory != null)
@@ -670,7 +664,6 @@ export class BlueprintService implements IObsBlueprintChange {
       parameterOlderThan +
       parameterFilterUserId +
       parameterFilterName +
-      parameterGameVersion +
       parameterCategory +
       parameterSubcategory +
       parameterSort +
@@ -716,7 +709,7 @@ export class BlueprintService implements IObsBlueprintChange {
   metadata: Partial<
     Pick<
       SaveBlueprintMessage,
-      "gameVersion" | "category" | "subcategory" | "description" | "modded"
+      "category" | "subcategory" | "description" | "modded"
     >
   > = {};
 
@@ -837,7 +830,6 @@ export class SaveBlueprintMessage {
   // id of the blueprint the editor was opened from; the server records
   // forkedFrom when the save creates a copy (requester isn't the owner)
   sourceBlueprintId?: string;
-  gameVersion?: string | null;
   category?: string | null;
   subcategory?: string | null;
   description?: string | null;

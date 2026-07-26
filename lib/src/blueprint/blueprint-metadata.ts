@@ -1,6 +1,3 @@
-export const GAME_VERSIONS = ['base', 'spacedOut', 'frostyPlanet', 'bionicBooster'] as const;
-export type GameVersion = typeof GAME_VERSIONS[number];
-
 export const CATEGORIES = ['oxygenGen', 'power', 'cooling', 'food', 'ranching',
   'automation', 'transit', 'refining', 'rooms', 'decor'] as const;
 export type Category = typeof CATEGORIES[number];

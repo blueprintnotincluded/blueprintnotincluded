@@ -1,7 +1,6 @@
-import { Category, GameVersion } from './blueprint-metadata';
+import { Category } from './blueprint-metadata';
 import { DlcId } from './dlc';
 export declare function deriveRequiredDlcs(buildingDlcIds: DlcId[][]): DlcId[];
-export declare function deriveGameVersion(buildingDlcIds: DlcId[][]): GameVersion;
 export declare function deriveBlueprintMods(prefabIds: string[], modByPrefabId: Map<string, string>): string[];
 export declare function deriveModded(prefabIds: string[], knownIds: Set<string>, modByPrefabId: Map<string, string>): boolean;
 export interface HotScoreInputs {

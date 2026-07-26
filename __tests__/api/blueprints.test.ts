@@ -302,18 +302,17 @@ describe('Blueprint API (Mocha)', function () {
         thumbnail: TINY_PNG,
         data: SAMPLE_BLUEPRINT_DATA,
         deletedAt: null,
-        gameVersion: 'base',
         category: 'power',
       });
 
       const response = await TestSetup.request()
         .get('/api/getblueprints')
-        .query({ olderthan: Date.now(), sort: 'popular', gameVersion: 'base' });
+        .query({ olderthan: Date.now(), sort: 'popular', category: 'power' });
 
       expect(response.status).to.equal(200);
       const names = response.body.blueprints.map((bp: any) => bp.name);
       expect(names).to.include('Popular Power');
-      expect(names).to.not.include('Super Coal Generator Setup'); // no gameVersion
+      expect(names).to.not.include('Super Coal Generator Setup'); // no category
     });
   });
 

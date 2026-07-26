@@ -153,34 +153,11 @@ describe("BrowsePageComponent", () => {
   });
 
   describe("facet filters", () => {
-    it("passes gameVersion filter to getBlueprints", () => {
-      component.filterGameVersion = "spacedOut";
-      component.getBlueprints();
-
-      expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        null,
-        null,
-        null,
-        "spacedOut",
-        null,
-        null,
-        "trending",
-        0,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-      );
-    });
-
     it("passes category filter to getBlueprints", () => {
       component.filterCategory = "power";
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        null,
         null,
         null,
         null,
@@ -203,7 +180,6 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        null,
         null,
         null,
         null,
@@ -230,7 +206,6 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        null,
         "trending",
         0,
         true,
@@ -247,7 +222,6 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        null,
         null,
         null,
         null,
@@ -274,7 +248,6 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
-        null,
         "trending",
         0,
         null,
@@ -291,7 +264,6 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       expect(blueprintService.getBlueprints).toHaveBeenCalledWith(
-        null,
         null,
         null,
         null,
@@ -323,7 +295,7 @@ describe("BrowsePageComponent", () => {
         replaceUrl: true,
       });
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[11]).toBe("kitchen");
+      expect(lastCall[10]).toBe("kitchen");
     });
 
     it("offers every room type plus an All rooms option", () => {
@@ -342,7 +314,6 @@ describe("BrowsePageComponent", () => {
     });
 
     it("clearFilters resets all facets (including modded, forkedFrom, rooms) and refetches", () => {
-      component.filterGameVersion = "base";
       component.filterCategory = "cooling";
       component.filterSubcategory = "fan";
       component.filterName = "test";
@@ -353,7 +324,6 @@ describe("BrowsePageComponent", () => {
       component.clearFilters();
 
       expect(component.filterDlcs).toEqual([]);
-      expect(component.filterGameVersion).toBeNull();
       expect(component.filterCategory).toBeNull();
       expect(component.filterSubcategory).toBeNull();
       expect(component.filterModded).toBeNull();
@@ -652,7 +622,7 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[13]).toBe("DLC3_ID,DLC4_ID");
+      expect(lastCall[12]).toBe("DLC3_ID,DLC4_ID");
     });
   });
 
@@ -695,7 +665,7 @@ describe("BrowsePageComponent", () => {
       expect(component.excludeDlcs).toEqual([]);
       // The very first request must not have waited on the preference either.
       const firstCall = blueprintService.getBlueprints.mock.calls[0];
-      expect(firstCall[13]).toBeNull();
+      expect(firstCall[12]).toBeNull();
     });
 
     it("applies a stored exclusion preference on load when the URL has no override", () => {
@@ -739,8 +709,8 @@ describe("BrowsePageComponent", () => {
       settleListTransition();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[6]).toBe("popular");
-      expect(lastCall[7]).toBe(0); // skip reset before refetch
+      expect(lastCall[5]).toBe("popular");
+      expect(lastCall[6]).toBe(0); // skip reset before refetch
       expect(
         component.blueprintListItems.some((i: any) => i.name === "stale"),
       ).toBe(false);
@@ -755,8 +725,8 @@ describe("BrowsePageComponent", () => {
       component.getBlueprints();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[6]).toBe("recent");
-      expect(lastCall[7]).toBeUndefined();
+      expect(lastCall[5]).toBe("recent");
+      expect(lastCall[6]).toBeUndefined();
     });
 
     it("advances skip by the number of blueprints received", () => {
@@ -781,8 +751,8 @@ describe("BrowsePageComponent", () => {
       component.onSortChange();
 
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[6]).toBe("mostForked");
-      expect(lastCall[7]).toBe(0);
+      expect(lastCall[5]).toBe("mostForked");
+      expect(lastCall[6]).toBe(0);
       expect(router.navigate).toHaveBeenCalledWith([], {
         queryParams: { sort: "mostForked" },
         replaceUrl: true,
@@ -817,7 +787,7 @@ describe("BrowsePageComponent", () => {
       component.sort = "trending";
       component.getBlueprints();
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[6]).toBe("trending");
+      expect(lastCall[5]).toBe("trending");
 
       // Switching back to the default must clear the sort query param.
       (component as any).applyFiltersToUrl();
@@ -898,16 +868,6 @@ describe("BrowsePageComponent", () => {
       );
     });
 
-    it("selectGameVersion keeps the subcategory (it is scoped to category)", () => {
-      component.filterCategory = "power";
-      component.filterSubcategory = "generator";
-
-      component.selectGameVersion("spacedOut");
-
-      expect(component.filterGameVersion).toBe("spacedOut");
-      expect(component.filterSubcategory).toBe("generator");
-    });
-
     it("selectRoom updates the URL and refetches", () => {
       component.selectRoom("kitchen");
 
@@ -917,7 +877,7 @@ describe("BrowsePageComponent", () => {
         replaceUrl: true,
       });
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[11]).toBe("kitchen");
+      expect(lastCall[10]).toBe("kitchen");
     });
 
     it("selectSort funnels into onSortChange", () => {
@@ -925,7 +885,7 @@ describe("BrowsePageComponent", () => {
 
       expect(component.sort).toBe("popular");
       const lastCall = blueprintService.getBlueprints.mock.calls.at(-1);
-      expect(lastCall[6]).toBe("popular");
+      expect(lastCall[5]).toBe("popular");
     });
 
     it("selectSort is a no-op when the sort is already active", () => {
@@ -958,7 +918,6 @@ describe("BrowsePageComponent", () => {
       component.filterName = "spom";
       component.filterCategory = "ranching";
       component.filterSubcategory = "critter";
-      component.filterGameVersion = "spacedOut";
       component.filterModded = true;
       component.filterRooms = "latrine,kitchen";
 
@@ -968,7 +927,6 @@ describe("BrowsePageComponent", () => {
         'Search: "spom"',
         "ranching",
         "critter",
-        "spacedOut",
         "Modded",
         "Latrine",
         "Kitchen",

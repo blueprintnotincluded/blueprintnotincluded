@@ -24,10 +24,8 @@ export interface BlueprintListItem {
   nbRatings: number;
   rating: number; // average 1–5; 0 = unrated
   commentCount: number;
-  gameVersion?: string | null;
   // Raw Klei DLC ids the blueprint's buildings require (see DLC_LABELS for
-  // display names); [] = base game only, absent = never derived. Supersedes the
-  // single-valued gameVersion, which can't express needing two packs at once.
+  // display names); [] = base game only, absent = never derived.
   requiredDlcs?: string[];
   category?: string | null;
   subcategory?: string | null;
@@ -88,7 +86,6 @@ export interface BlueprintResponse {
   nbRatings: number;
   rating: number;
   myRating: number | null;
-  gameVersion?: string | null;
   requiredDlcs?: string[];
   category?: string | null;
   subcategory?: string | null;

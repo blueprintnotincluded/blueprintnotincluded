@@ -164,7 +164,6 @@ describe("ProfilePageComponent", () => {
         undefined,
         undefined,
         undefined,
-        undefined,
         "owner-1",
       );
     });
