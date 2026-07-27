@@ -27,6 +27,9 @@
       <app-planning-tool
         [hidden]="!toolService.planningTool.visible"
       ></app-planning-tool>
+      <app-notes-tool
+        [hidden]="!toolService.notesTool.visible"
+      ></app-notes-tool>
     </div>
     <div class="side-panel-right">
       <app-element-report-tool *ngIf="showElementReport" #elementReportTool>
@@ -59,6 +62,13 @@
       [active]="toolService.scissorsTool.visible"
       [disabled]="scissorsDisabled"
       (buttonClick)="toolService.changeTool(ToolType.scissors)"
+    ></app-toolbar-button>
+    <app-toolbar-button
+      iconUrl="assets/images/notes/note.png"
+      label="Note Creation Tool"
+      i18n-label
+      [active]="toolService.notesTool.visible"
+      (buttonClick)="toolService.changeTool(ToolType.notes)"
     ></app-toolbar-button>
   </div>
 </div>

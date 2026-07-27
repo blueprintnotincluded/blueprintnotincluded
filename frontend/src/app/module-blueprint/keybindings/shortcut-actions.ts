@@ -27,6 +27,7 @@ export const ShortcutAction = {
   toolBuild: "tool.build",
   toolPlanning: "tool.planning",
   toolScissors: "tool.scissors",
+  toolNotes: "tool.notes",
 
   // Build tool
   buildRotate: "build.rotate",
@@ -171,6 +172,12 @@ export const SHORTCUT_ACTIONS: ShortcutActionDefinition[] = [
     id: ShortcutAction.toolScissors,
     category: "tools",
     label: $localize`:keyboard shortcut:Scissors tool`,
+    defaults: [],
+  },
+  {
+    id: ShortcutAction.toolNotes,
+    category: "tools",
+    label: $localize`:keyboard shortcut:Note creation tool`,
     defaults: [],
   },
 
