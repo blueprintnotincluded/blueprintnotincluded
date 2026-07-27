@@ -130,13 +130,21 @@ export class DrawNotesOverlay {
   private lastNotes: BniWorldNote[] | null = null;
   private prepared: PreparedMarker[] = [];
 
-  constructor(private drawPixi: DrawPixi) {
+  // `parent` defaults to the live app stage (the editor canvas and the
+  // forceSize embed route both render there via the drawAll ticker loop).
+  // The off-screen export snapshots (updateThumbnail/saveImages) pass their
+  // own scratch `exportCamera.container` instead, since that's the container
+  // actually captured to a texture — the app stage is never in that render.
+  constructor(
+    private drawPixi: DrawPixi,
+    parent: any = drawPixi.pixiApp.stage,
+  ) {
     this.container = drawPixi.getNewContainer();
     this.graphics = drawPixi.getNewGraphics();
     this.container.addChild(this.graphics);
-    // Added to the stage after the room overlay, so notes sit on top of
+    // Added after the room overlay/blueprint items, so notes sit on top of
     // everything (the game's front-most layer — in front of buildings).
-    drawPixi.pixiApp.stage.addChild(this.container);
+    parent.addChild(this.container);
     this.textures = getMarkerTextures(drawPixi);
   }
 

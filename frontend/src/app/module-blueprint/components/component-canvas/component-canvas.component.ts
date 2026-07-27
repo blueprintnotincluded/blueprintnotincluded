@@ -986,6 +986,15 @@ export class ComponentCanvasComponent
       item.drawPixi(exportCamera, this.drawPixi);
     });
 
+    // World-note pins are saved content now, so the stored thumbnail should
+    // show them too. This snapshot has its own scratch container (never the
+    // app stage), so the overlay must render into it explicitly.
+    new DrawNotesOverlay(this.drawPixi, exportCamera.container).draw(
+      clone.worldNotes,
+      exportCamera,
+      null,
+    );
+
     const brt = new PIXI.BaseRenderTexture({
       width: thumbnailSize,
       height: thumbnailSize,
@@ -1051,6 +1060,16 @@ export class ComponentCanvasComponent
     ComponentCanvasComponent.downloadFile = "export.zip";
     ComponentCanvasComponent.nbBlobMax = exportOptions.selectedOverlays.length;
 
+    // World-note pins are saved content now, so downloaded exports should
+    // show them too — same reasoning as updateThumbnail(). One overlay
+    // instance is reused across every selected overlay pass below: notes
+    // don't change with the overlay, and DrawNotesOverlay already skips
+    // recomputing markers when the note array is unchanged.
+    const notesOverlay = new DrawNotesOverlay(
+      this.drawPixi,
+      exportCamera.container,
+    );
+
     exportOptions.selectedOverlays.map((overlay) => {
       exportCamera.overlay = overlay;
 
@@ -1058,6 +1077,8 @@ export class ComponentCanvasComponent
         item.updateTileables(clone);
         item.drawPixi(exportCamera, this.drawPixi);
       });
+
+      notesOverlay.draw(clone.worldNotes, exportCamera, null);
 
       const brt = new PIXI.BaseRenderTexture({
         width: sizeInPixels.x,
