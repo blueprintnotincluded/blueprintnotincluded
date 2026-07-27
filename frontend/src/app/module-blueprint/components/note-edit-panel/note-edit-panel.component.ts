@@ -5,6 +5,7 @@ import { ToolService } from "../../services/tool-service";
 import { NotesTool } from "../../common/tools/notes-tool";
 import { ToolType } from "../../common/tools/tool";
 import { NOTE_TINT_PALETTE } from "./note-tint-palette";
+import { NOTE_SYMBOLS, noteSymbolUrl, resolveNoteSymbol } from "./note-symbols";
 
 // The one editor for BlueprintsV2 world notes, pinned bottom-right the way the
 // mod's in-game note screen is. It shows whichever note is in play:
@@ -60,6 +61,25 @@ export class NoteEditPanelComponent {
   get headerLabel(): string {
     if (this.isDraft) return $localize`Note Creation Tool`;
     return this.isText ? $localize`Text Note` : $localize`Element Note`;
+  }
+
+  // Icon (text notes). The stored value is the mod's sprite name; an empty or
+  // unrecognised one renders the default note sprite, which is the same art as
+  // note_info, so that is the swatch shown as selected.
+  readonly symbols: string[] = NOTE_SYMBOLS;
+
+  symbolUrl(symbol: string): string {
+    return noteSymbolUrl(symbol);
+  }
+
+  isSelectedSymbol(symbol: string): boolean {
+    return symbol === resolveNoteSymbol(this.note?.symbol);
+  }
+
+  pickSymbol(symbol: string) {
+    if (this.note == null) return;
+    this.note.symbol = symbol;
+    this.commit();
   }
 
   // Icon colour (text notes). tinthex is RRGGBBAA — keep the alpha byte.

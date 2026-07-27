@@ -118,6 +118,55 @@
   min-height: 60px;
 }
 
+/* Icon swatches, same square grid as the colour palette below them. The art is
+   white-filled line work, so it's drawn as a mask in the theme's text colour
+   rather than as an image — that keeps every icon legible on both themes, and
+   the tint the note will actually use is the picker directly below. */
+.note-panel-symbols {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.note-panel-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 2px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.note-panel-symbol:hover:not(.selected) {
+  background: var(--p-content-hover-background);
+}
+
+.note-panel-symbol.selected {
+  border-color: var(--p-primary-color);
+  box-shadow: inset 0 0 0 1px var(--p-primary-color);
+}
+
+.note-panel-symbol-art {
+  width: 100%;
+  height: 100%;
+  background-color: var(--p-text-color);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.note-panel-symbol.selected .note-panel-symbol-art {
+  background-color: var(--p-primary-color);
+}
+
 .note-panel-palette {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
