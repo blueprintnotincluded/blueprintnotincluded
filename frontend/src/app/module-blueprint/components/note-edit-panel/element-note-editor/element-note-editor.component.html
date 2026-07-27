@@ -26,17 +26,25 @@
       <span class="pi pi-box"></span>
     </div>
     <div class="control-slider">
-      <div class="control-title" i18n>Mass: {{ massKg }} kg</div>
+      <label
+        id="element-note-mass-label"
+        for="element-note-mass-input"
+        class="control-title"
+        i18n
+        >Mass: {{ massKg }} kg</label
+      >
       <p-slider
         *ngIf="hasMassRange"
         [(ngModel)]="massKg"
         [min]="0"
         [max]="maxMass"
         [step]="massStep"
+        [ariaLabelledBy]="'element-note-mass-label'"
         (onSlideEnd)="commitMass()"
       ></p-slider>
     </div>
     <input
+      id="element-note-mass-input"
       class="control-number"
       type="number"
       min="0"
@@ -52,7 +60,13 @@
       <span class="pi pi-sun"></span>
     </div>
     <div class="control-slider">
-      <div class="control-title" i18n>Temperature: {{ tempCelsius }} °C</div>
+      <label
+        id="element-note-temperature-label"
+        for="element-note-temperature-input"
+        class="control-title"
+        i18n
+        >Temperature: {{ tempCelsius }} °C</label
+      >
       <div class="temperature-scale">
         <svg
           version="1.1"
@@ -120,10 +134,12 @@
         [min]="0"
         [max]="100"
         [step]="0.1"
+        [ariaLabelledBy]="'element-note-temperature-label'"
         (onSlideEnd)="commitTemp()"
       ></p-slider>
     </div>
     <input
+      id="element-note-temperature-input"
       class="control-number"
       type="number"
       [(ngModel)]="tempCelsius"

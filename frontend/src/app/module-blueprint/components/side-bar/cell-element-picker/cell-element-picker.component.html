@@ -39,6 +39,7 @@
     type="button"
     class="state-filter-button"
     [class.selected]="selectedState === null"
+    [attr.aria-pressed]="selectedState === null"
     (click)="selectState(null)"
     i18n
   >
@@ -49,6 +50,7 @@
     class="state-filter-button"
     *ngFor="let s of states"
     [class.selected]="selectedState === s"
+    [attr.aria-pressed]="selectedState === s"
     (click)="selectState(s)"
   >
     {{ stateLabel(s) }}
