@@ -76,7 +76,16 @@ describe("CellElementPickerComponent state filter", () => {
 
   it("excludes None and Vacuum, keeping only elements in the states pool", () => {
     const ids = component.elements.map((e) => e.id);
-    expect(ids).to.deep.equal(["Granite", "Water", "Oxygen"]);
+    expect(ids).to.deep.equal(["Granite", "Oxygen", "Water"]);
+  });
+
+  it("sorts the state-filtered pool by name (database order is unscannable)", () => {
+    // Fixture order is Granite, Water, Oxygen.
+    expect(component.elements.map((e) => e.id)).to.deep.equal([
+      "Granite",
+      "Oxygen",
+      "Water",
+    ]);
   });
 
   it("segments down to a single state on selectState", () => {
@@ -89,8 +98,8 @@ describe("CellElementPickerComponent state filter", () => {
     component.selectState(null);
     expect(component.elements.map((e) => e.id)).to.deep.equal([
       "Granite",
-      "Water",
       "Oxygen",
+      "Water",
     ]);
   });
 

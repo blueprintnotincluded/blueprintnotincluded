@@ -11,6 +11,19 @@
   overflow-y: auto;
 }
 
+/* The search box sizes itself off a `size` attribute, which lands a few pixels
+   short of the list it filters; the picker owns its own width instead. */
+.float-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* In the element-note picker the list is one control among several in a tool
+   card that has to fit the viewport, so it gives up some height. */
+.element-list.compact {
+  max-height: 190px;
+}
+
 .element-panel-content {
   display: flex;
   flex-flow: row;
@@ -32,22 +45,37 @@
   display: flex;
   flex-flow: row;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .state-filter-button {
   flex: 1;
-  padding: 4px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 5px 6px;
+  border: 1px solid var(--p-content-border-color);
   border-radius: 4px;
   background: transparent;
   color: inherit;
   cursor: pointer;
   font-size: 12px;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.state-filter-button:hover:not(.selected) {
+  background: var(--p-content-hover-background, rgba(255, 255, 255, 0.08));
 }
 
 .state-filter-button.selected {
   background: var(--p-primary-color, #b5487a);
   border-color: var(--p-primary-color, #b5487a);
-  color: #fff;
+  color: var(--p-primary-contrast-color, #fff);
+}
+
+.element-list-empty {
+  margin: 4px 0;
+  padding: 8px 4px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--p-text-muted-color);
 }

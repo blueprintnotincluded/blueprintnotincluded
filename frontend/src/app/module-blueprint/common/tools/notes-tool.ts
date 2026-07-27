@@ -4,6 +4,7 @@ import {
   BuildableElement,
   CameraService,
   DrawHelpers,
+  ElementState,
   Vector2,
 } from "../../../../../../lib/index";
 import { BlueprintService } from "../../services/blueprint-service";
@@ -25,11 +26,13 @@ import {
 } from "../../keybindings/shortcut-actions";
 import { ToolService } from "../../services/tool-service";
 
-const CURSOR_URL = "assets/images/notes/add-note.png";
-// The cursor art sits smaller than the marker preview and offset above it,
-// echoing the mod's own placement cursor rather than fully covering the pin.
-const CURSOR_TILE_FRACTION = 0.45;
 const PREVIEW_ALPHA = 0.55;
+
+// Element seeded into a fresh element note so the tool is placeable (and the
+// side panel readable) the moment the mode is picked, instead of opening on
+// "Unknown element" at absolute zero. Water is the most common thing an
+// annotation points at; anything liquid does if the database lacks it.
+const DEFAULT_ELEMENT_ID = "Water";
 
 // Note Creation Tool (spec/element-notes.md §6). Places text or element
 // world notes on click. Modelled on PlanningTool: single-click mutation,
@@ -38,7 +41,15 @@ const PREVIEW_ALPHA = 0.55;
 export class NotesTool implements ITool {
   parent!: ToolService;
 
-  mode: "text" | "element" = "text";
+  private _mode: "text" | "element" = "text";
+  get mode(): "text" | "element" {
+    return this._mode;
+  }
+  set mode(value: "text" | "element") {
+    this._mode = value;
+    if (value === "element") this.seedPendingElement();
+  }
+
   // "RRGGBBAA" tint applied to newly placed text notes, same shape as
   // BniWorldNote.tinthex (note-edit-panel's palette default).
   pendingTint = "ffffffff";
@@ -49,12 +60,24 @@ export class NotesTool implements ITool {
 
   private hoverTile: Vector2 | null = null;
   private preview: PIXI.Sprite | null = null;
-  private cursorIcon: PIXI.Sprite | null = null;
 
   constructor(
     private blueprintService: BlueprintService,
     private worldNoteService: WorldNoteService,
   ) {}
+
+  // Only fills a note that has no element yet, so switching modes back and
+  // forth never discards the user's pick.
+  private seedPendingElement() {
+    if (this.pendingElementNote.id != null) return;
+    const element =
+      BuildableElement.elements?.find((e) => e.id === DEFAULT_ELEMENT_ID) ??
+      BuildableElement.elements?.find((e) => e.state === ElementState.Liquid);
+    if (element == null) return;
+    this.pendingElementNote.id = element.tag;
+    this.pendingElementNote.mass = element.defaultMass;
+    this.pendingElementNote.temp = element.defaultTemperature;
+  }
 
   private buildPendingNote(position: Vector2): BniWorldNote {
     if (this.mode === "text")
@@ -79,9 +102,10 @@ export class NotesTool implements ITool {
   switchFrom() {
     this.hoverTile = null;
     if (this.preview != null) this.preview.visible = false;
-    if (this.cursorIcon != null) this.cursorIcon.visible = false;
   }
-  switchTo() {}
+  switchTo() {
+    if (this.mode === "element") this.seedPendingElement();
+  }
   mouseOut() {
     this.hoverTile = null;
   }
@@ -149,29 +173,11 @@ export class NotesTool implements ITool {
     preview.y = (offset.y - this.hoverTile!.y + 0.5) * zoom;
   }
 
-  private updateCursorIcon(drawPixi: DrawPixi, camera: CameraService) {
-    let icon = this.cursorIcon;
-    if (icon == null) {
-      icon = drawPixi.getSpriteFrom(CURSOR_URL) as PIXI.Sprite;
-      icon.anchor.set(0.5, 1);
-      drawPixi.pixiApp.stage.addChild(icon);
-      this.cursorIcon = icon;
-    }
-    icon.visible = this.hoverTile != null;
-    if (!icon.visible) return;
-
-    const zoom = camera.currentZoom;
-    const offset = camera.cameraOffset;
-    const markerSize = NOTE_ICON_TILE_FRACTION * zoom;
-    icon.width = CURSOR_TILE_FRACTION * zoom;
-    icon.height = CURSOR_TILE_FRACTION * zoom;
-    icon.x = (this.hoverTile!.x + offset.x + 0.5) * zoom;
-    icon.y = (offset.y - this.hoverTile!.y + 0.5) * zoom - markerSize * 0.5;
-  }
-
+  // The translucent marker under the cursor is the whole placement cue — the
+  // mod's separate "add note" badge floating above it read as a stray sprite
+  // on the blueprint rather than as part of the cursor.
   draw(drawPixi: DrawPixi, camera: CameraService) {
     this.updatePreview(drawPixi, camera);
-    this.updateCursorIcon(drawPixi, camera);
   }
 
   toggleable = false;

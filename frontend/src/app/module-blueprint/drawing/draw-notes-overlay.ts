@@ -17,9 +17,12 @@ const TEXT_NOTE = 0;
 // resolve, and for any text note missing a usable tint.
 const DEFAULT_BADGE_COLOR = 0x3b82f6;
 
-// Marker art is bracket-framed and already reads as inset at full tile size,
-// so it fills most (not all) of its cell (spec §5). Exported for NotesTool's
-// hover preview, which sizes its marker the same way.
+// Markers fill most (not all) of their cell so adjacent notes stay legible
+// (spec §5). The art the mod ships is its *placer tool* icon set, framed with
+// selection brackets; that frame is stripped from our copies (it read as a
+// stray border on the blueprint) and each glyph normalized to the same content
+// box, so all four markers carry the same visual weight at this size.
+// Exported for NotesTool's hover preview, which sizes its marker the same way.
 export const NOTE_ICON_TILE_FRACTION = 0.9;
 
 export type MarkerName = "note" | "solid" | "liquid" | "gas";

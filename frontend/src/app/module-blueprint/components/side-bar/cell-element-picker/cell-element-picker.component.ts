@@ -98,6 +98,12 @@ export class CellElementPickerComponent implements OnInit {
       if (filterString && filterTag && filterMissing)
         this.elements.push(element);
     }
+
+    // The element-note pool is the whole periodic table's worth of materials,
+    // so database order is unscannable there; the other callers (pipe/building
+    // materials) list a handful and keep their existing order.
+    if (this.isStateFiltered)
+      this.elements.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   selectElement(element: BuildableElement) {

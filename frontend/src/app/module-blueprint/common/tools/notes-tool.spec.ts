@@ -1,7 +1,12 @@
 import { NotesTool } from "./notes-tool";
 import { ToolType } from "./tool";
 import { ShortcutAction } from "../../keybindings/shortcut-actions";
-import { BniWorldNote, Vector2 } from "../../../../../../lib/index";
+import {
+  BniWorldNote,
+  BuildableElement,
+  ElementState,
+  Vector2,
+} from "../../../../../../lib/index";
 import { BlueprintService } from "../../services/blueprint-service";
 import { WorldNoteService } from "../../services/world-note.service";
 
@@ -62,6 +67,56 @@ describe("NotesTool", () => {
       { x: 1, y: 2, type: 1, id: 7, mass: 100, temp: 300 },
     ]);
     expect(worldNoteService.selected).to.equal(blueprint.worldNotes[0]);
+  });
+
+  it("seeds a fresh element note with Water and its defaults when the mode is picked", () => {
+    BuildableElement.init();
+    BuildableElement.elements = [
+      Object.assign(new BuildableElement(), {
+        id: "Water",
+        name: "Water",
+        tag: 42,
+        state: ElementState.Liquid,
+        defaultMass: 1000,
+        defaultTemperature: 300.15,
+      }),
+    ];
+
+    tool.mode = "element";
+
+    expect(tool.pendingElementNote).to.deep.include({
+      id: 42,
+      mass: 1000,
+      temp: 300.15,
+    });
+  });
+
+  it("never overwrites an element the user already picked", () => {
+    BuildableElement.init();
+    BuildableElement.elements = [
+      Object.assign(new BuildableElement(), {
+        id: "Water",
+        name: "Water",
+        tag: 42,
+        state: ElementState.Liquid,
+        defaultMass: 1000,
+      }),
+    ];
+    tool.pendingElementNote = {
+      x: 0,
+      y: 0,
+      type: 1,
+      id: 7,
+      mass: 5,
+      temp: 300,
+    };
+
+    tool.mode = "element";
+    tool.mode = "text";
+    tool.mode = "element";
+
+    expect(tool.pendingElementNote.id).to.equal(7);
+    expect(tool.pendingElementNote.mass).to.equal(5);
   });
 
   it("refuses a second note on an occupied cell and selects the existing one instead", () => {
