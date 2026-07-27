@@ -18,12 +18,15 @@ const TEXT_NOTE = 0;
 const DEFAULT_BADGE_COLOR = 0x3b82f6;
 
 // Marker art is bracket-framed and already reads as inset at full tile size,
-// so it fills most (not all) of its cell (spec §5).
-const NOTE_ICON_TILE_FRACTION = 0.9;
+// so it fills most (not all) of its cell (spec §5). Exported for NotesTool's
+// hover preview, which sizes its marker the same way.
+export const NOTE_ICON_TILE_FRACTION = 0.9;
 
 export type MarkerName = "note" | "solid" | "liquid" | "gas";
 
-const MARKER_URLS: Record<MarkerName, string> = {
+// Exported for NotesTool's hover preview, which resolves the same marker
+// name (via noteMarkerSprite) to a texture URL.
+export const MARKER_URLS: Record<MarkerName, string> = {
   note: "assets/images/notes/note.png",
   solid: "assets/images/notes/solid.png",
   liquid: "assets/images/notes/liquid.png",

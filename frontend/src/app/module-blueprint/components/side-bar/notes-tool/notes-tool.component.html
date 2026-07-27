@@ -1,0 +1,52 @@
+<div class="box-card ui-widget notes-card">
+  <div class="box-card-title" i18n>Note Creation Tool</div>
+
+  <div class="mode-tabs" role="tablist">
+    <button
+      type="button"
+      class="mode-tab"
+      role="tab"
+      [class.selected]="tool.mode === 'text'"
+      [attr.aria-selected]="tool.mode === 'text'"
+      (click)="tool.mode = 'text'"
+      i18n
+    >
+      Text Notes
+    </button>
+    <button
+      type="button"
+      class="mode-tab"
+      role="tab"
+      [class.selected]="tool.mode === 'element'"
+      [attr.aria-selected]="tool.mode === 'element'"
+      (click)="tool.mode = 'element'"
+      i18n
+    >
+      Element Notes
+    </button>
+  </div>
+
+  <ng-container *ngIf="tool.mode === 'text'; else elementMode">
+    <div class="section-label" i18n>Note Icon Color</div>
+    <div class="color-grid">
+      <button
+        type="button"
+        *ngFor="let c of palette"
+        class="color-button"
+        [class.selected]="isSelectedColor(c)"
+        [style.background-color]="'#' + c"
+        [attr.aria-label]="c"
+        (click)="pickColor(c)"
+      ></button>
+    </div>
+  </ng-container>
+  <ng-template #elementMode>
+    <app-element-note-editor
+      [note]="tool.pendingElementNote"
+    ></app-element-note-editor>
+  </ng-template>
+
+  <p class="hint" i18n>
+    Click on the blueprint to place a note. Right-click to return to Select.
+  </p>
+</div>

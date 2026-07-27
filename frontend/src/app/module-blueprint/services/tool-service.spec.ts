@@ -7,6 +7,7 @@ import {
   Vector2,
 } from "../../../../../lib/index";
 import { PlanningTool } from "../common/tools/planning-tool";
+import { NotesTool } from "../common/tools/notes-tool";
 import { ShortcutAction } from "../keybindings/shortcut-actions";
 
 const makeTool = (toolType: ToolType, toolGroup = 1) => ({
@@ -40,6 +41,7 @@ describe("ToolService", () => {
   let mockElementReport: any;
   let mockScissors: ReturnType<typeof makeTool>;
   let mockPlanning: ReturnType<typeof makeTool>;
+  let mockNotes: ReturnType<typeof makeTool>;
 
   beforeEach(() => {
     mockSelect = makeTool(ToolType.select);
@@ -47,6 +49,7 @@ describe("ToolService", () => {
     mockElementReport = {};
     mockScissors = makeTool(ToolType.scissors);
     mockPlanning = makeTool(ToolType.planning);
+    mockNotes = makeTool(ToolType.notes);
 
     service = new ToolService(
       mockSelect as any,
@@ -54,6 +57,7 @@ describe("ToolService", () => {
       mockElementReport,
       mockScissors as any,
       mockPlanning as unknown as PlanningTool,
+      mockNotes as unknown as NotesTool,
     );
   });
 
@@ -76,6 +80,10 @@ describe("ToolService", () => {
 
     it("returns planningTool for ToolType.planning", () => {
       expect(service.getTool(ToolType.planning)).toBe(mockPlanning);
+    });
+
+    it("returns notesTool for ToolType.notes", () => {
+      expect(service.getTool(ToolType.notes)).toBe(mockNotes);
     });
   });
 
@@ -204,6 +212,11 @@ describe("ToolService", () => {
     it("switches to the planning tool", () => {
       expect(service.handleShortcut(ShortcutAction.toolPlanning)).toBe(true);
       expect(mockPlanning.visible).toBe(true);
+    });
+
+    it("switches to the notes tool", () => {
+      expect(service.handleShortcut(ShortcutAction.toolNotes)).toBe(true);
+      expect(mockNotes.visible).toBe(true);
     });
 
     it("declines the scissors shortcut while it is unavailable", () => {

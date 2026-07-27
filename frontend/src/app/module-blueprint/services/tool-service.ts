@@ -17,6 +17,7 @@ import { BuildTool } from "../common/tools/build-tool";
 import { ElementReport } from "../common/tools/element-report";
 import { ScissorsTool } from "../common/tools/scissors-tool";
 import { PlanningTool } from "../common/tools/planning-tool";
+import { NotesTool } from "../common/tools/notes-tool";
 
 @Injectable({ providedIn: "root" })
 export class ToolService implements ITool, IChangeTool {
@@ -38,6 +39,7 @@ export class ToolService implements ITool, IChangeTool {
     public elementReport: ElementReport,
     public scissorsTool: ScissorsTool,
     public planningTool: PlanningTool,
+    public notesTool: NotesTool,
   ) {
     this.observers = [];
 
@@ -48,11 +50,13 @@ export class ToolService implements ITool, IChangeTool {
     this.allTools.push(this.buildTool);
     this.allTools.push(this.scissorsTool);
     this.allTools.push(this.planningTool);
+    this.allTools.push(this.notesTool);
 
     this.buildTool.parent = this;
     this.selectTool.parent = this;
     this.scissorsTool.parent = this;
     this.planningTool.parent = this;
+    this.notesTool.parent = this;
   }
 
   subscribeToolChanged(observer: IObsToolChanged) {
@@ -152,6 +156,9 @@ export class ToolService implements ITool, IChangeTool {
       case ShortcutAction.toolScissors:
         if (this.scissorsDisabled) return false;
         this.changeTool(ToolType.scissors);
+        return true;
+      case ShortcutAction.toolNotes:
+        this.changeTool(ToolType.notes);
         return true;
       default:
         return this.currentTool.handleShortcut(action);

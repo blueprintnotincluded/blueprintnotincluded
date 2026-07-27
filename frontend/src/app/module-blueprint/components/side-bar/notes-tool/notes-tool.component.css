@@ -1,0 +1,44 @@
+.notes-card {
+  padding: 12px;
+}
+.section-label {
+  margin: 12px 0 6px;
+  font-weight: 600;
+}
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+}
+.mode-tab {
+  flex: 1;
+  border: 2px solid #6a6256;
+  border-radius: 4px;
+  background: #d5c5a7;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.mode-tab.selected {
+  outline: 3px solid #fff;
+  box-shadow: 0 0 0 5px #3b82f6;
+}
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.color-button {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #6a6256;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.color-button.selected {
+  outline: 3px solid #fff;
+  box-shadow: 0 0 0 5px #3b82f6;
+}
+.hint {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+}

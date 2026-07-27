@@ -1,0 +1,38 @@
+// Icon-colour swatches (RRGGBB) for a text world note's tint. Shared by the
+// bottom-right editor (note-edit-panel, editing a placed note) and the notes
+// tool's side-bar panel (notes-tool, choosing the tint for the next note
+// placed) so the two pickers never drift.
+export const NOTE_TINT_PALETTE: string[] = [
+  "ffffff",
+  "c0c0c0",
+  "808080",
+  "404040",
+  "000000",
+  "7f5539",
+  "b56576",
+  "ff0000",
+  "ff8000",
+  "ffd000",
+  "ffff00",
+  "b0ff00",
+  "00ff00",
+  "00ff80",
+  "00ffff",
+  "00a0ff",
+  "0000ff",
+  "6a00ff",
+  "b000ff",
+  "ff00ff",
+  "ff0080",
+  "990000",
+  "995200",
+  "8a8a00",
+  "3d8a00",
+  "008a3d",
+  "007e8a",
+  "003d8a",
+  "1a008a",
+  "5c008a",
+  "8a008a",
+  "8a003d",
+];
