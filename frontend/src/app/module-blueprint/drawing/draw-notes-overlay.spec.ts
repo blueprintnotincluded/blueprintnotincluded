@@ -1,14 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { BniWorldNote, BuildableElement } from "../../../../../lib/index";
+import {
+  BniWorldNote,
+  BuildableElement,
+  ElementState,
+} from "../../../../../lib/index";
 import {
   parseNoteTintHex,
   stripNoteMarkup,
   noteBadgeColor,
+  noteMarkerSprite,
 } from "./draw-notes-overlay";
 
 const noElement = () => undefined;
-const fakeElement = (name: string, uiColor: number) =>
-  ({ name, uiColor }) as BuildableElement;
+const fakeElement = (name: string, uiColor: number, state?: ElementState) =>
+  ({ name, uiColor, state }) as BuildableElement;
 
 describe("parseNoteTintHex", () => {
   it("splits RRGGBBAA into a PIXI colour and 0..1 alpha", () => {
@@ -75,5 +80,44 @@ describe("noteBadgeColor", () => {
       ).color,
     ).to.equal(0xd95e63);
     expect(noteBadgeColor(note, noElement).color).to.equal(0x3b82f6);
+  });
+});
+
+describe("noteMarkerSprite", () => {
+  const elementNote = (id: number): BniWorldNote => ({
+    x: 0,
+    y: 0,
+    type: 1,
+    id,
+    mass: 0,
+    temp: 0,
+  });
+
+  it("always uses the plain note marker for text notes", () => {
+    const note: BniWorldNote = { x: 0, y: 0, type: 0, title: "t" };
+    expect(noteMarkerSprite(note, noElement)).to.equal("note");
+  });
+
+  it("picks the state marker for a resolved element", () => {
+    const resolve = (state: ElementState) => (t: number) =>
+      t === 1 ? fakeElement("e", 0, state) : undefined;
+    expect(
+      noteMarkerSprite(elementNote(1), resolve(ElementState.Solid)),
+    ).to.equal("solid");
+    expect(
+      noteMarkerSprite(elementNote(1), resolve(ElementState.Liquid)),
+    ).to.equal("liquid");
+    expect(
+      noteMarkerSprite(elementNote(1), resolve(ElementState.Gas)),
+    ).to.equal("gas");
+  });
+
+  it("falls back to the note marker for Vacuum or an unresolved element", () => {
+    expect(
+      noteMarkerSprite(elementNote(1), (t) =>
+        t === 1 ? fakeElement("e", 0, ElementState.Vacuum) : undefined,
+      ),
+    ).to.equal("note");
+    expect(noteMarkerSprite(elementNote(99), noElement)).to.equal("note");
   });
 });

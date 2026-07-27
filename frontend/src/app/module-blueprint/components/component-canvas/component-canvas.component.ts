@@ -36,7 +36,10 @@ import { DrawNotesOverlay } from "../../drawing/draw-notes-overlay";
 import { DrawPlanningOverlay } from "../../drawing/draw-planning-overlay";
 import { drawAreaOfEffects } from "../../drawing/draw-area-of-effect";
 import { RoomDetectionService } from "../../services/room-detection-service";
-import { WorldNoteService } from "../../services/world-note.service";
+import {
+  WorldNoteService,
+  findNoteAt,
+} from "../../services/world-note.service";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 import JSZip from "jszip";
 import {
@@ -448,12 +451,7 @@ export class ComponentCanvasComponent
   }
 
   private findNoteAt(tile: Vector2): BniWorldNote | null {
-    const notes = this.blueprint?.worldNotes;
-    if (notes == null) return null;
-    // Last wins so the topmost drawn note (drawn last) is the one selected.
-    for (let i = notes.length - 1; i >= 0; i--)
-      if (notes[i].x == tile.x && notes[i].y == tile.y) return notes[i];
-    return null;
+    return findNoteAt(this.blueprint?.worldNotes, tile);
   }
 
   storePreviousTileFloat: Vector2 | null = null;
@@ -1222,15 +1220,17 @@ export class ComponentCanvasComponent
             this.cameraService,
           );
         else this.drawRoomOverlay.clear();
-
-        // World-note pins from a BlueprintsV2 import — annotations that sit
-        // above buildings like the mod's own preview.
-        this.drawNotesOverlay.draw(
-          this.blueprint.worldNotes,
-          this.cameraService,
-          this.worldNoteService.selected,
-        );
       }
+
+      // World-note pins are saved blueprint content now (not editor-only
+      // decoration), so they must draw on export/thumbnail canvases too, like
+      // the Planning Tool overlay above. forceSize canvases never have a
+      // selection to highlight.
+      this.drawNotesOverlay.draw(
+        this.blueprint.worldNotes,
+        this.cameraService,
+        this.forceSize ? null : this.worldNoteService.selected,
+      );
     }
 
     if (this.pendingRenderMetric != null) this.checkRenderMetric();

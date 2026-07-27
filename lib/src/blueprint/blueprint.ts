@@ -28,10 +28,9 @@ export class Blueprint {
   // icontint, worldNotes, …) — display/prefill only, never the round-trip
   // source of truth.
   bniMetadata: BniBlueprint | null = null;
-  // World-note annotation pins parsed from a BlueprintsV2 import (text +
-  // element notes). Kept as a first-class field (not just on bniMetadata) so
-  // they survive destroyAndCopyItems into the rendered blueprint and can be
-  // drawn as an editor overlay. Display-only; never part of the round-trip.
+  // World-note annotation pins (text + element notes). First-class blueprint
+  // content, carried through the MDB model exactly like planningToolShapes:
+  // saved, undone/redone, versioned, and downloaded back out as BlueprintsV2.
   worldNotes: BniWorldNote[] = [];
   // Decorative cells from the separate Planning Tool mod. Unlike world notes,
   // these are editable and therefore live in the normal MDB/undo model.
@@ -109,7 +108,7 @@ export class Blueprint {
     this.hadUnknownBuildings = false;
     this.unknownBuildingDefs = [];
     this.bniMetadata = bniBlueprint;
-    this.worldNotes = bniBlueprint.worldNotes ?? [];
+    this.worldNotes = (bniBlueprint.worldNotes ?? []).map(note => ({ ...note }));
     this.planningToolShapes = (bniBlueprint.planningtoolmod_shapecollection ?? []).map(shape => ({
       ...shape,
     }));
@@ -138,7 +137,7 @@ export class Blueprint {
     this.hadUnknownBuildings = false;
     this.unknownBuildingDefs = [];
     this.bniMetadata = null;
-    this.worldNotes = [];
+    this.worldNotes = (mdbBlueprint.worldNotes ?? []).map(note => ({ ...note }));
     this.planningToolShapes = (mdbBlueprint.planningToolShapes ?? []).map(shape => ({ ...shape }));
 
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
@@ -198,7 +197,7 @@ export class Blueprint {
 
     // World notes live on the source (fresh import); carry them onto the
     // rendered blueprint so the editor overlay can draw them.
-    this.worldNotes = source.worldNotes ?? [];
+    this.worldNotes = (source.worldNotes ?? []).map(note => ({ ...note }));
     this.planningToolShapes = source.planningToolShapes.map(shape => ({ ...shape }));
 
     this.pauseChangeEvents();
@@ -410,6 +409,9 @@ export class Blueprint {
     if (this.planningToolShapes.length > 0)
       returnValue.planningToolShapes = this.planningToolShapes.map(shape => ({ ...shape }));
 
+    if (this.worldNotes.length > 0)
+      returnValue.worldNotes = this.worldNotes.map(note => ({ ...note }));
+
     for (let originalTemplateItem of this.blueprintItems)
       returnValue.blueprintItems.push(originalTemplateItem.toMdbBuilding());
 
@@ -434,6 +436,11 @@ export class Blueprint {
       }));
       // Planning Tool shapes are represented by dig commands in BlueprintsV2.
       returnValue.digcommands = this.planningToolShapes.map(({ x, y }) => ({ x, y }));
+    }
+
+    if (this.worldNotes.length > 0) {
+      returnValue.blueprintVersion = 3;
+      returnValue.worldNotes = this.worldNotes.map(note => ({ ...note }));
     }
 
     return returnValue;
@@ -467,6 +474,13 @@ export class Blueprint {
       if (topLeft.y > shape.y) topLeft.y = shape.y;
       if (bottomRight.x < shape.x) bottomRight.x = shape.x;
       if (bottomRight.y < shape.y) bottomRight.y = shape.y;
+    });
+
+    this.worldNotes.forEach(note => {
+      if (topLeft.x > note.x) topLeft.x = note.x;
+      if (topLeft.y > note.y) topLeft.y = note.y;
+      if (bottomRight.x < note.x) bottomRight.x = note.x;
+      if (bottomRight.y < note.y) bottomRight.y = note.y;
     });
 
     return [topLeft, bottomRight];

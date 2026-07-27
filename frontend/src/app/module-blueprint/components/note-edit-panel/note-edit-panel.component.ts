@@ -80,7 +80,14 @@ export class NoteEditPanelComponent {
     if (this.note == null) return;
     const alpha = (this.note.tinthex ?? "ffffffff").slice(6, 8) || "FF";
     this.note.tinthex = hex + alpha;
-    this.noteService.refresh();
+    this.noteService.commit();
+  }
+
+  // Text fields mutate the note in place on every keystroke (ngModel) but
+  // only commit — pushing an undo snapshot — on blur/Enter, matching the
+  // slider-end rule for the same reason (spec §3, §12).
+  commit() {
+    this.noteService.commit();
   }
 
   // Element mass (kg) and temperature (stored Kelvin, edited in °C).

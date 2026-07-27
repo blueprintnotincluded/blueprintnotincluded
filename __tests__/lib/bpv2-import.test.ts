@@ -5,6 +5,7 @@ import zlib from 'zlib';
 import {
   Blueprint,
   BniBlueprint,
+  BniWorldNote,
   BuildableElement,
   decodeBniShareString,
   encodeBniShareString,
@@ -112,15 +113,78 @@ describe('BlueprintsV2 import', function () {
       expect(blueprint.worldNotes).to.deep.equal(blueprint.bniMetadata!.worldNotes);
     });
 
-    it('carries world notes through destroyAndCopyItems and drops them on an MDB reimport', () => {
+    it('carries world notes through destroyAndCopyItems and survives an MDB round-trip', () => {
       const rendered = new Blueprint();
       rendered.destroyAndCopyItems(blueprint, false);
       expect(rendered.worldNotes).to.have.length(3);
 
-      // Round-tripping through the MDB model (a normal save/load) has no notes.
+      // World notes are normal blueprint content now: a save/load round-trip
+      // through the MDB model preserves them exactly (spec/element-notes.md §1).
       const reimported = new Blueprint();
       reimported.importFromMdb(rendered.toMdbBlueprint());
-      expect(reimported.worldNotes).to.have.length(0);
+      expect(reimported.worldNotes).to.deep.equal(rendered.worldNotes);
+      expect(reimported.worldNotes).to.not.equal(rendered.worldNotes);
+      // Copied, not shared — undo/redo states must never alias live note objects.
+      expect(reimported.worldNotes[0]).to.not.equal(rendered.worldNotes[0]);
+    });
+  });
+
+  describe('world-notes persistence (spec/element-notes.md §1)', function () {
+    it('round-trips notes through importFromBni -> toMdbBlueprint -> importFromMdb exactly', () => {
+      const source = new Blueprint();
+      source.importFromBni(fixture);
+      const mdb = source.toMdbBlueprint();
+      expect(mdb.worldNotes).to.have.length(3);
+
+      const reimported = new Blueprint();
+      reimported.importFromMdb(mdb);
+      expect(reimported.worldNotes).to.deep.equal(source.worldNotes);
+    });
+
+    it('omits worldNotes from toMdbBlueprint when there are none (backwards compatibility)', () => {
+      const empty = new Blueprint();
+      empty.importFromBni({ friendlyname: '', buildings: [], digcommands: [] });
+      const mdb = empty.toMdbBlueprint();
+      expect(mdb).to.not.have.property('worldNotes');
+      // Byte-equal to the pre-change shape, so no stored rawSource is
+      // invalidated by shipping this for the (overwhelmingly common) notes-free case.
+      expect(JSON.stringify(mdb)).to.equal(JSON.stringify({ blueprintItems: [] }));
+    });
+
+    it('toBniBlueprint emits worldNotes and bumps blueprintVersion to 3', () => {
+      const source = new Blueprint();
+      source.importFromBni(fixture);
+      const bni = source.toBniBlueprint('roundtrip');
+      expect(bni.blueprintVersion).to.equal(3);
+      expect(bni.worldNotes).to.have.length(3);
+      expect(bni.worldNotes).to.deep.equal(source.worldNotes);
+    });
+
+    it('toBniBlueprint omits worldNotes and does not bump the version when there are none', () => {
+      const empty = new Blueprint();
+      empty.importFromBni({ friendlyname: '', buildings: [], digcommands: [] });
+      const bni = empty.toBniBlueprint('no-notes');
+      expect(bni).to.not.have.property('worldNotes');
+      expect(bni.blueprintVersion).to.equal(undefined);
+    });
+
+    it('getBoundingBox grows to include a note placed outside the building footprint', () => {
+      const withoutNote = new Blueprint();
+      withoutNote.importFromBni({ ...fixture, worldNotes: [] });
+      const [, bottomRightBefore] = withoutNote.getBoundingBox();
+
+      const farNote: BniWorldNote = {
+        x: bottomRightBefore.x + 50,
+        y: bottomRightBefore.y + 50,
+        type: 0,
+        title: 'far away',
+      };
+      const withNote = new Blueprint();
+      withNote.importFromBni({ ...fixture, worldNotes: [farNote] });
+      const [, bottomRightAfter] = withNote.getBoundingBox();
+
+      expect(bottomRightAfter.x).to.equal(farNote.x);
+      expect(bottomRightAfter.y).to.equal(farNote.y);
     });
   });
 
