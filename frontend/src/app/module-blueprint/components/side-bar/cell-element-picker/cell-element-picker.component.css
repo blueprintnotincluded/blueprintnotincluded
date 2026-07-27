@@ -27,3 +27,27 @@
 .second-checkbox {
   margin-left: 10px;
 }
+
+.state-filter {
+  display: flex;
+  flex-flow: row;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.state-filter-button {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.state-filter-button.selected {
+  background: var(--p-primary-color, #b5487a);
+  border-color: var(--p-primary-color, #b5487a);
+  color: #fff;
+}

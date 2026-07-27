@@ -1,0 +1,134 @@
+<div class="element-note-editor" *ngIf="note">
+  <app-cell-element-picker
+    [states]="pickerStates"
+    (selectElementCell)="onSelectElement($event)"
+  ></app-cell-element-picker>
+
+  <div class="selected-element-row">
+    <div
+      *ngIf="markerName as marker; else noElement"
+      class="selected-element-marker"
+      [style.background-color]="markerTint"
+      [style.mask-image]="'url(' + markerUrl + ')'"
+      [style.-webkit-mask-image]="'url(' + markerUrl + ')'"
+    ></div>
+    <span class="selected-element-name">
+      {{ elementName
+      }}<ng-container *ngIf="markerName">
+        ({{ elementStateLabel }})</ng-container
+      >
+    </span>
+    <ng-template #noElement></ng-template>
+  </div>
+
+  <div class="control-row">
+    <div class="control-icon" i18n-title title="Mass">
+      <span class="pi pi-box"></span>
+    </div>
+    <div class="control-slider">
+      <div class="control-title" i18n>Mass: {{ massKg }} kg</div>
+      <p-slider
+        *ngIf="hasMassRange"
+        [(ngModel)]="massKg"
+        [min]="0"
+        [max]="maxMass"
+        [step]="massStep"
+        (onSlideEnd)="commitMass()"
+      ></p-slider>
+    </div>
+    <input
+      class="control-number"
+      type="number"
+      min="0"
+      [attr.max]="hasMassRange ? maxMass : null"
+      [(ngModel)]="massKg"
+      (blur)="commitMass()"
+    />
+    <span class="control-unit" i18n>kg</span>
+  </div>
+
+  <div class="control-row">
+    <div class="control-icon" i18n-title title="Temperature">
+      <span class="pi pi-sun"></span>
+    </div>
+    <div class="control-slider">
+      <div class="control-title" i18n>Temperature: {{ tempCelsius }} °C</div>
+      <div class="temperature-scale">
+        <svg
+          version="1.1"
+          viewBox="0 0 100 20"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <defs>
+            <linearGradient
+              id="elementNoteTemperatureGradient"
+              x2="100"
+              y1="10"
+              y2="10"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop
+                *ngFor="
+                  let threshold of temperatureThresholds;
+                  let index = index
+                "
+                [attr.stop-color]="temperatureColor(index)"
+                [attr.offset]="temperatureOffset(index)"
+              />
+            </linearGradient>
+          </defs>
+          <rect
+            width="100"
+            height="20"
+            fill="url(#elementNoteTemperatureGradient)"
+          />
+          <rect
+            *ngIf="hasTempRange"
+            x="0"
+            width="100"
+            height="20"
+            fill="#000"
+            opacity="0.55"
+            [attr.clip-path]="
+              'polygon(0 0, ' +
+              bandStartPercent +
+              '% 0, ' +
+              bandStartPercent +
+              '% 20, 0 20)'
+            "
+          />
+          <rect
+            *ngIf="hasTempRange"
+            x="0"
+            width="100"
+            height="20"
+            fill="#000"
+            opacity="0.55"
+            [attr.clip-path]="
+              'polygon(' +
+              bandEndPercent +
+              '% 0, 100% 0, 100% 20, ' +
+              bandEndPercent +
+              '% 20)'
+            "
+          />
+        </svg>
+      </div>
+      <p-slider
+        [(ngModel)]="tempScale"
+        [min]="0"
+        [max]="100"
+        [step]="0.1"
+        (onSlideEnd)="commitTemp()"
+      ></p-slider>
+    </div>
+    <input
+      class="control-number"
+      type="number"
+      [(ngModel)]="tempCelsius"
+      (blur)="commitTemp()"
+    />
+    <span class="control-unit" i18n>°C</span>
+  </div>
+</div>
