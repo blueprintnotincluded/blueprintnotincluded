@@ -1,7 +1,6 @@
 import { Component } from "@angular/core";
-import { BniWorldNote, BuildableElement } from "../../../../../../lib/index";
+import { BniWorldNote } from "../../../../../../lib/index";
 import { WorldNoteService } from "../../services/world-note.service";
-import { stripNoteMarkup } from "../../drawing/draw-notes-overlay";
 
 // Bottom-right editor for a selected BlueprintsV2 world note, modelled on the
 // mod's in-game note edit screen: text notes edit name / text / icon colour;
@@ -63,14 +62,6 @@ export class NoteEditPanelComponent {
     return this.isText ? $localize`Text Note` : $localize`Element Note`;
   }
 
-  get elementName(): string {
-    if (this.note?.id == null) return $localize`Unknown element`;
-    const element = BuildableElement.getElementByTag(this.note.id);
-    return element != null
-      ? stripNoteMarkup(element.name)
-      : $localize`Unknown element`;
-  }
-
   // Icon colour (text notes). tinthex is RRGGBBAA — keep the alpha byte.
   isSelectedColor(hex: string): boolean {
     return (this.note?.tinthex ?? "").slice(0, 6).toLowerCase() === hex;
@@ -88,22 +79,6 @@ export class NoteEditPanelComponent {
   // slider-end rule for the same reason (spec §3, §12).
   commit() {
     this.noteService.commit();
-  }
-
-  // Element mass (kg) and temperature (stored Kelvin, edited in °C).
-  get massKg(): number {
-    return this.note?.mass ?? 0;
-  }
-  set massKg(value: number) {
-    if (this.note != null) this.note.mass = value;
-  }
-
-  get tempCelsius(): number {
-    if (this.note?.temp == null) return 0;
-    return Math.round((this.note.temp - 273.15) * 100) / 100;
-  }
-  set tempCelsius(value: number) {
-    if (this.note != null) this.note.temp = value + 273.15;
   }
 
   deleteNote() {

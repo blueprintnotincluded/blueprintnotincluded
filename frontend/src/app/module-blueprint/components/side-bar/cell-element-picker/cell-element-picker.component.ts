@@ -1,6 +1,6 @@
 import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
 import { Subject } from "rxjs";
-import { BuildableElement } from "../../../../../../../lib/index";
+import { BuildableElement, ElementState } from "../../../../../../../lib/index";
 
 @Component({
   selector: "app-cell-element-picker",
@@ -22,6 +22,16 @@ export class CellElementPickerComponent implements OnInit {
     return this.forceTag != undefined;
   }
 
+  // Element-note-style filter: a fixed pool of states (e.g. [Solid, Liquid,
+  // Gas]) drives a segmented All/<state>/<state>... filter instead of the
+  // Gas/Liquid oreTags checkboxes. `None` is never selectable through this
+  // path — a note about nothing is not a thing the mod can express.
+  @Input() states?: ElementState[];
+  get isStateFiltered() {
+    return this.states != undefined;
+  }
+  selectedState: ElementState | null = null;
+
   constructor() {
     this.filterNameSubject.subscribe((_value: string) => {
       this.filter();
@@ -40,15 +50,39 @@ export class CellElementPickerComponent implements OnInit {
     this.filterElements();
   }
 
+  selectState(state: ElementState | null) {
+    this.selectedState = state;
+    this.filterElements();
+  }
+
+  stateLabel(state: ElementState): string {
+    switch (state) {
+      case ElementState.Solid:
+        return $localize`Solids`;
+      case ElementState.Liquid:
+        return $localize`Liquids`;
+      case ElementState.Gas:
+        return $localize`Gases`;
+      default:
+        return $localize`Vacuum`;
+    }
+  }
+
   filterElements() {
     this.elements = [];
-    this.elements.push(BuildableElement.getElement("None"));
+    if (!this.isStateFiltered)
+      this.elements.push(BuildableElement.getElement("None"));
     for (const element of BuildableElement.elements) {
       let filterString = false;
       let filterTag = false;
       let filterMissing = true;
 
-      if (this.forceTag == undefined) {
+      if (this.isStateFiltered) {
+        const pool = this.states!;
+        filterTag =
+          pool.indexOf(element.state) != -1 &&
+          (this.selectedState == null || element.state === this.selectedState);
+      } else if (this.forceTag == undefined) {
         for (const tag of this.selectedTags)
           if (element.hasTag(tag)) filterTag = true;
       } else if (element.hasTag(this.forceTag)) filterTag = true;

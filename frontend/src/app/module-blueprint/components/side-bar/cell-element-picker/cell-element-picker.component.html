@@ -11,7 +11,7 @@
   />
 </div>
 
-<div *ngIf="!isForcedTag">
+<div *ngIf="!isForcedTag && !isStateFiltered">
   <p-checkbox
     name="groupTag"
     (onChange)="tagChanged($event)"
@@ -32,6 +32,27 @@
       inputId="Liquid"
     ></p-checkbox
   ></span>
+</div>
+
+<div class="state-filter" *ngIf="isStateFiltered">
+  <button
+    type="button"
+    class="state-filter-button"
+    [class.selected]="selectedState === null"
+    (click)="selectState(null)"
+    i18n
+  >
+    All
+  </button>
+  <button
+    type="button"
+    class="state-filter-button"
+    *ngFor="let s of states"
+    [class.selected]="selectedState === s"
+    (click)="selectState(s)"
+  >
+    {{ stateLabel(s) }}
+  </button>
 </div>
 
 <div class="element-list">

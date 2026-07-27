@@ -50,25 +50,10 @@
     </ng-container>
 
     <ng-template #elementFields>
-      <label class="note-panel-label" i18n>Element:</label>
-      <div class="note-panel-static">{{ elementName }}</div>
-
-      <label class="note-panel-label" i18n>Mass (kg):</label>
-      <input
-        class="note-panel-input"
-        type="number"
-        min="0"
-        [(ngModel)]="massKg"
-        (blur)="commit()"
-      />
-
-      <label class="note-panel-label" i18n>Temperature (°C):</label>
-      <input
-        class="note-panel-input"
-        type="number"
-        [(ngModel)]="tempCelsius"
-        (blur)="commit()"
-      />
+      <app-element-note-editor
+        [note]="n"
+        (noteChange)="commit()"
+      ></app-element-note-editor>
     </ng-template>
 
     <button type="button" class="note-panel-delete" (click)="deleteNote()" i18n>

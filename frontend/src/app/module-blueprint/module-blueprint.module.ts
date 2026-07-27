@@ -49,6 +49,7 @@ import { AuthenticationService } from "./services/authentification-service";
 import { BlueprintService } from "./services/blueprint-service";
 import { ToolService } from "./services/tool-service";
 import { NoteEditPanelComponent } from "./components/note-edit-panel/note-edit-panel.component";
+import { ElementNoteEditorComponent } from "./components/note-edit-panel/element-note-editor/element-note-editor.component";
 import { SelectTool } from "./common/tools/select-tool";
 import { BuildTool } from "./common/tools/build-tool";
 import { ScissorsTool } from "./common/tools/scissors-tool";
@@ -170,6 +171,7 @@ import { PlanningToolComponent } from "./components/side-bar/planning-tool/plann
     NotificationBellComponent,
     ToolbarButtonComponent,
     NoteEditPanelComponent,
+    ElementNoteEditorComponent,
     SupportedModsPageComponent,
     PlanningToolComponent,
   ],
