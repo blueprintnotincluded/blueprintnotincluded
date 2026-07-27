@@ -42,6 +42,14 @@ export class ElementNoteEditorComponent {
       : undefined;
   }
 
+  // Whether the note names an element *at all*. Deliberately not "did the id
+  // resolve": an element note carrying a modded/unknown tag still has stored
+  // mass and temperature worth showing and editing, so only a note with no id
+  // yet (a fresh pending note) collapses to the pick-an-element prompt.
+  get hasElement(): boolean {
+    return this.note?.id != null;
+  }
+
   get elementName(): string {
     const element = this.element;
     return element != null

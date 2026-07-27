@@ -1,16 +1,31 @@
+/* This editor renders in two hosts — the side-bar tool card and the pinned
+   note panel — so every colour comes from the app theme rather than from
+   either host's own palette. */
 .element-note-editor {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
+/* The chosen element, called out against the list it was chosen from. The fill
+   is mixed from the theme's own text and background colours rather than taken
+   from a --p-surface-* step: the surface palette is a fixed light-to-dark
+   ramp that does NOT invert with the theme, so surface-200 is a near-white
+   band under white text once the app follows a dark colour scheme. */
 .selected-element-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 8px 9px;
   border-radius: 4px;
-  background: #10141a;
+  border: 1px solid
+    color-mix(in srgb, var(--p-text-color) 22%, var(--p-content-background));
+  background: color-mix(
+    in srgb,
+    var(--p-text-color) 10%,
+    var(--p-content-background)
+  );
+  color: var(--p-text-color);
 }
 
 .selected-element-marker {
@@ -27,19 +42,26 @@
 
 .selected-element-name {
   font-size: 13px;
+  font-weight: 600;
+}
+
+.selected-element-row.empty .selected-element-name {
+  font-weight: 400;
+  color: var(--p-text-muted-color);
 }
 
 .control-row {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
 }
 
 .control-icon {
   flex: none;
   width: 20px;
+  padding-bottom: 3px;
   text-align: center;
-  color: #d9a4bf;
+  color: var(--p-text-muted-color);
 }
 
 .control-slider {
@@ -47,31 +69,50 @@
   min-width: 0;
 }
 
+/* Clears the slider handle, which overhangs its rail and would otherwise
+   crowd the label sitting directly above it. */
 .control-title {
   display: block;
   font-size: 12px;
-  margin-bottom: 2px;
+  margin-bottom: 10px;
+  color: var(--p-text-muted-color);
 }
 
+/* The gradient bar is the slider's track: it sits directly above the handle
+   rail with no gap so the handle reads as pointing into the colour it picks. */
 .temperature-scale {
   width: 100%;
-  margin-bottom: 4px;
+  height: 12px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.temperature-scale svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.control-slider ::ng-deep .p-slider {
+  margin: 4px 0 2px;
 }
 
 .control-number {
-  width: 70px;
+  width: 68px;
   box-sizing: border-box;
-  padding: 4px 6px;
+  padding: 5px 6px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: #10141a;
-  color: #f1f1f1;
+  border: 1px solid var(--p-form-field-border-color);
+  background: var(--p-form-field-background);
+  color: var(--p-form-field-color);
   font-family: inherit;
   font-size: 13px;
 }
 
 .control-unit {
   flex: none;
+  width: 22px;
+  padding-bottom: 6px;
   font-size: 12px;
-  color: #d9a4bf;
+  color: var(--p-text-muted-color);
 }

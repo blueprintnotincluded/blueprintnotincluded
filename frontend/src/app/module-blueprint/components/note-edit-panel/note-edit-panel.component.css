@@ -1,4 +1,8 @@
-/* Pinned bottom-right, modelled on the mod's in-game note edit screen. */
+/* Pinned bottom-right, modelled on the mod's in-game note edit screen — the
+   magenta title bar is the flavour it keeps. The body follows the app theme
+   instead of a hardcoded dark palette: it embeds the same element picker the
+   side bar uses, and that picker is themed, so a fixed-dark body meant light
+   list rows sitting inside a dark panel. */
 .note-panel {
   position: fixed;
   right: 16px;
@@ -6,12 +10,12 @@
   z-index: 600;
   width: 300px;
   max-width: calc(100vw - 32px);
-  background: rgba(22, 26, 32, 0.98);
-  color: #f1f1f1;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--p-content-background);
+  color: var(--p-text-color);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 6px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
-  font-family: Arial, sans-serif;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+  font-family: var(--p-font-family, Arial, sans-serif);
   font-size: 14px;
   overflow: hidden;
 }
@@ -43,14 +47,14 @@
 .note-panel-body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   padding: 12px;
 }
 
 .note-panel-label {
   margin-top: 6px;
   font-weight: bold;
-  color: #d9a4bf;
+  color: var(--p-text-muted-color);
 }
 
 .note-panel-input,
@@ -59,9 +63,9 @@
   box-sizing: border-box;
   padding: 6px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: #10141a;
-  color: #f1f1f1;
+  border: 1px solid var(--p-form-field-border-color);
+  background: var(--p-form-field-background);
+  color: var(--p-form-field-color);
   font-family: inherit;
   font-size: 13px;
 }
@@ -69,14 +73,6 @@
 .note-panel-textarea {
   resize: vertical;
   min-height: 60px;
-}
-
-.note-panel-static {
-  padding: 6px 8px;
-  border-radius: 4px;
-  background: #10141a;
-  color: #f1f1f1;
-  font-size: 13px;
 }
 
 .note-panel-palette {
@@ -89,14 +85,16 @@
 .note-panel-swatch {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border: 1px solid rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--p-surface-400);
   border-radius: 3px;
   cursor: pointer;
   padding: 0;
 }
 
+/* Primary, not white: the panel body is white under a light theme, where a
+   white ring marks nothing. */
 .note-panel-swatch.selected {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--p-primary-color);
   outline-offset: 1px;
 }
 

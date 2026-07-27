@@ -79,6 +79,15 @@ describe("ElementNoteEditorComponent", () => {
     expect(component.markerName).to.equal(null);
   });
 
+  it("keeps the mass/temperature controls for an unresolved tag, and hides them only when no element is named at all", () => {
+    // A modded element we can't resolve still has stored values worth editing;
+    // a pending note with no id yet has nothing to show.
+    note.id = 999;
+    expect(component.hasElement).to.equal(true);
+    note.id = undefined;
+    expect(component.hasElement).to.equal(false);
+  });
+
   it("converts Kelvin to Celsius for display and back on edit", () => {
     expect(component.tempCelsius).to.equal(-41);
     component.tempCelsius = -41;

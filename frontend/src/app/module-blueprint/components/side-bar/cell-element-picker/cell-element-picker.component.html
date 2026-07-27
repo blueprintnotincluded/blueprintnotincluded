@@ -57,7 +57,7 @@
   </button>
 </div>
 
-<div class="element-list">
+<div class="element-list" [class.compact]="isStateFiltered">
   <div
     *ngFor="let element of elements"
     class="ui-clickable-icon element-button"
@@ -73,4 +73,7 @@
       <div class="element-panel-text">{{ element.name }}</div>
     </div>
   </div>
+  <p class="element-list-empty" *ngIf="elements.length === 0" i18n>
+    No elements match this search.
+  </p>
 </div>

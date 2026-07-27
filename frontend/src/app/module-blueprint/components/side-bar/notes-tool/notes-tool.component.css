@@ -1,44 +1,74 @@
+/* The card is a flex column (.box-card), so one gap owns the vertical rhythm
+   here instead of per-child margins — the two modes swap children of very
+   different heights and margin-stacking made the seams uneven between them. */
 .notes-card {
   padding: 12px;
+  gap: 12px;
+}
+.notes-card .box-card-title {
+  margin-bottom: 0;
 }
 .section-label {
-  margin: 12px 0 6px;
+  margin: 0;
   font-weight: 600;
 }
+/* A themed segmented control, matching the element picker's state filter
+   directly below it. The planning tool's beige game-styled buttons were the
+   first thing tried here, but they hardcode a light background the app theme
+   knows nothing about, so the label colour was never right in both themes —
+   and two differently-styled segmented rows stacked read as unrelated. */
 .mode-tabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 .mode-tab {
   flex: 1;
-  border: 2px solid #6a6256;
+  padding: 7px 8px;
+  border: 1px solid var(--p-content-border-color);
   border-radius: 4px;
-  background: #d5c5a7;
-  padding: 6px 8px;
+  background: transparent;
+  color: var(--p-text-color);
   cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
   font-weight: 600;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.mode-tab:hover:not(.selected) {
+  background: var(--p-content-hover-background);
 }
 .mode-tab.selected {
-  outline: 3px solid #fff;
-  box-shadow: 0 0 0 5px #3b82f6;
+  background: var(--p-primary-color);
+  border-color: var(--p-primary-color);
+  color: var(--p-primary-contrast-color, #fff);
 }
 .color-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
 }
+/* A mid-grey frame keeps the white and black swatches from disappearing into
+   the card in either theme; the selected ring is drawn outside the swatch so
+   it never hides the colour it marks (the grid gap leaves room for it). */
 .color-button {
   width: 32px;
   height: 32px;
-  border: 2px solid #6a6256;
+  border: 1px solid var(--p-surface-400);
   border-radius: 4px;
   cursor: pointer;
+  padding: 0;
 }
 .color-button.selected {
-  outline: 3px solid #fff;
-  box-shadow: 0 0 0 5px #3b82f6;
+  border-color: var(--p-primary-color);
+  box-shadow: 0 0 0 2px var(--p-primary-color);
 }
 .hint {
-  margin: 12px 0 0;
-  font-size: 0.85rem;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--p-content-border-color);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--p-text-muted-color);
 }
