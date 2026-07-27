@@ -15,25 +15,57 @@
   </div>
 
   <div class="note-panel-body">
-    <ng-container *ngIf="isText; else elementFields">
-      <label class="note-panel-label" i18n>Note Name:</label>
-      <input
-        class="note-panel-input"
-        type="text"
-        maxlength="120"
-        [(ngModel)]="n.title"
-        (blur)="commit()"
-        (keydown.enter)="commit()"
-      />
+    <!-- Only the pending note can still change type; a placed note's type is
+         what it is, so the tabs would have nothing to switch. -->
+    <div class="mode-tabs" role="tablist" *ngIf="isDraft">
+      <button
+        type="button"
+        class="mode-tab"
+        role="tab"
+        [class.selected]="mode === 'text'"
+        [attr.aria-selected]="mode === 'text'"
+        (click)="mode = 'text'"
+        i18n
+      >
+        Text Notes
+      </button>
+      <button
+        type="button"
+        class="mode-tab"
+        role="tab"
+        [class.selected]="mode === 'element'"
+        [attr.aria-selected]="mode === 'element'"
+        (click)="mode = 'element'"
+        i18n
+      >
+        Element Notes
+      </button>
+    </div>
 
-      <label class="note-panel-label" i18n>Note Text:</label>
-      <textarea
-        class="note-panel-textarea"
-        rows="4"
-        maxlength="1000"
-        [(ngModel)]="n.text"
-        (blur)="commit()"
-      ></textarea>
+    <ng-container *ngIf="isText; else elementFields">
+      <!-- A note that hasn't been placed has nothing to name yet: the pending
+           template carries only the icon colour, matching the mod's own
+           creation panel. -->
+      <ng-container *ngIf="!isDraft">
+        <label class="note-panel-label" i18n>Note Name:</label>
+        <input
+          class="note-panel-input"
+          type="text"
+          maxlength="120"
+          [(ngModel)]="n.title"
+          (blur)="commit()"
+          (keydown.enter)="commit()"
+        />
+
+        <label class="note-panel-label" i18n>Note Text:</label>
+        <textarea
+          class="note-panel-textarea"
+          rows="4"
+          maxlength="1000"
+          [(ngModel)]="n.text"
+          (blur)="commit()"
+        ></textarea>
+      </ng-container>
 
       <label class="note-panel-label" i18n>Note Icon Color:</label>
       <div class="note-panel-palette">
@@ -56,7 +88,16 @@
       ></app-element-note-editor>
     </ng-template>
 
-    <button type="button" class="note-panel-delete" (click)="deleteNote()" i18n>
+    <p class="note-panel-hint" *ngIf="isDraft" i18n>
+      Click on the blueprint to place a note. Right-click to return to Select.
+    </p>
+    <button
+      type="button"
+      class="note-panel-delete"
+      *ngIf="!isDraft"
+      (click)="deleteNote()"
+      i18n
+    >
       Delete note
     </button>
   </div>
