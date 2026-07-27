@@ -29,7 +29,7 @@ import { ToolService } from "../../services/tool-service";
 const PREVIEW_ALPHA = 0.55;
 
 // Element seeded into a fresh element note so the tool is placeable (and the
-// side panel readable) the moment the mode is picked, instead of opening on
+// edit panel readable) the moment the mode is picked, instead of opening on
 // "Unknown element" at absolute zero. Water is the most common thing an
 // annotation points at; anything liquid does if the database lacks it.
 const DEFAULT_ELEMENT_ID = "Water";
