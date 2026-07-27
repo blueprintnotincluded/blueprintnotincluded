@@ -50,13 +50,27 @@ export class NotesTool implements ITool {
     if (value === "element") this.seedPendingElement();
   }
 
-  // "RRGGBBAA" tint applied to newly placed text notes, same shape as
-  // BniWorldNote.tinthex (note-edit-panel's palette default).
-  pendingTint = "ffffffff";
-  // Shared, in place, with the reused ElementNoteEditorComponent — it
-  // mutates id/mass/temp directly via two-way bindings (spec §6, §7). x/y/
-  // type are placeholders; only id/mass/temp are read before placement.
+  // The note the next click will place, one per mode. These are real
+  // BniWorldNotes so the edit panel can bind to a pending note with exactly
+  // the same controls it uses for a placed one — the panel is the only UI for
+  // both (spec §6). They live outside blueprint.worldNotes, so editing them
+  // never touches the blueprint or the undo ring. x/y are placeholders,
+  // overwritten with the clicked tile on placement.
+  pendingTextNote: BniWorldNote = {
+    x: 0,
+    y: 0,
+    type: 0,
+    title: "",
+    text: "",
+    tinthex: "ffffffff",
+  };
   pendingElementNote: BniWorldNote = { x: 0, y: 0, type: 1 };
+
+  get pendingNote(): BniWorldNote {
+    return this.mode === "text"
+      ? this.pendingTextNote
+      : this.pendingElementNote;
+  }
 
   private hoverTile: Vector2 | null = null;
   private preview: PIXI.Sprite | null = null;
@@ -79,24 +93,10 @@ export class NotesTool implements ITool {
     this.pendingElementNote.temp = element.defaultTemperature;
   }
 
+  // A copy, never the pending note itself: the pending note stays put as the
+  // template for the next click.
   private buildPendingNote(position: Vector2): BniWorldNote {
-    if (this.mode === "text")
-      return {
-        x: position.x,
-        y: position.y,
-        type: 0,
-        title: "",
-        text: "",
-        tinthex: this.pendingTint,
-      };
-    return {
-      x: position.x,
-      y: position.y,
-      type: 1,
-      id: this.pendingElementNote.id,
-      mass: this.pendingElementNote.mass,
-      temp: this.pendingElementNote.temp,
-    };
+    return { ...this.pendingNote, x: position.x, y: position.y };
   }
 
   switchFrom() {
@@ -139,12 +139,6 @@ export class NotesTool implements ITool {
     return false;
   }
 
-  private previewNote(): BniWorldNote {
-    return this.mode === "text"
-      ? { x: 0, y: 0, type: 0, tinthex: this.pendingTint }
-      : { x: 0, y: 0, type: 1, id: this.pendingElementNote.id };
-  }
-
   private updatePreview(drawPixi: DrawPixi, camera: CameraService) {
     let preview = this.preview;
     if (preview == null) {
@@ -157,7 +151,7 @@ export class NotesTool implements ITool {
     if (!preview.visible) return;
 
     const resolve = (tag: number) => BuildableElement.getElementByTag(tag);
-    const note = this.previewNote();
+    const note = this.pendingNote;
     const marker = noteMarkerSprite(note, resolve);
     const badge = noteBadgeColor(note, resolve);
     preview.texture = drawPixi.getNewBaseTexture(MARKER_URLS[marker]);

@@ -51,6 +51,49 @@
   padding: 12px;
 }
 
+/* A themed segmented control, matching the element picker's state filter
+   further down the panel. Only shown for the pending note. */
+.mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.mode-tab {
+  flex: 1;
+  padding: 7px 8px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--p-text-color);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.mode-tab:hover:not(.selected) {
+  background: var(--p-content-hover-background);
+}
+
+.mode-tab.selected {
+  background: var(--p-primary-color);
+  border-color: var(--p-primary-color);
+  color: var(--p-primary-contrast-color, #fff);
+}
+
+.note-panel-hint {
+  margin: 6px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--p-content-border-color);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--p-text-muted-color);
+}
+
 .note-panel-label {
   margin-top: 6px;
   font-weight: bold;

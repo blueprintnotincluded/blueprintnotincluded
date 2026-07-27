@@ -27,9 +27,6 @@
       <app-planning-tool
         [hidden]="!toolService.planningTool.visible"
       ></app-planning-tool>
-      <app-notes-tool
-        [hidden]="!toolService.notesTool.visible"
-      ></app-notes-tool>
     </div>
     <div class="side-panel-right">
       <app-element-report-tool *ngIf="showElementReport" #elementReportTool>

@@ -35,9 +35,9 @@ describe("NotesTool", () => {
     expect(tool.toggleable).toBe(false);
   });
 
-  it("places a text note built from the pending tint", () => {
+  it("places a text note built from the pending template", () => {
     tool.mode = "text";
-    tool.pendingTint = "ff0000ff";
+    tool.pendingTextNote.tinthex = "ff0000ff";
     tool.mouseDown(new Vector2(4, 5));
 
     expect(blueprint.worldNotes).to.have.length(1);
@@ -117,6 +117,20 @@ describe("NotesTool", () => {
 
     expect(tool.pendingElementNote.id).to.equal(7);
     expect(tool.pendingElementNote.mass).to.equal(5);
+  });
+
+  it("places copies, leaving the pending note reusable for the next click", () => {
+    tool.mode = "text";
+    tool.pendingTextNote.title = "template";
+
+    tool.mouseDown(new Vector2(1, 1));
+    tool.mouseDown(new Vector2(2, 2));
+
+    expect(blueprint.worldNotes).to.have.length(2);
+    expect(blueprint.worldNotes[0]).to.not.equal(tool.pendingTextNote);
+    expect(blueprint.worldNotes[0]).to.not.equal(blueprint.worldNotes[1]);
+    // The template itself never moves to a placed cell.
+    expect(tool.pendingTextNote).to.deep.include({ x: 0, y: 0 });
   });
 
   it("refuses a second note on an occupied cell and selects the existing one instead", () => {
