@@ -141,6 +141,26 @@ describe('BlueprintsV2 import', function () {
       expect(reimported.worldNotes).to.deep.equal(source.worldNotes);
     });
 
+    it("carries a text note's icon through every hop, under the mod's own key", () => {
+      // BlueprintNoteData.Symbol is matched by sprite name on load, so the key
+      // and the value both have to survive verbatim or the game silently drops
+      // back to the default icon.
+      const withSymbol = {
+        ...fixture,
+        worldNotes: [
+          { x: 1, y: 2, type: 0, title: 't', text: 'b', tinthex: 'FF0000FF', symbol: 'note_warn' },
+        ],
+      };
+      const source = new Blueprint();
+      source.importFromBni(withSymbol);
+      expect(source.worldNotes[0].symbol).to.equal('note_warn');
+
+      const reimported = new Blueprint();
+      reimported.importFromMdb(source.toMdbBlueprint());
+      expect(reimported.worldNotes[0].symbol).to.equal('note_warn');
+      expect(reimported.toBniBlueprint('symbols').worldNotes![0].symbol).to.equal('note_warn');
+    });
+
     it('omits worldNotes from toMdbBlueprint when there are none (backwards compatibility)', () => {
       const empty = new Blueprint();
       empty.importFromBni({ friendlyname: '', buildings: [], digcommands: [] });

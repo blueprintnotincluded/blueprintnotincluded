@@ -67,6 +67,24 @@
         ></textarea>
       </ng-container>
 
+      <label class="note-panel-label" i18n>Note Icon:</label>
+      <div class="note-panel-symbols">
+        <button
+          type="button"
+          *ngFor="let s of symbols"
+          class="note-panel-symbol"
+          [class.selected]="isSelectedSymbol(s)"
+          [attr.aria-label]="s"
+          (click)="pickSymbol(s)"
+        >
+          <span
+            class="note-panel-symbol-art"
+            [style.mask-image]="'url(' + symbolUrl(s) + ')'"
+            [style.-webkit-mask-image]="'url(' + symbolUrl(s) + ')'"
+          ></span>
+        </button>
+      </div>
+
       <label class="note-panel-label" i18n>Note Icon Color:</label>
       <div class="note-panel-palette">
         <button

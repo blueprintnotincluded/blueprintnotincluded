@@ -6,6 +6,7 @@ export interface BniWorldNote {
     title?: string;
     text?: string;
     tinthex?: string;
+    symbol?: string;
     id?: number;
     mass?: number;
     temp?: number;

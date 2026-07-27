@@ -5,6 +5,11 @@ import {
   ElementState,
 } from "../../../../../lib/index";
 import { DrawPixi } from "./draw-pixi";
+import {
+  NOTE_SYMBOLS,
+  isKnownNoteSymbol,
+  noteSymbolUrl,
+} from "../components/note-edit-panel/note-symbols";
 
 // BlueprintsV2 world notes come across as pins on cells: text annotations
 // (type 0, a tinted title/body) and element notes (type 1, an element +
@@ -25,7 +30,10 @@ const DEFAULT_BADGE_COLOR = 0x3b82f6;
 // Exported for NotesTool's hover preview, which sizes its marker the same way.
 export const NOTE_ICON_TILE_FRACTION = 0.9;
 
-export type MarkerName = "note" | "solid" | "liquid" | "gas";
+// "note" plus the element states are the built-in markers; a text note can
+// additionally name any icon from NOTE_SYMBOLS, which is why this is a plain
+// string keyed into MARKER_URLS rather than a closed union.
+export type MarkerName = string;
 
 // Exported for NotesTool's hover preview, which resolves the same marker
 // name (via noteMarkerSprite) to a texture URL.
@@ -34,6 +42,7 @@ export const MARKER_URLS: Record<MarkerName, string> = {
   solid: "assets/images/notes/solid.png",
   liquid: "assets/images/notes/liquid.png",
   gas: "assets/images/notes/gas.png",
+  ...Object.fromEntries(NOTE_SYMBOLS.map((s) => [s, noteSymbolUrl(s)])),
 };
 
 // Badge colour (PIXI int + alpha) for a note: text notes use their tint,
@@ -76,15 +85,17 @@ export function stripNoteMarkup(text: string): string {
     .trim();
 }
 
-// Which marker sprite a note renders as (spec §4 table). Element notes pick
-// the sprite for the resolved element's state; unresolved elements and
-// Vacuum fall back to the plain note marker, same as the default badge
-// colour they also get from noteBadgeColor.
+// Which marker sprite a note renders as (spec §4 table). Text notes use the
+// icon they name, if we ship it. Element notes pick the sprite for the
+// resolved element's state; unresolved elements and Vacuum fall back to the
+// plain note marker, same as the default badge colour they also get from
+// noteBadgeColor.
 export function noteMarkerSprite(
   note: BniWorldNote,
   resolveElement: (tag: number) => BuildableElement | undefined,
 ): MarkerName {
-  if (note.type === TEXT_NOTE) return "note";
+  if (note.type === TEXT_NOTE)
+    return isKnownNoteSymbol(note.symbol) ? note.symbol! : "note";
   const element = note.id != null ? resolveElement(note.id) : undefined;
   if (element == null) return "note";
   switch (element.state) {

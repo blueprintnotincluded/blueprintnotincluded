@@ -63,6 +63,8 @@ export class NotesTool implements ITool {
     title: "",
     text: "",
     tinthex: "ffffffff",
+    // "" is what the mod writes for a note whose icon was never changed.
+    symbol: "",
   };
   pendingElementNote: BniWorldNote = { x: 0, y: 0, type: 1 };
 

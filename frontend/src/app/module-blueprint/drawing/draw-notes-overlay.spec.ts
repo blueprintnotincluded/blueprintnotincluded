@@ -5,6 +5,7 @@ import {
   ElementState,
 } from "../../../../../lib/index";
 import {
+  MARKER_URLS,
   parseNoteTintHex,
   stripNoteMarkup,
   noteBadgeColor,
@@ -93,8 +94,24 @@ describe("noteMarkerSprite", () => {
     temp: 0,
   });
 
-  it("always uses the plain note marker for text notes", () => {
+  it("uses the plain note marker for a text note that names no icon", () => {
     const note: BniWorldNote = { x: 0, y: 0, type: 0, title: "t" };
+    expect(noteMarkerSprite(note, noElement)).to.equal("note");
+    expect(noteMarkerSprite({ ...note, symbol: "" }, noElement)).to.equal(
+      "note",
+    );
+  });
+
+  it("uses the icon a text note names", () => {
+    const note: BniWorldNote = { x: 0, y: 0, type: 0, symbol: "note_warn" };
+    expect(noteMarkerSprite(note, noElement)).to.equal("note_warn");
+    expect(MARKER_URLS["note_warn"]).to.contain("symbols/note_warn.png");
+  });
+
+  it("falls back to the plain marker for an icon we don't ship", () => {
+    // A newer mod build, or a hand-edited blueprint: render something rather
+    // than nothing, same as the mod's own GetNoteSprite fallback.
+    const note: BniWorldNote = { x: 0, y: 0, type: 0, symbol: "note_alien" };
     expect(noteMarkerSprite(note, noElement)).to.equal("note");
   });
 
