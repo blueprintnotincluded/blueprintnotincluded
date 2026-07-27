@@ -79,9 +79,10 @@ describe("ElementNoteEditorComponent", () => {
     expect(component.markerName).to.equal(null);
   });
 
-  it("keeps the mass/temperature controls for an unresolved tag, and hides them only when no element is named at all", () => {
-    // A modded element we can't resolve still has stored values worth editing;
-    // a pending note with no id yet has nothing to show.
+  it("reports hasElement for an unresolved tag, and only drops it when no element is named at all", () => {
+    // hasElement gates the mass/temperature controls in the template: a modded
+    // element we can't resolve still has stored values worth editing, while a
+    // pending note with no id yet has nothing to show.
     note.id = 999;
     expect(component.hasElement).to.equal(true);
     note.id = undefined;
