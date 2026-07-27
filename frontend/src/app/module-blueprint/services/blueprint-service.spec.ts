@@ -759,6 +759,32 @@ describe("BlueprintService", () => {
       expect(service.getValidRawSource()).toBeNull();
     });
 
+    // Regression for spec/element-notes.md §1.2 / blueprintsv2-followups.md
+    // item 1: world notes now flow through toMdbBlueprint, so editing one
+    // correctly detaches the byte-exact raw source (it previously did not).
+    // The real app applies an import onto the live blueprint via
+    // component-canvas's loadNewBlueprint -> destroyAndCopyItems; reproduce
+    // that here since this spec has no canvas subscriber wired up.
+    it("editing a world note invalidates the held raw source", async () => {
+      service.subscribeBlueprintChanged({
+        blueprintChanged: (blueprint) =>
+          service.blueprint.destroyAndCopyItems(blueprint),
+      });
+      const bniWithNote = JSON.stringify({
+        blueprintVersion: 3,
+        friendlyname: "Imported",
+        buildings: [],
+        digcommands: [],
+        worldNotes: [{ x: 0, y: 0, type: 1, id: 1, mass: 100, temp: 300 }],
+      });
+      await service.openBlueprintFromShareString(bniWithNote);
+      expect(service.blueprint.worldNotes).toHaveLength(1);
+      expect(service.getValidRawSource()).not.toBeNull();
+
+      service.blueprint.worldNotes[0].mass = 200;
+      expect(service.getValidRawSource()).toBeNull();
+    });
+
     it("saveBlueprint sends rawSource only while the import is unedited", async () => {
       mockAuth.isLoggedIn.mockReturnValue(true);
       mockHttp.post.mockReturnValue(of({ id: "new-id" }));

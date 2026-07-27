@@ -22,6 +22,8 @@
         type="text"
         maxlength="120"
         [(ngModel)]="n.title"
+        (blur)="commit()"
+        (keydown.enter)="commit()"
       />
 
       <label class="note-panel-label" i18n>Note Text:</label>
@@ -30,6 +32,7 @@
         rows="4"
         maxlength="1000"
         [(ngModel)]="n.text"
+        (blur)="commit()"
       ></textarea>
 
       <label class="note-panel-label" i18n>Note Icon Color:</label>
@@ -56,10 +59,16 @@
         type="number"
         min="0"
         [(ngModel)]="massKg"
+        (blur)="commit()"
       />
 
       <label class="note-panel-label" i18n>Temperature (°C):</label>
-      <input class="note-panel-input" type="number" [(ngModel)]="tempCelsius" />
+      <input
+        class="note-panel-input"
+        type="number"
+        [(ngModel)]="tempCelsius"
+        (blur)="commit()"
+      />
     </ng-template>
 
     <button type="button" class="note-panel-delete" (click)="deleteNote()" i18n>
