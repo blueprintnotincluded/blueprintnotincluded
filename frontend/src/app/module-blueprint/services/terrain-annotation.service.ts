@@ -1,14 +1,5 @@
 import { Injectable } from "@angular/core";
-import {
-  BlueprintHelpers,
-  BlueprintItemElement,
-  BniTerrainFeature,
-  BuildableElement,
-  NEUTRONIUM_ELEMENT_ID,
-  OniItem,
-  TerrainFeature,
-  Vector2,
-} from "../../../../../lib/index";
+import { BniTerrainFeature, TerrainFeature } from "../../../../../lib/index";
 import { BlueprintService } from "./blueprint-service";
 
 // Footprint of a placed annotation, in cells. The catalogue is the source of
@@ -49,19 +40,6 @@ export function findTerrainFeatureAt(
       return feature;
   }
   return null;
-}
-
-// The cells a feature's neutronium base occupies: one row, as wide as the
-// footprint, directly beneath the anchor. In the game every geyser, vent and
-// volcano is anchored on indestructible neutronium, and this is that row.
-//
-// Pure so the geometry is testable without standing up the renderer.
-export function neutroniumBaseCells(feature: BniTerrainFeature): Vector2[] {
-  const { width } = terrainFootprint(feature);
-  const cells: Vector2[] = [];
-  for (let dx = 0; dx < width; dx++)
-    cells.push(new Vector2(feature.x + dx, feature.y - 1));
-  return cells;
 }
 
 // Shared selection/visibility state for terrain annotations, modelled on
@@ -120,52 +98,9 @@ export class TerrainAnnotationService {
 
   add(feature: BniTerrainFeature) {
     const blueprint = this.blueprintService.blueprint;
-
-    // The annotation and the neutronium row it sits on are one edit, so they
-    // are one undo step: every addBlueprintItem would otherwise push its own
-    // snapshot and a single click would eat five slots of the 50-entry ring.
-    blueprint.pauseChangeEvents();
     blueprint.terrainFeatures = [...blueprint.terrainFeatures, feature];
-    this.seedNeutroniumBase(feature);
     this.select(feature);
-    blueprint.resumeChangeEvents();
-  }
-
-  // Seeded, not owned. Once placed these are ordinary element cells the user
-  // edits with the normal element tool (or deletes) — which is the point, since
-  // real terrain rarely matches the default exactly. Deleting the annotation
-  // therefore leaves them alone rather than discarding edits the user made.
-  private seedNeutroniumBase(feature: BniTerrainFeature) {
-    const blueprint = this.blueprintService.blueprint;
-
-    // A database with no Neutronium simply gets no base rather than a crash.
-    const neutronium = BuildableElement.elements?.find(
-      (e) => e.id === NEUTRONIUM_ELEMENT_ID,
-    );
-    if (neutronium == null) return;
-
-    for (const position of neutroniumBaseCells(feature)) {
-      // Never stack a second cell on one that already exists: re-placing a
-      // feature over its own base must not double up, and a cell the user has
-      // already customized must win over the default.
-      const occupied = blueprint
-        .getBlueprintItemsAt(position)
-        .some((item) => item.id === OniItem.elementId);
-      if (occupied) continue;
-
-      const cell = BlueprintHelpers.createInstance(
-        OniItem.elementId,
-      ) as BlueprintItemElement | null;
-      if (cell == null) return;
-
-      cell.position = position;
-      cell.setElement(NEUTRONIUM_ELEMENT_ID, 0);
-      cell.mass = neutronium.defaultMass;
-      cell.temperature = neutronium.defaultTemperature;
-      cell.cleanUp();
-      cell.prepareBoundingBox();
-      blueprint.addBlueprintItem(cell);
-    }
+    blueprint.emitBlueprintChanged();
   }
 
   move(feature: BniTerrainFeature, tile: { x: number; y: number }) {
