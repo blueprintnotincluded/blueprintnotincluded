@@ -18,6 +18,7 @@ import {
   BSpriteModifier,
   SpriteModifier,
   ImageSource,
+  TerrainFeature,
 } from '../lib/index';
 
 class App {
@@ -57,6 +58,9 @@ class App {
     let buildings: BBuilding[] = json.buildings;
     OniItem.init();
     OniItem.load(buildings);
+
+    TerrainFeature.init();
+    TerrainFeature.load(json.terrainFeatures);
 
     // initialize database and authentication middleware
     this.db = new Database();

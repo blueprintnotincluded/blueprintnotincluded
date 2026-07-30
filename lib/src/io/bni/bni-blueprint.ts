@@ -43,4 +43,15 @@ export class BniBlueprint {
   icontint?: string;
   worldNotes?: BniWorldNote[];
   planningtoolmod_shapecollection?: BniPlanShape[];
+
+  // BlueprintsV2 v6.2.0+ free-form annotation block. Deserializes mod-side into
+  // a `Dictionary<string, string>`: FLAT, and string-valued only — any other
+  // JSON token type is silently dropped on the next in-game save. The mod never
+  // reads or validates the contents, and preserves them through disk I/O,
+  // in-game clone and the multiplayer packets.
+  //
+  // Shared with the mod and with any other tool, so it is treated as someone
+  // else's object: read whole, mutate only our own namespaced keys, write whole
+  // back. Our terrain annotations live in here — see blueprint/terrain-metadata.ts.
+  metadata?: Record<string, string>;
 }

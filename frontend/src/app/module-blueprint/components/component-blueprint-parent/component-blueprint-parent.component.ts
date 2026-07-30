@@ -24,6 +24,7 @@ import {
   OniItem,
   Overlay,
   SpriteInfo,
+  TerrainFeature,
   SpriteModifier,
   Vector2,
 } from "../../../../../../lib/index";
@@ -306,6 +307,12 @@ export class ComponentBlueprintParentComponent
                   b.name = localizedName;
                 }
                 OniItem.load(buildings);
+
+                // Terrain-feature catalogue (geysers/vents/volcanoes). Names are
+                // already plain text in the database, so unlike buildings and
+                // elements there is no per-entry string lookup to do here.
+                TerrainFeature.init();
+                TerrainFeature.load(json.terrainFeatures);
 
                 resolve(0);
               });

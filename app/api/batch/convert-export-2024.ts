@@ -42,6 +42,8 @@ import {
   BUiSpriteInfoFile2024,
   BBuildingDef2024,
   BPoStringFile2024,
+  BGeyserFile2024,
+  BEntitiesFile2024,
 } from '../../../lib';
 import { Overlay } from '../../../lib/src/enums/overlay';
 import { ElementState } from '../../../lib/src/enums/element-state';
@@ -697,6 +699,17 @@ export function convertExport2024(opts: ConvertOptions): void {
     })),
   ];
 
+  // Terrain-feature catalogue (annotations, not buildings — see buildTerrainFeatures).
+  const missingTerrainIcons: string[] = [];
+  const missingTerrainNames: string[] = [];
+  const terrainFeatures = buildTerrainFeatures(
+    dbDir,
+    englishStrings,
+    uiImageFiles,
+    missingTerrainIcons,
+    missingTerrainNames
+  );
+
   const database = {
     buildings,
     uiSprites: [...uiSprites, ...overlayUiSprites, ...indicatorSprites],
@@ -704,6 +717,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     buildMenuCategories,
     buildMenuItems,
     elements,
+    terrainFeatures,
     mods,
   };
 
@@ -715,6 +729,7 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  uiSprites (flat)   :', uiSprites.length);
   console.log('  buildMenuCategories:', buildMenuCategories.length);
   console.log('  buildMenuItems     :', buildMenuItems.length);
+  console.log('  terrainFeatures    :', terrainFeatures.length);
   console.log('  ui_image PNGs      :', uiImageFiles.size);
   console.log('  english strings    :', Object.keys(englishStrings).length);
   console.log(
@@ -764,6 +779,8 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  utility indicator PNGs missing     :', missingIndicatorPngs.length);
   if (missingIndicatorPngs.length)
     console.log('    missing from export/ui_image (utility overlays will be broken):', missingIndicatorPngs.join(', '));
+  console.log('  terrain features missing icon      :', missingTerrainIcons.length, missingTerrainIcons.join(' '));
+  console.log('  terrain features missing name      :', missingTerrainNames.length, missingTerrainNames.join(' '));
   console.log('  buildings missing ui_image PNG :', missingIcons.length);
   if (missingIcons.length) console.log('    ', missingIcons.slice(0, 30).join(', '));
   console.log('  buildings missing uiSpriteInfo :', missingUiSpriteInfo.length);
@@ -959,6 +976,123 @@ function normalizeDlcIds(raw: string[] | string | null | undefined): string[] {
   if (!raw) return [];
   if (typeof raw === 'string') return [raw];
   return raw.filter(Boolean);
+}
+
+// --- Terrain features (geysers, vents, volcanoes, fissures, oil reservoirs) ---
+//
+// These are natural map features, not buildings — the website carries them only
+// as blueprint annotations ("this pump array sits on a chlorine vent"), so they
+// get their own catalogue rather than an entry in `buildings`. Two sources, both
+// from the game's own export:
+//
+//   1. geyser.json `geysers[]` — the 27 GeyserGeneric_* prefabs. GeyserGenericConfig
+//      registers one prefab per geyser type, named after the type id, which is also
+//      the ui_image/<id>.png filename.
+//   2. entities.json — the features that are their own prefab rather than a
+//      GeyserGeneric variant: everything tagged `GeyserFeature` (Niobium Volcano,
+//      Tidal Spring, Thermal Gas Fissure) plus the Oil Reservoir, which predates
+//      that tag and so carries none.
+//
+// Names come from po_string via each geyser's `nameStringKey`, or straight off the
+// entity's `nameString` — rich-text markup intact, exactly like buildings and
+// elements, since the frontend strips it at display time.
+
+// Prefabs that are terrain features but carry no `GeyserFeature` tag.
+const UNTAGGED_TERRAIN_PREFABS = ['OilWell'];
+const TERRAIN_FEATURE_TAG = 'GeyserFeature';
+
+function lookupGameString(
+  englishStrings: Record<string, string>,
+  key: string | null | undefined
+): string {
+  if (!key) return '';
+  return englishStrings[key] ?? englishStrings['STRINGS.' + key] ?? '';
+}
+
+// Klei rich-text wrappers -> their inner text. Buildings and elements keep their
+// markup in the database because the frontend re-resolves those names through
+// GameStringService (which strips on load). Terrain features have no such lookup
+// — the palette reads `name` straight off the catalogue — so they are stored
+// already stripped rather than making every consumer remember to do it.
+const RICH_TEXT_PATTERNS: RegExp[] = [
+  /<color=#.+?>(.*?)<\/color>/gi,
+  /<size=.+?>(.*?)<\/size>/gi,
+  /<style=.+?>(.*?)<\/style>/gi,
+  /<smallcaps>(.*?)<\/smallcaps>/gi,
+  /<link=".+?">(.*?)<\/link>/gi,
+];
+
+function stripRichText(value: string): string {
+  let result = value;
+  for (const pattern of RICH_TEXT_PATTERNS) result = result.replace(pattern, '$1');
+  return result.trim();
+}
+
+interface TerrainFeatureRecord {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  dlcIds: string[];
+}
+
+function buildTerrainFeatures(
+  dbDir: string,
+  englishStrings: Record<string, string>,
+  uiImageFiles: Set<string>,
+  missingIcons: string[],
+  missingNames: string[]
+): TerrainFeatureRecord[] {
+  const features: TerrainFeatureRecord[] = [];
+  const seen = new Set<string>();
+
+  const add = (record: TerrainFeatureRecord) => {
+    // geyser.json and entities.json overlap on the prefabs that appear in both
+    // (e.g. the Niobium Volcano); first source wins, and geyser.json is richer.
+    if (seen.has(record.id)) return;
+    seen.add(record.id);
+    if (!uiImageFiles.has(record.id)) missingIcons.push(record.id);
+    if (!record.name) missingNames.push(record.id);
+    features.push(record);
+  };
+
+  const geyserFile = path.join(dbDir, 'geyser.json');
+  if (fs.existsSync(geyserFile))
+    for (const g of readJson<BGeyserFile2024>(geyserFile).geysers ?? [])
+      add({
+        id: g.id,
+        // geyser.json writes the fully-qualified string id, `STRINGS.` prefix
+        // included — unlike po_string's own keys, which the strings map prefixes
+        // on the way in. Tolerate both rather than assuming either.
+        name: stripRichText(lookupGameString(englishStrings, g.nameStringKey?.String)),
+        width: g.width,
+        height: g.height,
+        dlcIds: normalizeDlcIds(g.geyserType?.requiredDlcIds),
+      });
+
+  const entitiesFile = path.join(dbDir, 'entities.json');
+  if (fs.existsSync(entitiesFile))
+    for (const e of readJson<BEntitiesFile2024>(entitiesFile).entities ?? []) {
+      const tags = (e.kPrefabID?.tags ?? []).map((t) => t.Name);
+      const isTerrain =
+        tags.indexOf(TERRAIN_FEATURE_TAG) !== -1 ||
+        UNTAGGED_TERRAIN_PREFABS.indexOf(e.name) !== -1;
+      if (!isTerrain) continue;
+
+      // Footprint comes from the collider; entities.json has no width/height.
+      // A feature with no collider still belongs in the palette — it just
+      // annotates a single cell.
+      add({
+        id: e.name,
+        name: stripRichText(e.nameString ?? ''),
+        width: Math.max(1, Math.round(e.kBoxCollider2D?.x ?? 1)),
+        height: Math.max(1, Math.round(e.kBoxCollider2D?.y ?? 1)),
+        dlcIds: normalizeDlcIds(e.kPrefabID?.requiredDlcIds),
+      });
+    }
+
+  features.sort((a, b) => a.id.localeCompare(b.id));
+  return features;
 }
 
 // Element.State as emitted by the export -> ElementState int (lib/src/enums/element-state.ts).

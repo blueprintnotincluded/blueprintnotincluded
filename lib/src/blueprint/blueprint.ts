@@ -12,6 +12,14 @@ import { BniBuilding } from '../io/bni/bni-building';
 import { Overlay } from '../enums/overlay';
 import { DrawHelpers } from '../drawing/draw-helpers';
 import { UtilityConnectionTracker } from '../utility-connection';
+import {
+  BniTerrainFeature,
+  decodeTerrainFeatures,
+  encodeTerrainFeatures,
+  TERRAIN_METADATA_KEY,
+} from './terrain-metadata';
+import { applySanitizeOffset, modSanitizeOffset } from './bpv2-sanitize';
+import { TerrainFeature } from '../b-export/b-terrain-feature';
 
 export class Blueprint {
   blueprintItems: BlueprintItem[];
@@ -35,6 +43,14 @@ export class Blueprint {
   // Decorative cells from the separate Planning Tool mod. Unlike world notes,
   // these are editable and therefore live in the normal MDB/undo model.
   planningToolShapes: BniPlanShape[] = [];
+  // Natural terrain features (geysers, vents, volcanoes) annotated onto the
+  // blueprint. Annotations, not construction: they never become BlueprintItems,
+  // never appear in `buildings`, and contribute nothing to material cost or
+  // build order. Persisted in the BlueprintsV2 `metadata` block.
+  terrainFeatures: BniTerrainFeature[] = [];
+  // Every BlueprintsV2 `metadata` key we do not own, kept verbatim so re-saving
+  // a blueprint here never destroys the mod's or another tool's annotations.
+  foreignMetadata: Record<string, string> = {};
 
   // We need a utility map because some objects have utilities outside of their size (HighWattageWireBridge)
   utilities: UtilityConnectionTracker[][] = [];
@@ -54,6 +70,8 @@ export class Blueprint {
     this.bniMetadata = null;
     this.worldNotes = [];
     this.planningToolShapes = [];
+    this.terrainFeatures = [];
+    this.foreignMetadata = {};
 
     // Copy the buildings
     for (let building of oniBlueprint.buildings) {
@@ -112,6 +130,7 @@ export class Blueprint {
     this.planningToolShapes = (bniBlueprint.planningtoolmod_shapecollection ?? []).map(shape => ({
       ...shape,
     }));
+    this.importTerrainMetadata(bniBlueprint);
 
     for (let building of bniBlueprint.buildings ?? []) {
       try {
@@ -132,6 +151,29 @@ export class Blueprint {
     }
   }
 
+  // Read terrain annotations and any foreign metadata keys out of a
+  // BlueprintsV2 file.
+  //
+  // Deliberately does NOT re-origin the annotations, even when the file still
+  // needs sanitizing. The invariant that makes rendering correct is that terrain
+  // coordinates are in the same space as the `buildings` and `digcommands` of
+  // the same file — and this importer reads those verbatim too. Shifting the
+  // annotations alone would be the one thing that breaks that alignment.
+  //
+  // The desync this guards against is created on write, not on read, so it is
+  // fixed on write: toBniBlueprint() normalizes the buildings and the terrain
+  // together, which makes the mod's own SanitizePositions() a guaranteed no-op
+  // on every file we produce. See bpv2-sanitize.ts.
+  private importTerrainMetadata(bniBlueprint: BniBlueprint) {
+    const metadata = bniBlueprint.metadata;
+    this.terrainFeatures = decodeTerrainFeatures(metadata);
+
+    this.foreignMetadata = {};
+    for (const [key, value] of Object.entries(metadata ?? {}))
+      if (key !== TERRAIN_METADATA_KEY && typeof value === 'string')
+        this.foreignMetadata[key] = value;
+  }
+
   public importFromMdb(mdbBlueprint: MdbBlueprint) {
     this.blueprintItems = [];
     this.hadUnknownBuildings = false;
@@ -139,6 +181,8 @@ export class Blueprint {
     this.bniMetadata = null;
     this.worldNotes = (mdbBlueprint.worldNotes ?? []).map(note => ({ ...note }));
     this.planningToolShapes = (mdbBlueprint.planningToolShapes ?? []).map(shape => ({ ...shape }));
+    this.terrainFeatures = (mdbBlueprint.terrainFeatures ?? []).map(feature => ({ ...feature }));
+    this.foreignMetadata = { ...(mdbBlueprint.foreignMetadata ?? {}) };
 
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       let newTemplateItem = BlueprintHelpers.createInstance(originalTemplateItem.id);
@@ -199,6 +243,8 @@ export class Blueprint {
     // rendered blueprint so the editor overlay can draw them.
     this.worldNotes = (source.worldNotes ?? []).map(note => ({ ...note }));
     this.planningToolShapes = source.planningToolShapes.map(shape => ({ ...shape }));
+    this.terrainFeatures = (source.terrainFeatures ?? []).map(feature => ({ ...feature }));
+    this.foreignMetadata = { ...(source.foreignMetadata ?? {}) };
 
     this.pauseChangeEvents();
     for (let blueprintItem of source.blueprintItems) this.addBlueprintItem(blueprintItem);
@@ -412,6 +458,12 @@ export class Blueprint {
     if (this.worldNotes.length > 0)
       returnValue.worldNotes = this.worldNotes.map(note => ({ ...note }));
 
+    if (this.terrainFeatures.length > 0)
+      returnValue.terrainFeatures = this.terrainFeatures.map(feature => ({ ...feature }));
+
+    if (Object.keys(this.foreignMetadata).length > 0)
+      returnValue.foreignMetadata = { ...this.foreignMetadata };
+
     for (let originalTemplateItem of this.blueprintItems)
       returnValue.blueprintItems.push(originalTemplateItem.toMdbBuilding());
 
@@ -441,6 +493,29 @@ export class Blueprint {
     if (this.worldNotes.length > 0) {
       returnValue.blueprintVersion = 3;
       returnValue.worldNotes = this.worldNotes.map(note => ({ ...note }));
+    }
+
+    // Terrain annotations ride in `metadata`, which the mod's SanitizePositions()
+    // does not re-origin — so normalize here, before encoding, and shift the
+    // annotations by the very same offset. That makes the mod's pass a no-op on
+    // this file and keeps the markers glued to the buildings they annotate.
+    const terrainFeatures = this.terrainFeatures.map(feature => ({ ...feature }));
+    const offset = modSanitizeOffset(returnValue);
+    if (offset != null) {
+      applySanitizeOffset(returnValue, offset);
+      for (const feature of terrainFeatures) {
+        feature.x += offset.x;
+        feature.y += offset.y;
+      }
+    }
+
+    // Written even when we have no terrain of our own: foreign keys must
+    // survive a re-save, and encodeTerrainFeatures returns undefined (omitting
+    // the block, as the mod does) only when nothing at all is left to write.
+    const metadata = encodeTerrainFeatures(this.foreignMetadata, terrainFeatures);
+    if (metadata != null) {
+      returnValue.blueprintVersion = 3;
+      returnValue.metadata = metadata;
     }
 
     return returnValue;
@@ -481,6 +556,19 @@ export class Blueprint {
       if (topLeft.y > note.y) topLeft.y = note.y;
       if (bottomRight.x < note.x) bottomRight.x = note.x;
       if (bottomRight.y < note.y) bottomRight.y = note.y;
+    });
+
+    // Terrain annotations frame like any other content — a blueprint that is
+    // only geysers still needs a sensible extent to centre the camera on. Their
+    // footprint extends up and right from the anchor cell (bottom-left).
+    this.terrainFeatures.forEach(feature => {
+      const size = TerrainFeature.getFeature(feature.id);
+      const right = feature.x + (size != null ? size.width - 1 : 0);
+      const top = feature.y + (size != null ? size.height - 1 : 0);
+      if (topLeft.x > feature.x) topLeft.x = feature.x;
+      if (topLeft.y > feature.y) topLeft.y = feature.y;
+      if (bottomRight.x < right) bottomRight.x = right;
+      if (bottomRight.y < top) bottomRight.y = top;
     });
 
     return [topLeft, bottomRight];

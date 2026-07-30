@@ -5,6 +5,7 @@ import { BniBlueprint, BniPlanShape, BniWorldNote } from '../io/bni/bni-blueprin
 import { MdbBlueprint } from '../io/mdb/mdb-blueprint';
 import { Overlay } from '../enums/overlay';
 import { UtilityConnectionTracker } from '../utility-connection';
+import { BniTerrainFeature } from './terrain-metadata';
 export declare class Blueprint {
     blueprintItems: BlueprintItem[];
     templateTiles: BlueprintItem[][];
@@ -13,11 +14,14 @@ export declare class Blueprint {
     bniMetadata: BniBlueprint | null;
     worldNotes: BniWorldNote[];
     planningToolShapes: BniPlanShape[];
+    terrainFeatures: BniTerrainFeature[];
+    foreignMetadata: Record<string, string>;
     utilities: UtilityConnectionTracker[][];
     innerYaml: any;
     constructor();
     importFromOni(oniBlueprint: OniTemplate): void;
     importFromBni(bniBlueprint: BniBlueprint): void;
+    private importTerrainMetadata;
     importFromMdb(mdbBlueprint: MdbBlueprint): void;
     importFromBinary(template: ArrayBuffer): void;
     destroyAndCopyItems(source: Blueprint, emitChanges?: boolean): void;
