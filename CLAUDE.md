@@ -178,7 +178,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Date**: 2026-07-12
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
-- **Tests**: ✅ Backend 530 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 981 passing (Vitest/jsdom)
+- **Tests**: ✅ Backend 781 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 1117 passing (Vitest/jsdom)
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 - **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
@@ -360,7 +360,10 @@ Check these files in `agent/` directory for current status:
 ```bash
 # Environment verification
 node --version        # Should be 20.19.4
-npm run test         # Should pass 204 backend tests
+npm run test         # Full backend suite (sets up the test DB first)
+                     # Use test:only to skip DB setup - but a stale test DB
+                     # makes API specs 404, so re-run `npm run test` before
+                     # believing a failure there.
 npm run tsc          # Should compile without errors
 
 # GitHub CI status

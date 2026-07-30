@@ -702,12 +702,14 @@ export function convertExport2024(opts: ConvertOptions): void {
   // Terrain-feature catalogue (annotations, not buildings — see buildTerrainFeatures).
   const missingTerrainIcons: string[] = [];
   const missingTerrainNames: string[] = [];
+  const missingTerrainSources: string[] = [];
   const terrainFeatures = buildTerrainFeatures(
     dbDir,
     englishStrings,
     uiImageFiles,
     missingTerrainIcons,
-    missingTerrainNames
+    missingTerrainNames,
+    missingTerrainSources
   );
 
   const database = {
@@ -779,6 +781,7 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  utility indicator PNGs missing     :', missingIndicatorPngs.length);
   if (missingIndicatorPngs.length)
     console.log('    missing from export/ui_image (utility overlays will be broken):', missingIndicatorPngs.join(', '));
+  console.log('  terrain source files missing       :', missingTerrainSources.length, missingTerrainSources.join(' '));
   console.log('  terrain features missing icon      :', missingTerrainIcons.length, missingTerrainIcons.join(' '));
   console.log('  terrain features missing name      :', missingTerrainNames.length, missingTerrainNames.join(' '));
   console.log('  buildings missing ui_image PNG :', missingIcons.length);
@@ -897,6 +900,9 @@ export function convertExport2024(opts: ConvertOptions): void {
     elementsMissingDefaults.length +
     gasesWithoutRuntimeDefaults.length +
     elementsOverMaxMass.length +
+    missingTerrainSources.length +
+    missingTerrainIcons.length +
+    missingTerrainNames.length +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
@@ -1041,7 +1047,8 @@ function buildTerrainFeatures(
   englishStrings: Record<string, string>,
   uiImageFiles: Set<string>,
   missingIcons: string[],
-  missingNames: string[]
+  missingNames: string[],
+  missingSources: string[]
 ): TerrainFeatureRecord[] {
   const features: TerrainFeatureRecord[] = [];
   const seen = new Set<string>();
@@ -1056,8 +1063,12 @@ function buildTerrainFeatures(
     features.push(record);
   };
 
+  // A missing source file is an incomplete import, not a no-op: it silently
+  // yields a partial (or empty) palette, which would then look like the export
+  // simply has no geysers. Reported like po_string.json's absence is.
   const geyserFile = path.join(dbDir, 'geyser.json');
-  if (fs.existsSync(geyserFile))
+  if (!fs.existsSync(geyserFile)) missingSources.push('geyser.json');
+  else
     for (const g of readJson<BGeyserFile2024>(geyserFile).geysers ?? [])
       add({
         id: g.id,
@@ -1071,7 +1082,8 @@ function buildTerrainFeatures(
       });
 
   const entitiesFile = path.join(dbDir, 'entities.json');
-  if (fs.existsSync(entitiesFile))
+  if (!fs.existsSync(entitiesFile)) missingSources.push('entities.json');
+  else
     for (const e of readJson<BEntitiesFile2024>(entitiesFile).entities ?? []) {
       const tags = (e.kPrefabID?.tags ?? []).map((t) => t.Name);
       const isTerrain =
