@@ -96,6 +96,15 @@ describe("TerrainTool", () => {
     expect(terrainService.visible).toBe(true);
   });
 
+  // Hiding the layer mid-session must not turn clicks into no-ops either.
+  it("reveals a hidden layer when placing, rather than placing invisibly", () => {
+    terrainService.visible = false;
+    tool.mouseDown(new Vector2(1, 1));
+
+    expect(terrainService.visible).toBe(true);
+    expect(blueprint.terrainFeatures).toHaveLength(1);
+  });
+
   it("falls back to a known feature when its id is not in the database", () => {
     tool.featureId = "SomethingRetired";
     tool.switchTo();

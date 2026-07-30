@@ -78,6 +78,10 @@ export class TerrainTool implements ITool {
   }
 
   mouseDown(tile: Vector2) {
+    // Placing into a hidden layer would look like the click did nothing, so a
+    // placement reveals the layer rather than landing invisibly.
+    this.terrainService.visible = true;
+
     const position = DrawHelpers.getIntegerTile(tile);
     const existing = findTerrainFeatureAt(
       this.blueprintService.blueprint.terrainFeatures,
@@ -128,7 +132,9 @@ export class TerrainTool implements ITool {
       drawPixi.pixiApp.stage.addChild(preview);
       this.preview = preview;
     }
-    preview.visible = this.hoverTile != null;
+    // No cursor cue while the layer is hidden — the whole point of hiding is a
+    // clean build view, and a floating geyser under the cursor undoes that.
+    preview.visible = this.hoverTile != null && this.terrainService.visible;
     if (!preview.visible) return;
 
     preview.texture = drawPixi.getNewBaseTexture(url);
