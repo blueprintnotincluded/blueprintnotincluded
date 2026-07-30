@@ -413,6 +413,15 @@ export class SelectTool implements ITool {
     this.beginSelection = null; // Vector2 | null
   }
 
+  // Whether anything is selected at all. Read by the canvas to keep the
+  // building selection and the terrain-annotation selection mutually
+  // exclusive, so "Delete" is never ambiguous about which one it means.
+  get hasSelection(): boolean {
+    return (
+      this.sameItemCollections != null && this.sameItemCollections.length > 0
+    );
+  }
+
   // The single selected item, if any - used by the build tool to copy it.
   get selectedItem(): BlueprintItem | null {
     const selectedIndex = this.currentMultipleSelectionIndex;

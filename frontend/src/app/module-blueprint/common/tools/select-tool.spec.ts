@@ -118,6 +118,27 @@ describe("SelectTool", () => {
     });
   });
 
+  // The canvas reads this to keep the building selection and the terrain
+  // annotation selection mutually exclusive, so that "Delete" is never
+  // ambiguous about which of the two it means.
+  describe("hasSelection getter", () => {
+    it("is false with nothing selected", () => {
+      tool.sameItemCollections = [] as any;
+      expect(tool.hasSelection).toBe(false);
+    });
+
+    it("is true once something is selected", () => {
+      tool.sameItemCollections = [makeMockCollection()] as any;
+      expect(tool.hasSelection).toBe(true);
+    });
+
+    it("is false again after deselectAll", () => {
+      tool.sameItemCollections = [makeMockCollection()] as any;
+      tool.deselectAll();
+      expect(tool.hasSelection).toBe(false);
+    });
+  });
+
   describe("currentMultipleSelectionIndex getter/setter", () => {
     it("returns -1 when no collection is selected", () => {
       tool.sameItemCollections = [
