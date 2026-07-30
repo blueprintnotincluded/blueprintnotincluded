@@ -109,6 +109,7 @@ import { NotificationBellComponent } from "./components/notification-bell/notifi
 import { ToolbarButtonComponent } from "./components/toolbar-button/toolbar-button.component";
 import { SupportedModsPageComponent } from "./components/supported-mods-page/supported-mods-page.component";
 import { PlanningToolComponent } from "./components/side-bar/planning-tool/planning-tool.component";
+import { TerrainToolComponent } from "./components/side-bar/terrain-tool/terrain-tool.component";
 
 @NgModule({
   declarations: [
@@ -174,6 +175,7 @@ import { PlanningToolComponent } from "./components/side-bar/planning-tool/plann
     ElementNoteEditorComponent,
     SupportedModsPageComponent,
     PlanningToolComponent,
+    TerrainToolComponent,
   ],
   exports: [ComponentBlueprintParentComponent],
   imports: [

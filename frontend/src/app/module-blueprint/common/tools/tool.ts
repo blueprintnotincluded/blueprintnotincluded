@@ -9,6 +9,7 @@ export enum ToolType {
   scissors,
   planning,
   notes,
+  terrain,
 }
 
 export interface ITool {
