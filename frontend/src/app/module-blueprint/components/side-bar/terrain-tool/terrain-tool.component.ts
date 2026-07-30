@@ -62,9 +62,4 @@ export class TerrainToolComponent {
   footprintLabel(feature: TerrainFeature): string {
     return `${feature.width}×${feature.height}`;
   }
-
-  deleteSelected() {
-    const selected = this.selected;
-    if (selected != null) this.terrainService.delete(selected);
-  }
 }

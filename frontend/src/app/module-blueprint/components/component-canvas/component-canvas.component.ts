@@ -176,6 +176,17 @@ export class ComponentCanvasComponent
       }
     });
 
+    // A box-drag selection never produces a click, so the click-side clearing
+    // below can't see it. Watch the select tool instead: any new building
+    // selection supersedes an annotation selection, keeping Delete unambiguous
+    // whichever way round the user selected things.
+    this.toolService.selectTool.subscribeSelectionChanged({
+      selectionChanged: () => {
+        if (this.toolService.selectTool.hasSelection)
+          this.terrainService.clear();
+      },
+    });
+
     this.registerShortcuts();
 
     //this.drawAbstraction.Init(this.canvasRef, this)
@@ -257,6 +268,18 @@ export class ComponentCanvasComponent
     register(ShortcutAction.interfaceCancel, () => {
       if (this.terrainService.selected == null) return false;
       this.terrainService.clear();
+      return true;
+    });
+
+    // Delete is the ordinary editor delete, not a separate control: a selected
+    // annotation is deleted by the same action that deletes a selected
+    // building. Registered above the tool layer so it gets first refusal, and
+    // declines when nothing is selected so the key falls straight through to
+    // SelectTool's building delete.
+    register(ShortcutAction.editDelete, () => {
+      const selected = this.terrainService.selected;
+      if (selected == null) return false;
+      this.terrainService.delete(selected);
       return true;
     });
   }
@@ -470,6 +493,9 @@ export class ComponentCanvasComponent
           ? this.findTerrainFeatureAt(tile)
           : null;
         if (feature != null) {
+          // Building and annotation selection are mutually exclusive, so that
+          // "Delete" is never ambiguous about which one it means.
+          this.toolService.selectTool.deselectAll();
           this.terrainService.select(feature);
           return;
         }

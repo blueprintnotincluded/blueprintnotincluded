@@ -137,6 +137,11 @@ describe("TerrainAnnotationService", () => {
     expect(service.selected).toBe(feature);
   });
 
+  // Delete is the ordinary editor delete (ShortcutAction.editDelete), wired in
+  // the canvas rather than to a panel button, so removing an annotation uses
+  // the same action that removes a building. The service is what that handler
+  // calls; the handler's decline-when-nothing-selected behaviour is what lets
+  // the key fall through to SelectTool.
   it("clears the selection when the selected annotation is deleted", () => {
     const feature: BniTerrainFeature = { id: "OilWell", x: 2, y: 3 };
     service.add(feature);

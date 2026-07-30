@@ -277,6 +277,13 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   Hit-testing is area-based, since footprints run 2x2 to 4x4. The "show terrain features"
   toggle is view state only: it never reaches stored data, and never applies to export or
   thumbnail canvases.
+- **Delete is the ordinary editor delete** (`ShortcutAction.editDelete`), not a panel button:
+  the canvas registers a handler above the tool layer that removes the selected annotation and
+  **declines when none is selected**, so the key falls straight through to `SelectTool`'s
+  building delete. For that to be unambiguous the two selections are mutually exclusive —
+  clicking an annotation calls `selectTool.deselectAll()`, and the canvas subscribes to
+  `subscribeSelectionChanged` to clear the annotation whenever `selectTool.hasSelection`
+  becomes true (a box-drag selection produces no click, so the click path alone can't see it).
 - **Unknown ids survive**: single-cell footprint, placeholder glyph, raw id shown in the panel.
 - **Known gap (pre-existing, shared with world notes and Planning Tool shapes)**: the durable
   server-side preview (`app/api/services/preview-render-worker.ts`) draws only

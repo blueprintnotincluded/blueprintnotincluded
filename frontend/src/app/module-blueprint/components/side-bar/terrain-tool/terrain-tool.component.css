@@ -67,15 +67,6 @@
   font-size: 0.8rem;
   color: #f59e0b;
 }
-.delete-button {
-  display: block;
-  margin-top: 10px;
-  padding: 6px 10px;
-  background: #d5c5a7;
-  border: 2px solid #6a6256;
-  border-radius: 4px;
-  cursor: pointer;
-}
 .visibility-row {
   display: flex;
   align-items: center;
