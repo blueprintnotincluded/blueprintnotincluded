@@ -30,7 +30,14 @@
           <span *ngIf="selectedDef !== null">{{
             footprintLabel(selectedDef)
           }}</span>
-          <span class="selected-pos">{{ selected.x }}, {{ selected.y }}</span>
+          <span
+            class="selected-pos"
+            *ngIf="selectedActiveTile !== null"
+            i18n-pTooltip
+            pTooltip="The cell this feature acts on"
+            >erupts at {{ selectedActiveTile.x }},
+            {{ selectedActiveTile.y }}</span
+          >
         </div>
         <!-- An id we do not recognise is kept, not dropped: show it raw so the
              user can see exactly what the file contains. -->

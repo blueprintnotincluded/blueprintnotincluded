@@ -1034,12 +1034,29 @@ function stripRichText(value: string): string {
   return result.trim();
 }
 
+// The one cell a terrain feature actually acts on — where a geyser erupts, a
+// volcano vents, a fissure emits. Not the whole footprint: the rest is scenery.
+//
+// The game keeps no exported equivalent of a building's `areasOfEffect` for
+// these, but the placement is uniform — one cell up and one cell right of the
+// bottom-left corner, whatever the footprint. That holds across every size in
+// the catalogue (3x3 volcano: the middle; 2x4 geyser: right column, second row;
+// 4x4 thermal vent: same 1,1). Every feature is at least 2x2, so it is always
+// inside the footprint.
+//
+// Emitted per feature rather than derived at render time so a feature that
+// turns out to break the rule can be corrected here, in data, without a code
+// change.
+const TERRAIN_ACTIVE_TILE_OFFSET = { x: 1, y: 1 };
+
 interface TerrainFeatureRecord {
   id: string;
   name: string;
   width: number;
   height: number;
   dlcIds: string[];
+  // Footprint-relative offset of the active cell, from the bottom-left anchor.
+  activeTile: { x: number; y: number };
 }
 
 function buildTerrainFeatures(
@@ -1058,6 +1075,7 @@ function buildTerrainFeatures(
     // (e.g. the Niobium Volcano); first source wins, and geyser.json is richer.
     if (seen.has(record.id)) return;
     seen.add(record.id);
+    record.activeTile = { ...TERRAIN_ACTIVE_TILE_OFFSET };
     if (!uiImageFiles.has(record.id)) missingIcons.push(record.id);
     if (!record.name) missingNames.push(record.id);
     features.push(record);
@@ -1079,6 +1097,7 @@ function buildTerrainFeatures(
         width: g.width,
         height: g.height,
         dlcIds: normalizeDlcIds(g.geyserType?.requiredDlcIds),
+        activeTile: TERRAIN_ACTIVE_TILE_OFFSET,
       });
 
   const entitiesFile = path.join(dbDir, 'entities.json');
@@ -1100,6 +1119,7 @@ function buildTerrainFeatures(
         width: Math.max(1, Math.round(e.kBoxCollider2D?.x ?? 1)),
         height: Math.max(1, Math.round(e.kBoxCollider2D?.y ?? 1)),
         dlcIds: normalizeDlcIds(e.kPrefabID?.requiredDlcIds),
+        activeTile: TERRAIN_ACTIVE_TILE_OFFSET,
       });
     }
 

@@ -294,6 +294,18 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   the export wrote it. This is what makes it possible to draw the neutronium a geyser rests
   on by hand; placing an annotation deliberately does **not** create one automatically
   (parked on the `terrain-neutronium-base` branch — see the PR for why).
+- **Active tile / area of effect** — a geyser acts on exactly ONE cell, not on its whole
+  footprint: one up and one right of the bottom-left anchor, uniformly across every size in
+  the catalogue (3x3 volcano = the middle; 2x4 vent = right column, second row; 4x4 fissure =
+  the same 1,1). Selecting a feature highlights that single cell, the way a selected building
+  shows its `areasOfEffect`; the footprint outline is the feature's *body*, not its effect.
+  The offset is emitted per feature by the importer (`TERRAIN_ACTIVE_TILE_OFFSET` →
+  `BTerrainFeature.activeTile`) rather than derived at render time, so an exception can be
+  fixed in data. `TerrainFeature.importFrom` clamps it inside the footprint, and an unknown id
+  falls back to its own anchor. Drawn on a second Graphics layer kept above the icons — unlike
+  a building's AoE it sits *inside* the art, so underneath it would be invisible. Magenta
+  because it overprints grey rock, blue ice and orange lava alike (a warm marker vanished into
+  the volcano sprite).
 - **Unknown ids survive**: single-cell footprint, placeholder glyph, raw id shown in the panel.
 - **Known gap (pre-existing, shared with world notes and Planning Tool shapes)**: the durable
   server-side preview (`app/api/services/preview-render-worker.ts`) draws only

@@ -30,6 +30,12 @@ export interface BTerrainFeature {
   height: number;
   // Raw Klei DLC ids required by the feature; [] for base game.
   dlcIds: string[];
+  // Footprint-relative offset of the one cell the feature actually acts on —
+  // where a geyser erupts, a volcano vents. The rest of the footprint is
+  // scenery. Uniformly (1,1) from the bottom-left anchor across every size in
+  // the current catalogue; carried as data so an exception can be corrected in
+  // the importer rather than in render code. See TERRAIN_ACTIVE_TILE_OFFSET.
+  activeTile?: { x: number; y: number };
 }
 
 export class TerrainFeature implements BTerrainFeature {
@@ -38,6 +44,7 @@ export class TerrainFeature implements BTerrainFeature {
   width: number = 1;
   height: number = 1;
   dlcIds: string[] = [];
+  activeTile: { x: number; y: number } = { x: 1, y: 1 };
 
   // Generated: the export ships one flat icon per feature prefab, named after
   // the prefab id, synced into both asset roots by the importer.
@@ -51,6 +58,14 @@ export class TerrainFeature implements BTerrainFeature {
     this.width = original.width > 0 ? original.width : 1;
     this.height = original.height > 0 ? original.height : 1;
     this.dlcIds = original.dlcIds != null ? [...original.dlcIds] : [];
+    // A database predating the field falls back to the uniform rule rather than
+    // to (0,0), which would silently point at the corner of every feature.
+    this.activeTile =
+      original.activeTile != null ? { ...original.activeTile } : { x: 1, y: 1 };
+    // Clamp into the footprint: a 1-wide or 1-tall feature (none today, but the
+    // catalogue is game data) must not put its active cell outside itself.
+    this.activeTile.x = Math.min(this.activeTile.x, this.width - 1);
+    this.activeTile.y = Math.min(this.activeTile.y, this.height - 1);
     this.iconUrl = 'assets/ui_image/' + this.id + '.png';
   }
 
