@@ -1,0 +1,60 @@
+<div class="box-card ui-widget terrain-card">
+  <div class="box-card-title" i18n>Terrain Features</div>
+  <p class="hint" i18n>
+    Geysers and vents that are already on the map. They are annotations only —
+    no materials, no build order.
+  </p>
+
+  <div class="section-label" i18n>Feature</div>
+  <div class="feature-grid">
+    <button
+      *ngFor="let feature of features"
+      type="button"
+      class="feature-button"
+      [class.selected]="tool.featureId === feature.id"
+      (click)="tool.featureId = feature.id"
+      [attr.aria-label]="feature.name"
+      [pTooltip]="feature.name + ' (' + footprintLabel(feature) + ')'"
+    >
+      <img [src]="feature.iconUrl" [alt]="feature.name" />
+    </button>
+  </div>
+
+  <div *ngIf="selected !== null" class="selected-block">
+    <div class="section-label" i18n>Selected</div>
+    <div class="selected-row">
+      <img class="selected-icon" [src]="iconUrl(selected.id)" alt="" />
+      <div class="selected-text">
+        <div class="selected-name">{{ selectedName }}</div>
+        <div class="selected-meta">
+          <span *ngIf="selectedDef !== null">{{
+            footprintLabel(selectedDef)
+          }}</span>
+          <span class="selected-pos">{{ selected.x }}, {{ selected.y }}</span>
+        </div>
+        <!-- An id we do not recognise is kept, not dropped: show it raw so the
+             user can see exactly what the file contains. -->
+        <div *ngIf="selectedIsUnknown" class="selected-unknown" i18n>
+          Unrecognized feature id
+        </div>
+      </div>
+    </div>
+    <button type="button" class="delete-button" (click)="deleteSelected()" i18n>
+      Delete annotation
+    </button>
+  </div>
+
+  <label class="visibility-row">
+    <input
+      type="checkbox"
+      [checked]="terrainService.visible"
+      (change)="terrainService.toggleVisible()"
+    />
+    <span i18n>Show terrain features</span>
+  </label>
+
+  <p class="hint" i18n>
+    Click the blueprint to place, or click an existing feature to select it.
+    Right-click to return to Select.
+  </p>
+</div>

@@ -28,6 +28,7 @@ export const ShortcutAction = {
   toolPlanning: "tool.planning",
   toolScissors: "tool.scissors",
   toolNotes: "tool.notes",
+  toolTerrain: "tool.terrain",
 
   // Build tool
   buildRotate: "build.rotate",
@@ -178,6 +179,14 @@ export const SHORTCUT_ACTIONS: ShortcutActionDefinition[] = [
     id: ShortcutAction.toolNotes,
     category: "tools",
     label: $localize`:keyboard shortcut:Note creation tool`,
+    defaults: [],
+  },
+  {
+    // Unbound by default for the same reason as the tools above: it edits on a
+    // single click, and the game has no equivalent control to mirror.
+    id: ShortcutAction.toolTerrain,
+    category: "tools",
+    label: $localize`:keyboard shortcut:Terrain annotation tool`,
     defaults: [],
   },
 

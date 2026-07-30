@@ -27,6 +27,7 @@ import {
   Vector2,
   SpriteTag,
   BniWorldNote,
+  BniTerrainFeature,
 } from "../../../../../../lib/index";
 
 import { DrawPixi } from "../../drawing/draw-pixi";
@@ -34,12 +35,17 @@ import { DrawMiniUi } from "../../drawing/draw-mini-ui";
 import { DrawRoomOverlay } from "../../drawing/draw-room-overlay";
 import { DrawNotesOverlay } from "../../drawing/draw-notes-overlay";
 import { DrawPlanningOverlay } from "../../drawing/draw-planning-overlay";
+import { DrawTerrainOverlay } from "../../drawing/draw-terrain-overlay";
 import { drawAreaOfEffects } from "../../drawing/draw-area-of-effect";
 import { RoomDetectionService } from "../../services/room-detection-service";
 import {
   WorldNoteService,
   findNoteAt,
 } from "../../services/world-note.service";
+import {
+  TerrainAnnotationService,
+  findTerrainFeatureAt,
+} from "../../services/terrain-annotation.service";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 import JSZip from "jszip";
 import {
@@ -118,6 +124,7 @@ export class ComponentCanvasComponent
   drawRoomOverlay!: DrawRoomOverlay;
   drawNotesOverlay!: DrawNotesOverlay;
   drawPlanningOverlay!: DrawPlanningOverlay;
+  drawTerrainOverlay!: DrawTerrainOverlay;
 
   private cameraService: CameraService;
 
@@ -131,6 +138,7 @@ export class ComponentCanvasComponent
     private gaService: GoogleAnalyticsService,
     private roomDetectionService: RoomDetectionService,
     private worldNoteService: WorldNoteService,
+    private terrainService: TerrainAnnotationService,
     private shortcutService: KeyboardShortcutService,
     drawPixi: DrawPixi,
   ) {
@@ -159,6 +167,7 @@ export class ComponentCanvasComponent
       this.drawRoomOverlay = new DrawRoomOverlay(this.drawPixi);
       this.drawNotesOverlay = new DrawNotesOverlay(this.drawPixi);
       this.drawPlanningOverlay = new DrawPlanningOverlay(this.drawPixi);
+      this.drawTerrainOverlay = new DrawTerrainOverlay(this.drawPixi);
 
       if (this.forceSize) {
         const miniUi = new DrawMiniUi();
@@ -240,6 +249,14 @@ export class ComponentCanvasComponent
     register(ShortcutAction.interfaceCancel, () => {
       if (this.worldNoteService.selected == null) return false;
       this.worldNoteService.clear();
+      return true;
+    });
+
+    // Terrain annotations are the other top-of-stack selection, registered
+    // after the note handler so it gets first refusal on cancel.
+    register(ShortcutAction.interfaceCancel, () => {
+      if (this.terrainService.selected == null) return false;
+      this.terrainService.clear();
       return true;
     });
   }
@@ -339,6 +356,7 @@ export class ComponentCanvasComponent
     // TODO fixme
     this.startRenderMetric(source);
     this.worldNoteService.clear();
+    this.terrainService.clear();
     this.blueprint.destroyAndCopyItems(source);
 
     this.cameraService.overlay = Overlay.Base;
@@ -439,12 +457,27 @@ export class ComponentCanvasComponent
         const note = this.findNoteAt(tile);
         if (note != null) {
           this.worldNoteService.select(note);
+          this.terrainService.clear();
           return;
         }
         this.worldNoteService.clear();
+
+        // Terrain annotations are the layer under the note pins and above the
+        // buildings: a click on one selects it for editing and is consumed.
+        // Skipped while the layer is hidden — an invisible annotation must not
+        // swallow clicks meant for the building underneath.
+        const feature = this.terrainService.visible
+          ? this.findTerrainFeatureAt(tile)
+          : null;
+        if (feature != null) {
+          this.terrainService.select(feature);
+          return;
+        }
+        this.terrainService.clear();
         this.toolService.leftClick(tile);
       } else if (event.button == 2) {
         this.worldNoteService.clear();
+        this.terrainService.clear();
         this.toolService.rightClick(this.getCurrentTile(event));
       }
     }
@@ -452,6 +485,10 @@ export class ComponentCanvasComponent
 
   private findNoteAt(tile: Vector2): BniWorldNote | null {
     return findNoteAt(this.blueprint?.worldNotes, tile);
+  }
+
+  private findTerrainFeatureAt(tile: Vector2): BniTerrainFeature | null {
+    return findTerrainFeatureAt(this.blueprint?.terrainFeatures, tile);
   }
 
   storePreviousTileFloat: Vector2 | null = null;
@@ -994,6 +1031,11 @@ export class ComponentCanvasComponent
       exportCamera,
       null,
     );
+    new DrawTerrainOverlay(this.drawPixi, exportCamera.container).draw(
+      clone.terrainFeatures,
+      exportCamera,
+      null,
+    );
 
     const brt = new PIXI.BaseRenderTexture({
       width: thumbnailSize,
@@ -1069,6 +1111,10 @@ export class ComponentCanvasComponent
       this.drawPixi,
       exportCamera.container,
     );
+    const terrainOverlay = new DrawTerrainOverlay(
+      this.drawPixi,
+      exportCamera.container,
+    );
 
     exportOptions.selectedOverlays.map((overlay) => {
       exportCamera.overlay = overlay;
@@ -1079,6 +1125,7 @@ export class ComponentCanvasComponent
       });
 
       notesOverlay.draw(clone.worldNotes, exportCamera, null);
+      terrainOverlay.draw(clone.terrainFeatures, exportCamera, null);
 
       const brt = new PIXI.BaseRenderTexture({
         width: sizeInPixels.x,
@@ -1252,6 +1299,19 @@ export class ComponentCanvasComponent
         this.cameraService,
         this.forceSize ? null : this.worldNoteService.selected,
       );
+
+      // Terrain annotations are saved blueprint content too. The visibility
+      // toggle is a view-only concern, so it hides the layer here rather than
+      // anywhere near what gets stored or exported — and only in the live
+      // editor, so a hidden layer never silently omits itself from an export.
+      if (!this.forceSize && !this.terrainService.visible)
+        this.drawTerrainOverlay.clear();
+      else
+        this.drawTerrainOverlay.draw(
+          this.blueprint.terrainFeatures,
+          this.cameraService,
+          this.forceSize ? null : this.terrainService.selected,
+        );
     }
 
     if (this.pendingRenderMetric != null) this.checkRenderMetric();

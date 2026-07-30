@@ -8,6 +8,7 @@ import {
 } from "../../../../../lib/index";
 import { PlanningTool } from "../common/tools/planning-tool";
 import { NotesTool } from "../common/tools/notes-tool";
+import { TerrainTool } from "../common/tools/terrain-tool";
 import { ShortcutAction } from "../keybindings/shortcut-actions";
 
 const makeTool = (toolType: ToolType, toolGroup = 1) => ({
@@ -42,6 +43,7 @@ describe("ToolService", () => {
   let mockScissors: ReturnType<typeof makeTool>;
   let mockPlanning: ReturnType<typeof makeTool>;
   let mockNotes: ReturnType<typeof makeTool>;
+  let mockTerrain: ReturnType<typeof makeTool>;
 
   beforeEach(() => {
     mockSelect = makeTool(ToolType.select);
@@ -50,6 +52,7 @@ describe("ToolService", () => {
     mockScissors = makeTool(ToolType.scissors);
     mockPlanning = makeTool(ToolType.planning);
     mockNotes = makeTool(ToolType.notes);
+    mockTerrain = makeTool(ToolType.terrain);
 
     service = new ToolService(
       mockSelect as any,
@@ -58,6 +61,7 @@ describe("ToolService", () => {
       mockScissors as any,
       mockPlanning as unknown as PlanningTool,
       mockNotes as unknown as NotesTool,
+      mockTerrain as unknown as TerrainTool,
     );
   });
 
