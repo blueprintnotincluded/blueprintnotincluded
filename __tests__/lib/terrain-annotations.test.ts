@@ -7,6 +7,7 @@ import {
   modSanitizeOffset,
   TERRAIN_METADATA_KEY,
   TERRAIN_SCHEMA_VERSION,
+  TerrainFeature,
   Vector2,
 } from '../../lib';
 import { loadGameDatabase } from '../helpers/roomFixtures';
@@ -200,6 +201,66 @@ describe('Terrain metadata: SanitizePositions mirror', function () {
       planningtoolmod_shapecollection: [{ x: 3, y: -7, shape: 0, color: 0 }],
     };
     expect(modSanitizeOffset(bni)).to.deep.include({ x: 1, y: 7 });
+  });
+});
+
+// The active cell is not uniform across the catalogue: a volcano erupts from
+// the middle of its 3x3, a geyser from the LEFT of its footprint. The importer
+// decides which from the game's own geyserType.shape, so this checks the real
+// generated catalogue rather than a fixture.
+describe('Terrain catalogue: active tile', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  const VOLCANO = { x: 1, y: 1 };
+  const GEYSER = { x: 0, y: 1 };
+
+  it('erupts a volcano from the middle of its 3x3', () => {
+    for (const id of [
+      'GeyserGeneric_big_volcano',
+      'GeyserGeneric_small_volcano',
+      'GeyserGeneric_molten_iron',
+      'GeyserGeneric_molten_niobium',
+    ])
+      expect(TerrainFeature.getFeature(id)?.activeTile, id).to.deep.equal(VOLCANO);
+  });
+
+  it('erupts a gas vent and a liquid geyser from the left of the footprint', () => {
+    for (const id of [
+      'GeyserGeneric_steam', // 2x4 gas
+      'GeyserGeneric_chlorine_gas', // 2x4 gas
+      'GeyserGeneric_hot_water', // 4x2 liquid
+      'GeyserGeneric_salt_water', // 4x2 liquid
+    ])
+      expect(TerrainFeature.getFeature(id)?.activeTile, id).to.deep.equal(GEYSER);
+  });
+
+  // Prefabs outside geyser.json carry no shape and fall back to the volcano
+  // cell — the explicit instruction for the Thermal Gas Fissure.
+  it('falls back to the volcano cell for prefabs with no shape data', () => {
+    for (const id of ['UnderwaterVent', 'OilWell', 'SmallReefGeyser', 'NiobiumGeyser'])
+      expect(TerrainFeature.getFeature(id)?.activeTile, id).to.deep.equal(VOLCANO);
+  });
+
+  it('keeps every active cell inside its own footprint', () => {
+    expect(TerrainFeature.features).to.not.be.empty;
+    for (const feature of TerrainFeature.features) {
+      expect(feature.activeTile.x, feature.id).to.be.within(0, feature.width - 1);
+      expect(feature.activeTile.y, feature.id).to.be.within(0, feature.height - 1);
+    }
+  });
+
+  it('splits the catalogue by shape, not by name', () => {
+    const geysers = TerrainFeature.features.filter(f => f.activeTile.x === 0);
+    const volcanoes = TerrainFeature.features.filter(f => f.activeTile.x === 1);
+
+    // 9 gas vents + 9 liquid geysers; 10 volcanoes + 3 shapeless prefabs.
+    expect(geysers).to.have.length(18);
+    expect(volcanoes).to.have.length(13);
+    // Every geyser-offset feature is one of the two geyser footprints.
+    for (const f of geysers)
+      expect(`${f.width}x${f.height}`, f.id).to.be.oneOf(['2x4', '4x2']);
   });
 });
 

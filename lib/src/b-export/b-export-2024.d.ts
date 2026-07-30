@@ -151,6 +151,7 @@ export interface BGeyser2024 {
         Hash: number;
     };
     geyserType: {
+        shape: number;
         requiredDlcIds: string[] | null;
         forbiddenDlcIds: string[] | null;
     } | null;

@@ -13,6 +13,8 @@ import {
 } from "./draw-terrain-overlay";
 import { DrawPixi } from "./draw-pixi";
 
+// Offsets as the importer emits them: a geyser erupts from the left of its
+// footprint, a volcano from the middle of its 3x3.
 const CATALOGUE: BTerrainFeature[] = [
   {
     id: "GeyserGeneric_steam",
@@ -20,8 +22,24 @@ const CATALOGUE: BTerrainFeature[] = [
     width: 2,
     height: 4,
     dlcIds: [],
+    activeTile: { x: 0, y: 1 },
   },
-  { id: "OilWell", name: "Oil Reservoir", width: 4, height: 2, dlcIds: [] },
+  {
+    id: "GeyserGeneric_big_volcano",
+    name: "Volcano",
+    width: 3,
+    height: 3,
+    dlcIds: [],
+    activeTile: { x: 1, y: 1 },
+  },
+  {
+    id: "OilWell",
+    name: "Oil Reservoir",
+    width: 4,
+    height: 2,
+    dlcIds: [],
+    activeTile: { x: 1, y: 1 },
+  },
 ];
 
 describe("terrain icon/name resolution", () => {
@@ -44,22 +62,26 @@ describe("terrain icon/name resolution", () => {
   });
 });
 
-// A geyser acts on one cell, not on its whole footprint: one up and one right
-// of the bottom-left anchor, whatever the size.
+// A feature acts on one cell, not on its whole footprint — and the cell differs
+// by kind: a geyser erupts from the LEFT of its footprint, a volcano from the
+// middle of its 3x3.
 describe("activeTileOf", () => {
   beforeEach(() => {
     TerrainFeature.init();
     TerrainFeature.load(CATALOGUE);
   });
 
-  it("is one up and one right of the anchor, whatever the footprint", () => {
-    // 2x4 vent: right column, second row up.
+  it("puts a geyser's cell on the left column, one row up", () => {
     expect(activeTileOf({ id: "GeyserGeneric_steam", x: 10, y: 20 })).toEqual({
-      x: 11,
+      x: 10,
       y: 21,
     });
-    // 4x2 reservoir: same offset.
-    expect(activeTileOf({ id: "OilWell", x: 0, y: 0 })).toEqual({ x: 1, y: 1 });
+  });
+
+  it("puts a volcano's cell in the middle of its 3x3", () => {
+    expect(
+      activeTileOf({ id: "GeyserGeneric_big_volcano", x: 10, y: 20 }),
+    ).toEqual({ x: 11, y: 21 });
   });
 
   it("follows a feature into negative coordinates", () => {

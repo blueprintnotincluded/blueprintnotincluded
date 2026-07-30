@@ -247,7 +247,14 @@ export interface BGeyser2024 {
   // stores none of it — a terrain annotation is a position and a type; anything
   // rate-like belongs in a world note. Kept in the type so the shape documents
   // what the export actually carries.
-  geyserType: { requiredDlcIds: string[] | null; forbiddenDlcIds: string[] | null } | null;
+  geyserType: {
+    // GeyserShape: 0 = gas vent (2x4), 1 = liquid geyser (4x2), 2 = volcano
+    // (3x3). The only exported signal that separates volcanoes from geysers,
+    // which the importer needs because they erupt from different cells.
+    shape: number;
+    requiredDlcIds: string[] | null;
+    forbiddenDlcIds: string[] | null;
+  } | null;
   isGenericGeyser: boolean;
 }
 

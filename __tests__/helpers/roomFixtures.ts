@@ -14,6 +14,7 @@ import {
   SpriteInfo,
   SpriteModifier,
   Vector2,
+  TerrainFeature,
 } from '../../lib';
 
 let databaseLoaded = false;
@@ -37,6 +38,8 @@ export function loadGameDatabase(): void {
   SpriteModifier.load(database.spriteModifiers);
   OniItem.init();
   OniItem.load(database.buildings);
+  TerrainFeature.init();
+  TerrainFeature.load(database.terrainFeatures);
   databaseLoaded = true;
 }
 

@@ -1037,17 +1037,37 @@ function stripRichText(value: string): string {
 // The one cell a terrain feature actually acts on — where a geyser erupts, a
 // volcano vents, a fissure emits. Not the whole footprint: the rest is scenery.
 //
-// The game keeps no exported equivalent of a building's `areasOfEffect` for
-// these, but the placement is uniform — one cell up and one cell right of the
-// bottom-left corner, whatever the footprint. That holds across every size in
-// the catalogue (3x3 volcano: the middle; 2x4 geyser: right column, second row;
-// 4x4 thermal vent: same 1,1). Every feature is at least 2x2, so it is always
-// inside the footprint.
+// The game exports no equivalent of a building's `areasOfEffect` for these, so
+// the offsets are ours. They are NOT uniform: a volcano erupts from its middle,
+// a geyser from the LEFT of its footprint.
 //
-// Emitted per feature rather than derived at render time so a feature that
-// turns out to break the rule can be corrected here, in data, without a code
-// change.
-const TERRAIN_ACTIVE_TILE_OFFSET = { x: 1, y: 1 };
+// `geyserType.shape` splits them, straight from game data, with no name
+// matching: shape 2 is every 3x3 volcano, shape 0 every 2x4 gas vent, shape 1
+// every 4x2 liquid geyser (8 / 9 / 10 of the catalogue respectively).
+const GEYSER_SHAPE_VOLCANO = 2;
+
+// Volcano: the middle of its 3x3.
+const TERRAIN_ACTIVE_TILE_VOLCANO = { x: 1, y: 1 };
+// Geyser / vent: left column, one row up. Both geyser shapes (2x4 gas and 4x2
+// liquid) are treated the same here — the left-hand rule was given for the 2x4
+// gas vent and carried across to the liquid geysers, which have no separately
+// stated offset.
+const TERRAIN_ACTIVE_TILE_GEYSER = { x: 0, y: 1 };
+
+// Prefabs outside geyser.json carry no shape, so they fall back to the volcano
+// offset: that was the explicit instruction for the Thermal Gas Fissure, and it
+// suits the rest of that group (the Niobium Volcano is a volcano; the Oil
+// Reservoir and Tidal Spring do not erupt at all).
+const TERRAIN_ACTIVE_TILE_DEFAULT = TERRAIN_ACTIVE_TILE_VOLCANO;
+
+function terrainActiveTile(shape: number | null | undefined): {
+  x: number;
+  y: number;
+} {
+  return shape === GEYSER_SHAPE_VOLCANO
+    ? { ...TERRAIN_ACTIVE_TILE_VOLCANO }
+    : { ...TERRAIN_ACTIVE_TILE_GEYSER };
+}
 
 interface TerrainFeatureRecord {
   id: string;
@@ -1075,7 +1095,6 @@ function buildTerrainFeatures(
     // (e.g. the Niobium Volcano); first source wins, and geyser.json is richer.
     if (seen.has(record.id)) return;
     seen.add(record.id);
-    record.activeTile = { ...TERRAIN_ACTIVE_TILE_OFFSET };
     if (!uiImageFiles.has(record.id)) missingIcons.push(record.id);
     if (!record.name) missingNames.push(record.id);
     features.push(record);
@@ -1097,7 +1116,7 @@ function buildTerrainFeatures(
         width: g.width,
         height: g.height,
         dlcIds: normalizeDlcIds(g.geyserType?.requiredDlcIds),
-        activeTile: TERRAIN_ACTIVE_TILE_OFFSET,
+        activeTile: terrainActiveTile(g.geyserType?.shape),
       });
 
   const entitiesFile = path.join(dbDir, 'entities.json');
@@ -1119,7 +1138,7 @@ function buildTerrainFeatures(
         width: Math.max(1, Math.round(e.kBoxCollider2D?.x ?? 1)),
         height: Math.max(1, Math.round(e.kBoxCollider2D?.y ?? 1)),
         dlcIds: normalizeDlcIds(e.kPrefabID?.requiredDlcIds),
-        activeTile: TERRAIN_ACTIVE_TILE_OFFSET,
+        activeTile: { ...TERRAIN_ACTIVE_TILE_DEFAULT },
       });
     }
 
