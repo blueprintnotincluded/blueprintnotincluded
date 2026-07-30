@@ -31,6 +31,69 @@ describe("CellElementPickerComponent", () => {
   });
 });
 
+// The oreTags checkbox path (build-tool element cells). Solid is opt-in: this
+// list exists for gas/liquid annotations, but ticking Solid reaches the natural
+// terrain materials — Neutronium above all, the row every geyser sits on.
+describe("CellElementPickerComponent solid tag", () => {
+  let component: CellElementPickerComponent;
+  let fixture: ComponentFixture<CellElementPickerComponent>;
+
+  function tagged(id: string, oreTags: string[]): BuildableElement {
+    const element = new BuildableElement();
+    element.id = id;
+    element.name = id;
+    element.oreTags = oreTags;
+    return element;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [CellElementPickerComponent, ElementIconComponent],
+      imports: [FormsModule, CheckboxModule, InputTextModule],
+    }).compileComponents();
+
+    BuildableElement.init();
+    BuildableElement.load([
+      tagged("Oxygen", ["Gas"]),
+      tagged("Water", ["Liquid"]),
+      tagged("Unobtanium", ["Solid", "Special"]),
+      tagged("Granite", ["Solid", "BuildableAny"]),
+    ]);
+
+    fixture = TestBed.createComponent(CellElementPickerComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it("leaves solids out by default, so the existing list is unchanged", () => {
+    const ids = component.elements.map((e) => e.id);
+    expect(ids).toContain("Oxygen");
+    expect(ids).toContain("Water");
+    expect(ids).not.toContain("Unobtanium");
+    expect(ids).not.toContain("Granite");
+  });
+
+  it("reaches Neutronium once Solid is ticked", () => {
+    component.selectedTags = ["Gas", "Liquid", "Solid"];
+    component.tagChanged(null);
+
+    const ids = component.elements.map((e) => e.id);
+    expect(ids).toContain("Unobtanium");
+    expect(ids).toContain("Granite");
+    expect(ids).toContain("Oxygen");
+  });
+
+  it("can show solids alone", () => {
+    component.selectedTags = ["Solid"];
+    component.tagChanged(null);
+
+    const ids = component.elements.map((e) => e.id);
+    expect(ids).toContain("Unobtanium");
+    expect(ids).not.toContain("Oxygen");
+    expect(ids).not.toContain("Water");
+  });
+});
+
 // The element-note picker's state filter (spec/element-notes.md §8.1): a
 // fixed `states` pool drives an All/<state>... segmented filter on
 // element.state instead of the oreTags Gas/Liquid checkboxes, and always

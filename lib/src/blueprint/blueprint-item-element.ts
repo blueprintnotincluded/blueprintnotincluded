@@ -7,6 +7,8 @@ import { SpriteTag } from '../enums/sprite-tag';
 import { Display } from '../enums/display';
 import { Visualization } from '../enums/visualization';
 import { DrawHelpers } from '../drawing/draw-helpers';
+import { ZIndex } from '../enums/z-index';
+import { NEUTRONIUM_DISPLAY_COLOR, NEUTRONIUM_ELEMENT_ID } from '../b-export/b-element';
 
 export class BlueprintItemElement extends BlueprintItem {
   static defaultMass = 0;
@@ -51,7 +53,11 @@ export class BlueprintItemElement extends BlueprintItem {
     this.isOpaque = camera.overlay == Overlay.Gas || camera.overlay == Overlay.Base;
 
     // TODO use enum
-    if (camera.overlay == Overlay.Gas) this.depth = 17 + 50;
+    // Solid cells are terrain: they sit behind everything, so a building placed
+    // on top of annotated ground is never covered by it. Gas and liquid cells
+    // keep their existing front-of-buildings depth.
+    if (this.buildableElements[0].hasTag('Solid')) this.depth = ZIndex.Backwall;
+    else if (camera.overlay == Overlay.Gas) this.depth = 17 + 50;
     else this.depth = 17;
 
     this.alpha = 1;
@@ -103,6 +109,34 @@ export class BlueprintItemElement extends BlueprintItem {
           drawPart.zIndex = 1;
           drawPart.alpha = 0.8;
           drawPart.tint = 0xffffff;
+        }
+      } else if (
+        this.buildableElements[0].hasTag('Solid') &&
+        camera.display == Display.solid &&
+        camera.overlay == Overlay.Base
+      ) {
+        // Solid cells annotate natural terrain (the neutronium a geyser sits
+        // on, a vein of ore), which has no gas/liquid overlay to belong to —
+        // hence Base only. There is no solid front sprite, so the tinted back
+        // *is* the cell; it renders near-opaque because a solid reads as
+        // material rather than as something you see through.
+        if (drawPart.hasTag(SpriteTag.element_back)) {
+          drawPart.visible = true;
+          drawPart.zIndex = 0;
+          drawPart.alpha = 0.95;
+
+          if (camera.visualization == Visualization.temperature)
+            this.visualizationTint = DrawHelpers.temperatureToColor(this.temperature);
+          // `color` rather than `uiColor` here: a solid cell shows the material
+          // itself, and `color` is its in-world colour, whereas gas and liquid
+          // use uiColor because their in-world colour is nearly transparent.
+          // Neutronium is the one element whose exported colours are both
+          // sentinels, so it gets a display tint (see NEUTRONIUM_DISPLAY_COLOR).
+          else if (this.buildableElements[0].id === NEUTRONIUM_ELEMENT_ID)
+            this.visualizationTint = NEUTRONIUM_DISPLAY_COLOR;
+          else this.visualizationTint = this.buildableElements[0].color;
+
+          drawPart.tint = this.visualizationTint;
         }
       } else if (
         this.buildableElements[0].hasTag('Vacuum') &&

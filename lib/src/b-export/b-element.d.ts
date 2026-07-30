@@ -1,4 +1,6 @@
 import { ElementState } from '../enums/element-state';
+export declare const NEUTRONIUM_ELEMENT_ID = "Unobtanium";
+export declare const NEUTRONIUM_DISPLAY_COLOR = 2829104;
 export declare class BuildableElement {
     id: string;
     name: string;
