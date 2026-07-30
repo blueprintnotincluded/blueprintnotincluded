@@ -4,7 +4,6 @@ import { ShortcutAction } from "../../keybindings/shortcut-actions";
 import {
   BniTerrainFeature,
   BTerrainFeature,
-  BuildableElement,
   TerrainFeature,
   Vector2,
 } from "../../../../../../lib/index";
@@ -26,12 +25,7 @@ describe("TerrainTool", () => {
   let tool: TerrainTool;
   let blueprint: {
     terrainFeatures: BniTerrainFeature[];
-    items: any[];
     emitBlueprintChanged: ReturnType<typeof vi.fn>;
-    pauseChangeEvents: ReturnType<typeof vi.fn>;
-    resumeChangeEvents: ReturnType<typeof vi.fn>;
-    addBlueprintItem: ReturnType<typeof vi.fn>;
-    getBlueprintItemsAt: ReturnType<typeof vi.fn>;
   };
   let terrainService: TerrainAnnotationService;
   let parent: { changeTool: ReturnType<typeof vi.fn> };
@@ -39,21 +33,7 @@ describe("TerrainTool", () => {
   beforeEach(() => {
     TerrainFeature.init();
     TerrainFeature.load(CATALOGUE);
-    // No Neutronium loaded here, so placing seeds no base — this spec is about
-    // the tool's own behaviour; the base is covered in the service spec.
-    BuildableElement.init();
-    BuildableElement.load([]);
-
-    const items: any[] = [];
-    blueprint = {
-      terrainFeatures: [],
-      items,
-      emitBlueprintChanged: vi.fn(),
-      pauseChangeEvents: vi.fn(),
-      resumeChangeEvents: vi.fn(),
-      addBlueprintItem: vi.fn((item: any) => items.push(item)),
-      getBlueprintItemsAt: vi.fn(() => []),
-    };
+    blueprint = { terrainFeatures: [], emitBlueprintChanged: vi.fn() };
     const blueprintService = { blueprint } as unknown as BlueprintService;
     terrainService = new TerrainAnnotationService(blueprintService);
     tool = new TerrainTool(blueprintService, terrainService);
@@ -105,17 +85,9 @@ describe("TerrainTool", () => {
     expect(blueprint.terrainFeatures[0]).toMatchObject({ x: 4, y: 6 });
   });
 
-  // The annotation itself is never a building. Placing does seed neutronium
-  // element cells beneath it, but those are `Element` pseudo-items, which
-  // toBniBlueprint excludes from the exported `buildings` array — so nothing
-  // here reaches material cost or build order either way.
-  it("never adds the annotation itself as a building", () => {
+  it("never touches blueprintItems — annotations are not construction", () => {
     tool.mouseDown(new Vector2(0, 0));
-
-    expect(blueprint.terrainFeatures).toHaveLength(1);
-    expect(blueprint.items.some((i) => i.id === "GeyserGeneric_steam")).toBe(
-      false,
-    );
+    expect((blueprint as any).blueprintItems).toBeUndefined();
   });
 
   it("shows the layer when picked, so a placement cannot land invisibly", () => {
