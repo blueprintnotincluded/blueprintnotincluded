@@ -6,6 +6,7 @@ import {
   TerrainFeature,
 } from "../../../../../lib/index";
 import {
+  activeTileOf,
   DrawTerrainOverlay,
   terrainDisplayName,
   terrainIconUrl,
@@ -40,6 +41,51 @@ describe("terrain icon/name resolution", () => {
     const feature: BniTerrainFeature = { id: "SomeModdedGeyser", x: 0, y: 0 };
     expect(terrainIconUrl(feature)).to.equal("assets/images/notes/note.png");
     expect(terrainDisplayName(feature)).to.equal("SomeModdedGeyser");
+  });
+});
+
+// A geyser acts on one cell, not on its whole footprint: one up and one right
+// of the bottom-left anchor, whatever the size.
+describe("activeTileOf", () => {
+  beforeEach(() => {
+    TerrainFeature.init();
+    TerrainFeature.load(CATALOGUE);
+  });
+
+  it("is one up and one right of the anchor, whatever the footprint", () => {
+    // 2x4 vent: right column, second row up.
+    expect(activeTileOf({ id: "GeyserGeneric_steam", x: 10, y: 20 })).toEqual({
+      x: 11,
+      y: 21,
+    });
+    // 4x2 reservoir: same offset.
+    expect(activeTileOf({ id: "OilWell", x: 0, y: 0 })).toEqual({ x: 1, y: 1 });
+  });
+
+  it("follows a feature into negative coordinates", () => {
+    expect(activeTileOf({ id: "OilWell", x: -3, y: -5 })).toEqual({
+      x: -2,
+      y: -4,
+    });
+  });
+
+  it("always lands inside the footprint", () => {
+    for (const def of TerrainFeature.features) {
+      const active = activeTileOf({ id: def.id, x: 0, y: 0 });
+      expect(active.x, def.id).toBeLessThan(def.width);
+      expect(active.y, def.id).toBeLessThan(def.height);
+      expect(active.x, def.id).toBeGreaterThanOrEqual(0);
+      expect(active.y, def.id).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  // An unknown id has a single-cell footprint, so its anchor is the only cell
+  // it could possibly act on — never an offset outside itself.
+  it("uses the anchor itself for an unknown id", () => {
+    expect(activeTileOf({ id: "SomeModdedGeyser", x: 7, y: 8 })).toEqual({
+      x: 7,
+      y: 8,
+    });
   });
 });
 

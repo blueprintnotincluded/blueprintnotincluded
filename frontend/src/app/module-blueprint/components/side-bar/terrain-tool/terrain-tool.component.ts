@@ -6,6 +6,7 @@ import {
 import { TerrainTool } from "../../../common/tools/terrain-tool";
 import { TerrainAnnotationService } from "../../../services/terrain-annotation.service";
 import {
+  activeTileOf,
   terrainDisplayName,
   terrainIconUrl,
 } from "../../../drawing/draw-terrain-overlay";
@@ -53,6 +54,13 @@ export class TerrainToolComponent {
 
   get selectedIsUnknown(): boolean {
     return this.selected != null && this.selectedDef === null;
+  }
+
+  // The one cell the feature acts on — where it erupts. That, not the anchor,
+  // is the coordinate someone planning a pump around it cares about.
+  get selectedActiveTile(): { x: number; y: number } | null {
+    const selected = this.selected;
+    return selected != null ? activeTileOf(selected) : null;
   }
 
   iconUrl(id: string): string {

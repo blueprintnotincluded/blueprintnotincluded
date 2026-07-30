@@ -4,6 +4,10 @@ export interface BTerrainFeature {
     width: number;
     height: number;
     dlcIds: string[];
+    activeTile?: {
+        x: number;
+        y: number;
+    };
 }
 export declare class TerrainFeature implements BTerrainFeature {
     id: string;
@@ -11,6 +15,10 @@ export declare class TerrainFeature implements BTerrainFeature {
     width: number;
     height: number;
     dlcIds: string[];
+    activeTile: {
+        x: number;
+        y: number;
+    };
     iconUrl: string;
     importFrom(original: BTerrainFeature): void;
     static features: TerrainFeature[];
