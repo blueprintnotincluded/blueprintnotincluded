@@ -27,5 +27,6 @@ export declare class BniBlueprint {
     icontint?: string;
     worldNotes?: BniWorldNote[];
     planningtoolmod_shapecollection?: BniPlanShape[];
+    metadata?: Record<string, string>;
 }
 //# sourceMappingURL=bni-blueprint.d.ts.map

@@ -137,4 +137,46 @@ export type BPoStringSection2024 = {
 export interface BPoStringFile2024 extends BExport2024Meta {
     [category: string]: BPoStringSection2024 | string | string[] | number;
 }
+export interface BGeyser2024 {
+    id: string;
+    anim: string;
+    width: number;
+    height: number;
+    nameStringKey: {
+        String: string;
+        Hash: number;
+    };
+    descStringKey: {
+        String: string;
+        Hash: number;
+    };
+    geyserType: {
+        requiredDlcIds: string[] | null;
+        forbiddenDlcIds: string[] | null;
+    } | null;
+    isGenericGeyser: boolean;
+}
+export interface BGeyserFile2024 extends BExport2024Meta {
+    geysers: BGeyser2024[];
+}
+export interface BEntity2024 {
+    name: string;
+    nameString: string;
+    kPrefabID: {
+        name: string;
+        tags: {
+            Name: string;
+            IsValid: boolean;
+        }[] | null;
+        requiredDlcIds: string[] | null;
+        forbiddenDlcIds: string[] | null;
+    } | null;
+    kBoxCollider2D: {
+        x: number;
+        y: number;
+    } | null;
+}
+export interface BEntitiesFile2024 extends BExport2024Meta {
+    entities: BEntity2024[];
+}
 //# sourceMappingURL=b-export-2024.d.ts.map

@@ -59049,6 +59049,243 @@
       "highTemp": 0
     }
   ],
+  "terrainFeatures": [
+    {
+      "id": "GeyserGeneric_big_volcano",
+      "name": "Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_chlorine_gas",
+      "name": "Chlorine Gas Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_chlorine_gas_cool",
+      "name": "Cool Chlorine Gas Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_filthy_water",
+      "name": "Polluted Water Vent",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_hot_co2",
+      "name": "Carbon Dioxide Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_hot_hydrogen",
+      "name": "Hydrogen Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_hot_po2",
+      "name": "Hot Polluted Oxygen Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_hot_steam",
+      "name": "Steam Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_hot_water",
+      "name": "Water Geyser",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_liquid_co2",
+      "name": "Carbon Dioxide Geyser",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_liquid_sulfur",
+      "name": "Liquid Sulfur Geyser",
+      "width": 4,
+      "height": 2,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ]
+    },
+    {
+      "id": "GeyserGeneric_methane",
+      "name": "Natural Gas Geyser",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_molten_aluminum",
+      "name": "Aluminum Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ]
+    },
+    {
+      "id": "GeyserGeneric_molten_cobalt",
+      "name": "Cobalt Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ]
+    },
+    {
+      "id": "GeyserGeneric_molten_copper",
+      "name": "Copper Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_molten_gold",
+      "name": "Gold Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_molten_iron",
+      "name": "Iron Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_molten_niobium",
+      "name": "Niobium Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ]
+    },
+    {
+      "id": "GeyserGeneric_molten_tungsten",
+      "name": "Tungsten Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ]
+    },
+    {
+      "id": "GeyserGeneric_murky_brine",
+      "name": "Polluted Brine Vent",
+      "width": 4,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ]
+    },
+    {
+      "id": "GeyserGeneric_oil_drip",
+      "name": "Leaky Oil Fissure",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_salt_water",
+      "name": "Salt Water Geyser",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_slimy_po2",
+      "name": "Infectious Polluted Oxygen Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_slush_salt_water",
+      "name": "Cool Salt Slush Geyser",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_slush_water",
+      "name": "Cool Slush Geyser",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_small_volcano",
+      "name": "Minor Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": []
+    },
+    {
+      "id": "GeyserGeneric_steam",
+      "name": "Cool Steam Vent",
+      "width": 2,
+      "height": 4,
+      "dlcIds": []
+    },
+    {
+      "id": "NiobiumGeyser",
+      "name": "Niobium Volcano",
+      "width": 3,
+      "height": 3,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ]
+    },
+    {
+      "id": "OilWell",
+      "name": "Oil Reservoir",
+      "width": 4,
+      "height": 2,
+      "dlcIds": []
+    },
+    {
+      "id": "SmallReefGeyser",
+      "name": "Tidal Spring",
+      "width": 3,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ]
+    },
+    {
+      "id": "UnderwaterVent",
+      "name": "Thermal Gas Fissure",
+      "width": 4,
+      "height": 4,
+      "dlcIds": [
+        "DLC5_ID"
+      ]
+    }
+  ],
   "mods": [
     {
       "id": "2094698134",

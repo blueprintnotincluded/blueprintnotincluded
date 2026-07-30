@@ -38,6 +38,8 @@ import {
   ConnectionHelper,
   Overlay,
   Display,
+  TerrainFeature,
+  BTerrainFeature,
 } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
 import { startMemoryHeartbeat } from './memory-heartbeat';
@@ -77,6 +79,8 @@ function initSharedLib() {
   SpriteModifier.load(json.spriteModifiers as BSpriteModifier[]);
   OniItem.init();
   OniItem.load(json.buildings as BBuilding[]);
+  TerrainFeature.init();
+  TerrainFeature.load(json.terrainFeatures as BTerrainFeature[]);
 }
 
 function logRss(label: string) {

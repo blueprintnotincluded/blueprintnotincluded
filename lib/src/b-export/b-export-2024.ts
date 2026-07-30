@@ -228,3 +228,54 @@ export interface BPoStringFile2024 extends BExport2024Meta {
   // union value type — iterate object-valued entries to get the sections.
   [category: string]: BPoStringSection2024 | string | string[] | number;
 }
+
+// ---------------------------------------------------------------------------
+// geyser.json
+// ---------------------------------------------------------------------------
+
+// One entry of `geysers[]`. `id` is the real ONI prefab id (GeyserGenericConfig
+// registers one prefab per geyser type, named "GeyserGeneric_" + type id), which
+// is also the `ui_image/<id>.png` flat-icon filename.
+export interface BGeyser2024 {
+  id: string;
+  anim: string;
+  width: number;
+  height: number;
+  nameStringKey: { String: string; Hash: number };
+  descStringKey: { String: string; Hash: number };
+  // Emission behaviour (rates, temperatures, dormancy periods). The website
+  // stores none of it — a terrain annotation is a position and a type; anything
+  // rate-like belongs in a world note. Kept in the type so the shape documents
+  // what the export actually carries.
+  geyserType: { requiredDlcIds: string[] | null; forbiddenDlcIds: string[] | null } | null;
+  isGenericGeyser: boolean;
+}
+
+export interface BGeyserFile2024 extends BExport2024Meta {
+  geysers: BGeyser2024[];
+}
+
+// ---------------------------------------------------------------------------
+// entities.json
+// ---------------------------------------------------------------------------
+
+// One non-building prefab (critters, plants, geyser features, ...). Only a
+// handful of fields matter to us; the export emits ~60 component blocks per
+// entity, almost all null for any given prefab.
+export interface BEntity2024 {
+  name: string; // prefab id
+  nameString: string; // rich-text display name
+  kPrefabID: {
+    name: string;
+    tags: { Name: string; IsValid: boolean }[] | null;
+    requiredDlcIds: string[] | null;
+    forbiddenDlcIds: string[] | null;
+  } | null;
+  // Footprint in cells. Present on world-placed entities; null for the ones
+  // that only ever exist in inventories.
+  kBoxCollider2D: { x: number; y: number } | null;
+}
+
+export interface BEntitiesFile2024 extends BExport2024Meta {
+  entities: BEntity2024[];
+}
