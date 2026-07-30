@@ -32,6 +32,21 @@
       inputId="Liquid"
     ></p-checkbox
   ></span>
+  <!-- Off by default: solids are normally drawn as tile buildings, and this
+       list exists for gas/liquid annotations. Ticking it reaches the natural
+       terrain materials — Neutronium above all, the indestructible row every
+       geyser sits on. -->
+  <span class="second-checkbox"
+    ><p-checkbox
+      name="groupTag"
+      (onChange)="tagChanged($event)"
+      value="Solid"
+      i18n-label
+      label="Solid"
+      [(ngModel)]="selectedTags"
+      inputId="Solid"
+    ></p-checkbox
+  ></span>
 </div>
 
 <div class="state-filter" *ngIf="isStateFiltered">

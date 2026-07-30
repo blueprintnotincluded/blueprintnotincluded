@@ -1,5 +1,23 @@
 import { ElementState } from '../enums/element-state';
 
+// Neutronium's element id in the game's data. The indestructible material every
+// geyser, vent and volcano is anchored on, which is why the editor seeds a row
+// of it under a placed terrain feature. Not buildable by dupes, so it never
+// appears in the build menu and the game never shows its (placeholder magenta)
+// uiColor — see BlueprintItemElement's solid branch.
+export const NEUTRONIUM_ELEMENT_ID = 'Unobtanium';
+
+// Display tint for Neutronium cells.
+//
+// A presentational override, and the only one: Neutronium is the one element
+// whose exported colours are sentinels rather than real values — `color` is
+// pure white and `uiColor` a placeholder magenta — because the game never
+// renders it as a material or shows it in any material UI. Taking either at
+// face value paints the brightest thing on the canvas underneath every geyser.
+// In game the stuff is near-black, so that is what we draw. The database keeps
+// the export's values untouched; this is a render-time choice.
+export const NEUTRONIUM_DISPLAY_COLOR = 0x2b2b30;
+
 // Elements that buildings can be made of (Exported from the game)
 // TODO we don't currently handle "exotic" elements (ie reed fibers for paintings, or bleach stone for sanitation stations)
 export class BuildableElement {
