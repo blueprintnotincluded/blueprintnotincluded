@@ -85,6 +85,17 @@ describe('Terrain metadata: decoding', function () {
       expect(decodeTerrainFeatures({ [TERRAIN_METADATA_KEY]: json }), json).to.deep.equal([]);
   });
 
+  // A range check, not equality: a future v2 reader must still read v1 files.
+  // What must never pass is a version that cannot name a real schema.
+  it('ignores a payload whose version cannot name a real schema', () => {
+    for (const v of [0, -1, 1.5, '1', null, true]) {
+      const json = JSON.stringify({ v, features: [{ id: 'OilWell', x: 1, y: 1 }] });
+      expect(decodeTerrainFeatures({ [TERRAIN_METADATA_KEY]: json }), String(v)).to.deep.equal(
+        []
+      );
+    }
+  });
+
   it('ignores a payload from a newer schema version', () => {
     const future = JSON.stringify({
       v: TERRAIN_SCHEMA_VERSION + 1,
@@ -255,6 +266,14 @@ describe('Blueprint: terrain annotations end to end', function () {
     const geyser = reopened.terrainFeatures[0];
     expect(geyser.x - building.position.x).to.equal(0);
     expect(geyser.y - building.position.y).to.equal(1);
+
+    // Normalization must happen on the copies being written, never on the open
+    // blueprint: exporting is not an edit, and shifting the live model would
+    // move the user's blueprint under them every time they hit Download.
+    expect(authored.blueprintItems[0].position).to.deep.include({ x: -3, y: -5 });
+    expect(authored.terrainFeatures).to.deep.equal([
+      { id: 'GeyserGeneric_steam', x: -3, y: -4 },
+    ]);
   });
 
   it('applies the same shift to annotations that the mod would apply to buildings', () => {
@@ -267,6 +286,14 @@ describe('Blueprint: terrain annotations end to end', function () {
     expect(decodeTerrainFeatures(exported.metadata)).to.deep.equal([
       { id: 'OilWell', x: 15, y: 7 },
     ]);
+
+    // Same guard as above: the source is untouched, so exporting twice in a row
+    // yields the same file rather than compounding the shift.
+    expect(authored.blueprintItems[0].position).to.deep.include({ x: -10, y: -2 });
+    expect(authored.terrainFeatures).to.deep.equal([{ id: 'OilWell', x: 5, y: 5 }]);
+    expect(JSON.stringify(authored.toBniBlueprint('shifted'))).to.equal(
+      JSON.stringify(exported)
+    );
   });
 
   // Acceptance criterion 3.

@@ -116,11 +116,22 @@ export function decodeTerrainFeatures(
     return [];
   }
 
-  // A missing or newer version means we can't know what the fields mean.
+  // A version we can't make sense of means we can't know what the fields mean.
   // Ignore the payload rather than guessing — but leave it on disk, since the
   // encoder only rewrites our key when the editor actually has features.
+  //
+  // Accepted: any integer from 1 up to the version we understand. Deliberately
+  // a range and not an equality check — when v2 exists, a v2 reader must still
+  // read v1 files, and an equality check would silently drop every payload
+  // written before the bump. What is rejected is anything that cannot name a
+  // real schema: a missing or non-numeric version, a fractional one, a
+  // meaningless zero/negative, and any version newer than this build.
   const version = payload['v'];
-  if (typeof version !== 'number' || version > TERRAIN_SCHEMA_VERSION) {
+  if (!Number.isInteger(version as number) || (version as number) < 1) {
+    console.log(`Ignoring ${TERRAIN_METADATA_KEY} metadata: invalid version ${version}`);
+    return [];
+  }
+  if ((version as number) > TERRAIN_SCHEMA_VERSION) {
     console.log(`Ignoring ${TERRAIN_METADATA_KEY} metadata: unsupported version ${version}`);
     return [];
   }

@@ -87,6 +87,12 @@ export class DrawTerrainOverlay {
     this.container.visible = false;
     this.graphics.clear();
     for (const sprite of this.sprites) sprite.visible = false;
+    // Forget the cached array identity along with the hidden sprites. Hiding
+    // the layer does not change blueprint.terrainFeatures, so re-showing it
+    // arrives with the *same* array — without this, the identity check in
+    // draw() would skip syncSprites() and the icons would stay hidden, leaving
+    // dashed outlines with nothing inside them.
+    this.lastFeatures = null;
   }
 
   draw(
