@@ -15,12 +15,15 @@ Open items only (import pipeline, render cutover, legacy-pipeline removal, and E
 
 - **Rename `import:2024`** to a version-neutral name — "2024" leaked everywhere from the
   milestone. Keep an alias for one cycle (`convert:2024` already aliases it).
-- **`uiImageRect` rollout (export side):** 342/449 buildings carry it; the rest fall back to
-  stretch-to-footprint. Emit it for the deviating buildings.
-- **Unread export JSONs (9 of 13):** `entities`, `items`, `food`, `geyser`, `recipe`,
-  `multiEntities`, `tags`, `attribute`, `db` — future capabilities (critters/recipes/etc.),
-  nothing wired yet. Non-English i18n still open: site has zh/ru/ko but the export ships
-  English only.
+- **`uiImageRect` rollout (export side):** 342/487 buildings carry it; the rest fall back to
+  stretch-to-footprint. Emit it for the deviating buildings. All 31 terrain features now
+  carry one, delivered via `ui_image_rects.json` at the export root; the importer fails on
+  any rect whose aspect disagrees with its PNG.
+- **Unread export JSONs (7 of 13):** `items`, `food`, `recipe`, `multiEntities`, `tags`,
+  `attribute`, `db` — future capabilities (critters/recipes/etc.), nothing wired yet.
+  `geyser` and `entities` are read for the terrain catalogue only; the rest of `entities`
+  (critters/plants) is still unused. Non-English i18n still open: site has zh/ru/ko but the
+  export ships English only.
 - **Modded buildings — data layer shipped** (`mod`/`modTitle` on buildings, mods index in
   the DB, `blueprint.mods` server-derived + latched `modded: true`, `GET /api/mods`). 473
   buildings (449 vanilla + 24 modded from 6 Steam Workshop mods) as of this export. UI
@@ -151,7 +154,7 @@ WorkOS in-app auth work; rate limiting is Cloudflare's job — do not add expres
 ## Next steps
 
 1. Rename `import:2024` to a version-neutral script name (keep alias one cycle).
-2. Export side: emit `uiImageRect` for the ~107 buildings still missing it.
+2. Export side: emit `uiImageRect` for the 145 buildings still missing it.
 3. Monitor WorkOS legacy-user migration (`GET /api/migration/status`); retire the legacy
    migration path when counts hit zero — see `agent/WORKOS_PLAN.md`.
 4. Pick the next product increment: blueprint forks (`spec/FORKS.md`), or wiring one of the
