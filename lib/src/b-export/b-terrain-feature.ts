@@ -37,6 +37,14 @@ export interface BTerrainFeature {
   // from the game's own `geyserType.shape`, so the split lives in data rather
   // than in render code.
   activeTile?: { x: number; y: number };
+  // Where the flat icon sits over the footprint, in cells, origin at the
+  // footprint's bottom-left, +y up — the same contract as BBuildingDef2024's
+  // uiImageRect, and sourced from the same export file (ui_image_rects.json).
+  // Terrain icons are tight-cropped ~200 px/cell renders, so stretching one to
+  // the footprint both squashes its aspect and throws away the overhang the
+  // render was framed to include. Absent ⇒ the renderer falls back to that
+  // stretch (a database predating the field, or an id we do not know).
+  uiImageRect?: { x: number; y: number; w: number; h: number };
 }
 
 export class TerrainFeature implements BTerrainFeature {
@@ -46,6 +54,9 @@ export class TerrainFeature implements BTerrainFeature {
   height: number = 1;
   dlcIds: string[] = [];
   activeTile: { x: number; y: number } = { x: 1, y: 1 };
+  // Undefined rather than a footprint-sized default: the renderer distinguishes
+  // "placed by measurement" from "no rect, stretch it" — see BTerrainFeature.
+  uiImageRect?: { x: number; y: number; w: number; h: number };
 
   // Generated: the export ships one flat icon per feature prefab, named after
   // the prefab id, synced into both asset roots by the importer.
@@ -69,6 +80,14 @@ export class TerrainFeature implements BTerrainFeature {
     // catalogue is game data) must not put its active cell outside itself.
     this.activeTile.x = Math.min(this.activeTile.x, this.width - 1);
     this.activeTile.y = Math.min(this.activeTile.y, this.height - 1);
+    // A zero/negative-area rect would collapse the icon to nothing, which is
+    // worse than the stretch fallback it would be replacing.
+    this.uiImageRect =
+      original.uiImageRect != null &&
+      original.uiImageRect.w > 0 &&
+      original.uiImageRect.h > 0
+        ? { ...original.uiImageRect }
+        : undefined;
     this.iconUrl = 'assets/ui_image/' + this.id + '.png';
   }
 

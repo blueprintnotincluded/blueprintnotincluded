@@ -9,6 +9,7 @@ import {
   activeTileOf,
   DrawTerrainOverlay,
   terrainDisplayName,
+  terrainIconPlacement,
   terrainIconUrl,
 } from "./draw-terrain-overlay";
 import { DrawPixi } from "./draw-pixi";
@@ -31,7 +32,11 @@ const CATALOGUE: BTerrainFeature[] = [
     height: 3,
     dlcIds: [],
     activeTile: { x: 1, y: 1 },
+    // The real measured rect for this prefab: art overhangs its 3x3 on all four
+    // sides, which is exactly what the stretch fallback used to throw away.
+    uiImageRect: { x: -0.135, y: -0.575, w: 3.465, h: 3.625 },
   },
+  // Deliberately rect-less, to keep the stretch fallback covered.
   {
     id: "OilWell",
     name: "Oil Reservoir",
@@ -108,6 +113,53 @@ describe("activeTileOf", () => {
       x: 7,
       y: 8,
     });
+  });
+});
+
+// Terrain icons are tight-cropped ~200 px/cell renders, so a measured rect is
+// what keeps a geyser's plume above its footprint instead of squashed into it.
+describe("terrainIconPlacement", () => {
+  // Footprint of a 3x3 volcano at cell (10, 20), zoom 10, camera at the origin —
+  // the same numbers DrawTerrainOverlay computes before calling the helper.
+  const FOOTPRINT = { left: 100, top: -220, width: 30, height: 30 };
+
+  it("places a measured rect relative to the footprint's bottom-left, y-up", () => {
+    const rect = { x: -0.135, y: -0.575, w: 3.465, h: 3.625 };
+    const p = terrainIconPlacement(
+      FOOTPRINT.left,
+      FOOTPRINT.top,
+      FOOTPRINT.width,
+      FOOTPRINT.height,
+      rect,
+      10,
+    );
+    expect(p.x).toBeCloseTo(98.65);
+    expect(p.y).toBeCloseTo(-220.5);
+    expect(p.width).toBeCloseTo(34.65);
+    expect(p.height).toBeCloseTo(36.25);
+  });
+
+  // The default rect is the footprint itself, so a feature whose art happens to
+  // fit exactly draws identically either way.
+  it("reproduces the footprint for the identity rect", () => {
+    const p = terrainIconPlacement(
+      FOOTPRINT.left,
+      FOOTPRINT.top,
+      FOOTPRINT.width,
+      FOOTPRINT.height,
+      { x: 0, y: 0, w: 3, h: 3 },
+      10,
+    );
+    expect(p).toEqual({ x: 100, y: -220, width: 30, height: 30 });
+  });
+
+  it("stretches into the footprint, inset, when there is no rect", () => {
+    // 4x2 Oil Reservoir at the origin.
+    const p = terrainIconPlacement(0, -10, 40, 20, undefined, 10, 0.86);
+    expect(p.x).toBeCloseTo(2.8);
+    expect(p.y).toBeCloseTo(-8.6);
+    expect(p.width).toBeCloseTo(34.4);
+    expect(p.height).toBeCloseTo(17.2);
   });
 });
 
@@ -201,6 +253,46 @@ describe("DrawTerrainOverlay", () => {
     expect(sprites).toHaveLength(2);
     expect(sprites[0].visible).toBe(true);
     expect(sprites[1].visible).toBe(false);
+  });
+
+  // The overlay has to hand the catalogue's rect to the placement helper, not
+  // just fill the footprint — otherwise the icons regress to squashed and
+  // shifted the moment the export starts shipping tight-cropped renders.
+  it("draws a rect-carrying feature at its measured placement", () => {
+    overlay.draw(
+      [{ id: "GeyserGeneric_big_volcano", x: 10, y: 20 }],
+      camera,
+      null,
+    );
+
+    const sprite = sprites[0] as unknown as {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      anchor: { set: ReturnType<typeof vi.fn> };
+    };
+    // Top-left anchored, since a measured rect is not centred on the footprint.
+    expect(sprite.anchor.set).toHaveBeenCalledWith(0, 0);
+    expect(sprite.x).toBeCloseTo(98.65);
+    expect(sprite.y).toBeCloseTo(-220.5);
+    expect(sprite.width).toBeCloseTo(34.65);
+    expect(sprite.height).toBeCloseTo(36.25);
+  });
+
+  it("falls back to an inset footprint stretch for a feature with no rect", () => {
+    overlay.draw([{ id: "OilWell", x: 0, y: 0 }], camera, null);
+
+    const sprite = sprites[0] as unknown as {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    expect(sprite.x).toBeCloseTo(2.8);
+    expect(sprite.y).toBeCloseTo(-8.6);
+    expect(sprite.width).toBeCloseTo(34.4);
+    expect(sprite.height).toBeCloseTo(17.2);
   });
 
   it("clears rather than drawing for an empty or absent set", () => {

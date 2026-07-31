@@ -4,7 +4,7 @@ Reference for `convert-export-2024.ts` (`npm run import:2024`). Covers what a ga
 export must provide, what the converter produces, and the contract the export side
 must honour so re-exports don't silently break rendering.
 
-Game version baseline: **U59-737790-SCA** (Spaced Out DLC).
+Game version baseline: **U59-744825-SCRPAN** (Spaced Out DLC), export dated 2026-07-30.
 
 ## Pipeline
 
@@ -54,7 +54,8 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 
 | Export provides | We use it for |
 |---|---|
-| `database/*.json` (13 files) | building/element data — we read `building.json`, `elements.json`, `uiSpriteInfo.json`, `po_string.json` |
+| `database/*.json` (13 files) | building/element data — we read `building.json`, `elements.json`, `uiSpriteInfo.json`, `po_string.json`, plus `geyser.json` + `entities.json` for the terrain catalogue |
+| `ui_image_rects.json` (export **root**) | flat-icon placement rects by prefab id — the only delivery path for terrain features' rects (see below) |
 | `ui_image/<prefabId>.png` | the single flat icon per building (1,241 files) |
 | `connection_sprites/<prefabId>/<0..15>.png` | the 16 tiling states for connectables |
 | `ui_image_facade/` | nothing today (not copied) |
@@ -89,8 +90,9 @@ ratio (see below). What breaks rendering is changing **framing**, not pixel coun
    prefab tag, e.g. `FabricatedWood.png` — **not** the display name). Verified 1241/1241
    match by key.
 2. **`uiImageRect`** (per building, cells, footprint-relative): required for any icon whose
-   art overhangs its footprint; see next section. Currently emitted for 308/449 buildings;
-   the other 141 fall back to stretch-to-footprint.
+   art overhangs its footprint; see next section. Currently emitted for 342/487 buildings
+   and all 31 terrain features; the other 145 buildings fall back to stretch-to-footprint.
+   **Every rect must match its own PNG's pixel aspect** — the import fails otherwise.
 3. **Connection sprites:** all 16 of `0–15` present, bitmask `left=1/right=2/up=4/down=8`.
 4. **Connectable signal:** the `connection_sprites/<prefabId>/` directory exists
    (`building.json` carries no `tileableLeftRight/tileableTopBottom`).
@@ -145,7 +147,52 @@ This is the same information the 2020/2023 atlas carried as `pivot` + `realSize`
 converter passes it through and the renderer draws into the rect (unit-tested in
 `__tests__/lib/draw-part-placement.test.ts`); buildings without it keep the old behaviour
 so nothing regresses mid-rollout. The import log prints
-`buildings with uiImageRect placement: N / 449`.
+`buildings with uiImageRect placement: N / 487`.
+
+### Two delivery paths
+
+Buildings carry their rect on their `building.json` `bBuildingDefList[]` entry. **Terrain
+features cannot** — they are not `BuildingDef`s, so they have no entry there at all. Their
+rects arrive instead via `ui_image_rects.json` at the export root: a flat
+`prefabId → {x,y,w,h}` map, same units and semantics, covering buildings redundantly (it is
+byte-identical to their `building.json` rects) and terrain features exclusively. The
+converter reads it only for the terrain catalogue, so there is one source per consumer and
+no chance of the two disagreeing about a building.
+
+### The aspect invariant — checked every import
+
+A rect is a claim about a specific image: the PNG maps *linearly* onto it, so `w:h` must
+equal the PNG's pixel aspect. When they disagree the icon draws at the wrong size **and**
+the wrong offset, silently, for every placement on the site.
+
+That is not hypothetical. The exporter had two passes that both wrote `ui_image/<id>.png` —
+a main-menu pass emitting the kanim's authored `ui` atlas sub-rect, and an in-game pass
+rendering at ~200 px/cell and measuring the rect from that render. Rects persisted across
+runs, images did not, so a main-menu pass after an in-game pass replaced renders with atlas
+icons and left the rects describing images no longer on disk. At its worst that affected
+302 of 342 buildings on the export side. The exporter now skips prefabs that already have a
+measured rect, and runs the check itself at the end of each in-game pass.
+
+The importer checks it too, over what it is about to emit rather than over
+`ui_image_rects.json` — buildings source their rects from `building.json`, which is the file
+that actually went stale:
+
+```
+for every emitted rect:  |(w/h) - (pngW/pngH)| / (pngW/pngH)  <  0.02
+```
+
+Logged as `uiImageRect aspect mismatches: N / M`; a non-zero N fails the import. The 2%
+tolerance absorbs the exporter's rounding to 3 decimals. `__tests__/asset-processing/
+database-validation.test.ts` asserts the same invariant over the *committed* database, so a
+bad import cannot be merged even if someone ignores the exit code.
+
+### Terrain features
+
+The 31 geysers, vents, volcanoes and the oil reservoir ship tight-cropped ~200 px/cell
+renders (`GeyserGeneric_big_volcano.png` is 693×725 for a 3×3 footprint), so the stretch
+fallback is a visible regression for them rather than a graceful default: the art lands
+roughly half a cell low and ~15% small, with the plume overhang cropped away. Every
+catalogue entry therefore carries `uiImageRect`, and a test fails if one does not.
 
 ## Connection-sprite scale (measured, not assumed)
 
@@ -263,10 +310,11 @@ Current export: 32 gas, 52 liquid, 125 solid, 3 vacuum.
 
 ## Unused export files (future capabilities, not wired up)
 
-9 of 13 JSONs are intentionally unread today; the schema unblocks them if/when we add
-the capability: `entities` (critters/plants), `items` (eggs/seeds/suits), `food`,
-`geyser`, `recipe`, `multiEntities` (space POIs), `tags`, `attribute`, `db` (duplicant DB,
-~20 MB, case-sensitive parse). `ui_image_facade/` (988 files) is also unused. `po_string`
+7 of 13 JSONs are intentionally unread today; the schema unblocks them if/when we add
+the capability: `items` (eggs/seeds/suits), `food`, `recipe`, `multiEntities` (space POIs),
+`tags`, `attribute`, `db` (duplicant DB, ~20 MB, case-sensitive parse). `geyser` and
+`entities` are read, but only for the terrain-feature catalogue — the rest of `entities`
+(critters/plants) is still unused. `ui_image_facade/` (988 files) is also unused. `po_string`
 is read (English game strings → `strings.json`); the site is English-only, so the legacy
 per-locale `.po` files have been retired — non-English i18n would need translated sources.
 
@@ -277,8 +325,8 @@ per-locale `.po` files have been retired — non-English i18n would need transla
   `WireBridge`/`WireRefinedBridge`/`WireRubberBridge` (and the 1×1 `*HighWattage` bridges,
   whose offsets we can't derive) so the converter's `SYNTHESIZED_BRIDGE_PORTS` workaround can
   be removed.
-- **`uiImageRect` rollout:** emit it for the remaining ~107 buildings whose art deviates
-  from the footprint (the rest can omit it).
+- **`uiImageRect` rollout:** emit it for the remaining buildings whose art deviates
+  from the footprint (145 have none today; the rest can omit it).
 - **`ui_image_facade/`:** drop it to shrink the handoff, or tell us what it's for.
 - **Higher-res `ui_image`:** one test asserts each flat-icon PNG is < 5 MB — flag ahead of
   time if any icon will exceed that.

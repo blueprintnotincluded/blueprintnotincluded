@@ -246,6 +246,17 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   these are not re-resolved through `GameStringService`), the real footprint, and `dlcIds`.
   The export already ships one flat icon per prefab, so art needs no separate sourcing.
   Loaded via `TerrainFeature.load()` alongside `BuildableElement`/`OniItem`.
+- **Icon placement** — each entry also carries `uiImageRect`, the same cells/footprint-relative
+  placement rect buildings use. Terrain icons are tight-cropped ~200 px/cell renders (a 3x3
+  volcano's PNG is 693x725), so stretching one to the footprint both squashes its aspect and
+  crops the plume overhang the render was framed to include. The rects arrive via
+  `export/ui_image_rects.json` (export **root**, not `database/`) because geysers are not
+  `BuildingDef`s and so have no `building.json` entry to carry one; that file covers buildings
+  redundantly, but they keep reading their own. Placement is computed by `terrainIconPlacement`
+  in `drawing/draw-terrain-overlay.ts`, shared with `TerrainTool`'s cursor ghost so the icon
+  does not jump between hover and click; an id with no rect falls back to the inset stretch.
+  The importer fails on any rect whose `w:h` disagrees with its PNG's pixel aspect by ≥2%, and
+  a test asserts the same over the committed database — see `convert-export-2024.md`.
 - **Storage** — the mod's v6.2.0 top-level `metadata` field, which deserializes into a C#
   `Dictionary<string, string>`: **flat, string-valued only**. Any other JSON token type is
   silently dropped on the next in-game save (`"count": 3` dies, `"count": "3"` lives). So the

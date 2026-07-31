@@ -8,6 +8,12 @@ export interface BTerrainFeature {
         x: number;
         y: number;
     };
+    uiImageRect?: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+    };
 }
 export declare class TerrainFeature implements BTerrainFeature {
     id: string;
@@ -18,6 +24,12 @@ export declare class TerrainFeature implements BTerrainFeature {
     activeTile: {
         x: number;
         y: number;
+    };
+    uiImageRect?: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
     };
     iconUrl: string;
     importFrom(original: BTerrainFeature): void;
