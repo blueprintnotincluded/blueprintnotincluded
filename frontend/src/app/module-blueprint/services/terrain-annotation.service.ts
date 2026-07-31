@@ -1,15 +1,20 @@
 import { Injectable } from "@angular/core";
 import {
-  BlueprintHelpers,
-  BlueprintItemElement,
   BniTerrainFeature,
+  BniWorldNote,
   BuildableElement,
   NEUTRONIUM_ELEMENT_ID,
-  OniItem,
   TerrainFeature,
   Vector2,
 } from "../../../../../lib/index";
 import { BlueprintService } from "./blueprint-service";
+import { findNoteAt } from "./world-note.service";
+
+// `BlueprintNoteData.NoteType.Element` — a note that names the element a cell
+// should hold, rather than carrying text. The mod writes only id/mass/temp for
+// this type (title, text and tint are dropped on save), which is why the base
+// carries no explanatory text: it would not survive a round-trip through game.
+const ELEMENT_NOTE = 1;
 
 // Footprint of a placed annotation, in cells. The catalogue is the source of
 // truth for size; an id this database doesn't know annotates a single cell, so
@@ -54,6 +59,10 @@ export function findTerrainFeatureAt(
 // The cells a feature's neutronium base occupies: one row, as wide as the
 // footprint, directly beneath the anchor. In the game every geyser, vent and
 // volcano is anchored on indestructible neutronium, and this is that row.
+//
+// The real deposit is often wider — a cell or two off either end, depending on
+// the world seed — but that part is unpredictable, so only the subset that is
+// always present is drawn.
 //
 // Pure so the geometry is testable without standing up the renderer.
 export function neutroniumBaseCells(feature: BniTerrainFeature): Vector2[] {
@@ -120,52 +129,56 @@ export class TerrainAnnotationService {
 
   add(feature: BniTerrainFeature) {
     const blueprint = this.blueprintService.blueprint;
-
-    // The annotation and the neutronium row it sits on are one edit, so they
-    // are one undo step: every addBlueprintItem would otherwise push its own
-    // snapshot and a single click would eat five slots of the 50-entry ring.
-    blueprint.pauseChangeEvents();
     blueprint.terrainFeatures = [...blueprint.terrainFeatures, feature];
-    this.seedNeutroniumBase(feature);
+    // Both arrays get a new identity, since the overlays cache by identity.
+    blueprint.worldNotes = [
+      ...blueprint.worldNotes,
+      ...this.neutroniumBaseNotes(feature),
+    ];
     this.select(feature);
-    blueprint.resumeChangeEvents();
+    // One emit for the annotation and its base together, so a placement costs
+    // one slot of the 50-entry undo ring rather than five.
+    blueprint.emitBlueprintChanged();
   }
 
-  // Seeded, not owned. Once placed these are ordinary element cells the user
-  // edits with the normal element tool (or deletes) — which is the point, since
-  // real terrain rarely matches the default exactly. Deleting the annotation
+  // The neutronium row a placed feature sits on, as element world notes.
+  //
+  // A note rather than an element cell, because the mod already has a
+  // first-class way to say "this cell holds this material" and it survives the
+  // round-trip into the game — an element cell is website-only and is dropped
+  // from the exported `buildings` array entirely. It also costs nothing new:
+  // world notes already render, export, undo and import.
+  //
+  // Seeded, not owned. Once placed these are ordinary world notes the user
+  // edits with the note tool (or deletes) — which is the point, since real
+  // terrain rarely matches the default exactly. Deleting the annotation
   // therefore leaves them alone rather than discarding edits the user made.
-  private seedNeutroniumBase(feature: BniTerrainFeature) {
+  private neutroniumBaseNotes(feature: BniTerrainFeature): BniWorldNote[] {
     const blueprint = this.blueprintService.blueprint;
 
     // A database with no Neutronium simply gets no base rather than a crash.
     const neutronium = BuildableElement.elements?.find(
       (e) => e.id === NEUTRONIUM_ELEMENT_ID,
     );
-    if (neutronium == null) return;
+    if (neutronium == null) return [];
 
-    for (const position of neutroniumBaseCells(feature)) {
-      // Never stack a second cell on one that already exists: re-placing a
-      // feature over its own base must not double up, and a cell the user has
+    const notes: BniWorldNote[] = [];
+    for (const cell of neutroniumBaseCells(feature)) {
+      // Never stack a second note on a cell that already has one: re-placing a
+      // feature over its own base must not double up, and a note the user has
       // already customized must win over the default.
-      const occupied = blueprint
-        .getBlueprintItemsAt(position)
-        .some((item) => item.id === OniItem.elementId);
-      if (occupied) continue;
+      if (findNoteAt(blueprint.worldNotes, cell) != null) continue;
 
-      const cell = BlueprintHelpers.createInstance(
-        OniItem.elementId,
-      ) as BlueprintItemElement | null;
-      if (cell == null) return;
-
-      cell.position = position;
-      cell.setElement(NEUTRONIUM_ELEMENT_ID, 0);
-      cell.mass = neutronium.defaultMass;
-      cell.temperature = neutronium.defaultTemperature;
-      cell.cleanUp();
-      cell.prepareBoundingBox();
-      blueprint.addBlueprintItem(cell);
+      notes.push({
+        x: cell.x,
+        y: cell.y,
+        type: ELEMENT_NOTE,
+        id: neutronium.tag,
+        mass: neutronium.defaultMass,
+        temp: neutronium.defaultTemperature,
+      });
     }
+    return notes;
   }
 
   move(feature: BniTerrainFeature, tile: { x: number; y: number }) {

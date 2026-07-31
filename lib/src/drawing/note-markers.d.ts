@@ -1,5 +1,5 @@
-import { BniWorldNote } from '../io/bni/bni-blueprint';
 import { BuildableElement } from '../b-export/b-element';
+import { BniWorldNote } from '../io/bni/bni-blueprint';
 export declare const NOTE_ICON_TILE_FRACTION = 0.9;
 export declare const NOTE_SYMBOLS: string[];
 export declare const DEFAULT_NOTE_SYMBOL = "note_info";
