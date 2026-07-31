@@ -268,22 +268,40 @@ describe('Database Asset Validation', () => {
 
     type Rect = { x: number; y: number; w: number; h: number };
 
-    const rectsInDatabase = (): { id: string; rect: Rect }[] => {
+    // A rect only means anything if all four numbers are real and it encloses area.
+    // Truthiness is not enough: `{}` or a zero-width rect makes `w/h` NaN, and every
+    // comparison against NaN is false — so a malformed entry would sail through the
+    // aspect check below while rendering as nothing at all.
+    const isValidRect = (rect: any): rect is Rect =>
+      rect != null &&
+      typeof rect === 'object' &&
+      [rect.x, rect.y, rect.w, rect.h].every(v => typeof v === 'number' && Number.isFinite(v)) &&
+      rect.w > 0 &&
+      rect.h > 0;
+
+    // Everything that *claims* a rect, valid or not — the malformed ones have to
+    // reach the assertions rather than be filtered away before them.
+    const rectsInDatabase = (): { id: string; rect: unknown }[] => {
       const database = readDatabase();
       return [
         ...database.buildings
-          .filter((b: any) => b.uiImageRect)
-          .map((b: any) => ({ id: b.uiImage, rect: b.uiImageRect as Rect })),
+          .filter((b: any) => b.uiImageRect !== undefined)
+          .map((b: any) => ({ id: b.uiImage, rect: b.uiImageRect })),
         ...(database.terrainFeatures ?? [])
-          .filter((f: any) => f.uiImageRect)
-          .map((f: any) => ({ id: f.id, rect: f.uiImageRect as Rect })),
+          .filter((f: any) => f.uiImageRect !== undefined)
+          .map((f: any) => ({ id: f.id, rect: f.uiImageRect })),
       ];
     };
 
     it('should match every rect to its own PNG aspect', () => {
+      const malformed: string[] = [];
       const mismatched: string[] = [];
       const checked = rectsInDatabase();
       for (const { id, rect } of checked) {
+        if (!isValidRect(rect)) {
+          malformed.push(`${id}: ${JSON.stringify(rect)}`);
+          continue;
+        }
         const png = pngSize(path.join(uiImagePath, `${id}.png`));
         if (png == null || png.w === 0 || png.h === 0) continue;
         const pngAspect = png.w / png.h;
@@ -291,22 +309,24 @@ describe('Database Asset Validation', () => {
         if (off >= ASPECT_TOLERANCE) mismatched.push(`${id} off by ${Math.round(off * 100)}%`);
       }
       expect(checked.length, 'rects to check').to.be.greaterThan(300);
+      expect(malformed, `malformed uiImageRect: ${malformed.join(', ')}`).to.be.empty;
       expect(mismatched, `rect/PNG aspect mismatch: ${mismatched.join(', ')}`).to.be.empty;
     });
 
-    it('should give every terrain feature a placement rect', () => {
+    it('should give every terrain feature a usable placement rect', () => {
       // Terrain icons are tight-cropped renders, so the stretch fallback is a
       // visible regression rather than a graceful default: every catalogue entry
-      // should carry the rect the export measured for it.
+      // should carry the rect the export measured for it — and a rect that cannot
+      // be drawn from is no better than none.
       const database = readDatabase();
       const withoutRect = (database.terrainFeatures ?? [])
-        .filter((f: any) => !f.uiImageRect)
-        .map((f: any) => f.id);
+        .filter((f: any) => !isValidRect(f.uiImageRect))
+        .map((f: any) => `${f.id}: ${JSON.stringify(f.uiImageRect)}`);
       expect(database.terrainFeatures, 'terrainFeatures').to.be.an('array').with.length.greaterThan(
         0
       );
-      expect(withoutRect, `terrain features with no uiImageRect: ${withoutRect.join(', ')}`).to.be
-        .empty;
+      expect(withoutRect, `terrain features with no usable uiImageRect: ${withoutRect.join(', ')}`)
+        .to.be.empty;
     });
   });
 });

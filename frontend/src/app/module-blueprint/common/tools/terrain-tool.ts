@@ -13,6 +13,7 @@ import {
 } from "../../services/terrain-annotation.service";
 import { DrawPixi } from "../../drawing/draw-pixi";
 import {
+  FALLBACK_ICON_INSET,
   terrainIconPlacement,
   terrainIconUrl,
 } from "../../drawing/draw-terrain-overlay";
@@ -161,6 +162,7 @@ export class TerrainTool implements ITool {
       height * zoom,
       known?.uiImageRect,
       zoom,
+      FALLBACK_ICON_INSET,
     );
     preview.x = p.x;
     preview.y = p.y;

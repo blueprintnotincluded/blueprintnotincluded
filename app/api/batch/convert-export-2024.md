@@ -177,7 +177,7 @@ The importer checks it too, over what it is about to emit rather than over
 `ui_image_rects.json` — buildings source their rects from `building.json`, which is the file
 that actually went stale:
 
-```
+```text
 for every emitted rect:  |(w/h) - (pngW/pngH)| / (pngW/pngH)  <  0.02
 ```
 
