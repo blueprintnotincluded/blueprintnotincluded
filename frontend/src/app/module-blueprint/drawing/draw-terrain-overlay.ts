@@ -17,6 +17,10 @@ const OUTLINE_ALPHA = 0.9;
 const FILL_ALPHA = 0.12;
 const SELECTED_COLOR = 0xffffff;
 
+// Only for features with no measured rect (see terrainIconPlacement): keeps the
+// stretched icon just inside the dashed outline instead of overprinting it.
+const FALLBACK_ICON_INSET = 0.86;
+
 // Area of effect for a selected feature. A geyser acts on exactly ONE cell —
 // where it erupts — not on its whole footprint, which is mostly scenery. So a
 // selected feature highlights that single cell, in the same visual language a
@@ -51,6 +55,60 @@ export function terrainDisplayName(feature: BniTerrainFeature): string {
   return known != null ? known.name : feature.id;
 }
 
+export interface TerrainIconRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface TerrainIconPlacement {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+// Where a feature's flat icon goes, in screen pixels, given its footprint's screen
+// box. Top-left anchored, so callers set anchor(0, 0) once and never branch.
+//
+// Terrain icons are tight-cropped ~200 px/cell renders, not footprint-shaped art:
+// a geyser's plume overhangs the top of its footprint and the rock skirt overhangs
+// the sides. Stretching one to the footprint therefore both distorts it and hides
+// the overhang the render was framed to include, which is what `uiImageRect` fixes
+// — it is the measured rectangle, in cells, that the PNG maps linearly onto.
+//
+// Pure so both the overlay and the placement ghost can share it (they must agree,
+// or the icon jumps between hover and click) and so it can be unit tested.
+export function terrainIconPlacement(
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  rect: TerrainIconRect | undefined,
+  zoom: number,
+  inset: number = 1,
+): TerrainIconPlacement {
+  if (rect != null) {
+    // The rect's origin is the footprint's bottom-left with +y up; screen y runs
+    // down, so the icon's top edge is measured up from the footprint's bottom edge.
+    return {
+      x: left + rect.x * zoom,
+      y: top + height - (rect.y + rect.h) * zoom,
+      width: rect.w * zoom,
+      height: rect.h * zoom,
+    };
+  }
+  // No measurement — an id this catalogue doesn't know, or a database predating
+  // the rects. Fill the footprint: wrong aspect, but the marker is still there.
+  return {
+    x: left + (width * (1 - inset)) / 2,
+    y: top + (height * (1 - inset)) / 2,
+    width: width * inset,
+    height: height * inset,
+  };
+}
+
 // One resolved marker: footprint in cells plus the texture to draw inside it.
 interface PreparedFeature {
   x: number;
@@ -61,6 +119,8 @@ interface PreparedFeature {
   // Absolute cell the feature acts on.
   activeX: number;
   activeY: number;
+  // Measured icon placement, when the catalogue has one for this id.
+  rect: TerrainIconRect | undefined;
 }
 
 function prepare(feature: BniTerrainFeature): PreparedFeature {
@@ -74,6 +134,7 @@ function prepare(feature: BniTerrainFeature): PreparedFeature {
     url: terrainIconUrl(feature),
     activeX: active.x,
     activeY: active.y,
+    rect: known?.uiImageRect,
   };
 }
 
@@ -224,12 +285,23 @@ export class DrawTerrainOverlay {
       const sprite = this.sprites[i];
       if (sprite != null) {
         sprite.alpha = FEATURE_ALPHA;
-        // Inset slightly so the icon sits inside its outline rather than
-        // overprinting it.
-        sprite.width = width * 0.86;
-        sprite.height = height * 0.86;
-        sprite.x = left + width / 2;
-        sprite.y = top + height / 2;
+        // A measured rect is drawn exactly, overhang and all. Without one the
+        // icon is inset slightly so it sits inside its outline rather than
+        // overprinting it — an inset the rect deliberately does not get, since
+        // shrinking a measured placement would just make it wrong on purpose.
+        const p = terrainIconPlacement(
+          left,
+          top,
+          width,
+          height,
+          feature.rect,
+          zoom,
+          FALLBACK_ICON_INSET,
+        );
+        sprite.x = p.x;
+        sprite.y = p.y;
+        sprite.width = p.width;
+        sprite.height = p.height;
       }
     }
   }
@@ -306,7 +378,10 @@ export class DrawTerrainOverlay {
       let sprite = this.sprites[i];
       if (sprite == null) {
         sprite = this.drawPixi.getSpriteFrom(this.prepared[i].url);
-        sprite.anchor.set(0.5, 0.5);
+        // Top-left anchored: terrainIconPlacement returns the icon's own
+        // rectangle, which is not centred on the footprint once a measured rect
+        // puts overhanging art outside it.
+        sprite.anchor.set(0, 0);
         this.container.addChild(sprite);
         this.sprites[i] = sprite;
       } else {

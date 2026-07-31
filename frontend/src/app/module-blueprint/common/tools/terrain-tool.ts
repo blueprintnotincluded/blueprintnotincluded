@@ -12,7 +12,10 @@ import {
   findTerrainFeatureAt,
 } from "../../services/terrain-annotation.service";
 import { DrawPixi } from "../../drawing/draw-pixi";
-import { terrainIconUrl } from "../../drawing/draw-terrain-overlay";
+import {
+  terrainIconPlacement,
+  terrainIconUrl,
+} from "../../drawing/draw-terrain-overlay";
 import { ITool, ToolType } from "./tool";
 import {
   ShortcutAction,
@@ -128,7 +131,9 @@ export class TerrainTool implements ITool {
 
     if (preview == null) {
       preview = drawPixi.getSpriteFrom(url) as PIXI.Sprite;
-      preview.anchor.set(0.5, 0.5);
+      // Top-left anchored, matching the overlay: terrainIconPlacement returns
+      // the icon's own rectangle, which a measured rect pushes off-centre.
+      preview.anchor.set(0, 0);
       drawPixi.pixiApp.stage.addChild(preview);
       this.preview = preview;
     }
@@ -146,11 +151,21 @@ export class TerrainTool implements ITool {
 
     const zoom = camera.currentZoom;
     const offset = camera.cameraOffset;
-    preview.width = width * zoom;
-    preview.height = height * zoom;
-    // Anchor is the bottom-left cell; centre the sprite over the footprint.
-    preview.x = (this.hoverTile!.x + offset.x + width / 2) * zoom;
-    preview.y = (offset.y - this.hoverTile!.y - height / 2 + 1) * zoom;
+    // Placed with the same helper the overlay uses, so the ghost under the
+    // cursor lands exactly where the annotation will draw after the click.
+    // Cell coords are bottom-left anchored and y-up; screen is y-down.
+    const p = terrainIconPlacement(
+      (this.hoverTile!.x + offset.x) * zoom,
+      (offset.y - this.hoverTile!.y - height + 1) * zoom,
+      width * zoom,
+      height * zoom,
+      known?.uiImageRect,
+      zoom,
+    );
+    preview.x = p.x;
+    preview.y = p.y;
+    preview.width = p.width;
+    preview.height = p.height;
   }
 
   draw(drawPixi: DrawPixi, camera: CameraService) {

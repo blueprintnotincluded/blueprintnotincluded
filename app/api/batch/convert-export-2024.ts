@@ -87,6 +87,31 @@ const UTILITY_INDICATOR_NAMES = [
   'logic_ribbon_all_out',
 ];
 
+// Flat-icon placement rectangle, in cells, footprint-relative (origin bottom-left, +y up).
+interface UiImageRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+// A rect and its PNG must describe the same image: the contract is that the PNG maps
+// *linearly* onto the rect, so w:h has to equal the PNG's pixel aspect. This is the check
+// that would have caught the export bug where a second pass overwrote 302 buildings' renders
+// with atlas icons and left the rects measured against images no longer on disk — the icons
+// then drew at the wrong size and offset on the live site for as long as that shipped.
+// 2% tolerance absorbs the exporter's own rounding to 3 decimal places.
+const UI_IMAGE_RECT_ASPECT_TOLERANCE = 0.02;
+
+function rectAspectMismatch(
+  rect: UiImageRect,
+  png: { x: number; y: number } | null
+): number | null {
+  if (png == null || png.x <= 0 || png.y <= 0 || rect.w <= 0 || rect.h <= 0) return null;
+  const pngAspect = png.x / png.y;
+  return Math.abs(rect.w / rect.h - pngAspect) / pngAspect;
+}
+
 function overlayFromViewMode(viewMode: string | null, unknown: Set<string>): Overlay {
   if (viewMode == null || viewMode === '') return Overlay.Base; // no special overlay
   const mapped = VIEW_MODE_TO_OVERLAY[viewMode];
@@ -506,6 +531,18 @@ export function convertExport2024(opts: ConvertOptions): void {
       .map((f) => f.replace(/\.png$/, ''))
   );
 
+  // Flat-icon placement rects, keyed by prefab id. Lives at the export ROOT, not in
+  // database/, and is the only delivery path for terrain features' rects: geysers are
+  // not BuildingDefs, so they have no entry in building.json's bBuildingDefList where
+  // buildings carry theirs. It covers buildings redundantly (byte-identical to their
+  // building.json rects), so buildings keep reading their own and this file is consulted
+  // only for the catalogue that has nowhere else to look.
+  const rectsFile = path.join(opts.exportDir, 'ui_image_rects.json');
+  const hasUiImageRects = fs.existsSync(rectsFile);
+  const uiImageRects: Record<string, UiImageRect> = hasUiImageRects
+    ? readJson<Record<string, UiImageRect>>(rectsFile)
+    : {};
+
   const uiSpriteInfos = uiSpriteFile.uiSpriteInfos;
 
   const { prefabs: connectablePrefabs, incomplete: incompleteConnectionDirs } =
@@ -707,6 +744,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     dbDir,
     englishStrings,
     uiImageFiles,
+    uiImageRects,
     missingTerrainIcons,
     missingTerrainNames,
     missingTerrainSources
@@ -743,6 +781,11 @@ export function convertExport2024(opts: ConvertOptions): void {
   );
   console.log('--- validation ---');
   console.log('  po_string.json present             :', hasPoStrings);
+  console.log(
+    '  ui_image_rects.json present        :',
+    hasUiImageRects,
+    hasUiImageRects ? `(${Object.keys(uiImageRects).length} rects)` : '(terrain icons will stretch)'
+  );
   console.log(
     '  elements by state                  :',
     `${gasElements.length} gas,`,
@@ -824,6 +867,46 @@ export function convertExport2024(opts: ConvertOptions): void {
     buildings.length,
     '(rest stretch icon to footprint)'
   );
+  console.log(
+    '  terrain with uiImageRect placement :',
+    terrainFeatures.filter((f) => f.uiImageRect).length,
+    '/',
+    terrainFeatures.length,
+    hasUiImageRects ? '' : '(ui_image_rects.json absent)'
+  );
+
+  // Every rect we are about to emit has to describe the PNG that ships beside it.
+  // Checked over what lands in the database, not over ui_image_rects.json, because
+  // buildings source their rects from building.json — the file that actually went
+  // stale when the exporter's two image passes disagreed.
+  const rectAspectMismatches: { id: string; off: number }[] = [];
+  const rectsChecked: { id: string; rect: UiImageRect }[] = [
+    ...buildings.filter((b) => b.uiImageRect).map((b) => ({ id: b.prefabId, rect: b.uiImageRect })),
+    ...terrainFeatures
+      .filter((f) => f.uiImageRect)
+      .map((f) => ({ id: f.id, rect: f.uiImageRect! })),
+  ];
+  for (const { id, rect } of rectsChecked) {
+    const off = rectAspectMismatch(rect, readPngSize(path.join(uiImageDir, id + '.png')));
+    if (off != null && off >= UI_IMAGE_RECT_ASPECT_TOLERANCE)
+      rectAspectMismatches.push({ id, off });
+  }
+  rectAspectMismatches.sort((a, b) => b.off - a.off);
+  console.log(
+    '  uiImageRect aspect mismatches      :',
+    rectAspectMismatches.length,
+    '/',
+    rectsChecked.length,
+    rectAspectMismatches.length
+      ? '(' +
+        rectAspectMismatches
+          .slice(0, 10)
+          .map((m) => `${m.id} off by ${Math.round(m.off * 100)}%`)
+          .join(', ') +
+        ')'
+      : ''
+  );
+
   // Room detection contract: every tag the rule table references must map to at
   // least one building, and every curated boundary door must exist — otherwise a
   // future export silently breaks room detection (e.g. Klei renames a tag).
@@ -903,6 +986,8 @@ export function convertExport2024(opts: ConvertOptions): void {
     missingTerrainSources.length +
     missingTerrainIcons.length +
     missingTerrainNames.length +
+    rectAspectMismatches.length +
+    (hasUiImageRects ? 0 : 1) +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
     console.log('--- import completed WITH WARNINGS:', problems, 'issue(s) above ---');
@@ -1077,12 +1162,16 @@ interface TerrainFeatureRecord {
   dlcIds: string[];
   // Footprint-relative offset of the active cell, from the bottom-left anchor.
   activeTile: { x: number; y: number };
+  // Flat-icon placement rect, from ui_image_rects.json (see UiImageRect). Omitted
+  // when the export has no measurement for the prefab.
+  uiImageRect?: UiImageRect;
 }
 
 function buildTerrainFeatures(
   dbDir: string,
   englishStrings: Record<string, string>,
   uiImageFiles: Set<string>,
+  uiImageRects: Record<string, UiImageRect>,
   missingIcons: string[],
   missingNames: string[],
   missingSources: string[]
@@ -1097,6 +1186,10 @@ function buildTerrainFeatures(
     seen.add(record.id);
     if (!uiImageFiles.has(record.id)) missingIcons.push(record.id);
     if (!record.name) missingNames.push(record.id);
+    // Attached here rather than per source, since the rect is keyed on the prefab
+    // id and neither geyser.json nor entities.json carries one.
+    const rect = uiImageRects[record.id];
+    if (rect) record.uiImageRect = rect;
     features.push(record);
   };
 

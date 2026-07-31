@@ -243,4 +243,70 @@ describe('Database Asset Validation', () => {
       expect(missingIcons, `Missing icons: ${missingIcons.join(', ')}`).to.be.empty;
     });
   });
+
+  describe('uiImageRect placement', () => {
+    // A rect says where a PNG sits over the footprint, and the renderer maps the
+    // PNG linearly onto it — so w:h must equal the PNG's pixel aspect. When the two
+    // disagree the icon draws at the wrong size and offset, silently and sitewide;
+    // the 2024 exporter shipped exactly that for a long stretch, because a
+    // main-menu pass overwrote in-game renders and left the measured rects behind.
+    // 2% absorbs the exporter's rounding to 3 decimal places.
+    const ASPECT_TOLERANCE = 0.02;
+
+    // PNG dimensions straight out of the IHDR chunk — no decode needed.
+    const pngSize = (file: string): { w: number; h: number } | null => {
+      const fd = fs.openSync(file, 'r');
+      try {
+        const buf = Buffer.alloc(24);
+        if (fs.readSync(fd, buf, 0, 24, 0) < 24) return null;
+        if (buf.readUInt32BE(0) !== 0x89504e47) return null;
+        return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+      } finally {
+        fs.closeSync(fd);
+      }
+    };
+
+    type Rect = { x: number; y: number; w: number; h: number };
+
+    const rectsInDatabase = (): { id: string; rect: Rect }[] => {
+      const database = readDatabase();
+      return [
+        ...database.buildings
+          .filter((b: any) => b.uiImageRect)
+          .map((b: any) => ({ id: b.uiImage, rect: b.uiImageRect as Rect })),
+        ...(database.terrainFeatures ?? [])
+          .filter((f: any) => f.uiImageRect)
+          .map((f: any) => ({ id: f.id, rect: f.uiImageRect as Rect })),
+      ];
+    };
+
+    it('should match every rect to its own PNG aspect', () => {
+      const mismatched: string[] = [];
+      const checked = rectsInDatabase();
+      for (const { id, rect } of checked) {
+        const png = pngSize(path.join(uiImagePath, `${id}.png`));
+        if (png == null || png.w === 0 || png.h === 0) continue;
+        const pngAspect = png.w / png.h;
+        const off = Math.abs(rect.w / rect.h - pngAspect) / pngAspect;
+        if (off >= ASPECT_TOLERANCE) mismatched.push(`${id} off by ${Math.round(off * 100)}%`);
+      }
+      expect(checked.length, 'rects to check').to.be.greaterThan(300);
+      expect(mismatched, `rect/PNG aspect mismatch: ${mismatched.join(', ')}`).to.be.empty;
+    });
+
+    it('should give every terrain feature a placement rect', () => {
+      // Terrain icons are tight-cropped renders, so the stretch fallback is a
+      // visible regression rather than a graceful default: every catalogue entry
+      // should carry the rect the export measured for it.
+      const database = readDatabase();
+      const withoutRect = (database.terrainFeatures ?? [])
+        .filter((f: any) => !f.uiImageRect)
+        .map((f: any) => f.id);
+      expect(database.terrainFeatures, 'terrainFeatures').to.be.an('array').with.length.greaterThan(
+        0
+      );
+      expect(withoutRect, `terrain features with no uiImageRect: ${withoutRect.join(', ')}`).to.be
+        .empty;
+    });
+  });
 });
