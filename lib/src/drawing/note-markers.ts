@@ -1,5 +1,9 @@
+import {
+  BuildableElement,
+  NEUTRONIUM_DISPLAY_COLOR,
+  NEUTRONIUM_ELEMENT_ID,
+} from '../b-export/b-element';
 import { BniWorldNote } from '../io/bni/bni-blueprint';
-import { BuildableElement } from '../b-export/b-element';
 import { ElementState } from '../enums/element-state';
 
 // How a world note becomes a marker on the canvas: which sprite, what colour,
@@ -93,6 +97,11 @@ export function noteBadgeColor(
 ): { color: number; alpha: number } {
   if (note.type === TEXT_NOTE) return parseNoteTintHex(note.tinthex);
   const element = note.id != null ? resolveElement(note.id) : undefined;
+  // Neutronium's exported uiColor is a placeholder magenta the game never
+  // shows, and the terrain tool seeds a whole row of these under every
+  // feature — so it takes the same near-black override its cells do.
+  if (element != null && element.id === NEUTRONIUM_ELEMENT_ID)
+    return { color: NEUTRONIUM_DISPLAY_COLOR, alpha: 1 };
   return {
     color: element != null && element.uiColor ? element.uiColor : DEFAULT_BADGE_COLOR,
     alpha: 1,

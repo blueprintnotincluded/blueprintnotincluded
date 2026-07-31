@@ -1,5 +1,6 @@
 import {
   BniTerrainFeature,
+  BniWorldNote,
   BTerrainFeature,
   BuildableElement,
   NEUTRONIUM_ELEMENT_ID,
@@ -12,7 +13,6 @@ import {
   neutroniumBaseCells,
   terrainFootprint,
 } from "./terrain-annotation.service";
-import { BlueprintHelpers } from "../../../../../lib/index";
 
 const CATALOGUE: BTerrainFeature[] = [
   {
@@ -134,12 +134,8 @@ describe("TerrainAnnotationService", () => {
   let service: TerrainAnnotationService;
   let blueprint: {
     terrainFeatures: BniTerrainFeature[];
+    worldNotes: BniWorldNote[];
     emitBlueprintChanged: ReturnType<typeof vi.fn>;
-    pauseChangeEvents: ReturnType<typeof vi.fn>;
-    resumeChangeEvents: ReturnType<typeof vi.fn>;
-    addBlueprintItem: ReturnType<typeof vi.fn>;
-    getBlueprintItemsAt: ReturnType<typeof vi.fn>;
-    items: any[];
   };
 
   beforeEach(() => {
@@ -150,19 +146,10 @@ describe("TerrainAnnotationService", () => {
     BuildableElement.init();
     BuildableElement.load([]);
 
-    const items: any[] = [];
     blueprint = {
       terrainFeatures: [],
-      items,
+      worldNotes: [],
       emitBlueprintChanged: vi.fn(),
-      pauseChangeEvents: vi.fn(),
-      // Mirrors the real Blueprint: resuming emits the batched change, which is
-      // what turns one placement into exactly one undo snapshot.
-      resumeChangeEvents: vi.fn(() => blueprint.emitBlueprintChanged()),
-      addBlueprintItem: vi.fn((item: any) => items.push(item)),
-      getBlueprintItemsAt: vi.fn((p: { x: number; y: number }) =>
-        items.filter((i) => i.position.x === p.x && i.position.y === p.y),
-      ),
     };
     service = new TerrainAnnotationService({
       blueprint,
@@ -231,7 +218,9 @@ describe("TerrainAnnotationService", () => {
     expect(service.selected).toBe(kept);
   });
 
-  // In the game every geyser sits on neutronium, so placing one seeds that row.
+  // In the game every geyser sits on neutronium, so placing one seeds that row
+  // as element world notes — the mod's own way of saying "this cell holds this
+  // material", so unlike an element cell it survives the trip back into game.
   describe("neutronium base", () => {
     const NEUTRONIUM = {
       id: NEUTRONIUM_ELEMENT_ID,
@@ -247,80 +236,79 @@ describe("TerrainAnnotationService", () => {
     beforeEach(() => {
       BuildableElement.init();
       BuildableElement.load([NEUTRONIUM as never]);
-
-      // Element cells are real BlueprintItems, which need the renderer's
-      // OniItem/SpriteModifier tables — never stood up in specs. Stub the
-      // factory with the small surface seedNeutroniumBase actually touches.
-      vi.spyOn(BlueprintHelpers, "createInstance").mockImplementation(
-        (id: string) => {
-          const cell: any = {
-            id,
-            position: { x: 0, y: 0 },
-            mass: 0,
-            temperature: 0,
-            buildableElements: [],
-            setElement: (elementId: string, index: number) => {
-              cell.buildableElements[index] = { id: elementId };
-            },
-            cleanUp: () => {},
-            prepareBoundingBox: () => {},
-          };
-          return cell;
-        },
-      );
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
     });
 
     it("seeds one row, as wide as the footprint, directly beneath the anchor", () => {
       // OilWell is 4x2, anchored bottom-left at (10, 20).
       service.add({ id: "OilWell", x: 10, y: 20 });
 
-      expect(blueprint.items).toHaveLength(4);
-      expect(
-        blueprint.items.map((i) => ({ x: i.position.x, y: i.position.y })),
-      ).toEqual([
+      expect(blueprint.worldNotes).toHaveLength(4);
+      expect(blueprint.worldNotes.map((n) => ({ x: n.x, y: n.y }))).toEqual([
         { x: 10, y: 19 },
         { x: 11, y: 19 },
         { x: 12, y: 19 },
         { x: 13, y: 19 },
       ]);
-      expect(
-        blueprint.items.every(
-          (i) => i.buildableElements[0].id === NEUTRONIUM_ELEMENT_ID,
-        ),
-      ).toBe(true);
+    });
+
+    // Type 1 is BlueprintNoteData.NoteType.Element; the mod writes only
+    // id/mass/temp for it, so those three are the whole payload.
+    it("writes each cell as an element note carrying Neutronium", () => {
+      service.add({ id: "GeyserGeneric_steam", x: 0, y: 0 });
+
+      expect(blueprint.worldNotes[0]).toEqual({
+        x: 0,
+        y: -1,
+        type: 1,
+        id: NEUTRONIUM.tag,
+        mass: NEUTRONIUM.defaultMass,
+        temp: NEUTRONIUM.defaultTemperature,
+      });
     });
 
     it("matches a narrower footprint", () => {
       // Cool Steam Vent is 2 wide.
       service.add({ id: "GeyserGeneric_steam", x: 0, y: 0 });
-      expect(blueprint.items).toHaveLength(2);
+      expect(blueprint.worldNotes).toHaveLength(2);
     });
 
     it("gives an unknown feature a single-cell base", () => {
       service.add({ id: "SomeModdedGeyser", x: 5, y: 5 });
-      expect(blueprint.items).toHaveLength(1);
+      expect(blueprint.worldNotes).toHaveLength(1);
     });
 
-    // The user is meant to customize the base with the normal element tool, so
-    // a cell they already placed must never be replaced by the default.
-    it("never stacks a second cell where one already exists", () => {
+    // The user is meant to customize the base with the note tool, so a note
+    // already at that cell must never be replaced by the default.
+    it("never stacks a second note where one already exists", () => {
       service.add({ id: "OilWell", x: 10, y: 20 });
       service.add({ id: "OilWell", x: 10, y: 20 });
-      expect(blueprint.items).toHaveLength(4);
+      expect(blueprint.worldNotes).toHaveLength(4);
+    });
+
+    it("leaves a note the user already placed alone", () => {
+      const theirs: BniWorldNote = { x: 10, y: 19, type: 0, text: "mine" };
+      blueprint.worldNotes = [theirs];
+      service.add({ id: "OilWell", x: 10, y: 20 });
+
+      expect(blueprint.worldNotes).toHaveLength(4);
+      expect(blueprint.worldNotes[0]).toBe(theirs);
     });
 
     // The annotation and its base are one edit, so they are one undo step.
-    it("batches the annotation and its base into a single change event", () => {
+    it("emits a single change event for the annotation and its base", () => {
       service.add({ id: "OilWell", x: 10, y: 20 });
-      expect(blueprint.pauseChangeEvents).toHaveBeenCalledTimes(1);
-      expect(blueprint.resumeChangeEvents).toHaveBeenCalledTimes(1);
+      expect(blueprint.emitBlueprintChanged).toHaveBeenCalledTimes(1);
     });
 
-    // Seeded, not owned: deleting the annotation leaves cells the user may
+    // The notes overlay caches by array identity, so a push alone would not
+    // redraw.
+    it("gives worldNotes a new array identity", () => {
+      const before = blueprint.worldNotes;
+      service.add({ id: "OilWell", x: 10, y: 20 });
+      expect(blueprint.worldNotes).not.toBe(before);
+    });
+
+    // Seeded, not owned: deleting the annotation leaves notes the user may
     // have since edited.
     it("leaves the base behind when the annotation is deleted", () => {
       const feature: BniTerrainFeature = { id: "OilWell", x: 10, y: 20 };
@@ -328,7 +316,7 @@ describe("TerrainAnnotationService", () => {
       service.delete(feature);
 
       expect(blueprint.terrainFeatures).toEqual([]);
-      expect(blueprint.items).toHaveLength(4);
+      expect(blueprint.worldNotes).toHaveLength(4);
     });
   });
 
@@ -336,7 +324,7 @@ describe("TerrainAnnotationService", () => {
   // the annotation and no base, rather than a crash.
   it("places no base when the database has no Neutronium", () => {
     service.add({ id: "OilWell", x: 0, y: 0 });
-    expect(blueprint.items).toHaveLength(0);
+    expect(blueprint.worldNotes).toHaveLength(0);
     expect(blueprint.terrainFeatures).toHaveLength(1);
   });
 

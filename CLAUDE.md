@@ -297,21 +297,28 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   becomes true (a box-drag selection produces no click, so the click path alone can't see it).
 - **Neutronium base** — placing an annotation seeds the row of Neutronium every geyser is
   anchored on in game: height 1, as wide as the footprint, in the row directly beneath the
-  anchor cell (`neutroniumBaseCells`). *Seeded, not owned* — these are ordinary
-  `BlueprintItemElement` cells the user then edits with the normal element tool, so deleting
+  anchor cell (`neutroniumBaseCells`). The real deposit is often a cell or two wider, but by
+  how much depends on the world seed, so only the subset that is always present is drawn.
+  Each cell is an **element world note** (`BlueprintNoteData.NoteType.Element`, i.e. `type: 1`
+  carrying `id`/`mass`/`temp`), not a website-only element cell: the mod already has a
+  first-class way to say "this cell holds this material", so the base survives the trip back
+  into the game instead of being dropped on export, and it costs no new model — world notes
+  already render, export, undo and import. It also carries no explanatory text, because the
+  mod writes only id/mass/temp for an element note and discards title/text/tint.
+  *Seeded, not owned* — the user then edits or deletes them with the note tool, so deleting
   the annotation leaves them alone rather than discarding their edits, and a cell that already
-  exists is never overwritten. The annotation and its base are one `pauseChangeEvents` batch,
-  hence one undo step. Element cells are excluded from `toBniBlueprint`'s `buildings`, so the
-  base is website-only and still costs nothing.
+  holds a note is never overwritten. The annotation and its base are one
+  `emitBlueprintChanged`, hence one undo step.
 - **Solid element cells** — `BlueprintItemElement` previously rendered only gas/liquid/vacuum;
   solids now render too (Base overlay only, tinted `element_back`, at `ZIndex.Backwall` so a
   building placed on annotated ground is never covered by it). The cell picker gained an
   opt-in **Solid** checkbox, off by default so the existing gas/liquid list is unchanged.
   Neutronium is `Unobtanium` (`NEUTRONIUM_ELEMENT_ID`); it is the one element whose exported
   `color` (white) and `uiColor` (magenta) are both sentinels — the game never renders it as a
-  material — so it gets a render-time `NEUTRONIUM_DISPLAY_COLOR`, with the database left as
-  the export wrote it. This is what makes the neutronium base above renderable, and lets the
-  user draw or extend one by hand.
+  material — so it gets a render-time `NEUTRONIUM_DISPLAY_COLOR` (`#0e0e0e`, the near-black
+  the game's own tile reads as), with the database left as the export wrote it. The override
+  applies wherever Neutronium is drawn: element cells *and* the element-note badges the
+  terrain tool seeds (`noteBadgeColor`). This lets the user draw or extend a base by hand.
 - **Active tile / area of effect** — a feature acts on exactly ONE cell, not on its whole
   footprint, and the cell differs by kind: a **volcano** erupts from the middle of its 3x3
   (`1,1`), a **geyser or vent** from the **left** of its footprint (`0,1`). The split comes

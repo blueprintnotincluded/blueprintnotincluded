@@ -3,6 +3,8 @@ import {
   BniWorldNote,
   BuildableElement,
   ElementState,
+  NEUTRONIUM_DISPLAY_COLOR,
+  NEUTRONIUM_ELEMENT_ID,
 } from "../../../../../lib/index";
 import {
   MARKER_URLS,
@@ -81,6 +83,23 @@ describe("noteBadgeColor", () => {
       ).color,
     ).to.equal(0xd95e63);
     expect(noteBadgeColor(note, noElement).color).to.equal(0x3b82f6);
+  });
+
+  // Neutronium's exported uiColor is a placeholder magenta the game never
+  // shows, and the terrain tool seeds a row of these under every feature — so
+  // the badge takes the same near-black override the element's cells do.
+  it("overrides Neutronium's placeholder uiColor with its display colour", () => {
+    const note: BniWorldNote = { x: 0, y: 0, type: 1, id: 9, mass: 0, temp: 0 };
+    const neutronium = {
+      id: NEUTRONIUM_ELEMENT_ID,
+      name: "Neutronium",
+      uiColor: 0xff00ff,
+      state: ElementState.Solid,
+    } as BuildableElement;
+
+    expect(
+      noteBadgeColor(note, (t) => (t === 9 ? neutronium : undefined)),
+    ).to.deep.equal({ color: NEUTRONIUM_DISPLAY_COLOR, alpha: 1 });
   });
 });
 
