@@ -49,11 +49,16 @@
 // silently reverted to the snapshot. Every write therefore carries the array
 // state it was computed from as a compare-and-set filter; a document that
 // changed underneath fails to match and is re-read and retried, rather than
-// clobbered.
+// clobbered. Provenance is written per document, and only once that
+// document's own write is known to have landed.
 
 const COLLECTIONS = ['blueprints', 'blueprintversions'];
 const PROVENANCE = 'migration_20260730_info_notes';
 const BATCH = 500;
+// Updates in flight at once. Bounded so a migration cannot exhaust the
+// driver's connection pool, but wide enough that per-document writes cost
+// about what a batched write did.
+const CONCURRENCY = 50;
 const MAX_ATTEMPTS = 3;
 
 const TEXT_NOTE = 0;
@@ -131,9 +136,9 @@ function casFilter(documentId, data) {
 async function rewrite(db, collectionName, { filter, project, plan, label }) {
   const collection = db.collection(collectionName);
 
-  // Keyed by document so a retried document is reported once, not once per
-  // pass — otherwise a contended run reports more conversions than the corpus
-  // contains.
+  // Documents whose write actually landed, keyed by id so a retried document
+  // is counted once rather than once per pass — otherwise a contended run
+  // reports more conversions than the corpus contains.
   const touched = new Map();
   let pass = 0;
   let scope = filter;
@@ -144,44 +149,50 @@ async function rewrite(db, collectionName, { filter, project, plan, label }) {
     const conflicts = [];
     let pending = [];
 
+    // Individual updates issued in parallel waves rather than one bulkWrite:
+    // bulkWrite reports matches only in aggregate, and `after` must be able to
+    // tell whether *its own* document was written. Getting that wrong is worst
+    // in `down`, where `after` drops the provenance record — a document whose
+    // CAS was rejected would lose the record that makes it revertible at all.
+    // The waves keep the round trips down to roughly what batching gave us.
     const flush = async () => {
       if (pending.length === 0) return;
-      const result = await collection.bulkWrite(
-        pending.map(op => ({ updateOne: { filter: op.filter, update: op.update } })),
-        { ordered: false }
-      );
-      // bulkWrite reports matches in aggregate, not per operation, so a short
-      // count sends the whole batch round again; the ones that did land are
-      // no-ops on the next pass. `after` runs for the whole batch either way —
-      // a record written for a write that did not land is corrected when the
-      // retry re-reads that document, and `up`'s closing assertion refuses to
-      // finish while any document is still unconverted.
-      if (result.matchedCount < pending.length)
-        for (const op of pending) conflicts.push(op.filter._id);
-      for (const op of pending) if (op.after) await op.after();
+      for (let start = 0; start < pending.length; start += CONCURRENCY) {
+        const wave = pending.slice(start, start + CONCURRENCY);
+        const results = await Promise.all(
+          wave.map(op => collection.updateOne(op.filter, op.update))
+        );
+        for (let i = 0; i < wave.length; i++) {
+          if (results[i].matchedCount === 1) {
+            touched.set(String(wave[i].filter._id), wave[i].annotations);
+            if (wave[i].after) await wave[i].after();
+          } else {
+            // Changed under us: re-read it on the next pass.
+            conflicts.push(wave[i].filter._id);
+          }
+        }
+      }
       pending = [];
     };
 
     for await (const doc of cursor) {
       const planned = plan(doc);
       if (planned == null) continue;
-      touched.set(String(doc._id), planned.annotations);
       const update = { $set: planned.set };
       if (planned.unset && Object.keys(planned.unset).length > 0) update.$unset = planned.unset;
       pending.push({
         filter: casFilter(doc._id, doc.data),
         update,
         after: planned.after,
+        annotations: planned.annotations,
       });
       if (pending.length >= BATCH) await flush();
     }
     await flush();
 
     if (conflicts.length === 0) break;
-    // A count of whole batches, not of edited documents: one contended write
-    // sends its batch back for a re-read.
     console.log(
-      `${collectionName}: ${conflicts.length} document(s) in contended batches, re-reading`
+      `${collectionName}: ${conflicts.length} document(s) changed during the pass, re-reading`
     );
     scope = { $and: [filter, { _id: { $in: conflicts } }] };
     if (pass === MAX_ATTEMPTS)
