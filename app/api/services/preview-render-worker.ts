@@ -40,6 +40,11 @@ import {
   Display,
   TerrainFeature,
   BTerrainFeature,
+  MARKER_URLS,
+  MarkerName,
+  NOTE_ICON_TILE_FRACTION,
+  noteBadgeColor,
+  noteMarkerSprite,
 } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
 import { startMemoryHeartbeat } from './memory-heartbeat';
@@ -140,6 +145,74 @@ async function ensureTextures(
   return missing;
 }
 
+// Marker textures for world notes, decoded on first use and kept for the life
+// of the worker. Unlike building art these are a fixed set of 17 small icons
+// that most blueprints draw from, so they are not worth re-resolving per
+// render — and they are not ImageSource-registered ids, so ensureTextures
+// cannot carry them.
+const markerTextures = new Map<MarkerName, any>();
+
+async function getMarkerTexture(
+  pixi: PixiNodeUtil,
+  baseDir: string,
+  marker: MarkerName
+): Promise<any> {
+  let texture = markerTextures.get(marker);
+  if (texture === undefined) {
+    let baseTexture;
+    try {
+      baseTexture = await pixi.getImageFromCanvas(path.join(baseDir, MARKER_URLS[marker]));
+    } catch {
+      console.warn(`preview-render-worker: note marker ${marker} missing, using placeholder`);
+      baseTexture = pixi.getNewBaseRenderTexture({ width: 1, height: 1 });
+    }
+    // A whole-image Texture, not the BaseTexture: PIXI.Sprite.from cannot
+    // auto-detect a BaseTexture as a source and throws on it.
+    texture = pixi.getNewTextureWhole(baseTexture);
+    markerTextures.set(marker, texture);
+  }
+  return texture;
+}
+
+// World-note pins, drawn on top of the buildings — the same markers the editor
+// canvas and the client-side export snapshots draw, so a blueprint's card
+// shows the annotations its author placed. Sizing and colour come from the
+// shared note-marker rules; the selection ring and sprite pooling the editor
+// overlay does are per-frame concerns a one-shot render has no use for.
+async function drawWorldNotes(
+  pixi: PixiNodeUtil,
+  baseDir: string,
+  blueprint: SharedBlueprint,
+  camera: CameraService
+): Promise<void> {
+  if (blueprint.worldNotes.length === 0) return;
+
+  const container = pixi.getNewContainer();
+  // Above every building: blueprint items top out at ZIndex.BuildingUse.
+  container.zIndex = 1e6;
+  camera.container.addChild(container);
+
+  const zoom = camera.currentZoom;
+  const offset = camera.cameraOffset;
+  const size = NOTE_ICON_TILE_FRACTION * zoom;
+  const resolve = (tag: number) => BuildableElement.getElementByTag(tag);
+
+  for (const note of blueprint.worldNotes) {
+    const marker = noteMarkerSprite(note, resolve);
+    const badge = noteBadgeColor(note, resolve);
+    const sprite = pixi.getSpriteFrom(await getMarkerTexture(pixi, baseDir, marker));
+    sprite.anchor.set(0.5, 0.5);
+    sprite.tint = badge.color;
+    sprite.alpha = badge.alpha;
+    sprite.width = size;
+    sprite.height = size;
+    // Cell centre, matching BlueprintItem.drawPixi's +0.5 convention.
+    sprite.x = (note.x + offset.x + 0.5) * zoom;
+    sprite.y = (offset.y - note.y + 0.5) * zoom;
+    container.addChild(sprite);
+  }
+}
+
 interface RenderTimings {
   importMs: number;
   texturesMs: number;
@@ -174,15 +247,14 @@ async function renderMaster(
 
   const rasterizeStart = Date.now();
   const [topLeft, bottomRight] = blueprint.getBoundingBox();
-  const totalTileSize = new Vector2(
-    bottomRight.x - topLeft.x + 3,
-    bottomRight.y - topLeft.y + 3
-  );
+  const totalTileSize = new Vector2(bottomRight.x - topLeft.x + 3, bottomRight.y - topLeft.y + 3);
   const maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
   const tileSize = size / maxTotalSize;
   const cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
-  if (totalTileSize.x > totalTileSize.y) cameraOffset.y += totalTileSize.x / 2 - totalTileSize.y / 2;
-  if (totalTileSize.y > totalTileSize.x) cameraOffset.x += totalTileSize.y / 2 - totalTileSize.x / 2;
+  if (totalTileSize.x > totalTileSize.y)
+    cameraOffset.y += totalTileSize.x / 2 - totalTileSize.y / 2;
+  if (totalTileSize.y > totalTileSize.x)
+    cameraOffset.x += totalTileSize.y / 2 - totalTileSize.x / 2;
 
   const exportCamera = new CameraService(pixi.getNewContainer());
   exportCamera.setHardZoom(tileSize);
@@ -196,6 +268,7 @@ async function renderMaster(
     item.updateTileables(blueprint);
     item.drawPixi(exportCamera, pixi);
   });
+  await drawWorldNotes(pixi, assetBaseDir, blueprint, exportCamera);
 
   const baseRenderTexture = pixi.getNewBaseRenderTexture({ width: size, height: size });
   const renderTexture = pixi.getNewRenderTexture(baseRenderTexture);
