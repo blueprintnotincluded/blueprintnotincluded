@@ -31,7 +31,6 @@ export declare class OniItem {
     isFoundation: boolean;
     isBridge: boolean;
     isElement: boolean;
-    get isInfo(): boolean;
     size: Vector2;
     tileOffset: Vector2;
     utilityConnections: UtilityConnection[];

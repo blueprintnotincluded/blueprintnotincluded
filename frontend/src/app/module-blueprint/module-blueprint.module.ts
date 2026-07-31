@@ -86,8 +86,6 @@ import { FilterElementLiquidPipe } from "./pipes/filter-element-liquid.pipe";
 import { FilterElementGasPipe } from "./pipes/filter-element-gas.pipe";
 import { AddMassUnitPipe } from "./pipes/add-mass-unit.pipe";
 import { BitSelectionScreenComponent } from "./components/side-bar/ui-screens/bit-selection-screen/bit-selection-screen.component";
-import { InfoInputComponent } from "./components/side-bar/info-input/info-input.component";
-import { InfoInputIconComponent } from "./components/side-bar/info-input-icon/info-input-icon.component";
 import { PipeContentComponent } from "./components/side-bar/pipe-content/pipe-content.component";
 import { LoginPageComponent } from "./components/user-auth/login-page/login-page.component";
 import { RegisterPageComponent } from "./components/user-auth/register-page/register-page.component";
@@ -153,8 +151,6 @@ import { TerrainToolComponent } from "./components/side-bar/terrain-tool/terrain
     FilterElementGasPipe,
     AddMassUnitPipe,
     BitSelectionScreenComponent,
-    InfoInputComponent,
-    InfoInputIconComponent,
     PipeContentComponent,
     LoginPageComponent,
     RegisterPageComponent,

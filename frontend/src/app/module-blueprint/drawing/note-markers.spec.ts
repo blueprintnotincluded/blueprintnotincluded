@@ -5,7 +5,7 @@ import {
   isKnownNoteSymbol,
   noteSymbolUrl,
   resolveNoteSymbol,
-} from "./note-symbols";
+} from "../../../../../lib/index";
 
 describe("note symbols", () => {
   it("carries the mod's own sprite names as ids (they are wire values)", () => {

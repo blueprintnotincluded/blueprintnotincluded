@@ -4,8 +4,8 @@ import {
   BuildableElement,
   DrawHelpers,
   ElementState,
+  stripNoteMarkup,
 } from "../../../../../../../lib/index";
-import { stripNoteMarkup } from "../../../drawing/draw-notes-overlay";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));

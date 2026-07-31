@@ -15,7 +15,6 @@ import {
 import { IObsBuildItemChanged } from "src/app/module-blueprint/common/tools/build-tool";
 import { Popover } from "primeng/popover";
 import { ElementChangeInfo } from "../buildable-element-picker/buildable-element-picker.component";
-import { BlueprintItemInfo } from "../../../../../../../lib/src/blueprint/blueprint-item-info";
 
 @Component({
   selector: "app-build-tool",
@@ -79,13 +78,6 @@ export class ComponentSideBuildToolComponent
     this.categoryPanel.hide();
   }
 
-  addInfo() {
-    const newInfo = new BlueprintItemInfo(OniItem.infoId);
-    this.toolService.buildTool.changeItem(newInfo);
-
-    this.categoryPanel.hide();
-  }
-
   showItems(
     event: any,
     buildMenuCategory: BuildMenuCategory,
@@ -103,7 +95,6 @@ export class ComponentSideBuildToolComponent
           this.items[indexCategory].push([]);
         const specialItemName: Record<string, string> = {
           Element: $localize`:special item:Element`,
-          Info: $localize`:special item:Info`,
         };
         if (specialItemName[oniItem.id])
           oniItem.name = specialItemName[oniItem.id];

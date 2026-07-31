@@ -10,7 +10,7 @@ import {
   stripNoteMarkup,
   noteBadgeColor,
   noteMarkerSprite,
-} from "./draw-notes-overlay";
+} from "../../../../../lib/index";
 
 const noElement = () => undefined;
 const fakeElement = (name: string, uiColor: number, state?: ElementState) =>

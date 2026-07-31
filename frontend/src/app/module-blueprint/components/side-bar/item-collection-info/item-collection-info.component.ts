@@ -13,7 +13,6 @@ import {
   BlueprintItemWire,
 } from "../../../../../../../lib/index";
 import { ElementChangeInfo } from "../buildable-element-picker/buildable-element-picker.component";
-import { BlueprintItemInfo } from "../../../../../../../lib/src/blueprint/blueprint-item-info";
 
 @Component({
   selector: "app-item-collection-info",
@@ -91,10 +90,6 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
 
   selectEvery() {
     this.toolService.selectTool.selectAllLike(this.itemCollection.items[0]);
-  }
-
-  selectThisInfo(blueprintItemInfo: BlueprintItemInfo) {
-    this.toolService.selectTool.selectThis(blueprintItemInfo);
   }
 
   selected() {

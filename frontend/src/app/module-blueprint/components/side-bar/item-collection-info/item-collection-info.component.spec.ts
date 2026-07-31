@@ -28,7 +28,6 @@ describe("ItemCollectionInfoComponent", () => {
         },
       ],
       oniItem: {
-        isInfo: false,
         iconUrl: null,
         buildableElementsArray: [],
         name: "Test",
@@ -181,12 +180,6 @@ describe("ItemCollectionInfoComponent", () => {
       expect(selectTool.selectAllLike).toHaveBeenCalledWith(
         component.itemCollection.items[0],
       );
-    });
-
-    it("selectThisInfo forwards to the select tool", () => {
-      const info = { id: "info" } as any;
-      component.selectThisInfo(info);
-      expect(selectTool.selectThis).toHaveBeenCalledWith(info);
     });
   });
 
