@@ -94,7 +94,7 @@ The legacy 2020/2023 atlas pipeline has been removed — the `generate-icons/whi
 and their `npm run generate*` / `seed` / `enhancedSeed` / `testCanvas` entries no longer exist.
 Remaining batch utilities:
 - `npm run fixHtmlLabels` - Fix HTML formatting in labels.
-- `npm run derive-metadata` - Backfill `requiredDlcs`, `mods`, `modded` and `category` on all blueprint documents from stored building IDs. Use `--dry-run` flag (`npm run derive-metadata:dry-run`) to preview counts without writing. Both modes report the prefab ids found in blueprints but missing from `database-2024.json` — those ids drive `modded=true` **and** contribute no `dlcIds`, so each one is a blueprint silently reading as base game. `modded` is written in both directions (a false positive can be cleared), except that `hadUnknownBuildings: true` always wins — those blueprints had unknown buildings stripped at import, so re-derivation can't rediscover them. Note `Element`/`Info` are editor annotations synthesized by `OniItem.load`, not database buildings; they must be added to any `knownIds` set built from `database-2024.json` or every annotated blueprint reads as modded. Add `--recategorize` (`npm run derive-metadata -- --recategorize`) to re-derive `category` for documents that already have one, overwriting user picks; needed whenever the scoring rules in `blueprint-analyzer` change, since the default only fills in nulls.
+- `npm run derive-metadata` - Backfill `requiredDlcs`, `mods`, `modded` and `category` on all blueprint documents from stored building IDs. Use `--dry-run` flag (`npm run derive-metadata:dry-run`) to preview counts without writing. Both modes report the prefab ids found in blueprints but missing from `database-2024.json` — those ids drive `modded=true` **and** contribute no `dlcIds`, so each one is a blueprint silently reading as base game. `modded` is written in both directions (a false positive can be cleared), except that `hadUnknownBuildings: true` always wins — those blueprints had unknown buildings stripped at import, so re-derivation can't rediscover them. Note `Element` is an editor annotation synthesized by `OniItem.load`, not a database building; it must be added to any `knownIds` set built from `database-2024.json` or every annotated blueprint reads as modded. The retired `Info` id belongs in that set too — it no longer registers an `OniItem`, but pre-migration documents can still carry it. Add `--recategorize` (`npm run derive-metadata -- --recategorize`) to re-derive `category` for documents that already have one, overwriting user picks; needed whenever the scoring rules in `blueprint-analyzer` change, since the default only fills in nulls.
 - `npm run derive-rooms` / `derive-rooms:dry-run` - Re-derive the `rooms` field on all non-deleted blueprints with the same detector the save path uses.
 - **`--limit N` on both derive tasks** - A full pass loads every stored blueprint blob (~10 min on the live corpus), so diagnostic dry runs take `--limit N` (`npm run derive-metadata -- --dry-run --limit 100`). The capped run samples **randomly**, not the first N: natural order tracks insertion date and so does everything these reports measure, so a head sample would report the oldest blueprints' problems as the corpus average. Percentages from a sampled run extrapolate; the absolute counts don't. Shared helper: `app/api/batch/batch-sampling.ts`.
 - `npm run avatars:smoke` / `avatars:seed-batch -- --count N` / `avatars:backfill[:dry-run]` - Gemini avatar pipeline (costs real money per generation; setup + rollout order in `agent/AVATARS.md`).
@@ -178,7 +178,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Date**: 2026-07-12
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
-- **Tests**: ✅ Backend 781 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 1117 passing (Vitest/jsdom)
+- **Tests**: ✅ Backend 796 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 1120 passing (Vitest/jsdom)
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 - **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
@@ -314,11 +314,29 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   so catalogue edits silently do not reach the browser — run
   `node frontend/scripts/build-database-zip.js` or use `npm start`.
 - **Unknown ids survive**: single-cell footprint, placeholder glyph, raw id shown in the panel.
-- **Known gap (pre-existing, shared with world notes and Planning Tool shapes)**: the durable
-  server-side preview (`app/api/services/preview-render-worker.ts`) draws only
-  `blueprintItems`, so annotations do not appear on blueprint cards/details previews — only on
-  the live canvas and the client-side thumbnail/export snapshots. It also rejects a blueprint
-  with zero `blueprintItems`, so an annotation-only blueprint gets no stored preview.
+- **Known gap (shared with Planning Tool shapes)**: the durable server-side preview
+  (`app/api/services/preview-render-worker.ts`) draws `blueprintItems` and world notes, but
+  not terrain, so geysers do not appear on blueprint cards/details previews — only on the live
+  canvas and the client-side thumbnail/export snapshots. It also rejects a blueprint with zero
+  `blueprintItems`, so an annotation-only blueprint gets no stored preview.
+
+### World notes (annotations)
+The mod's world notes are the **only** annotation model. The website's own `Info` type — a
+pseudo-building with a title, body and coloured badge — is retired: it could not be written to
+a .blueprint file at all, so `toBniBlueprint` skipped it and every website annotation vanished
+on download. `Info` now survives as an *input* format only.
+- **Conversion** — `lib/src/blueprint/note-conversion.ts` (`infoBuildingToWorldNote`), applied
+  in `Blueprint.importFromMdb`. Badge colour → `tinthex`, the twelve `InfoIcon`s → the mod's
+  `note_info`/`note_warn`/`note_question`/`note_num_N` symbols, both written explicitly because
+  the two models' defaults differ. `frontColor` is dropped — a marker is one colour.
+  Stored documents were converted by `migrations/20260730000000_info-items-to-world-notes.js`;
+  converting on read means a document is correct either way, and any re-save converges it.
+- **Rendering** — which sprite, what colour, how big: `lib/src/drawing/note-markers.ts`, shared
+  by the editor overlay (`drawing/draw-notes-overlay.ts`), the client-side export/thumbnail
+  snapshots, and the server preview worker. The overlay keeps only the per-frame concerns
+  (texture pooling, selection ring). Node PIXI needs a whole-image `Texture`, not a
+  `BaseTexture` — `Sprite.from` throws on the latter.
+- **Editing** — `NotesTool` + `components/note-edit-panel/`. There is no other annotation UI.
 
 ### Blueprint metadata auto-derivation
 `requiredDlcs`, `gameVersion` and `modded` are derived deterministically from the blueprint
