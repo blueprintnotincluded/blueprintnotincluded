@@ -19,7 +19,9 @@ const SELECTED_COLOR = 0xffffff;
 
 // Only for features with no measured rect (see terrainIconPlacement): keeps the
 // stretched icon just inside the dashed outline instead of overprinting it.
-const FALLBACK_ICON_INSET = 0.86;
+// Exported so TerrainTool's cursor ghost insets identically — the ghost has no
+// outline of its own, but it has to predict where the placed icon will land.
+export const FALLBACK_ICON_INSET = 0.86;
 
 // Area of effect for a selected feature. A geyser acts on exactly ONE cell —
 // where it erupts — not on its whole footprint, which is mostly scenery. So a

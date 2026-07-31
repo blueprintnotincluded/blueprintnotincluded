@@ -867,12 +867,21 @@ export function convertExport2024(opts: ConvertOptions): void {
     buildings.length,
     '(rest stretch icon to footprint)'
   );
+  // Unlike buildings, a terrain feature with no rect is an incomplete import, not a
+  // fallback: its icon is a tight-cropped render, so stretch-to-footprint draws it
+  // squashed and misplaced rather than merely imprecise. The export measures all 31,
+  // so a gap here means the rects file is stale or a prefab was renamed.
+  const missingTerrainRects = terrainFeatures.filter((f) => !f.uiImageRect).map((f) => f.id);
   console.log(
     '  terrain with uiImageRect placement :',
-    terrainFeatures.filter((f) => f.uiImageRect).length,
+    terrainFeatures.length - missingTerrainRects.length,
     '/',
     terrainFeatures.length,
-    hasUiImageRects ? '' : '(ui_image_rects.json absent)'
+    !hasUiImageRects
+      ? '(ui_image_rects.json absent)'
+      : missingTerrainRects.length
+        ? '(no rect: ' + missingTerrainRects.join(', ') + ')'
+        : ''
   );
 
   // Every rect we are about to emit has to describe the PNG that ships beside it.
@@ -986,6 +995,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     missingTerrainSources.length +
     missingTerrainIcons.length +
     missingTerrainNames.length +
+    missingTerrainRects.length +
     rectAspectMismatches.length +
     (hasUiImageRects ? 0 : 1) +
     (hasPoStrings ? 0 : 1);
