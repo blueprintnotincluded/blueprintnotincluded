@@ -19,21 +19,42 @@
 // badge) is dropped — a world note marker is a single-colour sprite.
 //
 // up:   for every blueprint and blueprint version, move `data.blueprintItems`
-//       entries with id 'Info' into `data.worldNotes`.
+//       entries with id 'Info' into `data.worldNotes`, recording the removed
+//       items in a provenance collection.
 //
-// down: convert text world notes back into `Info` items. Exact for the
-//       documents `up` converted, which is the state a rollback in the deploy
-//       window would find. It is approximate afterwards: a note authored in
-//       game and imported after this migration also converts back (its symbol
-//       and tint map cleanly, so it renders correctly as an `Info` badge, but
-//       it is no longer the note the file it came from carried). Element notes
-//       (type 1) have no `Info` equivalent and are left alone.
+// down: restore exactly what `up` converted, from that provenance — never a
+//       note this migration did not create.
 //
-// Both directions are idempotent: after `up` no document has an `Info` item to
-// find, and after `down` none has a text world note.
+// PROVENANCE. `down` cannot identify its own work by inspection: a converted
+// note is indistinguishable from one authored in game, so a reversal driven by
+// "every text note" also eats notes that were always world notes. That is not
+// hypothetical — the prod-copy rehearsal caught it, with a down/up cycle
+// reporting 12 more conversions than the first pass. So `up` records the
+// `Info` items it removed, keyed by document, and `down` reads that back.
+//
+// The record lives in its own collection rather than as a marker field on the
+// notes themselves: a field would be permanent pollution of the blueprint
+// model, written into every exported .blueprint from then on, to serve a
+// rollback that is expected never to run.
+//
+// IDEMPOTENCE. `up` only ever selects documents that still carry an `Info`
+// item, and upserts provenance by document key, so a re-run after a partial
+// failure converts what is left and duplicates nothing. `down` deletes each
+// provenance record once it has restored it, so a re-run finds no work and
+// cannot re-append `Info` items. An up → down → up cycle returns to the same
+// state as a single `up`.
+//
+// CONCURRENCY. Both directions rewrite whole arrays from a cursor snapshot, so
+// a blueprint saved by its owner between the read and the write would be
+// silently reverted to the snapshot. Every write therefore carries the array
+// state it was computed from as a compare-and-set filter; a document that
+// changed underneath fails to match and is re-read and retried, rather than
+// clobbered.
 
 const COLLECTIONS = ['blueprints', 'blueprintversions'];
+const PROVENANCE = 'migration_20260730_info_notes';
 const BATCH = 500;
+const MAX_ATTEMPTS = 3;
 
 const TEXT_NOTE = 0;
 const INFO_DEFAULT_BACK_COLOR = 0x007ad9;
@@ -59,11 +80,6 @@ function backColorToTintHex(backColor) {
   return rgb.toString(16).padStart(6, '0') + 'ff';
 }
 
-function tintHexToBackColor(tinthex) {
-  if (typeof tinthex !== 'string' || !/^[0-9a-fA-F]{6,8}$/.test(tinthex)) return undefined;
-  return parseInt(tinthex.slice(0, 6), 16);
-}
-
 function infoToWorldNote(item) {
   const icon = typeof item.icon === 'number' ? item.icon : 0;
   const note = {
@@ -80,71 +96,148 @@ function infoToWorldNote(item) {
   return note;
 }
 
-function worldNoteToInfo(note) {
-  const item = { id: 'Info', position: { x: note.x || 0, y: note.y || 0 } };
-  const icon = INFO_ICON_SYMBOLS.indexOf(note.symbol);
-  if (icon > 0) item.icon = icon;
-  const backColor = tintHexToBackColor(note.tinthex);
-  if (backColor !== undefined && backColor !== INFO_DEFAULT_BACK_COLOR) item.backColor = backColor;
-  if (note.title) item.title = note.title;
-  if (note.text) item.infoString = note.text;
-  return item;
+// Key order is stable here — both sides of every comparison are built by
+// infoToWorldNote, and BSON preserves insertion order on the way back out —
+// but sort anyway so a hand-edited document cannot defeat the match.
+function noteKey(note) {
+  return JSON.stringify(
+    Object.keys(note)
+      .sort()
+      .map(k => [k, note[k]])
+  );
 }
 
-async function rewrite(db, collectionName, filter, project, transform, label) {
-  const collection = db.collection(collectionName);
-  const cursor = collection.find(filter).project(project);
+function provenanceId(collectionName, documentId) {
+  return `${collectionName}:${documentId}`;
+}
 
-  let documents = 0;
-  let converted = 0;
-  let ops = [];
-
-  for await (const doc of cursor) {
-    const result = transform(doc);
-    if (result == null) continue;
-    documents++;
-    converted += result.converted;
-    ops.push({
-      updateOne: { filter: { _id: doc._id }, update: { $set: result.set } },
-    });
-    if (ops.length >= BATCH) {
-      await collection.bulkWrite(ops);
-      ops = [];
-    }
+// Compare-and-set on the exact arrays the transform read. Absent fields are
+// matched as absent: an `$exists: false` clause, not a null, so a document that
+// gained the field concurrently fails the match like any other change.
+function casFilter(documentId, data) {
+  const filter = { _id: documentId };
+  for (const field of ['blueprintItems', 'worldNotes']) {
+    const value = data && data[field];
+    filter[`data.${field}`] = value === undefined ? { $exists: false } : value;
   }
-  if (ops.length > 0) await collection.bulkWrite(ops);
+  return filter;
+}
 
+// Runs `plan(doc)` over every document matching `filter`, batching the writes
+// it returns. Documents whose CAS filter no longer matches are collected and
+// re-read on a subsequent pass — by then they have either been converted
+// already (plan returns null, nothing to do) or carry the concurrent edit, and
+// the fresh read is what gets written.
+async function rewrite(db, collectionName, { filter, project, plan, label }) {
+  const collection = db.collection(collectionName);
+
+  // Keyed by document so a retried document is reported once, not once per
+  // pass — otherwise a contended run reports more conversions than the corpus
+  // contains.
+  const touched = new Map();
+  let pass = 0;
+  let scope = filter;
+
+  while (pass < MAX_ATTEMPTS) {
+    pass++;
+    const cursor = collection.find(scope).project(project);
+    const conflicts = [];
+    let pending = [];
+
+    const flush = async () => {
+      if (pending.length === 0) return;
+      const result = await collection.bulkWrite(
+        pending.map(op => ({ updateOne: { filter: op.filter, update: op.update } })),
+        { ordered: false }
+      );
+      // bulkWrite reports matches in aggregate, not per operation, so a short
+      // count sends the whole batch round again; the ones that did land are
+      // no-ops on the next pass. `after` runs for the whole batch either way —
+      // a record written for a write that did not land is corrected when the
+      // retry re-reads that document, and `up`'s closing assertion refuses to
+      // finish while any document is still unconverted.
+      if (result.matchedCount < pending.length)
+        for (const op of pending) conflicts.push(op.filter._id);
+      for (const op of pending) if (op.after) await op.after();
+      pending = [];
+    };
+
+    for await (const doc of cursor) {
+      const planned = plan(doc);
+      if (planned == null) continue;
+      touched.set(String(doc._id), planned.annotations);
+      const update = { $set: planned.set };
+      if (planned.unset && Object.keys(planned.unset).length > 0) update.$unset = planned.unset;
+      pending.push({
+        filter: casFilter(doc._id, doc.data),
+        update,
+        after: planned.after,
+      });
+      if (pending.length >= BATCH) await flush();
+    }
+    await flush();
+
+    if (conflicts.length === 0) break;
+    // A count of whole batches, not of edited documents: one contended write
+    // sends its batch back for a re-read.
+    console.log(
+      `${collectionName}: ${conflicts.length} document(s) in contended batches, re-reading`
+    );
+    scope = { $and: [filter, { _id: { $in: conflicts } }] };
+    if (pass === MAX_ATTEMPTS)
+      throw new Error(
+        `info-items-to-world-notes: ${collectionName} still contended after ${MAX_ATTEMPTS} passes ` +
+          `(${conflicts.length} document(s)); re-run the migration`
+      );
+  }
+
+  let annotations = 0;
+  for (const count of touched.values()) annotations += count;
   console.log(
-    `${collectionName}: ${label} ${converted} annotation(s) across ${documents} document(s)`
+    `${collectionName}: ${label} ${annotations} annotation(s) across ${touched.size} document(s)`
   );
-  return documents;
 }
 
 module.exports = {
   async up(db) {
+    const provenance = db.collection(PROVENANCE);
+
     for (const name of COLLECTIONS) {
-      await rewrite(
-        db,
-        name,
-        { 'data.blueprintItems.id': 'Info' },
-        { 'data.blueprintItems': 1, 'data.worldNotes': 1 },
-        doc => {
+      await rewrite(db, name, {
+        filter: { 'data.blueprintItems.id': 'Info' },
+        project: { 'data.blueprintItems': 1, 'data.worldNotes': 1 },
+        label: 'converted',
+        plan: doc => {
           const items = (doc.data && doc.data.blueprintItems) || [];
-          const infos = items.filter(item => item.id === 'Info');
+          // Position is recorded alongside the item so `down` can splice each
+          // one back where it was. Array order is not meaningful to the
+          // importer, but it is the tie-break for equal z-indexes at render
+          // time, so an exact reversal has to preserve it.
+          const infos = [];
+          items.forEach((item, at) => {
+            if (item.id === 'Info') infos.push({ at, item });
+          });
           if (infos.length === 0) return null;
-          const worldNotes = ((doc.data && doc.data.worldNotes) || []).concat(
-            infos.map(infoToWorldNote)
-          );
           return {
-            converted: infos.length,
+            annotations: infos.length,
             set: {
               'data.blueprintItems': items.filter(item => item.id !== 'Info'),
-              'data.worldNotes': worldNotes,
+              'data.worldNotes': ((doc.data && doc.data.worldNotes) || []).concat(
+                infos.map(info => infoToWorldNote(info.item))
+              ),
             },
+            // Written after the document, so a crash between the two leaves an
+            // un-reversible conversion rather than a record that would restore
+            // `Info` items the document never lost.
+            after: () =>
+              provenance.updateOne(
+                { _id: provenanceId(name, doc._id) },
+                { $set: { collection: name, documentId: doc._id, infos } },
+                { upsert: true }
+              ),
           };
         },
-        'converted'
-      );
+      });
 
       const remaining = await db
         .collection(name)
@@ -157,27 +250,70 @@ module.exports = {
   },
 
   async down(db) {
+    const provenance = db.collection(PROVENANCE);
+
     for (const name of COLLECTIONS) {
-      await rewrite(
-        db,
-        name,
-        { 'data.worldNotes.type': TEXT_NOTE },
-        { 'data.blueprintItems': 1, 'data.worldNotes': 1 },
-        doc => {
-          const notes = (doc.data && doc.data.worldNotes) || [];
-          const text = notes.filter(note => (note.type || 0) === TEXT_NOTE);
-          if (text.length === 0) return null;
-          const items = ((doc.data && doc.data.blueprintItems) || []).concat(
-            text.map(worldNoteToInfo)
-          );
-          const set = {
-            'data.blueprintItems': items,
-            'data.worldNotes': notes.filter(note => (note.type || 0) !== TEXT_NOTE),
+      const records = new Map();
+      for await (const record of provenance.find({ collection: name }))
+        records.set(String(record.documentId), record);
+
+      if (records.size === 0) {
+        console.log(`${name}: nothing recorded by this migration to revert`);
+        continue;
+      }
+
+      await rewrite(db, name, {
+        filter: { _id: { $in: [...records.values()].map(r => r.documentId) } },
+        project: { 'data.blueprintItems': 1, 'data.worldNotes': 1 },
+        label: 'reverted',
+        plan: doc => {
+          const record = records.get(String(doc._id));
+          if (record == null) return null;
+
+          // Remove one note per recorded `Info` item, matched on content. A
+          // note the user has since edited no longer matches and is left
+          // alone — as is every note this migration did not create.
+          const wanted = new Map();
+          for (const info of record.infos) {
+            const key = noteKey(infoToWorldNote(info.item));
+            wanted.set(key, (wanted.get(key) || 0) + 1);
+          }
+          const kept = [];
+          for (const note of (doc.data && doc.data.worldNotes) || []) {
+            const key = noteKey(note);
+            const outstanding = wanted.get(key) || 0;
+            if (outstanding > 0) wanted.set(key, outstanding - 1);
+            else kept.push(note);
+          }
+
+          // Splicing in ascending index order is the exact inverse of having
+          // filtered them out.
+          const items = ((doc.data && doc.data.blueprintItems) || []).slice();
+          for (const info of [...record.infos].sort((a, b) => a.at - b.at))
+            items.splice(info.at, 0, info.item);
+
+          const set = { 'data.blueprintItems': items };
+          const unset = {};
+          // An empty array is not what the app writes — toMdbBlueprint omits
+          // the field entirely — so leaving a husk behind would make the
+          // rollback visible in stored data.
+          if (kept.length > 0) set['data.worldNotes'] = kept;
+          else unset['data.worldNotes'] = '';
+
+          return {
+            annotations: record.infos.length,
+            set,
+            unset,
+            // Dropped only once the restore has landed, so an interrupted run
+            // resumes rather than losing the ability to revert.
+            after: () => provenance.deleteOne({ _id: provenanceId(name, doc._id) }),
           };
-          return { converted: text.length, set };
         },
-        'reverted'
-      );
+      });
     }
+
+    // Records whose documents have since been deleted would otherwise pin the
+    // collection alive forever.
+    await provenance.deleteMany({});
   },
 };
