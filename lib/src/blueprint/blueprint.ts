@@ -20,6 +20,7 @@ import {
 } from './terrain-metadata';
 import { applySanitizeOffset, modSanitizeOffset } from './bpv2-sanitize';
 import { TerrainFeature } from '../b-export/b-terrain-feature';
+import { infoBuildingToWorldNote } from './note-conversion';
 
 export class Blueprint {
   blueprintItems: BlueprintItem[];
@@ -75,7 +76,6 @@ export class Blueprint {
 
     // Copy the buildings
     for (let building of oniBlueprint.buildings) {
-
       let newTemplateItem = BlueprintHelpers.createInstance(building.id);
       if (newTemplateItem == null) continue;
 
@@ -185,6 +185,15 @@ export class Blueprint {
     this.foreignMetadata = { ...(mdbBlueprint.foreignMetadata ?? {}) };
 
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
+      // Legacy website annotations, stored as pseudo-buildings before world
+      // notes existed. Converted on read and never written back, so a stored
+      // blueprint converges on the mod's model the next time it is saved —
+      // with or without the batch migration having reached it yet.
+      if (originalTemplateItem.id == OniItem.infoId) {
+        this.worldNotes.push(infoBuildingToWorldNote(originalTemplateItem));
+        continue;
+      }
+
       let newTemplateItem = BlueprintHelpers.createInstance(originalTemplateItem.id);
 
       // Don't import buildings we don't recognise
@@ -477,8 +486,12 @@ export class Blueprint {
       digcommands: [],
     };
 
+    // `Element` is an editor-only cell annotation with no BlueprintsV2
+    // counterpart. (`Info` used to be skipped here too — that is what silently
+    // dropped every website annotation on download. It is now converted to a
+    // world note on import, so no item with that id ever reaches this loop.)
     for (let originalTemplateItem of this.blueprintItems)
-      if (originalTemplateItem.id != OniItem.elementId && originalTemplateItem.id != OniItem.infoId)
+      if (originalTemplateItem.id != OniItem.elementId)
         returnValue.buildings.push(originalTemplateItem.toBniBuilding());
 
     if (this.planningToolShapes.length > 0) {

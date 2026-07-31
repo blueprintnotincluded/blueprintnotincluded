@@ -18,6 +18,10 @@ import { AreaOfEffect, dedupeAreasOfEffect } from './area-of-effect';
 
 export class OniItem {
   static elementId = 'Element';
+  // The retired website annotation type. No OniItem is registered for it any
+  // more — the id survives only so stored blueprints can be recognised and
+  // converted to world notes on read (see note-conversion.ts), and so the
+  // metadata backfill keeps treating it as synthetic rather than modded.
   static infoId = 'Info';
   static defaultColor = '#696969';
 
@@ -44,11 +48,7 @@ export class OniItem {
   // can't be used for room boundaries: it's also true for kanim-tiled wires/pipes.
   isFoundation: boolean = false;
   isBridge: boolean = false;
-  // TODO this should be a get like isInfo
   isElement: boolean = false;
-  get isInfo(): boolean {
-    return this.id == OniItem.infoId;
-  }
   size: Vector2 = new Vector2();
   tileOffset: Vector2 = new Vector2();
   utilityConnections: UtilityConnection[] = [];
@@ -157,9 +157,7 @@ export class OniItem {
     this.connectionScale = original.connectionScale
       ? new Vector2(original.connectionScale.x, original.connectionScale.y)
       : new Vector2(1, 1);
-    this.uiImageRect = original.uiImageRect
-      ? { ...original.uiImageRect }
-      : undefined;
+    this.uiImageRect = original.uiImageRect ? { ...original.uiImageRect } : undefined;
     if (this.connectionSprites) {
       for (let bitmask = 0; bitmask < OniItem.connectionSpriteCount; bitmask++) {
         const id = OniItem.connectionSpriteId(this.id, bitmask);
@@ -190,7 +188,7 @@ export class OniItem {
     // Map material categories to selectable elements; ignore non-selectable categories
     // and drop empty slots so UI shows only real construction materials.
     const allMaterialElements = BuildableElement.getElementsFromTags(original.materialCategory);
-    this.buildableElementsArray = allMaterialElements.filter((elements) => elements.length > 0);
+    this.buildableElementsArray = allMaterialElements.filter(elements => elements.length > 0);
 
     this.defaultElement = [];
     for (
@@ -215,30 +213,32 @@ export class OniItem {
         if (category === 'BuildingFiber') {
           // Look for reed fiber or similar fiber element
           for (const element of BuildableElement.elements) {
-            if (element.id.toLowerCase().includes('reed') || 
-                element.id.toLowerCase().includes('fiber') ||
-                element.oreTags.includes('Fiber')) {
+            if (
+              element.id.toLowerCase().includes('reed') ||
+              element.id.toLowerCase().includes('fiber') ||
+              element.oreTags.includes('Fiber')
+            ) {
               displayElement = element;
               break;
             }
           }
-          
+
           // If no fiber element found, create a text-only placeholder
           // Better to show no icon than the wrong icon
           if (!displayElement) {
             displayElement = new BuildableElement();
             displayElement.id = 'BuildingFiber';
             displayElement.name = 'Reed Fiber';
-            displayElement.color = 0x8B4513; // Brown color
-            displayElement.uiColor = 0x8B4513;
-            displayElement.conduitColor = 0x8B4513;
+            displayElement.color = 0x8b4513; // Brown color
+            displayElement.uiColor = 0x8b4513;
+            displayElement.conduitColor = 0x8b4513;
             displayElement.icon = ''; // No icon
             displayElement.iconUrl = ''; // No icon URL
             displayElement.oreTags = ['Fiber', 'BuildableAny'];
             displayElement.buildMenuSort = 999;
           }
         }
-        
+
         if (displayElement) {
           this.secondaryMaterialCosts.push({ element: displayElement, mass, category });
         }
@@ -369,19 +369,6 @@ export class OniItem {
     );
     elementOniItem.cleanUp();
     OniItem.oniItemsMap.set(elementOniItem.id, elementOniItem);
-
-    let infoOniItem = new OniItem(OniItem.infoId);
-    infoOniItem.name = OniItem.infoId;
-    infoOniItem.iconUrl = 'assets/images/ui/manual/info-indicator-icon.png';
-    infoOniItem.zIndex = ZIndex.BuildingUse;
-    infoOniItem.spriteGroup = new SpriteModifierGroup();
-    infoOniItem.spriteGroup.spriteModifiers.push(SpriteModifier.getSpriteModifer('info_back'));
-    for (let i = 0; i < 12; i++)
-      infoOniItem.spriteGroup.spriteModifiers.push(
-        SpriteModifier.getSpriteModifer('info_front_' + i)
-      );
-    infoOniItem.cleanUp();
-    OniItem.oniItemsMap.set(infoOniItem.id, infoOniItem);
   }
 
   // ObjectLayer.Building in the game's grid; buildings on this layer are physical

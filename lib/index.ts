@@ -46,6 +46,7 @@ export * from './src/drawing/draw-helpers';
 export * from './src/drawing/draw-part';
 export * from './src/drawing/camera-service';
 export * from './src/drawing/pixi-util';
+export * from './src/drawing/note-markers';
 
 export * from './src/blueprint/blueprint';
 export * from './src/blueprint/blueprint-helpers';
@@ -53,6 +54,7 @@ export * from './src/blueprint/blueprint-metadata';
 export * from './src/blueprint/blueprint-analyzer';
 export * from './src/blueprint/dlc';
 export * from './src/blueprint/terrain-metadata';
+export * from './src/blueprint/note-conversion';
 export * from './src/blueprint/bpv2-sanitize';
 export * from './src/blueprint/rooms';
 export * from './src/blueprint/blueprint-item';

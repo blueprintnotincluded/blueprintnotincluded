@@ -36,7 +36,6 @@
     </div>
 
     <app-buildable-element-picker
-      *ngIf="!currentItem.isInfo"
       [currentElement]="currentItemToBuild.buildableElements"
       [buildableElementsArray]="currentItem.buildableElementsArray"
       [isGasLiquid]="isGasLiquid"
@@ -45,10 +44,7 @@
     </app-buildable-element-picker>
 
     <div
-      *ngIf="
-        !currentItem?.isInfo &&
-        (currentItem?.secondaryMaterialCosts?.length || 0) > 0
-      "
+      *ngIf="(currentItem?.secondaryMaterialCosts?.length || 0) > 0"
       class="secondary-costs"
     >
       <fieldset class="ui-fieldset ui-widget ui-widget-content ui-corner-all">
@@ -88,22 +84,13 @@
     </div>
 
     <app-temperature-picker
-      *ngIf="!currentItem.isInfo"
       [blueprintItem]="currentItemToBuild"
       [temperatureWarning]="false"
     >
     </app-temperature-picker>
 
-    <app-ui-screen-container
-      *ngIf="!currentItem.isInfo"
-      [blueprintItem]="currentItemToBuild"
-    >
+    <app-ui-screen-container [blueprintItem]="currentItemToBuild">
     </app-ui-screen-container>
-
-    <div *ngIf="currentItem.isInfo">
-      <app-info-input [blueprintIteminfo]="$any(currentItemToBuild)">
-      </app-info-input>
-    </div>
 
     <!-- These go first so we don't have to add one to the index when querying them -->
     <p-popover
@@ -135,20 +122,6 @@
 
 <p-popover #categoryPanel [appendTo]="'body'">
   <div class="building-panel-content">
-    <div
-      class="ui-clickable-icon element-button"
-      (click)="addInfo()"
-      i18n-pTooltip
-      pTooltip="Add info tip"
-      tooltipPosition="bottom"
-      tooltipEvent="both"
-      life="5000"
-    >
-      <img
-        src="assets/images/ui/manual/info-indicator-icon.png"
-        height="40px"
-      />
-    </div>
     <div
       class="ui-clickable-icon element-button"
       (click)="paintElement()"

@@ -5,6 +5,10 @@ import {
   CameraService,
   DrawHelpers,
   ElementState,
+  MARKER_URLS,
+  NOTE_ICON_TILE_FRACTION,
+  noteBadgeColor,
+  noteMarkerSprite,
   Vector2,
 } from "../../../../../../lib/index";
 import { BlueprintService } from "../../services/blueprint-service";
@@ -13,12 +17,6 @@ import {
   findNoteAt,
 } from "../../services/world-note.service";
 import { DrawPixi } from "../../drawing/draw-pixi";
-import {
-  MARKER_URLS,
-  NOTE_ICON_TILE_FRACTION,
-  noteBadgeColor,
-  noteMarkerSprite,
-} from "../../drawing/draw-notes-overlay";
 import { ITool, ToolType } from "./tool";
 import {
   ShortcutAction,

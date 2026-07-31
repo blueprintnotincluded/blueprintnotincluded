@@ -2,7 +2,7 @@
 
 <!--{{debug}}-->
 
-<div *ngIf="!itemCollection.oniItem.isInfo">
+<div>
   <div class="icon-nb-items">
     <img
       *ngIf="itemCollection.oniItem.iconUrl !== null"
@@ -46,31 +46,6 @@
   </app-ui-screen-container>
 </div>
 
-<div *ngIf="itemCollection.oniItem.isInfo && itemCollection.items.length === 1">
-  <app-info-input [blueprintIteminfo]="$any(itemCollection.items[0])">
-  </app-info-input>
-</div>
-<div *ngIf="itemCollection.oniItem.isInfo && itemCollection.items.length > 1">
-  <div *ngFor="let info of itemCollection.items">
-    <div
-      class="ui-clickable-icon info-button"
-      (click)="selectThisInfo($any(info))"
-    >
-      <div class="info-panel-content">
-        <app-info-input-icon
-          [width]="40"
-          [height]="40"
-          [frontColor]="$any(info).htmlFrontColor"
-          [backColor]="$any(info).htmlBackColor"
-          [svgPath]="$any(info).htmlSvgPath"
-        ></app-info-input-icon>
-        <div class="left"></div>
-        <div>{{ $any(info).title }}</div>
-        <div class="right"></div>
-      </div>
-    </div>
-  </div>
-</div>
 <div *ngIf="showPipeContent">
   <app-pipe-content
     [currentElement]="getPipeElement()!"
@@ -80,7 +55,6 @@
 </div>
 <br />
 <button
-  *ngIf="!itemCollection.oniItem.isInfo || itemCollection.items.length === 1"
   pButton
   type="button"
   class="ui-button buttonspace"
@@ -91,7 +65,6 @@
   tooltipEvent="both"
 ></button>
 <button
-  *ngIf="!itemCollection.oniItem.isInfo || itemCollection.items.length === 1"
   pButton
   type="button"
   class="ui-button buttonspace"
@@ -102,7 +75,6 @@
   tooltipEvent="both"
 ></button>
 <button
-  *ngIf="!itemCollection.oniItem.isInfo || itemCollection.items.length === 1"
   pButton
   type="button"
   class="ui-button buttonspace"

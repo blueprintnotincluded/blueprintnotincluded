@@ -1,11 +1,15 @@
 import { Component } from "@angular/core";
-import { BniWorldNote } from "../../../../../../lib/index";
+import {
+  BniWorldNote,
+  NOTE_SYMBOLS,
+  noteSymbolUrl,
+  resolveNoteSymbol,
+} from "../../../../../../lib/index";
 import { WorldNoteService } from "../../services/world-note.service";
 import { ToolService } from "../../services/tool-service";
 import { NotesTool } from "../../common/tools/notes-tool";
 import { ToolType } from "../../common/tools/tool";
 import { NOTE_TINT_PALETTE } from "./note-tint-palette";
-import { NOTE_SYMBOLS, noteSymbolUrl, resolveNoteSymbol } from "./note-symbols";
 
 // The one editor for BlueprintsV2 world notes, pinned bottom-right the way the
 // mod's in-game note screen is. It shows whichever note is in play:

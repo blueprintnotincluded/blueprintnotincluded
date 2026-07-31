@@ -9,7 +9,6 @@ import {
   BuildMenuCategory,
   OniItem,
 } from "../../../../../../../lib/index";
-import { BlueprintItemInfo } from "../../../../../../../lib/src/blueprint/blueprint-item-info";
 import { ComponentSideBuildToolComponent } from "./build-tool.component";
 
 // A lightweight stand-in for primeng's Popover with the methods the
@@ -143,23 +142,6 @@ describe("ComponentSideBuildToolComponent", () => {
       );
       expect(component.categoryPanel.hide).toHaveBeenCalled();
       setElement.mockRestore();
-      getOniItem.mockRestore();
-    });
-  });
-
-  describe("addInfo", () => {
-    it("creates an info item, builds it, and hides the panel", () => {
-      const getOniItem = vi
-        .spyOn(OniItem, "getOniItem")
-        .mockReturnValue({} as any);
-      component.categoryPanel = makePanel() as any;
-
-      component.addInfo();
-
-      expect(buildTool.changeItem).toHaveBeenCalledWith(
-        expect.any(BlueprintItemInfo),
-      );
-      expect(component.categoryPanel.hide).toHaveBeenCalled();
       getOniItem.mockRestore();
     });
   });

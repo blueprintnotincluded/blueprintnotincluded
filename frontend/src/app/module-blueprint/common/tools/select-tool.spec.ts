@@ -2,10 +2,9 @@ import { SelectTool } from "./select-tool";
 import { CameraService, Vector2 } from "../../../../../../lib/index";
 import { ShortcutAction } from "../../keybindings/shortcut-actions";
 
-const makeOniItem = (id: string, isElement = false, isInfo = false) => ({
+const makeOniItem = (id: string, isElement = false) => ({
   id,
   isElement,
-  isInfo,
   buildableElementsArray: [],
   zIndex: 0,
   utilityConnections: [],
@@ -444,18 +443,6 @@ describe("SelectTool", () => {
     });
   });
 
-  describe("selectEveryInfo()", () => {
-    it("collects only items whose oniItem.isInfo is true", () => {
-      const infoItem = makeOniItem("Info", false, true);
-      const normalItem = makeOniItem("Wire", false, false);
-      const item1 = makeBlueprintItem(infoItem);
-      const item2 = makeBlueprintItem(normalItem);
-      mockBlueprintService.blueprint.blueprintItems = [item1, item2];
-      tool.selectEveryInfo();
-      expect(tool.sameItemCollections).toHaveLength(1);
-    });
-  });
-
   // ── Existing draw/drag/dragStop tests (preserved) ──────────────────────────
 
   describe("draw()", () => {
@@ -624,7 +611,7 @@ describe("SelectTool", () => {
 
   describe("selectAllLike()", () => {
     it("selects all items sharing the same oniItem (non-element)", () => {
-      const oniItem = makeOniItem("Wire", false, false);
+      const oniItem = makeOniItem("Wire", false);
       const item1 = makeBlueprintItem(oniItem);
       const item2 = makeBlueprintItem(oniItem);
       const item3 = makeBlueprintItem(makeOniItem("Tile"));
@@ -635,7 +622,7 @@ describe("SelectTool", () => {
     });
 
     it("filters by oniItem AND buildableElement[0] for element items", () => {
-      const oniItem = makeOniItem("Element", true, false);
+      const oniItem = makeOniItem("Element", true);
       const elem1 = { id: "Water" };
       const elem2 = { id: "Oxygen" };
       const item1 = {
@@ -695,7 +682,7 @@ describe("SelectTool", () => {
 
   describe("addToCollection() element grouping", () => {
     it("groups element items with the same buildableElement[0] id into one collection", () => {
-      const oniItem = makeOniItem("Element", true, false);
+      const oniItem = makeOniItem("Element", true);
       const elem = { id: "Water" };
       const item1 = {
         ...makeBlueprintItem(oniItem),
@@ -712,7 +699,7 @@ describe("SelectTool", () => {
     });
 
     it("separates element items with different buildableElement[0] ids", () => {
-      const oniItem = makeOniItem("Element", true, false);
+      const oniItem = makeOniItem("Element", true);
       const item1 = {
         ...makeBlueprintItem(oniItem),
         buildableElements: [{ id: "Water" }],

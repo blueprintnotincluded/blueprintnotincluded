@@ -1,6 +1,6 @@
 import { Vector2 } from '../../vector2';
 import { UiSaveSettings } from '../../b-export/b-ui-screen';
-import { InfoIcon } from '../../blueprint/blueprint-item-info';
+import { InfoIcon } from '../../blueprint/note-conversion';
 
 export interface MdbBuilding {
   id: string;
@@ -16,7 +16,8 @@ export interface MdbBuilding {
   orientation?: number;
   mass?: number;
 
-  // Info Icons
+  // Legacy website `Info` annotations (converted to world notes on read;
+  // never written by toMdbBuilding any more). See note-conversion.ts.
   infoString?: string;
   title?: string;
   backColor?: number;

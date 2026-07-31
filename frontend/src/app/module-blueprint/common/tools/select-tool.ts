@@ -146,22 +146,6 @@ export class SelectTool implements ITool {
     this.emitSelectionChanged();
   }
 
-  selectEveryInfo() {
-    this.deselectAll();
-
-    this.blueprintService.blueprint.blueprintItems
-      .filter((item) => {
-        return item.oniItem.isInfo;
-      })
-      .map((item) => {
-        this.addToCollection(item);
-      });
-
-    this.currentMultipleSelectionIndex = 0;
-
-    this.emitSelectionChanged();
-  }
-
   selectThis(original: BlueprintItem) {
     this.deselectAll();
 
