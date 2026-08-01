@@ -7,7 +7,7 @@ on:
 
 jobs:
   quick-check:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -27,7 +27,7 @@ jobs:
         run: npm run tsc
 
   deploy:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     needs: quick-check
 
     steps:
@@ -40,21 +40,25 @@ jobs:
           echo "GIT_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
           echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
 
-      # Blacksmith sticky-disk layer cache instead of cache-from/to type=gha:
-      # on Blacksmith runners the GHA cache is a cross-provider transfer, and
-      # mode=max's ~400MB node_modules blobs kept the repo cache pinned at the
-      # 10GB cap — evictions made every build re-download blobs at <1MB/s
-      # (30+ min builds). The Blacksmith builder caches layers on local NVMe.
       - name: Set up Docker builder
-        uses: useblacksmith/setup-docker-builder@v1
+        uses: docker/setup-buildx-action@v3
 
+      # type=gha is the right cache backend again now that the job runs on a
+      # GitHub-hosted runner. It was previously swapped for a Blacksmith
+      # sticky disk because from a Blacksmith runner the GHA cache is a
+      # cross-provider transfer: mode=max's ~400MB node_modules blobs pinned
+      # the repo cache at its 10GB cap and evictions re-downloaded them at
+      # <1MB/s (30+ min builds). Same-provider that transfer is local and fast,
+      # so mode=max pays off across the three npm ci stages in deploy.Dockerfile.
       - name: Build Docker image
-        uses: useblacksmith/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: deploy.Dockerfile
           tags: bni-deploy
           load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             BUILD_DATE=${{ env.BUILD_DATE }}
             GIT_COMMIT=${{ env.GIT_COMMIT }}
