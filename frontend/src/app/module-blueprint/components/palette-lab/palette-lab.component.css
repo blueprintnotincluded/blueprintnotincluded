@@ -1,0 +1,134 @@
+/* Deliberately NOT skinned with --bni-* tokens: this panel has to stay legible
+   and constant while the palette underneath it changes. It is a tool sitting on
+   top of the page, not part of the page. */
+.palette-lab {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 900;
+  width: 268px;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #f4f4f5;
+  background: #101012;
+  border: 1px solid #3a3a3f;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+
+.palette-lab.collapsed {
+  width: auto;
+}
+
+.palette-lab__handle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f4f4f5;
+  background: #18181b;
+  border: none;
+  border-bottom: 1px solid #3a3a3f;
+  cursor: pointer;
+}
+
+.palette-lab.collapsed .palette-lab__handle {
+  border-bottom: none;
+}
+
+.palette-lab__handle:hover {
+  background: #232327;
+}
+
+.palette-lab__handle-dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.palette-lab__handle-dots i,
+.palette-lab__swatch i {
+  display: block;
+  width: 10px;
+  height: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.palette-lab__hint {
+  margin: 0;
+  padding: 9px 12px 7px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #a1a1aa;
+}
+
+.palette-lab__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  font: inherit;
+  color: #f4f4f5;
+  background: transparent;
+  border: none;
+  border-top: 1px solid #232327;
+  cursor: pointer;
+}
+
+.palette-lab__option:hover {
+  background: #1c1c20;
+}
+
+.palette-lab__option.active {
+  background: #232327;
+  box-shadow: inset 2px 0 0 #ffffff;
+}
+
+.palette-lab__swatch {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.palette-lab__swatch i {
+  width: 12px;
+  height: 20px;
+}
+
+.palette-lab__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.palette-lab__name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.palette-lab__note {
+  font-size: 11px;
+  line-height: 1.35;
+  color: #a1a1aa;
+}
+
+@media (max-width: 640px) {
+  .palette-lab {
+    right: 8px;
+    bottom: 8px;
+    width: calc(100vw - 16px);
+    max-width: 268px;
+  }
+}
