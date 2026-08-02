@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-02T23:30:00.000Z",
+  "title": "Design System: Blueprint Not Included",
+  "extensions": {
+    "colorMeta": {
+      "mark": {
+        "role": "primary",
+        "displayName": "China Red",
+        "canonical": "#cc4126",
+        "tonalRamp": [
+          "#2b0d07",
+          "#451510",
+          "#63201a",
+          "#872c22",
+          "#a8351f",
+          "#cc4126",
+          "#e4653f",
+          "#f2ab90"
+        ]
+      },
+      "mark-hi": {
+        "role": "primary",
+        "displayName": "China Red Bright",
+        "canonical": "#e4653f"
+      },
+      "mark-dim": {
+        "role": "primary",
+        "displayName": "China Red Deep",
+        "canonical": "#8e3520"
+      },
+      "brass": {
+        "role": "secondary",
+        "displayName": "Brass",
+        "canonical": "#b8912e",
+        "tonalRamp": [
+          "#221a07",
+          "#382b0e",
+          "#503e17",
+          "#6d5420",
+          "#8e6f28",
+          "#b8912e",
+          "#d4b263",
+          "#ecdcae"
+        ]
+      },
+      "danger": {
+        "role": "secondary",
+        "displayName": "Oxide",
+        "canonical": "#a8452c"
+      },
+      "tag": {
+        "role": "neutral",
+        "displayName": "Bone Tag Stock",
+        "canonical": "#e6e0d2",
+        "tonalRamp": [
+          "#2a271f",
+          "#453f33",
+          "#635b4a",
+          "#847a64",
+          "#a89d84",
+          "#c8bfa9",
+          "#e6e0d2",
+          "#f6f2e9"
+        ]
+      },
+      "board": {
+        "role": "neutral",
+        "displayName": "Board",
+        "canonical": "#201e1a",
+        "tonalRamp": [
+          "#100f0c",
+          "#17150f",
+          "#201e1a",
+          "#2a2721",
+          "#34302a",
+          "#3d3830",
+          "#4e483e",
+          "#6e675a"
+        ]
+      },
+      "board-deep": {
+        "role": "neutral",
+        "displayName": "Board Deep",
+        "canonical": "#17150f"
+      },
+      "mount": {
+        "role": "neutral",
+        "displayName": "Mount",
+        "canonical": "#2a2721"
+      },
+      "mount-hi": {
+        "role": "neutral",
+        "displayName": "Mount Raised",
+        "canonical": "#34302a"
+      },
+      "inset": {
+        "role": "neutral",
+        "displayName": "Inset",
+        "canonical": "#1b1915"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#3d3830"
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Rule Strong",
+        "canonical": "#4e483e"
+      },
+      "tag-ink": {
+        "role": "neutral",
+        "displayName": "Tag Ink",
+        "canonical": "#1b1813"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#f2eee4"
+      },
+      "body": {
+        "role": "neutral",
+        "displayName": "Body",
+        "canonical": "#c6bfb0"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#948c7c"
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint",
+        "canonical": "#6e675a"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles. Condensed, because it is lettering on a label."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The nav wordmark."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Specimen names on the bone tag, and tab labels at 17px."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All reading text. Carries zh/ru/ko translation."
+      },
+      "control": { "displayName": "Control", "purpose": "Button labels." },
+      "chip": {
+        "displayName": "Chip",
+        "purpose": "Pack, room and category marks."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Facet-group labels. The only uppercase in the system."
+      }
+    },
+    "shadows": [
+      {
+        "name": "field-inset",
+        "value": "inset 0 1px 2px rgba(0, 0, 0, 0.35)",
+        "purpose": "The only shadow in the system. Cuts a form field into the mount."
+      },
+      {
+        "name": "facet-active-marker",
+        "value": "inset 2px 0 0 #cc4126",
+        "purpose": "Left-edge mark on a selected facet. Brass (#b8912e) on an excluded pack."
+      },
+      {
+        "name": "thumb-mat",
+        "value": "outline: 1px solid rgba(0,0,0,0.25); outline-offset: -2px",
+        "purpose": "Reads the thumbnail as mounted under a mat rather than printed on the mount."
+      }
+    ],
+    "motion": [
+      {
+        "name": "specimen-settle",
+        "value": "0.42s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one authored moment: specimens drop the last few pixels onto the board and come to rest. Staggered 30ms by grid position."
+      },
+      {
+        "name": "state-fade",
+        "value": "0.16s ease",
+        "purpose": "Mount background and border response to hover."
+      },
+      {
+        "name": "ink-slide",
+        "value": "0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Sliding tab indicator. Suppressed under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      { "name": "container-release", "value": "1500px" },
+      { "name": "sidebar-collapse", "value": "900px" },
+      { "name": "compact", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Mounted Specimen",
+      "kind": "card",
+      "refersTo": "specimen-mount",
+      "description": "The catalogue's atom: a blueprint mounted on the board with a bone tag pasted beneath carrying its name and rating.",
+      "html": "<article class=\"ds-mount\"><a class=\"ds-thumb\" href=\"#\"></a><div class=\"ds-info\"><div class=\"ds-tag\"><a class=\"ds-tag-name\" href=\"#\">Self-Powering Oxygen Machine</a><span class=\"ds-stars\">★★★★☆</span></div><div class=\"ds-meta\"><span class=\"ds-owner\">sinetheta</span><span class=\"ds-date\">2026-07-14</span></div><div class=\"ds-chips\"><span class=\"ds-chip\">oxygenGen</span><span class=\"ds-chip\">Spaced Out!</span></div></div></article>",
+      "css": ".ds-mount { display: flex; flex-direction: column; border: 1px solid #3d3830; background: #2a2721; border-radius: 0; overflow: hidden; transition: background-color 0.16s ease, border-color 0.16s ease; font-family: 'IBM Plex Sans', sans-serif; max-width: 320px; } .ds-mount:hover { background: #34302a; border-color: #cc4126; } .ds-thumb { display: block; margin: 10px 10px 0; aspect-ratio: 16 / 10; background-color: #7e786c; background-image: linear-gradient(rgba(255,250,240,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,250,240,0.3) 1px, transparent 1px); background-size: 32px 32px; border: 1px solid #3d3830; outline: 1px solid rgba(0,0,0,0.25); outline-offset: -2px; } .ds-info { padding: 10px; } .ds-tag { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 7px 9px 8px; background: #e6e0d2; border-bottom: 1px solid rgba(27,24,19,0.18); } .ds-mount:hover .ds-tag { background: #f2ede1; } .ds-tag-name { font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.1; color: #1b1813; text-decoration: none; } .ds-mount:hover .ds-tag-name { color: #cc4126; } .ds-stars { color: #cc4126; font-size: 12px; } .ds-meta { display: flex; justify-content: space-between; margin-top: 9px; font-size: 12px; color: #948c7c; } .ds-owner { font-weight: 600; } .ds-date { color: #6e675a; font-variant-numeric: tabular-nums; } .ds-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; } .ds-chip { font-size: 11.5px; font-weight: 500; letter-spacing: 0.02em; padding: 2px 8px; color: #948c7c; border: 1px solid #3d3830; }"
+    },
+    {
+      "name": "DLC Row",
+      "kind": "custom",
+      "refersTo": "tick-include",
+      "description": "One pack, two intents: an include tick and an exclude tick on the same row. Excluded rows strike their label so state is not colour-only.",
+      "html": "<div class=\"ds-dlc-group\"><div class=\"ds-dlc-label\">DLC</div><div class=\"ds-dlc-row ds-dlc-row--included\"><span class=\"ds-dlc-name\">Spaced Out!</span><span class=\"ds-dlc-count\">412</span><button class=\"ds-tick ds-tick-in on\">+</button><button class=\"ds-tick ds-tick-ex\">&minus;</button></div><div class=\"ds-dlc-row ds-dlc-row--excluded\"><span class=\"ds-dlc-name\">Bionic Booster</span><span class=\"ds-dlc-count\">38</span><button class=\"ds-tick ds-tick-in\">+</button><button class=\"ds-tick ds-tick-ex on\">&minus;</button></div><div class=\"ds-dlc-row\"><span class=\"ds-dlc-name\">Frosty Planet</span><span class=\"ds-dlc-count\">63</span><button class=\"ds-tick ds-tick-in\">+</button><button class=\"ds-tick ds-tick-ex\">&minus;</button></div></div>",
+      "css": ".ds-dlc-group { width: 218px; font-family: 'IBM Plex Sans', sans-serif; } .ds-dlc-label { padding: 0 8px 4px; margin-bottom: 5px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6e675a; border-bottom: 1px solid #3d3830; } .ds-dlc-row { display: flex; align-items: center; gap: 6px; padding: 2px 6px 2px 8px; font-size: 13px; color: #c6bfb0; } .ds-dlc-name { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-dlc-count { font-size: 11.5px; color: #6e675a; font-variant-numeric: tabular-nums; } .ds-dlc-row--included { background: #2a2721; color: #f2eee4; box-shadow: inset 2px 0 0 #cc4126; } .ds-dlc-row--excluded { background: #2a2721; color: #948c7c; box-shadow: inset 2px 0 0 #b8912e; } .ds-dlc-row--excluded .ds-dlc-name { text-decoration: line-through; text-decoration-color: #b8912e; } .ds-tick { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; padding: 0; font-size: 12px; line-height: 1; cursor: pointer; border: 1px solid #3d3830; border-radius: 0; background: transparent; color: #6e675a; } .ds-tick:hover { border-color: #4e483e; color: #f2eee4; } .ds-tick-in.on { background: #cc4126; border-color: #cc4126; color: #fff; } .ds-tick-ex.on { background: rgba(184,145,46,0.14); border-color: #b8912e; color: #b8912e; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single call to action. Solid china red, square, no gradient.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Create a new blueprint</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 8px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 13.5px; letter-spacing: 0.01em; padding: 8px 16px; border-radius: 0; cursor: pointer; } .ds-btn-primary { color: #fff; background: #cc4126; border: 1px solid #cc4126; } .ds-btn-primary:hover { background: #e4653f; border-color: #e4653f; } .ds-btn-primary:focus-visible { outline: 2px solid #e4653f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The default control: transparent with a hairline; hover steps the surface and marks the border red.",
+      "html": "<button class=\"ds-btn-secondary\">Filters</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 8px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 13.5px; padding: 8px 16px; border-radius: 0; cursor: pointer; color: #c6bfb0; background: transparent; border: 1px solid #4e483e; transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease; } .ds-btn-secondary:hover:not(:disabled) { background: #34302a; border-color: #8e3520; color: #e4653f; } .ds-btn-secondary:focus-visible { outline: 2px solid #e4653f; outline-offset: 2px; } .ds-btn-secondary:disabled { opacity: 0.45; cursor: default; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Recessed field cut into the mount, italic placeholder.",
+      "html": "<input class=\"ds-input\" type=\"search\" placeholder=\"Search blueprints\" />",
+      "css": ".ds-input { width: 100%; box-sizing: border-box; font-family: 'IBM Plex Sans', sans-serif; font-size: 14.5px; padding: 8px 12px; border-radius: 0; background: #1b1915; color: #c6bfb0; border: 1px solid #3d3830; box-shadow: inset 0 1px 2px rgba(0,0,0,0.35); } .ds-input::placeholder { font-style: italic; color: #6e675a; } .ds-input:hover { border-color: #4e483e; } .ds-input:focus { outline: none; border-color: #cc4126; }"
+    },
+    {
+      "name": "Board Tabs",
+      "kind": "nav",
+      "refersTo": "tab",
+      "description": "Condensed display labels with a china-red underline on the active tab.",
+      "html": "<nav class=\"ds-tabs\"><button class=\"ds-tab active\">Trending</button><button class=\"ds-tab\">Newest</button><button class=\"ds-tab\">Top rated</button></nav>",
+      "css": ".ds-tabs { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px; } .ds-tab { font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.03em; padding: 3px 2px 7px; cursor: pointer; border: none; border-bottom: 2px solid transparent; color: #948c7c; background: transparent; transition: color 0.15s ease; } .ds-tab:hover { color: #f2eee4; } .ds-tab:focus-visible { outline: 2px solid #e4653f; outline-offset: 2px; } .ds-tab.active { color: #f2eee4; border-bottom-color: #cc4126; }"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Outline-only metadata mark. Monochrome by rule; draft is the one exception, in brass.",
+      "html": "<span class=\"ds-chip2\">Spaced Out!</span> <span class=\"ds-chip2 ds-chip2-draft\">Draft</span>",
+      "css": ".ds-chip2 { display: inline-block; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; font-size: 11.5px; letter-spacing: 0.02em; padding: 2px 8px; border-radius: 0; background: transparent; color: #948c7c; border: 1px solid #3d3830; } a.ds-chip2:hover { background: #3a352d; border-color: #4e483e; color: #f2eee4; } .ds-chip2-draft { background: rgba(184,145,46,0.14); color: #b8912e; border: 1px dashed #b8912e; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Sample Board",
+    "overview": "BNI is a catalogue of things people built, so it is presented the way an architect presents materials: specimens mounted on a board, each with a small typed tag pasted beneath it. The thumbnail is the object. Everything else — name, author, packs, rooms, counts — is apparatus, and apparatus stays small, typographic, and out of the way.\n\nThe ground is warm charcoal, never blue-grey. That single decision does most of the work: it separates the site from every asset store on the shelf, and it lets the game's own art, which is warm and hand-painted, sit on the page without clashing. The only light surface anywhere is the bone-stock tag under each specimen, which is what makes a wall of blueprints scan — your eye reads the tags as a rhythm and the art as the content.\n\nThis world replaced a Steam-Workshop-derived skin. That skin's palette came from a screenshot of the ONI Workshop, and a direct measurement of the live page showed Steam had since rebuilt it with gradient panels, resting shadows, 2px radii and outlined buttons. Rather than chase a moving reference, BNI now commits to a world of its own.",
+    "keyCharacteristics": [
+      "Warm charcoal board; no blue-grey anywhere in the chrome",
+      "Specimens are mounted — margin inside the mount, hairline rule, never bled to the edge",
+      "One light surface: the bone tag, and it stays small",
+      "One interaction mark (china-pencil red); brass means withheld or flagged",
+      "Zero radius everywhere; depth is board to mount to tag, not shadow",
+      "The blueprint art supplies all the colour"
+    ],
+    "rules": [
+      {
+        "name": "The One Mark Rule",
+        "body": "The chrome has one hue. China red marks what responds to you. Brass marks what has been set aside. Nothing else is coloured, ever.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tag Ink Rule",
+        "body": "The tag is a different material from the board. Type on bone takes tag ink; type on charcoal takes board ink. Mixing them is what makes a pasted label look like a filled rectangle.",
+        "section": "colors"
+      },
+      {
+        "name": "The Blueprint-Owns-Colour Rule",
+        "body": "The most colourful thing on any screen is the blueprint art. If chrome colour competes with a thumbnail, the chrome is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Condensed-Is-The-Tag Rule",
+        "body": "The display face means 'this is a label on an object' — page titles, specimen names, tab labels. It never sets body copy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Count Rule",
+        "body": "Dates and any number in a repeating grid take font-variant-numeric: tabular-nums so columns of counts don't shimmer.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Shadow Rule",
+        "body": "Nothing casts a shadow. If something needs to separate, it takes a hairline or a surface step. A drop shadow in this world is a foreign object.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Step-Don't-Lift Rule",
+        "body": "Hover moves a surface one step lighter and draws the mark around it. It never translates, scales, or grows a shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do put new catalogue UI under .bni-skin and restyle PrimeNG through its --p-* tokens rather than fighting component internals.",
+      "Do mount images with board margin and a hairline. A bled-to-the-edge thumbnail is a tile, not a specimen.",
+      "Do keep the tag small and its ink dark. It is a label, not a second panel.",
+      "Do use china red for interaction and brass for withheld. Never swap them.",
+      "Do pair every colour-carried state with a second signal (dash, strike, icon).",
+      "Do honour prefers-reduced-motion on every animation.",
+      "Do take a --bni-z-* token for cross-component layering."
+    ],
+    "donts": [
+      "Don't add a drop shadow. Depth is board to mount to tag.",
+      "Don't add corner radius. Every token is 0.",
+      "Don't introduce blue-grey, or any third chrome hue.",
+      "Don't put board ink on the tag or tag ink on the board.",
+      "Don't use gradients as surface fills. The board's ~5% light wash is the only one.",
+      "Don't colour chips by category.",
+      "Don't let chrome colour out-shout a blueprint thumbnail.",
+      "Don't build anything that depends on re-rendering thumbnails; they are a fixed, server-generated whole-design fit until a migration says otherwise."
+    ]
+  }
+}
