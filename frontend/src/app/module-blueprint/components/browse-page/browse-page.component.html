@@ -151,14 +151,17 @@
           </button>
         </div>
 
+        <!-- One DLC group. Each pack row carries its own include (+) and
+             exclude (−) tick, so "show only" and "hide" read as two intents on
+             one line instead of the same pack list printed twice. -->
         <div class="bni-facet-group">
-          <h4 class="bni-facet-label" i18n>DLC — show only</h4>
+          <h4 class="bni-facet-label" i18n>DLC</h4>
           <button
             type="button"
             class="bni-facet"
-            [class.active]="filterDlcs.length === 0"
+            [class.active]="!hasAnyDlcFilter"
             [attr.aria-label]="dlcAllAriaLabel('All')"
-            (click)="clearDlcFilter()"
+            (click)="clearAllDlcFilters()"
           >
             <ng-container i18n>All</ng-container>
             <span
@@ -168,29 +171,79 @@
               >{{ dlcAllCount }}</span
             >
           </button>
-          <button
+
+          <div
             *ngFor="let opt of dlcOptions"
-            type="button"
-            class="bni-facet"
-            [class.active]="isDlcSelected(opt.value)"
-            [class.bni-facet--empty]="
-              isFacetEmpty('dlc', opt.value, isDlcSelected(opt.value))
+            class="dlc-row"
+            [class.dlc-row--included]="isDlcSelected(opt.value)"
+            [class.dlc-row--excluded]="isDlcExcluded(opt.value)"
+            [class.dlc-row--empty]="
+              isFacetEmpty(
+                'dlc',
+                opt.value,
+                isDlcSelected(opt.value) || isDlcExcluded(opt.value)
+              )
             "
-            [disabled]="
-              isFacetEmpty('dlc', opt.value, isDlcSelected(opt.value))
-            "
-            [attr.aria-pressed]="isDlcSelected(opt.value)"
-            [attr.aria-label]="facetAriaLabel(opt.label, 'dlc', opt.value)"
-            (click)="toggleDlc(opt.value)"
           >
-            {{ opt.label }}
+            <span class="dlc-row__label">{{ opt.label }}</span>
             <span
               class="bni-facet-count"
               *ngIf="facetCount('dlc', opt.value) !== null"
               aria-hidden="true"
               >{{ facetCount("dlc", opt.value) }}</span
             >
-          </button>
+            <button
+              type="button"
+              class="dlc-tick dlc-tick--include"
+              [class.on]="isDlcSelected(opt.value)"
+              [disabled]="
+                isFacetEmpty('dlc', opt.value, isDlcSelected(opt.value))
+              "
+              [attr.aria-pressed]="isDlcSelected(opt.value)"
+              [attr.aria-label]="dlcIncludeAriaLabel(opt.label)"
+              [title]="dlcIncludeAriaLabel(opt.label)"
+              (click)="toggleDlc(opt.value)"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3.2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="dlc-tick dlc-tick--exclude"
+              [class.on]="isDlcExcluded(opt.value)"
+              [disabled]="
+                isFacetEmpty('dlc', opt.value, isDlcExcluded(opt.value))
+              "
+              [attr.aria-pressed]="isDlcExcluded(opt.value)"
+              [attr.aria-label]="dlcExcludeAriaLabel(opt.label)"
+              [title]="dlcExcludeAriaLabel(opt.label)"
+              (click)="toggleExcludeDlc(opt.value)"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3.2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14"></path>
+              </svg>
+            </button>
+          </div>
+
           <div
             *ngIf="baseGameCount !== null"
             class="bni-facet bni-facet--info"
@@ -201,42 +254,6 @@
               baseGameCount
             }}</span>
           </div>
-        </div>
-
-        <div class="bni-facet-group">
-          <h4 class="bni-facet-label" i18n>DLC — hide</h4>
-          <button
-            type="button"
-            class="bni-facet"
-            [class.active]="excludeDlcs.length === 0"
-            (click)="clearExcludeDlcFilter()"
-            i18n
-          >
-            None
-          </button>
-          <button
-            *ngFor="let opt of dlcOptions"
-            type="button"
-            class="bni-facet bni-facet--exclude"
-            [class.active]="isDlcExcluded(opt.value)"
-            [class.bni-facet--empty]="
-              isFacetEmpty('dlc', opt.value, isDlcExcluded(opt.value))
-            "
-            [disabled]="
-              isFacetEmpty('dlc', opt.value, isDlcExcluded(opt.value))
-            "
-            [attr.aria-pressed]="isDlcExcluded(opt.value)"
-            [attr.aria-label]="facetAriaLabel(opt.label, 'dlc', opt.value)"
-            (click)="toggleExcludeDlc(opt.value)"
-          >
-            {{ opt.label }}
-            <span
-              class="bni-facet-count"
-              *ngIf="facetCount('dlc', opt.value) !== null"
-              aria-hidden="true"
-              >{{ facetCount("dlc", opt.value) }}</span
-            >
-          </button>
         </div>
 
         <div class="bni-facet-group">

@@ -1,71 +1,104 @@
 /*
- * BNI "Steam Workshop" skin for the discover section
- * (browse / blueprint details / profile). Source of truth for the visual
- * language: spec/Steam Style Guide (standalone).html — every color is
- * sampled from the ONI Workshop (spec/steam-bni.png).
+ * BNI "Sample Board" skin for the discover section
+ * (browse / blueprint details / profile).
  *
- * The language in four rules:
- *   - one accent (blue); everything else desaturated blue-grey ramps
- *   - flat, square panels — no rivets, bevels, or rounded corners
- *   - hover = one surface step lighter (+ blue ring/glow on cards)
- *   - the schematic grid survives only inside blueprint thumbnails
+ * The world: an architect's material sample board. Specimens are mounted on a
+ * warm charcoal board with real margin around them; a bone-stock tag is pasted
+ * beneath each one carrying its name and rating; everything else is quiet ink
+ * on the board. The thumbnail is the object — the apparatus is small,
+ * typographic, and never competes with it.
  *
- * Everything is scoped under .bni-skin so the editor and auth pages keep
- * the stock PrimeNG look. PrimeNG components inside the skin are restyled
- * by overriding their --p-* design tokens rather than fighting internals.
+ * The language in five rules:
+ *   - warm charcoal board, never blue-grey; the ONI art supplies all the colour
+ *   - specimens are MOUNTED: margin inside the card, hairline rule, never bled
+ *   - one interaction mark (china-pencil red); brass means withheld/flagged
+ *   - flat and square; depth is board -> mount -> tag, not shadow
+ *   - the tag is the only light surface on the board, and it stays small
+ *
+ * Everything is scoped under .bni-skin so the editor and auth pages keep the
+ * stock PrimeNG look. PrimeNG components inside the skin are restyled by
+ * overriding their --p-* design tokens rather than fighting internals.
  */
 
 .bni-skin {
-  /* palette — Steam Workshop ramp */
-  --bni-bg: #1f232a; /* void / page */
-  --bni-float: #1a1f22; /* content panel */
-  --bni-panel: #24252a; /* card surface */
-  --bni-panel2: #313339; /* card hover / raised surface */
-  --bni-inset: #23262c; /* input inset */
-  --bni-line: #3a3e45; /* border subtle */
-  --bni-line2: #454a52;
-  --bni-ink: #ffffff; /* headings */
-  --bni-body: #c3c5c9; /* body text */
-  --bni-muted: #8f9399; /* secondary */
-  --bni-faint: #6e7379; /* dim / counts */
-  --bni-accent: #579bf8;
-  --bni-accent-hi: #8cbdfb;
-  --bni-accent-dim: #456fa7; /* blue borders */
-  --bni-accent-glow: rgba(87, 155, 248, 0.45);
-  --bni-accent-tint: rgba(87, 155, 248, 0.08);
-  --bni-chip: #3f444f;
-  --bni-chip-hi: #4d5361;
-  /* primary action = the one accent */
-  --bni-primary: var(--bni-accent);
-  --bni-primary-hi: var(--bni-accent-hi);
-  --bni-primary-bd: var(--bni-accent-dim);
-  --bni-blue: var(--bni-accent); /* legacy alias (links) */
-  --bni-blue-hi: var(--bni-accent-hi);
-  --bni-danger: #d95f4c;
-  /* draft/WIP status — the single deliberate warm exception in the chrome;
-   * a status flag has to be findable at a glance among all-blue-grey */
-  --bni-draft: #cfa14f;
-  --bni-draft-dim: rgba(207, 161, 79, 0.14);
-  /* thumbnails keep the schematic-grid placeholder */
-  --bni-thumbbg: #8b8b8b;
-  --bni-thumbgrid: rgba(255, 255, 255, 0.35);
-  --bni-card-sh: none; /* flat — depth comes from surface steps */
+  /* ---- palette: the board ---- */
+  --bni-board: #201e1a; /* the board itself — page ground */
+  --bni-board-deep: #17150f; /* void behind the board */
+  --bni-mount: #2a2721; /* specimen mount (card surface) */
+  --bni-mount-hi: #34302a; /* mount, hovered */
+  --bni-inset: #1b1915; /* recessed field (inputs) */
+  --bni-rule: #3d3830; /* hairline */
+  --bni-rule-hi: #4e483e;
 
-  /* typography — single face; the display face survives only in the nav
-   * wordmark (see .bni-nav-wordmark) */
-  --bni-display: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  /* ---- palette: the tag ---- */
+  --bni-tag: #e6e0d2; /* bone tag stock — the one light surface */
+  --bni-tag-hi: #f2ede1;
+  --bni-tag-ink: #1b1813;
+  --bni-tag-ink-2: #6b6355;
+
+  /* ---- palette: ink on the board ---- */
+  --bni-ink: #f2eee4; /* headings */
+  --bni-body: #c6bfb0; /* body text */
+  --bni-muted: #948c7c; /* secondary */
+  --bni-faint: #6e675a; /* dim / counts */
+
+  /* ---- palette: the marks ----
+   * china-pencil red is the only interaction mark; brass means withheld or
+   * flagged (drafts, excluded packs); oxide is destructive and always carries
+   * its verb in words as well. */
+  --bni-mark: #cc4126;
+  --bni-mark-hi: #e4653f;
+  --bni-mark-dim: #8e3520;
+  --bni-mark-glow: rgba(204, 65, 38, 0.35);
+  --bni-mark-tint: rgba(204, 65, 38, 0.1);
+  --bni-brass: #b8912e;
+  --bni-brass-tint: rgba(184, 145, 46, 0.14);
+  --bni-danger: #a8452c;
+
+  --bni-chip: #3a352d;
+  --bni-chip-hi: #484237;
+
+  /* legacy aliases — templates and older component CSS still reference these */
+  --bni-bg: var(--bni-board);
+  --bni-float: var(--bni-board);
+  --bni-panel: var(--bni-mount);
+  --bni-panel2: var(--bni-mount-hi);
+  --bni-line: var(--bni-rule);
+  --bni-line2: var(--bni-rule-hi);
+  --bni-accent: var(--bni-mark);
+  --bni-accent-hi: var(--bni-mark-hi);
+  --bni-accent-dim: var(--bni-mark-dim);
+  --bni-accent-glow: var(--bni-mark-glow);
+  --bni-accent-tint: var(--bni-mark-tint);
+  --bni-primary: var(--bni-mark);
+  --bni-primary-hi: var(--bni-mark-hi);
+  --bni-primary-bd: var(--bni-mark-dim);
+  --bni-blue: var(--bni-mark);
+  --bni-blue-hi: var(--bni-mark-hi);
+  --bni-draft: var(--bni-brass);
+  --bni-draft-dim: var(--bni-brass-tint);
+  --bni-card-sh: none;
+
+  /* thumbnails keep the schematic-grid placeholder, warmed to the board */
+  --bni-thumbbg: #7e786c;
+  --bni-thumbgrid: rgba(255, 250, 240, 0.3);
+
+  /* ---- typography ----
+   * Two faces, both already self-hosted with the cyrillic/greek/vietnamese
+   * subsets the site's ru/zh/ko builds need. Big Shoulders is promoted from
+   * wordmark-only to the board's display voice: it is the lettering on a
+   * specimen tag. IBM Plex Sans carries everything that must survive
+   * translation. */
+  --bni-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --p-font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
 
-  /* z-index scale — every page-level layer sits on this ladder. Layering
-   * that is purely internal to one component may use small local values,
-   * but anything that competes across components must use a token.
-   * PrimeNG overlays (menus, selects, dialogs, toasts) auto-assign from
-   * ~1000 up; nothing here may exceed that. */
-  --bni-z-backdrop: -1; /* key-art backdrop, behind an isolated page */
-  --bni-z-raised: 4; /* content raised above page siblings */
-  --bni-z-nav: 40; /* sticky site nav, above all page content */
+  /* z-index scale — every page-level layer sits on this ladder. PrimeNG
+   * overlays auto-assign from ~1000 up; nothing here may exceed that. */
+  --bni-z-backdrop: -1;
+  --bni-z-raised: 4;
+  --bni-z-nav: 40;
 
-  /* PrimeNG token remap */
+  /* ---- PrimeNG token remap ---- */
   --p-border-radius-none: 0;
   --p-border-radius-xs: 0;
   --p-border-radius-sm: 0;
@@ -75,107 +108,107 @@
   --p-content-border-radius: 0;
   --p-text-color: var(--bni-body);
   --p-text-muted-color: var(--bni-muted);
-  --p-content-background: var(--bni-panel);
-  --p-content-border-color: var(--bni-line);
-  --p-content-hover-background: var(--bni-panel2);
+  --p-content-background: var(--bni-mount);
+  --p-content-border-color: var(--bni-rule);
+  --p-content-hover-background: var(--bni-mount-hi);
   --p-content-hover-color: var(--bni-ink);
-  --p-primary-color: var(--bni-primary);
+  --p-primary-color: var(--bni-mark);
   --p-primary-contrast-color: #ffffff;
-  --p-primary-hover-color: var(--bni-primary-hi);
-  --p-focus-ring-color: var(--bni-accent);
+  --p-primary-hover-color: var(--bni-mark-hi);
+  --p-focus-ring-color: var(--bni-mark-hi);
 
   /* form fields */
   --p-inputtext-background: var(--bni-inset);
   --p-inputtext-color: var(--bni-body);
-  --p-inputtext-border-color: var(--bni-line);
-  --p-inputtext-hover-border-color: var(--bni-line2);
-  --p-inputtext-focus-border-color: var(--bni-accent);
+  --p-inputtext-border-color: var(--bni-rule);
+  --p-inputtext-hover-border-color: var(--bni-rule-hi);
+  --p-inputtext-focus-border-color: var(--bni-mark);
   --p-inputtext-placeholder-color: var(--bni-faint);
-  --p-inputtext-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  --p-inputtext-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
   --p-textarea-background: var(--bni-inset);
   --p-textarea-color: var(--bni-body);
-  --p-textarea-border-color: var(--bni-line);
-  --p-textarea-hover-border-color: var(--bni-line2);
-  --p-textarea-focus-border-color: var(--bni-accent);
+  --p-textarea-border-color: var(--bni-rule);
+  --p-textarea-hover-border-color: var(--bni-rule-hi);
+  --p-textarea-focus-border-color: var(--bni-mark);
   --p-textarea-placeholder-color: var(--bni-faint);
 
   /* select */
   --p-select-background: var(--bni-inset);
   --p-select-color: var(--bni-body);
-  --p-select-border-color: var(--bni-line);
-  --p-select-hover-border-color: var(--bni-line2);
-  --p-select-focus-border-color: var(--bni-accent);
+  --p-select-border-color: var(--bni-rule);
+  --p-select-hover-border-color: var(--bni-rule-hi);
+  --p-select-focus-border-color: var(--bni-mark);
   --p-select-placeholder-color: var(--bni-faint);
   --p-select-dropdown-color: var(--bni-muted);
-  --p-select-overlay-background: var(--bni-panel2);
-  --p-select-overlay-border-color: var(--bni-line2);
+  --p-select-overlay-background: var(--bni-mount-hi);
+  --p-select-overlay-border-color: var(--bni-rule-hi);
   --p-select-option-color: var(--bni-body);
   --p-select-option-focus-background: var(--bni-chip);
   --p-select-option-focus-color: var(--bni-ink);
-  --p-select-option-selected-background: var(--bni-primary);
+  --p-select-option-selected-background: var(--bni-mark);
   --p-select-option-selected-color: #ffffff;
-  --p-select-option-selected-focus-background: var(--bni-primary-hi);
+  --p-select-option-selected-focus-background: var(--bni-mark-hi);
   --p-select-option-selected-focus-color: #ffffff;
 
-  /* buttons — one primary, one ghost; all flat and square */
-  --p-button-primary-background: var(--bni-primary);
-  --p-button-primary-border-color: var(--bni-primary);
+  /* buttons */
+  --p-button-primary-background: var(--bni-mark);
+  --p-button-primary-border-color: var(--bni-mark);
   --p-button-primary-color: #ffffff;
-  --p-button-primary-hover-background: var(--bni-primary-hi);
-  --p-button-primary-hover-border-color: var(--bni-primary-hi);
+  --p-button-primary-hover-background: var(--bni-mark-hi);
+  --p-button-primary-hover-border-color: var(--bni-mark-hi);
   --p-button-primary-hover-color: #ffffff;
-  --p-button-primary-active-background: var(--bni-primary-hi);
-  --p-button-primary-active-border-color: var(--bni-primary-hi);
+  --p-button-primary-active-background: var(--bni-mark-hi);
+  --p-button-primary-active-border-color: var(--bni-mark-hi);
   --p-button-secondary-background: transparent;
-  --p-button-secondary-border-color: var(--bni-line2);
+  --p-button-secondary-border-color: var(--bni-rule-hi);
   --p-button-secondary-color: var(--bni-body);
-  --p-button-secondary-hover-background: var(--bni-panel2);
-  --p-button-secondary-hover-border-color: var(--bni-accent-dim);
-  --p-button-secondary-hover-color: var(--bni-accent-hi);
-  --p-button-danger-background: rgba(217, 95, 76, 0.14);
-  --p-button-danger-border-color: rgba(217, 95, 76, 0.5);
-  --p-button-danger-color: var(--bni-danger);
-  --p-button-danger-hover-background: rgba(217, 95, 76, 0.28);
+  --p-button-secondary-hover-background: var(--bni-mount-hi);
+  --p-button-secondary-hover-border-color: var(--bni-mark-dim);
+  --p-button-secondary-hover-color: var(--bni-mark-hi);
+  --p-button-danger-background: rgba(168, 69, 44, 0.16);
+  --p-button-danger-border-color: rgba(168, 69, 44, 0.55);
+  --p-button-danger-color: #e0806a;
+  --p-button-danger-hover-background: rgba(168, 69, 44, 0.3);
   --p-button-danger-hover-border-color: var(--bni-danger);
-  --p-button-danger-hover-color: var(--bni-danger);
-  --p-button-text-primary-color: var(--bni-accent);
-  --p-button-text-primary-hover-background: var(--bni-accent-tint);
+  --p-button-danger-hover-color: #f0a08c;
+  --p-button-text-primary-color: var(--bni-mark-hi);
+  --p-button-text-primary-hover-background: var(--bni-mark-tint);
   --p-button-text-secondary-color: var(--bni-muted);
-  --p-button-text-secondary-hover-background: var(--bni-panel2);
+  --p-button-text-secondary-hover-background: var(--bni-mount-hi);
   --p-button-outlined-primary-color: var(--bni-body);
-  --p-button-outlined-primary-border-color: var(--bni-line2);
-  --p-button-outlined-primary-hover-background: var(--bni-panel2);
+  --p-button-outlined-primary-border-color: var(--bni-rule-hi);
+  --p-button-outlined-primary-hover-background: var(--bni-mount-hi);
 
   /* dialog */
-  --p-dialog-background: var(--bni-float);
-  --p-dialog-border-color: var(--bni-line);
+  --p-dialog-background: var(--bni-mount);
+  --p-dialog-border-color: var(--bni-rule);
   --p-dialog-color: var(--bni-body);
-  --p-overlay-modal-background: rgba(10, 12, 16, 0.7);
-  --p-mask-background: rgba(10, 12, 16, 0.7);
+  --p-overlay-modal-background: rgba(10, 8, 6, 0.72);
+  --p-mask-background: rgba(10, 8, 6, 0.72);
 
-  /* menubar + popup menu — near-black, flat */
-  --p-menubar-background: var(--bni-float);
+  /* menubar + popup menu */
+  --p-menubar-background: var(--bni-board-deep);
   --p-menubar-border-color: transparent;
   --p-menubar-border-radius: 0;
   --p-menubar-color: var(--bni-body);
   --p-menubar-item-color: var(--bni-body);
-  --p-menubar-item-focus-background: var(--bni-panel2);
+  --p-menubar-item-focus-background: var(--bni-mount-hi);
   --p-menubar-item-focus-color: var(--bni-ink);
-  --p-menubar-item-active-background: var(--bni-panel2);
+  --p-menubar-item-active-background: var(--bni-mount-hi);
   --p-menubar-item-active-color: var(--bni-ink);
-  --p-menubar-submenu-background: var(--bni-panel2);
-  --p-menubar-submenu-border-color: var(--bni-line2);
-  --p-menu-background: var(--bni-panel2);
-  --p-menu-border-color: var(--bni-line2);
+  --p-menubar-submenu-background: var(--bni-mount-hi);
+  --p-menubar-submenu-border-color: var(--bni-rule-hi);
+  --p-menu-background: var(--bni-mount-hi);
+  --p-menu-border-color: var(--bni-rule-hi);
   --p-menu-item-color: var(--bni-body);
   --p-menu-item-focus-background: var(--bni-chip);
   --p-menu-item-focus-color: var(--bni-ink);
   --p-menu-item-icon-color: var(--bni-muted);
   --p-menu-item-icon-focus-color: var(--bni-ink);
-  --p-menu-separator-border-color: var(--bni-line);
+  --p-menu-separator-border-color: var(--bni-rule);
 
-  --p-tooltip-background: var(--bni-panel2);
-  --p-tooltip-color: var(--bni-ink);
+  --p-tooltip-background: var(--bni-tag);
+  --p-tooltip-color: var(--bni-tag-ink);
 
   color: var(--bni-body);
   font-family: var(--p-font-family);
@@ -183,32 +216,18 @@
   line-height: 1.5;
 }
 
-/* full-bleed page background — flat void, no chrome grid */
+/* ---- the board ---- */
 .bni-page {
   min-height: 100vh;
-  background-color: var(--bni-bg);
+  background-color: var(--bni-board-deep);
 }
 
-/* ---- key-art backdrop (Effect A) ----
- * Full-viewport blueprint grid behind floating content panels: a flat
- * dark-slate field ruled with a fine minor grid and a brighter major
- * grid every 5th line — the schematic-paper look, echoing the game's
- * build view rather than a photo. Layers (bottom to top): page bg color
- * -> grid (::before) -> subtle legibility gradient (::after) -> content.
- *
- * isolation creates a stacking context so the negative-z pseudos paint
- * above this element's own background but below ALL in-flow content —
- * without forcing stacking contexts onto children (which would flatten
- * the nav's z-index and put its dropdowns behind the content panel).
- */
+/* The board under a lamp: flat warm charcoal with one very faint off-centre
+ * lightening, the way a real board reads under a desk light. Kept at a few
+ * percent — this is the difference between a surface and a slab, not a
+ * decorative gradient. */
 .bni-cave {
   isolation: isolate;
-  /* grid geometry — minor cell; major = 5 minors */
-  --bni-grid-minor: 24px;
-  --bni-grid-major: calc(var(--bni-grid-minor) * 5);
-  --bni-grid-field: #272c35; /* slate-blue paper */
-  --bni-grid-minor-line: rgba(150, 170, 200, 0.05);
-  --bni-grid-major-line: rgba(150, 170, 200, 0.11);
 }
 
 .bni-cave::before {
@@ -216,59 +235,34 @@
   position: fixed;
   inset: 0;
   z-index: var(--bni-z-backdrop);
-  background-color: var(--bni-grid-field);
-  /* major lines listed first so they paint over the minor grid
-   * (earlier background layers render on top) */
-  background-image:
-    linear-gradient(var(--bni-grid-major-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-grid-major-line) 1px, transparent 1px),
-    linear-gradient(var(--bni-grid-minor-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-grid-minor-line) 1px, transparent 1px);
-  background-size:
-    var(--bni-grid-major) var(--bni-grid-major),
-    var(--bni-grid-major) var(--bni-grid-major),
-    var(--bni-grid-minor) var(--bni-grid-minor),
-    var(--bni-grid-minor) var(--bni-grid-minor);
-}
-
-.bni-cave::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: var(--bni-z-backdrop);
-  pointer-events: none;
-  /* faint vertical sink so panels keep contrast without hiding the grid */
-  background: linear-gradient(
-    rgba(31, 35, 42, 0) 0%,
-    rgba(31, 35, 42, 0.35) 100%
+  background-color: var(--bni-board);
+  background-image: radial-gradient(
+    120% 90% at 22% 0%,
+    rgba(255, 238, 210, 0.055),
+    rgba(255, 238, 210, 0) 60%
   );
 }
 
-/* ---- floating content panel (Effect B): near-black, square, big soft
- * shadow — no border, no grid ---- */
+/* the content panel IS the board, so it takes no separate fill or shadow */
 .bni-float {
-  background-color: var(--bni-float);
+  background-color: transparent;
   border-radius: 0;
-  box-shadow: 0 0 18px rgba(0, 0, 0, 0.55);
+  box-shadow: none;
 }
 
 .bni-skin a {
-  color: var(--bni-accent);
+  color: var(--bni-mark-hi);
   text-decoration: none;
 }
 
 .bni-skin a:hover {
-  color: var(--bni-accent-hi);
-  text-decoration: none;
+  color: var(--bni-mark-hi);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
-/* ---- site nav (shared by the discover site-nav and the editor menubar;
- * the editor opts in via styleClass="bni-skin" on its p-menubar).
- * Must stay after the generic .bni-skin a rules so the hover overrides
- * below win their specificity ties. ---- */
-
-/* the end slot mixes inline and block children (bell, user menu); without
- * an explicit flex row the block child wraps onto its own line */
+/* ---- site nav ---- */
 .bni-skin .p-menubar-end {
   display: flex;
   align-items: center;
@@ -293,13 +287,11 @@
   height: 32px;
 }
 
-/* the wordmark is the one place the display face survives — it's brand,
- * not chrome */
 .bni-nav-wordmark {
-  font-family: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  font-family: var(--bni-display);
   font-weight: 800;
-  font-size: 19px;
-  letter-spacing: 0.05em;
+  font-size: 21px;
+  letter-spacing: 0.045em;
   line-height: 1;
   color: var(--bni-ink);
   white-space: nowrap;
@@ -307,7 +299,7 @@
 
 .bni-nav-not {
   font-style: normal;
-  color: var(--bni-danger);
+  color: var(--bni-mark);
 }
 
 @media (max-width: 900px) {
@@ -316,31 +308,28 @@
   }
 }
 
-/* headings — plain bold Plex, white; no condensed face, no uppercase */
+/* ---- headings: the board's display voice ---- */
 .bni-skin h1,
 .bni-skin h2,
 .bni-skin h3 {
-  font-family: var(--p-font-family);
+  font-family: var(--bni-display);
   font-weight: 700;
-  letter-spacing: normal;
+  letter-spacing: 0.01em;
   text-transform: none;
   color: var(--bni-ink);
 }
 
-/* Steam inputs whisper */
 .bni-skin ::placeholder {
   font-style: italic;
 }
 
-/* square PrimeNG fields (their radius tokens don't all derive from the
- * base --p-border-radius-* scale) */
 .bni-skin .p-inputtext,
 .bni-skin .p-textarea,
 .bni-skin .p-select {
   border-radius: 0;
 }
 
-/* ---- buttons (plain <button>/<a> elements): flat, square ---- */
+/* ---- buttons ---- */
 .bni-btn {
   display: inline-flex;
   align-items: center;
@@ -355,14 +344,18 @@
   cursor: pointer;
   color: var(--bni-body);
   background: transparent;
-  border: 1px solid var(--bni-line2);
+  border: 1px solid var(--bni-rule-hi);
   box-shadow: none;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease;
 }
 
 .bni-btn:hover:not(:disabled) {
-  background: var(--bni-panel2);
-  border-color: var(--bni-accent-dim);
-  color: var(--bni-accent-hi);
+  background: var(--bni-mount-hi);
+  border-color: var(--bni-mark-dim);
+  color: var(--bni-mark-hi);
 }
 
 .bni-btn:disabled {
@@ -372,24 +365,24 @@
 
 .bni-btn--primary {
   color: #fff;
-  background: var(--bni-primary);
-  border-color: var(--bni-primary);
+  background: var(--bni-mark);
+  border-color: var(--bni-mark);
 }
 
 .bni-btn--primary:hover:not(:disabled) {
-  background: linear-gradient(var(--bni-accent-hi), var(--bni-accent));
-  border-color: var(--bni-accent-hi);
+  background: var(--bni-mark-hi);
+  border-color: var(--bni-mark-hi);
   color: #fff;
 }
 
-/* anchors styled as buttons must not inherit link colors */
-.bni-skin a.bni-btn {
+.bni-skin a.bni-btn,
+.bni-skin a.bni-btn:hover {
   color: var(--bni-body);
+  text-decoration: none;
 }
 
 .bni-skin a.bni-btn:hover {
-  color: var(--bni-accent-hi);
-  text-decoration: none;
+  color: var(--bni-mark-hi);
 }
 
 .bni-skin a.bni-btn--primary,
@@ -397,7 +390,6 @@
   color: #fff;
 }
 
-/* PrimeNG buttons inside the skin go flat and square too */
 .bni-skin .p-button {
   font-family: var(--p-font-family);
   font-weight: 600;
@@ -407,7 +399,6 @@
   box-shadow: none;
 }
 
-/* anchors styled as buttons must not inherit link colors */
 .bni-skin a.p-button {
   color: var(--p-button-primary-color);
 }
@@ -417,79 +408,74 @@
   text-decoration: none;
 }
 
-/* ---- chips / badges — one monochrome Steam style, 2px radius; the
- * label carries the meaning, not the color ---- */
+/* ---- chips: stamped on the board, not pasted on the tag ---- */
 .bni-chip {
   display: inline-block;
   font-family: var(--p-font-family);
   font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.01em;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
   text-transform: none;
-  padding: 2px 9px;
-  border-radius: 2px;
-  background: var(--bni-chip);
-  color: var(--bni-body);
-  border: 1px solid transparent;
+  padding: 2px 8px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--bni-muted);
+  border: 1px solid var(--bni-rule);
   text-decoration: none;
 }
 
 .bni-skin a.bni-chip {
-  color: var(--bni-body);
+  color: var(--bni-muted);
 }
 
 .bni-skin a.bni-chip:hover {
-  background: var(--bni-chip-hi);
+  background: var(--bni-chip);
+  border-color: var(--bni-rule-hi);
   color: var(--bni-ink);
   text-decoration: none;
 }
 
-/* Semantic hooks retain the deliberately monochrome chip treatment. */
 .bni-chip--dlc,
 .bni-chip--mod,
 .bni-chip--modded,
-.bni-chip--room {
-  background: var(--bni-chip);
+.bni-chip--room,
+.bni-chip--cat {
+  background: transparent;
 }
 
-.bni-chip--ghost {
+.bni-chip--ghost,
+.bni-chip--untagged,
+.bni-chip--room-more {
   background: transparent;
-  border-color: var(--bni-line);
+  border-color: var(--bni-rule);
   color: var(--bni-faint);
 }
 
 .bni-chip--untagged {
   font-style: italic;
-  background: transparent;
-  border-color: var(--bni-line);
-  color: var(--bni-faint);
 }
 
 .bni-chip--room-more {
-  background: transparent;
-  border-color: var(--bni-line);
-  color: var(--bni-faint);
   cursor: default;
 }
 
-/* Draft = work in progress: dashed amber outline — the one warm signal
- * in the chrome, so the owner's WIP is impossible to miss */
+/* brass = withheld. A draft is flagged, not finished. */
 .bni-chip--draft {
-  background: var(--bni-draft-dim);
-  color: var(--bni-draft);
-  border: 1px dashed var(--bni-draft);
+  background: var(--bni-brass-tint);
+  color: var(--bni-brass);
+  border: 1px dashed var(--bni-brass);
 }
 
-/* ---- publish nudge (profile) ---- */
+/* ---- publish nudge ---- */
 .drafts-nudge {
   display: flex;
   align-items: baseline;
   gap: 8px;
   margin: 0 0 14px;
   padding: 10px 14px;
-  border: 1px dashed var(--bni-draft);
+  border: 1px dashed var(--bni-brass);
   border-radius: 0;
-  color: var(--bni-draft);
+  color: var(--bni-brass);
   font-weight: 600;
 }
 
@@ -502,56 +488,55 @@
   font-weight: 400;
 }
 
-/* ---- plain panel (profile header etc.): flat, square ---- */
+/* ---- plain panel ---- */
 .bni-panel {
   position: relative;
-  background: var(--bni-panel);
-  border: 1px solid var(--bni-line);
+  background: var(--bni-mount);
+  border: 1px solid var(--bni-rule);
   border-radius: 0;
-  box-shadow: var(--bni-card-sh);
+  box-shadow: none;
 }
 
-/* rivets are gone; the class lingers in templates until they're cleaned */
 .bni-rivets::before {
   content: none;
 }
 
-/* ---- blueprint card + hover glow (Effect C) ---- */
+/* ---- the mounted specimen ----
+ * The card is a mount: the thumbnail sits inside a board margin with a hairline
+ * around it, so it reads as pinned to the board rather than bled to a tile
+ * edge. Hover lifts the mount one step and draws the china-pencil mark around
+ * it — the gesture of picking a specimen out of the tray. */
 .bni-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--bni-line);
-  background: var(--bni-panel);
+  border: 1px solid var(--bni-rule);
+  background: var(--bni-mount);
   border-radius: 0;
-  box-shadow: var(--bni-card-sh);
+  box-shadow: none;
   overflow: hidden;
   transition:
-    background-color 0.12s ease,
-    box-shadow 0.12s ease;
+    background-color 0.16s ease,
+    border-color 0.16s ease;
 }
 
 .bni-card:hover:not(.bni-skel):not(.no-results-card) {
-  background: var(--bni-panel2);
-  box-shadow:
-    0 0 0 1px var(--bni-accent),
-    0 0 12px var(--bni-accent-glow);
+  background: var(--bni-mount-hi);
+  border-color: var(--bni-mark);
 }
 
-/* Draft cards read as work-in-progress: dashed amber border + faint
-   diagonal hatching, echoing the .bni-chip--draft treatment. Loud on
-   purpose — drafts should be impossible to forget, publishing clears it. */
+/* a flagged specimen: brass dashed edge, faint hatch across the mount */
 .bni-card--draft {
-  border: 1px dashed var(--bni-draft);
+  border: 1px dashed var(--bni-brass);
   background:
     repeating-linear-gradient(
       -45deg,
       transparent 0,
       transparent 10px,
-      var(--bni-draft-dim) 10px,
-      var(--bni-draft-dim) 13px
+      var(--bni-brass-tint) 10px,
+      var(--bni-brass-tint) 13px
     ),
-    var(--bni-panel);
+    var(--bni-mount);
 }
 
 .bni-card--draft .bni-card__thumb img {
@@ -561,13 +546,16 @@
 .bni-card__thumb {
   display: block;
   position: relative;
+  margin: 10px 10px 0;
   aspect-ratio: 16 / 10;
   background-color: var(--bni-thumbbg);
   background-image:
     linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
     linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
   background-size: 32px 32px;
-  border-bottom: 1px solid var(--bni-line);
+  border: 1px solid var(--bni-rule);
+  outline: 1px solid rgba(0, 0, 0, 0.25);
+  outline-offset: -2px;
 }
 
 .bni-card__thumb img {
@@ -578,23 +566,25 @@
   object-fit: cover;
 }
 
+/* the card title lives ON the tag, so it takes tag ink, not board ink */
 .bni-card__title {
+  font-family: var(--bni-display);
   font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  transition: color 0.12s ease;
+  font-size: 19px;
+  letter-spacing: 0.005em;
+  line-height: 1.1;
+  transition: color 0.14s ease;
 }
 
 .bni-skin a.bni-card__title,
 .bni-skin .bni-card__title a {
-  color: var(--bni-ink);
+  color: var(--bni-tag-ink);
 }
 
 .bni-skin a.bni-card__title:hover,
 .bni-skin .bni-card__title a:hover,
 .bni-card:hover a.bni-card__title {
-  color: var(--bni-accent-hi);
+  color: var(--bni-mark);
   text-decoration: none;
 }
 
@@ -609,21 +599,21 @@
   font-family: var(--p-font-family);
   font-weight: 600;
   font-size: 12.5px;
-  border: 1px solid var(--bni-line);
+  border: 1px solid var(--bni-rule);
   background: transparent;
   color: var(--bni-muted);
   box-shadow: none;
 }
 
 .bni-like:hover:not(:disabled):not(.bni-like--liked) {
-  border-color: var(--bni-accent-dim);
-  color: var(--bni-accent-hi);
+  border-color: var(--bni-mark-dim);
+  color: var(--bni-mark-hi);
 }
 
 .bni-like.bni-like--liked {
-  border-color: var(--bni-accent-dim);
-  background: var(--bni-accent-tint);
-  color: var(--bni-accent);
+  border-color: var(--bni-mark-dim);
+  background: var(--bni-mark-tint);
+  color: var(--bni-mark-hi);
 }
 
 .bni-like:disabled {
@@ -631,13 +621,14 @@
   cursor: default;
 }
 
-/* ---- muted icon links (comments / forks counts) ---- */
+/* ---- muted icon links ---- */
 .bni-icon-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--bni-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .bni-skin a.bni-icon-link {
@@ -645,7 +636,7 @@
 }
 
 .bni-skin a.bni-icon-link:hover {
-  color: var(--bni-accent-hi);
+  color: var(--bni-mark-hi);
   text-decoration: none;
 }
 
@@ -667,14 +658,13 @@
   text-decoration: none;
 }
 
-/* ---- underline tabs (sort rows, view-mode switch: .bni-seg keeps its
- * name for existing templates) ---- */
+/* ---- board tabs: lettered like a tray divider ---- */
 .bni-seg,
 .bni-tabs {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 18px;
+  gap: 4px 20px;
   max-width: 100%;
   border: none;
   border-radius: 0;
@@ -684,28 +674,24 @@
 
 .bni-seg button,
 .bni-tab {
-  font-family: var(--p-font-family);
+  font-family: var(--bni-display);
   font-weight: 700;
-  font-size: 13.5px;
-  letter-spacing: 0.01em;
+  font-size: 17px;
+  letter-spacing: 0.03em;
   text-transform: none;
-  padding: 4px 2px 6px;
+  padding: 3px 2px 7px;
   cursor: pointer;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--bni-body);
+  color: var(--bni-muted);
   background: transparent;
   box-shadow: none;
+  transition: color 0.15s ease;
 }
 
 .bni-seg button:hover,
 .bni-tab:hover {
-  color: var(--bni-accent-hi);
-}
-
-.bni-seg button,
-.bni-tab {
-  transition: color 0.15s ease;
+  color: var(--bni-ink);
 }
 
 .bni-seg button + button {
@@ -716,13 +702,10 @@
 .bni-tab.active {
   background: transparent;
   color: var(--bni-ink);
-  border-bottom-color: var(--bni-accent);
+  border-bottom-color: var(--bni-mark);
 }
 
-/* ---- sliding tab indicator (appTabInk directive) ----
- * The directive adds .has-tab-ink to the container, hides the per-button
- * static underline, and slides a single .bni-tab-ink bar under the active
- * tab instead. */
+/* sliding tab indicator (appTabInk directive) */
 .has-tab-ink {
   position: relative;
 }
@@ -737,7 +720,7 @@
   top: 0;
   height: 2px;
   width: 0;
-  background: var(--bni-accent);
+  background: var(--bni-mark);
   pointer-events: none;
   opacity: 0;
 }
@@ -755,19 +738,21 @@
   }
 }
 
-/* ---- facet sidebar (browse) ---- */
+/* ---- the tag rail (browse facets) ---- */
 .bni-facet-group {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
 }
 
 .bni-facet-label {
-  margin: 0 0 4px;
-  padding: 0 8px;
-  font-size: 11px;
+  margin: 0 0 5px;
+  padding: 0 8px 4px;
+  font-family: var(--p-font-family);
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--bni-faint);
+  border-bottom: 1px solid var(--bni-rule);
 }
 
 .bni-facet {
@@ -784,56 +769,51 @@
   border: none;
   background: transparent;
   color: var(--bni-body);
+  transition:
+    color 0.13s ease,
+    background-color 0.13s ease;
 }
 
 .bni-facet:hover {
-  color: var(--bni-accent-hi);
+  color: var(--bni-ink);
 }
 
 .bni-facet.active {
-  background: var(--bni-panel2);
+  background: var(--bni-mount);
   color: var(--bni-ink);
-  box-shadow: inset 2px 0 0 var(--bni-accent);
+  box-shadow: inset 2px 0 0 var(--bni-mark);
 }
 
-/* Exclusion ("hide this") facets use the danger accent instead of the
-   regular one, so "show only" and "hide" read as opposite intents rather
-   than two identical-looking button groups. */
+/* brass = withheld: "hide this pack" is set aside, not destroyed */
 .bni-facet--exclude:hover {
-  color: var(--bni-danger);
+  color: var(--bni-brass);
 }
 
 .bni-facet--exclude.active {
-  background: var(--bni-panel2);
+  background: var(--bni-mount);
   color: var(--bni-ink);
-  box-shadow: inset 2px 0 0 var(--bni-danger);
+  box-shadow: inset 2px 0 0 var(--bni-brass);
 }
 
 .bni-facet-count {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--bni-faint);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Zero-count facets stay visible (so a legitimately-empty pack/room is
-   discoverable, not silently hidden) but read as unavailable — dimmed and
-   non-interactive. Never applied to the active/selected row: a dead-end
-   filter combination must stay clickable so it can be cleared. */
+/* zero-count facets stay visible but read as unavailable; never applied to the
+ * active row, so a dead-end filter combination can always be cleared */
 .bni-facet--empty {
-  opacity: 0.45;
+  opacity: 0.42;
   cursor: default;
 }
 
-.bni-facet--empty:hover {
-  color: var(--bni-body);
-}
-
+.bni-facet--empty:hover,
 .bni-facet--exclude.bni-facet--empty:hover {
   color: var(--bni-body);
 }
 
-/* Read-only summary row (e.g. "Base game" under DLC — show only): same
-   space-between layout as a facet button, but there is nothing to click —
-   there is no `dlc=` sentinel for "requires no pack" to filter on. */
+/* read-only summary row (e.g. "Base game") */
 .bni-facet--info {
   cursor: default;
   color: var(--bni-faint);
@@ -843,33 +823,34 @@
   color: var(--bni-faint);
 }
 
-/* ---- star rating (accent fill, display only) ---- */
+/* ---- rating: marks on the tag ---- */
 .bni-stars {
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  color: var(--bni-accent);
+  color: var(--bni-mark);
 }
 
 .bni-stars__empty {
-  color: var(--bni-chip);
+  color: rgba(27, 24, 19, 0.22);
 }
 
 .bni-stars__count {
   margin-left: 6px;
   font-size: 12px;
   font-weight: 400;
-  color: var(--bni-faint);
+  color: var(--bni-tag-ink-2);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- loading skeleton ---- */
 @keyframes bni-pulse {
   0%,
   100% {
-    opacity: 0.45;
+    opacity: 0.4;
   }
   50% {
-    opacity: 0.85;
+    opacity: 0.8;
   }
 }
 
@@ -883,12 +864,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--bni-faint);
 }
 
 .bni-skel__bar {
   height: 15px;
   width: 70%;
-  border-radius: 2px;
+  border-radius: 0;
   background: var(--bni-chip);
 }
 
@@ -901,6 +883,12 @@
 .bni-skel__chip {
   height: 16px;
   width: 64px;
-  border-radius: 2px;
+  border-radius: 0;
   background: var(--bni-inset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bni-skel {
+    animation: none;
+  }
 }

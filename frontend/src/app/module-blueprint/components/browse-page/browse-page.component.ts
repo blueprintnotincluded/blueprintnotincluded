@@ -477,6 +477,32 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterFacetSubject.next();
   }
 
+  /** The two ticks share a row, so each needs a label naming its own intent —
+   * the row's pack name alone would read identically on both. */
+  dlcIncludeAriaLabel(label: string): string {
+    return $localize`:browse.dlcInclude:Show only ${label}`;
+  }
+
+  dlcExcludeAriaLabel(label: string): string {
+    return $localize`:browse.dlcExclude:Hide ${label}`;
+  }
+
+  /** The two DLC filters are one control group in the UI (each pack row carries
+   * its own include/exclude tick), so "All" has to reset both sides in a single
+   * interaction rather than firing two separate facet changes. */
+  get hasAnyDlcFilter(): boolean {
+    return this.filterDlcs.length > 0 || this.excludeDlcs.length > 0;
+  }
+
+  clearAllDlcFilters() {
+    if (!this.hasAnyDlcFilter) return;
+    const hadExclusions = this.excludeDlcs.length > 0;
+    this.filterDlcs = [];
+    this.excludeDlcs = [];
+    if (hadExclusions) this.persistDlcExclusionPreference();
+    this.filterFacetSubject.next();
+  }
+
   private persistDlcExclusionPreference() {
     if (!this.loggedIn) return;
     this.userService.updateDlcPreferences(this.excludeDlcs).subscribe({
