@@ -1,28 +1,31 @@
+/* The board is the page: no inner panel, no card of cards. Wide enough for
+ * four specimens across, which is what makes the grid read as a tray. */
 .browse-page {
-  max-width: 1200px;
-  margin: 28px auto 56px;
-  padding: 24px 26px 40px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 30px 32px 64px;
 }
 
-@media (max-width: 1260px) {
+@media (max-width: 1500px) {
   .browse-page {
-    margin-left: 16px;
-    margin-right: 16px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 }
 
 .browse-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .browse-header h1 {
   margin: 0;
-  font-size: 26px;
-  line-height: 1.1;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
@@ -71,6 +74,94 @@
   padding-left: 34px;
 }
 
+/* ---- DLC row: one pack, two intents ----
+ * The label is not itself a button: with an include and an exclude tick on the
+ * same line, a clickable label would have to silently mean one of them. */
+.dlc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 2px 8px;
+  font-size: 13px;
+  color: var(--bni-body);
+}
+
+.dlc-row__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dlc-row .bni-facet-count {
+  flex: none;
+}
+
+.dlc-row--included {
+  background: var(--bni-mount);
+  color: var(--bni-ink);
+  box-shadow: inset 2px 0 0 var(--bni-mark);
+}
+
+.dlc-row--excluded {
+  background: var(--bni-mount);
+  color: var(--bni-muted);
+  box-shadow: inset 2px 0 0 var(--bni-brass);
+}
+
+/* an excluded pack is set aside: say so in the label, not only in a colour */
+.dlc-row--excluded .dlc-row__label {
+  text-decoration: line-through;
+  text-decoration-color: var(--bni-brass);
+  text-decoration-thickness: 1px;
+}
+
+.dlc-row--empty {
+  opacity: 0.42;
+}
+
+.dlc-tick {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  cursor: pointer;
+  border: 1px solid var(--bni-rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--bni-faint);
+  transition:
+    color 0.13s ease,
+    border-color 0.13s ease,
+    background-color 0.13s ease;
+}
+
+.dlc-tick:hover:not(:disabled) {
+  border-color: var(--bni-rule-hi);
+  color: var(--bni-ink);
+}
+
+.dlc-tick:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dlc-tick--include.on {
+  background: var(--bni-mark);
+  border-color: var(--bni-mark);
+  color: #fff;
+}
+
+.dlc-tick--exclude.on {
+  background: var(--bni-brass-tint);
+  border-color: var(--bni-brass);
+  color: var(--bni-brass);
+}
+
 .clear-filters {
   display: inline-flex;
   align-items: center;
@@ -115,15 +206,16 @@
   padding: 0.75rem 1rem;
   max-width: 480px;
   text-align: center;
-  background: rgba(217, 95, 76, 0.14);
-  border: 1px solid rgba(217, 95, 76, 0.5);
-  color: var(--bni-danger);
+  background: rgba(168, 69, 44, 0.16);
+  border: 1px solid rgba(168, 69, 44, 0.55);
+  color: #e0806a;
 }
 
 .filter-context-banner {
   margin: 0 0 16px;
   padding: 8px 12px;
-  background: var(--bni-panel2);
+  background: var(--bni-mount);
+  border-left: 1px solid var(--bni-mark);
   color: var(--bni-muted);
   font-size: 0.9rem;
 }
@@ -147,15 +239,16 @@
   font-size: 12px;
   letter-spacing: 0.01em;
   padding: 3px 8px 3px 9px;
-  border-radius: 2px;
-  background: var(--bni-chip);
+  border-radius: 0;
+  background: var(--bni-mount);
   color: var(--bni-body);
-  border: 1px solid transparent;
+  border: 1px solid var(--bni-rule-hi);
   cursor: pointer;
 }
 
 .active-filter-chip:hover {
-  background: var(--bni-chip-hi);
+  background: var(--bni-mount-hi);
+  border-color: var(--bni-mark-dim);
   color: var(--bni-ink);
 }
 
@@ -166,13 +259,17 @@
 
 /* Exclusion chips ("hide this pack") read as the opposite of every other
    chip in the bar, which all narrow the result set toward something. */
+/* withheld packs read brass, the same signal a draft carries: set aside,
+   not deleted. */
 .active-filter-chip--exclude {
-  color: var(--bni-danger);
+  color: var(--bni-brass);
+  border-color: rgba(184, 145, 46, 0.5);
 }
 
 .active-filter-chip--exclude:hover {
-  background: var(--bni-chip-hi);
-  color: var(--bni-danger);
+  background: var(--bni-mount-hi);
+  border-color: var(--bni-brass);
+  color: var(--bni-brass);
 }
 
 .clear-filters--inline {
@@ -181,8 +278,8 @@
 
 .blueprint-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 22px 20px;
   /* fade-out on list-context switches; duration must match LIST_FADE_OUT_MS
    * in the component */
   transition:
@@ -204,15 +301,18 @@
 
 /* cards fade + rise as they enter (tab/sort/filter switches, infinite
  * scroll); --enter-delay staggers them by grid position */
+/* the one authored moment: specimens settle onto the board, dropping the last
+ * few pixels and coming to rest. Exponential ease-out so the landing decelerates
+ * hard rather than gliding. */
 .card-enter {
-  animation: card-enter 0.32s cubic-bezier(0.25, 0.7, 0.3, 1) both;
+  animation: card-settle 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: var(--enter-delay, 0ms);
 }
 
-@keyframes card-enter {
+@keyframes card-settle {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px) scale(0.985);
   }
 }
 

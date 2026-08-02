@@ -2,18 +2,33 @@
   display: contents;
 }
 
+/* ---- the tag ----
+ * A bone-stock label pasted on the mount beneath the specimen. It is the only
+ * light surface on the board and it stays small: name and rating only. Inset
+ * from the mount edges so it reads as pasted on, not as a second panel.
+ */
 .card-info {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 12px 14px 13px;
+  gap: 0;
+  padding: 10px;
 }
 
 .card-title-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
+  padding: 7px 9px 8px;
+  background: var(--bni-tag);
+  color: var(--bni-tag-ink);
+  /* torn-edge shorthand: a hairline darker rule along the bottom so the stock
+   * reads as a physical strip rather than a filled box */
+  border-bottom: 1px solid rgba(27, 24, 19, 0.18);
+}
+
+.bni-card:hover .card-title-row {
+  background: var(--bni-tag-hi);
 }
 
 .card-stars {
@@ -21,12 +36,14 @@
   padding-top: 3px;
 }
 
+/* ---- board metadata: quiet ink, below the tag ---- */
 .card-meta {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
-  font-size: 12.5px;
+  margin-top: 9px;
+  font-size: 12px;
   color: var(--bni-muted);
 }
 
@@ -42,21 +59,28 @@
 .card-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
+  margin-top: 8px;
 }
 
 .card-social {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
-  margin-top: 2px;
+  gap: 6px 14px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid var(--bni-rule);
 }
 
-/* skeleton cards */
+/* skeleton cards: no tag stock, just the mount breathing */
 .skel-info {
   gap: 9px;
   padding-bottom: 16px;
+}
+
+.skel-info .bni-skel__bar {
+  margin-top: 2px;
 }
 
 .skel-chips {
@@ -80,4 +104,10 @@
 
 .no-results-card .card-info {
   align-items: center;
+}
+
+.no-results-card .bni-card__title {
+  padding: 7px 9px;
+  color: var(--bni-muted);
+  font-family: var(--bni-display);
 }
