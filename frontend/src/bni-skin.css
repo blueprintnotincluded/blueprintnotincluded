@@ -216,6 +216,149 @@
   line-height: 1.5;
 }
 
+/* ============================================================================
+ * PALETTE LAB — temporary. Candidate palettes for the discover skin, applied by
+ * <app-palette-lab> setting data-palette on <html>. Each block overrides only
+ * the source tokens; every component derives from those, so nothing else needs
+ * to know a palette changed.
+ *
+ * Delete this section (and the palette-lab component) once one is promoted into
+ * the .bni-skin defaults above.
+ * ========================================================================== */
+
+/* Drafting film: true-neutral cool greys, no warmth anywhere, pale film tag,
+ * safety orange. Maximum temperature separation from the warm ONI art. */
+:root[data-palette="film"] .bni-skin {
+  --bni-board: #22262a;
+  --bni-board-deep: #16191c;
+  --bni-mount: #2c3137;
+  --bni-mount-hi: #363c44;
+  --bni-inset: #1a1e21;
+  --bni-rule: #3f464e;
+  --bni-rule-hi: #4f5761;
+  --bni-tag: #dfe4e8;
+  --bni-tag-hi: #eef1f4;
+  --bni-tag-ink: #15181b;
+  --bni-tag-ink-2: #5c656e;
+  --bni-ink: #f2f5f7;
+  --bni-body: #bcc4cc;
+  --bni-muted: #8b949d;
+  --bni-faint: #69727b;
+  --bni-mark: #ff6a13;
+  --bni-mark-hi: #ff8b45;
+  --bni-mark-dim: #a8410a;
+  --bni-mark-glow: rgba(255, 106, 19, 0.35);
+  --bni-mark-tint: rgba(255, 106, 19, 0.1);
+  --bni-brass: #6fa8c7;
+  --bni-brass-tint: rgba(111, 168, 199, 0.16);
+  --bni-danger: #c0453a;
+  --bni-chip: #394047;
+  --bni-chip-hi: #454d55;
+  --bni-thumbbg: #6f767d;
+  --bni-thumbgrid: rgba(240, 248, 255, 0.3);
+  --bni-board-light: rgba(200, 226, 255, 0.05);
+}
+
+/* Cyanotype negative: deep Prussian ground, chalk tag, warm amber mark. The
+ * literal architectural reading inverted, so it reads as a negative rather than
+ * a blueprint costume. */
+:root[data-palette="cyanotype"] .bni-skin {
+  --bni-board: #101f2e;
+  --bni-board-deep: #0a1520;
+  --bni-mount: #17293b;
+  --bni-mount-hi: #1f3548;
+  --bni-inset: #0d1b28;
+  --bni-rule: #2b4258;
+  --bni-rule-hi: #3a5670;
+  --bni-tag: #eef2f5;
+  --bni-tag-hi: #f8fafb;
+  --bni-tag-ink: #0e1a24;
+  --bni-tag-ink-2: #5a6b79;
+  --bni-ink: #f2f7fb;
+  --bni-body: #b8c9d8;
+  --bni-muted: #8398aa;
+  --bni-faint: #62778a;
+  --bni-mark: #f0a92c;
+  --bni-mark-hi: #ffc65c;
+  --bni-mark-dim: #a06d10;
+  --bni-mark-glow: rgba(240, 169, 44, 0.35);
+  --bni-mark-tint: rgba(240, 169, 44, 0.12);
+  --bni-brass: #7fd1c4;
+  --bni-brass-tint: rgba(127, 209, 196, 0.16);
+  --bni-danger: #d4614f;
+  --bni-chip: #24384c;
+  --bni-chip-hi: #2f475e;
+  --bni-thumbbg: #6b7d8c;
+  --bni-thumbgrid: rgba(230, 244, 255, 0.32);
+  --bni-board-light: rgba(150, 205, 255, 0.07);
+}
+
+/* Concrete + signage: cool grey concrete board, cast-letter white tag, one
+ * signage green. Brutalist wayfinding rather than paper. */
+:root[data-palette="concrete"] .bni-skin {
+  --bni-board: #2c2f33;
+  --bni-board-deep: #1e2124;
+  --bni-mount: #363a3f;
+  --bni-mount-hi: #41464c;
+  --bni-inset: #232629;
+  --bni-rule: #4a4f55;
+  --bni-rule-hi: #5b6167;
+  --bni-tag: #f0f0ee;
+  --bni-tag-hi: #fafaf8;
+  --bni-tag-ink: #191b1d;
+  --bni-tag-ink-2: #5f6367;
+  --bni-ink: #f4f5f6;
+  --bni-body: #c2c6ca;
+  --bni-muted: #8f959b;
+  --bni-faint: #6d7379;
+  --bni-mark: #3f9b6d;
+  --bni-mark-hi: #5dbd8b;
+  --bni-mark-dim: #2a6d4b;
+  --bni-mark-glow: rgba(63, 155, 109, 0.35);
+  --bni-mark-tint: rgba(63, 155, 109, 0.12);
+  --bni-brass: #d8973c;
+  --bni-brass-tint: rgba(216, 151, 60, 0.16);
+  --bni-danger: #c1544a;
+  --bni-chip: #43484e;
+  --bni-chip-hi: #4e545a;
+  --bni-thumbbg: #74797e;
+  --bni-thumbgrid: rgba(255, 255, 255, 0.3);
+  --bni-board-light: rgba(215, 230, 245, 0.05);
+}
+
+/* Steam 2026: the values measured off the live Workshop, carried into the
+ * sample-board structure. The familiar option, and finally accurate. */
+:root[data-palette="steam"] .bni-skin {
+  --bni-board: #1b1d21;
+  --bni-board-deep: #131519;
+  --bni-mount: #262b34;
+  --bni-mount-hi: #313640;
+  --bni-inset: #16181c;
+  --bni-rule: #3a3f48;
+  --bni-rule-hi: #4a4f59;
+  --bni-tag: #d6dde4;
+  --bni-tag-hi: #e8eef4;
+  --bni-tag-ink: #14171b;
+  --bni-tag-ink-2: #596570;
+  --bni-ink: #ffffff;
+  --bni-body: #c6d4df;
+  --bni-muted: #acb2b8;
+  --bni-faint: #7a838c;
+  --bni-mark: #1a9fff;
+  --bni-mark-hi: #5cbaff;
+  --bni-mark-dim: #14688f;
+  --bni-mark-glow: rgba(26, 159, 255, 0.35);
+  --bni-mark-tint: rgba(26, 159, 255, 0.1);
+  --bni-brass: #d2a24b;
+  --bni-brass-tint: rgba(210, 162, 75, 0.16);
+  --bni-danger: #c8503c;
+  --bni-chip: #3d4450;
+  --bni-chip-hi: #4a5260;
+  --bni-thumbbg: #7b828a;
+  --bni-thumbgrid: rgba(255, 255, 255, 0.3);
+  --bni-board-light: rgba(180, 215, 255, 0.05);
+}
+
 /* ---- the board ---- */
 .bni-page {
   min-height: 100vh;
@@ -238,8 +381,8 @@
   background-color: var(--bni-board);
   background-image: radial-gradient(
     120% 90% at 22% 0%,
-    rgba(255, 238, 210, 0.055),
-    rgba(255, 238, 210, 0) 60%
+    var(--bni-board-light, rgba(255, 238, 210, 0.055)),
+    transparent 60%
   );
 }
 
