@@ -87,12 +87,19 @@ export class TranslationService {
     return `${this.monthKey(date)}-${String(date.getUTCDate()).padStart(2, '0')}`;
   }
 
+  // A malformed env value must fall back to the default, not silently disable
+  // the budget: parseInt('abc') is NaN, and NaN compares false to everything.
+  private envInt(value: string | undefined, fallback: number): number {
+    const parsed = parseInt(value ?? '', 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+  }
+
   private monthlyBudget(): number {
-    return parseInt(process.env.MONTHLY_CHAR_BUDGET || '400000', 10);
+    return this.envInt(process.env.MONTHLY_CHAR_BUDGET, 400000);
   }
 
   private perUserDailyCap(): number {
-    return parseInt(process.env.MAX_TRANSLATIONS_PER_USER_PER_DAY || '200', 10);
+    return this.envInt(process.env.MAX_TRANSLATIONS_PER_USER_PER_DAY, 200);
   }
 
   // Throws before any provider call is made when the site is already over its
@@ -199,12 +206,22 @@ export class TranslationService {
       await this.checkBudget(userId);
 
       // All misses in this call share targetLang (enforced by callers: one
-      // blueprint or one comment thread, one viewer locale).
+      // blueprint or one comment thread, one viewer locale) — asserted, not
+      // just assumed, since a mixed batch would cache a row translated into
+      // the wrong language under a different language's key.
       const targetLang = misses[0].input.targetLang;
+      if (misses.some(m => m.input.targetLang !== targetLang)) {
+        throw new Error('translateMany requires all inputs to share one targetLang');
+      }
       const translated = await this.provider.translate(
         misses.map(m => m.tokenized),
         providerLang(targetLang)
       );
+      if (translated.length !== misses.length) {
+        throw new Error(
+          `Translation provider returned ${translated.length} results for ${misses.length} inputs`
+        );
+      }
 
       let spentChars = 0;
       for (const text of misses.map(m => m.tokenized)) spentChars += text.length;

@@ -236,6 +236,15 @@ describe("CommentSectionComponent", () => {
   });
 
   describe("translation", () => {
+    it("does not offer translation to an anonymous viewer, even in a foreign language", () => {
+      authService.isLoggedIn.mockReturnValue(false);
+      translationService.matchesViewerLang.mockReturnValue(false);
+      bindBlueprint("bp1");
+      expect(
+        component.isForeignLanguage(makeComment({ sourceLang: "fr" }) as any),
+      ).toBe(false);
+    });
+
     it("does not offer translation for a comment already in the viewer's language", () => {
       translationService.matchesViewerLang.mockReturnValue(true);
       bindBlueprint("bp1");

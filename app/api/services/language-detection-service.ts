@@ -1,4 +1,4 @@
-import { detect } from 'tinyld';
+import { detectAll } from 'tinyld';
 
 // Free, local language detection for Blueprint.description / Comment.body
 // (spec/user-content-translation-impl.md §3). Pure function, no I/O, no DB —
@@ -42,14 +42,26 @@ function significantText(text: string): string {
  * when the text is too short / low-confidence / detection failed. Never
  * throws — a save must not fail because detection did.
  */
+// tinyld's `accuracy` is a relative probability spread across its full
+// language set (600+ entries including conlangs), so a real match on an
+// ambiguous Latin-script text can legitimately score as low as ~0.05-0.1 —
+// an absolute floor would reject correct French/Spanish/etc. detections
+// wholesale. A relative margin over the runner-up is the signal that
+// actually distinguishes "one clear match" from "a coin flip between two
+// candidates", without penalizing scripts (CJK/Cyrillic/Korean) that tinyld
+// is unambiguous about.
+const MIN_CONFIDENCE_MARGIN = 1.15;
+
 export function detectLanguage(text: string): string | null {
   try {
     const clean = significantText(text);
     if (clean.length < MIN_SIGNIFICANT_CHARS) return null;
 
-    const result = detect(clean);
-    if (!result) return null;
-    return normalizeLang(result);
+    const candidates = detectAll(clean);
+    if (candidates.length === 0) return null;
+    const [top, runnerUp] = candidates;
+    if (runnerUp != null && top.accuracy < runnerUp.accuracy * MIN_CONFIDENCE_MARGIN) return null;
+    return normalizeLang(top.lang);
   } catch {
     return null;
   }
