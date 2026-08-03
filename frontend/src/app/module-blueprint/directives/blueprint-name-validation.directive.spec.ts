@@ -37,6 +37,14 @@ describe("BlueprintNameValidationDirective", () => {
     expect(validate("R\u043edriguez")!["nameReason"]).toBe("mixed-script");
   });
 
+  it("reports a whitespace-only title as required, not as invalid characters", () => {
+    // Non-empty to Angular's own `required`, but normalizes to nothing. U+00A0
+    // is a no-break space, written as an escape.
+    for (const value of ["   ", "\t\t", "\u00a0", " \t\u00a0 "]) {
+      expect(validate(value)).toEqual({ required: true });
+    }
+  });
+
   it("returns tooLong past 60 characters and null at exactly 60", () => {
     expect(validate("a".repeat(61))!["tooLong"]).toBe(true);
     expect(validate("a".repeat(60))).toBeNull();

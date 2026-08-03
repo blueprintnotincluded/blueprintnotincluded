@@ -35,6 +35,11 @@ export class BlueprintNameValidationDirective implements Validator {
 
     const result = validateBlueprintName(control.value);
     if (result.ok) return null;
+    // A whitespace-only value is non-empty to Angular's own `required`, but
+    // normalizes to nothing — report it as `required` so it reuses the message
+    // the dialog already has, rather than a `nameReason` the template has no
+    // branch for (which showed the field as invalid with no explanation).
+    if (result.reason === "empty") return { required: true };
     if (result.reason === "too-long") return { tooLong: true };
     return { invalidChars: true, nameReason: result.reason };
   }
