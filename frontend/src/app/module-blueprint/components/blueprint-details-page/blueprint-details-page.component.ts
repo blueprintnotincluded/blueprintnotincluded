@@ -89,6 +89,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     const sourceLang = this.details?.sourceLang;
     return (
       this.loggedIn &&
+      this.details?.translationEnabled === true &&
       sourceLang != null &&
       !this.translationService.matchesViewerLang(sourceLang)
     );

@@ -1,13 +1,19 @@
 import crypto from 'crypto';
-import { Translation, TranslationModel, TranslationKind } from '../models/translation';
+import {
+  AUTO_SOURCE_LANG,
+  TranslationUnit,
+  TranslationUnitModel,
+} from '../models/translation-unit';
 import { TranslationBudgetModel } from '../models/translation-budget';
 import { TranslationProvider } from './translation-provider';
 import { GoogleTranslationProvider } from './google-translation-provider';
 import { tokenizeReferences, restoreReferences } from './translation-token-safety';
 
-// Cache + budget + provider orchestration (spec/user-content-translation-impl.md
-// §4.2). Controllers stay thin: this owns the cache lookup, budget check,
-// provider call, upsert, and accounting.
+// Cache + budget + provider orchestration. Controllers stay thin: this owns
+// the cache lookup, budget check, provider call, upsert, and accounting.
+// The cache is keyed by the text itself ({textHash, sourceLang, targetLang} —
+// spec/multilingual-search-plan.md §1), so identical text is billed once no
+// matter how many documents or queries carry it.
 
 export class TranslationBudgetExceeded extends Error {
   constructor(message: string) {
@@ -17,8 +23,6 @@ export class TranslationBudgetExceeded extends Error {
 }
 
 export interface TranslateInput {
-  kind: TranslationKind;
-  refId: string;
   sourceText: string;
   sourceLang: string | null;
   targetLang: string;
@@ -144,19 +148,15 @@ export class TranslationService {
     }
   }
 
+  // No staleness check: the hash IS the text, so an edited source is a new
+  // key and simply never finds the old row. A human row for a given text is
+  // therefore always valid (phase 4 forward-compat).
   private async findCached(
-    kind: TranslationKind,
-    refId: string,
-    targetLang: string,
-    sourceHash: string
-  ): Promise<Translation | null> {
-    const row = await TranslationModel.model.findOne({ kind, refId, targetLang });
-    if (row == null) return null;
-    // A human row always wins and is never treated as stale by a source edit
-    // (phase 4 forward-compat).
-    if (row.provider === 'human') return row;
-    if (row.sourceHash !== sourceHash) return null;
-    return row;
+    textHash: string,
+    sourceLangKey: string,
+    targetLang: string
+  ): Promise<TranslationUnit | null> {
+    return TranslationUnitModel.model.findOne({ textHash, sourceLang: sourceLangKey, targetLang });
   }
 
   // Translates a batch of inputs sharing one targetLang in as few provider
@@ -165,11 +165,18 @@ export class TranslationService {
   // daily cap — pass null for anonymous/system callers.
   public async translateMany(inputs: TranslateInput[], userId: string | null): Promise<TranslateResult[]> {
     const results: (TranslateResult | undefined)[] = new Array(inputs.length);
-    const misses: { index: number; input: TranslateInput; sourceHash: string; tokenized: string; tokens: string[] }[] = [];
+    const misses: {
+      index: number;
+      input: TranslateInput;
+      textHash: string;
+      sourceLangKey: string;
+      tokenized: string;
+      tokens: string[];
+    }[] = [];
 
     for (let i = 0; i < inputs.length; i++) {
       const input = inputs[i];
-      const { kind, refId, sourceText, sourceLang, targetLang } = input;
+      const { sourceText, sourceLang, targetLang } = input;
 
       // Cheapest possible path — the majority case — and it needs no cache
       // row or provider call at all.
@@ -181,12 +188,13 @@ export class TranslationService {
         continue;
       }
 
-      const sourceHash = sha256(sourceText);
-      const cached = await this.findCached(kind, refId, targetLang, sourceHash);
+      const textHash = sha256(sourceText);
+      const sourceLangKey = sourceLang ?? AUTO_SOURCE_LANG;
+      const cached = await this.findCached(textHash, sourceLangKey, targetLang);
       if (cached != null) {
         results[i] = {
           translatedText: cached.translatedText,
-          sourceLang: cached.sourceLang,
+          sourceLang: cached.detectedSourceLang ?? sourceLang,
           cached: true,
           provider: cached.provider,
         };
@@ -196,7 +204,7 @@ export class TranslationService {
       const { text: tokenized, tokens } = input.hasReferenceTokens
         ? tokenizeReferences(sourceText)
         : { text: sourceText, tokens: [] as string[] };
-      misses.push({ index: i, input, sourceHash, tokenized, tokens });
+      misses.push({ index: i, input, textHash, sourceLangKey, tokenized, tokens });
     }
 
     if (misses.length > 0) {
@@ -227,7 +235,7 @@ export class TranslationService {
       for (const text of misses.map(m => m.tokenized)) spentChars += text.length;
 
       for (let m = 0; m < misses.length; m++) {
-        const { index, input, sourceHash, tokens } = misses[m];
+        const { index, input, textHash, sourceLangKey, tokens } = misses[m];
         const raw = translated[m];
         const restored = tokens.length > 0 ? restoreReferences(raw.text, tokens) : raw.text;
 
@@ -244,12 +252,11 @@ export class TranslationService {
         }
 
         const detectedSourceLang = raw.detectedSourceLang ?? input.sourceLang ?? null;
-        await TranslationModel.model.updateOne(
-          { kind: input.kind, refId: input.refId, targetLang: input.targetLang },
+        await TranslationUnitModel.model.updateOne(
+          { textHash, sourceLang: sourceLangKey, targetLang: input.targetLang },
           {
             $set: {
-              sourceLang: detectedSourceLang,
-              sourceHash,
+              detectedSourceLang,
               translatedText: restored,
               provider: 'google-v2',
               charCount: misses[m].tokenized.length,

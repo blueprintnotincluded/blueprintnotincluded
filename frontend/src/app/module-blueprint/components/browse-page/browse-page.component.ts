@@ -732,7 +732,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.filterCategory,
             this.filterSubcategory,
             this.sort,
-            this.sort !== "recent" ? this.skipCount : undefined,
+            // Count sorts and name searches both paginate by offset
+            this.sort !== "recent" || this.filterName.trim()
+              ? this.skipCount
+              : undefined,
             this.filterModded,
             this.filterForkedFrom,
             null,

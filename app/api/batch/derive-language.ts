@@ -21,7 +21,7 @@ import { Model } from 'mongoose';
 import * as dotenv from 'dotenv';
 import { BlueprintModel } from '../models/blueprint';
 import { CommentModel } from '../models/comment';
-import { detectLanguage } from '../services/language-detection-service';
+import { detectLanguageCode } from '../services/language-detection-service';
 import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
 
 dotenv.config();
@@ -63,7 +63,7 @@ async function deriveBlueprints(dryRun: boolean, limit: number | null) {
 
   for await (const doc of cursor) {
     processed++;
-    const lang = detectLanguage(doc.description as string);
+    const lang = detectLanguageCode(doc.description as string);
     if (lang == null) unconfident++;
     else perLang.set(lang, (perLang.get(lang) ?? 0) + 1);
 
@@ -88,7 +88,7 @@ async function deriveComments(dryRun: boolean, limit: number | null) {
 
   for await (const doc of cursor) {
     processed++;
-    const lang = detectLanguage(doc.body as string);
+    const lang = detectLanguageCode(doc.body as string);
     if (lang == null) unconfident++;
     else perLang.set(lang, (perLang.get(lang) ?? 0) + 1);
 

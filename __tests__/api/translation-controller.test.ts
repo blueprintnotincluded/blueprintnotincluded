@@ -9,7 +9,7 @@ process.env.NODE_ENV = 'test';
 import { TestSetup } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { CommentModel } from '../../app/api/models/comment';
-import { TranslationModel } from '../../app/api/models/translation';
+import { TranslationUnitModel } from '../../app/api/models/translation-unit';
 import { TranslationBudgetModel } from '../../app/api/models/translation-budget';
 import { TranslationService } from '../../app/api/services/translation-service';
 import { FakeTranslationProvider } from '../helpers/fake-translation-provider';
@@ -22,7 +22,7 @@ describe('Translation API', function () {
   beforeEach(async function () {
     this.timeout(10000);
     testData = await TestSetup.beforeEach();
-    await TranslationModel.model.deleteMany({});
+    await TranslationUnitModel.model.deleteMany({});
     await TranslationBudgetModel.model.deleteMany({});
     fake = new FakeTranslationProvider();
     TranslationService.setInstanceForTest(new TranslationService(fake));
@@ -40,7 +40,7 @@ describe('Translation API', function () {
     // assertion in that test can't leak the override into every later test.
     delete process.env.MONTHLY_CHAR_BUDGET;
     TranslationService.setInstanceForTest(null);
-    await TranslationModel.model.deleteMany({});
+    await TranslationUnitModel.model.deleteMany({});
     await TranslationBudgetModel.model.deleteMany({});
     await TestSetup.afterEach();
   });

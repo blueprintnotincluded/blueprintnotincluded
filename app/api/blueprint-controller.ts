@@ -41,7 +41,10 @@ import { PreviewImageService } from './services/preview-image-service';
 import { deriveRooms } from './services/room-derivation-service';
 import { deriveMods } from './services/mod-derivation-service';
 import { deriveDlcs } from './services/dlc-derivation-service';
-import { detectLanguage } from './services/language-detection-service';
+import { detectLanguageCode } from './services/language-detection-service';
+import { TranslationService } from './services/translation-service';
+import { upsertSearchRow, syncSearchRowStatus } from './services/search-index-service';
+import { searchBlueprintIds, searchV2Enabled } from './services/search-service';
 import {
   parseBlueprintFilters,
   resolveRatedByIds,
@@ -309,6 +312,7 @@ export class BlueprintController {
                 .save()
                 .then(() => {
                   res.json({ deleteBlueprint: 'OK' });
+                  syncSearchRowStatus(blueprint.id, { deletedAt: blueprint.deletedAt ?? null });
                   BlueprintEventService.log({
                     blueprintId: blueprint.id,
                     actorId: ownerId,
@@ -452,6 +456,13 @@ export class BlueprintController {
       });
     }
     await BlueprintModel.model.updateOne({ _id: blueprintId }, { $set: update });
+    // Mirror the fresh signals onto the search rows (ranking reads them
+    // denormalized; fire-and-forget like every search sync).
+    syncSearchRowStatus(blueprintId, {
+      ratingAverage: aggregate.average,
+      ratingCount: aggregate.count,
+      ...(update.hotScore != null ? { hotScore: update.hotScore } : {}),
+    });
     return aggregate;
   }
 
@@ -728,8 +739,15 @@ export class BlueprintController {
       return;
     }
 
+    const searchIds = await BlueprintController.resolveSearchIds(parsed.filterName);
+
     const isAdmin = userJwt?.role === 'admin';
-    const { filter, usesOffsetPagination } = buildBlueprintFilter(parsed, ratedByIds, { userId, isAdmin });
+    const { filter, usesOffsetPagination } = buildBlueprintFilter(
+      parsed,
+      ratedByIds,
+      { userId, isAdmin },
+      searchIds
+    );
 
     let sortSpec: Record<string, 1 | -1> = { createdAt: -1 };
     if (parsed.sort === 'popular') sortSpec = { ratingAverage: -1, ratingCount: -1, createdAt: -1 };
@@ -744,6 +762,15 @@ export class BlueprintController {
     let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
     let skipAmount = usesOffsetPagination ? parsed.skip : 0;
     let limit = browseIncrement * 2;
+
+    // Search under the default sort orders by relevance, not createdAt: the
+    // ranked id list IS the order, so the page is a slice of it. An explicit
+    // count sort keeps its own order with search as a pure filter (the
+    // ordinary path below).
+    if (searchIds != null && parsed.sort === 'recent') {
+      BlueprintController.handleSearchOrderedBlueprints(req, res, filter, searchIds, skipAmount, limit);
+      return;
+    }
 
     // -data -thumbnail: the list renders neither blueprint contents (~85KB
     // avg) nor the inline thumbnail data URI (~10-20KB) — together they
@@ -763,6 +790,59 @@ export class BlueprintController {
         console.log(err);
         res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
       });
+  }
+
+  // Resolves filterName through the search service when v2 is enabled.
+  // null = no search clause (no query, kill switch off, or the search layer
+  // errored — in which case the caller falls back to the legacy name regex).
+  private static async resolveSearchIds(
+    filterName: string | null
+  ): Promise<mongoose.Types.ObjectId[] | null> {
+    if (filterName == null || !searchV2Enabled()) return null;
+    try {
+      return await searchBlueprintIds(filterName);
+    } catch (err) {
+      console.log('search resolution error — falling back to name regex');
+      console.log(err);
+      return null;
+    }
+  }
+
+  // Relevance-ordered page: the authoritative filter (which already contains
+  // the $in on the ranked ids) resolves the visible matches, then the page is
+  // a rank-ordered slice of that set. Two id-only/paged queries — at a ≤500
+  // candidate cap this is cheap, and handleGetBlueprint keeps its exact
+  // remaining/oldest semantics because it receives the same 2×increment
+  // window the sorted path would have produced.
+  private static handleSearchOrderedBlueprints(
+    req: Request,
+    res: Response,
+    filter: any,
+    searchIds: mongoose.Types.ObjectId[],
+    skipAmount: number,
+    limit: number
+  ): void {
+    (async () => {
+      const matched = await BlueprintModel.model.find(filter).select('_id').lean();
+      const matchedSet = new Set(matched.map(doc => doc._id.toString()));
+      const orderedIds = searchIds.filter(id => matchedSet.has(id.toString()));
+      const windowIds = orderedIds.slice(skipAmount, skipAmount + limit);
+
+      const docs = await BlueprintModel.model
+        .find({ _id: { $in: windowIds } })
+        .select('-data -thumbnail -rawSource')
+        .populate('owner');
+      const docsById = new Map(docs.map(doc => [(doc._id as any).toString(), doc]));
+      const page = windowIds
+        .map(id => docsById.get(id.toString()))
+        .filter((doc): doc is NonNullable<typeof doc> => doc != null);
+
+      await BlueprintController.handleGetBlueprint(req, res, page);
+    })().catch(err => {
+      console.log('Blueprint search find error');
+      console.log(err);
+      res.status(500).json(apiError(500, 'Failed to retrieve blueprints'));
+    });
   }
 
   // Self-excluding ("drill-down") facet counts for the Discover sidebar: one
@@ -804,9 +884,11 @@ export class BlueprintController {
       return;
     }
 
+    const searchIds = await BlueprintController.resolveSearchIds(parsed.filterName);
+
     const isAdmin = userJwt?.role === 'admin';
     const viewer = { userId, isAdmin };
-    const outerMatch = buildFacetBaseFilter(parsed, ratedByIds, viewer);
+    const outerMatch = buildFacetBaseFilter(parsed, ratedByIds, viewer, searchIds);
 
     // total applies every active dimension filter (omits none); every other
     // branch applies every dimension EXCEPT its own (self-excluding counts).
@@ -1196,6 +1278,7 @@ export class BlueprintController {
         { $set: { isPublished: target } }
       );
       if (result.modifiedCount === 1) {
+        syncSearchRowStatus(blueprintId, { isPublished: target });
         BlueprintEventService.log({
           blueprintId,
           // Admin actions are attributed to the admin, not the owner
@@ -1299,6 +1382,7 @@ export class BlueprintController {
         subcategory: blueprint.subcategory ?? null,
         description: blueprint.description ?? null,
         sourceLang: blueprint.sourceLang ?? null,
+        translationEnabled: TranslationService.instance.isConfigured(),
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
         mods: blueprint.mods ?? [],
@@ -1451,7 +1535,7 @@ export class BlueprintController {
       // client derived (protects against stale clients shipping the old heuristic).
       if (blueprint.mods.length > 0) blueprint.modded = true;
       // Derived fact, never client-supplied (same policy as rooms/requiredDlcs).
-      blueprint.sourceLang = metadata.description ? detectLanguage(metadata.description) : null;
+      blueprint.sourceLang = metadata.description ? detectLanguageCode(metadata.description) : null;
     }
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();
@@ -1473,6 +1557,14 @@ export class BlueprintController {
       // Keeps currentVersionId's data in sync with every save — the common read
       // path (load blueprint -> render current data) must never see stale data.
       await syncCurrentVersion(newBlueprint, data, thumbnail);
+      // Derived fact; awaited so a save is searchable the moment it returns,
+      // but non-fatal — search rows are advisory and the backfill heals gaps.
+      try {
+        await upsertSearchRow(newBlueprint);
+      } catch (err) {
+        console.log('search index sync error');
+        console.log(err);
+      }
     } catch (error) {
       console.log('Blueprint save error');
       console.log(error);

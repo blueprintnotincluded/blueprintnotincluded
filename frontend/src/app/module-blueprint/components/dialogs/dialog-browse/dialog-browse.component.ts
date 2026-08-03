@@ -31,6 +31,8 @@ export class DialogBrowseComponent implements OnInit {
   filterUserId!: string;
   filterUserName!: string;
   remaining!: number;
+  // Real items loaded so far — the skip offset for name-search pagination
+  loadedCount = 0;
 
   filterUser!: boolean;
   filterNameSubject = new Subject<string>();
@@ -154,8 +156,18 @@ export class DialogBrowseComponent implements OnInit {
     if (this.filterName != "" && this.filterName != null)
       filterName = this.filterName;
 
+    // A name search paginates by offset (relevance order has no date
+    // cursor), so pass how many real items are already loaded.
     this.blueprintService
-      .getBlueprints(this.oldestDate, this.filterUserId || null, filterName)
+      .getBlueprints(
+        this.oldestDate,
+        this.filterUserId || null,
+        filterName,
+        null,
+        null,
+        undefined,
+        filterName != null ? this.loadedCount : undefined,
+      )
       .subscribe({
         next: (r: any) => this.handleGetBlueprints(r),
       });
@@ -189,6 +201,7 @@ export class DialogBrowseComponent implements OnInit {
   }
 
   removeAll() {
+    this.loadedCount = 0;
     this.noMoreBlueprints = false;
     this.oldestDate = new Date();
     this.working = true;
@@ -258,6 +271,7 @@ export class DialogBrowseComponent implements OnInit {
     this.working = false;
     this.oldestDate = new Date(blueprintListResponse.oldest);
     this.remaining = blueprintListResponse.remaining;
+    this.loadedCount += blueprintListResponse.blueprints.length;
 
     if (this.remaining == 0) this.noMoreBlueprints = true;
 

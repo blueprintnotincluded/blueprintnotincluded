@@ -328,6 +328,7 @@
 
       <app-comment-section
         [blueprintId]="blueprintId"
+        [translationEnabled]="details?.translationEnabled === true"
         (commentsLoaded)="scrollToFragment()"
       ></app-comment-section>
       <app-version-history-dialog

@@ -1,12 +1,20 @@
 import { detectAll } from 'tinyld';
 
-// Free, local language detection for Blueprint.description / Comment.body
-// (spec/user-content-translation-impl.md §3). Pure function, no I/O, no DB —
-// same shape as blueprint-analyzer. Detection failure is never fatal to a
-// save: callers wrap this, but detectLanguage itself also never throws.
+// Free, local language detection for user content (blueprint titles and
+// descriptions, comment bodies). Pure function, no I/O, no DB — same shape as
+// blueprint-analyzer. Detection failure is never fatal to a save: callers
+// wrap this, but detectLanguage itself also never throws.
+//
+// Contract (spec/multilingual-search-plan.md §2.4): statistical detection
+// alone cannot handle the short texts that dominate this site (~21-char
+// titles, few-word queries), so callers may supply a *prior* — typically the
+// author's UI locale — and the result records whether the answer came from
+// statistics ('high') or from that prior ('prior'). That provenance lets the
+// caller decide whether the language is trustworthy enough to spend a
+// translation on.
 
-// Below this many significant characters, short-text detectors guess badly
-// (a two-word comment can "detect" as almost anything).
+// At or above this many significant characters, the statistical detector is
+// trusted on the usual relative-margin rule alone.
 const MIN_SIGNIFICANT_CHARS = 20;
 
 // {{blueprint:<24 hex>}} / {{user:<24 hex>}} reference tokens (comment-body.ts)
@@ -14,8 +22,7 @@ const REFERENCE_TOKEN = /\{\{(?:blueprint|user):[0-9a-fA-F]{24}\}\}/g;
 const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s)]+/gi;
 
 // tinyld returns ISO-639-1 already for most languages, but Chinese variants
-// and a few macrolanguage codes need collapsing to the site's four locales'
-// base languages.
+// and a few macrolanguage codes need collapsing to base languages.
 const LANG_ALIASES: Record<string, string> = {
   cmn: 'zh',
   zho: 'zh',
@@ -37,11 +44,6 @@ function significantText(text: string): string {
   return text.replace(REFERENCE_TOKEN, ' ').replace(URL_PATTERN, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/**
- * Detects the language of user content. Returns an ISO-639-1 code, or null
- * when the text is too short / low-confidence / detection failed. Never
- * throws — a save must not fail because detection did.
- */
 // tinyld's `accuracy` is a relative probability spread across its full
 // language set (600+ entries including conlangs), so a real match on an
 // ambiguous Latin-script text can legitimately score as low as ~0.05-0.1 —
@@ -52,17 +54,60 @@ function significantText(text: string): string {
 // is unambiguous about.
 const MIN_CONFIDENCE_MARGIN = 1.15;
 
-export function detectLanguage(text: string): string | null {
+// Below MIN_SIGNIFICANT_CHARS the margin rule alone is a coin flip for plain
+// Latin text ("New Base" scores as several languages at once), so a short
+// text is trusted only when it BOTH clears a much stronger margin and
+// carries at least one character outside unaccented ASCII — CJK, Hangul,
+// Cyrillic, or accented Latin (Vietnamese diacritics, French accents…). A
+// short all-ASCII text can never be statistically 'high'; it falls to the
+// prior.
+const SHORT_TEXT_MARGIN = 2.0;
+// eslint-disable-next-line no-control-regex
+const NON_ASCII = /[^\x00-\x7F]/;
+
+export interface LanguageDetection {
+  lang: string | null;
+  // 'high'  — statistical detection, confident; safe to store and act on.
+  // 'prior' — statistics couldn't decide, answer is the caller's prior;
+  //           store it if useful, but think before spending money on it.
+  // 'none'  — no statistics, no prior: nothing is known.
+  confidence: 'high' | 'prior' | 'none';
+}
+
+export interface DetectLanguageOptions {
+  // Best guess from context — typically the author's UI locale. Used only
+  // when statistical detection is not confident.
+  prior?: string | null;
+}
+
+export function detectLanguage(text: string, options?: DetectLanguageOptions): LanguageDetection {
+  const prior = options?.prior != null ? normalizeLang(options.prior) : null;
+  const fallback: LanguageDetection =
+    prior != null ? { lang: prior, confidence: 'prior' } : { lang: null, confidence: 'none' };
+
   try {
     const clean = significantText(text);
-    if (clean.length < MIN_SIGNIFICANT_CHARS) return null;
+    if (clean.length === 0) return fallback;
 
     const candidates = detectAll(clean);
-    if (candidates.length === 0) return null;
+    if (candidates.length === 0) return fallback;
     const [top, runnerUp] = candidates;
-    if (runnerUp != null && top.accuracy < runnerUp.accuracy * MIN_CONFIDENCE_MARGIN) return null;
-    return normalizeLang(top.lang);
+
+    const margin = clean.length >= MIN_SIGNIFICANT_CHARS ? MIN_CONFIDENCE_MARGIN : SHORT_TEXT_MARGIN;
+    const confident =
+      (runnerUp == null || top.accuracy >= runnerUp.accuracy * margin) &&
+      (clean.length >= MIN_SIGNIFICANT_CHARS || NON_ASCII.test(clean));
+
+    if (!confident) return fallback;
+    return { lang: normalizeLang(top.lang), confidence: 'high' };
   } catch {
-    return null;
+    return fallback;
   }
+}
+
+// Convenience for callers that only want a confidently detected code (the
+// pre-prior contract): 'high' yields the code, anything else null.
+export function detectLanguageCode(text: string): string | null {
+  const result = detectLanguage(text);
+  return result.confidence === 'high' ? result.lang : null;
 }

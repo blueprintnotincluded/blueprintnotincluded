@@ -22,6 +22,9 @@ import { TranslationService } from "../../services/translation.service";
 })
 export class CommentSectionComponent implements OnChanges {
   @Input() blueprintId: string | null = null;
+  // Whether the server has a translation provider configured (from the
+  // details response) — without it the translate endpoints only 503.
+  @Input() translationEnabled = false;
   @Output() commentsLoaded = new EventEmitter<void>();
 
   loading = false;
@@ -70,6 +73,7 @@ export class CommentSectionComponent implements OnChanges {
   // anonymous click would just fail. Nearly all traffic never sees it.
   isForeignLanguage(comment: CommentDto): boolean {
     return (
+      this.translationEnabled &&
       this.authService.isLoggedIn() &&
       !comment.deleted &&
       comment.sourceLang != null &&

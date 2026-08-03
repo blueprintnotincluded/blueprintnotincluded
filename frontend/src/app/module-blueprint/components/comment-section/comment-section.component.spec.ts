@@ -236,6 +236,21 @@ describe("CommentSectionComponent", () => {
   });
 
   describe("translation", () => {
+    // The server declares provider availability via the details response;
+    // these specs simulate a configured server unless stated otherwise.
+    beforeEach(() => {
+      component.translationEnabled = true;
+    });
+
+    it("does not offer translation when the server has no provider", () => {
+      component.translationEnabled = false;
+      translationService.matchesViewerLang.mockReturnValue(false);
+      bindBlueprint("bp1");
+      expect(
+        component.isForeignLanguage(makeComment({ sourceLang: "fr" }) as any),
+      ).toBe(false);
+    });
+
     it("does not offer translation to an anonymous viewer, even in a foreign language", () => {
       authService.isLoggedIn.mockReturnValue(false);
       translationService.matchesViewerLang.mockReturnValue(false);

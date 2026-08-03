@@ -8,6 +8,8 @@ import { NotificationModel } from '../../app/api/models/notification';
 import { PreviewImageModel } from '../../app/api/models/preview-image';
 import { BlueprintEventModel } from '../../app/api/models/blueprint-event';
 import { BlueprintRatingModel } from '../../app/api/models/blueprint-rating';
+import { BlueprintSearchModel } from '../../app/api/models/blueprint-search';
+import { upsertSearchRow } from '../../app/api/services/search-index-service';
 import { TestDataFactory, TestUser, TestBlueprint } from '../factories/testData';
 import { Types } from 'mongoose';
 
@@ -19,7 +21,12 @@ export class TestDbHelper {
 
   static async createTestBlueprint(owner: Types.ObjectId, blueprintData?: Partial<TestBlueprint>) {
     const testBlueprint = TestDataFactory.createBlueprint(owner, blueprintData);
-    return await BlueprintModel.model.create(testBlueprint);
+    const doc = await BlueprintModel.model.create(testBlueprint);
+    // Mirror the save path: every blueprint gets its search row, so the
+    // filterName tests exercise the real search pipeline. Awaited (unlike the
+    // fire-and-forget production sync) so a test can search immediately.
+    await upsertSearchRow(doc);
+    return doc;
   }
 
   // Insert per-user rating docs and set the matching denormalized aggregate
@@ -158,6 +165,7 @@ export class TestDbHelper {
       await PreviewImageModel.model.deleteMany({});
       await BlueprintEventModel.model.deleteMany({});
       await BlueprintRatingModel.model.deleteMany({});
+      if (BlueprintSearchModel.model != null) await BlueprintSearchModel.model.deleteMany({});
       TestDataFactory.reset();
     } catch (error) {
       console.error('Error cleaning database:', error);

@@ -1,0 +1,105 @@
+import mongoose, { Document, Model, Schema } from 'mongoose';
+
+// Search documents (spec/multilingual-search-plan.md §2.1): one row per
+// (blueprintId, lang), derived and disposable — same policy as rooms/mods/
+// requiredDlcs. Dropping the collection costs a `npm run derive-search`
+// backfill, never data. A separate collection exists because Mongo allows
+// exactly one text index per collection and the blueprints collection can't
+// spare it (and its rows must be per-language for per-row stemming).
+//
+// Rows are advisory for retrieval only: the final page fetch always
+// re-applies the authoritative filter (deletedAt/isPublished/owner…) against
+// the blueprints collection, so a stale row can cost recall, never leak a
+// deleted or draft blueprint.
+
+// Search rows are an OPEN language set ('vi' is valid with no Vietnamese UI
+// build — that's what lets the corpus accrete ahead of a UI translation),
+// but Mongo's text stemmer list is not: an unsupported language_override
+// value fails the write. So `lang` stays ISO and `textLang` carries what the
+// text index actually uses — a supported code or 'none'.
+const MONGO_TEXT_LANGS = new Set([
+  'da', 'nl', 'en', 'fi', 'fr', 'de', 'hu', 'it', 'nb', 'pt', 'ro', 'ru', 'es', 'sv', 'tr',
+]);
+
+export function mongoTextLang(lang: string): string {
+  return MONGO_TEXT_LANGS.has(lang) ? lang : 'none';
+}
+
+export type SearchRowOrigin = 'authored' | 'machine' | 'human';
+const SEARCH_ROW_ORIGINS: SearchRowOrigin[] = ['authored', 'machine', 'human'];
+
+export interface BlueprintSearch extends Document {
+  blueprintId: mongoose.Types.ObjectId;
+  lang: string;
+  // What the text index stems this row with (language_override target).
+  textLang: string;
+  origin: SearchRowOrigin;
+  title: string;
+  description: string;
+  // Localized display names of contained buildings/rooms — text-searchable.
+  terms: string[];
+  // Prefab/room ids — language-independent, the structural retrieval backbone.
+  termIds: string[];
+  // Phase 2 (clustering): canonical-duplicate group. null until derived.
+  clusterId: mongoose.Types.ObjectId | null;
+  // Hash of the derivation inputs — lets the backfill skip fresh rows.
+  sourceHash: string;
+  // Denormalized ranking signals so a search is one query against one
+  // collection; the blueprint fetch happens only for the final page.
+  ratingAverage: number;
+  ratingCount: number;
+  downloadCount: number;
+  forkCount: number;
+  hotScore: number | null;
+  blueprintCreatedAt: Date;
+  isPublished: boolean;
+  deletedAt: Date | null;
+  updatedAt: Date;
+}
+
+export class BlueprintSearchModel {
+  static model: Model<BlueprintSearch>;
+
+  public static init() {
+    const searchSchema = new mongoose.Schema(
+      {
+        blueprintId: { type: Schema.Types.ObjectId, ref: 'Blueprint', required: true },
+        lang: { type: String, required: true },
+        textLang: { type: String, required: true, default: 'none' },
+        origin: { type: String, enum: SEARCH_ROW_ORIGINS, required: true },
+        title: { type: String, required: true, default: '' },
+        description: { type: String, default: '' },
+        terms: { type: [String], default: [] },
+        termIds: { type: [String], default: [] },
+        clusterId: { type: Schema.Types.ObjectId, default: null },
+        sourceHash: { type: String, required: true },
+        ratingAverage: { type: Number, default: 0 },
+        ratingCount: { type: Number, default: 0 },
+        downloadCount: { type: Number, default: 0 },
+        forkCount: { type: Number, default: 0 },
+        hotScore: { type: Number, default: null },
+        blueprintCreatedAt: { type: Date },
+        isPublished: { type: Boolean, default: true },
+        deletedAt: { type: Date, default: null },
+      },
+      { timestamps: true, collection: 'blueprintsearch' }
+    );
+
+    searchSchema.index({ blueprintId: 1, lang: 1 }, { unique: true });
+    searchSchema.index({ termIds: 1 });
+    searchSchema.index({ clusterId: 1 });
+    searchSchema.index(
+      { title: 'text', terms: 'text', description: 'text' },
+      {
+        weights: { title: 10, terms: 4, description: 1 },
+        language_override: 'textLang',
+        default_language: 'en',
+        name: 'blueprint_search_text',
+      }
+    );
+
+    BlueprintSearchModel.model =
+      (mongoose.models['BlueprintSearch'] as Model<BlueprintSearch>) ??
+      mongoose.model<BlueprintSearch>('BlueprintSearch', searchSchema);
+  }
+}

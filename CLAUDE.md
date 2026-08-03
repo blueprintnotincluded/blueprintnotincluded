@@ -363,6 +363,48 @@ on download. `Info` now survives as an *input* format only.
   `BaseTexture` — `Sprite.from` throws on the latter.
 - **Editing** — `NotesTool` + `components/note-edit-panel/`. There is no other annotation UI.
 
+### Search (blueprintsearch) & user-content translation
+`spec/multilingual-search-plan.md` phases 0–1 + the reworked translation foundation.
+- **Search documents** — `blueprintsearch` collection (`app/api/models/blueprint-search.ts`),
+  one row per `(blueprintId, lang)`; every blueprint has an `en` row (the pivot invariant).
+  Holds title/description/`terms[]` (display names) under the collection's single text index
+  (title 10 / terms 4 / description 1, `language_override: 'textLang'` — ISO `lang` stays an
+  open set, `textLang` maps unsupported stemmers to `none`), `termIds[]` (prefab + room ids,
+  language-independent), and denormalized ranking signals. Rows are **derived and disposable**
+  (`npm run derive-search[:dry-run]`, `--limit N`); they are advisory for retrieval only — the
+  final page fetch re-applies the authoritative filter on `blueprints`, so a stale row can cost
+  recall but never leak a draft/deleted doc. Save path upserts the row (awaited, non-fatal);
+  delete/publish/rating-recompute patch status/signals fire-and-forget.
+- **Retrieval** (`app/api/services/search-service.ts`) — normalize → term-resolve → lexical
+  (`$text`) + structural (`termIds` ∩ resolved ids) → RRF fuse → rank. Pure pieces live in
+  `lib/src/search/` (`query-normalize`, `term-resolve`, `rrf`, `ranking` — the ranking spec
+  asserts ordering properties, not scores). Term dictionary is built lazily from the loaded
+  `OniItem` display names + room names + `assets/search-aliases.json` (hand-maintained jargon:
+  `spom`, `aquatuner`, …; validate ids against the database when editing).
+- **Endpoint integration** — `filterName` on `getblueprints`/`blueprintfacets` resolves through
+  the search service to a ranked id list (`_id $in`); under the default `recent` sort the page
+  is a rank-ordered slice (offset pagination — the client sends `skip` and drops the
+  `olderthan` cursor whenever a name search is active), while explicit count sorts keep their
+  own order with search as a filter. Kill switch `SEARCH_V2_ENABLED=false` reverts to the
+  legacy escaped-regex substring match, which also remains the automatic fallback if the
+  search layer errors.
+- **Translation cache** — `translationunits` (`app/api/models/translation-unit.ts`), keyed
+  `{textHash, sourceLang('auto' when unknown), targetLang}` — by **text**, never by document:
+  identical text is billed once corpus-wide. Replaced the per-document `translations` cache
+  before anything shipped (prod-empty, so no migration). Budget guard unchanged
+  (`translation-budget.ts`).
+- **Language detection** — `detectLanguage(text, {prior}) → {lang, confidence:
+  'high'|'prior'|'none'}` (`language-detection-service.ts`): statistical margin for ≥20 chars;
+  short texts need a stronger margin AND a non-ASCII signal, else they fall to the caller's
+  prior (recorded as `'prior'` so callers can decide whether to spend money on it).
+  `detectLanguageCode()` is the high-confidence-only convenience the save paths use.
+- **Translate UI gating** — `BlueprintDetailsResponse.translationEnabled` (server
+  `isConfigured()`); the details page and comment section render no Translate affordance
+  without it, so an unconfigured prod never shows a button that 503s.
+- **Not built yet** (later phases of the plan): clustering/collapse of duplicate results,
+  the `name` regex relaxation + title translation pivot, query translation + `searchqueries`
+  telemetry, IDF weighting for structural matches, semantic retrieval.
+
 ### Blueprint metadata auto-derivation
 `requiredDlcs`, `gameVersion` and `modded` are derived deterministically from the blueprint
 content — users no longer set these manually. `multiplayerSafe` has been removed entirely.
