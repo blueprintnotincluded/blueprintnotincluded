@@ -4,6 +4,7 @@ import {
   baseGameTooltip,
   categoryTooltip,
   dlcTooltip,
+  duplicateTooltip,
   moddedTooltip,
   roomTooltip,
 } from "../../utils/chip-tooltip";
@@ -30,6 +31,7 @@ export class BlueprintCardComponent {
   readonly baseGameTooltip = baseGameTooltip;
   readonly dlcLabel = dlcLabel;
   readonly moddedTooltip = moddedTooltip;
+  readonly duplicateTooltip = duplicateTooltip;
   readonly roomTooltip = roomTooltip;
   readonly roomTypeLabel = roomTypeLabel;
 

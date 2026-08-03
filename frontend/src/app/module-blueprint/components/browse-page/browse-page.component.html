@@ -321,6 +321,20 @@
               {{ opt.label }}
             </button>
           </div>
+
+          <label
+            *ngIf="showCollapseToggle"
+            class="collapse-toggle"
+            i18n-title
+            title="Identical copies of the same build are shown once. Nothing is removed — every copy keeps its page."
+          >
+            <input
+              type="checkbox"
+              [(ngModel)]="collapseDuplicates"
+              (ngModelChange)="onCollapseChange()"
+            />
+            <span i18n>Group identical copies</span>
+          </label>
         </div>
 
         <div

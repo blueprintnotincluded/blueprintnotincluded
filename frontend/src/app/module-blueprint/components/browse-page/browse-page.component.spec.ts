@@ -165,6 +165,53 @@ describe("BrowsePageComponent", () => {
     });
   });
 
+  describe("duplicate collapse", () => {
+    it("is on by default and only offers the toggle while searching", () => {
+      expect(component.collapseDuplicates).toBe(true);
+      expect(component.showCollapseToggle).toBe(false);
+      component.filterName = "ranch";
+      expect(component.showCollapseToggle).toBe(true);
+    });
+
+    it("passes the collapse setting to getBlueprints", () => {
+      component.filterName = "ranch";
+      component.collapseDuplicates = false;
+      component.getBlueprints();
+
+      const args = (blueprintService.getBlueprints as any).mock.calls.at(-1);
+      expect(args.at(-1)).toBe(false);
+    });
+
+    it("keeps the URL clean when collapse is on, and round-trips the opt-out", () => {
+      vi.useFakeTimers();
+      component.onCollapseChange();
+      vi.advanceTimersByTime(600);
+      expect(
+        router.navigate.mock.calls.at(-1)[1].queryParams["collapse"],
+      ).toBeUndefined();
+
+      component.collapseDuplicates = false;
+      component.onCollapseChange();
+      vi.advanceTimersByTime(600);
+      const written = router.navigate.mock.calls.at(-1)[1].queryParams;
+      expect(written["collapse"]).toBe("false");
+      vi.useRealTimers();
+
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.queryParamMap = of(convertToParamMap(written));
+      const reopened = TestBed.createComponent(BrowsePageComponent);
+      reopened.componentInstance.ngOnInit();
+      expect(reopened.componentInstance.collapseDuplicates).toBe(false);
+    });
+
+    it("expanding restarts pagination — it is a different result set", () => {
+      component.skipCount = 40;
+      component.collapseDuplicates = false;
+      component.onCollapseChange();
+      expect(component.skipCount).toBe(0);
+    });
+  });
+
   describe("facet filters", () => {
     it("passes category filter to getBlueprints", () => {
       component.filterCategory = "power";
@@ -184,6 +231,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        true,
       );
     });
 
@@ -206,6 +254,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        true,
       );
     });
 
@@ -227,6 +276,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        true,
       );
     });
 
@@ -248,6 +298,7 @@ describe("BrowsePageComponent", () => {
         null,
         null,
         null,
+        true,
       );
     });
 
@@ -269,6 +320,7 @@ describe("BrowsePageComponent", () => {
         "latrine",
         null,
         null,
+        true,
       );
     });
 
@@ -290,6 +342,7 @@ describe("BrowsePageComponent", () => {
         null,
         "DLC2_ID,DLC3_ID",
         null,
+        true,
       );
     });
 

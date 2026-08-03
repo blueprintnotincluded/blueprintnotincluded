@@ -88,6 +88,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
    * excludeDlc param (even an empty one) — an explicit param always wins over
    * the stored account preference, so this gates whether ngOnInit applies it. */
   private excludeDlcParamPresent = false;
+  /** Group identical copies in search results (§2.5). On by default: the
+   * corpus is ~47% exact duplicates, so an uncollapsed query for a popular
+   * build is a wall of the same thing. Only meaningful while searching. */
+  collapseDuplicates = true;
   filterCategory: string | null = null;
   filterSubcategory: string | null = null;
   filterModded: boolean | null = null;
@@ -376,6 +380,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       .flatMap((value) => value.split(","))
       .map((dlcId) => dlcId.trim())
       .filter((dlcId) => dlcId.length > 0);
+    // Only the opt-out is ever in the URL, so a missing param means "on".
+    const collapse = params.get("collapse") !== "false";
     const rawSort = params.get("sort");
     const sort: BlueprintSort = this.sortOptions.some(
       (option) => option.value === rawSort,
@@ -392,6 +398,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       rooms !== this.filterRooms ||
       dlcs.join(",") !== this.filterDlcs.join(",") ||
       excludeDlcs.join(",") !== this.excludeDlcs.join(",") ||
+      collapse !== this.collapseDuplicates ||
       sort !== this.sort;
 
     this.filterName = name;
@@ -400,6 +407,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterModded = modded;
     this.filterForkedFrom = forkedFrom;
     this.filterRooms = rooms;
+    this.collapseDuplicates = collapse;
     this.filterDlcs = dlcs;
     this.excludeDlcParamPresent = excludeDlcParamPresent;
     // An explicit param always wins: only overwrite the (possibly
@@ -666,6 +674,19 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.transitionList();
   }
 
+  /** Collapse only applies to search results, so the control only appears
+   * when there is a query to collapse. */
+  get showCollapseToggle(): boolean {
+    return this.filterName.trim().length > 0;
+  }
+
+  onCollapseChange() {
+    // Expanding is a different result set, not a deeper page of this one.
+    this.skipCount = 0;
+    this.applyFiltersToUrl();
+    this.transitionList();
+  }
+
   get loggedIn(): boolean {
     return this.authService.isLoggedIn();
   }
@@ -685,6 +706,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
       queryParams["dlc"] = this.filterDlcs.join(",");
     if (this.excludeDlcs.length > 0)
       queryParams["excludeDlc"] = this.excludeDlcs.join(",");
+    if (!this.collapseDuplicates) queryParams["collapse"] = "false";
     if (this.sort !== DEFAULT_SORT) queryParams["sort"] = this.sort;
     this.router.navigate([], { queryParams, replaceUrl: true });
   }
@@ -696,6 +718,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterModded = null;
     this.filterForkedFrom = null;
     this.filterRooms = null;
+    this.collapseDuplicates = true;
     this.filterDlcs = [];
     const hadExclusions = this.excludeDlcs.length > 0;
     this.excludeDlcs = [];
@@ -742,6 +765,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
             this.filterRooms,
             this.filterDlcs.length > 0 ? this.filterDlcs.join(",") : null,
             this.excludeDlcs.length > 0 ? this.excludeDlcs.join(",") : null,
+            this.collapseDuplicates,
           );
 
     request$.subscribe({

@@ -201,6 +201,29 @@
   margin-bottom: -1px;
 }
 
+/* search-only control, so it sits apart from the sort tabs rather than
+   pretending to be one of them */
+.collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding-bottom: 6px;
+  font-size: 0.82rem;
+  color: var(--bni-faint);
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapse-toggle:hover {
+  color: var(--bni-ink);
+}
+
+.collapse-toggle input {
+  accent-color: var(--bni-accent);
+  cursor: pointer;
+}
+
 .browse-error {
   margin: 0 auto 1rem;
   padding: 0.75rem 1rem;
