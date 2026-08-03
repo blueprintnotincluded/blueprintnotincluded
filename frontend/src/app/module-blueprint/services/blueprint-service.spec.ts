@@ -425,6 +425,24 @@ describe("BlueprintService", () => {
       expect(url).toContain("filterName=my-bp");
     });
 
+    it("a name search paginates by skip and never sends the date cursor", () => {
+      // Search results are relevance-ordered, so a createdAt cursor would
+      // skip and repeat items; the offset is the only valid pagination.
+      service.getBlueprints(
+        new Date(1_000_000),
+        null,
+        "spom",
+        null,
+        null,
+        undefined,
+        12,
+      );
+      const url: string = mockHttp.get.mock.calls[0][0];
+      expect(url).not.toContain("olderthan");
+      expect(url).toContain("filterName=spom");
+      expect(url).toContain("skip=12");
+    });
+
     it("includes sort=mostForked when provided", () => {
       service.getBlueprints(new Date(), null, null, null, null, "mostForked");
       const url: string = mockHttp.get.mock.calls[0][0];

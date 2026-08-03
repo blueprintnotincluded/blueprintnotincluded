@@ -72,8 +72,6 @@ export class TranslationController {
 
       const result = await service.translateOne(
         {
-          kind: 'blueprint',
-          refId: blueprintId,
           sourceText: blueprint.description,
           sourceLang: blueprint.sourceLang ?? null,
           targetLang: lang,
@@ -138,8 +136,6 @@ export class TranslationController {
       });
 
       const inputs = comments.map(comment => ({
-        kind: 'comment' as const,
-        refId: (comment._id as mongoose.Types.ObjectId).toString(),
         sourceText: comment.body,
         sourceLang: comment.sourceLang ?? null,
         targetLang: lang,

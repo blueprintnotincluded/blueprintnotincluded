@@ -30,6 +30,8 @@
     "derive-rooms:dry-run": "./scripts/batch.sh derive-rooms --dry-run",
     "derive-language": "./scripts/batch.sh derive-language",
     "derive-language:dry-run": "./scripts/batch.sh derive-language --dry-run",
+    "derive-search": "./scripts/batch.sh derive-search",
+    "derive-search:dry-run": "./scripts/batch.sh derive-search --dry-run",
     "backfill-previews": "./scripts/batch.sh backfill-preview-images",
     "backfill-previews:dry-run": "./scripts/batch.sh backfill-preview-images --dry-run",
     "avatars:seed-batch": "./scripts/batch.sh generate-avatar-batch",

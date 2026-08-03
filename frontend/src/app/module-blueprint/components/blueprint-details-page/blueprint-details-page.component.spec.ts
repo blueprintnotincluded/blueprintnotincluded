@@ -32,6 +32,7 @@ function makeDetails(overrides: any = {}) {
     subcategory: null,
     description: "A tidy coal setup",
     sourceLang: null,
+    translationEnabled: true,
     researchTier: null,
     modded: false,
     isPublished: true,
@@ -438,6 +439,17 @@ describe("BlueprintDetailsPageComponent", () => {
       translationService.matchesViewerLang.mockReturnValue(true);
       blueprintService.getBlueprintDetails.mockReturnValue(
         of(makeDetails({ sourceLang: "en" })),
+      );
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".details-translate")),
+      ).toBeNull();
+    });
+
+    it("shows no button when the server has no translation provider", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ sourceLang: "fr", translationEnabled: false })),
       );
       fixture.detectChanges();
       expect(

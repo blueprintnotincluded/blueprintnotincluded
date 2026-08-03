@@ -13,7 +13,7 @@ import {
   segmentBody,
   toEditableText,
 } from './services/comment-body';
-import { detectLanguage } from './services/language-detection-service';
+import { detectLanguageCode } from './services/language-detection-service';
 import {
   CommentDto,
   CommentThread,
@@ -270,7 +270,7 @@ export class CommentController {
         authorId: user._id,
         parentId: parentId ?? null,
         body: sanitized,
-        sourceLang: detectLanguage(sanitized),
+        sourceLang: detectLanguageCode(sanitized),
         createdAt: now,
         lastActivityAt: now,
       });
@@ -365,7 +365,7 @@ export class CommentController {
 
       if (sanitized !== comment.body) {
         comment.body = sanitized;
-        comment.sourceLang = detectLanguage(sanitized);
+        comment.sourceLang = detectLanguageCode(sanitized);
         comment.editedAt = new Date();
       }
       await comment.save();

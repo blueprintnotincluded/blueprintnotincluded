@@ -12,7 +12,8 @@ import { BlueprintRatingModel } from './models/blueprint-rating';
 import { AvatarModel } from './models/avatar';
 import { AvatarSeedUploadModel } from './models/avatar-seed-upload';
 import { AvatarBatchModel } from './models/avatar-batch';
-import { TranslationModel } from './models/translation';
+import { TranslationUnitModel } from './models/translation-unit';
+import { BlueprintSearchModel } from './models/blueprint-search';
 import { TranslationBudgetModel } from './models/translation-budget';
 
 export class Database {
@@ -42,7 +43,8 @@ export class Database {
       AvatarModel.init();
       AvatarSeedUploadModel.init();
       AvatarBatchModel.init();
-      TranslationModel.init();
+      TranslationUnitModel.init();
+      BlueprintSearchModel.init();
       TranslationBudgetModel.init();
     });
     mongoose.connection.on('error', err => {

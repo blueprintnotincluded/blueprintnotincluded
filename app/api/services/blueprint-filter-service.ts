@@ -237,16 +237,20 @@ export async function resolveRatedByIds(
 export function buildBlueprintFilter(
   parsed: ParsedBlueprintFilters,
   ratedByIds: mongoose.Types.ObjectId[] | null,
-  viewer: BlueprintFilterViewer
+  viewer: BlueprintFilterViewer,
+  searchIds: mongoose.Types.ObjectId[] | null = null
 ): { filter: any; usesOffsetPagination: boolean } {
-  // count-based sorts ignore the olderthan cursor (offset pagination via skip instead);
-  // the param stays accepted so the existing client call shape keeps working
-  const usesOffsetPagination = parsed.sort !== 'recent';
+  // count-based sorts ignore the olderthan cursor (offset pagination via skip
+  // instead); the param stays accepted so the existing client call shape keeps
+  // working. Search results are relevance-ordered, so they paginate by offset
+  // too — a createdAt cursor over a non-chronological order would skip and
+  // repeat items.
+  const usesOffsetPagination = parsed.sort !== 'recent' || searchIds != null;
   const filter: any = usesOffsetPagination
     ? { $and: [{ deletedAt: null }] }
     : { $and: [{ createdAt: { $lt: parsed.dateFilter } }, { deletedAt: null }] };
 
-  filter.$and.push(...buildCommonClauses(parsed, ratedByIds, viewer));
+  filter.$and.push(...buildCommonClauses(parsed, ratedByIds, viewer, searchIds));
 
   const dims = buildDimensionClauses(parsed);
   if (dims.category != null) filter.$and.push(dims.category);
@@ -265,7 +269,8 @@ export function buildBlueprintFilter(
 function buildCommonClauses(
   parsed: ParsedBlueprintFilters,
   ratedByIds: mongoose.Types.ObjectId[] | null,
-  viewer: BlueprintFilterViewer
+  viewer: BlueprintFilterViewer,
+  searchIds: mongoose.Types.ObjectId[] | null = null
 ): Record<string, unknown>[] {
   const clauses: Record<string, unknown>[] = [];
 
@@ -288,11 +293,18 @@ function buildCommonClauses(
   // via .aggregate(), which does not — a bare string here would silently
   // match nothing against the ObjectId-typed owner/forkedFrom fields.
   if (parsed.filterUserId != null) clauses.push({ owner: toObjectIdIfValid(parsed.filterUserId) });
-  // Escaped so filterName is a literal substring search: unescaped, a name
-  // containing regex metacharacters ('(', '*', '[', ...) either 400s on an
-  // invalid pattern or changes what it matches instead of searching for the
-  // literal text the user typed.
-  if (parsed.filterName != null) {
+  // Search v2 (spec/multilingual-search-plan.md): the search service already
+  // resolved filterName to a relevance-ordered candidate id list, so the
+  // clause is an id membership test ([] legitimately matches nothing). The
+  // legacy regex path survives underneath for the SEARCH_V2_ENABLED=false
+  // kill switch and as the fallback when the search layer errors.
+  if (searchIds != null) {
+    clauses.push({ _id: { $in: searchIds } });
+  } else if (parsed.filterName != null) {
+    // Escaped so filterName is a literal substring search: unescaped, a name
+    // containing regex metacharacters ('(', '*', '[', ...) either 400s on an
+    // invalid pattern or changes what it matches instead of searching for the
+    // literal text the user typed.
     clauses.push({ name: { $regex: escapeRegExp(parsed.filterName), $options: 'i' } });
   }
   if (parsed.filterModded != null) clauses.push({ modded: parsed.filterModded });
@@ -352,9 +364,10 @@ function buildDimensionClauses(parsed: ParsedBlueprintFilters): DimensionClauses
 export function buildFacetBaseFilter(
   parsed: ParsedBlueprintFilters,
   ratedByIds: mongoose.Types.ObjectId[] | null,
-  viewer: BlueprintFilterViewer
+  viewer: BlueprintFilterViewer,
+  searchIds: mongoose.Types.ObjectId[] | null = null
 ): any {
-  return { $and: [{ deletedAt: null }, ...buildCommonClauses(parsed, ratedByIds, viewer)] };
+  return { $and: [{ deletedAt: null }, ...buildCommonClauses(parsed, ratedByIds, viewer, searchIds)] };
 }
 
 // One facet group's own $match, applied inside its $facet branch on top of

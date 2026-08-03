@@ -649,19 +649,20 @@ export class BlueprintService implements IObsBlueprintChange {
     // olderthan is a cache-buster when it isn't doing real work, so send it
     // only where it is the pagination cursor: the recent sort past page 1
     // (null = first page = "older than now", the server default). Count
-    // sorts paginate via skip and ignore it entirely. Stable URLs let the
-    // CDN actually serve anonymous browse requests from the edge.
-    const usesCursor = sort == null || sort === "recent";
+    // sorts paginate via skip and ignore it entirely — and so does a name
+    // search, whose results are relevance-ordered (a createdAt cursor over a
+    // non-chronological order would skip and repeat items). Stable URLs let
+    // the CDN actually serve anonymous browse requests from the edge.
+    const searching = filterName != null && filterName !== "";
+    const usesCursor = (sort == null || sort === "recent") && !searching;
     const parameterOlderThan =
       usesCursor && olderThan != null
         ? "olderthan=" + olderThan.getTime().toString()
         : "";
 
     let parameterSort = "";
-    if (sort != null && sort !== "recent") {
-      parameterSort = "&sort=" + sort;
-      if (skip != null) parameterSort += "&skip=" + skip;
-    }
+    if (sort != null && sort !== "recent") parameterSort = "&sort=" + sort;
+    if (!usesCursor && skip != null) parameterSort += "&skip=" + skip;
 
     const filterParams = this.buildFilterQueryParams({
       filterUserId,

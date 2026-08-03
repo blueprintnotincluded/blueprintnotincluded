@@ -203,15 +203,16 @@ describe('Blueprint API (Mocha)', function () {
       expect(upper.body.blueprints.map((bp: any) => bp.name)).to.include('Legacy Food System');
     });
 
-    it('treats filterName as a literal substring, not a regex', async function () {
-      // Unescaped, '(' is an invalid/unbalanced regex group and would 500;
-      // it must instead search for the literal text and simply match nothing.
+    it('never treats filterName as a regex (metacharacters cannot 500)', async function () {
+      // Historically an unescaped '(' was an invalid regex group and 500'd.
+      // Search v2 normalizes punctuation away entirely, so this now simply
+      // searches for "oxygen" — and must never error either way.
       const response = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now(), filterName: 'oxygen(' });
 
       expect(response.status).to.equal(200);
-      expect(response.body.blueprints).to.deep.equal([]);
+      expect(response.body.blueprints.map((bp: any) => bp.name)).to.include('Oxygen Production Line');
     });
   });
 

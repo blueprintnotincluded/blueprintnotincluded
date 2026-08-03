@@ -78,6 +78,10 @@ export interface BlueprintDetailsResponse extends BlueprintListItem {
   // Drives the "Translate" affordance — only shown when set, non-null, and
   // different from the viewer's locale.
   sourceLang?: string | null;
+  // Whether the server has a translation provider configured. The client must
+  // gate every "Translate" affordance on this — with no API key in prod the
+  // endpoints 503, and a button that renders only to fail is worse than none.
+  translationEnabled?: boolean;
 }
 
 // "You might also like" shelf on the details page
