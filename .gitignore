@@ -27,3 +27,23 @@
 
 # avatar smoke test scratch output
 avatar-smoke-test*.png
+
+# Impeccable (design skill). The durable design record IS committed — PRODUCT.md,
+# DESIGN.md and .impeccable/design.json are the project's own truth and belong in
+# review. Everything else under .impeccable/ is per-machine scratch the skill
+# regenerates: hook caches, local consent config, served decision-page logs, and
+# whatever future subdirectories it adds. Allow-list rather than deny-list so a
+# new output directory doesn't silently show up as a thousand untracked files.
+/.impeccable/*
+!/.impeccable/design.json
+!/.impeccable/config.json
+frontend/.impeccable/
+
+# The skill's own code is never vendored here: it lives at the user level
+# (~/.claude/skills) with a repo copy under the already-ignored /.claude. These
+# are the install targets for agent harnesses this project doesn't use — ignored
+# so a reinstall doesn't litter the tree again.
+/.agents/skills/impeccable/
+/.github/skills/
+/.github/hooks/
+/.codex/
