@@ -758,7 +758,11 @@ export class BlueprintController {
       return;
     }
 
-    const searchMatches = await BlueprintController.resolveSearchMatches(parsed.filterName);
+    const searchMatches = await BlueprintController.resolveSearchMatches(
+      parsed.filterName,
+      req,
+      userId || null
+    );
     const isAdmin = userJwt?.role === 'admin';
     const viewer = { userId, isAdmin };
 
@@ -850,12 +854,20 @@ export class BlueprintController {
   // Resolves filterName through the search service when v2 is enabled.
   // null = no search clause (no query, kill switch off, or the search layer
   // errored — in which case the caller falls back to the legacy name regex).
+  // req/userId feed the query-translation path (phase 4): the Accept-
+  // Language prior for telemetry, and userId so a translation spend counts
+  // against that user's daily cap rather than only the anonymous site pool.
   private static async resolveSearchMatches(
-    filterName: string | null
+    filterName: string | null,
+    req: Request,
+    userId: string | null
   ): Promise<SearchMatch[] | null> {
     if (filterName == null || !searchV2Enabled()) return null;
     try {
-      return await searchBlueprints(filterName);
+      return await searchBlueprints(filterName, {
+        localePrior: BlueprintController.authorLocalePrior(req),
+        userId,
+      });
     } catch (err) {
       console.log('search resolution error — falling back to name regex');
       console.log(err);
@@ -951,8 +963,9 @@ export class BlueprintController {
     // "how many blueprints are in this category" must not depend on a view
     // setting).
     const searchIds =
-      (await BlueprintController.resolveSearchMatches(parsed.filterName))?.map(match => match.id) ??
-      null;
+      (
+        await BlueprintController.resolveSearchMatches(parsed.filterName, req, userId || null)
+      )?.map(match => match.id) ?? null;
 
     const isAdmin = userJwt?.role === 'admin';
     const viewer = { userId, isAdmin };

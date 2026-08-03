@@ -17,6 +17,7 @@ import { TranslationService } from '../../app/api/services/translation-service';
 import { TranslationProvider } from '../../app/api/services/translation-provider';
 import { TranslationUnitModel } from '../../app/api/models/translation-unit';
 import { TranslationBudgetModel } from '../../app/api/models/translation-budget';
+import { SearchQueryModel } from '../../app/api/models/search-query';
 import { FakeTranslationProvider } from '../helpers/fake-translation-provider';
 
 // Search over blueprintsearch rows (spec/multilingual-search-plan.md Phases
@@ -529,6 +530,124 @@ describe('Search (blueprintsearch)', function () {
         .query({ filterName: 'water filter' });
       expect(response.status).to.equal(200);
       expect(response.body.blueprints.map((bp: any) => bp.id)).to.include(saved.body.id);
+    });
+  });
+
+  describe('query translation (phase 4)', function () {
+    let fake: FakeTranslationProvider;
+
+    beforeEach(async function () {
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+      await SearchQueryModel.model.deleteMany({});
+      fake = new FakeTranslationProvider();
+      TranslationService.setInstanceForTest(new TranslationService(fake));
+    });
+
+    afterEach(async function () {
+      delete process.env.MONTHLY_CHAR_BUDGET;
+      TranslationService.setInstanceForTest(null);
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+      await SearchQueryModel.model.deleteMany({});
+    });
+
+    it('skips translation entirely when every token resolves via the term dictionary', async function () {
+      const spom = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Untitled 12',
+        data: bpData(['Electrolyzer', 'GasPump']),
+      });
+
+      const ids = (await searchBlueprintIds('spom')).map(id => id.toString());
+      expect(ids).to.include((spom._id as Types.ObjectId).toString());
+      expect(fake.calls).to.have.length(0);
+
+      const row = await SearchQueryModel.model.findOne({ normalizedQuery: 'spom' });
+      expect(row!.translated).to.equal(false);
+      expect(row!.hitCount).to.equal(1);
+    });
+
+    it('does not spend a translation on a short, all-ASCII, unresolved English query', async function () {
+      await searchBlueprintIds('cool unnamed build');
+      expect(fake.calls).to.have.length(0);
+
+      const row = await SearchQueryModel.model.findOne({ normalizedQuery: 'cool unnamed build' });
+      expect(row!.translated).to.equal(false);
+    });
+
+    it('translates the unresolved remainder of a confidently non-English query and finds the English title', async function () {
+      // A real (test-only) provider returning genuine English text, so this
+      // proves the deliverable: a Vietnamese query finds an English-titled
+      // blueprint, not just that some string came back.
+      const englishProvider: TranslationProvider = {
+        isConfigured: () => true,
+        translate: async texts => texts.map(() => ({ text: 'water filter', detectedSourceLang: 'vi' })),
+      };
+      TranslationService.setInstanceForTest(new TranslationService(englishProvider));
+
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Water Filter Setup',
+        data: bpData(['WaterPurifier']),
+      });
+
+      const ids = (await searchBlueprintIds('máy lọc nước')).map(id => id.toString());
+      expect(ids).to.include((doc._id as Types.ObjectId).toString());
+
+      let row = null;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        row = await SearchQueryModel.model.findOne({ normalizedQuery: 'máy lọc nước' });
+        if (row != null) break;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      expect(row!.sourceLang).to.equal('vi');
+      expect(row!.translated).to.equal(true);
+    });
+
+    it('caches the translated remainder — a repeat query issues no second provider call', async function () {
+      await searchBlueprintIds('máy lọc nước');
+      expect(fake.calls).to.have.length(1);
+
+      await searchBlueprintIds('máy lọc nước');
+      expect(fake.calls).to.have.length(1); // second search hit the translationunits cache
+    });
+
+    it('records telemetry even when translation is not configured, and never throws', async function () {
+      fake.configured = false;
+      const ids = await searchBlueprintIds('máy lọc nước');
+      expect(ids).to.deep.equal([]);
+      expect(fake.calls).to.have.length(0);
+
+      const row = await SearchQueryModel.model.findOne({ normalizedQuery: 'máy lọc nước' });
+      expect(row!.translated).to.equal(false);
+    });
+
+    it('falls back to an untranslated (empty) search when the monthly budget is exhausted, without throwing', async function () {
+      const month = `${new Date().getUTCFullYear()}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}`;
+      process.env.MONTHLY_CHAR_BUDGET = '1';
+      await TranslationBudgetModel.model.create({ month, userId: null, charCount: 999999, requestCount: 1 });
+
+      const ids = await searchBlueprintIds('máy lọc nước');
+      expect(ids).to.deep.equal([]);
+      expect(fake.calls).to.have.length(0);
+    });
+
+    it('a translation spend counts against the searching user\'s daily cap', async function () {
+      const englishProvider: TranslationProvider = {
+        isConfigured: () => true,
+        translate: async texts => texts.map(() => ({ text: 'water filter', detectedSourceLang: 'vi' })),
+      };
+      TranslationService.setInstanceForTest(new TranslationService(englishProvider));
+
+      const userId = (testData.users.user1._id as Types.ObjectId).toString();
+      await searchBlueprintIds('máy lọc nước', { userId });
+
+      // dayKey() in translation-service.ts is exactly monthKey()-DD, which is
+      // the UTC ISO date's first 10 characters.
+      const day = new Date().toISOString().slice(0, 10);
+      const month = day.slice(0, 7);
+      const userRow = await TranslationBudgetModel.model.findOne({ userId, month, day });
+      expect(userRow).to.not.equal(null);
+      expect(userRow!.requestCount).to.be.greaterThan(0);
     });
   });
 });

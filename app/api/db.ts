@@ -15,6 +15,7 @@ import { AvatarBatchModel } from './models/avatar-batch';
 import { TranslationUnitModel } from './models/translation-unit';
 import { BlueprintSearchModel } from './models/blueprint-search';
 import { TranslationBudgetModel } from './models/translation-budget';
+import { SearchQueryModel } from './models/search-query';
 
 export class Database {
   constructor() {
@@ -46,6 +47,7 @@ export class Database {
       TranslationUnitModel.init();
       BlueprintSearchModel.init();
       TranslationBudgetModel.init();
+      SearchQueryModel.init();
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {

@@ -9,6 +9,9 @@ import {
 } from '../../../lib/index';
 import { BlueprintSearchModel } from '../models/blueprint-search';
 import { getSearchTermDictionary } from './search-term-dictionary';
+import { detectLanguage, detectLanguageCode } from './language-detection-service';
+import { TranslationBudgetExceeded, TranslationService } from './translation-service';
+import { recordSearchQuery } from './search-query-service';
 
 // Search retrieval pipeline (spec/multilingual-search-plan.md §2.3/§2.4/§2.6):
 //   normalize → term-resolve → lexical + structural retrieval → RRF → rank.
@@ -103,13 +106,56 @@ async function structuralRetrieval(resolvedIds: string[]): Promise<RetrievedRow[
   return rows as RetrievedRow[];
 }
 
+export interface SearchOptions {
+  // Author/viewer's UI-locale guess (Accept-Language) — telemetry only here.
+  // The decision to spend a translation call always re-detects from the
+  // query text alone with no prior, same split as search-index-service's
+  // confidentTitleLang: a prior-derived guess is real enough to log, not
+  // confident enough to bill.
+  localePrior?: string | null;
+  // Drives the per-user daily translation cap; null for anonymous/system
+  // callers (site-wide monthly budget still applies either way).
+  userId?: string | null;
+}
+
+// Attempts to translate the unresolved remainder of a query to English,
+// cached hard via the same translationunits text-hash cache every other
+// translation path uses (§1) — a repeat of the same nonsense query is free
+// after the first hit. Never throws: a budget-exceeded or provider error
+// just means the search proceeds on the untranslated tokens.
+async function translateQueryRemainder(
+  remainder: string,
+  sourceLang: string,
+  userId: string | null
+): Promise<string | null> {
+  if (!TranslationService.instance.isConfigured()) return null;
+  try {
+    const result = await TranslationService.instance.translateOne(
+      { sourceText: remainder, sourceLang, targetLang: 'en' },
+      userId
+    );
+    return result.degraded ? null : result.translatedText;
+  } catch (err) {
+    if (err instanceof TranslationBudgetExceeded) {
+      console.log('search query translation budget exceeded — searching untranslated');
+    } else {
+      console.log('search query translation error');
+      console.log(err);
+    }
+    return null;
+  }
+}
+
 /**
  * Resolves a free-text search to a relevance-ordered blueprint id list.
  * Returns [] when nothing matches (callers turn that into an empty page via
  * an $in match on nothing).
  */
-export async function searchBlueprintIds(query: string): Promise<mongoose.Types.ObjectId[]> {
-  return (await searchBlueprints(query)).map(match => match.id);
+export async function searchBlueprintIds(
+  query: string,
+  options?: SearchOptions
+): Promise<mongoose.Types.ObjectId[]> {
+  return (await searchBlueprints(query, options)).map(match => match.id);
 }
 
 /**
@@ -117,18 +163,59 @@ export async function searchBlueprintIds(query: string): Promise<mongoose.Types.
  * signals a collapse needs. Callers that collapse duplicates use this;
  * callers that only need a filter (facet counts) use the id list.
  */
-export async function searchBlueprints(query: string): Promise<SearchMatch[]> {
+export async function searchBlueprints(
+  query: string,
+  options: SearchOptions = {}
+): Promise<SearchMatch[]> {
   const tokens = tokenize(query);
   if (tokens.length === 0) return [];
   const normalizedQuery = tokens.join(' ');
+  const dictionary = getSearchTermDictionary();
 
   // Resolve before anything else (§2.4): game nouns and community jargon
-  // become structural ids without any further machinery.
-  const resolution = resolveTerms(tokens, getSearchTermDictionary());
+  // become structural ids without any further machinery, at zero cost.
+  const resolution = resolveTerms(tokens, dictionary);
 
+  // Telemetry-only read: informed by the locale prior, so it also captures
+  // queries the strict/no-prior check below won't act on (§2.2's "log it
+  // from day one" — the language distribution is the point, not just the
+  // queries that spent money).
+  const telemetryLang = detectLanguage(normalizedQuery, { prior: options.localePrior ?? null }).lang;
+
+  let lexicalTokens = tokens;
+  let structuralIds = resolution.resolvedIds;
+  let translated = false;
+
+  if (resolution.unresolvedTokens.length > 0) {
+    // Fresh, no-prior detection — the strict billing gate. A prior alone
+    // (e.g. an English query from a browser set to Vietnamese) must never
+    // trigger a spend.
+    const confidentLang = detectLanguageCode(normalizedQuery);
+    if (confidentLang != null && confidentLang !== 'en') {
+      const remainder = resolution.unresolvedTokens.join(' ');
+      const translatedRemainder = await translateQueryRemainder(
+        remainder,
+        confidentLang,
+        options.userId ?? null
+      );
+      if (translatedRemainder != null) {
+        translated = true;
+        const translatedTokens = tokenize(translatedRemainder);
+        lexicalTokens = [...resolution.matchedTokens, ...translatedTokens];
+        const extra = resolveTerms(translatedTokens, dictionary);
+        for (const id of extra.resolvedIds) {
+          if (!structuralIds.includes(id)) structuralIds.push(id);
+        }
+      }
+    }
+  }
+
+  recordSearchQuery(normalizedQuery, telemetryLang, translated);
+
+  const lexicalQuery = lexicalTokens.join(' ');
   const [lexical, structural] = await Promise.all([
-    lexicalRetrieval(normalizedQuery),
-    structuralRetrieval(resolution.resolvedIds),
+    lexicalRetrieval(lexicalQuery),
+    structuralRetrieval(structuralIds),
   ]);
 
   const fused = fuseRanks([
@@ -145,11 +232,14 @@ export async function searchBlueprints(query: string): Promise<SearchMatch[]> {
 
   // "The title says what you typed": every query token appears in the
   // normalized title (see RankingCandidate.titleMatch for why RRF alone
-  // can't express this).
+  // can't express this). Uses lexicalTokens, not the raw query tokens — a
+  // translated query's original-language tokens can never appear in an
+  // English row's title, so the effective (possibly-translated) tokens are
+  // what "says what you typed" has to mean once translation ran.
   const titleMatches = (title: string | undefined): boolean => {
     if (title == null) return false;
     const titleTokens = new Set(tokenize(title));
-    return tokens.every(token => titleTokens.has(token));
+    return lexicalTokens.every(token => titleTokens.has(token));
   };
 
   const candidates: RankingCandidate[] = fused.map(({ id, score }) => {
