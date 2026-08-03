@@ -89,6 +89,153 @@
   color: var(--bni-muted);
 }
 
+/* ---- the custom palette editor ---- */
+.custom-editor {
+  margin-top: 12px;
+  padding: 12px 11px;
+  border: 1px solid var(--bni-rule);
+  background: var(--bni-inset);
+}
+
+.custom-group-label {
+  margin: 12px 0 6px;
+  font-family: var(--bni-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bni-muted);
+}
+
+.custom-group-label:first-child {
+  margin-top: 0;
+}
+
+.custom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 4px 14px;
+}
+
+.custom-token {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+/* The native colour input, dressed as a paint well. */
+.custom-well {
+  flex: none;
+  inline-size: 26px;
+  block-size: 22px;
+  padding: 0;
+  border: 1px solid var(--bni-rule-hi);
+  border-radius: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.custom-well::-webkit-color-swatch-wrapper {
+  padding: 1px;
+}
+
+.custom-well::-webkit-color-swatch {
+  border: none;
+  border-radius: 0;
+}
+
+.custom-well::-moz-color-swatch {
+  border: none;
+  border-radius: 0;
+}
+
+.custom-token-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--bni-body);
+}
+
+.custom-hex {
+  flex: none;
+  width: 72px;
+  padding: 3px 5px;
+  font-family: ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--bni-body);
+  background: var(--bni-mount);
+  border: 1px solid var(--bni-rule);
+  border-radius: 0;
+}
+
+.custom-hex:focus-visible {
+  outline: 2px solid var(--bni-mark);
+  outline-offset: -1px;
+}
+
+.custom-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 11px;
+  border-top: 1px solid var(--bni-rule);
+}
+
+.custom-reset {
+  padding: 6px 10px;
+  font-family: var(--p-font-family);
+  font-size: 12px;
+  color: var(--bni-muted);
+  background: transparent;
+  border: 1px solid var(--bni-rule);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.custom-reset:hover {
+  color: var(--bni-ink);
+  border-color: var(--bni-rule-hi);
+}
+
+.custom-save {
+  padding: 6px 14px;
+  font-family: var(--p-font-family);
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #ffffff;
+  background: var(--bni-mark);
+  border: 1px solid var(--bni-mark-dim);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.custom-save:hover:enabled {
+  background: var(--bni-mark-hi);
+}
+
+.custom-save:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.custom-reset:focus-visible,
+.custom-save:focus-visible {
+  outline: 2px solid var(--bni-mark);
+  outline-offset: 2px;
+}
+
+.custom-hint {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--bni-faint);
+}
+
 .theme-footnote {
   margin: 14px 0 0;
   padding-top: 11px;
