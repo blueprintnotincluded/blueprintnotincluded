@@ -172,9 +172,9 @@ describe('Search (blueprintsearch)', function () {
         .query({ filterName: 'coal generator', skip: 1 });
       expect(shifted.status).to.equal(200);
       const page2 = shifted.body.blueprints.map((bp: any) => bp.id);
-      // Offset 1 drops exactly the top-ranked result
-      expect(page2).to.deep.equal(page1.slice(1).concat(page2.slice(page1.length - 1)));
-      expect(page2).to.not.include(page1[0]);
+      // All matches fit in one window, so offset 1 is exactly page 1 minus
+      // its top-ranked result, in the same order.
+      expect(page2).to.deep.equal(page1.slice(1));
     });
 
     it('never leaks drafts or deleted blueprints even when search rows are stale', async function () {
@@ -233,7 +233,9 @@ describe('Search (blueprintsearch)', function () {
         if (row?.deletedAt != null) break;
         await new Promise(resolve => setTimeout(resolve, 50));
       }
-      expect(row!.deletedAt).to.not.equal(null);
+      // An actual Date, not merely "not null" — undefined must fail too if
+      // the sync never landed before the poll gave up.
+      expect(row!.deletedAt).to.be.an.instanceOf(Date);
     });
   });
 });

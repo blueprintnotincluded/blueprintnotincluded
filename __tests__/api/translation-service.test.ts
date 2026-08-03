@@ -1,6 +1,5 @@
 import { describe, it, beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
-import crypto from 'crypto';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -8,14 +7,14 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 process.env.NODE_ENV = 'test';
 
 import { TestSetup } from '../setup/testSetup';
-import { TranslationUnitModel } from '../../app/api/models/translation-unit';
+import { AUTO_SOURCE_LANG, TranslationUnitModel } from '../../app/api/models/translation-unit';
 import { TranslationBudgetModel } from '../../app/api/models/translation-budget';
-import { TranslationService, TranslationBudgetExceeded } from '../../app/api/services/translation-service';
+import {
+  TranslationService,
+  TranslationBudgetExceeded,
+  hashSourceText,
+} from '../../app/api/services/translation-service';
 import { FakeTranslationProvider } from '../helpers/fake-translation-provider';
-
-function textHash(text: string): string {
-  return crypto.createHash('sha256').update(text, 'utf8').digest('hex').slice(0, 16);
-}
 
 describe('TranslationService', function () {
   let fake: FakeTranslationProvider;
@@ -88,8 +87,8 @@ describe('TranslationService', function () {
       expect(result.translatedText).to.equal('[en] Bonjour le monde');
 
       const row = await TranslationUnitModel.model.findOne({
-        textHash: textHash('Bonjour le monde'),
-        sourceLang: 'fr',
+        textHash: hashSourceText('Bonjour le monde'),
+        sourceLang: AUTO_SOURCE_LANG,
         targetLang: 'en',
       });
       expect(row).to.not.be.null;
@@ -135,18 +134,18 @@ describe('TranslationService', function () {
       expect(await TranslationUnitModel.model.countDocuments({})).to.equal(2);
     });
 
-    it('a declared source language and auto-detect are distinct cache keys', async function () {
+    it('a declared source language and auto-detect share one cache row (provider ignores the hint)', async function () {
       await service.translateOne({ sourceText: 'Où est la salle', sourceLang: 'fr', targetLang: 'en' }, null);
       await service.translateOne({ sourceText: 'Où est la salle', sourceLang: null, targetLang: 'en' }, null);
 
-      expect(fake.calls).to.have.length(2);
-      expect(await TranslationUnitModel.model.countDocuments({ textHash: textHash('Où est la salle') })).to.equal(2);
+      expect(fake.calls).to.have.length(1);
+      expect(await TranslationUnitModel.model.countDocuments({ textHash: hashSourceText('Où est la salle') })).to.equal(1);
     });
 
     it('a human-provided row is served without a provider call', async function () {
       await TranslationUnitModel.model.create({
-        textHash: textHash('Bonjour le monde'),
-        sourceLang: 'fr',
+        textHash: hashSourceText('Bonjour le monde'),
+        sourceLang: AUTO_SOURCE_LANG,
         targetLang: 'en',
         detectedSourceLang: 'fr',
         translatedText: 'A human-corrected translation',

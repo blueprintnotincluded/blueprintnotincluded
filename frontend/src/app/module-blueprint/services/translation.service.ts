@@ -21,9 +21,10 @@ const TARGET_LANG_BY_LOCALE: Record<string, TranslationTargetLang> = {
 
 @Injectable()
 export class TranslationService {
-  // In-memory per-session cache keyed `kind:id` so toggling original/translated
-  // is instant and free after the first fetch — cleared on page reload, which
-  // is fine: the durable cache is server-side.
+  // In-memory per-session caches — one map per content kind, each keyed by
+  // the bare document id — so toggling original/translated is instant and
+  // free after the first fetch. Cleared on page reload, which is fine: the
+  // durable cache is server-side.
   private blueprintCache = new Map<string, TranslateBlueprintResponse>();
   private commentCache = new Map<
     string,

@@ -81,8 +81,10 @@ async function run(dryRun: boolean, limit: number | null) {
   let pending: mongoose.AnyBulkWriteOperation[] = [];
 
   async function flush() {
-    if (dryRun || pending.length === 0) return;
-    await BlueprintSearchModel.model.bulkWrite(pending as any);
+    if (pending.length === 0) return;
+    // Dry run skips only the write — pending still clears, so memory stays
+    // bounded by BULK_BATCH_SIZE either way.
+    if (!dryRun) await BlueprintSearchModel.model.bulkWrite(pending as any);
     pending = [];
   }
 

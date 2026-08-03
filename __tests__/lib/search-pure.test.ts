@@ -21,8 +21,9 @@ describe('query-normalize', function () {
   });
 
   it('applies NFC so composed and decomposed diacritics compare equal', function () {
-    const composed = 'máy'; // máy, precomposed
-    const decomposed = 'máy'; // a + combining acute
+    // Explicit escapes so no editor normalization can collapse the two literals.
+    const composed = "m\u00e1y"; // precomposed a-acute
+    const decomposed = "ma\u0301y"; // a + combining acute
     expect(normalizeText(composed)).to.equal(normalizeText(decomposed));
   });
 

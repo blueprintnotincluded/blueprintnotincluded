@@ -12,11 +12,11 @@ import { TRANSLATION_TARGET_LANGS } from '../../../lib/index';
 export type TranslationProviderName = 'google-v2' | 'human';
 const TRANSLATION_PROVIDERS: TranslationProviderName[] = ['google-v2', 'human'];
 
-// sourceLang key value when the caller doesn't know the source language and
-// the provider auto-detects. Kept distinct from detected codes on purpose: a
-// declared-'fr' call and an auto-detected-'fr' call are different cache keys
-// (the provider may answer differently given the hint), and collapsing them
-// after the fact would be a migration for a micro-optimization.
+// sourceLang key value written while the provider auto-detects. Today EVERY
+// row uses it: the Google provider never sees the caller's declared source
+// language, so keying on it would bill identical (text, target) pairs twice.
+// The column exists so a future provider that honors a source hint can start
+// writing real codes — new keys, no migration.
 export const AUTO_SOURCE_LANG = 'auto';
 
 export interface TranslationUnit extends Document {

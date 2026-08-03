@@ -13,7 +13,11 @@ import { getSearchTermDictionary } from './search-term-dictionary';
 // Retrieval depth per branch. Deeper than any page a user will reach, small
 // enough that the in-memory fuse/rank stays trivial at this corpus size.
 const RETRIEVAL_LIMIT = 300;
-// Hard cap on what a single search hands the query layer as an $in list.
+// Hard cap on what a single search hands the query layer as an $in list —
+// it bounds the fused result set, so pagination past 500 ranked matches
+// returns empty pages even when more documents technically match. At ~4.6K
+// live blueprints nobody pages that deep; revisit alongside a real total
+// count if the corpus grows 10×.
 export const MAX_SEARCH_IDS = 500;
 
 // Kill switch, same pattern as facetsEnabled: read live so an env flip +
@@ -37,10 +41,7 @@ interface RetrievedRow {
 async function lexicalRetrieval(normalizedQuery: string): Promise<RetrievedRow[]> {
   if (normalizedQuery.length === 0) return [];
   return BlueprintSearchModel.model
-    .find(
-      { $text: { $search: normalizedQuery }, lang: { $in: ['en'] }, deletedAt: null },
-      { score: { $meta: 'textScore' } }
-    )
+    .find({ $text: { $search: normalizedQuery }, lang: { $in: ['en'] }, deletedAt: null })
     .select('blueprintId title ratingAverage ratingCount downloadCount forkCount')
     .sort({ score: { $meta: 'textScore' } })
     .limit(RETRIEVAL_LIMIT)
@@ -63,6 +64,9 @@ async function structuralRetrieval(resolvedIds: string[]): Promise<RetrievedRow[
         ratingCount: 1,
         downloadCount: 1,
         forkCount: 1,
+        // Kept through the projection so the $sort below can actually
+        // tie-break equal matched counts by popularity.
+        hotScore: 1,
         matched: { $size: { $setIntersection: ['$termIds', resolvedIds] } },
       },
     },

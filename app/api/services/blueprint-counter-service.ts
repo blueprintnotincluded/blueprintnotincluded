@@ -1,5 +1,6 @@
 import { AnyBulkWriteOperation } from 'mongoose';
 import { BlueprintModel } from '../models/blueprint';
+import { BlueprintSearchModel } from '../models/blueprint-search';
 import { computeHotScore } from '../../../lib/index';
 
 export type CounterKind = 'view' | 'download';
@@ -112,6 +113,9 @@ export class BlueprintCounterService {
     }
 
     const operations: AnyBulkWriteOperation[] = [];
+    // Download-affected blueprints also get their search rows' denormalized
+    // ranking signals refreshed (views aren't a search signal).
+    const searchOperations: AnyBulkWriteOperation[] = [];
     for (const [blueprintId, counts] of batch) {
       const inc: Record<string, number> = {};
       if (counts.views > 0) inc.viewCount = counts.views;
@@ -123,6 +127,17 @@ export class BlueprintCounterService {
         set.hotScore = computeHotScore({
           ...inputs,
           downloadCount: inputs.downloadCount + counts.downloads,
+        });
+        searchOperations.push({
+          updateMany: {
+            filter: { blueprintId },
+            update: {
+              $set: {
+                downloadCount: inputs.downloadCount + counts.downloads,
+                hotScore: set.hotScore,
+              },
+            },
+          },
         });
       }
       const update: Record<string, Record<string, number>> = { $inc: inc };
@@ -137,6 +152,17 @@ export class BlueprintCounterService {
     } catch (err) {
       console.log('blueprint counter flush error');
       console.log(err);
+    }
+
+    // Best-effort like the counters themselves; the derive-search backfill
+    // heals anything a failed flush leaves stale.
+    if (searchOperations.length > 0 && BlueprintSearchModel.model != null) {
+      try {
+        await BlueprintSearchModel.model.bulkWrite(searchOperations, { ordered: false });
+      } catch (err) {
+        console.log('blueprint counter search sync error');
+        console.log(err);
+      }
     }
   }
 

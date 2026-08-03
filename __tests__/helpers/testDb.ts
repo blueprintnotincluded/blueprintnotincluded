@@ -74,7 +74,7 @@ export class TestDbHelper {
       createdAt: new Date(now - 3 * 24 * 60 * 60 * 1000), // 3 days ago
       data: {
         version: '1.0',
-        buildings: [
+        blueprintItems: [
           { id: 'Generator', x: 0, y: 0, element: 'Coal' },
           { id: 'Battery', x: 1, y: 0 },
           { id: 'Wire', x: 2, y: 0 },
@@ -91,7 +91,7 @@ export class TestDbHelper {
       createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
       data: {
         version: '1.0',
-        buildings: [
+        blueprintItems: [
           { id: 'Electrolyzer', x: 0, y: 0 },
           { id: 'Pump', x: 1, y: 0 },
         ],
@@ -107,7 +107,7 @@ export class TestDbHelper {
       createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       data: {
         version: '0.9',
-        buildings: [
+        blueprintItems: [
           { id: 'FarmTile', x: 0, y: 0 },
           { id: 'MealLice', x: 0, y: 1 },
         ],
@@ -125,7 +125,7 @@ export class TestDbHelper {
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
       data: {
         version: '1.0',
-        buildings: [
+        blueprintItems: [
           { id: 'Generator', x: 0, y: 0, element: 'Coal' },
           { id: 'Battery', x: 1, y: 0 },
           { id: 'Wire', x: 2, y: 0 },

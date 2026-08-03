@@ -60,7 +60,9 @@ function baseLangOfTarget(targetLang: string): string {
   return BASE_LANG_BY_TARGET[targetLang] ?? targetLang;
 }
 
-function sha256(text: string): string {
+// The translationunits cache key hash — exported so tests (and any future
+// cache tooling) share one implementation instead of re-deriving it.
+export function hashSourceText(text: string): string {
   return crypto.createHash('sha256').update(text, 'utf8').digest('hex').slice(0, 16);
 }
 
@@ -131,20 +133,29 @@ export class TranslationService {
     }
   }
 
+  // Two concurrent upserts against a not-yet-existing budget row can both
+  // decide to insert and one loses on the unique index (E11000). The retry
+  // finds the row the winner just created, so a single non-upsert re-run is
+  // sufficient; anything else propagates.
+  private async incrementBudget(
+    filter: Record<string, unknown>,
+    charCount: number,
+    requestCount: number
+  ): Promise<void> {
+    try {
+      await TranslationBudgetModel.model.updateOne(filter, { $inc: { charCount, requestCount } }, { upsert: true });
+    } catch (err) {
+      if ((err as { code?: number })?.code !== 11000) throw err;
+      await TranslationBudgetModel.model.updateOne(filter, { $inc: { charCount, requestCount } });
+    }
+  }
+
   private async recordSpend(charCount: number, requestCount: number, userId: string | null): Promise<void> {
     const month = this.monthKey();
-    await TranslationBudgetModel.model.updateOne(
-      { month, userId: null },
-      { $inc: { charCount, requestCount } },
-      { upsert: true }
-    );
+    await this.incrementBudget({ month, userId: null }, charCount, requestCount);
     if (userId != null) {
       const day = this.dayKey();
-      await TranslationBudgetModel.model.updateOne(
-        { month, userId, day },
-        { $inc: { charCount, requestCount } },
-        { upsert: true }
-      );
+      await this.incrementBudget({ month, userId, day }, charCount, requestCount);
     }
   }
 
@@ -188,8 +199,13 @@ export class TranslationService {
         continue;
       }
 
-      const textHash = sha256(sourceText);
-      const sourceLangKey = sourceLang ?? AUTO_SOURCE_LANG;
+      const textHash = hashSourceText(sourceText);
+      // Always 'auto' today: the Google provider auto-detects and never sees
+      // the declared sourceLang, so splitting the key on it would just bill
+      // identical (text, target) pairs twice. The schema keeps the column so
+      // a provider that DOES honor a source hint can start writing real
+      // codes without a migration.
+      const sourceLangKey = AUTO_SOURCE_LANG;
       const cached = await this.findCached(textHash, sourceLangKey, targetLang);
       if (cached != null) {
         results[i] = {

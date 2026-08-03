@@ -18,6 +18,16 @@ describe('translation-token-safety', function () {
       expect(restoreReferences(text, tokens)).to.equal(source);
     });
 
+    it('round-trips 12+ tokens (multi-digit placeholder indices, incl. the x1x/x11x prefix trap)', function () {
+      const source = Array.from(
+        { length: 12 },
+        (_, i) => `{{user:${String(i).padStart(2, '0')}7f1f77bcf86cd7994390${String(10 + i)}}}`
+      ).join(' and ');
+      const { text, tokens } = tokenizeReferences(source);
+      expect(tokens).to.have.length(12);
+      expect(restoreReferences(text, tokens)).to.equal(source);
+    });
+
     it('round-trips a token at the very start of the string', function () {
       const source = '{{blueprint:507f1f77bcf86cd799439011}} is great';
       const { text, tokens } = tokenizeReferences(source);

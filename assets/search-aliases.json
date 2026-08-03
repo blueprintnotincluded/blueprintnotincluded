@@ -8,7 +8,6 @@
     "sieve": ["WaterPurifier"],
     "water sieve": ["WaterPurifier"],
     "aquatuner": ["LiquidConditioner"],
-    "at": ["LiquidConditioner"],
     "tepidizer": ["LiquidHeater"],
     "petro boiler": ["OilWellCap", "LiquidHeater", "LiquidPump"],
     "petroleum boiler": ["LiquidHeater", "LiquidPump"],

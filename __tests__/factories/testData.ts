@@ -64,7 +64,7 @@ export class TestDataFactory {
       thumbnail: `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`,
       data: {
         version: '1.0',
-        buildings: [
+        blueprintItems: [
           {
             id: 'Generator',
             x: 0,
@@ -95,7 +95,7 @@ export class TestDataFactory {
       ratingAverage: 4.5,
       data: {
         version: '1.0',
-        buildings: [
+        blueprintItems: [
           { id: 'Generator', x: 0, y: 0 },
           { id: 'Battery', x: 1, y: 0 },
           { id: 'Wire', x: 2, y: 0 },

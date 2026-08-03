@@ -51,7 +51,10 @@ export class GoogleTranslationProvider implements TranslationProvider {
   public async translate(texts: string[], targetLang: string): Promise<TranslatedText[]> {
     if (texts.length === 0) return [];
     const client = this.getClient();
-    const timeoutMs = parseInt(process.env.GOOGLE_TRANSLATE_TIMEOUT_MS || '', 10) || DEFAULT_TIMEOUT_MS;
+    // Same guard as TranslationService.envInt: a malformed or negative env
+    // value falls back to the default rather than reaching setTimeout.
+    const parsedTimeout = parseInt(process.env.GOOGLE_TRANSLATE_TIMEOUT_MS || '', 10);
+    const timeoutMs = Number.isFinite(parsedTimeout) && parsedTimeout > 0 ? parsedTimeout : DEFAULT_TIMEOUT_MS;
     const [translations, apiResponse] = (await withTimeout(
       client.translate(texts, { to: targetLang, format: 'text' }),
       timeoutMs
