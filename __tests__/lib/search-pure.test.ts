@@ -1,6 +1,9 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import {
+  ClusterItem,
+  contentClusterKey,
+  electClusterCanonical,
   fuseRanks,
   normalizeText,
   rankCandidates,
@@ -171,5 +174,61 @@ describe('ranking', function () {
     const a: RankingCandidate = { id: 'a', fusionScore: DEEP_TERM_FUSION, titleMatch: false, signals: NO_ENGAGEMENT };
     const b: RankingCandidate = { id: 'b', fusionScore: DEEP_TERM_FUSION, titleMatch: false, signals: NO_ENGAGEMENT };
     expect(rankCandidates([b, a]).map(c => c.id)).to.deep.equal(['a', 'b']);
+  });
+});
+
+describe('cluster-key', function () {
+  const ranch: ClusterItem[] = [
+    { id: 'Ladder', x: 0, y: 0 },
+    { id: 'GasPump', x: 2, y: 1, orientation: 1 },
+    { id: 'Electrolyzer', x: 4, y: 0 },
+  ];
+
+  it('is stable under item order — the editor stores what it stores', function () {
+    const shuffled = [ranch[2], ranch[0], ranch[1]];
+    expect(contentClusterKey(shuffled)).to.equal(contentClusterKey(ranch));
+  });
+
+  it('is stable under translation — the same build selected elsewhere on the map', function () {
+    const moved = ranch.map(item => ({ ...item, x: item.x + 137, y: item.y - 40 }));
+    expect(contentClusterKey(moved)).to.equal(contentClusterKey(ranch));
+  });
+
+  it('changes when a single building moves relative to the rest', function () {
+    const nudged = ranch.map((item, i) => (i === 1 ? { ...item, x: item.x + 1 } : item));
+    expect(contentClusterKey(nudged)).to.not.equal(contentClusterKey(ranch));
+  });
+
+  it('changes when a building is rotated, replaced or added', function () {
+    const key = contentClusterKey(ranch);
+    expect(contentClusterKey(ranch.map((i, n) => (n === 0 ? { ...i, orientation: 2 } : i)))).to.not.equal(key);
+    expect(contentClusterKey(ranch.map((i, n) => (n === 0 ? { ...i, id: 'Tile' } : i)))).to.not.equal(key);
+    expect(contentClusterKey([...ranch, { id: 'Tile', x: 9, y: 9 }])).to.not.equal(key);
+  });
+
+  it('never clusters empty blueprints together', function () {
+    expect(contentClusterKey([])).to.equal(null);
+  });
+
+  it('elects the most-engaged copy as a cluster canonical', function () {
+    const canonical = electClusterCanonical([
+      { id: 'quiet', downloadCount: 0, createdAt: new Date('2020-01-01') },
+      { id: 'popular', downloadCount: 400, createdAt: new Date('2024-01-01') },
+    ]);
+    expect(canonical?.id).to.equal('popular');
+  });
+
+  it('falls back to the earliest copy — the probable original — when nobody has engagement', function () {
+    const canonical = electClusterCanonical([
+      { id: 'copy', createdAt: new Date('2024-01-01') },
+      { id: 'original', createdAt: new Date('2019-06-01') },
+    ]);
+    expect(canonical?.id).to.equal('original');
+  });
+
+  it('is deterministic when copies are indistinguishable', function () {
+    const members = [{ id: 'b' }, { id: 'a' }];
+    expect(electClusterCanonical(members)?.id).to.equal('a');
+    expect(electClusterCanonical([...members].reverse())?.id).to.equal('a');
   });
 });

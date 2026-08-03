@@ -28,6 +28,7 @@ export interface BlueprintListItem {
     nbViews: number;
     nbDownloads: number;
     forkedFrom?: ForkedFromDto | null;
+    duplicateCount?: number;
 }
 export interface BlueprintFacetsResponse {
     total: number;

@@ -213,6 +213,121 @@ describe('Search (blueprintsearch)', function () {
     });
   });
 
+  describe('duplicate collapse (§2.5)', function () {
+    // The measured failure mode: one build saved into 86 accounts, burying
+    // every other match. Same content in each copy => same cluster key.
+    async function saveCopies(names: string[]) {
+      const docs = [];
+      for (const [index, name] of names.entries()) {
+        const owner = index % 2 === 0 ? testData.users.user1._id : testData.users.user2._id;
+        docs.push(
+          await TestDbHelper.createTestBlueprint(owner, {
+            name,
+            data: {
+              blueprintItems: [
+                { id: 'Electrolyzer', position: { x: 0, y: 0 } },
+                { id: 'GasPump', position: { x: 2, y: 1 }, orientation: 1 },
+              ],
+            },
+          })
+        );
+      }
+      return docs;
+    }
+
+    it('derives one cluster key for identical content and another for different content', async function () {
+      const [copyA, copyB] = await saveCopies(['Ranch Alpha', 'Ranch Beta']);
+      const other = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Ranch Gamma',
+        data: { blueprintItems: [{ id: 'Electrolyzer', position: { x: 0, y: 0 } }] },
+      });
+
+      const rowA = await BlueprintSearchModel.model.findOne({ blueprintId: copyA._id });
+      const rowB = await BlueprintSearchModel.model.findOne({ blueprintId: copyB._id });
+      const rowOther = await BlueprintSearchModel.model.findOne({ blueprintId: other._id });
+      expect(rowA!.clusterKey).to.be.a('string');
+      expect(rowB!.clusterKey).to.equal(rowA!.clusterKey);
+      expect(rowOther!.clusterKey).to.not.equal(rowA!.clusterKey);
+    });
+
+    it('collapses identical copies to one result and reports how many it stands for', async function () {
+      const copies = await saveCopies(['Ranch Copy One', 'Ranch Copy Two', 'Ranch Copy Three']);
+      const copyIds = copies.map(doc => (doc._id as Types.ObjectId).toString());
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), filterName: 'ranch copy' });
+      expect(response.status).to.equal(200);
+
+      const returned = response.body.blueprints.filter((bp: any) => copyIds.includes(bp.id));
+      expect(returned).to.have.length(1);
+      expect(returned[0].duplicateCount).to.equal(2);
+    });
+
+    it('collapse=false returns every copy, uncollapsed', async function () {
+      const copies = await saveCopies(['Ranch Full One', 'Ranch Full Two', 'Ranch Full Three']);
+      const copyIds = copies.map(doc => (doc._id as Types.ObjectId).toString());
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), filterName: 'ranch full', collapse: 'false' });
+      expect(response.status).to.equal(200);
+
+      const returned = response.body.blueprints.filter((bp: any) => copyIds.includes(bp.id));
+      expect(returned).to.have.length(3);
+      expect(returned.every((bp: any) => bp.duplicateCount === 0)).to.equal(true);
+    });
+
+    it('rejects a non-boolean collapse param', async function () {
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ filterName: 'ranch', collapse: 'sometimes' });
+      expect(response.status).to.equal(400);
+    });
+
+    it('never collapses a visible copy behind a hidden canonical', async function () {
+      const copies = await saveCopies(['Ranch Hidden One', 'Ranch Hidden Two']);
+      const visibleId = (copies[1]._id as Types.ObjectId).toString();
+      // Make the first copy (earliest createdAt, so the elected canonical) a
+      // draft. The visible copy must still be the result, not a hole.
+      await BlueprintModel.model.updateOne({ _id: copies[0]._id }, { $set: { isPublished: false } });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), filterName: 'ranch hidden' });
+      expect(response.status).to.equal(200);
+
+      const ids = response.body.blueprints.map((bp: any) => bp.id);
+      expect(ids).to.include(visibleId);
+      expect(ids).to.not.include((copies[0]._id as Types.ObjectId).toString());
+      const returned = response.body.blueprints.find((bp: any) => bp.id === visibleId);
+      expect(returned.duplicateCount).to.equal(0);
+    });
+
+    it('leaves distinct builds alone', async function () {
+      const first = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Distinct Sieve Build',
+        data: { blueprintItems: [{ id: 'WaterPurifier', position: { x: 0, y: 0 } }] },
+      });
+      const second = await TestDbHelper.createTestBlueprint(testData.users.user2._id, {
+        name: 'Distinct Sieve Rig',
+        data: {
+          blueprintItems: [
+            { id: 'WaterPurifier', position: { x: 0, y: 0 } },
+            { id: 'LiquidPump', position: { x: 3, y: 0 } },
+          ],
+        },
+      });
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ olderthan: Date.now(), filterName: 'distinct sieve' });
+      const ids = response.body.blueprints.map((bp: any) => bp.id);
+      expect(ids).to.include((first._id as Types.ObjectId).toString());
+      expect(ids).to.include((second._id as Types.ObjectId).toString());
+    });
+  });
+
   describe('write-path search row sync', function () {
     it('soft delete patches the search row status', async function () {
       const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
