@@ -163,6 +163,61 @@ describe('Blueprint metadata API', function () {
     });
   });
 
+  describe('sourceLang derivation (title, phase 3b)', function () {
+    // The title is the corpus (spec/multilingual-search-plan.md §0) —
+    // sourceLang is derived from `name`, not `description`.
+    it('detects a confident non-English title with no locale prior needed', async function () {
+      const upload = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'Máy lọc nước' });
+
+      expect(upload.status).to.equal(200);
+      const saved = await BlueprintModel.model.findById(upload.body.id);
+      expect(saved!.sourceLang).to.equal('vi');
+    });
+
+    it('falls back to the Accept-Language prior for an ambiguous short title', async function () {
+      const upload = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('Accept-Language', 'ru-RU,ru;q=0.9,en;q=0.8')
+        .send({ ...BASE_BODY, name: 'New Blueprint' });
+
+      expect(upload.status).to.equal(200);
+      const saved = await BlueprintModel.model.findById(upload.body.id);
+      expect(saved!.sourceLang).to.equal('ru');
+    });
+
+    it('is null for an ambiguous short title with no prior available', async function () {
+      const upload = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ ...BASE_BODY, name: 'New Blueprint' });
+
+      expect(upload.status).to.equal(200);
+      const saved = await BlueprintModel.model.findById(upload.body.id);
+      expect(saved!.sourceLang ?? null).to.be.null;
+    });
+
+    it('a description in a different language does not affect the title-derived sourceLang', async function () {
+      const upload = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          ...BASE_BODY,
+          name: 'Cooling Loop',
+          description: 'Ceci est une configuration de generation electrique tres bien organisee.',
+        });
+
+      expect(upload.status).to.equal(200);
+      const saved = await BlueprintModel.model.findById(upload.body.id);
+      // "Cooling Loop" is unconfident short ASCII with no prior, same as an
+      // English title with a non-English description would be pre-3b.
+      expect(saved!.sourceLang ?? null).to.be.null;
+    });
+  });
+
   describe('GET /api/getblueprints — facet filter params', function () {
     beforeEach(async function () {
       // Seed two tagged blueprints

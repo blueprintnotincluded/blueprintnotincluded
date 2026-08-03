@@ -1,5 +1,5 @@
-// Backfill script: derive `sourceLang` for Blueprint.description and
-// Comment.body using the same free local detector as the save paths
+// Backfill script: derive `sourceLang` for Blueprint.name and Comment.body
+// using the same free local detector as the save paths
 // (language-detection-service). No game database bootstrap needed — unlike
 // derive-rooms/derive-metadata, this reads only stored text.
 //
@@ -9,10 +9,14 @@
 // --limit N reads a random sample of N documents per collection instead of
 // the whole collection (see batch-sampling.ts).
 //
-// This is step 1 of spec/user-content-translation-impl.md: detection + storage
-// only, no paid provider call. The printed language distribution is the first
-// real evidence of whether the translation feature (steps 3-5) is worth
-// building further — run this against a prod dump before committing to them.
+// Blueprint.sourceLang is derived from the TITLE, not the description
+// (spec/multilingual-search-plan.md §0 — titles are the corpus, descriptions
+// are 22 documents site-wide). No locale prior here: a batch pass has no
+// per-request Accept-Language to fall back to, so a title too short/
+// ambiguous to detect on its own is left null, same as the live save path
+// with no prior available. This is metadata/telemetry only — it does not
+// drive the blueprintsearch machine-translation pivot, which re-detects from
+// each row's own title (see search-index-service.ts's confidentTitleLang).
 // In the deploy image run the compiled output instead:
 //   cd /bpni/build && node app/api/batch/derive-language.js [--dry-run]
 
@@ -53,11 +57,7 @@ function batchedSourceLangWriter(model: Model<any>, dryRun: boolean) {
 }
 
 async function deriveBlueprints(dryRun: boolean, limit: number | null) {
-  const cursor = sampledCursor(
-    BlueprintModel.model,
-    { deletedAt: null, description: { $nin: [null, ''] } },
-    limit
-  );
+  const cursor = sampledCursor(BlueprintModel.model, { deletedAt: null }, limit);
   let processed = 0;
   let updated = 0;
   const perLang = new Map<string, number>();
@@ -66,7 +66,7 @@ async function deriveBlueprints(dryRun: boolean, limit: number | null) {
 
   for await (const doc of cursor) {
     processed++;
-    const lang = detectLanguageCode(doc.description as string);
+    const lang = detectLanguageCode(doc.name as string);
     if (lang == null) unconfident++;
     else perLang.set(lang, (perLang.get(lang) ?? 0) + 1);
 
@@ -76,7 +76,7 @@ async function deriveBlueprints(dryRun: boolean, limit: number | null) {
   }
   await writer.flush();
 
-  console.log(`\nBlueprint descriptions — processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
+  console.log(`\nBlueprint titles — processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
   console.log(`  not confident: ${unconfident}`);
   reportLangs(perLang);
 }

@@ -43,9 +43,9 @@ import { PreviewImageService } from './services/preview-image-service';
 import { deriveRooms } from './services/room-derivation-service';
 import { deriveMods } from './services/mod-derivation-service';
 import { deriveDlcs } from './services/dlc-derivation-service';
-import { detectLanguageCode } from './services/language-detection-service';
+import { detectLanguage } from './services/language-detection-service';
 import { TranslationService } from './services/translation-service';
-import { upsertSearchRow, syncSearchRowStatus } from './services/search-index-service';
+import { upsertSearchRow, syncMachineTitle, syncSearchRowStatus } from './services/search-index-service';
 import {
   collapseClusters,
   SearchMatch,
@@ -1562,8 +1562,21 @@ export class BlueprintController {
     }
   }
 
+  // Best-effort stand-in for "the author's UI locale" (spec/multilingual-
+  // search-plan.md §2.4): the site has nowhere that stores one (the frontend's
+  // four-locale build is a static path choice, never sent to the API), but
+  // the browser already sends Accept-Language on every request, so it costs
+  // nothing to read. Only used as detectLanguage's fallback when a title's own
+  // text isn't statistically conclusive — it never affects what gets billed
+  // for translation (see search-index-service's confidentTitleLang, which
+  // re-detects from the text alone for that decision).
+  private static authorLocalePrior(req: Request): string | null {
+    const preferred = req.acceptsLanguages().find(lang => lang !== '*');
+    return preferred != null ? preferred.split('-')[0].toLowerCase() : null;
+  }
+
   private static async saveBlueprint(
-    _req: Request,
+    req: Request,
     res: Response,
     blueprint: Blueprint,
     ownerId: string,
@@ -1607,6 +1620,15 @@ export class BlueprintController {
     blueprint.thumbnail = thumbnail;
     blueprint.thumbnailType = thumbnailTypeOf(thumbnail);
     blueprint.deletedAt = null;
+    // Derived fact, never client-supplied (same policy as rooms/mods below).
+    // The title, not the description, is the corpus (spec/multilingual-
+    // search-plan.md §0 — descriptions are 22 documents site-wide), so this
+    // reads `name`, not `metadata.description`. The locale prior only ever
+    // supplies a fallback for a title too short/ambiguous to detect on its
+    // own; it never overrides a confident statistical read.
+    blueprint.sourceLang = detectLanguage(name, {
+      prior: BlueprintController.authorLocalePrior(req),
+    }).lang;
     // Derived fact, never client-supplied — any `rooms` key in the request
     // body is ignored (same policy as a client trying to set ratingCount).
     blueprint.rooms = deriveRooms(data);
@@ -1629,8 +1651,6 @@ export class BlueprintController {
       // A blueprint using known-mod buildings is modded regardless of what the
       // client derived (protects against stale clients shipping the old heuristic).
       if (blueprint.mods.length > 0) blueprint.modded = true;
-      // Derived fact, never client-supplied (same policy as rooms/requiredDlcs).
-      blueprint.sourceLang = metadata.description ? detectLanguageCode(metadata.description) : null;
     }
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();
@@ -1660,6 +1680,11 @@ export class BlueprintController {
         console.log('search index sync error');
         console.log(err);
       }
+      // Machine English pivot for a non-English title (phase 3b) — fire-and-
+      // forget: a translation call can take up to 15s, and the corpus becomes
+      // searchable to English queries moments after the save responds, not
+      // atomically with it (same rationale as syncSearchRowStatus below).
+      syncMachineTitle(newBlueprint, ownerId);
     } catch (error) {
       console.log('Blueprint save error');
       console.log(error);

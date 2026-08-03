@@ -1,14 +1,17 @@
 // Backfill: derive blueprintsearch rows for all blueprints with the same
-// service the save path uses (search-index-service). Needs the game database
-// bootstrap (term display names come from OniItem), like derive-rooms.
+// service the save path uses (search-index-service), then machine-translate
+// any confidently non-English title into its row (phase 3b) so an English
+// searcher can find it. Needs the game database bootstrap (term display names
+// come from OniItem), like derive-rooms.
 //
 // Usage:
 //   ts-node app/api/batch/derive-search.ts [--dry-run] [--limit N]
 //
 // --limit N reads a random sample of N documents (see batch-sampling.ts).
-// Rerunnable/resumable: a row whose sourceHash already matches is only
-// signal-refreshed, so re-running after an interruption is cheap.
-// In the deploy image run it by task name instead:
+// Rerunnable/resumable: a row whose sourceHash already matches only has its
+// ranking signals refreshed — title/origin/terms/termIds are left alone, so a
+// re-run never stomps a title a prior run (or the live save path) already
+// machine-translated. In the deploy image run it by task name instead:
 //   cd /bpni/build && npm run derive-search
 
 import * as fs from 'fs';
@@ -26,12 +29,29 @@ import {
 } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { BlueprintSearchModel } from '../models/blueprint-search';
-import { deriveSearchRow } from '../services/search-index-service';
+import { deriveSearchRow, SearchRowFields } from '../services/search-index-service';
+import { detectLanguageCode } from '../services/language-detection-service';
+import { TranslationService } from '../services/translation-service';
 import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
 
 dotenv.config();
 
 const BULK_BATCH_SIZE = 200;
+
+// The subset of derived fields cheap/safe to refresh on an otherwise-fresh
+// row (matches syncSearchRowStatus's field list) — everything that can drift
+// without the title/terms/termIds themselves having changed.
+function signalsOf(fields: SearchRowFields) {
+  return {
+    ratingAverage: fields.ratingAverage,
+    ratingCount: fields.ratingCount,
+    downloadCount: fields.downloadCount,
+    forkCount: fields.forkCount,
+    hotScore: fields.hotScore,
+    isPublished: fields.isPublished,
+    deletedAt: fields.deletedAt,
+  };
+}
 
 // Same bootstrap as app.ts / derive-rooms: OniItem display names feed terms[].
 function loadGameDatabase() {
@@ -79,6 +99,9 @@ async function run(dryRun: boolean, limit: number | null) {
   let refreshed = 0;
   let fresh = 0;
   let pending: mongoose.AnyBulkWriteOperation[] = [];
+  // Scopes the translation pass to exactly the blueprints this run touched —
+  // matters when --limit samples a subset; with no limit this is every row.
+  const processedIds: mongoose.Types.ObjectId[] = [];
 
   async function flush() {
     if (pending.length === 0) return;
@@ -90,19 +113,25 @@ async function run(dryRun: boolean, limit: number | null) {
 
   for await (const doc of cursor) {
     processed++;
+    processedIds.push(doc._id as mongoose.Types.ObjectId);
     const fields = deriveSearchRow(doc);
     const key = (doc._id as mongoose.Types.ObjectId).toString();
     const known = existing.get(key);
+    const isFresh = known != null && known === fields.sourceHash;
     if (known == null) created++;
-    else if (known !== fields.sourceHash) refreshed++;
+    else if (!isFresh) refreshed++;
     else fresh++;
 
-    // Signals refresh even when the text is fresh — cheap, and it heals any
-    // drift from missed fire-and-forget syncs.
+    // A fresh row only has its signals refreshed — title/origin/terms/
+    // termIds/sourceHash are left untouched so a re-run never overwrites a
+    // title the live save path (or the translation pass below) already
+    // machine-translated. A new or stale row gets the full derivation,
+    // which resets origin to 'authored' — correct for stale, since the
+    // underlying text changed and any prior translation is no longer valid.
     pending.push({
       updateOne: {
         filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: fields.lang },
-        update: { $set: fields },
+        update: { $set: isFresh ? signalsOf(fields) : fields },
         upsert: true,
       },
     });
@@ -114,7 +143,84 @@ async function run(dryRun: boolean, limit: number | null) {
   console.log(`\nSearch rows — processed: ${processed}${dryRun ? ' (dry run)' : ''}`);
   console.log(`  new: ${created}, stale (re-derived): ${refreshed}, fresh: ${fresh}`);
 
+  await translateTitles(dryRun, processedIds);
+
   await mongoose.disconnect();
+}
+
+// Phase 3b: machine-translate every confidently non-English title into its
+// 'en' row's title, so an English searcher's lexical query can find it.
+// Batches by UNIQUE title text, not by document — 86 blueprints sharing one
+// title cost one translation call, matching the persistent textHash cache
+// the live save path already benefits from (spec/multilingual-search-plan.md
+// §1); without this, a single translateMany call spanning many duplicate
+// titles would bill each occurrence separately, since the cache row for a
+// text written earlier in the SAME call isn't visible yet.
+const TRANSLATE_BATCH_SIZE = 100;
+
+async function translateTitles(
+  dryRun: boolean,
+  blueprintIds: mongoose.Types.ObjectId[]
+): Promise<void> {
+  if (!TranslationService.instance.isConfigured()) {
+    console.log('\nTitle translation — GOOGLE_TRANSLATE_API_KEY not set, skipping.');
+    return;
+  }
+
+  const rows = await BlueprintSearchModel.model
+    .find({ lang: 'en', blueprintId: { $in: blueprintIds } })
+    .select('blueprintId title origin')
+    .lean();
+
+  const byTitle = new Map<string, { blueprintIds: mongoose.Types.ObjectId[]; sourceLang: string }>();
+  let alreadyMachine = 0;
+  for (const row of rows) {
+    if (row.origin === 'machine') {
+      alreadyMachine++;
+      continue;
+    }
+    const lang = detectLanguageCode(row.title);
+    if (lang == null || lang === 'en') continue;
+    const group = byTitle.get(row.title);
+    if (group != null) group.blueprintIds.push(row.blueprintId);
+    else byTitle.set(row.title, { blueprintIds: [row.blueprintId], sourceLang: lang });
+  }
+
+  const uniqueTitles = [...byTitle.entries()];
+  const documentCount = uniqueTitles.reduce((n, [, group]) => n + group.blueprintIds.length, 0);
+  console.log(
+    `\nTitle translation — ${uniqueTitles.length} unique non-English titles across ${documentCount} documents` +
+      ` (${alreadyMachine} rows already machine-translated, left alone)`
+  );
+
+  if (dryRun || uniqueTitles.length === 0) return;
+
+  let done = 0;
+  for (let i = 0; i < uniqueTitles.length; i += TRANSLATE_BATCH_SIZE) {
+    const batch = uniqueTitles.slice(i, i + TRANSLATE_BATCH_SIZE);
+    const results = await TranslationService.instance.translateMany(
+      batch.map(([title, group]) => ({ sourceText: title, sourceLang: group.sourceLang, targetLang: 'en' })),
+      null
+    );
+
+    const ops: mongoose.AnyBulkWriteOperation[] = [];
+    for (let b = 0; b < batch.length; b++) {
+      const result = results[b];
+      if (result.degraded) continue;
+      const [, group] = batch[b];
+      for (const blueprintId of group.blueprintIds) {
+        ops.push({
+          updateOne: {
+            filter: { blueprintId, lang: 'en' },
+            update: { $set: { title: result.translatedText, origin: 'machine' } },
+          },
+        });
+      }
+    }
+    if (ops.length > 0) await BlueprintSearchModel.model.bulkWrite(ops as any);
+    done += batch.length;
+    console.log(`  ...${done}/${uniqueTitles.length} unique titles translated`);
+  }
 }
 
 if (require.main === module) {
