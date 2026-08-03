@@ -9,6 +9,28 @@ interface TranslationsResponseBody {
   data?: { translations?: { translatedText: string; detectedSourceLanguage?: string }[] };
 }
 
+// The v2 client's public typings expose no per-call timeout/retry override
+// (those live on the underlying gax CallOptions, undocumented for this
+// wrapper), so a stalled request would otherwise hang indefinitely. A manual
+// race against a timer is the dependency-free way to bound it.
+const DEFAULT_TIMEOUT_MS = 15000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Translation request timed out after ${ms}ms`)), ms);
+    promise.then(
+      value => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      err => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 export class GoogleTranslationProvider implements TranslationProvider {
   private client: Translate | null = null;
 
@@ -29,10 +51,11 @@ export class GoogleTranslationProvider implements TranslationProvider {
   public async translate(texts: string[], targetLang: string): Promise<TranslatedText[]> {
     if (texts.length === 0) return [];
     const client = this.getClient();
-    const [translations, apiResponse] = (await client.translate(texts, {
-      to: targetLang,
-      format: 'text',
-    })) as [string[], TranslationsResponseBody];
+    const timeoutMs = parseInt(process.env.GOOGLE_TRANSLATE_TIMEOUT_MS || '', 10) || DEFAULT_TIMEOUT_MS;
+    const [translations, apiResponse] = (await withTimeout(
+      client.translate(texts, { to: targetLang, format: 'text' }),
+      timeoutMs
+    )) as [string[], TranslationsResponseBody];
 
     const detected = apiResponse?.data?.translations ?? [];
     return translations.map((text, i) => ({

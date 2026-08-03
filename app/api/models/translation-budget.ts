@@ -28,10 +28,12 @@ export class TranslationBudgetModel {
       requestCount: { type: Number, default: 0 },
     });
 
-    // Whole-site monthly row: { month, userId: null }
-    schema.index({ month: 1, userId: 1 }, { unique: true });
-    // Per-user daily cap lookup
-    schema.index({ userId: 1, day: 1 });
+    // Site row: { month, userId: null, day: null }; per-user row: { month,
+    // userId, day }. `day` must be in the unique key — {month, userId} alone
+    // collides a user's second day of a month against their first (E11000)
+    // and also serves the per-user daily cap lookup, so the separate
+    // {userId, day} index this replaced was redundant.
+    schema.index({ month: 1, userId: 1, day: 1 }, { unique: true });
 
     TranslationBudgetModel.model =
       (mongoose.models['TranslationBudget'] as Model<TranslationBudget>) ??

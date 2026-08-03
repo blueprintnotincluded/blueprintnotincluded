@@ -36,6 +36,9 @@ describe('Translation API', function () {
 
   afterEach(async function () {
     this.timeout(5000);
+    // Cleared here (not at the end of the test that sets it) so a failed
+    // assertion in that test can't leak the override into every later test.
+    delete process.env.MONTHLY_CHAR_BUDGET;
     TranslationService.setInstanceForTest(null);
     await TranslationModel.model.deleteMany({});
     await TranslationBudgetModel.model.deleteMany({});
@@ -148,7 +151,6 @@ describe('Translation API', function () {
 
       expect(response.status).to.equal(429);
       expect(response.body.code).to.equal('TRANSLATION_BUDGET_EXCEEDED');
-      delete process.env.MONTHLY_CHAR_BUDGET;
     });
   });
 

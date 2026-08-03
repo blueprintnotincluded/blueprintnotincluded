@@ -81,12 +81,14 @@ export class BlueprintDetailsPageComponent implements OnInit {
     public authService: AuthenticationService,
   ) {}
 
-  // Only shown when the description's detected language is known and differs
-  // from the viewer's own — nearly all traffic (English viewer, English
-  // description) never sees the button.
+  // Only shown when logged in (the translate endpoint requires auth — an
+  // anonymous click would just fail) and when the description's detected
+  // language is known and differs from the viewer's own — nearly all traffic
+  // (English viewer, English description) never sees the button.
   get showTranslateButton(): boolean {
     const sourceLang = this.details?.sourceLang;
     return (
+      this.loggedIn &&
       sourceLang != null &&
       !this.translationService.matchesViewerLang(sourceLang)
     );
@@ -102,14 +104,20 @@ export class BlueprintDetailsPageComponent implements OnInit {
       this.showingTranslation = true;
       return;
     }
+    // Captured so a late response can't land on a blueprint the viewer has
+    // since navigated away from (switchMap cancels the details fetch, not
+    // this subscription).
+    const blueprintId = this.details.id;
     this.translating = true;
-    this.translationService.translateBlueprint(this.details.id).subscribe({
+    this.translationService.translateBlueprint(blueprintId).subscribe({
       next: (response) => {
+        if (this.details?.id !== blueprintId) return;
         this.translating = false;
         this.translation = response;
         this.showingTranslation = true;
       },
       error: () => {
+        if (this.details?.id !== blueprintId) return;
         this.translating = false;
         this.messageService.add({
           severity: "error",
@@ -200,6 +208,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.publishWorking = false;
     this.deleteWorking = false;
     this.relatedBlueprints = [];
+    this.translating = false;
     this.translation = null;
     this.showingTranslation = false;
 

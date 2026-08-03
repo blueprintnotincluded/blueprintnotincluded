@@ -17,6 +17,7 @@
 //   cd /bpni/build && node app/api/batch/derive-language.js [--dry-run]
 
 import * as mongoose from 'mongoose';
+import { Model } from 'mongoose';
 import * as dotenv from 'dotenv';
 import { BlueprintModel } from '../models/blueprint';
 import { CommentModel } from '../models/comment';
@@ -24,6 +25,29 @@ import { detectLanguage } from '../services/language-detection-service';
 import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
 
 dotenv.config();
+
+// Buffers $set writes and flushes them via bulkWrite so a full-collection
+// backfill doesn't pay one round trip per changed document. Still idempotent
+// (a mid-run failure just loses the unflushed buffer, safe to restart).
+const BULK_BATCH_SIZE = 500;
+
+function batchedSourceLangWriter(model: Model<any>, dryRun: boolean) {
+  let pending: { updateOne: { filter: { _id: unknown }; update: { $set: { sourceLang: string | null } } } }[] = [];
+
+  async function flush() {
+    if (dryRun || pending.length === 0) return;
+    await model.bulkWrite(pending);
+    pending = [];
+  }
+
+  return {
+    async queue(id: unknown, sourceLang: string | null) {
+      pending.push({ updateOne: { filter: { _id: id }, update: { $set: { sourceLang } } } });
+      if (pending.length >= BULK_BATCH_SIZE) await flush();
+    },
+    flush,
+  };
+}
 
 async function deriveBlueprints(dryRun: boolean, limit: number | null) {
   const cursor = sampledCursor(
@@ -35,6 +59,7 @@ async function deriveBlueprints(dryRun: boolean, limit: number | null) {
   let updated = 0;
   const perLang = new Map<string, number>();
   let unconfident = 0;
+  const writer = batchedSourceLangWriter(BlueprintModel.model, dryRun);
 
   for await (const doc of cursor) {
     processed++;
@@ -44,10 +69,9 @@ async function deriveBlueprints(dryRun: boolean, limit: number | null) {
 
     if (doc.sourceLang === (lang ?? null)) continue;
     updated++;
-    if (!dryRun) {
-      await BlueprintModel.model.updateOne({ _id: doc._id }, { $set: { sourceLang: lang } });
-    }
+    await writer.queue(doc._id, lang);
   }
+  await writer.flush();
 
   console.log(`\nBlueprint descriptions — processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
   console.log(`  not confident: ${unconfident}`);
@@ -60,6 +84,7 @@ async function deriveComments(dryRun: boolean, limit: number | null) {
   let updated = 0;
   const perLang = new Map<string, number>();
   let unconfident = 0;
+  const writer = batchedSourceLangWriter(CommentModel.model, dryRun);
 
   for await (const doc of cursor) {
     processed++;
@@ -69,10 +94,9 @@ async function deriveComments(dryRun: boolean, limit: number | null) {
 
     if (doc.sourceLang === (lang ?? null)) continue;
     updated++;
-    if (!dryRun) {
-      await CommentModel.model.updateOne({ _id: doc._id }, { $set: { sourceLang: lang } });
-    }
+    await writer.queue(doc._id, lang);
   }
+  await writer.flush();
 
   console.log(`\nComments — processed: ${processed}, updated: ${updated}${dryRun ? ' (dry run)' : ''}`);
   console.log(`  not confident: ${unconfident}`);

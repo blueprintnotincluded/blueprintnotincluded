@@ -224,6 +224,29 @@ describe('TranslationService', function () {
       );
       expect(otherResult.cached).to.equal(false);
     });
+
+    // Regression for the {month, userId} unique index that used to collide a
+    // user's second day of a month against their first (E11000 on upsert).
+    it('lets the same user translate again on a new day within the same month', async function () {
+      const userId = '507f1f77bcf86cd799439011';
+      await TranslationBudgetModel.model.create({
+        month: monthKey(),
+        day: `${monthKey()}-01`,
+        userId,
+        charCount: 500,
+        requestCount: 3,
+      });
+
+      const result = await service.translateOne(
+        { kind: 'blueprint', refId: '507f1f77bcf86cd799439004', sourceText: 'Une phrase du jour suivant', sourceLang: 'fr', targetLang: 'en' },
+        userId
+      );
+
+      expect(result.cached).to.equal(false);
+      expect(
+        await TranslationBudgetModel.model.countDocuments({ userId, month: monthKey() })
+      ).to.equal(2);
+    });
   });
 
   describe('batching', function () {

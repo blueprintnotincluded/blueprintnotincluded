@@ -415,6 +415,18 @@ describe("BlueprintDetailsPageComponent", () => {
   });
 
   describe("translate description", () => {
+    it("shows no button for an anonymous viewer, even with a foreign sourceLang", () => {
+      authService.isLoggedIn.mockReturnValue(false);
+      translationService.matchesViewerLang.mockReturnValue(false);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ sourceLang: "fr" })),
+      );
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".details-translate")),
+      ).toBeNull();
+    });
+
     it("shows no button when sourceLang is absent", () => {
       fixture.detectChanges();
       expect(

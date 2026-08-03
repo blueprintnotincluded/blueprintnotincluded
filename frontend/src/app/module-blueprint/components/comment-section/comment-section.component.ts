@@ -65,10 +65,12 @@ export class CommentSectionComponent implements OnChanges {
     this.reload();
   }
 
-  // The button set only appears on content the viewer doesn't already read —
-  // nearly all traffic never sees it.
+  // The button set only appears on content the viewer doesn't already read,
+  // and only when logged in — the translate endpoint requires auth, so an
+  // anonymous click would just fail. Nearly all traffic never sees it.
   isForeignLanguage(comment: CommentDto): boolean {
     return (
+      this.authService.isLoggedIn() &&
       !comment.deleted &&
       comment.sourceLang != null &&
       !this.translationService.matchesViewerLang(comment.sourceLang)
@@ -124,13 +126,21 @@ export class CommentSectionComponent implements OnChanges {
     const ids = this.foreignCommentIds;
     if (ids.length === 0) return;
     this.translateAllWorking = true;
+    // Mirrors translatingIds so a per-comment "Translate" click on one of
+    // these ids while the batch is in flight is disabled instead of firing a
+    // duplicate request.
+    for (const id of ids) this.translatingIds.add(id);
     this.translationService.translateComments(this.blueprintId, ids).subscribe({
       next: () => {
         this.translateAllWorking = false;
-        for (const id of ids) this.showingTranslationIds.add(id);
+        for (const id of ids) {
+          this.translatingIds.delete(id);
+          this.showingTranslationIds.add(id);
+        }
       },
       error: () => {
         this.translateAllWorking = false;
+        for (const id of ids) this.translatingIds.delete(id);
       },
     });
   }
