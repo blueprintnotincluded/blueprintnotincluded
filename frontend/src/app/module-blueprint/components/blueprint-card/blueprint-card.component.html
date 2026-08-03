@@ -90,6 +90,13 @@
         >{{ roomTypeLabel(room) }}</a
       >
       <span
+        *ngIf="(item.duplicateCount ?? 0) > 0"
+        class="bni-chip bni-chip--duplicates"
+        [title]="duplicateTooltip(item.duplicateCount ?? 0)"
+        i18n
+        >+{{ item.duplicateCount }} copies</span
+      >
+      <span
         *ngIf="hiddenRoomCount > 0"
         class="bni-chip bni-chip--room bni-chip--room-more"
         [title]="hiddenRoomsTitle"

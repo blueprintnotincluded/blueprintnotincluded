@@ -284,4 +284,18 @@ describe("BlueprintCardComponent", () => {
     expect(fixture.nativeElement.textContent).toContain("No Results");
     expect(fixture.debugElement.query(By.css("app-star-rating"))).toBeNull();
   });
+
+  it("shows a copies chip only when duplicates were collapsed behind it", () => {
+    component.item = makeItem({ duplicateCount: 0 });
+    fixture.detectChanges();
+    expect(
+      fixture.debugElement.query(By.css(".bni-chip--duplicates")),
+    ).toBeNull();
+
+    component.item = makeItem({ duplicateCount: 85 });
+    fixture.detectChanges();
+    const chip = fixture.debugElement.query(By.css(".bni-chip--duplicates"));
+    expect(chip).not.toBeNull();
+    expect(chip.nativeElement.textContent).toContain("85");
+  });
 });

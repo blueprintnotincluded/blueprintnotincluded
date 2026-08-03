@@ -34,3 +34,11 @@ export function moddedTooltip(): string {
 export function modChipTooltip(title: string): string {
   return $localize`:chipTooltip.mod:Requires the "${title}" mod — opens its Steam Workshop page`;
 }
+
+// Duplicate-collapse chip (spec/multilingual-search-plan.md §2.5): the count
+// is other copies of the SAME build that matched this search, folded into
+// one result. Nothing is deleted or hidden — the copies are still browsable,
+// and switching collapse off shows every one of them.
+export function duplicateTooltip(count: number): string {
+  return $localize`:chipTooltip.duplicates:${count} other saved copies of this exact build also match — turn off "Group identical copies" to see them all`;
+}

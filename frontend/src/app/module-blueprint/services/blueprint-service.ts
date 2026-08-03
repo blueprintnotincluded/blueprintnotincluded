@@ -645,6 +645,9 @@ export class BlueprintService implements IObsBlueprintChange {
     filterRooms?: string | null,
     filterDlcs?: string | null,
     filterExcludeDlcs?: string | null,
+    // Duplicate collapse in search results — server default is ON, so only
+    // an opt-out is sent (keeps the common URL stable for the CDN).
+    collapse?: boolean,
   ) {
     // olderthan is a cache-buster when it isn't doing real work, so send it
     // only where it is the pagination cursor: the recent sort past page 1
@@ -677,10 +680,13 @@ export class BlueprintService implements IObsBlueprintChange {
       filterExcludeDlcs,
     });
 
+    const parameterCollapse = collapse === false ? "&collapse=false" : "";
+
     const parameters = (
       parameterOlderThan +
       (filterParams.length > 0 ? "&" + filterParams : "") +
-      parameterSort
+      parameterSort +
+      parameterCollapse
     ).replace(/^&/, "");
 
     // General browsing is a public, viewer-independent feed — always hit the

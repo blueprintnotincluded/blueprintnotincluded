@@ -623,6 +623,15 @@
   cursor: default;
 }
 
+/* "+3 copies": a fact about the result set, not a filter — reads as quiet
+   metadata, and is never clickable (the collapse toggle is the control). */
+.bni-chip--duplicates {
+  background: transparent;
+  border-color: var(--bni-rule);
+  color: var(--bni-faint);
+  cursor: default;
+}
+
 /* brass = withheld. A draft is flagged, not finished. */
 .bni-chip--draft {
   background: var(--bni-brass-tint);
