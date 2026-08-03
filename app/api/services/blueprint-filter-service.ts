@@ -31,6 +31,11 @@ export interface ParsedBlueprintFilters {
   sort: BlueprintSort;
   skip: number;
   dateFilter: Date;
+  // Collapse identical copies in search results (§2.5). Defaults ON — the
+  // corpus is 47% exact duplicates, so an uncollapsed query reads as a wall
+  // of the same build — but the toggle is visible, because "what's actually
+  // in the corpus" is a legitimate thing to ask for.
+  collapse: boolean;
 }
 
 export interface BlueprintFilterViewer {
@@ -196,6 +201,13 @@ export function parseBlueprintFilters(
       }
     }
 
+    const rawCollapse = req.query.collapse as string | undefined;
+    if (rawCollapse != null && rawCollapse !== 'true' && rawCollapse !== 'false') {
+      res.status(400).json(apiError(400, "Invalid collapse: must be 'true' or 'false'"));
+      return null;
+    }
+    const collapse = rawCollapse !== 'false';
+
     return {
       filterUserId,
       filterName,
@@ -210,6 +222,7 @@ export function parseBlueprintFilters(
       sort,
       skip,
       dateFilter,
+      collapse,
     };
   } catch (error) {
     console.log(error);

@@ -44,7 +44,7 @@ import { deriveDlcs } from './services/dlc-derivation-service';
 import { detectLanguageCode } from './services/language-detection-service';
 import { TranslationService } from './services/translation-service';
 import { upsertSearchRow, syncSearchRowStatus } from './services/search-index-service';
-import { searchBlueprintIds, searchV2Enabled } from './services/search-service';
+import { collapseClusters, SearchMatch, searchBlueprints, searchV2Enabled } from './services/search-service';
 import {
   parseBlueprintFilters,
   resolveRatedByIds,
@@ -739,7 +739,8 @@ export class BlueprintController {
       return;
     }
 
-    const searchIds = await BlueprintController.resolveSearchIds(parsed.filterName);
+    const searchMatches = await BlueprintController.resolveSearchMatches(parsed.filterName);
+    const searchIds = searchMatches?.map(match => match.id) ?? null;
 
     const isAdmin = userJwt?.role === 'admin';
     const { filter, usesOffsetPagination } = buildBlueprintFilter(
@@ -767,8 +768,16 @@ export class BlueprintController {
     // ranked id list IS the order, so the page is a slice of it. An explicit
     // count sort keeps its own order with search as a pure filter (the
     // ordinary path below).
-    if (searchIds != null && parsed.sort === 'recent') {
-      BlueprintController.handleSearchOrderedBlueprints(req, res, filter, searchIds, skipAmount, limit);
+    if (searchMatches != null && parsed.sort === 'recent') {
+      BlueprintController.handleSearchOrderedBlueprints(
+        req,
+        res,
+        filter,
+        searchMatches,
+        skipAmount,
+        limit,
+        parsed.collapse
+      );
       return;
     }
 
@@ -795,12 +804,10 @@ export class BlueprintController {
   // Resolves filterName through the search service when v2 is enabled.
   // null = no search clause (no query, kill switch off, or the search layer
   // errored — in which case the caller falls back to the legacy name regex).
-  private static async resolveSearchIds(
-    filterName: string | null
-  ): Promise<mongoose.Types.ObjectId[] | null> {
+  private static async resolveSearchMatches(filterName: string | null): Promise<SearchMatch[] | null> {
     if (filterName == null || !searchV2Enabled()) return null;
     try {
-      return await searchBlueprintIds(filterName);
+      return await searchBlueprints(filterName);
     } catch (err) {
       console.log('search resolution error — falling back to name regex');
       console.log(err);
@@ -818,14 +825,30 @@ export class BlueprintController {
     req: Request,
     res: Response,
     filter: any,
-    searchIds: mongoose.Types.ObjectId[],
+    searchMatches: SearchMatch[],
     skipAmount: number,
-    limit: number
+    limit: number,
+    collapse: boolean
   ): void {
     (async () => {
       const matched = await BlueprintModel.model.find(filter).select('_id').lean();
       const matchedSet = new Set(matched.map(doc => doc._id.toString()));
-      const orderedIds = searchIds.filter(id => matchedSet.has(id.toString()));
+
+      // Duplicate collapse happens HERE, after the authoritative visibility
+      // filter (§2.5): the canonical is elected among the copies this viewer
+      // can actually see, so a deleted or draft canonical never suppresses a
+      // visible one.
+      const duplicateCounts = new Map<string, number>();
+      let orderedIds: mongoose.Types.ObjectId[];
+      if (collapse) {
+        const collapsed = collapseClusters(searchMatches, matchedSet);
+        orderedIds = collapsed.map(entry => entry.id);
+        for (const entry of collapsed) {
+          if (entry.duplicateCount > 0) duplicateCounts.set(entry.id.toString(), entry.duplicateCount);
+        }
+      } else {
+        orderedIds = searchMatches.map(match => match.id).filter(id => matchedSet.has(id.toString()));
+      }
       const windowIds = orderedIds.slice(skipAmount, skipAmount + limit);
 
       const docs = await BlueprintModel.model
@@ -837,7 +860,7 @@ export class BlueprintController {
         .map(id => docsById.get(id.toString()))
         .filter((doc): doc is NonNullable<typeof doc> => doc != null);
 
-      await BlueprintController.handleGetBlueprint(req, res, page);
+      await BlueprintController.handleGetBlueprint(req, res, page, duplicateCounts);
     })().catch(err => {
       console.log('Blueprint search find error');
       console.log(err);
@@ -884,7 +907,12 @@ export class BlueprintController {
       return;
     }
 
-    const searchIds = await BlueprintController.resolveSearchIds(parsed.filterName);
+    // Facet counts describe the whole matching corpus, so search is a pure
+    // filter here — no relevance order to slice, and no collapse (a count of
+    // "how many blueprints are in this category" must not depend on a view
+    // setting).
+    const searchIds =
+      (await BlueprintController.resolveSearchMatches(parsed.filterName))?.map(match => match.id) ?? null;
 
     const isAdmin = userJwt?.role === 'admin';
     const viewer = { userId, isAdmin };
@@ -994,7 +1022,13 @@ export class BlueprintController {
     );
   }
 
-  public static async handleGetBlueprint(req: Request, res: Response, blueprints: Blueprint[]) {
+  public static async handleGetBlueprint(
+    req: Request,
+    res: Response,
+    blueprints: Blueprint[],
+    // How many collapsed duplicates each result stands for (search only).
+    duplicateCounts: Map<string, number> = new Map()
+  ) {
     let browseIncrement = parseInt(process.env.BROWSE_INCREMENT as string);
     setFeedCacheControl(req, res);
 
@@ -1040,7 +1074,7 @@ export class BlueprintController {
       for (const blueprint of page) {
         if (blueprint.createdAt < returnValue.oldest) returnValue.oldest = blueprint.createdAt;
         returnValue.blueprints.push(
-          BlueprintController.buildListItem(blueprint, commentCounts, forkedFromNames)
+          BlueprintController.buildListItem(blueprint, commentCounts, forkedFromNames, duplicateCounts)
         );
       }
 
@@ -1056,7 +1090,8 @@ export class BlueprintController {
   private static buildListItem(
     blueprint: Blueprint,
     commentCounts: Map<string, number>,
-    forkedFromNames: Map<string, string | null>
+    forkedFromNames: Map<string, string | null>,
+    duplicateCounts: Map<string, number> = new Map()
   ): BlueprintListItem {
     const id = (blueprint._id as any).toString();
 
@@ -1092,6 +1127,10 @@ export class BlueprintController {
       nbForks: blueprint.forkCount ?? 0,
       nbViews: blueprint.viewCount ?? 0,
       nbDownloads: blueprint.downloadCount ?? 0,
+      // Collapsed identical copies this card stands for (search results
+      // only; 0 everywhere else). Nothing is hidden — the copies are still
+      // browsable, this result just speaks for them.
+      duplicateCount: duplicateCounts.get(id) ?? 0,
       forkedFrom:
         blueprint.forkedFrom != null
           ? {

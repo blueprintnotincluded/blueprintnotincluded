@@ -45,6 +45,12 @@ export interface BlueprintListItem {
   // Present when this blueprint is a fork; null blueprintName means the
   // parent has been soft-deleted ("[original removed by author]")
   forkedFrom?: ForkedFromDto | null;
+  // Search results only: how many identical copies of this build also
+  // matched and were collapsed behind this card
+  // (spec/multilingual-search-plan.md §2.5). 0/absent everywhere else, and
+  // whenever collapse is switched off. Nothing is deleted or hidden — the
+  // copies keep their URLs and their owners' profile listings.
+  duplicateCount?: number;
 }
 
 // Self-excluding ("drill-down") facet counts for the Discover sidebar —

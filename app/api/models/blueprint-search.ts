@@ -40,8 +40,12 @@ export interface BlueprintSearch extends Document {
   terms: string[];
   // Prefab/room ids — language-independent, the structural retrieval backbone.
   termIds: string[];
-  // Phase 2 (clustering): canonical-duplicate group. null until derived.
-  clusterId: mongoose.Types.ObjectId | null;
+  // Duplicate-cluster membership (§2.5): a content hash, not a foreign key —
+  // rows sharing a key are the cluster, so membership is derivable per
+  // document with no global pass and no cluster collection. null = nothing
+  // placed (never clustered). The canonical member is elected at read time
+  // against the visible result set, never stored.
+  clusterKey: string | null;
   // Hash of the derivation inputs — lets the backfill skip fresh rows.
   sourceHash: string;
   // Denormalized ranking signals so a search is one query against one
@@ -71,7 +75,7 @@ export class BlueprintSearchModel {
         description: { type: String, default: '' },
         terms: { type: [String], default: [] },
         termIds: { type: [String], default: [] },
-        clusterId: { type: Schema.Types.ObjectId, default: null },
+        clusterKey: { type: String, default: null },
         sourceHash: { type: String, required: true },
         ratingAverage: { type: Number, default: 0 },
         ratingCount: { type: Number, default: 0 },
@@ -87,7 +91,7 @@ export class BlueprintSearchModel {
 
     searchSchema.index({ blueprintId: 1, lang: 1 }, { unique: true });
     searchSchema.index({ termIds: 1 });
-    searchSchema.index({ clusterId: 1 });
+    searchSchema.index({ clusterKey: 1 });
     searchSchema.index(
       { title: 'text', terms: 'text', description: 'text' },
       {

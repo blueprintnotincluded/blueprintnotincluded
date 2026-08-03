@@ -56,6 +56,7 @@ export * from './src/search/query-normalize';
 export * from './src/search/term-resolve';
 export * from './src/search/rrf';
 export * from './src/search/ranking';
+export * from './src/search/cluster-key';
 export * from './src/blueprint/rooms';
 export * from './src/blueprint/blueprint-item';
 export * from './src/blueprint/blueprint-item-element';
