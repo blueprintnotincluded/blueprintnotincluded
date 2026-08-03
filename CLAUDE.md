@@ -401,9 +401,29 @@ on download. `Info` now survives as an *input* format only.
 - **Translate UI gating** — `BlueprintDetailsResponse.translationEnabled` (server
   `isConfigured()`); the details page and comment section render no Translate affordance
   without it, so an unconfigured prod never shows a button that 503s.
-- **Not built yet** (later phases of the plan): clustering/collapse of duplicate results,
-  the `name` regex relaxation + title translation pivot, query translation + `searchqueries`
-  telemetry, IDF weighting for structural matches, semantic retrieval.
+- **Duplicate collapse** (phase 2) — measured on a prod restore: 651 groups of byte-identical
+  content cover **47% of live blueprints**, the largest being 90 documents from 86 distinct
+  owners (the pre-fork "save someone else's build into my account" workaround). Membership is
+  a content hash — `contentClusterKey` in `lib/src/search/cluster-key.ts` over sorted
+  `id:x:y:orientation` tuples translated to the origin — stored as `clusterKey` on the search
+  row. Rows sharing a key ARE the cluster: no cluster collection, no stored canonical, no
+  global pass, so a save derives its own membership. The plan's `clusterId: ObjectId` and its
+  second signal (multiset Jaccard for near-duplicates) are deliberately not built; the latter
+  can't be computed per document. `clusterKey` is part of the row's `sourceHash`, so
+  `npm run derive-search` re-derives every pre-phase-2 row.
+  Collapse itself is **read-time and view-only** (`collapseClusters`): it runs after the
+  authoritative visibility filter, so a deleted or draft canonical can never suppress a
+  visible copy, and it applies under **every** sort a search can use — the default sort is
+  trending, so a relevance-only collapse would never fire in the UI. The canonical is elected
+  by engagement, falling back to earliest `createdAt` (the probable original). Nothing is
+  deleted or hidden: every copy keeps its URL and its owner's profile listing. `collapse=false`
+  opts out (`?collapse=` on `getblueprints`, round-tripped through the Discover URL; the
+  "Group identical copies" toggle appears only while a search is active, and the card shows a
+  `+N copies` chip). **Facet counts never collapse** — a category count describes the corpus,
+  not the view, so the sidebar can legitimately read 4 where the list shows 1.
+- **Not built yet** (later phases of the plan): the `name` regex relaxation + title
+  translation pivot, query translation + `searchqueries` telemetry, IDF weighting for
+  structural matches, semantic retrieval.
 
 ### Blueprint metadata auto-derivation
 `requiredDlcs`, `gameVersion` and `modded` are derived deterministically from the blueprint
