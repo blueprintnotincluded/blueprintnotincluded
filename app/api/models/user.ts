@@ -39,6 +39,13 @@ export interface User extends Document {
   // Cosmetic, but still account state: not part of ProfileResponse.
   themePreference?: string;
 
+  // The user's hand-picked palette (token name → #rrggbb), present only after
+  // they save a custom theme. Kept even while a prefab is selected, so
+  // switching back to "custom" restores their colours. Every value is
+  // validated as strict hex before it is written — it reaches a CSS custom
+  // property on the client. Same privacy rule as themePreference.
+  customThemeColors?: Record<string, string>;
+
   setPassword(password: string): void;
   validPassword(password: string): boolean;
   generateJwt(role?: string): string;
@@ -87,6 +94,9 @@ export class UserModel {
         excludedDlcs: { type: [String], default: [] },
       },
       themePreference: { type: String },
+      // Written whole on every save (findByIdAndUpdate $set), validated in the
+      // controller via sanitizeCustomThemeColors — Mixed here is just storage.
+      customThemeColors: { type: mongoose.Schema.Types.Mixed },
     });
 
     // Password reset lookup: findOne({ resetToken, resetTokenExpiration: { $gt: ... } })

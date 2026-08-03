@@ -113,6 +113,104 @@ describe('Theme preference API', function () {
       expect(response.status).to.equal(400);
     });
 
+    it('saves a custom theme with colours and round-trips them', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'custom', customColors: { board: '#1B1D21', mark: '#1a9fff' } });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.theme).to.equal('custom');
+      // Normalised to lowercase on the way in.
+      expect(response.body.customColors).to.deep.equal({ board: '#1b1d21', mark: '#1a9fff' });
+
+      const reread = await TestSetup.request()
+        .get('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`);
+      expect(reread.body.theme).to.equal('custom');
+      expect(reread.body.customColors).to.deep.equal({ board: '#1b1d21', mark: '#1a9fff' });
+    });
+
+    it('keeps the colour set when switching back to a prefab, and restores it on custom', async function () {
+      const token = testData.users.user1.generateJwt();
+      await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'custom', customColors: { board: '#101f2e' } });
+
+      const prefab = await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'film' });
+      expect(prefab.status).to.equal(200);
+      expect(prefab.body.theme).to.equal('film');
+
+      // Custom with no colours in the body is valid because a set is stored.
+      const back = await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'custom' });
+      expect(back.status).to.equal(200);
+      expect(back.body.theme).to.equal('custom');
+      expect(back.body.customColors).to.deep.equal({ board: '#101f2e' });
+    });
+
+    it('rejects custom with no colours sent and none stored', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'custom' });
+
+      expect(response.status).to.equal(400);
+      // And the account is not left pointing at a palette that doesn't exist.
+      const reread = await TestSetup.request()
+        .get('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`);
+      expect(reread.body.theme).to.equal(DEFAULT_THEME_ID);
+    });
+
+    // These values reach CSS custom properties on the client, so anything
+    // that is not a literal #rrggbb colour on a known token is refused whole.
+    it('rejects a non-hex colour value', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'custom', customColors: { board: 'url(javascript:1)' } });
+      expect(response.status).to.equal(400);
+    });
+
+    it('rejects an unknown token name', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'custom', customColors: { 'evil-token': '#123456' } });
+      expect(response.status).to.equal(400);
+    });
+
+    it('rejects shorthand and alpha hex forms', async function () {
+      const token = testData.users.user1.generateJwt();
+      for (const bad of ['#abc', '#aabbccdd', 'red', 'rgb(1,2,3)']) {
+        const response = await TestSetup.request()
+          .patch('/api/users/me/theme-preference')
+          .set('Authorization', `Bearer ${token}`)
+          .send({ theme: 'custom', customColors: { board: bad } });
+        expect(response.status).to.equal(400, `expected ${bad} to be rejected`);
+      }
+    });
+
+    it('rejects an empty colour object', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .patch('/api/users/me/theme-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ theme: 'custom', customColors: {} });
+      expect(response.status).to.equal(400);
+    });
+
     // Cosmetic, but still private account state.
     it('does not expose the theme on the public profile', async function () {
       const token = testData.users.user1.generateJwt();
@@ -127,6 +225,7 @@ describe('Theme preference API', function () {
       if (profile.status === 200) {
         expect(profile.body).to.not.have.property('themePreference');
         expect(profile.body).to.not.have.property('theme');
+        expect(profile.body).to.not.have.property('customThemeColors');
       }
     });
   });
