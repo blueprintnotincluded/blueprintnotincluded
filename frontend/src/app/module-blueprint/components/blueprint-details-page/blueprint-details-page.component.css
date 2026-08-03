@@ -130,6 +130,41 @@
   word-break: break-word;
 }
 
+.details-translate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -6px 0 12px;
+}
+
+.details-translate-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--p-font-family);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--bni-blue);
+}
+
+.details-translate-link:hover {
+  text-decoration: underline;
+  color: var(--bni-blue-hi);
+}
+
+.details-translate-link:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.details-translate-attribution,
+.details-translate-degraded {
+  font-size: 11.5px;
+  color: var(--bni-faint);
+  font-style: italic;
+}
+
 .details-actions {
   display: flex;
   align-items: center;

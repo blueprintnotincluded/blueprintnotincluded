@@ -41,6 +41,7 @@ export interface BlueprintDetailsResponse extends BlueprintListItem {
     researchTier?: string | null;
     myRating: number | null;
     ownedByMe: boolean;
+    sourceLang?: string | null;
 }
 export interface RelatedBlueprintsResponse {
     blueprints: BlueprintListItem[];

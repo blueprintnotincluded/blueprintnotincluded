@@ -11,6 +11,7 @@ import { BlueprintDetailsPageComponent } from "./blueprint-details-page.componen
 import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { ModsService } from "../../services/mods-service";
+import { TranslationService } from "../../services/translation.service";
 
 function makeDetails(overrides: any = {}) {
   return {
@@ -30,6 +31,7 @@ function makeDetails(overrides: any = {}) {
     category: "power",
     subcategory: null,
     description: "A tidy coal setup",
+    sourceLang: null,
     researchTier: null,
     modded: false,
     isPublished: true,
@@ -49,6 +51,7 @@ describe("BlueprintDetailsPageComponent", () => {
   let messageService: any;
   let router: any;
   let modsService: any;
+  let translationService: any;
 
   beforeEach(async () => {
     blueprintService = {
@@ -71,6 +74,14 @@ describe("BlueprintDetailsPageComponent", () => {
         ]),
       ),
     };
+    translationService = {
+      matchesViewerLang: vi.fn().mockReturnValue(true),
+      translateBlueprint: vi
+        .fn()
+        .mockReturnValue(
+          of({ description: "translated", sourceLang: "fr", cached: false }),
+        ),
+    };
 
     await TestBed.configureTestingModule({
       declarations: [BlueprintDetailsPageComponent],
@@ -80,6 +91,7 @@ describe("BlueprintDetailsPageComponent", () => {
         { provide: AuthenticationService, useValue: authService },
         { provide: MessageService, useValue: messageService },
         { provide: ModsService, useValue: modsService },
+        { provide: TranslationService, useValue: translationService },
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
@@ -400,6 +412,98 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(downloads.nativeElement.textContent).toContain("1");
     expect(downloads.nativeElement.textContent).toContain("download");
     expect(downloads.nativeElement.textContent).not.toContain("downloads");
+  });
+
+  describe("translate description", () => {
+    it("shows no button when sourceLang is absent", () => {
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".details-translate")),
+      ).toBeNull();
+    });
+
+    it("shows no button when sourceLang already matches the viewer's language", () => {
+      translationService.matchesViewerLang.mockReturnValue(true);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ sourceLang: "en" })),
+      );
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".details-translate")),
+      ).toBeNull();
+    });
+
+    it("shows the button when sourceLang differs from the viewer's language", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ sourceLang: "fr" })),
+      );
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".details-translate")),
+      ).not.toBeNull();
+    });
+
+    it("translates on click and toggles back to the original", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ sourceLang: "fr" })),
+      );
+      fixture.detectChanges();
+
+      component.translateDescription();
+      fixture.detectChanges();
+
+      expect(translationService.translateBlueprint).toHaveBeenCalledWith("bp1");
+      expect(fixture.nativeElement.textContent).toContain("translated");
+      expect(fixture.nativeElement.textContent).toContain(
+        "Translated by Google",
+      );
+
+      component.showOriginalDescription();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain("A tidy coal setup");
+    });
+
+    it("does not re-fetch on a second translate click (in-memory cache)", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ sourceLang: "fr" })),
+      );
+      fixture.detectChanges();
+
+      component.translateDescription();
+      component.showOriginalDescription();
+      component.translateDescription();
+
+      expect(translationService.translateBlueprint).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows a degraded note instead of an attribution when the translation is degraded", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      translationService.translateBlueprint.mockReturnValue(
+        of({
+          description: "A tidy coal setup",
+          sourceLang: "fr",
+          cached: false,
+          degraded: true,
+        }),
+      );
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(makeDetails({ sourceLang: "fr" })),
+      );
+      fixture.detectChanges();
+
+      component.translateDescription();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain(
+        "Translation unavailable",
+      );
+      expect(fixture.nativeElement.textContent).not.toContain(
+        "Translated by Google",
+      );
+    });
   });
 
   describe("scrollToFragment", () => {

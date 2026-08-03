@@ -175,8 +175,49 @@
           </div>
 
           <p *ngIf="details.description" class="details-description">
-            {{ details.description }}
+            {{
+              showingTranslation && translation
+                ? translation.description
+                : details.description
+            }}
           </p>
+          <div
+            *ngIf="details.description && showTranslateButton"
+            class="details-translate"
+          >
+            <button
+              *ngIf="!showingTranslation"
+              type="button"
+              class="details-translate-link"
+              [disabled]="translating"
+              (click)="translateDescription()"
+              i18n
+            >
+              Translate
+            </button>
+            <ng-container *ngIf="showingTranslation">
+              <span
+                *ngIf="translation?.degraded"
+                class="details-translate-degraded"
+                i18n
+                >Translation unavailable</span
+              >
+              <span
+                *ngIf="!translation?.degraded"
+                class="details-translate-attribution"
+                i18n
+                >Translated by Google</span
+              >
+              <button
+                type="button"
+                class="details-translate-link"
+                (click)="showOriginalDescription()"
+                i18n
+              >
+                Show original
+              </button>
+            </ng-container>
+          </div>
 
           <div class="details-actions">
             <button

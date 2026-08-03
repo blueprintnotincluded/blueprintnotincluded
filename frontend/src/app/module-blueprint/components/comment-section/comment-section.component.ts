@@ -12,6 +12,7 @@ import {
 } from "../../../../../../lib/index";
 import { CommentService } from "../../services/comment.service";
 import { AuthenticationService } from "../../services/authentification-service";
+import { TranslationService } from "../../services/translation.service";
 
 @Component({
   selector: "app-comment-section",
@@ -39,9 +40,15 @@ export class CommentSectionComponent implements OnChanges {
 
   readonly maxLength = COMMENT_MAX_LENGTH;
 
+  // Per-comment translation state, keyed by comment id
+  translatingIds = new Set<string>();
+  showingTranslationIds = new Set<string>();
+  translateAllWorking = false;
+
   constructor(
     private commentService: CommentService,
     public authService: AuthenticationService,
+    public translationService: TranslationService,
   ) {}
 
   ngOnChanges() {
@@ -52,7 +59,80 @@ export class CommentSectionComponent implements OnChanges {
     this.editText = "";
     this.editOriginalText = "";
     this.postError = null;
+    this.translatingIds = new Set();
+    this.showingTranslationIds = new Set();
+    this.translateAllWorking = false;
     this.reload();
+  }
+
+  // The button set only appears on content the viewer doesn't already read —
+  // nearly all traffic never sees it.
+  isForeignLanguage(comment: CommentDto): boolean {
+    return (
+      !comment.deleted &&
+      comment.sourceLang != null &&
+      !this.translationService.matchesViewerLang(comment.sourceLang)
+    );
+  }
+
+  get foreignCommentIds(): string[] {
+    const all = [
+      ...this.threads.map((t) => t.comment),
+      ...this.threads.flatMap((t) => t.replies),
+    ];
+    return all.filter((c) => this.isForeignLanguage(c)).map((c) => c.id);
+  }
+
+  get showTranslateAll(): boolean {
+    return this.foreignCommentIds.length >= 2;
+  }
+
+  translatedSegments(comment: CommentDto) {
+    return this.translationService.cachedComment(comment.id)?.segments ?? null;
+  }
+
+  translationDegraded(comment: CommentDto): boolean {
+    return this.translationService.cachedComment(comment.id)?.degraded === true;
+  }
+
+  translateComment(comment: CommentDto) {
+    if (this.blueprintId == null || this.translatingIds.has(comment.id)) return;
+    if (this.translationService.cachedComment(comment.id) != null) {
+      this.showingTranslationIds.add(comment.id);
+      return;
+    }
+    this.translatingIds.add(comment.id);
+    this.translationService
+      .translateComments(this.blueprintId, [comment.id])
+      .subscribe({
+        next: () => {
+          this.translatingIds.delete(comment.id);
+          this.showingTranslationIds.add(comment.id);
+        },
+        error: () => {
+          this.translatingIds.delete(comment.id);
+        },
+      });
+  }
+
+  showOriginalComment(comment: CommentDto) {
+    this.showingTranslationIds.delete(comment.id);
+  }
+
+  translateAll() {
+    if (this.blueprintId == null || this.translateAllWorking) return;
+    const ids = this.foreignCommentIds;
+    if (ids.length === 0) return;
+    this.translateAllWorking = true;
+    this.translationService.translateComments(this.blueprintId, ids).subscribe({
+      next: () => {
+        this.translateAllWorking = false;
+        for (const id of ids) this.showingTranslationIds.add(id);
+      },
+      error: () => {
+        this.translateAllWorking = false;
+      },
+    });
   }
 
   private reload() {

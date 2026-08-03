@@ -25,6 +25,8 @@ import { dlcLabel } from "../../../../../../lib/index";
 import { roomTypeLabel } from "../../utils/room-labels";
 import sanitize from "sanitize-filename";
 import { ModsService } from "../../services/mods-service";
+import { TranslationService } from "../../services/translation.service";
+import { TranslateBlueprintResponse } from "../../../../../../lib/index";
 
 const BACK_TO_DISCOVER = $localize`:blueprintDetails.backToDiscover:Back to Discover`;
 const BACK_TO_PROFILE = $localize`:blueprintDetails.backToProfile:Back to Profile`;
@@ -75,8 +77,51 @@ export class BlueprintDetailsPageComponent implements OnInit {
     private blueprintService: BlueprintService,
     private messageService: MessageService,
     private modsService: ModsService,
+    private translationService: TranslationService,
     public authService: AuthenticationService,
   ) {}
+
+  // Only shown when the description's detected language is known and differs
+  // from the viewer's own — nearly all traffic (English viewer, English
+  // description) never sees the button.
+  get showTranslateButton(): boolean {
+    const sourceLang = this.details?.sourceLang;
+    return (
+      sourceLang != null &&
+      !this.translationService.matchesViewerLang(sourceLang)
+    );
+  }
+
+  translating = false;
+  translation: TranslateBlueprintResponse | null = null;
+  showingTranslation = false;
+
+  translateDescription() {
+    if (this.details == null || this.translating) return;
+    if (this.translation != null) {
+      this.showingTranslation = true;
+      return;
+    }
+    this.translating = true;
+    this.translationService.translateBlueprint(this.details.id).subscribe({
+      next: (response) => {
+        this.translating = false;
+        this.translation = response;
+        this.showingTranslation = true;
+      },
+      error: () => {
+        this.translating = false;
+        this.messageService.add({
+          severity: "error",
+          summary: $localize`:translateError:Could not translate description`,
+        });
+      },
+    });
+  }
+
+  showOriginalDescription() {
+    this.showingTranslation = false;
+  }
 
   // Complete singular/plural messages (not a conditional suffix) so
   // translators control each form
@@ -155,6 +200,8 @@ export class BlueprintDetailsPageComponent implements OnInit {
     this.publishWorking = false;
     this.deleteWorking = false;
     this.relatedBlueprints = [];
+    this.translation = null;
+    this.showingTranslation = false;
 
     if (id == null) {
       this.loading = false;

@@ -17,6 +17,7 @@ export interface CommentDto {
     createdAt: string;
     lastActivityAt: string;
     editedAt: string | null;
+    sourceLang?: string | null;
     canDelete: boolean;
     canEdit: boolean;
     editSource?: string;

@@ -28,6 +28,9 @@ export interface CommentDto {
   // hover shows this date). Distinct from any document-level updated
   // timestamp: replies and moderation never touch it.
   editedAt: string | null;
+  // ISO-639-1 language of `body`, server-derived on post/edit; null =
+  // detection ran and was not confident, absent = never derived (legacy docs).
+  sourceLang?: string | null;
   // Only meaningful when the request carried a valid token
   canDelete: boolean;
   canEdit: boolean;
