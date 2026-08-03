@@ -5,6 +5,8 @@ import {
   ROOM_TYPE_IDS,
   RAW_SOURCE_FORMATS,
   RawSourceFormat,
+  MAX_BLUEPRINT_NAME_LENGTH,
+  isCanonicalBlueprintName,
 } from '../../../lib/index';
 
 // Discriminator for the stored thumbnail: 'real' = data-URI image, the other
@@ -114,8 +116,20 @@ export class BlueprintModel {
       name: {
         type: String,
         required: true,
-        match: [/^[a-zA-Z0-9_ -]+$/, 'Blueprint name may only contain letters, numbers, hyphens, underscores, and spaces'],
-        maxlength: [60, 'Blueprint name must be 60 characters or fewer'],
+        // Titles are Unicode (spec/multilingual-search-plan.md phase 3a); the
+        // policy lives in lib so the save dialog, the upload endpoint and this
+        // schema cannot disagree. The schema deliberately demands the
+        // *canonical* form (NFC, collapsed whitespace) rather than normalizing
+        // here: normalization belongs at ingress, and a non-canonical name
+        // reaching a model write means some path skipped it.
+        validate: {
+          validator: isCanonicalBlueprintName,
+          message: 'Blueprint name is not a valid, normalized title',
+        },
+        maxlength: [
+          MAX_BLUEPRINT_NAME_LENGTH,
+          `Blueprint name must be ${MAX_BLUEPRINT_NAME_LENGTH} characters or fewer`,
+        ],
         minlength: [1, 'Blueprint name is required'],
       },
       ratingCount: { type: Number, default: 0 },
@@ -197,7 +211,13 @@ export class BlueprintModel {
     // DLC-requirement filters on the public feed (multikey on requiredDlcs;
     // one array field per compound index, category/createdAt are scalars).
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, requiredDlcs: 1, createdAt: -1 });
-    blueprintSchema.index({ deletedAt: 1, isPublished: 1, requiredDlcs: 1, category: 1, createdAt: -1 });
+    blueprintSchema.index({
+      deletedAt: 1,
+      isPublished: 1,
+      requiredDlcs: 1,
+      category: 1,
+      createdAt: -1,
+    });
     // Room-type filter on the public feed (multikey on rooms)
     blueprintSchema.index({ deletedAt: 1, isPublished: 1, rooms: 1, createdAt: -1 });
     // "Top rated" sort on the public feed
