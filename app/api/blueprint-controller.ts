@@ -740,13 +740,38 @@ export class BlueprintController {
     }
 
     const searchMatches = await BlueprintController.resolveSearchMatches(parsed.filterName);
-    const searchIds = searchMatches?.map(match => match.id) ?? null;
-
     const isAdmin = userJwt?.role === 'admin';
+    const viewer = { userId, isAdmin };
+
+    // Duplicate collapse (§2.5) applies to every sort a search can be under,
+    // not just the relevance one — the site's default sort is trending, so a
+    // collapse that only covered `recent` would never fire in the UI.
+    //
+    // It runs against the AUTHORITATIVE visible set (an id-only probe with
+    // the real filter, bounded by the ≤500 ranked candidates), so a deleted
+    // or draft canonical can never suppress a visible copy. The surviving
+    // canonicals then replace the search id list, and every branch below —
+    // relevance slice or indexed sort — is unchanged.
+    let searchIds = searchMatches?.map(match => match.id) ?? null;
+    let visibleSearchIds: Set<string> | null = null;
+    const duplicateCounts = new Map<string, number>();
+    if (searchMatches != null && parsed.collapse && searchMatches.length > 0) {
+      const probeFilter = buildBlueprintFilter(parsed, ratedByIds, viewer, searchIds).filter;
+      const probe = await BlueprintModel.model.find(probeFilter).select('_id').lean();
+      visibleSearchIds = new Set(probe.map(doc => doc._id.toString()));
+      const collapsed = collapseClusters(searchMatches, visibleSearchIds);
+      searchIds = collapsed.map(entry => entry.id);
+      // The probe saw every copy; the page must only see the canonicals.
+      visibleSearchIds = new Set(searchIds.map(id => id.toString()));
+      for (const entry of collapsed) {
+        if (entry.duplicateCount > 0) duplicateCounts.set(entry.id.toString(), entry.duplicateCount);
+      }
+    }
+
     const { filter, usesOffsetPagination } = buildBlueprintFilter(
       parsed,
       ratedByIds,
-      { userId, isAdmin },
+      viewer,
       searchIds
     );
 
@@ -768,15 +793,16 @@ export class BlueprintController {
     // ranked id list IS the order, so the page is a slice of it. An explicit
     // count sort keeps its own order with search as a pure filter (the
     // ordinary path below).
-    if (searchMatches != null && parsed.sort === 'recent') {
+    if (searchIds != null && parsed.sort === 'recent') {
       BlueprintController.handleSearchOrderedBlueprints(
         req,
         res,
         filter,
-        searchMatches,
+        searchIds,
         skipAmount,
         limit,
-        parsed.collapse
+        duplicateCounts,
+        visibleSearchIds
       );
       return;
     }
@@ -792,7 +818,7 @@ export class BlueprintController {
       .select('-data -thumbnail -rawSource')
       .populate('owner')
       .then(blueprints => {
-        return BlueprintController.handleGetBlueprint(req, res, blueprints);
+        return BlueprintController.handleGetBlueprint(req, res, blueprints, duplicateCounts);
       })
       .catch(err => {
         console.log('Blueprint find error');
@@ -825,30 +851,21 @@ export class BlueprintController {
     req: Request,
     res: Response,
     filter: any,
-    searchMatches: SearchMatch[],
+    searchIds: mongoose.Types.ObjectId[],
     skipAmount: number,
     limit: number,
-    collapse: boolean
+    duplicateCounts: Map<string, number>,
+    // Already computed by the collapse probe when collapse is on — reusing
+    // it keeps a search to one visibility query either way.
+    visibleIds: Set<string> | null
   ): void {
     (async () => {
-      const matched = await BlueprintModel.model.find(filter).select('_id').lean();
-      const matchedSet = new Set(matched.map(doc => doc._id.toString()));
-
-      // Duplicate collapse happens HERE, after the authoritative visibility
-      // filter (§2.5): the canonical is elected among the copies this viewer
-      // can actually see, so a deleted or draft canonical never suppresses a
-      // visible one.
-      const duplicateCounts = new Map<string, number>();
-      let orderedIds: mongoose.Types.ObjectId[];
-      if (collapse) {
-        const collapsed = collapseClusters(searchMatches, matchedSet);
-        orderedIds = collapsed.map(entry => entry.id);
-        for (const entry of collapsed) {
-          if (entry.duplicateCount > 0) duplicateCounts.set(entry.id.toString(), entry.duplicateCount);
-        }
-      } else {
-        orderedIds = searchMatches.map(match => match.id).filter(id => matchedSet.has(id.toString()));
+      let matchedSet = visibleIds;
+      if (matchedSet == null) {
+        const matched = await BlueprintModel.model.find(filter).select('_id').lean();
+        matchedSet = new Set(matched.map(doc => doc._id.toString()));
       }
+      const orderedIds = searchIds.filter(id => matchedSet.has(id.toString()));
       const windowIds = orderedIds.slice(skipAmount, skipAmount + limit);
 
       const docs = await BlueprintModel.model
