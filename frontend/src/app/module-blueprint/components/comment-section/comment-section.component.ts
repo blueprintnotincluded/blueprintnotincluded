@@ -9,6 +9,7 @@ import {
   CommentDto,
   CommentThread,
   COMMENT_MAX_LENGTH,
+  MAX_TRANSLATE_BATCH,
 } from "../../../../../../lib/index";
 import { CommentService } from "../../services/comment.service";
 import { AuthenticationService } from "../../services/authentification-service";
@@ -97,6 +98,17 @@ export class CommentSectionComponent implements OnChanges {
     return this.translationService.cachedComment(comment.id)?.segments ?? null;
   }
 
+  // What the template renders: the translation when the viewer toggled it on
+  // (and it exists), the original otherwise. One call site in the template so
+  // the cache lookup isn't evaluated twice per comment per change detection.
+  displaySegments(comment: CommentDto) {
+    return (
+      (this.showingTranslationIds.has(comment.id)
+        ? this.translatedSegments(comment)
+        : null) ?? comment.segments
+    );
+  }
+
   translationDegraded(comment: CommentDto): boolean {
     return this.translationService.cachedComment(comment.id)?.degraded === true;
   }
@@ -126,7 +138,8 @@ export class CommentSectionComponent implements OnChanges {
   }
 
   translateAll() {
-    if (this.blueprintId == null || this.translateAllWorking) return;
+    const blueprintId = this.blueprintId;
+    if (blueprintId == null || this.translateAllWorking) return;
     const ids = this.foreignCommentIds;
     if (ids.length === 0) return;
     this.translateAllWorking = true;
@@ -134,19 +147,34 @@ export class CommentSectionComponent implements OnChanges {
     // these ids while the batch is in flight is disabled instead of firing a
     // duplicate request.
     for (const id of ids) this.translatingIds.add(id);
-    this.translationService.translateComments(this.blueprintId, ids).subscribe({
-      next: () => {
-        this.translateAllWorking = false;
-        for (const id of ids) {
-          this.translatingIds.delete(id);
-          this.showingTranslationIds.add(id);
-        }
-      },
-      error: () => {
-        this.translateAllWorking = false;
-        for (const id of ids) this.translatingIds.delete(id);
-      },
-    });
+
+    // The endpoint caps a batch at MAX_TRANSLATE_BATCH; chunk so 50+ foreign
+    // comments translate instead of 400ing. Each chunk settles on its own —
+    // a failed chunk releases only its own ids.
+    const chunks: string[][] = [];
+    for (let i = 0; i < ids.length; i += MAX_TRANSLATE_BATCH) {
+      chunks.push(ids.slice(i, i + MAX_TRANSLATE_BATCH));
+    }
+    let remaining = chunks.length;
+    const settle = () => {
+      remaining--;
+      if (remaining === 0) this.translateAllWorking = false;
+    };
+    for (const chunk of chunks) {
+      this.translationService.translateComments(blueprintId, chunk).subscribe({
+        next: () => {
+          for (const id of chunk) {
+            this.translatingIds.delete(id);
+            this.showingTranslationIds.add(id);
+          }
+          settle();
+        },
+        error: () => {
+          for (const id of chunk) this.translatingIds.delete(id);
+          settle();
+        },
+      });
+    }
   }
 
   private reload() {

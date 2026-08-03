@@ -17,9 +17,13 @@ const NON_WORD = /[^\p{L}\p{N}]+/gu;
  * Canonical form for matching: NFC (so composed/decomposed diacritics
  * compare equal), casefolded, punctuation collapsed to single spaces,
  * trimmed. NOT for display.
+ *
+ * NFC runs twice: before the punctuation strip (a decomposed combining mark
+ * is \p{M}, which NON_WORD would strip off its base letter) and again after
+ * toLowerCase, whose mapping can itself emit decomposed sequences (e.g. İ).
  */
 export function normalizeText(text: string): string {
-  return text.normalize('NFC').toLowerCase().replace(NON_WORD, ' ').trim();
+  return text.normalize('NFC').toLowerCase().normalize('NFC').replace(NON_WORD, ' ').trim();
 }
 
 /** normalizeText, then split into tokens; empty input yields []. */

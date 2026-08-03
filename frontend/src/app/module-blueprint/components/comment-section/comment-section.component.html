@@ -173,12 +173,7 @@
       <ng-container
         *ngIf="!comment.deleted"
         [ngTemplateOutlet]="segmentsTpl"
-        [ngTemplateOutletContext]="{
-          segments:
-            showingTranslationIds.has(comment.id) && translatedSegments(comment)
-              ? translatedSegments(comment)
-              : comment.segments,
-        }"
+        [ngTemplateOutletContext]="{ segments: displaySegments(comment) }"
       ></ng-container>
     </div>
 

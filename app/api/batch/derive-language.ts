@@ -35,8 +35,11 @@ function batchedSourceLangWriter(model: Model<any>, dryRun: boolean) {
   let pending: { updateOne: { filter: { _id: unknown }; update: { $set: { sourceLang: string | null } } } }[] = [];
 
   async function flush() {
-    if (dryRun || pending.length === 0) return;
-    await model.bulkWrite(pending);
+    if (pending.length === 0) return;
+    // Dry run skips only the write — pending still clears, so a full-corpus
+    // dry run stays bounded by BULK_BATCH_SIZE instead of buffering every
+    // would-be update in memory.
+    if (!dryRun) await model.bulkWrite(pending);
     pending = [];
   }
 

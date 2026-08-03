@@ -1589,7 +1589,17 @@ export class BlueprintController {
     // Copy-as-fork bookkeeping — mirrors POST /api/blueprints/:id/fork
     if (blueprint.forkedFrom != null && forkSource != null) {
       BlueprintModel.model
-        .updateOne({ _id: forkSource.source._id }, { $inc: { forkCount: 1 } })
+        .findOneAndUpdate({ _id: forkSource.source._id }, { $inc: { forkCount: 1 } }, { new: true })
+        .select('forkCount')
+        .then(updated => {
+          // Mirror the new count onto the parent's search rows (ranking
+          // reads it denormalized; fire-and-forget like every search sync).
+          if (updated?.forkCount != null) {
+            syncSearchRowStatus(forkSource.source._id as mongoose.Types.ObjectId, {
+              forkCount: updated.forkCount,
+            });
+          }
+        })
         .catch(err => {
           console.log('fork count increment error');
           console.log(err);

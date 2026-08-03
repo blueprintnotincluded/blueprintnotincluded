@@ -39,6 +39,7 @@ describe('Translation API', function () {
     // Cleared here (not at the end of the test that sets it) so a failed
     // assertion in that test can't leak the override into every later test.
     delete process.env.MONTHLY_CHAR_BUDGET;
+    delete process.env.MAX_TRANSLATIONS_PER_USER_PER_DAY;
     TranslationService.setInstanceForTest(null);
     await TranslationUnitModel.model.deleteMany({});
     await TranslationBudgetModel.model.deleteMany({});
@@ -152,6 +153,40 @@ describe('Translation API', function () {
       expect(response.status).to.equal(429);
       expect(response.body.code).to.equal('TRANSLATION_BUDGET_EXCEEDED');
     });
+
+    it('429s when the caller has spent their per-user daily cap', async function () {
+      process.env.MAX_TRANSLATIONS_PER_USER_PER_DAY = '1';
+      const user = testData.users.user1;
+      const day = `${monthKey()}-${String(new Date().getUTCDate()).padStart(2, '0')}`;
+      await TranslationBudgetModel.model.create({
+        month: monthKey(),
+        day,
+        userId: user._id.toString(),
+        charCount: 100,
+        requestCount: 1,
+      });
+      const token = user.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${blueprintId}/translate`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ lang: 'en' });
+
+      expect(response.status).to.equal(429);
+      expect(response.body.code).to.equal('TRANSLATION_BUDGET_EXCEEDED');
+      expect(fake.calls).to.have.length(0);
+    });
+
+    it('500s (without caching) when the provider itself fails', async function () {
+      fake.failNext = true;
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${blueprintId}/translate`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ lang: 'en' });
+
+      expect(response.status).to.equal(500);
+      expect(await TranslationUnitModel.model.countDocuments({})).to.equal(0);
+    });
   });
 
   // ─── POST /api/blueprints/:id/comments/translate ───────────────────────────
@@ -230,18 +265,32 @@ describe('Translation API', function () {
       expect(mentionSegment.name).to.equal(testData.users.user1.username);
     });
 
-    it('omits deleted or foreign-blueprint comments from the response', async function () {
-      const id = await makeComment('Bonjour tout le monde ici présent', 'fr');
-      await CommentModel.model.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
+    it('omits deleted and foreign-blueprint comments from the response', async function () {
+      const deletedId = await makeComment('Bonjour tout le monde ici présent', 'fr');
+      await CommentModel.model.updateOne({ _id: deletedId }, { $set: { deletedAt: new Date() } });
+
+      // Belongs to a different blueprint — must never be translated through
+      // this blueprint's endpoint.
+      const otherBlueprintId = testData.blueprints.recentBlueprint._id.toString();
+      const foreign = await CommentModel.model.create({
+        blueprintId: otherBlueprintId,
+        authorId: testData.users.user2._id,
+        parentId: null,
+        body: 'Une phrase sur un autre plan entièrement',
+        sourceLang: 'fr',
+        createdAt: new Date(),
+        lastActivityAt: new Date(),
+      });
 
       const token = testData.users.user1.generateJwt();
       const response = await TestSetup.request()
         .post(`/api/blueprints/${blueprintId}/comments/translate`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ lang: 'en', ids: [id] });
+        .send({ lang: 'en', ids: [deletedId, (foreign._id as any).toString()] });
 
       expect(response.status).to.equal(200);
       expect(response.body.translations).to.have.length(0);
+      expect(fake.calls).to.have.length(0);
     });
   });
 

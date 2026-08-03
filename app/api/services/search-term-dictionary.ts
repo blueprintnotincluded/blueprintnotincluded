@@ -15,7 +15,9 @@ import {
 // generated asset of its own; other languages later come from ONI's own .po
 // files as data files with this same shape.
 
-const ALIAS_FILE = path.join('assets', 'search-aliases.json');
+// __dirname-relative (same convention as derive-rooms' database path) so the
+// file resolves in both a dev checkout and the deploy image regardless of cwd.
+const ALIAS_FILE = path.resolve(__dirname, '../../../assets/search-aliases.json');
 
 export interface SearchTermDictionary extends TermDictionary {
   // id → English display name, for building a search row's terms[].
