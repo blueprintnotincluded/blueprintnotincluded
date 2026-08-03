@@ -278,6 +278,22 @@ describe('Search (blueprintsearch)', function () {
       expect(returned.every((bp: any) => bp.duplicateCount === 0)).to.equal(true);
     });
 
+    it('collapses under an explicit count sort too, not just relevance order', async function () {
+      // The site's default sort is trending, so a collapse that only covered
+      // the relevance path would never fire in the actual UI.
+      const copies = await saveCopies(['Ranch Sorted One', 'Ranch Sorted Two', 'Ranch Sorted Three']);
+      const copyIds = copies.map(doc => (doc._id as Types.ObjectId).toString());
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ filterName: 'ranch sorted', sort: 'trending' });
+      expect(response.status).to.equal(200);
+
+      const returned = response.body.blueprints.filter((bp: any) => copyIds.includes(bp.id));
+      expect(returned).to.have.length(1);
+      expect(returned[0].duplicateCount).to.equal(2);
+    });
+
     it('rejects a non-boolean collapse param', async function () {
       const response = await TestSetup.request()
         .get('/api/getblueprints')
