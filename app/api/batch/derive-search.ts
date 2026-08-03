@@ -167,10 +167,17 @@ async function translateTitles(
     return;
   }
 
-  const rows = await BlueprintSearchModel.model
-    .find({ lang: 'en', blueprintId: { $in: blueprintIds } })
-    .select('blueprintId title origin')
-    .lean();
+  // Chunked so an unlimited run (thousands of blueprints) never issues one
+  // $in spanning the whole corpus.
+  const rows: { blueprintId: mongoose.Types.ObjectId; title: string; origin: string }[] = [];
+  for (let i = 0; i < blueprintIds.length; i += BULK_BATCH_SIZE) {
+    const chunk = blueprintIds.slice(i, i + BULK_BATCH_SIZE);
+    const chunkRows = await BlueprintSearchModel.model
+      .find({ lang: 'en', blueprintId: { $in: chunk } })
+      .select('blueprintId title origin')
+      .lean();
+    rows.push(...(chunkRows as { blueprintId: mongoose.Types.ObjectId; title: string; origin: string }[]));
+  }
 
   const byTitle = new Map<string, { blueprintIds: mongoose.Types.ObjectId[]; sourceLang: string }>();
   let alreadyMachine = 0;
@@ -198,10 +205,18 @@ async function translateTitles(
   let done = 0;
   for (let i = 0; i < uniqueTitles.length; i += TRANSLATE_BATCH_SIZE) {
     const batch = uniqueTitles.slice(i, i + TRANSLATE_BATCH_SIZE);
-    const results = await TranslationService.instance.translateMany(
-      batch.map(([title, group]) => ({ sourceText: title, sourceLang: group.sourceLang, targetLang: 'en' })),
-      null
-    );
+    let results: Awaited<ReturnType<typeof TranslationService.instance.translateMany>>;
+    try {
+      results = await TranslationService.instance.translateMany(
+        batch.map(([title, group]) => ({ sourceText: title, sourceLang: group.sourceLang, targetLang: 'en' })),
+        null
+      );
+    } catch (err) {
+      console.log(`  batch ${i}-${i + batch.length} translation error, skipping`);
+      console.log(err);
+      done += batch.length;
+      continue;
+    }
 
     const ops: mongoose.AnyBulkWriteOperation[] = [];
     for (let b = 0; b < batch.length; b++) {
