@@ -212,7 +212,9 @@ describe('Blueprint API (Mocha)', function () {
         .query({ olderthan: Date.now(), filterName: 'oxygen(' });
 
       expect(response.status).to.equal(200);
-      expect(response.body.blueprints.map((bp: any) => bp.name)).to.include('Oxygen Production Line');
+      expect(response.body.blueprints.map((bp: any) => bp.name)).to.include(
+        'Oxygen Production Line'
+      );
     });
   });
 
@@ -249,9 +251,7 @@ describe('Blueprint API (Mocha)', function () {
 
       expect(response.status).to.equal(200);
       const names = response.body.blueprints.map((bp: any) => bp.name);
-      expect(names.indexOf('Fresh Unrated')).to.be.lessThan(
-        names.indexOf('Legacy Food System')
-      );
+      expect(names.indexOf('Fresh Unrated')).to.be.lessThan(names.indexOf('Legacy Food System'));
     });
 
     it('should paginate with skip', async function () {
@@ -370,9 +370,7 @@ describe('Blueprint API (Mocha)', function () {
       const id = testData.blueprints.popularBlueprint._id.toString();
       const userId = testData.users.user2._id.toString(); // user2 rated it 5 (seeded)
 
-      const response = await TestSetup.request()
-        .get(`/api/getblueprint/${id}`)
-        .query({ userId });
+      const response = await TestSetup.request().get(`/api/getblueprint/${id}`).query({ userId });
 
       expect(response.status).to.equal(200);
       expect(response.body.myRating).to.equal(null);
@@ -459,13 +457,33 @@ describe('Blueprint API (Mocha)', function () {
       expect(second.body.id).to.equal(first.body.id); // same record, same id
     });
 
-    it('should reject a name with special characters', async function () {
+    it('should accept punctuation and non-Latin scripts in a name', async function () {
+      // Titles are Unicode as of phase 3a — punctuation and every script are
+      // ordinary. Only the deceptive/unrenderable classes are rejected, which
+      // the policy spec covers character by character.
       const token = testData.users.user1.generateJwt();
 
       const response = await TestSetup.request()
         .post('/api/uploadblueprint')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'Bad! <Name>', blueprint: SAMPLE_BLUEPRINT_DATA, thumbnail: TINY_PNG });
+
+      expect(response.status).to.equal(200);
+    });
+
+    it('should reject a name containing a bidi override', async function () {
+      const token = testData.users.user1.generateJwt();
+
+      const response = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          // U+202E right-to-left override, as an escape: the whole point of
+          // the character is that a literal would be invisible in review.
+          name: 'Base\u202eOne',
+          blueprint: SAMPLE_BLUEPRINT_DATA,
+          thumbnail: TINY_PNG,
+        });
 
       expect(response.status).to.equal(400);
       expect(response.body.errors).to.be.an('array');
@@ -509,16 +527,20 @@ describe('Blueprint API (Mocha)', function () {
 
       const blueprintWithOffsets = {
         blueprintItems: [
-          { id: 'Generator', position: { x: 10000, y: 0 } },   // x > 8000 → 10000 - 9999 = 1
-          { id: 'Battery',   position: { x: 0,     y: -9000 } }, // y < -8000 → -9000 + 9999 = 999
-          { id: 'Wire',      position: { x: 100,   y: -100 } },  // in bounds, unchanged
+          { id: 'Generator', position: { x: 10000, y: 0 } }, // x > 8000 → 10000 - 9999 = 1
+          { id: 'Battery', position: { x: 0, y: -9000 } }, // y < -8000 → -9000 + 9999 = 999
+          { id: 'Wire', position: { x: 100, y: -100 } }, // in bounds, unchanged
         ],
       };
 
       const upload = await TestSetup.request()
         .post('/api/uploadblueprint')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'Position Correction Test', blueprint: blueprintWithOffsets, thumbnail: TINY_PNG });
+        .send({
+          name: 'Position Correction Test',
+          blueprint: blueprintWithOffsets,
+          thumbnail: TINY_PNG,
+        });
 
       expect(upload.status).to.equal(200);
       const id = upload.body.id;
@@ -667,7 +689,7 @@ describe('Blueprint API (Mocha)', function () {
       expect(updated!.deletedAt).to.be.instanceOf(Date);
     });
 
-    it('should not allow deleting another user\'s blueprint', async function () {
+    it("should not allow deleting another user's blueprint", async function () {
       const token = testData.users.user2.generateJwt(); // user2 does not own popularBlueprint
       const id = testData.blueprints.popularBlueprint._id.toString();
 
@@ -703,7 +725,9 @@ describe('Blueprint API (Mocha)', function () {
         .get('/api/getblueprints')
         .query({ olderthan: Date.now() });
       expect(before.status).to.equal(200);
-      expect(before.body.blueprints.map((bp: any) => bp.name)).to.include('Super Coal Generator Setup');
+      expect(before.body.blueprints.map((bp: any) => bp.name)).to.include(
+        'Super Coal Generator Setup'
+      );
 
       await TestSetup.request()
         .post('/api/deleteblueprint')

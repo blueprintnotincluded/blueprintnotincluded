@@ -74,6 +74,29 @@ describe('Blueprint raw source round-trip API', function () {
     expect(raw.text).to.equal('SGVsbG8gd29ybGQ=');
   });
 
+  it('serves a non-ASCII title as an ASCII filename plus an RFC 5987 filename*', async function () {
+    // Titles are Unicode; an HTTP header is not. The name is never
+    // interpolated raw — a Korean title must still yield a header a client can
+    // parse, and a title with a quote must not break out of the quoted string.
+    const saved = await upload({
+      name: '산소 "발생기"',
+      rawSource: FIXTURE_TEXT,
+      rawSourceFormat: 'bpv2-json',
+    });
+    expect(saved.status).to.equal(200);
+
+    const raw = await TestSetup.request().get(`/api/blueprints/${saved.body.id}/raw`);
+    expect(raw.status).to.equal(200);
+    const disposition = raw.headers['content-disposition'];
+    // The whole ASCII title transliterates to nothing, so the fallback stem is
+    // used rather than a nameless ".blueprint".
+    expect(disposition).to.contain('filename="blueprint.blueprint"');
+    expect(disposition).to.contain(
+      `filename*=UTF-8''${encodeURIComponent('산소 발생기.blueprint')}`
+    );
+    expect(raw.text).to.equal(FIXTURE_TEXT);
+  });
+
   it('404s when the blueprint has no stored raw source', async function () {
     const saved = await upload({ name: 'No Raw' });
     expect(saved.status).to.equal(200);

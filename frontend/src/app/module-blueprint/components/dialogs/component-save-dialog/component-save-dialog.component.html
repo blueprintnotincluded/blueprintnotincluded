@@ -30,8 +30,19 @@
           <div *ngIf="f.name.errors?.['required']" i18n>
             Blueprint name is required.
           </div>
-          <div *ngIf="f.name.errors?.['invalidChars']" i18n>
-            Invalid characters in blueprint name
+          <div *ngIf="f.name.errors?.['nameReason'] === 'control'" i18n>
+            Blueprint name may not contain control characters.
+          </div>
+          <div *ngIf="f.name.errors?.['nameReason'] === 'invisible'" i18n>
+            Blueprint name may not contain invisible or direction-changing
+            characters.
+          </div>
+          <div *ngIf="f.name.errors?.['nameReason'] === 'stacked-marks'" i18n>
+            Blueprint name has too many stacked accent marks.
+          </div>
+          <div *ngIf="f.name.errors?.['nameReason'] === 'mixed-script'" i18n>
+            Each word must be written in a single alphabet — mixing Latin with
+            Cyrillic or Greek letters inside one word is not allowed.
           </div>
           <div *ngIf="f.name.errors?.['tooLong']" i18n>
             Blueprint name is too long

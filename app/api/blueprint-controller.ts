@@ -9,16 +9,17 @@ import {
   RelatedBlueprintsResponse,
   BlueprintRate,
   BlueprintRateResponse,
-//   Vector2,
-//   CameraService,
-//   Overlay,
-//   ImageSource,
+  //   Vector2,
+  //   CameraService,
+  //   Overlay,
+  //   ImageSource,
   BlueprintDelete,
   CATEGORIES,
   SUBCATEGORIES,
   RESEARCH_TIERS,
   RAW_SOURCE_FORMATS,
   RawSourceFormat,
+  validateBlueprintName,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { computeHotScore } from '../../lib/index';
@@ -30,6 +31,7 @@ import { BatchUtils } from './batch/batch-utils';
 import { apiError } from './utils/apiError';
 import { optionalViewer } from './utils/optionalViewer';
 import { canViewBlueprint, ownerIdOf } from './utils/blueprint-visibility';
+import { attachmentDisposition } from './utils/content-disposition';
 import { BlueprintEventService } from './services/blueprint-event-service';
 import { BlueprintCounterService, CounterKind } from './services/blueprint-counter-service';
 import {
@@ -44,7 +46,12 @@ import { deriveDlcs } from './services/dlc-derivation-service';
 import { detectLanguageCode } from './services/language-detection-service';
 import { TranslationService } from './services/translation-service';
 import { upsertSearchRow, syncSearchRowStatus } from './services/search-index-service';
-import { collapseClusters, SearchMatch, searchBlueprints, searchV2Enabled } from './services/search-service';
+import {
+  collapseClusters,
+  SearchMatch,
+  searchBlueprints,
+  searchV2Enabled,
+} from './services/search-service';
 import {
   parseBlueprintFilters,
   resolveRatedByIds,
@@ -148,26 +155,33 @@ export class BlueprintController {
 
       let user = req.user as UserJwt;
       let ownerId = user._id;
-      let name = req.body.name;
+      let rawName = req.body.name;
       let data = req.body.blueprint;
       let thumbnail = req.body.thumbnail;
       let overwrite = req.body.overwrite;
 
-      if (!name) {
+      if (!rawName) {
         res.status(400).json(apiError(400, 'Blueprint name is required'));
         return;
       }
 
-      let regexp = /^[a-zA-Z0-9-_ ]+$/;
-      if (name.search(regexp) == -1 || name.length > 60) {
-        console.log('Blueprint name too long or with weird characters');
-        res.status(400).json(apiError(400, 'Blueprint name must be 1–60 alphanumeric characters (hyphens, underscores, and spaces allowed)'));
+      // Unicode titles, normalized here and only here: everything downstream —
+      // the {owner, name} duplicate lookup, the stored document, the search row
+      // — uses the canonical form, so "Máy lọc" typed on macOS (decomposed) and
+      // on Windows (composed) are the same blueprint rather than two.
+      const nameCheck = validateBlueprintName(rawName);
+      if (!nameCheck.ok) {
+        console.log(`Blueprint name rejected: ${nameCheck.reason}`);
+        res.status(400).json(apiError(400, nameCheck.message));
         return;
       }
+      const name = nameCheck.name;
 
       const category = req.body.category ?? null;
       if (category != null && !(CATEGORIES as readonly string[]).includes(category)) {
-        res.status(400).json(apiError(400, `Invalid category: must be one of ${CATEGORIES.join(', ')}`));
+        res
+          .status(400)
+          .json(apiError(400, `Invalid category: must be one of ${CATEGORIES.join(', ')}`));
         return;
       }
 
@@ -186,7 +200,9 @@ export class BlueprintController {
 
       const researchTier = req.body.researchTier ?? null;
       if (researchTier != null && !(RESEARCH_TIERS as readonly string[]).includes(researchTier)) {
-        res.status(400).json(apiError(400, `Invalid researchTier: must be one of ${RESEARCH_TIERS.join(', ')}`));
+        res
+          .status(400)
+          .json(apiError(400, `Invalid researchTier: must be one of ${RESEARCH_TIERS.join(', ')}`));
         return;
       }
 
@@ -212,12 +228,17 @@ export class BlueprintController {
       if (req.body.rawSource != null) {
         const source = req.body.rawSource;
         const format = req.body.rawSourceFormat;
-        if (typeof source !== 'string' || Buffer.byteLength(source, 'utf8') > MAX_RAW_SOURCE_BYTES) {
+        if (
+          typeof source !== 'string' ||
+          Buffer.byteLength(source, 'utf8') > MAX_RAW_SOURCE_BYTES
+        ) {
           res.status(400).json(apiError(400, 'rawSource must be a string of at most 2MB'));
           return;
         }
         if (!(RAW_SOURCE_FORMATS as readonly string[]).includes(format)) {
-          res.status(400).json(apiError(400, `rawSourceFormat must be one of ${RAW_SOURCE_FORMATS.join(', ')}`));
+          res
+            .status(400)
+            .json(apiError(400, `rawSourceFormat must be one of ${RAW_SOURCE_FORMATS.join(', ')}`));
           return;
         }
         rawSource = { source, format };
@@ -257,10 +278,7 @@ export class BlueprintController {
           } else {
             // Blueprints start unrated — authors can't rate their own work
             let blueprint = new BlueprintModel.model();
-            const forkSource = await BlueprintController.resolveForkSource(
-              sourceBlueprintId,
-              user
-            );
+            const forkSource = await BlueprintController.resolveForkSource(sourceBlueprintId, user);
             BlueprintController.saveBlueprint(
               req,
               res,
@@ -471,7 +489,8 @@ export class BlueprintController {
     blueprintIds: mongoose.Types.ObjectId[],
     userId: string
   ): Promise<Map<string, number>> {
-    if (userId === '' || blueprintIds.length === 0 || BlueprintRatingModel.model == null) return new Map();
+    if (userId === '' || blueprintIds.length === 0 || BlueprintRatingModel.model == null)
+      return new Map();
     const rows = await BlueprintRatingModel.model
       .find({ blueprintId: { $in: blueprintIds }, userId })
       .select('blueprintId value')
@@ -565,7 +584,7 @@ export class BlueprintController {
     }
     // TODO checks here
     let id = String(req.params.id);
-//       let _userId = req.query.userId;
+    //       let _userId = req.query.userId;
 
     try {
       const blueprint = await BlueprintModel.model.findOne({ _id: id });
@@ -625,8 +644,8 @@ export class BlueprintController {
       // Fetching the original file is a download
       BlueprintController.recordCounter('download', req, blueprint);
 
-      // Blueprint names are schema-restricted to [a-zA-Z0-9-_ ], safe to
-      // embed in the disposition header as-is.
+      // Titles are Unicode, so the name is never interpolated into the header
+      // raw — see attachmentDisposition for the ASCII + RFC 5987 pair.
       const isShareString = blueprint.rawSourceFormat === 'bpv2-sharestring';
       res.set(
         'Content-Type',
@@ -634,7 +653,7 @@ export class BlueprintController {
       );
       res.set(
         'Content-Disposition',
-        `attachment; filename="${blueprint.name}${isShareString ? '.txt' : '.blueprint'}"`
+        attachmentDisposition(blueprint.name, isShareString ? '.txt' : '.blueprint')
       );
       res.send(blueprint.rawSource);
     } catch (err) {
@@ -764,7 +783,8 @@ export class BlueprintController {
       // The probe saw every copy; the page must only see the canonicals.
       visibleSearchIds = new Set(searchIds.map(id => id.toString()));
       for (const entry of collapsed) {
-        if (entry.duplicateCount > 0) duplicateCounts.set(entry.id.toString(), entry.duplicateCount);
+        if (entry.duplicateCount > 0)
+          duplicateCounts.set(entry.id.toString(), entry.duplicateCount);
       }
     }
 
@@ -830,7 +850,9 @@ export class BlueprintController {
   // Resolves filterName through the search service when v2 is enabled.
   // null = no search clause (no query, kill switch off, or the search layer
   // errored — in which case the caller falls back to the legacy name regex).
-  private static async resolveSearchMatches(filterName: string | null): Promise<SearchMatch[] | null> {
+  private static async resolveSearchMatches(
+    filterName: string | null
+  ): Promise<SearchMatch[] | null> {
     if (filterName == null || !searchV2Enabled()) return null;
     try {
       return await searchBlueprints(filterName);
@@ -929,7 +951,8 @@ export class BlueprintController {
     // "how many blueprints are in this category" must not depend on a view
     // setting).
     const searchIds =
-      (await BlueprintController.resolveSearchMatches(parsed.filterName))?.map(match => match.id) ?? null;
+      (await BlueprintController.resolveSearchMatches(parsed.filterName))?.map(match => match.id) ??
+      null;
 
     const isAdmin = userJwt?.role === 'admin';
     const viewer = { userId, isAdmin };
@@ -955,7 +978,10 @@ export class BlueprintController {
           $facet: {
             total: [{ $match: totalMatch }, { $count: 'n' }],
             category: [{ $match: categoryMatch }, { $group: { _id: '$category', n: { $sum: 1 } } }],
-            subcategory: [{ $match: subcategoryMatch }, { $group: { _id: '$subcategory', n: { $sum: 1 } } }],
+            subcategory: [
+              { $match: subcategoryMatch },
+              { $group: { _id: '$subcategory', n: { $sum: 1 } } },
+            ],
             rooms: [
               { $match: roomsMatch },
               { $unwind: '$rooms' },
@@ -969,10 +995,7 @@ export class BlueprintController {
             // Array-valued dimensions are unwound above, so a multi-pack
             // blueprint counts once per pack — deliberately not summing to
             // `total`. baseGame is the complementary { $size: 0 } case.
-            baseGame: [
-              { $match: { ...dlcMatch, requiredDlcs: { $size: 0 } } },
-              { $count: 'n' },
-            ],
+            baseGame: [{ $match: { ...dlcMatch, requiredDlcs: { $size: 0 } } }, { $count: 'n' }],
           },
         },
       ]);
@@ -1014,10 +1037,11 @@ export class BlueprintController {
     blueprintIds: mongoose.Types.ObjectId[]
   ): Promise<Map<string, number>> {
     if (blueprintIds.length === 0 || CommentModel.model == null) return new Map();
-    const rows: { _id: mongoose.Types.ObjectId; count: number }[] = await CommentModel.model.aggregate([
-      { $match: { blueprintId: { $in: blueprintIds }, deletedAt: null } },
-      { $group: { _id: '$blueprintId', count: { $sum: 1 } } },
-    ]);
+    const rows: { _id: mongoose.Types.ObjectId; count: number }[] =
+      await CommentModel.model.aggregate([
+        { $match: { blueprintId: { $in: blueprintIds }, deletedAt: null } },
+        { $group: { _id: '$blueprintId', count: { $sum: 1 } } },
+      ]);
     return new Map(rows.map(row => [row._id.toString(), row.count]));
   }
 
@@ -1091,7 +1115,12 @@ export class BlueprintController {
       for (const blueprint of page) {
         if (blueprint.createdAt < returnValue.oldest) returnValue.oldest = blueprint.createdAt;
         returnValue.blueprints.push(
-          BlueprintController.buildListItem(blueprint, commentCounts, forkedFromNames, duplicateCounts)
+          BlueprintController.buildListItem(
+            blueprint,
+            commentCounts,
+            forkedFromNames,
+            duplicateCounts
+          )
         );
       }
 
@@ -1152,7 +1181,8 @@ export class BlueprintController {
         blueprint.forkedFrom != null
           ? {
               blueprintId: blueprint.forkedFrom.blueprintId.toString(),
-              blueprintName: forkedFromNames.get(blueprint.forkedFrom.blueprintId.toString()) ?? null,
+              blueprintName:
+                forkedFromNames.get(blueprint.forkedFrom.blueprintId.toString()) ?? null,
             }
           : null,
     };
@@ -1217,7 +1247,8 @@ export class BlueprintController {
 
       const candidates = new Map<string, Blueprint>();
       for (const pool of pools) {
-        for (const candidate of pool) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
+        for (const candidate of pool)
+          candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
       }
 
       if (candidates.size < RELATED_LIMIT) {
@@ -1227,7 +1258,8 @@ export class BlueprintController {
           .limit(RELATED_LIMIT * 4)
           .select('-data -thumbnail -rawSource')
           .populate('owner');
-        for (const candidate of fallback) candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
+        for (const candidate of fallback)
+          candidates.set((candidate._id as mongoose.Types.ObjectId).toString(), candidate);
       }
 
       const sourceDlcs = source.requiredDlcs ?? [];
@@ -1263,7 +1295,9 @@ export class BlueprintController {
       let forkedFromNames = new Map<string, string | null>();
       try {
         forkedFromNames = await BlueprintController.getForkedFromNames(
-          page.filter(blueprint => blueprint.forkedFrom != null).map(blueprint => blueprint.forkedFrom!.blueprintId)
+          page
+            .filter(blueprint => blueprint.forkedFrom != null)
+            .map(blueprint => blueprint.forkedFrom!.blueprintId)
         );
       } catch (err) {
         console.log('related forkedFrom name lookup error');
@@ -1398,7 +1432,9 @@ export class BlueprintController {
       let forkedFromName: string | null = null;
       if (blueprint.forkedFrom != null) {
         try {
-          const names = await BlueprintController.getForkedFromNames([blueprint.forkedFrom.blueprintId]);
+          const names = await BlueprintController.getForkedFromNames([
+            blueprint.forkedFrom.blueprintId,
+          ]);
           forkedFromName = names.get(blueprint.forkedFrom.blueprintId.toString()) ?? null;
         } catch (err) {
           console.log('forkedFrom name lookup error');
@@ -1449,7 +1485,10 @@ export class BlueprintController {
         nbDownloads: blueprint.downloadCount ?? 0,
         forkedFrom:
           blueprint.forkedFrom != null
-            ? { blueprintId: blueprint.forkedFrom.blueprintId.toString(), blueprintName: forkedFromName }
+            ? {
+                blueprintId: blueprint.forkedFrom.blueprintId.toString(),
+                blueprintName: forkedFromName,
+              }
             : null,
       };
 
@@ -1639,7 +1678,11 @@ export class BlueprintController {
       type: overwriteCreateDate ? 'created' : 'updated',
     });
     if (publish === true && !wasPublished) {
-      BlueprintEventService.log({ blueprintId: newBlueprint.id, actorId: ownerId, type: 'published' });
+      BlueprintEventService.log({
+        blueprintId: newBlueprint.id,
+        actorId: ownerId,
+        type: 'published',
+      });
     }
 
     // Copy-as-fork bookkeeping — mirrors POST /api/blueprints/:id/fork
@@ -1673,7 +1716,11 @@ export class BlueprintController {
 
     // Render-on-write: warm the preview cache so the first browse view of
     // this save doesn't pay the render (preview-images-perf-2.md Phase 2).
-    PreviewImageService.instance.prerender(newBlueprint.id, newBlueprint.modifiedAt, async () => data);
+    PreviewImageService.instance.prerender(
+      newBlueprint.id,
+      newBlueprint.modifiedAt,
+      async () => data
+    );
 
     try {
       BatchUtils.UpdatePositionCorrection(newBlueprint);

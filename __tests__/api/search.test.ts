@@ -209,7 +209,9 @@ describe('Search (blueprintsearch)', function () {
       const substring = await TestSetup.request()
         .get('/api/getblueprints')
         .query({ olderthan: Date.now(), filterName: 'oxygen' });
-      expect(substring.body.blueprints.map((bp: any) => bp.name)).to.include('Oxygen Production Line');
+      expect(substring.body.blueprints.map((bp: any) => bp.name)).to.include(
+        'Oxygen Production Line'
+      );
     });
   });
 
@@ -281,7 +283,11 @@ describe('Search (blueprintsearch)', function () {
     it('collapses under an explicit count sort too, not just relevance order', async function () {
       // The site's default sort is trending, so a collapse that only covered
       // the relevance path would never fire in the actual UI.
-      const copies = await saveCopies(['Ranch Sorted One', 'Ranch Sorted Two', 'Ranch Sorted Three']);
+      const copies = await saveCopies([
+        'Ranch Sorted One',
+        'Ranch Sorted Two',
+        'Ranch Sorted Three',
+      ]);
       const copyIds = copies.map(doc => (doc._id as Types.ObjectId).toString());
 
       const response = await TestSetup.request()
@@ -306,7 +312,10 @@ describe('Search (blueprintsearch)', function () {
       const visibleId = (copies[1]._id as Types.ObjectId).toString();
       // Make the first copy (earliest createdAt, so the elected canonical) a
       // draft. The visible copy must still be the result, not a hole.
-      await BlueprintModel.model.updateOne({ _id: copies[0]._id }, { $set: { isPublished: false } });
+      await BlueprintModel.model.updateOne(
+        { _id: copies[0]._id },
+        { $set: { isPublished: false } }
+      );
 
       const response = await TestSetup.request()
         .get('/api/getblueprints')
@@ -367,6 +376,42 @@ describe('Search (blueprintsearch)', function () {
       // An actual Date, not merely "not null" — undefined must fail too if
       // the sync never landed before the poll gave up.
       expect(row!.deletedAt).to.be.an.instanceOf(Date);
+    });
+
+    it('saves a non-ASCII title through the upload endpoint and finds it again', async function () {
+      // End-to-end for the phase-3a name relaxation: a Vietnamese title is
+      // storable (it was a 400 before), its search row is derived on save, and
+      // it is retrievable by a query typed in either Unicode normalization —
+      // normalizeText applies NFC on both sides, and the stored title is
+      // canonical, so the two can never disagree.
+      const token = testData.users.user1.generateJwt();
+      const title = 'M\u00e1y l\u1ecdc n\u01b0\u1edbc'; // "water filter", composed
+      const decomposedQuery = 'ma\u0301y lo\u0323c'; // same words, decomposed
+
+      const saved = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          name: title,
+          blueprint: bpData(['WaterPurifier']),
+          thumbnail: 'base64thumbnail',
+          publish: true,
+        });
+      expect(saved.status).to.equal(200);
+
+      const row = await BlueprintSearchModel.model.findOne({ blueprintId: saved.body.id });
+      expect(row!.title).to.equal(title);
+
+      for (const query of [title, decomposedQuery]) {
+        const response = await TestSetup.request()
+          .get('/api/getblueprints')
+          .query({ filterName: query });
+        expect(response.status, query).to.equal(200);
+        expect(
+          response.body.blueprints.map((bp: any) => bp.id),
+          query
+        ).to.include(saved.body.id);
+      }
     });
   });
 });
