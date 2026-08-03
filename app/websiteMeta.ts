@@ -60,8 +60,22 @@ export const defaultWebsiteMeta: OpenGraphMeta = {
   images: [defaultImageSquare, defaultImageWide],
 };
 
+// `og:title` carries a user-supplied blueprint name, and these tags are
+// rendered raw (`<%- metaTags %>` in index-robots.ejs), so the content has to
+// be escaped here — this is the only place it can be. The old ASCII-only name
+// regex made this unreachable; Unicode titles allow `"` and `<`, so a title
+// like `x" /><script>…` would otherwise close the tag and inject into the
+// crawler-served page.
+const escapeHtmlAttribute = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 export const htmlMetaTag = (property: OpenGraphTags, content: string) =>
-  `<meta property="${property}" content="${content}" />`;
+  `<meta property="${escapeHtmlAttribute(property)}" content="${escapeHtmlAttribute(content)}" />`;
 
 export class WebsiteMeta {
   public meta: OpenGraphMeta;
