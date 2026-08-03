@@ -99,6 +99,7 @@ import { FeedbackService } from "./services/feedback.service";
 import { CommentSectionComponent } from "./components/comment-section/comment-section.component";
 import { BlueprintDetailsPageComponent } from "./components/blueprint-details-page/blueprint-details-page.component";
 import { CommentService } from "./services/comment.service";
+import { TranslationService } from "./services/translation.service";
 import { BlueprintVersionService } from "./services/blueprint-version.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
 import { DialogThemeComponent } from "./components/dialogs/dialog-theme/dialog-theme.component";
@@ -214,6 +215,7 @@ import { TerrainToolComponent } from "./components/side-bar/terrain-tool/terrain
     AuthenticationService,
     FeedbackService,
     CommentService,
+    TranslationService,
     BlueprintVersionService,
     BlueprintService,
     ToolService,

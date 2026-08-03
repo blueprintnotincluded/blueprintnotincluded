@@ -6,6 +6,17 @@
     >
   </h2>
 
+  <button
+    *ngIf="!loading && !loadError && showTranslateAll"
+    type="button"
+    class="comment-action-link comments-translate-all"
+    [disabled]="translateAllWorking"
+    (click)="translateAll()"
+    i18n
+  >
+    Translate all
+  </button>
+
   <p *ngIf="loading" class="comments-status" i18n>Loading comments…</p>
   <p *ngIf="loadError" class="comments-status comments-error" i18n>
     Could not load comments. Please try again.
@@ -159,35 +170,16 @@
       <em *ngIf="comment.deleted" class="comment-removed" i18n
         >[comment removed]</em
       >
-      <ng-container *ngIf="!comment.deleted">
-        <ng-container *ngFor="let segment of comment.segments">
-          <span *ngIf="segment.type === 'text'" class="comment-text">{{
-            segment.text
-          }}</span>
-          <a
-            *ngIf="segment.type === 'blueprint' && segment.name !== null"
-            [routerLink]="['/blueprint', segment.id]"
-            >{{ segment.name }}</a
-          >
-          <span
-            *ngIf="segment.type === 'blueprint' && segment.name === null"
-            class="comment-ref-deleted"
-            i18n
-            >[deleted blueprint]</span
-          >
-          <a
-            *ngIf="segment.type === 'user' && segment.name !== null"
-            [routerLink]="['/profile', segment.name]"
-            >@{{ segment.name }}</a
-          >
-          <span
-            *ngIf="segment.type === 'user' && segment.name === null"
-            class="comment-ref-deleted"
-            i18n
-            >[deleted user]</span
-          >
-        </ng-container>
-      </ng-container>
+      <ng-container
+        *ngIf="!comment.deleted"
+        [ngTemplateOutlet]="segmentsTpl"
+        [ngTemplateOutletContext]="{
+          segments:
+            showingTranslationIds.has(comment.id) && translatedSegments(comment)
+              ? translatedSegments(comment)
+              : comment.segments,
+        }"
+      ></ng-container>
     </div>
 
     <div
@@ -221,6 +213,70 @@
       >
         Delete
       </button>
+      <ng-container *ngIf="isForeignLanguage(comment)">
+        <button
+          *ngIf="!showingTranslationIds.has(comment.id)"
+          type="button"
+          class="comment-action-link"
+          [disabled]="translatingIds.has(comment.id)"
+          (click)="translateComment(comment)"
+          i18n
+        >
+          Translate
+        </button>
+        <ng-container *ngIf="showingTranslationIds.has(comment.id)">
+          <span
+            *ngIf="translationDegraded(comment)"
+            class="comment-translate-degraded"
+            i18n
+            >Translation unavailable</span
+          >
+          <span
+            *ngIf="!translationDegraded(comment)"
+            class="comment-translate-attribution"
+            i18n
+            >Translated by Google</span
+          >
+          <button
+            type="button"
+            class="comment-action-link"
+            (click)="showOriginalComment(comment)"
+            i18n
+          >
+            Show original
+          </button>
+        </ng-container>
+      </ng-container>
     </div>
   </div>
+</ng-template>
+
+<ng-template #segmentsTpl let-segments="segments">
+  <ng-container *ngFor="let segment of segments">
+    <span *ngIf="segment.type === 'text'" class="comment-text">{{
+      segment.text
+    }}</span>
+    <a
+      *ngIf="segment.type === 'blueprint' && segment.name !== null"
+      [routerLink]="['/blueprint', segment.id]"
+      >{{ segment.name }}</a
+    >
+    <span
+      *ngIf="segment.type === 'blueprint' && segment.name === null"
+      class="comment-ref-deleted"
+      i18n
+      >[deleted blueprint]</span
+    >
+    <a
+      *ngIf="segment.type === 'user' && segment.name !== null"
+      [routerLink]="['/profile', segment.name]"
+      >@{{ segment.name }}</a
+    >
+    <span
+      *ngIf="segment.type === 'user' && segment.name === null"
+      class="comment-ref-deleted"
+      i18n
+      >[deleted user]</span
+    >
+  </ng-container>
 </ng-template>

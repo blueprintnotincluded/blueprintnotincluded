@@ -5,6 +5,7 @@ import { of, throwError } from "rxjs";
 import { CommentSectionComponent } from "./comment-section.component";
 import { CommentService } from "../../services/comment.service";
 import { AuthenticationService } from "../../services/authentification-service";
+import { TranslationService } from "../../services/translation.service";
 
 function makeComment(overrides: any = {}) {
   return {
@@ -16,6 +17,7 @@ function makeComment(overrides: any = {}) {
     createdAt: new Date("2026-07-01").toISOString(),
     lastActivityAt: new Date("2026-07-01").toISOString(),
     editedAt: null,
+    sourceLang: null,
     canDelete: false,
     canEdit: false,
     ...overrides,
@@ -27,6 +29,7 @@ describe("CommentSectionComponent", () => {
   let fixture: ComponentFixture<CommentSectionComponent>;
   let commentService: any;
   let authService: any;
+  let translationService: any;
 
   function bindBlueprint(id: string | null) {
     component.blueprintId = id;
@@ -45,6 +48,11 @@ describe("CommentSectionComponent", () => {
       deleteComment: vi.fn().mockReturnValue(of({ delete: "OK" })),
     };
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
+    translationService = {
+      matchesViewerLang: vi.fn().mockReturnValue(true),
+      translateComments: vi.fn().mockReturnValue(of({ translations: [] })),
+      cachedComment: vi.fn().mockReturnValue(null),
+    };
 
     await TestBed.configureTestingModule({
       declarations: [CommentSectionComponent],
@@ -52,6 +60,7 @@ describe("CommentSectionComponent", () => {
       providers: [
         { provide: CommentService, useValue: commentService },
         { provide: AuthenticationService, useValue: authService },
+        { provide: TranslationService, useValue: translationService },
       ],
     }).compileComponents();
 
@@ -223,6 +232,165 @@ describe("CommentSectionComponent", () => {
 
       expect(component.postError).toBe("Comment is empty");
       expect(component.posting).toBe(false);
+    });
+  });
+
+  describe("translation", () => {
+    it("does not offer translation for a comment already in the viewer's language", () => {
+      translationService.matchesViewerLang.mockReturnValue(true);
+      bindBlueprint("bp1");
+      expect(
+        component.isForeignLanguage(makeComment({ sourceLang: "en" }) as any),
+      ).toBe(false);
+    });
+
+    it("offers translation for a comment in a different language", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      bindBlueprint("bp1");
+      expect(
+        component.isForeignLanguage(makeComment({ sourceLang: "fr" }) as any),
+      ).toBe(true);
+    });
+
+    it("shows Translate all only with 2+ foreign-language comments visible", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      commentService.getComments.mockReturnValue(
+        of({
+          threads: [
+            {
+              comment: makeComment({ id: "c1", sourceLang: "fr" }),
+              replies: [],
+            },
+          ],
+          total: 1,
+        }),
+      );
+      bindBlueprint("bp1");
+      expect(component.showTranslateAll).toBe(false);
+
+      commentService.getComments.mockReturnValue(
+        of({
+          threads: [
+            {
+              comment: makeComment({ id: "c1", sourceLang: "fr" }),
+              replies: [],
+            },
+            {
+              comment: makeComment({ id: "c2", sourceLang: "ru" }),
+              replies: [],
+            },
+          ],
+          total: 2,
+        }),
+      );
+      bindBlueprint("bp1");
+      expect(component.showTranslateAll).toBe(true);
+      expect(component.foreignCommentIds).toEqual(["c1", "c2"]);
+    });
+
+    it("translateComment fetches once and toggles the original back into view", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      translationService.translateComments.mockReturnValue(
+        of({
+          translations: [
+            {
+              id: "c1",
+              segments: [{ type: "text", text: "translated" }],
+              sourceLang: "fr",
+              cached: false,
+            },
+          ],
+        }),
+      );
+      translationService.cachedComment.mockReturnValue(null);
+      bindBlueprint("bp1");
+
+      const comment = makeComment({ id: "c1", sourceLang: "fr" }) as any;
+      component.translateComment(comment);
+      expect(translationService.translateComments).toHaveBeenCalledWith("bp1", [
+        "c1",
+      ]);
+      expect(component.showingTranslationIds.has("c1")).toBe(true);
+
+      component.showOriginalComment(comment);
+      expect(component.showingTranslationIds.has("c1")).toBe(false);
+
+      translationService.cachedComment.mockReturnValue({
+        segments: [{ type: "text", text: "translated" }],
+        sourceLang: "fr",
+      });
+      component.translateComment(comment);
+      expect(translationService.translateComments).toHaveBeenCalledTimes(1);
+    });
+
+    it("translateAll issues exactly one batch request for all foreign comments", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      commentService.getComments.mockReturnValue(
+        of({
+          threads: [
+            {
+              comment: makeComment({ id: "c1", sourceLang: "fr" }),
+              replies: [],
+            },
+            {
+              comment: makeComment({ id: "c2", sourceLang: "ru" }),
+              replies: [],
+            },
+          ],
+          total: 2,
+        }),
+      );
+      bindBlueprint("bp1");
+
+      component.translateAll();
+      expect(translationService.translateComments).toHaveBeenCalledTimes(1);
+      expect(translationService.translateComments).toHaveBeenCalledWith("bp1", [
+        "c1",
+        "c2",
+      ]);
+    });
+
+    it("renders a degraded note instead of the attribution when a translation is degraded", () => {
+      translationService.matchesViewerLang.mockReturnValue(false);
+      translationService.translateComments.mockReturnValue(
+        of({
+          translations: [
+            {
+              id: "c1",
+              segments: [{ type: "text", text: "nice build" }],
+              sourceLang: "fr",
+              cached: false,
+              degraded: true,
+            },
+          ],
+        }),
+      );
+      commentService.getComments.mockReturnValue(
+        of({
+          threads: [
+            {
+              comment: makeComment({ id: "c1", sourceLang: "fr" }),
+              replies: [],
+            },
+          ],
+          total: 1,
+        }),
+      );
+      bindBlueprint("bp1");
+
+      component.translateComment(
+        makeComment({ id: "c1", sourceLang: "fr" }) as any,
+      );
+      translationService.cachedComment.mockReturnValue({
+        segments: [{ type: "text", text: "nice build" }],
+        sourceLang: "fr",
+        degraded: true,
+      });
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain(
+        "Translation unavailable",
+      );
     });
   });
 

@@ -18,6 +18,13 @@ if (!process.env.GEMINI_API_KEY) {
   );
 }
 
+if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
+  console.error(
+    '[translation] GOOGLE_TRANSLATE_API_KEY is not set — user content translation DISABLED. ' +
+      'Create a key at https://console.cloud.google.com/apis/credentials.'
+  );
+}
+
 const PORT = 3000;
 const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

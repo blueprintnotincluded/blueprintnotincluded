@@ -12,6 +12,8 @@ import { BlueprintRatingModel } from './models/blueprint-rating';
 import { AvatarModel } from './models/avatar';
 import { AvatarSeedUploadModel } from './models/avatar-seed-upload';
 import { AvatarBatchModel } from './models/avatar-batch';
+import { TranslationModel } from './models/translation';
+import { TranslationBudgetModel } from './models/translation-budget';
 
 export class Database {
   constructor() {
@@ -40,6 +42,8 @@ export class Database {
       AvatarModel.init();
       AvatarSeedUploadModel.init();
       AvatarBatchModel.init();
+      TranslationModel.init();
+      TranslationBudgetModel.init();
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {

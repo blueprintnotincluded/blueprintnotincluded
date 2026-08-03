@@ -51,6 +51,7 @@ export * from './src/blueprint/dlc';
 export * from './src/blueprint/terrain-metadata';
 export * from './src/blueprint/note-conversion';
 export * from './src/blueprint/bpv2-sanitize';
+export * from './src/blueprint/translation';
 export * from './src/blueprint/rooms';
 export * from './src/blueprint/blueprint-item';
 export * from './src/blueprint/blueprint-item-element';

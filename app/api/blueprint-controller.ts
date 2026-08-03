@@ -41,6 +41,7 @@ import { PreviewImageService } from './services/preview-image-service';
 import { deriveRooms } from './services/room-derivation-service';
 import { deriveMods } from './services/mod-derivation-service';
 import { deriveDlcs } from './services/dlc-derivation-service';
+import { detectLanguage } from './services/language-detection-service';
 import {
   parseBlueprintFilters,
   resolveRatedByIds,
@@ -1297,6 +1298,7 @@ export class BlueprintController {
         category: blueprint.category ?? null,
         subcategory: blueprint.subcategory ?? null,
         description: blueprint.description ?? null,
+        sourceLang: blueprint.sourceLang ?? null,
         researchTier: blueprint.researchTier ?? null,
         modded: blueprint.modded ?? null,
         mods: blueprint.mods ?? [],
@@ -1448,6 +1450,8 @@ export class BlueprintController {
       // A blueprint using known-mod buildings is modded regardless of what the
       // client derived (protects against stale clients shipping the old heuristic).
       if (blueprint.mods.length > 0) blueprint.modded = true;
+      // Derived fact, never client-supplied (same policy as rooms/requiredDlcs).
+      blueprint.sourceLang = metadata.description ? detectLanguage(metadata.description) : null;
     }
 
     if (overwriteCreateDate || blueprint.createdAt == null) blueprint.createdAt = new Date();

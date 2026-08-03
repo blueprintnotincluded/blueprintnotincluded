@@ -58,6 +58,12 @@ export interface Blueprint extends Document {
   category?: string | null;
   subcategory?: string | null;
   description?: string | null;
+  // ISO-639-1 language of `description`, server-derived on every save (never
+  // client-supplied, same nullability convention as `rooms`): null = detection
+  // ran and was not confident, absent = never derived (legacy docs, until the
+  // derive-language backfill runs). No schema default — same hydration
+  // rationale as isPublished/mods.
+  sourceLang?: string | null;
   researchTier?: string | null;
   modded?: boolean | null;
   // Workshop ids of the mods this blueprint's buildings come from. Server-derived
@@ -139,6 +145,10 @@ export class BlueprintModel {
       subcategory: { type: String, maxlength: 40 },
       description: { type: String, maxlength: 500 },
       researchTier: { type: String, enum: [...RESEARCH_TIERS, null] },
+      // No default (see field comment): a schema default would make every
+      // hydrated legacy doc read as "derived, not confident" and lose the
+      // never-derived signal.
+      sourceLang: { type: String, default: undefined },
       modded: { type: Boolean },
       // default: undefined (NOT []) — a schema default would make every hydrated
       // legacy doc appear to have mods:[] and get written back on unrelated saves,

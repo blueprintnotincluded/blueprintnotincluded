@@ -13,6 +13,7 @@ import {
   segmentBody,
   toEditableText,
 } from './services/comment-body';
+import { detectLanguage } from './services/language-detection-service';
 import {
   CommentDto,
   CommentThread,
@@ -57,17 +58,15 @@ interface RenderContext {
   viewer: UserJwt | null;
 }
 
-async function buildRenderContext(
-  comments: Comment[],
-  blueprintOwnerId: string,
-  viewer: UserJwt | null
-): Promise<RenderContext> {
-  const visibleBodies = comments.filter(c => c.deletedAt == null).map(c => c.body);
-  const { blueprintIds, userIds } = extractTokenIds(visibleBodies);
-  const authorIds = [...new Set(comments.map(c => c.authorId.toString()))];
-
-  const [authorDocs, blueprintDocs, userDocs] = await Promise.all([
-    UserModel.model.find({ _id: { $in: authorIds } }).select('username').lean(),
+// Shared with TranslationController: a translated body carries the same
+// {{blueprint:id}}/{{user:id}} tokens as the source (translation-token-safety
+// restores them verbatim), so it needs the same name resolution before it can
+// be rendered as segments.
+export async function resolveReferenceNames(
+  bodies: string[]
+): Promise<{ blueprints: Map<string, string>; users: Map<string, string> }> {
+  const { blueprintIds, userIds } = extractTokenIds(bodies);
+  const [blueprintDocs, userDocs] = await Promise.all([
     blueprintIds.length > 0
       ? BlueprintModel.model.find({ _id: { $in: blueprintIds }, deletedAt: null }).select('name').lean()
       : Promise.resolve([]),
@@ -75,11 +74,27 @@ async function buildRenderContext(
       ? UserModel.model.find({ _id: { $in: userIds } }).select('username').lean()
       : Promise.resolve([]),
   ]);
+  return {
+    blueprints: new Map(blueprintDocs.map(b => [b._id.toString(), b.name as string])),
+    users: new Map(userDocs.map(u => [u._id.toString(), u.username as string])),
+  };
+}
+
+async function buildRenderContext(
+  comments: Comment[],
+  blueprintOwnerId: string,
+  viewer: UserJwt | null
+): Promise<RenderContext> {
+  const visibleBodies = comments.filter(c => c.deletedAt == null).map(c => c.body);
+  const { blueprints, users } = await resolveReferenceNames(visibleBodies);
+  const authorIds = [...new Set(comments.map(c => c.authorId.toString()))];
+
+  const authorDocs = await UserModel.model.find({ _id: { $in: authorIds } }).select('username').lean();
 
   return {
     authors: new Map(authorDocs.map(u => [u._id.toString(), u.username as string])),
-    blueprints: new Map(blueprintDocs.map(b => [b._id.toString(), b.name as string])),
-    users: new Map(userDocs.map(u => [u._id.toString(), u.username as string])),
+    blueprints,
+    users,
     blueprintOwnerId,
     viewer,
   };
@@ -108,6 +123,7 @@ function toDto(comment: Comment, context: RenderContext): CommentDto {
     createdAt: comment.createdAt.toISOString(),
     lastActivityAt: comment.lastActivityAt.toISOString(),
     editedAt: comment.editedAt != null ? comment.editedAt.toISOString() : null,
+    sourceLang: comment.sourceLang ?? null,
     canDelete,
     canEdit,
     ...(canEdit ? { editSource: toEditableText(comment.body, context.users) } : {}),
@@ -254,6 +270,7 @@ export class CommentController {
         authorId: user._id,
         parentId: parentId ?? null,
         body: sanitized,
+        sourceLang: detectLanguage(sanitized),
         createdAt: now,
         lastActivityAt: now,
       });
@@ -348,6 +365,7 @@ export class CommentController {
 
       if (sanitized !== comment.body) {
         comment.body = sanitized;
+        comment.sourceLang = detectLanguage(sanitized);
         comment.editedAt = new Date();
       }
       await comment.save();

@@ -73,6 +73,11 @@ export interface BlueprintDetailsResponse extends BlueprintListItem {
   researchTier?: string | null;
   myRating: number | null;
   ownedByMe: boolean;
+  // ISO-639-1 language of `description`, server-derived on save; null =
+  // detection ran and was not confident, absent = never derived (legacy docs).
+  // Drives the "Translate" affordance — only shown when set, non-null, and
+  // different from the viewer's locale.
+  sourceLang?: string | null;
 }
 
 // "You might also like" shelf on the details page
