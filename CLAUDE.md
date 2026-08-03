@@ -421,8 +421,23 @@ on download. `Info` now survives as an *input* format only.
   "Group identical copies" toggle appears only while a search is active, and the card shows a
   `+N copies` chip). **Facet counts never collapse** — a category count describes the corpus,
   not the view, so the sidebar can legitimately read 4 where the list shows 1.
-- **Not built yet** (later phases of the plan): the title translation pivot, query translation
-  + `searchqueries` telemetry, IDF weighting for structural matches, semantic retrieval.
+- **Title translation pivot** (phase 3b) — `sourceLang` on `Blueprint` is derived from `name`,
+  not `description` (titles are the corpus; descriptions are 22 documents site-wide), using
+  `detectLanguage`'s locale prior — the author's `Accept-Language` header, the closest thing
+  the backend has to "UI locale" since the frontend's four-locale build is a static path
+  choice never sent to the API. A confidently non-English title (`detectLanguageCode`, no
+  prior — deliberately stricter than the stored `sourceLang`, which may be only a prior-based
+  guess) is machine-translated into the blueprint's existing `en` `blueprintsearch` row
+  (`search-index-service.ts`'s `deriveSearchRowWithTranslation`/`syncMachineTitle`): the row's
+  `lang` stays `'en'` — that's still the pivot invariant structural retrieval depends on — only
+  `title`/`origin` flip to `'machine'`. Fired fire-and-forget from the save path (a provider
+  call can take 15s) and via `npm run derive-search`'s second pass for the backfill, which
+  batches by **unique title text**, not by document, so N duplicate titles cost one
+  translation call. Verified against the real Google provider: a Vietnamese title saved
+  through the live API produced `sourceLang: 'vi'` and a `blueprintsearch` row with
+  `origin: 'machine'`, and an English query then found it.
+- **Not built yet** (later phases of the plan): query translation + `searchqueries` telemetry,
+  IDF weighting for structural matches, semantic retrieval.
 
 ### Blueprint titles are Unicode
 `Blueprint.name` was `/^[a-zA-Z0-9_ -]+$/`, which 400'd every non-English title at save. The

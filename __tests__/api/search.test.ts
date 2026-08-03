@@ -10,13 +10,20 @@ process.env.NODE_ENV = 'test';
 import { TestSetup, TestDbHelper } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { BlueprintSearchModel } from '../../app/api/models/blueprint-search';
-import { deriveSearchRow } from '../../app/api/services/search-index-service';
+import { deriveSearchRow, deriveSearchRowWithTranslation } from '../../app/api/services/search-index-service';
 import { searchBlueprintIds } from '../../app/api/services/search-service';
 import { getSearchTermDictionary } from '../../app/api/services/search-term-dictionary';
+import { TranslationService } from '../../app/api/services/translation-service';
+import { TranslationProvider } from '../../app/api/services/translation-provider';
+import { TranslationUnitModel } from '../../app/api/models/translation-unit';
+import { TranslationBudgetModel } from '../../app/api/models/translation-budget';
+import { FakeTranslationProvider } from '../helpers/fake-translation-provider';
 
 // Search over blueprintsearch rows (spec/multilingual-search-plan.md Phases
 // 0-1): derivation, retrieval/fusion/ranking, and the getblueprints
-// integration incl. the SEARCH_V2_ENABLED kill switch. No network anywhere.
+// integration incl. the SEARCH_V2_ENABLED kill switch. No network anywhere —
+// phase 3b's title-translation pivot below uses the fake provider, same
+// no-network policy as translation-service.test.ts.
 
 describe('Search (blueprintsearch)', function () {
   let testData: any;
@@ -412,6 +419,116 @@ describe('Search (blueprintsearch)', function () {
           query
         ).to.include(saved.body.id);
       }
+    });
+  });
+
+  describe('title translation pivot (phase 3b)', function () {
+    let fake: FakeTranslationProvider;
+
+    beforeEach(async function () {
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+      fake = new FakeTranslationProvider();
+      TranslationService.setInstanceForTest(new TranslationService(fake));
+    });
+
+    afterEach(async function () {
+      TranslationService.setInstanceForTest(null);
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+    });
+
+    it('translates a confidently non-English title into the en row', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Máy lọc nước',
+        data: bpData(['WaterPurifier']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null);
+      expect(fields.origin).to.equal('machine');
+      expect(fields.title).to.equal('[en] Máy lọc nước');
+      expect(fake.calls).to.have.length(1);
+    });
+
+    it('makes no provider call for an English title — sourceHash is unaffected either way', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Cooling Loop System For My Base',
+        data: bpData(['WaterPurifier']),
+      });
+
+      const base = deriveSearchRow(doc);
+      const fields = await deriveSearchRowWithTranslation(doc, null);
+      expect(fields.origin).to.equal('authored');
+      expect(fields.title).to.equal('Cooling Loop System For My Base');
+      expect(fields.sourceHash).to.equal(base.sourceHash);
+      expect(fake.calls).to.have.length(0);
+    });
+
+    it('leaves the title untranslated when the provider is not configured (prod default)', async function () {
+      fake.configured = false;
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Máy lọc nước',
+        data: bpData(['WaterPurifier']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null);
+      expect(fields.origin).to.equal('authored');
+      expect(fields.title).to.equal('Máy lọc nước');
+      expect(fake.calls).to.have.length(0);
+    });
+
+    it('degrades to the untranslated title when the provider fails', async function () {
+      fake.failNext = true;
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Máy lọc nước',
+        data: bpData(['WaterPurifier']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null);
+      expect(fields.origin).to.equal('authored');
+      expect(fields.title).to.equal('Máy lọc nước');
+    });
+
+    it('end to end: a real non-English title becomes searchable in English', async function () {
+      // A real (test-only) provider that actually returns English text, so
+      // this proves the deliverable — not just that some string was
+      // returned — an English query finds a blueprint titled in Vietnamese.
+      const englishProvider: TranslationProvider = {
+        isConfigured: () => true,
+        translate: async texts => texts.map(() => ({ text: 'Water Filter Farm', detectedSourceLang: 'vi' })),
+      };
+      TranslationService.setInstanceForTest(new TranslationService(englishProvider));
+
+      const token = testData.users.user1.generateJwt();
+      const saved = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          name: 'Máy lọc nước',
+          blueprint: bpData(['WaterPurifier']),
+          thumbnail: 'base64thumbnail',
+          publish: true,
+        });
+      expect(saved.status).to.equal(200);
+
+      const savedBlueprint = await BlueprintModel.model.findById(saved.body.id);
+      expect(savedBlueprint!.sourceLang).to.equal('vi');
+
+      // Fire-and-forget: poll briefly for the async machine-title patch.
+      let row = null;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        row = await BlueprintSearchModel.model.findOne({ blueprintId: saved.body.id });
+        if (row?.origin === 'machine') break;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      expect(row!.origin).to.equal('machine');
+      expect(row!.title).to.equal('Water Filter Farm');
+
+      const response = await TestSetup.request()
+        .get('/api/getblueprints')
+        .query({ filterName: 'water filter' });
+      expect(response.status).to.equal(200);
+      expect(response.body.blueprints.map((bp: any) => bp.id)).to.include(saved.body.id);
     });
   });
 });
