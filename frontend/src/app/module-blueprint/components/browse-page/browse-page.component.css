@@ -206,9 +206,9 @@
   padding: 0.75rem 1rem;
   max-width: 480px;
   text-align: center;
-  background: rgba(168, 69, 44, 0.16);
-  border: 1px solid rgba(168, 69, 44, 0.55);
-  color: #e0806a;
+  background: color-mix(in srgb, var(--bni-danger) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bni-danger) 55%, transparent);
+  color: color-mix(in srgb, var(--bni-danger) 72%, white);
 }
 
 .filter-context-banner {

@@ -32,6 +32,7 @@ export class UserMenuComponent implements OnInit {
 
   @Output() about = new EventEmitter<void>();
   @Output() sendFeedback = new EventEmitter<void>();
+  @Output() appearance = new EventEmitter<void>();
   @Output() myBlueprintsRequested = new EventEmitter<BrowseData>();
 
   userMenuItems!: MenuItem[];
@@ -69,6 +70,11 @@ export class UserMenuComponent implements OnInit {
         visible: loggedIn,
       },
       { separator: true, visible: loggedIn },
+      {
+        label: $localize`Appearance`,
+        icon: "pi pi-palette",
+        command: () => this.appearance.emit(),
+      },
       {
         label: $localize`Send Feedback`,
         icon: "pi pi-comment",

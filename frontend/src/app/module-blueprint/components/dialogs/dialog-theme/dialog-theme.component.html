@@ -1,0 +1,66 @@
+<p-dialog
+  i18n-header
+  header="Appearance"
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '520px' }"
+  [breakpoints]="{ '600px': '92vw' }"
+  [draggable]="false"
+  styleClass="bni-skin"
+>
+  <p class="theme-intro" i18n>
+    Pick a palette. It applies straight away — the page behind this dialog is
+    already wearing it.
+  </p>
+
+  <div
+    class="theme-grid"
+    role="radiogroup"
+    aria-label="Site theme"
+    i18n-aria-label
+  >
+    <button
+      *ngFor="let t of themes"
+      type="button"
+      role="radio"
+      class="theme-option"
+      [class.active]="current === t.id"
+      [attr.aria-checked]="current === t.id"
+      (click)="select(t.id)"
+    >
+      <span class="theme-swatch" aria-hidden="true">
+        <i [style.background]="t.swatch[0]"></i>
+        <i [style.background]="t.swatch[1]"></i>
+        <i [style.background]="t.swatch[2]"></i>
+      </span>
+      <span class="theme-text">
+        <span class="theme-name">
+          {{ t.label }}
+          <svg
+            *ngIf="current === t.id"
+            class="theme-check"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 12.5l5.5 5.5L20 6"></path>
+          </svg>
+        </span>
+        <span class="theme-note">{{ t.note }}</span>
+      </span>
+    </button>
+  </div>
+
+  <p class="theme-footnote" *ngIf="loggedIn" i18n>
+    Saved to your account, so it follows you to other devices.
+  </p>
+  <p class="theme-footnote" *ngIf="!loggedIn" i18n>
+    Saved in this browser. Log in and it will follow you to other devices.
+  </p>
+</p-dialog>

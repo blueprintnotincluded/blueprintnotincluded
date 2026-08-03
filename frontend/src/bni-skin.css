@@ -2,16 +2,19 @@
  * BNI "Sample Board" skin for the discover section
  * (browse / blueprint details / profile).
  *
- * The world: an architect's material sample board. Specimens are mounted on a
- * warm charcoal board with real margin around them; a bone-stock tag is pasted
- * beneath each one carrying its name and rating; everything else is quiet ink
- * on the board. The thumbnail is the object — the apparatus is small,
- * typographic, and never competes with it.
+ * The world: an architect's material sample board. Specimens are mounted on the
+ * board with real margin around them; a light tag is pasted beneath each one
+ * carrying its name and rating; everything else is quiet ink on the board. The
+ * thumbnail is the object — the apparatus is small, typographic, and never
+ * competes with it.
+ *
+ * The structure is one thing and the palette is another: the palette is a user
+ * choice (see THEMES below), the structure is not.
  *
  * The language in five rules:
- *   - warm charcoal board, never blue-grey; the ONI art supplies all the colour
+ *   - one board colour; the ONI art supplies all the colour that matters
  *   - specimens are MOUNTED: margin inside the card, hairline rule, never bled
- *   - one interaction mark (china-pencil red); brass means withheld/flagged
+ *   - one interaction mark per theme; brass means withheld/flagged
  *   - flat and square; depth is board -> mount -> tag, not shadow
  *   - the tag is the only light surface on the board, and it stays small
  *
@@ -22,41 +25,42 @@
 
 .bni-skin {
   /* ---- palette: the board ---- */
-  --bni-board: #201e1a; /* the board itself — page ground */
-  --bni-board-deep: #17150f; /* void behind the board */
-  --bni-mount: #2a2721; /* specimen mount (card surface) */
-  --bni-mount-hi: #34302a; /* mount, hovered */
-  --bni-inset: #1b1915; /* recessed field (inputs) */
-  --bni-rule: #3d3830; /* hairline */
-  --bni-rule-hi: #4e483e;
+  --bni-board: #1b1d21; /* the board itself — page ground */
+  --bni-board-deep: #131519; /* void behind the board */
+  --bni-mount: #262b34; /* specimen mount (card surface) */
+  --bni-mount-hi: #313640; /* mount, hovered */
+  --bni-inset: #16181c; /* recessed field (inputs) */
+  --bni-rule: #3a3f48; /* hairline */
+  --bni-rule-hi: #4a4f59;
 
   /* ---- palette: the tag ---- */
-  --bni-tag: #e6e0d2; /* bone tag stock — the one light surface */
-  --bni-tag-hi: #f2ede1;
-  --bni-tag-ink: #1b1813;
-  --bni-tag-ink-2: #6b6355;
+  --bni-tag: #d6dde4; /* bone tag stock — the one light surface */
+  --bni-tag-hi: #e8eef4;
+  --bni-tag-ink: #14171b;
+  --bni-tag-ink-2: #596570;
 
   /* ---- palette: ink on the board ---- */
-  --bni-ink: #f2eee4; /* headings */
-  --bni-body: #c6bfb0; /* body text */
-  --bni-muted: #948c7c; /* secondary */
-  --bni-faint: #6e675a; /* dim / counts */
+  --bni-ink: #ffffff; /* headings */
+  --bni-body: #c6d4df; /* body text */
+  --bni-muted: #acb2b8; /* secondary */
+  --bni-faint: #7a838c; /* dim / counts */
 
   /* ---- palette: the marks ----
-   * china-pencil red is the only interaction mark; brass means withheld or
-   * flagged (drafts, excluded packs); oxide is destructive and always carries
-   * its verb in words as well. */
-  --bni-mark: #cc4126;
-  --bni-mark-hi: #e4653f;
-  --bni-mark-dim: #8e3520;
-  --bni-mark-glow: rgba(204, 65, 38, 0.35);
-  --bni-mark-tint: rgba(204, 65, 38, 0.1);
-  --bni-brass: #b8912e;
-  --bni-brass-tint: rgba(184, 145, 46, 0.14);
-  --bni-danger: #a8452c;
+   * one mark colour is the only interaction signal; brass means withheld or
+   * flagged (drafts, excluded packs); danger is destructive and always carries
+   * its verb in words as well. Every theme redefines all three. */
+  --bni-mark: #1a9fff;
+  --bni-mark-hi: #5cbaff;
+  --bni-mark-dim: #14688f;
+  --bni-mark-glow: rgba(26, 159, 255, 0.35);
+  --bni-mark-tint: rgba(26, 159, 255, 0.1);
+  --bni-brass: #d2a24b;
+  --bni-brass-tint: rgba(210, 162, 75, 0.16);
+  --bni-danger: #c8503c;
 
-  --bni-chip: #3a352d;
-  --bni-chip-hi: #484237;
+  --bni-chip: #3d4450;
+  --bni-chip-hi: #4a5260;
+  --bni-board-light: rgba(180, 215, 255, 0.05);
 
   /* legacy aliases — templates and older component CSS still reference these */
   --bni-bg: var(--bni-board);
@@ -79,9 +83,9 @@
   --bni-draft-dim: var(--bni-brass-tint);
   --bni-card-sh: none;
 
-  /* thumbnails keep the schematic-grid placeholder, warmed to the board */
-  --bni-thumbbg: #7e786c;
-  --bni-thumbgrid: rgba(255, 250, 240, 0.3);
+  /* thumbnails keep the schematic-grid placeholder, keyed to the board */
+  --bni-thumbbg: #7b828a;
+  --bni-thumbgrid: rgba(255, 255, 255, 0.3);
 
   /* ---- typography ----
    * Two faces, both already self-hosted with the cyrillic/greek/vietnamese
@@ -165,12 +169,30 @@
   --p-button-secondary-hover-background: var(--bni-mount-hi);
   --p-button-secondary-hover-border-color: var(--bni-mark-dim);
   --p-button-secondary-hover-color: var(--bni-mark-hi);
-  --p-button-danger-background: rgba(168, 69, 44, 0.16);
-  --p-button-danger-border-color: rgba(168, 69, 44, 0.55);
-  --p-button-danger-color: #e0806a;
-  --p-button-danger-hover-background: rgba(168, 69, 44, 0.3);
+  /* derived from --bni-danger via color-mix so a theme only has to set the
+   * one token; the wash and the label both follow it. */
+  --p-button-danger-background: color-mix(
+    in srgb,
+    var(--bni-danger) 16%,
+    transparent
+  );
+  --p-button-danger-border-color: color-mix(
+    in srgb,
+    var(--bni-danger) 55%,
+    transparent
+  );
+  --p-button-danger-color: color-mix(in srgb, var(--bni-danger) 72%, white);
+  --p-button-danger-hover-background: color-mix(
+    in srgb,
+    var(--bni-danger) 30%,
+    transparent
+  );
   --p-button-danger-hover-border-color: var(--bni-danger);
-  --p-button-danger-hover-color: #f0a08c;
+  --p-button-danger-hover-color: color-mix(
+    in srgb,
+    var(--bni-danger) 55%,
+    white
+  );
   --p-button-text-primary-color: var(--bni-mark-hi);
   --p-button-text-primary-hover-background: var(--bni-mark-tint);
   --p-button-text-secondary-color: var(--bni-muted);
@@ -217,14 +239,46 @@
 }
 
 /* ============================================================================
- * PALETTE LAB — temporary. Candidate palettes for the discover skin, applied by
- * <app-palette-lab> setting data-palette on <html>. Each block overrides only
- * the source tokens; every component derives from those, so nothing else needs
- * to know a palette changed.
- *
- * Delete this section (and the palette-lab component) once one is promoted into
- * the .bni-skin defaults above.
+ * THEMES. Selectable palettes for the discover skin, applied by ThemeService
+ * setting data-palette on <html>. The default block above IS the "steam" theme,
+ * so it needs no block of its own. Each block overrides only the source tokens;
+ * every component derives from those, so nothing else needs to know the theme
+ * changed. Adding a theme = one block here + one id in lib/src/theme.
  * ========================================================================== */
+
+/* Sample Board: the warm original — charcoal board, bone tag, china-pencil red.
+ * Kept as a choice because it reads as physical in a way the cool palettes do
+ * not; it just shares a temperature with the game's warm art. */
+:root[data-palette="sample-board"] .bni-skin {
+  --bni-board: #201e1a;
+  --bni-board-deep: #17150f;
+  --bni-mount: #2a2721;
+  --bni-mount-hi: #34302a;
+  --bni-inset: #1b1915;
+  --bni-rule: #3d3830;
+  --bni-rule-hi: #4e483e;
+  --bni-tag: #e6e0d2;
+  --bni-tag-hi: #f2ede1;
+  --bni-tag-ink: #1b1813;
+  --bni-tag-ink-2: #6b6355;
+  --bni-ink: #f2eee4;
+  --bni-body: #c6bfb0;
+  --bni-muted: #948c7c;
+  --bni-faint: #6e675a;
+  --bni-mark: #cc4126;
+  --bni-mark-hi: #e4653f;
+  --bni-mark-dim: #8e3520;
+  --bni-mark-glow: rgba(204, 65, 38, 0.35);
+  --bni-mark-tint: rgba(204, 65, 38, 0.1);
+  --bni-brass: #b8912e;
+  --bni-brass-tint: rgba(184, 145, 46, 0.14);
+  --bni-danger: #a8452c;
+  --bni-chip: #3a352d;
+  --bni-chip-hi: #484237;
+  --bni-thumbbg: #7e786c;
+  --bni-thumbgrid: rgba(255, 250, 240, 0.3);
+  --bni-board-light: rgba(255, 238, 210, 0.055);
+}
 
 /* Drafting film: true-neutral cool greys, no warmth anywhere, pale film tag,
  * safety orange. Maximum temperature separation from the warm ONI art. */
@@ -324,39 +378,6 @@
   --bni-thumbbg: #74797e;
   --bni-thumbgrid: rgba(255, 255, 255, 0.3);
   --bni-board-light: rgba(215, 230, 245, 0.05);
-}
-
-/* Steam 2026: the values measured off the live Workshop, carried into the
- * sample-board structure. The familiar option, and finally accurate. */
-:root[data-palette="steam"] .bni-skin {
-  --bni-board: #1b1d21;
-  --bni-board-deep: #131519;
-  --bni-mount: #262b34;
-  --bni-mount-hi: #313640;
-  --bni-inset: #16181c;
-  --bni-rule: #3a3f48;
-  --bni-rule-hi: #4a4f59;
-  --bni-tag: #d6dde4;
-  --bni-tag-hi: #e8eef4;
-  --bni-tag-ink: #14171b;
-  --bni-tag-ink-2: #596570;
-  --bni-ink: #ffffff;
-  --bni-body: #c6d4df;
-  --bni-muted: #acb2b8;
-  --bni-faint: #7a838c;
-  --bni-mark: #1a9fff;
-  --bni-mark-hi: #5cbaff;
-  --bni-mark-dim: #14688f;
-  --bni-mark-glow: rgba(26, 159, 255, 0.35);
-  --bni-mark-tint: rgba(26, 159, 255, 0.1);
-  --bni-brass: #d2a24b;
-  --bni-brass-tint: rgba(210, 162, 75, 0.16);
-  --bni-danger: #c8503c;
-  --bni-chip: #3d4450;
-  --bni-chip-hi: #4a5260;
-  --bni-thumbbg: #7b828a;
-  --bni-thumbgrid: rgba(255, 255, 255, 0.3);
-  --bni-board-light: rgba(180, 215, 255, 0.05);
 }
 
 /* ---- the board ---- */
