@@ -2,6 +2,7 @@
   i18n-header
   header="Appearance"
   [(visible)]="visible"
+  (onHide)="onHide()"
   [modal]="true"
   [style]="{ width: '520px' }"
   [breakpoints]="{ '600px': '92vw' }"
@@ -55,6 +56,93 @@
         <span class="theme-note">{{ t.note }}</span>
       </span>
     </button>
+    <button
+      type="button"
+      role="radio"
+      class="theme-option"
+      [class.active]="current === 'custom'"
+      [attr.aria-checked]="current === 'custom'"
+      [attr.aria-expanded]="customOpen"
+      (click)="selectCustom()"
+    >
+      <span class="theme-swatch" aria-hidden="true">
+        <i [style.background]="customSwatch[0]"></i>
+        <i [style.background]="customSwatch[1]"></i>
+        <i [style.background]="customSwatch[2]"></i>
+      </span>
+      <span class="theme-text">
+        <span class="theme-name">
+          <ng-container i18n>Custom</ng-container>
+          <svg
+            *ngIf="current === 'custom'"
+            class="theme-check"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 12.5l5.5 5.5L20 6"></path>
+          </svg>
+        </span>
+        <span class="theme-note" *ngIf="!hasSavedCustom" i18n
+          >Pick every colour yourself, starting from the current palette.</span
+        >
+        <span class="theme-note" *ngIf="hasSavedCustom" i18n
+          >Your own palette. Click to wear it or keep tuning.</span
+        >
+      </span>
+    </button>
+  </div>
+
+  <div class="custom-editor" *ngIf="customOpen">
+    <ng-container *ngFor="let group of tokenGroups">
+      <h4 class="custom-group-label">{{ group.label }}</h4>
+      <div class="custom-grid">
+        <label class="custom-token" *ngFor="let t of group.tokens">
+          <input
+            class="custom-well"
+            type="color"
+            [value]="draftValue(t.token) || '#000000'"
+            (input)="onPick(t.token, $any($event.target).value)"
+          />
+          <span class="custom-token-name">{{ t.label }}</span>
+          <input
+            class="custom-hex"
+            type="text"
+            spellcheck="false"
+            maxlength="7"
+            [value]="draftValue(t.token)"
+            (change)="onHexTyped(t.token, $any($event.target).value)"
+            aria-label="Hex value"
+            i18n-aria-label
+          />
+        </label>
+      </div>
+    </ng-container>
+
+    <div class="custom-actions">
+      <button type="button" class="custom-reset" (click)="resetDraft()" i18n>
+        Start over from current palette
+      </button>
+      <button
+        type="button"
+        class="custom-save"
+        [disabled]="saved"
+        (click)="saveCustom()"
+      >
+        <ng-container *ngIf="!saved" i18n>Save custom theme</ng-container>
+        <ng-container *ngIf="saved" i18n>Saved</ng-container>
+      </button>
+    </div>
+    <p class="custom-hint" *ngIf="customDirty && !saved" i18n>
+      The page behind this dialog is previewing your colours. Save to keep them;
+      closing without saving puts things back.
+    </p>
   </div>
 
   <p class="theme-footnote" *ngIf="loggedIn" i18n>
