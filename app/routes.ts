@@ -115,6 +115,10 @@ export class Routes {
     app.route('/api/users/me').patch(auth, this.userController.updateBio);
     app.route('/api/users/me/dlc-preferences').get(auth, this.userController.getDlcPreferences);
     app.route('/api/users/me/dlc-preferences').patch(auth, this.userController.updateDlcPreferences);
+    app.route('/api/users/me/theme-preference').get(auth, this.userController.getThemePreference);
+    app
+      .route('/api/users/me/theme-preference')
+      .patch(auth, this.userController.updateThemePreference);
     // Optional seed photo arrives as a raw image/* body (no multipart in this
     // API surface); anything else falls through to random generation
     app

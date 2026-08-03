@@ -1,0 +1,99 @@
+.theme-intro {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--bni-muted);
+}
+
+.theme-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 11px;
+  text-align: left;
+  font-family: var(--p-font-family);
+  color: var(--bni-body);
+  background: transparent;
+  border: 1px solid var(--bni-rule);
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.theme-option:hover {
+  background: var(--bni-mount);
+  border-color: var(--bni-rule-hi);
+  color: var(--bni-ink);
+}
+
+.theme-option:focus-visible {
+  outline: 2px solid var(--bni-mark);
+  outline-offset: 2px;
+}
+
+.theme-option.active {
+  background: var(--bni-mount);
+  border-color: var(--bni-mark);
+  color: var(--bni-ink);
+}
+
+/* The swatch is the whole point of the row, so it gets real size rather than
+   a token dot: three bands reading board, tag, mark. */
+.theme-swatch {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+}
+
+.theme-swatch i {
+  display: block;
+  width: 16px;
+  height: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.theme-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.theme-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--bni-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.theme-check {
+  color: var(--bni-mark);
+}
+
+.theme-note {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--bni-muted);
+}
+
+.theme-footnote {
+  margin: 14px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--bni-rule);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--bni-faint);
+}

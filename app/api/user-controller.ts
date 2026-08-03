@@ -12,6 +12,9 @@ import {
   UpdateDlcPreferencesRequest,
   DLC_ID_PATTERN,
   MAX_DLC_FILTER_IDS,
+  isThemeId,
+  resolveThemeId,
+  THEME_IDS,
 } from '../../lib/index';
 import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
@@ -189,6 +192,58 @@ export class UserController {
         console.log('getDlcPreferences error');
         console.log(err);
         res.status(500).json(apiError(500, 'Failed to retrieve DLC preferences'));
+      });
+  }
+
+  // Cosmetic, but still private account state — same rule as dlcPreferences:
+  // never merge into getProfile/ProfileResponse.
+  public getThemePreference(req: Request, res: Response): void {
+    const user = req.user as UserJwt;
+
+    UserModel.model
+      .findById(user._id)
+      .select('themePreference')
+      .lean()
+      .then(found => {
+        if (!found) {
+          res.status(404).json(apiError(404, 'User not found'));
+          return;
+        }
+        // An account that has never chosen resolves to the current default
+        // rather than reporting null, so the client has one less case.
+        res.json({ theme: resolveThemeId(found.themePreference) });
+      })
+      .catch(err => {
+        console.log('getThemePreference error');
+        console.log(err);
+        res.status(500).json(apiError(500, 'Failed to retrieve theme preference'));
+      });
+  }
+
+  public updateThemePreference(req: Request, res: Response): void {
+    const user = req.user as UserJwt;
+    const { theme } = req.body as { theme?: unknown };
+
+    // Validated against the shared id list, not free text: this value is
+    // written straight into a data-palette attribute on the client.
+    if (!isThemeId(theme)) {
+      res.status(400).json(apiError(400, `theme must be one of: ${THEME_IDS.join(', ')}`));
+      return;
+    }
+
+    UserModel.model
+      .findByIdAndUpdate(user._id, { themePreference: theme }, { new: true })
+      .then(updated => {
+        if (!updated) {
+          res.status(404).json(apiError(404, 'User not found'));
+          return;
+        }
+        res.json({ theme: resolveThemeId(updated.themePreference) });
+      })
+      .catch(err => {
+        console.log('updateThemePreference error');
+        console.log(err);
+        res.status(500).json(apiError(500, 'Failed to update theme preference'));
       });
   }
 

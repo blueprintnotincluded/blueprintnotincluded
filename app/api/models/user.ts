@@ -33,6 +33,12 @@ export interface User extends Document {
     excludedDlcs: string[];
   };
 
+  // Chosen site theme (the discover skin's palette id). Absent means "never
+  // chosen", which resolves to DEFAULT_THEME_ID rather than being written
+  // eagerly, so changing the default later still reaches those accounts.
+  // Cosmetic, but still account state: not part of ProfileResponse.
+  themePreference?: string;
+
   setPassword(password: string): void;
   validPassword(password: string): boolean;
   generateJwt(role?: string): string;
@@ -80,6 +86,7 @@ export class UserModel {
       dlcPreferences: {
         excludedDlcs: { type: [String], default: [] },
       },
+      themePreference: { type: String },
     });
 
     // Password reset lookup: findOne({ resetToken, resetTokenExpiration: { $gt: ... } })

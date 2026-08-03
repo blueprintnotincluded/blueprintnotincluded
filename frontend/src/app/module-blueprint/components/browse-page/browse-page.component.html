@@ -1,17 +1,15 @@
 <div class="bni-skin bni-page bni-cave">
   <p-toast position="top-center" [style]="{ marginTop: '40px' }"></p-toast>
 
-  <!-- TEMPORARY: palette comparison tool, dev builds only. Remove with the
-       [data-palette] blocks in bni-skin.css once a palette is chosen. -->
-  <app-palette-lab></app-palette-lab>
-
   <app-site-nav
     (about)="aboutDialog.toggleDialog()"
     (sendFeedback)="feedbackDialog.open()"
+    (appearance)="themeDialog.open()"
   ></app-site-nav>
 
   <app-dialog-about #aboutDialog></app-dialog-about>
   <app-feedback-dialog #feedbackDialog></app-feedback-dialog>
+  <app-dialog-theme #themeDialog></app-dialog-theme>
 
   <div class="browse-page bni-float">
     <div class="browse-header">

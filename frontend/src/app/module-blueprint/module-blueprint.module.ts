@@ -101,7 +101,7 @@ import { BlueprintDetailsPageComponent } from "./components/blueprint-details-pa
 import { CommentService } from "./services/comment.service";
 import { BlueprintVersionService } from "./services/blueprint-version.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
-import { PaletteLabComponent } from "./components/palette-lab/palette-lab.component";
+import { DialogThemeComponent } from "./components/dialogs/dialog-theme/dialog-theme.component";
 import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
 import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-list/dialog-follow-list.component";
 import { NotificationBellComponent } from "./components/notification-bell/notification-bell.component";
@@ -164,7 +164,7 @@ import { TerrainToolComponent } from "./components/side-bar/terrain-tool/terrain
     CommentSectionComponent,
     BlueprintDetailsPageComponent,
     BrowsePageComponent,
-    PaletteLabComponent,
+    DialogThemeComponent,
     ProfilePageComponent,
     DialogFollowListComponent,
     NotificationBellComponent,

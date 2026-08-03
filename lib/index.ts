@@ -2,6 +2,7 @@ export * from './src/vector2';
 export * from './src/utility-connection';
 export * from './src/oni-item';
 export * from './src/area-of-effect';
+export * from './src/theme/theme-preference';
 
 export * from './src/enums/connection-type';
 export * from './src/enums/display';

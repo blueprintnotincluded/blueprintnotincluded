@@ -10,6 +10,7 @@ import { AuthenticationService } from "../../services/authentification-service";
 export class SiteNavComponent {
   @Output() about = new EventEmitter<void>();
   @Output() sendFeedback = new EventEmitter<void>();
+  @Output() appearance = new EventEmitter<void>();
 
   constructor(public authService: AuthenticationService) {}
 }
