@@ -421,9 +421,39 @@ on download. `Info` now survives as an *input* format only.
   "Group identical copies" toggle appears only while a search is active, and the card shows a
   `+N copies` chip). **Facet counts never collapse** — a category count describes the corpus,
   not the view, so the sidebar can legitimately read 4 where the list shows 1.
-- **Not built yet** (later phases of the plan): the `name` regex relaxation + title
-  translation pivot, query translation + `searchqueries` telemetry, IDF weighting for
-  structural matches, semantic retrieval.
+- **Not built yet** (later phases of the plan): the title translation pivot, query translation
+  + `searchqueries` telemetry, IDF weighting for structural matches, semantic retrieval.
+
+### Blueprint titles are Unicode
+`Blueprint.name` was `/^[a-zA-Z0-9_ -]+$/`, which 400'd every non-English title at save. The
+policy is now one shared module, `lib/src/blueprint/blueprint-name.ts`, used by the save
+dialog (`blueprint-name-validation.directive.ts`), the upload endpoint and the Mongoose
+schema — three surfaces that must not be able to disagree, since the failure mode is a form
+that accepts what the server rejects.
+- **Allowed**: every script, punctuation, emoji. **Rejected**: control characters, `\p{Cf}`
+  format characters (bidi overrides and the rest) *except* ZWNJ/ZWJ, unassigned/private-use/
+  surrogate code points, runs of more than 4 combining marks, and Latin mixed with Cyrillic or
+  Greek **inside one word** — the "Rоdriguez" homoglyph spoof. The confusable rule is per-word
+  and only those scripts on purpose: mixing across words is ordinary (`Ферма SPOM v2`,
+  `SPOM 电解 v3`), and a broader UTS #39 restriction would reject the very titles this exists
+  to allow. The endpoint returns the specific rule broken; the dialog renders a translated
+  message per `reason` (never the policy's English string).
+- **`normalizeBlueprintName`** (NFC + whitespace collapsed to U+0020 + trim) runs at ingress
+  and only there. It is load-bearing for the `{owner, name}` duplicate check, which is an
+  exact string match: without it, a title typed on macOS (decomposed) and on Windows
+  (composed) are two documents with identical-looking names and the author cannot overwrite
+  their own blueprint from their other machine. The schema validator
+  (`isCanonicalBlueprintName`) demands the already-normalized form rather than normalizing
+  again, so a non-canonical name reaching a model write fails instead of being silently
+  repaired. **Not case-folded** — the check has always been case-sensitive and folding it
+  would newly collide existing ASCII titles. Length stays 60 UTF-16 code units, the unit
+  `maxlength` counts.
+- **Download filenames**: `attachmentDisposition` (`app/api/utils/content-disposition.ts`)
+  emits RFC 6266's pair — an ASCII fallback plus `filename*=UTF-8''` — because an HTTP header
+  is ISO-8859-1 and a title containing `"` would otherwise escape the quoted string. The
+  client-side path uses `sanitize-filename`, which already preserves non-ASCII.
+- Search needs no special handling: `normalizeText` already applies NFC and keeps non-Latin
+  letters, and search rows are derived on save (covered end-to-end in `search.test.ts`).
 
 ### Blueprint metadata auto-derivation
 `requiredDlcs`, `gameVersion` and `modded` are derived deterministically from the blueprint
