@@ -14,6 +14,8 @@ import {
   MAX_DLC_FILTER_IDS,
   isThemeId,
   resolveThemeId,
+  sanitizeCustomThemeColors,
+  CUSTOM_THEME_ID,
   THEME_IDS,
 } from '../../lib/index';
 import { NotificationController } from './notification-controller';
@@ -202,7 +204,7 @@ export class UserController {
 
     UserModel.model
       .findById(user._id)
-      .select('themePreference')
+      .select('themePreference customThemeColors')
       .lean()
       .then(found => {
         if (!found) {
@@ -211,7 +213,12 @@ export class UserController {
         }
         // An account that has never chosen resolves to the current default
         // rather than reporting null, so the client has one less case.
-        res.json({ theme: resolveThemeId(found.themePreference) });
+        // Stored colours are re-sanitized on the way out — this value reaches
+        // CSS custom properties, so the read side trusts nothing either.
+        const colors = sanitizeCustomThemeColors(found.customThemeColors);
+        let theme = resolveThemeId(found.themePreference);
+        if (theme === CUSTOM_THEME_ID && !colors) theme = resolveThemeId(undefined);
+        res.json({ theme, ...(colors ? { customColors: colors } : {}) });
       })
       .catch(err => {
         console.log('getThemePreference error');
@@ -222,7 +229,7 @@ export class UserController {
 
   public updateThemePreference(req: Request, res: Response): void {
     const user = req.user as UserJwt;
-    const { theme } = req.body as { theme?: unknown };
+    const { theme, customColors } = req.body as { theme?: unknown; customColors?: unknown };
 
     // Validated against the shared id list, not free text: this value is
     // written straight into a data-palette attribute on the client.
@@ -231,14 +238,52 @@ export class UserController {
       return;
     }
 
-    UserModel.model
-      .findByIdAndUpdate(user._id, { themePreference: theme }, { new: true })
-      .then(updated => {
+    // Colours are all-or-nothing strict hex (sanitizeCustomThemeColors): they
+    // land in CSS custom properties, so nothing that isn't a literal colour is
+    // stored. Sending colours alongside a prefab id is fine — the set is kept
+    // so switching back to "custom" later restores it.
+    let colors: ReturnType<typeof sanitizeCustomThemeColors> = null;
+    if (customColors !== undefined) {
+      colors = sanitizeCustomThemeColors(customColors);
+      if (!colors) {
+        res
+          .status(400)
+          .json(apiError(400, 'customColors must map known theme tokens to #rrggbb values'));
+        return;
+      }
+    }
+
+    const update: Record<string, unknown> = { themePreference: theme };
+    if (colors) update.customThemeColors = colors;
+
+    // Selecting "custom" without sending colours is only valid when a set is
+    // already stored — checked before the write so a rejected request never
+    // leaves the account pointing at a palette that doesn't exist.
+    const guard: Promise<boolean> =
+      theme === CUSTOM_THEME_ID && !colors
+        ? UserModel.model
+            .findById(user._id)
+            .select('customThemeColors')
+            .lean()
+            .then(found => !!(found && sanitizeCustomThemeColors(found.customThemeColors)))
+        : Promise.resolve(true);
+
+    guard
+      .then(async ok => {
+        if (!ok) {
+          res.status(400).json(apiError(400, 'custom theme requires customColors'));
+          return;
+        }
+        const updated = await UserModel.model.findByIdAndUpdate(user._id, update, { new: true });
         if (!updated) {
           res.status(404).json(apiError(404, 'User not found'));
           return;
         }
-        res.json({ theme: resolveThemeId(updated.themePreference) });
+        const stored = sanitizeCustomThemeColors(updated.customThemeColors);
+        res.json({
+          theme: resolveThemeId(updated.themePreference),
+          ...(stored ? { customColors: stored } : {}),
+        });
       })
       .catch(err => {
         console.log('updateThemePreference error');
