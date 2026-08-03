@@ -1,4 +1,5 @@
 import mongoose, { Document, Model } from 'mongoose';
+import { CustomThemeColors } from '../../../lib/index';
 import crypto from 'crypto-js';
 import jwt from 'jsonwebtoken';
 
@@ -44,7 +45,7 @@ export interface User extends Document {
   // switching back to "custom" restores their colours. Every value is
   // validated as strict hex before it is written — it reaches a CSS custom
   // property on the client. Same privacy rule as themePreference.
-  customThemeColors?: Record<string, string>;
+  customThemeColors?: CustomThemeColors;
 
   setPassword(password: string): void;
   validPassword(password: string): boolean;
