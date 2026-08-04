@@ -8,6 +8,7 @@ import { apiError } from './utils/apiError';
 import { canViewBlueprint } from './utils/blueprint-visibility';
 import { segmentBody } from './services/comment-body';
 import { resolveReferenceNames } from './comment-controller';
+import { syncTranslatedSearchRow } from './services/search-index-service';
 import {
   isTranslationTargetLang,
   MAX_TRANSLATE_BATCH,
@@ -59,7 +60,7 @@ export class TranslationController {
       const user = req.user as UserJwt;
       const blueprint = await BlueprintModel.model
         .findOne({ _id: blueprintId, deletedAt: null })
-        .select('owner isPublished description sourceLang');
+        .select('owner isPublished description sourceLang name');
       if (!blueprint || !canViewBlueprint(blueprint, user)) {
         res.status(404).json(apiError(404, 'Blueprint not found'));
         return;
@@ -78,6 +79,20 @@ export class TranslationController {
         },
         user._id
       );
+
+      // Lazy accretion (spec/multilingual-search-plan.md phase 5): this
+      // reader's translate click is real demand for this blueprint in
+      // `lang` — never blocks or fails the response either way.
+      if (!result.degraded) {
+        syncTranslatedSearchRow({
+          blueprintId: blueprint._id as mongoose.Types.ObjectId,
+          sourceLang: blueprint.sourceLang ?? null,
+          targetLang: lang,
+          title: blueprint.name,
+          translatedDescription: result.translatedText,
+          userId: user._id,
+        });
+      }
 
       const response: TranslateBlueprintResponse = {
         description: result.translatedText,

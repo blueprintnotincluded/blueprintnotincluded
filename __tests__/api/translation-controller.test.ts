@@ -9,9 +9,11 @@ process.env.NODE_ENV = 'test';
 import { TestSetup } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { CommentModel } from '../../app/api/models/comment';
+import { BlueprintSearchModel } from '../../app/api/models/blueprint-search';
 import { TranslationUnitModel } from '../../app/api/models/translation-unit';
 import { TranslationBudgetModel } from '../../app/api/models/translation-budget';
 import { TranslationService } from '../../app/api/services/translation-service';
+import { upsertSearchRow } from '../../app/api/services/search-index-service';
 import { FakeTranslationProvider } from '../helpers/fake-translation-provider';
 
 describe('Translation API', function () {
@@ -186,6 +188,107 @@ describe('Translation API', function () {
 
       expect(response.status).to.equal(500);
       expect(await TranslationUnitModel.model.countDocuments({})).to.equal(0);
+    });
+  });
+
+  // ─── Lazy accretion into blueprintsearch (phase 5) ─────────────────────────
+
+  describe('lazy accretion into blueprintsearch (phase 5)', function () {
+    async function pollForRow(lang: string) {
+      let row = null;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        row = await BlueprintSearchModel.model.findOne({ blueprintId, lang });
+        if (row != null) break;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      return row;
+    }
+
+    it('never touches the en pivot row — it has its own race-safe writer (phase 3b)', async function () {
+      const blueprint = await BlueprintModel.model.findById(blueprintId);
+      await upsertSearchRow(blueprint!);
+      const pivotBefore = await BlueprintSearchModel.model.findOne({ blueprintId, lang: 'en' });
+
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${blueprintId}/translate`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ lang: 'en' });
+      expect(response.status).to.equal(200);
+
+      // Give any stray fire-and-forget write a moment, then confirm the
+      // pivot row is untouched — same origin/title/sourceHash as before.
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const pivotAfter = await BlueprintSearchModel.model.findOne({ blueprintId, lang: 'en' });
+      expect(pivotAfter!.origin).to.equal(pivotBefore!.origin);
+      expect(pivotAfter!.title).to.equal(pivotBefore!.title);
+      expect(pivotAfter!.sourceHash).to.equal(pivotBefore!.sourceHash);
+      // Only the description-translate call — no extra title call, since the
+      // 'en'-target guard returns before ever reaching the provider.
+      expect(fake.calls).to.have.length(1);
+    });
+
+    it('writes a new-language row with the translated title and description, origin machine', async function () {
+      const blueprint = await BlueprintModel.model.findById(blueprintId);
+      await upsertSearchRow(blueprint!);
+
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${blueprintId}/translate`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ lang: 'ko' });
+      expect(response.status).to.equal(200);
+
+      const row = await pollForRow('ko');
+      expect(row).to.not.be.null;
+      expect(row!.origin).to.equal('machine');
+      expect(row!.description).to.equal('[ko] Bonjour le monde et bienvenue');
+      expect(row!.title).to.equal('[ko] Super Coal Generator Setup');
+      // Reused from the en pivot row rather than recomputed from raw data.
+      expect(row!.termIds).to.deep.equal(['Battery', 'Generator', 'Wire']);
+      // One call for the description (already spent by the endpoint itself)
+      // plus one for the title.
+      expect(fake.calls).to.have.length(2);
+    });
+
+    it('falls back to empty terms when no en pivot row exists yet', async function () {
+      await BlueprintSearchModel.model.deleteMany({ blueprintId });
+
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${blueprintId}/translate`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ lang: 'ru' });
+      expect(response.status).to.equal(200);
+
+      const row = await pollForRow('ru');
+      expect(row).to.not.be.null;
+      expect(row!.termIds).to.deep.equal([]);
+      expect(row!.terms).to.deep.equal([]);
+      expect(row!.description).to.equal('[ru] Bonjour le monde et bienvenue');
+    });
+
+    it('comment translation does not write a blueprintsearch row — comments have no field for it', async function () {
+      const comment = await CommentModel.model.create({
+        blueprintId,
+        authorId: testData.users.user1._id,
+        parentId: null,
+        body: 'Bonjour',
+        sourceLang: 'fr',
+        createdAt: new Date(),
+        lastActivityAt: new Date(),
+      });
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${blueprintId}/comments/translate`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ lang: 'ko', ids: [(comment._id as any).toString()] });
+      expect(response.status).to.equal(200);
+
+      // Give any stray fire-and-forget write a moment, then confirm nothing landed.
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const row = await BlueprintSearchModel.model.findOne({ blueprintId, lang: 'ko' });
+      expect(row).to.be.null;
     });
   });
 
