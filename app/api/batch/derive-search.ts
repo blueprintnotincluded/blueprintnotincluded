@@ -80,93 +80,99 @@ async function run(dryRun: boolean, limit: number | null) {
 
   loadGameDatabase();
   await mongoose.connect(mongoUri);
-  BlueprintModel.init();
-  BlueprintSearchModel.init();
-  // The title-translation pass goes through TranslationService, which reads
-  // the translationunits cache and the budget rows directly. db.ts inits
-  // these for the running app; a batch process gets no such bootstrap, and
-  // the failure is a TypeError on an undefined model deep inside
-  // translateMany — caught per batch and logged as "translation error,
-  // skipping", so the run still exits 0 having translated nothing.
-  TranslationUnitModel.init();
-  TranslationBudgetModel.init();
+  try {
+    BlueprintModel.init();
+    BlueprintSearchModel.init();
+    // The title-translation pass goes through TranslationService, which reads
+    // the translationunits cache and the budget rows directly. db.ts inits
+    // these for the running app; a batch process gets no such bootstrap, and
+    // the failure is a TypeError on an undefined model deep inside
+    // translateMany — caught per batch and logged as "translation error,
+    // skipping", so the run still exits 0 having translated nothing.
+    TranslationUnitModel.init();
+    TranslationBudgetModel.init();
 
-  console.log(describeScope(limit, dryRun));
+    console.log(describeScope(limit, dryRun));
 
-  // Existing rows' freshness keys, so unchanged blueprints are one $set of
-  // signals, not a full text rewrite (keeps re-runs near no-op).
-  const existing = new Map<string, string>();
-  for await (const row of BlueprintSearchModel.model
-    .find({ lang: 'en' })
-    .select('blueprintId sourceHash')
-    .cursor()) {
-    existing.set(row.blueprintId.toString(), row.sourceHash);
-  }
+    // Existing rows' freshness keys, so unchanged blueprints are one $set of
+    // signals, not a full text rewrite (keeps re-runs near no-op).
+    const existing = new Map<string, string>();
+    for await (const row of BlueprintSearchModel.model
+      .find({ lang: 'en' })
+      .select('blueprintId sourceHash')
+      .cursor()) {
+      existing.set(row.blueprintId.toString(), row.sourceHash);
+    }
 
-  const cursor = sampledCursor(BlueprintModel.model, {}, limit);
-  let processed = 0;
-  let created = 0;
-  let refreshed = 0;
-  let fresh = 0;
-  let pending: mongoose.AnyBulkWriteOperation[] = [];
-  // Scopes the translation pass to exactly the blueprints this run touched —
-  // matters when --limit samples a subset; with no limit this is every row.
-  const processedIds: mongoose.Types.ObjectId[] = [];
+    const cursor = sampledCursor(BlueprintModel.model, {}, limit);
+    let processed = 0;
+    let created = 0;
+    let refreshed = 0;
+    let fresh = 0;
+    let pending: mongoose.AnyBulkWriteOperation[] = [];
+    // Scopes the translation pass to exactly the blueprints this run touched —
+    // matters when --limit samples a subset; with no limit this is every row.
+    const processedIds: mongoose.Types.ObjectId[] = [];
 
-  async function flush() {
-    if (pending.length === 0) return;
-    // Dry run skips only the write — pending still clears, so memory stays
-    // bounded by BULK_BATCH_SIZE either way.
-    if (!dryRun) await BlueprintSearchModel.model.bulkWrite(pending as any);
-    pending = [];
-  }
+    async function flush() {
+      if (pending.length === 0) return;
+      // Dry run skips only the write — pending still clears, so memory stays
+      // bounded by BULK_BATCH_SIZE either way.
+      if (!dryRun) await BlueprintSearchModel.model.bulkWrite(pending as any);
+      pending = [];
+    }
 
-  for await (const doc of cursor) {
-    processed++;
-    processedIds.push(doc._id as mongoose.Types.ObjectId);
-    const fields = deriveSearchRow(doc);
-    const key = (doc._id as mongoose.Types.ObjectId).toString();
-    const known = existing.get(key);
-    const isFresh = known != null && known === fields.sourceHash;
-    if (known == null) created++;
-    else if (!isFresh) refreshed++;
-    else fresh++;
+    for await (const doc of cursor) {
+      processed++;
+      processedIds.push(doc._id as mongoose.Types.ObjectId);
+      const fields = deriveSearchRow(doc);
+      const key = (doc._id as mongoose.Types.ObjectId).toString();
+      const known = existing.get(key);
+      const isFresh = known != null && known === fields.sourceHash;
+      if (known == null) created++;
+      else if (!isFresh) refreshed++;
+      else fresh++;
 
-    // A fresh row only has its signals refreshed — title/origin/terms/
-    // termIds/sourceHash are left untouched so a re-run never overwrites a
-    // title the live save path (or the translation pass below) already
-    // machine-translated. A new or stale row gets the full derivation,
-    // which resets origin to 'authored' — correct for stale, since the
-    // underlying text changed and any prior translation is no longer valid.
-    pending.push({
-      updateOne: {
-        filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: fields.lang },
-        update: { $set: isFresh ? signalsOf(fields) : fields },
-        upsert: true,
-      },
-    });
-    if (pending.length >= BULK_BATCH_SIZE) await flush();
-    if (processed % 500 === 0) console.log(`  ...${processed} processed`);
-  }
-  await flush();
+      // A fresh row only has its signals refreshed — title/origin/terms/
+      // termIds/sourceHash are left untouched so a re-run never overwrites a
+      // title the live save path (or the translation pass below) already
+      // machine-translated. A new or stale row gets the full derivation,
+      // which resets origin to 'authored' — correct for stale, since the
+      // underlying text changed and any prior translation is no longer valid.
+      pending.push({
+        updateOne: {
+          filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: fields.lang },
+          update: { $set: isFresh ? signalsOf(fields) : fields },
+          upsert: true,
+        },
+      });
+      if (pending.length >= BULK_BATCH_SIZE) await flush();
+      if (processed % 500 === 0) console.log(`  ...${processed} processed`);
+    }
+    await flush();
 
-  console.log(`\nSearch rows — processed: ${processed}${dryRun ? ' (dry run)' : ''}`);
-  console.log(`  new: ${created}, stale (re-derived): ${refreshed}, fresh: ${fresh}`);
+    console.log(`\nSearch rows — processed: ${processed}${dryRun ? ' (dry run)' : ''}`);
+    console.log(`  new: ${created}, stale (re-derived): ${refreshed}, fresh: ${fresh}`);
 
-  const failedBatches = await translateTitles(dryRun, processedIds);
+    const failedBatches = await translateTitles(dryRun, processedIds);
 
-  await mongoose.disconnect();
-
-  // A translation pass that failed every batch still wrote 5,308 perfectly
-  // good rows, so without this the run reports success and the operator has
-  // to read stack traces to notice the phase-3b half did nothing. Same
-  // policy as import:2024 — an incomplete run exits non-zero.
-  if (failedBatches > 0) {
-    throw new Error(
-      `${failedBatches} title-translation batch(es) failed — search rows are written, but ` +
-        `non-English titles were not machine-translated. Fix the cause and re-run; ` +
-        `rows already translated are left alone.`
-    );
+    // A translation pass that failed every batch still wrote 5,308 perfectly
+    // good rows, so without this the run reports success and the operator has
+    // to read stack traces to notice the phase-3b half did nothing. Same
+    // policy as import:2024 — an incomplete run exits non-zero.
+    if (failedBatches > 0) {
+      throw new Error(
+        `${failedBatches} title-translation batch(es) failed — search rows are written, but ` +
+          `non-English titles were not machine-translated. Fix the cause and re-run; ` +
+          `rows already translated are left alone.`
+      );
+    }
+  } finally {
+    // Unconditional: without this, any rejection between connect and here
+    // leaks the connection, and the run only survives it because the CLI
+    // entry point force-exits. The failed-batch error is thrown inside the
+    // try, so it still propagates — just after disconnecting, as before.
+    await mongoose.disconnect();
   }
 }
 
