@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import mongoose from 'mongoose';
-import { ClusterItem, contentClusterKey } from '../../../lib/index';
+import { ClusterItem, contentClusterKey, normalizeContentLocale } from '../../../lib/index';
 import { Blueprint } from '../models/blueprint';
 import { BlueprintSearchModel, mongoTextLang, SearchRowOrigin } from '../models/blueprint-search';
 import { getSearchTermDictionary } from './search-term-dictionary';
@@ -177,10 +177,20 @@ function confidentTitleLang(title: string): string | null {
 // re-translating it.
 export async function deriveSearchRowWithTranslation(
   blueprint: Blueprint,
-  userId: string | null
+  userId: string | null,
+  // The author's content-locale preference, when they have set one
+  // (spec/search-followups.md §2.6). A DECLARATION, not a browser default:
+  // where an Accept-Language prior is refused as evidence to bill on, this is
+  // the user's own statement about the language they write in, and it is the
+  // only route by which a short romanized title ('Dien phan full') gets
+  // translated at save time rather than waiting for the batch pass.
+  declaredLang?: string | null
 ): Promise<SearchRowFields> {
   const base = deriveSearchRow(blueprint);
-  const sourceLang = confidentTitleLang(base.title);
+  const detected = confidentTitleLang(base.title);
+  const declared =
+    declaredLang != null && declaredLang !== 'en' && declaredLang !== detected ? declaredLang : null;
+  const sourceLang = detected ?? declared;
   if (sourceLang == null) return base;
   if (!TranslationService.instance.isConfigured()) return base;
 
@@ -190,6 +200,19 @@ export async function deriveSearchRowWithTranslation(
       userId
     );
     if (result.degraded) return base;
+    // A provider that handed the text back unchanged translated nothing —
+    // marking the row 'machine' would claim a translation that isn't there and
+    // index the same string twice (title + titleOriginal).
+    if (result.translatedText === base.title) return base;
+    // On the declared-only path our own detector had no opinion, so the
+    // provider's verdict is the only evidence there is: accept it only when it
+    // reports a genuinely non-English source. A Vietnamese-locale author
+    // writing 'SPOM v2' comes back reported as English and stays authored,
+    // which is what makes a misdeclaration cheap.
+    if (detected == null) {
+      const providerLang = normalizeContentLocale(result.sourceLang);
+      if (providerLang == null || providerLang === 'en') return base;
+    }
     // titleOriginal keeps the authored text in the index, so a translation can
     // only ever ADD a match, never remove one — the mitigation that makes
     // provider-side detection (Part 1 §2) safe to trust.
@@ -212,8 +235,12 @@ export async function deriveSearchRowWithTranslation(
 // completes, not atomically with it (same rationale as syncSearchRowStatus
 // below). A no-op write when translation wasn't warranted — the authored row
 // upsertSearchRow already wrote is left alone.
-export function syncMachineTitle(blueprint: Blueprint, userId: string | null): void {
-  deriveSearchRowWithTranslation(blueprint, userId)
+export function syncMachineTitle(
+  blueprint: Blueprint,
+  userId: string | null,
+  declaredLang?: string | null
+): void {
+  deriveSearchRowWithTranslation(blueprint, userId, declaredLang)
     .then(fields => {
       if (fields.origin !== 'machine') return;
       // sourceHash pins this write to the content the translation was

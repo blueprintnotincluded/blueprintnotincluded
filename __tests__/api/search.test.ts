@@ -617,6 +617,194 @@ describe('Search (blueprintsearch)', function () {
     });
   });
 
+  // spec/search-followups.md §2.6. The picker turns sourceLang from a guess
+  // into a declaration, which is the only route by which a short romanized
+  // title gets translated at save time rather than waiting for the batch pass.
+  describe('declared source language (§2.6)', function () {
+    let fake: FakeTranslationProvider;
+
+    beforeEach(async function () {
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+      fake = new FakeTranslationProvider();
+      TranslationService.setInstanceForTest(new TranslationService(fake));
+    });
+
+    afterEach(async function () {
+      TranslationService.setInstanceForTest(null);
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+    });
+
+    // The title our own detector cannot place — the whole point.
+    it('translates a title the detector cannot place when the author declared a language', async function () {
+      fake.detectedSourceLang = 'vi';
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Dien phan full',
+        data: bpData(['Electrolyzer']),
+      });
+
+      expect(await deriveSearchRowWithTranslation(doc, null)).to.have.property('origin', 'authored');
+
+      const declared = await deriveSearchRowWithTranslation(doc, null, 'vi');
+      expect(declared.origin).to.equal('machine');
+      expect(declared.title).to.equal('[en] Dien phan full');
+      expect(declared.titleOriginal).to.equal('Dien phan full');
+    });
+
+    // The guard that makes a misdeclaration cheap: a Vietnamese-locale author
+    // writing an English title comes back reported as English and stays put.
+    it('leaves the row authored when the provider says the text was English', async function () {
+      fake.detectedSourceLang = 'en';
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Spom v2 base',
+        data: bpData(['Electrolyzer']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null, 'vi');
+      expect(fields.origin).to.equal('authored');
+      expect(fields.title).to.equal('Spom v2 base');
+    });
+
+    it('does not act on a declaration of English', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Dien phan full',
+        data: bpData(['Electrolyzer']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null, 'en');
+      expect(fields.origin).to.equal('authored');
+      expect(fake.calls).to.have.length(0);
+    });
+
+    // A provider that hands the text back unchanged translated nothing —
+    // claiming 'machine' would index the same string twice.
+    it('leaves the row authored when the provider returns the input unchanged', async function () {
+      const echoProvider: TranslationProvider = {
+        isConfigured: () => true,
+        translate: async texts => texts.map(text => ({ text, detectedSourceLang: 'vi' })),
+      };
+      TranslationService.setInstanceForTest(new TranslationService(echoProvider));
+
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Máy lọc nước',
+        data: bpData(['WaterPurifier']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null);
+      expect(fields.origin).to.equal('authored');
+      expect(fields.titleOriginal).to.equal(null);
+    });
+
+    it('uses the stored preference as the prior for sourceLang on save', async function () {
+      const token = testData.users.user1.generateJwt();
+      await TestSetup.request()
+        .patch('/api/users/me/locale-preference')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ locale: 'vi' });
+
+      const saved = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        // Deliberately a title no detector can place, sent with an English
+        // Accept-Language: only the declaration can produce 'vi' here.
+        .set('Accept-Language', 'en-US,en;q=0.9')
+        .send({
+          name: 'Dien phan full',
+          blueprint: bpData(['Electrolyzer']),
+          thumbnail: 'base64thumbnail',
+        });
+      expect(saved.status).to.equal(200);
+
+      const savedBlueprint = await BlueprintModel.model.findById(saved.body.id);
+      expect(savedBlueprint!.sourceLang).to.equal('vi');
+    });
+
+    it('falls back to the Accept-Language prior for an author who never chose', async function () {
+      const token = testData.users.user2.generateJwt();
+      const saved = await TestSetup.request()
+        .post('/api/uploadblueprint')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Accept-Language', 'vi-VN,vi;q=0.9')
+        .send({
+          name: 'Dien phan full',
+          blueprint: bpData(['Electrolyzer']),
+          thumbnail: 'base64thumbnail',
+        });
+      expect(saved.status).to.equal(200);
+
+      const savedBlueprint = await BlueprintModel.model.findById(saved.body.id);
+      expect(savedBlueprint!.sourceLang).to.equal('vi');
+    });
+  });
+
+  // spec/search-followups.md Part 1 §2. The trap this exists to avoid:
+  // translateMany short-circuits on `sourceLang == null && ASCII_ONLY`, which
+  // is EXACTLY this candidate set, so without the bypass the pass would report
+  // success having made no provider call at all.
+  describe('provider-side detection bypass (Part 1 §2)', function () {
+    let fake: FakeTranslationProvider;
+
+    beforeEach(async function () {
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+      fake = new FakeTranslationProvider();
+      TranslationService.setInstanceForTest(new TranslationService(fake));
+    });
+
+    afterEach(async function () {
+      TranslationService.setInstanceForTest(null);
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+    });
+
+    it('short-circuits a short ASCII title with no declared source language', async function () {
+      const [result] = await TranslationService.instance.translateMany(
+        [{ sourceText: 'Dien phan full', sourceLang: null, targetLang: 'en' }],
+        null
+      );
+      expect(result.translatedText).to.equal('Dien phan full');
+      expect(fake.calls).to.have.length(0);
+    });
+
+    it('reaches the provider for the same input when detection is forced', async function () {
+      fake.detectedSourceLang = 'vi';
+      const [result] = await TranslationService.instance.translateMany(
+        [
+          {
+            sourceText: 'Dien phan full',
+            sourceLang: null,
+            targetLang: 'en',
+            forceProviderDetection: true,
+          },
+        ],
+        null
+      );
+      expect(fake.calls).to.have.length(1);
+      expect(result.translatedText).to.equal('[en] Dien phan full');
+      // The provider's own verdict is what the caller gates on.
+      expect(result.sourceLang).to.equal('vi');
+    });
+
+    // Re-runs are free: the cache is keyed by text hash and stores the
+    // detected language, so asking about a known title costs nothing.
+    it('serves a repeat forced-detection request from the cache', async function () {
+      fake.detectedSourceLang = 'vi';
+      const input = {
+        sourceText: 'Dien phan full',
+        sourceLang: null,
+        targetLang: 'en',
+        forceProviderDetection: true,
+      };
+      await TranslationService.instance.translateMany([input], null);
+      const [second] = await TranslationService.instance.translateMany([input], null);
+
+      expect(fake.calls).to.have.length(1);
+      expect(second.cached).to.equal(true);
+      expect(second.sourceLang).to.equal('vi');
+    });
+  });
+
   describe('query translation (phase 4)', function () {
     let fake: FakeTranslationProvider;
 

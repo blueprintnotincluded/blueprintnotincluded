@@ -29,6 +29,14 @@ export interface TranslateInput {
   // Reference tokens ({{blueprint:id}}/{{user:id}}) must round-trip intact —
   // only comment bodies carry them.
   hasReferenceTokens?: boolean;
+  // Ask the PROVIDER what language this is, bypassing the ASCII short-circuit
+  // below (spec/search-followups.md Part 1 §2). Set only by callers whose whole
+  // purpose is that question: a short, all-ASCII title our statistical detector
+  // cannot place ('Dien phan full') is precisely the input the shortcut throws
+  // away untouched, so without this the caller would silently no-op while
+  // appearing to succeed. Costs a provider call and a cache row per new text —
+  // never set it on a path that already knows the answer.
+  forceProviderDetection?: boolean;
 }
 
 export interface TranslateResult {
@@ -192,8 +200,9 @@ export class TranslationService {
       // Cheapest possible path — the majority case — and it needs no cache
       // row or provider call at all.
       if (
-        (sourceLang != null && sourceLang === baseLangOfTarget(targetLang)) ||
-        (sourceLang == null && ASCII_ONLY.test(sourceText))
+        !input.forceProviderDetection &&
+        ((sourceLang != null && sourceLang === baseLangOfTarget(targetLang)) ||
+          (sourceLang == null && ASCII_ONLY.test(sourceText)))
       ) {
         results[i] = { translatedText: sourceText, sourceLang, cached: true, provider: 'none' };
         continue;
