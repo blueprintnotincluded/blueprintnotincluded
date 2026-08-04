@@ -12,6 +12,18 @@ import { TranslationService } from './translation-service';
 // has one, which is the invariant later phases build on. Rows are derived
 // and disposable; `npm run derive-search` rebuilds them all.
 
+// Freshness-key encoding shared by every sourceHash below. JSON.stringify
+// unambiguously delimits and escapes each field — title/description are
+// free text and can contain whatever a naive join's separator is, so a
+// plain `.join(' ')` can hash two genuinely different (title, description)
+// pairs to the same string (e.g. title:"A ", description:"B" vs title:"A",
+// description:" B"). That collision would silently defeat every place this
+// hash is used as a content-pin (the backfill's freshness check, and phase
+// 5's concurrent-save guard below).
+function computeSourceHash(parts: readonly unknown[]): string {
+  return crypto.createHash('sha256').update(JSON.stringify(parts), 'utf8').digest('hex').slice(0, 16);
+}
+
 export interface SearchRowFields {
   lang: string;
   textLang: string;
@@ -97,11 +109,7 @@ export function deriveSearchRow(blueprint: Blueprint): SearchRowFields {
   // blueprint must still re-derive).
   // Ranking signals are deliberately excluded — they update cheaply in place
   // without re-deriving terms.
-  const sourceHash = crypto
-    .createHash('sha256')
-    .update([title, description, termIds.join(','), clusterKey ?? ''].join(' '), 'utf8')
-    .digest('hex')
-    .slice(0, 16);
+  const sourceHash = computeSourceHash([title, description, termIds, clusterKey]);
 
   // This row's `lang` stays 'en' regardless of the title's actual language —
   // that's the pivot invariant (§2.1): structural retrieval (the backbone for
@@ -289,14 +297,23 @@ export async function upsertTranslatedSearchRow(params: {
     console.log(err);
   }
 
+  // The title call above can take up to 15s — long enough for the author to
+  // re-save in the meantime and change the en pivot row out from under this
+  // write. Revalidate the pivot's sourceHash right before writing: a change
+  // (or the pivot vanishing) means the termIds/terms/clusterKey/ranking
+  // signals captured in `base` no longer describe the blueprint's current
+  // content, so discard rather than accrete a row built on stale signals —
+  // the next reader translate click (or the next save's own derivation)
+  // will re-derive against the fresh state.
+  if (base != null) {
+    const fresh = await BlueprintSearchModel.model.findOne({ blueprintId, lang: 'en' }).select('sourceHash').lean();
+    if (fresh?.sourceHash !== base.sourceHash) return;
+  }
+
   const termIds = base?.termIds ?? [];
   const terms = base?.terms ?? [];
   const clusterKey = base?.clusterKey ?? null;
-  const sourceHash = crypto
-    .createHash('sha256')
-    .update([translatedTitle, translatedDescription, termIds.join(','), clusterKey ?? ''].join(' '), 'utf8')
-    .digest('hex')
-    .slice(0, 16);
+  const sourceHash = computeSourceHash([translatedTitle, translatedDescription, termIds, clusterKey]);
 
   await BlueprintSearchModel.model.updateOne(
     { blueprintId, lang: targetLang },

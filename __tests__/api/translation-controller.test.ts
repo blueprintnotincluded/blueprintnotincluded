@@ -268,6 +268,44 @@ describe('Translation API', function () {
       expect(row!.description).to.equal('[ru] Bonjour le monde et bienvenue');
     });
 
+    it('discards the accreted row when the pivot changes mid-translation (concurrent save)', async function () {
+      this.timeout(3000);
+      const blueprint = await BlueprintModel.model.findById(blueprintId);
+      await upsertSearchRow(blueprint!);
+
+      // Slow the title-translate call down so there's a real window between
+      // the initial pivot read and the write — long enough for a concurrent
+      // save's own search-row derivation to land in between.
+      fake.delayMs = 150;
+
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post(`/api/blueprints/${blueprintId}/translate`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ lang: 'ko' });
+      expect(response.status).to.equal(200);
+
+      // Simulate a concurrent save: the pivot row is re-derived (new title,
+      // new termIds, new sourceHash) while the fire-and-forget title
+      // translation above is still in flight.
+      const resaved = await BlueprintModel.model.findById(blueprintId);
+      resaved!.name = 'Retitled Mid-Flight';
+      await resaved!.save();
+      await upsertSearchRow(resaved!);
+
+      // Poll the full window the fire-and-forget write could land in. If the
+      // stale-pivot guard is missing, the row appears with termIds/title
+      // captured from BEFORE the concurrent save; if it's working, no row is
+      // ever written for this attempt at all.
+      let row = null;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        row = await BlueprintSearchModel.model.findOne({ blueprintId, lang: 'ko' });
+        if (row != null) break;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      expect(row).to.be.null;
+    });
+
     it('comment translation does not write a blueprintsearch row — comments have no field for it', async function () {
       const comment = await CommentModel.model.create({
         blueprintId,
