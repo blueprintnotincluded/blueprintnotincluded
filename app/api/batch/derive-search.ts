@@ -95,13 +95,19 @@ async function run(dryRun: boolean, limit: number | null) {
     console.log(describeScope(limit, dryRun));
 
     // Existing rows' freshness keys, so unchanged blueprints are one $set of
-    // signals, not a full text rewrite (keeps re-runs near no-op).
-    const existing = new Map<string, string>();
+    // signals, not a full text rewrite (keeps re-runs near no-op). `origin`
+    // and `titleOriginal` ride along for the Part 1 §1 backfill below: a row
+    // translated by an earlier run is FRESH, so it never reaches the full
+    // re-derivation and would otherwise never acquire the field.
+    const existing = new Map<string, { sourceHash: string; needsOriginal: boolean }>();
     for await (const row of BlueprintSearchModel.model
       .find({ lang: 'en' })
-      .select('blueprintId sourceHash')
+      .select('blueprintId sourceHash origin titleOriginal')
       .cursor()) {
-      existing.set(row.blueprintId.toString(), row.sourceHash);
+      existing.set(row.blueprintId.toString(), {
+        sourceHash: row.sourceHash,
+        needsOriginal: row.origin === 'machine' && row.titleOriginal == null,
+      });
     }
 
     const cursor = sampledCursor(BlueprintModel.model, {}, limit);
@@ -109,6 +115,7 @@ async function run(dryRun: boolean, limit: number | null) {
     let created = 0;
     let refreshed = 0;
     let fresh = 0;
+    let originalsBackfilled = 0;
     let pending: mongoose.AnyBulkWriteOperation[] = [];
     // Scopes the translation pass to exactly the blueprints this run touched —
     // matters when --limit samples a subset; with no limit this is every row.
@@ -128,10 +135,17 @@ async function run(dryRun: boolean, limit: number | null) {
       const fields = deriveSearchRow(doc);
       const key = (doc._id as mongoose.Types.ObjectId).toString();
       const known = existing.get(key);
-      const isFresh = known != null && known === fields.sourceHash;
+      const isFresh = known != null && known.sourceHash === fields.sourceHash;
       if (known == null) created++;
       else if (!isFresh) refreshed++;
       else fresh++;
+
+      // Part 1 §1 backfill. A fresh machine-translated row's sourceHash is
+      // pinned to the blueprint's current name, so `doc.name` IS the text its
+      // translation was computed from — recoverable exactly, with no provider
+      // call and no guessing. Idempotent: the flag clears once written.
+      const backfillOriginal = isFresh && known!.needsOriginal;
+      if (backfillOriginal) originalsBackfilled++;
 
       // A fresh row only has its signals refreshed — title/origin/terms/
       // termIds/sourceHash are left untouched so a re-run never overwrites a
@@ -142,7 +156,13 @@ async function run(dryRun: boolean, limit: number | null) {
       pending.push({
         updateOne: {
           filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: fields.lang },
-          update: { $set: isFresh ? signalsOf(fields) : fields },
+          update: {
+            $set: isFresh
+              ? backfillOriginal
+                ? { ...signalsOf(fields), titleOriginal: doc.name ?? '' }
+                : signalsOf(fields)
+              : fields,
+          },
           upsert: true,
         },
       });
@@ -153,6 +173,9 @@ async function run(dryRun: boolean, limit: number | null) {
 
     console.log(`\nSearch rows — processed: ${processed}${dryRun ? ' (dry run)' : ''}`);
     console.log(`  new: ${created}, stale (re-derived): ${refreshed}, fresh: ${fresh}`);
+    if (originalsBackfilled > 0) {
+      console.log(`  titleOriginal backfilled on ${originalsBackfilled} already-translated row(s)`);
+    }
 
     const failedBatches = await translateTitles(dryRun, processedIds);
 
@@ -255,11 +278,20 @@ async function translateTitles(
       const result = results[b];
       if (result.degraded) continue;
       const [, group] = batch[b];
+      const [originalTitle] = batch[b];
       for (const blueprintId of group.blueprintIds) {
         ops.push({
           updateOne: {
             filter: { blueprintId, lang: 'en' },
-            update: { $set: { title: result.translatedText, origin: 'machine' } },
+            update: {
+              $set: {
+                title: result.translatedText,
+                // Keeps the authored text in the index (Part 1 §1) — without
+                // it, translating a title removes it from search.
+                titleOriginal: originalTitle,
+                origin: 'machine',
+              },
+            },
           },
         });
       }

@@ -29,6 +29,7 @@ export interface SearchRowFields {
   textLang: string;
   origin: SearchRowOrigin;
   title: string;
+  titleOriginal: string | null;
   description: string;
   terms: string[];
   termIds: string[];
@@ -124,6 +125,10 @@ export function deriveSearchRow(blueprint: Blueprint): SearchRowFields {
     textLang: mongoTextLang(lang),
     origin: 'authored',
     title,
+    // Null while authored: `title` already holds this text, and duplicating it
+    // would double its weight in the text index. Set only by the writers below
+    // that replace `title` with a translation (Part 1 §1).
+    titleOriginal: null,
     description,
     terms,
     termIds,
@@ -185,7 +190,15 @@ export async function deriveSearchRowWithTranslation(
       userId
     );
     if (result.degraded) return base;
-    return { ...base, title: result.translatedText, origin: 'machine' };
+    // titleOriginal keeps the authored text in the index, so a translation can
+    // only ever ADD a match, never remove one — the mitigation that makes
+    // provider-side detection (Part 1 §2) safe to trust.
+    return {
+      ...base,
+      title: result.translatedText,
+      titleOriginal: base.title,
+      origin: 'machine',
+    };
   } catch (err) {
     console.log('title translation error');
     console.log(err);
@@ -213,7 +226,7 @@ export function syncMachineTitle(blueprint: Blueprint, userId: string | null): v
           lang: fields.lang,
           sourceHash: fields.sourceHash,
         },
-        { $set: { title: fields.title, origin: fields.origin } }
+        { $set: { title: fields.title, titleOriginal: fields.titleOriginal, origin: fields.origin } }
       );
     })
     .catch(err => {
@@ -322,6 +335,9 @@ export async function upsertTranslatedSearchRow(params: {
         textLang: mongoTextLang(targetLang),
         origin: 'machine',
         title: translatedTitle,
+        // Only when a translation actually happened; a provider that returned
+        // the input unchanged has produced no second form to preserve.
+        titleOriginal: translatedTitle === title ? null : title,
         description: translatedDescription,
         terms,
         termIds,

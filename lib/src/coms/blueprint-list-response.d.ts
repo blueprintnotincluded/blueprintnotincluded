@@ -5,7 +5,12 @@ export interface BlueprintListResponse {
     oldest: Date;
     remaining: number;
 }
-export interface BlueprintListItem {
+export interface TranslatedTitleFields {
+    displayName?: string;
+    nameTranslated?: boolean;
+    nameSourceLang?: string | null;
+}
+export interface BlueprintListItem extends TranslatedTitleFields {
     id: string;
     name: string;
     ownerId: string;
@@ -60,7 +65,7 @@ export interface BlueprintRateResponse {
 export interface BlueprintDelete {
     blueprintId: string;
 }
-export interface BlueprintResponse {
+export interface BlueprintResponse extends TranslatedTitleFields {
     id: string;
     name: string;
     data: any;
