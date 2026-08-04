@@ -122,10 +122,9 @@ describe('Content locale preference API', function () {
       const profile = await TestSetup.request().get(
         `/api/users/${testData.users.user1.username}/profile`
       );
-      if (profile.status === 200) {
-        expect(profile.body).to.not.have.property('localePreference');
-        expect(profile.body).to.not.have.property('locale');
-      }
+      expect(profile.status).to.equal(200);
+      expect(profile.body).to.not.have.property('localePreference');
+      expect(profile.body).to.not.have.property('locale');
     });
   });
 });

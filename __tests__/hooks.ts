@@ -31,9 +31,22 @@ const waitForDbReady = () => {
 // CI never hits this (fresh mongo per run); a developer's machine always does.
 // syncIndexes drops what the schema no longer declares and creates what it
 // does, which is exactly the migration's effect on the test database.
+// A failure here is reported, not swallowed: silence is exactly the failure
+// mode this hook exists to prevent — an index that didn't sync shows up later
+// as a query returning nothing, with no hint of the cause. Named per model so
+// the message points at the schema to look at. console.error is unavailable
+// (the hook above makes it throw), so this throws out of beforeAll.
 const syncTestIndexes = async () => {
+  const failures: string[] = [];
   for (const name of Object.keys(mongoose.models)) {
-    await mongoose.models[name].syncIndexes().catch(() => undefined);
+    try {
+      await mongoose.models[name].syncIndexes();
+    } catch (err) {
+      failures.push(`${name}: ${(err as Error)?.message ?? String(err)}`);
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(`Failed to sync test indexes —\n  ${failures.join('\n  ')}`);
   }
 };
 

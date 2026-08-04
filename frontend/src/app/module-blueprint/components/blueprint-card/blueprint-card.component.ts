@@ -42,8 +42,8 @@ export class BlueprintCardComponent {
   get translatedTitleTooltip(): string {
     const from = this.localeService.labelFor(this.item.nameSourceLang);
     return from
-      ? $localize`Machine-translated from ${from}. Original: ${this.item.name}`
-      : $localize`Machine-translated. Original: ${this.item.name}`;
+      ? $localize`Machine-translated from ${from}:sourceLanguage:. Original: ${this.item.name}:originalTitle:`
+      : $localize`Machine-translated. Original: ${this.item.name}:originalTitle:`;
   }
 
   constructor(private localeService: ContentLocaleService) {}

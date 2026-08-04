@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable, Subject, of } from "rxjs";
-import { catchError, map, tap } from "rxjs/operators";
+import { catchError, map, shareReplay, tap } from "rxjs/operators";
 import {
   DEFAULT_CONTENT_LOCALE,
   normalizeContentLocale,
@@ -148,7 +148,7 @@ export class ContentLocaleService {
           if (!known) return;
           // Adoption. Guarded on `declared` precisely so a browser default
           // never writes itself onto an account.
-          if (this.declared) this.persistToAccount(this.current);
+          if (this.declared) this.accountWrite(this.current);
         }),
         map(() => this.current),
       );
@@ -157,14 +157,19 @@ export class ContentLocaleService {
   /**
    * The user picked. This is the ONLY path that persists, and it is reached
    * only from a real interaction.
+   *
+   * Returns the account write when there is one, so a caller that is about to
+   * navigate (the picker reloads the page) can let it finish first — a reload
+   * cancels an in-flight request. Null when nothing was written: an invalid
+   * code, or a logged-out visitor whose choice lives only in localStorage.
    */
-  select(code: string, loggedIn: boolean): void {
+  select(code: string, loggedIn: boolean): Observable<unknown> | null {
     const locale = normalizeContentLocale(code);
-    if (locale == null) return;
+    if (locale == null) return null;
     this.declared = true;
     this.writeLocal(locale);
     if (this.currentSubject.value !== locale) this.currentSubject.next(locale);
-    if (loggedIn) this.persistToAccount(locale);
+    return loggedIn ? this.accountWrite(locale) : null;
   }
 
   /** Ask for the picker (user menu, or the machine-translation disclosure). */
@@ -197,10 +202,14 @@ export class ContentLocaleService {
     return option ? option.label : normalized;
   }
 
-  private persistToAccount(locale: string): void {
-    this.http
+  private accountWrite(locale: string): Observable<unknown> {
+    // shareReplay so the caller subscribing to wait for it doesn't issue a
+    // second PATCH, and so the request goes out even if nobody subscribes.
+    const request = this.http
       .patch("/api/users/me/locale-preference", { locale })
-      .subscribe({ error: () => {} });
+      .pipe(shareReplay(1));
+    request.subscribe({ error: () => {} });
+    return request;
   }
 
   private readLocal(): string | null {

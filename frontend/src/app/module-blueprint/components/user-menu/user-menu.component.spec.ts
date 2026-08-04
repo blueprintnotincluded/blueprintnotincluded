@@ -63,6 +63,30 @@ describe("UserMenuComponent", () => {
     expect(component).toBeTruthy();
   });
 
+  describe("Content language", () => {
+    function itemLabelled(label: string) {
+      return component.userMenuItems.find((item) => item.label === label);
+    }
+
+    it("opens the picker when the menu entry is invoked", () => {
+      component.contentLanguageEnabled = true;
+      component.ngOnInit();
+
+      const item = itemLabelled("Content language");
+      expect(item).toBeTruthy();
+      expect(item!.visible).toBe(true);
+      item!.command!({} as any);
+      expect(contentLocaleService.openPicker).toHaveBeenCalled();
+    });
+
+    // The editor menu mounts no picker, and the picker reloads the page on
+    // selection — which would discard unsaved editor work even if it did.
+    it("is hidden where no picker is mounted", () => {
+      const item = itemLabelled("Content language");
+      expect(item!.visible).toBe(false);
+    });
+  });
+
   describe("user menu items", () => {
     it("hides admin items for non-admin users", () => {
       authService.getUserDetails.mockReturnValue(makeUser("user"));

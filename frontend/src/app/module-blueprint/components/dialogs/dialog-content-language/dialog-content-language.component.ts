@@ -81,9 +81,20 @@ export class DialogContentLanguageComponent implements OnInit, OnDestroy {
       this.visible = false;
       return;
     }
-    this.localeService.select(code, this.loggedIn);
+    const accountWrite = this.localeService.select(code, this.loggedIn);
     this.visible = false;
-    this.reload();
+    // A reload cancels an in-flight request, so wait for the account write to
+    // settle first. Either outcome reloads: a failed write costs the
+    // cross-device copy, not the language the user just picked (which is
+    // already in localStorage).
+    if (accountWrite == null) {
+      this.reload();
+      return;
+    }
+    accountWrite.subscribe({
+      next: () => this.reload(),
+      error: () => this.reload(),
+    });
   }
 
   /** Seam for tests — jsdom has no navigation. */

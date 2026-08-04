@@ -107,12 +107,13 @@ export class BlueprintDetailsPageComponent implements OnInit {
     return this.details?.displayName ?? this.details?.name ?? "";
   }
 
-  /** " from Portuguese", or "" when detection was never confident. */
-  get translatedFromSuffix(): string {
-    const from = this.contentLocaleService.labelFor(
-      this.details?.nameSourceLang,
-    );
-    return from ? $localize` from ${from}` : "";
+  /**
+   * The language the title was written in ("Portuguese"), or "" when detection
+   * was never confident — which of the template's two complete disclosure
+   * sentences to render.
+   */
+  get translatedFromLabel(): string {
+    return this.contentLocaleService.labelFor(this.details?.nameSourceLang);
   }
 
   /**

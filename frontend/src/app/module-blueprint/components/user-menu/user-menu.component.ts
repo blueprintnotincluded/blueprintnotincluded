@@ -31,6 +31,14 @@ export class UserMenuComponent implements OnInit {
   // pages hide it since the profile page already covers "see my blueprints".
   @Input() myBlueprintsEnabled = true;
 
+  /**
+   * Whether a content-language picker is mounted alongside this menu. Off by
+   * default because only the site nav mounts one: the picker reloads the page
+   * on selection, which is safe there and would discard unsaved work in the
+   * editor. An item whose command has nothing to open is worse than no item.
+   */
+  @Input() contentLanguageEnabled = false;
+
   @Output() about = new EventEmitter<void>();
   @Output() sendFeedback = new EventEmitter<void>();
   @Output() appearance = new EventEmitter<void>();
@@ -81,6 +89,7 @@ export class UserMenuComponent implements OnInit {
         label: $localize`Content language`,
         icon: "pi pi-globe",
         command: () => this.contentLocaleService.openPicker(),
+        visible: this.contentLanguageEnabled,
       },
       {
         label: $localize`Send Feedback`,
