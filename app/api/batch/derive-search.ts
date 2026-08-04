@@ -290,8 +290,13 @@ async function translateTitles(
     for (let b = 0; b < batch.length; b++) {
       const result = results[b];
       if (result.degraded) continue;
-      const [, group] = batch[b];
-      const [originalTitle] = batch[b];
+      const [originalTitle, group] = batch[b];
+      // Same guard as deriveSearchRowWithTranslation and
+      // detectAmbiguousTitles: a provider that handed the text back unchanged
+      // translated nothing, and marking the row 'machine' would claim a
+      // translation that isn't there while indexing the same string twice
+      // (title + titleOriginal).
+      if (result.translatedText === originalTitle) continue;
       for (const blueprintId of group.blueprintIds) {
         ops.push({
           updateOne: {

@@ -445,7 +445,7 @@ export class ComponentBlueprintParentComponent
     // TODO error handling
     this.messageService.add({
       severity: "success",
-      summary: $localize`Loaded blueprint: ${this.blueprintService.name}`,
+      summary: $localize`Loaded blueprint: ${this.blueprintService.displayName}:blueprintTitle:`,
       detail: $localize`${template.blueprintItems.length} items loaded`,
     });
 

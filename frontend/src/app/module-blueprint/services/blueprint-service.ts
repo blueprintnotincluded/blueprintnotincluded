@@ -41,7 +41,23 @@ export class BlueprintService implements IObsBlueprintChange {
   static baseUrl: string = window.location.origin;
 
   id!: string | null;
+  /** The AUTHORED title. Written back on save — never a translation. */
   name!: string;
+
+  /** Server-resolved title for the open blueprint; null unless it has one. */
+  private resolvedTitle: string | null = null;
+
+  /**
+   * The title to SHOW for the open blueprint, resolved for the reader's
+   * content locale (spec/search-followups.md §2.5). Separate from `name`
+   * precisely because `name` is a write-path value: the save dialog pre-fills
+   * from it and an overwrite writes it straight back, so a translated value
+   * there would rewrite the author's title. Falls back to the authored name,
+   * which is also what every locally imported (never-saved) blueprint gets.
+   */
+  get displayName(): string {
+    return this.resolvedTitle ?? this.name;
+  }
   // TODO observable when modified, to be subscribed by the canvas
   // TODO not sure getter setters are useful
   blueprint_!: Blueprint;
@@ -244,6 +260,9 @@ export class BlueprintService implements IObsBlueprintChange {
 
   reset() {
     this.id = null;
+    // A resolved title belongs to the blueprint it came from — leaving it set
+    // would title the next one with the previous one's translation.
+    this.resolvedTitle = null;
     this.myRating = null;
     this.rating = 0;
     this.nbRatings = 0;
@@ -408,6 +427,7 @@ export class BlueprintService implements IObsBlueprintChange {
 
             this.id = response.id;
             this.name = response.name;
+            this.resolvedTitle = response.displayName ?? null;
             this.nbRatings = response.nbRatings;
             this.rating = response.rating;
             this.myRating = response.myRating;

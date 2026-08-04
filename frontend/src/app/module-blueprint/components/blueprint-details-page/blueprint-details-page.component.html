@@ -61,11 +61,23 @@
                the sentence that raises the question. -->
           <p *ngIf="details.nameTranslated" class="details-title-translated">
             <i class="pi pi-language" aria-hidden="true"></i>
-            <span i18n
-              >Title machine-translated{{ translatedFromSuffix }}. Originally
+            <!-- Two complete sentences rather than one with a " from X"
+                 fragment spliced in: a fragment has no grammatical context, so
+                 it cannot be translated correctly (or at all) on its own. -->
+            <span
+              *ngIf="translatedFromLabel as fromLabel; else noSourceLang"
+              i18n
+              >Title machine-translated from {{ fromLabel }}. Originally
               <span class="details-title-original">{{ details.name }}</span
               >.</span
             >
+            <ng-template #noSourceLang>
+              <span i18n
+                >Title machine-translated. Originally
+                <span class="details-title-original">{{ details.name }}</span
+                >.</span
+              >
+            </ng-template>
             <button
               type="button"
               class="details-title-lang"

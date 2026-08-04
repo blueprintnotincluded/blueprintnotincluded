@@ -454,8 +454,8 @@ Part 1 §1/§2.
   The backfill also fills the field on rows an earlier run already translated — those rows are
   *fresh*, so they never reach full re-derivation, and their `sourceHash` pins them to the
   current `blueprint.name`, making the authored text recoverable exactly with no provider call.
-- **Provider-side detection** (`spec/search-followups.md` Part 1 §2) — a third `derive-search`
-  pass for titles `detectLanguageCode` can't place at all: short, romanized or
+- **Provider-side detection** (`spec/search-followups.md` Part 1 §2) — `derive-search`'s **second
+  translation pass**, for titles `detectLanguageCode` can't place at all: short, romanized or
   diacritic-stripped non-English (`Dien phan full`). Those clear neither detection gate, so
   phase 3b never sees them and no amount of re-running it will. Candidates are rows still
   `origin: 'authored'` whose tokens the term dictionary does **not** fully resolve (an

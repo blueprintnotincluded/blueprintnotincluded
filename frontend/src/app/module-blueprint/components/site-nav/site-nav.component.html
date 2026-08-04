@@ -23,6 +23,7 @@
     ></app-notification-bell>
     <app-user-menu
       [myBlueprintsEnabled]="false"
+      [contentLanguageEnabled]="true"
       (about)="about.emit()"
       (sendFeedback)="sendFeedback.emit()"
       (appearance)="appearance.emit()"
