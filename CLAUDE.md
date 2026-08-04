@@ -96,6 +96,7 @@ Remaining batch utilities:
 - `npm run fixHtmlLabels` - Fix HTML formatting in labels.
 - `npm run derive-metadata` - Backfill `requiredDlcs`, `mods`, `modded` and `category` on all blueprint documents from stored building IDs. Use `--dry-run` flag (`npm run derive-metadata:dry-run`) to preview counts without writing. Both modes report the prefab ids found in blueprints but missing from `database-2024.json` — those ids drive `modded=true` **and** contribute no `dlcIds`, so each one is a blueprint silently reading as base game. `modded` is written in both directions (a false positive can be cleared), except that `hadUnknownBuildings: true` always wins — those blueprints had unknown buildings stripped at import, so re-derivation can't rediscover them. Note `Element` is an editor annotation synthesized by `OniItem.load`, not a database building; it must be added to any `knownIds` set built from `database-2024.json` or every annotated blueprint reads as modded. The retired `Info` id belongs in that set too — it no longer registers an `OniItem`, but pre-migration documents can still carry it. Add `--recategorize` (`npm run derive-metadata -- --recategorize`) to re-derive `category` for documents that already have one, overwriting user picks; needed whenever the scoring rules in `blueprint-analyzer` change, since the default only fills in nulls.
 - `npm run derive-rooms` / `derive-rooms:dry-run` - Re-derive the `rooms` field on all non-deleted blueprints with the same detector the save path uses.
+- `npm run derive-search` / `derive-search:dry-run` - Rebuild the `blueprintsearch` rows, then run two translation passes over the titles: confidently non-English ones, and (unless `--skip-provider-detect`) the ones our own detector can't place, which are sent to the provider to identify. Rerunnable — fresh rows only get their ranking signals refreshed, already-translated rows are left alone, and repeat provider questions are cache reads. **Run `npm run migrate:up` first** whenever the text index has changed.
 - **`--limit N` on both derive tasks** - A full pass loads every stored blueprint blob (~10 min on the live corpus), so diagnostic dry runs take `--limit N` (`npm run derive-metadata -- --dry-run --limit 100`). The capped run samples **randomly**, not the first N: natural order tracks insertion date and so does everything these reports measure, so a head sample would report the oldest blueprints' problems as the corpus average. Percentages from a sampled run extrapolate; the absolute counts don't. Shared helper: `app/api/batch/batch-sampling.ts`.
 - `npm run avatars:smoke` / `avatars:seed-batch -- --count N` / `avatars:backfill[:dry-run]` - Gemini avatar pipeline (costs real money per generation; setup + rollout order in `agent/AVATARS.md`).
 - `npm run backfill-previews` - Render preview images for all non-deleted blueprints (newest first) and store them durably in Mongo (`previewimages` collection). Skips blueprints whose durable rows are already fresh, so it's rerunnable/resumable. Use `--dry-run` (`npm run backfill-previews:dry-run`) to report the fresh/stale split without rendering or writing.
@@ -364,17 +365,20 @@ on download. `Info` now survives as an *input* format only.
 - **Editing** — `NotesTool` + `components/note-edit-panel/`. There is no other annotation UI.
 
 ### Search (blueprintsearch) & user-content translation
-`spec/multilingual-search-plan.md` phases 0–1 + the reworked translation foundation.
+`spec/multilingual-search-plan.md` phases 0–5 (all shipped) + `spec/search-followups.md`
+Part 1 §1/§2.
 - **Search documents** — `blueprintsearch` collection (`app/api/models/blueprint-search.ts`),
   one row per `(blueprintId, lang)`; every blueprint has an `en` row (the pivot invariant).
-  Holds title/description/`terms[]` (display names) under the collection's single text index
-  (title 10 / terms 4 / description 1, `language_override: 'textLang'` — ISO `lang` stays an
+  Holds title/`titleOriginal`/description/`terms[]` (display names) under the collection's
+  single text index (title 10 / titleOriginal 4 / terms 4 / description 1,
+  `language_override: 'textLang'` — ISO `lang` stays an
   open set, `textLang` maps unsupported stemmers to `none`), `termIds[]` (prefab + room ids,
   language-independent), and denormalized ranking signals. Rows are **derived and disposable**
   (`npm run derive-search[:dry-run]`, `--limit N`); they are advisory for retrieval only — the
   final page fetch re-applies the authoritative filter on `blueprints`, so a stale row can cost
   recall but never leak a draft/deleted doc. Save path upserts the row (awaited, non-fatal);
-  delete/publish/rating-recompute patch status/signals fire-and-forget.
+  delete/publish/rating-recompute patch status/signals fire-and-forget. **The row is now also a
+  display source** — see "Content locale" below for why that widening is judged safe.
 - **Retrieval** (`app/api/services/search-service.ts`) — normalize → term-resolve → lexical
   (`$text`) + structural (`termIds` ∩ resolved ids) → RRF fuse → rank. Pure pieces live in
   `lib/src/search/` (`query-normalize`, `term-resolve`, `rrf`, `ranking` — the ranking spec
@@ -436,8 +440,90 @@ on download. `Info` now survives as an *input* format only.
   translation call. Verified against the real Google provider: a Vietnamese title saved
   through the live API produced `sourceLang: 'vi'` and a `blueprintsearch` row with
   `origin: 'machine'`, and an English query then found it.
-- **Not built yet** (later phases of the plan): query translation + `searchqueries` telemetry,
-  IDF weighting for structural matches, semantic retrieval.
+- **`titleOriginal`** (`spec/search-followups.md` Part 1 §1) — translating a title used to
+  *replace* it, deleting the author's own words from the index: `Cozinha estrategia em choque`
+  became findable by "strategic cooking" and no longer by itself. Worst exactly where query
+  translation also fails (romanized text neither end detects), so both directions broke at once.
+  The field holds the authored text whenever `origin` is `'machine'` and is **null while
+  `authored`**, where it would only duplicate `title` and double its index weight. Weighted 4,
+  not 10 — at `title`'s weight a translated row competes with itself. Derived wholesale, never
+  appended, so it cannot accumulate (the objection that ruled out `terms[]`).
+  Adding it to the text index needs `migrations/20260804000000_search-title-original.js`:
+  Mongo won't alter an index in place and Mongoose's autoIndex hits IndexOptionsConflict, which
+  surfaces only as a logged error. **Deploy order: migrate, then `npm run derive-search`.**
+  The backfill also fills the field on rows an earlier run already translated — those rows are
+  *fresh*, so they never reach full re-derivation, and their `sourceHash` pins them to the
+  current `blueprint.name`, making the authored text recoverable exactly with no provider call.
+- **Provider-side detection** (`spec/search-followups.md` Part 1 §2) — a third `derive-search`
+  pass for titles `detectLanguageCode` can't place at all: short, romanized or
+  diacritic-stripped non-English (`Dien phan full`). Those clear neither detection gate, so
+  phase 3b never sees them and no amount of re-running it will. Candidates are rows still
+  `origin: 'authored'` whose tokens the term dictionary does **not** fully resolve (an
+  all-game-nouns title is already findable structurally — nothing to buy). **The trap:**
+  `translateMany` short-circuits on `sourceLang == null && ASCII_ONLY`, which is exactly this
+  candidate set, so the input carries `forceProviderDetection: true` to bypass it; without that
+  the pass makes no provider call and still reports success. A result is accepted only when the
+  provider reports a non-`en` source **and** changed the text. On by default;
+  `--skip-provider-detect` opts out. Re-runs are cache reads (`translationunits` is keyed by
+  text hash), so it is idempotent and near-free after the first.
+- **Declared source language** (`spec/search-followups.md` §2.6) — `saveBlueprint` prefers the
+  author's stored `localePreference` over `Accept-Language` as the detection prior, and passes
+  it to `syncMachineTitle`. On that path `confidence: 'prior'` **is** trusted, deliberately
+  reversing the rule phase 3b set: same mechanism, different evidence — a browser header is a
+  default nobody chose, a picker setting is the user's own statement. Guards keep a
+  misdeclaration cheap: the provider must report non-`en`, and a provider that returns the input
+  unchanged never marks the row `'machine'` (which would claim a translation that isn't there
+  and index the same string twice).
+- **Not built yet** (later phases of the plan): IDF weighting for structural matches, semantic
+  retrieval, native-language search rows (`spec/search-followups.md` §2.9), and retrieval
+  reading the accreted non-English rows at all (still hard-codes `lang: 'en'` — Part 1 §4).
+
+### Content locale (what language you read blueprints in)
+`spec/search-followups.md` Part 2. **Not** UI localization — the chrome stays English for
+everyone (see "UI localization state"), so this routes no bundles and prefixes no paths.
+- **The rule** (§2.5), one shared implementation in `lib/src/blueprint/content-locale.ts`'s
+  `resolveTitle`: authored-in-your-language → a translation into your language → the English
+  translation → the authored title. The last step is what lets this ship ahead of any backfill:
+  it can never produce a blank title.
+- **Applied at the response boundary only** — `app/api/services/title-resolution-service.ts`,
+  used by the list, details, related-shelf and editor-open responses. One query per page;
+  any failure yields authored titles for everything. Inlining the rule per endpoint is how a
+  card and its details page end up disagreeing about a blueprint's name.
+- **`Blueprint.name` is never mutated and never changes meaning.** The resolved title rides in
+  a separate `displayName` (+`nameTranslated`/`nameSourceLang`), so the `{owner,name}` duplicate
+  check, download filenames and the editor's save path keep reading authored text.
+  Editor-open resolves for chrome only — the editor stores `name` and its save dialog pre-fills
+  from it, so translating that field would rewrite the author's title on their next save.
+- **`?lang=` is an explicit query param, never `Accept-Language`**: these responses are
+  Cloudflare-cached and a param keys cleanly where `Vary: Accept-Language` fragments the cache
+  per browser. The client omits it entirely for English, so the ordinary browse URL is
+  unchanged. Facet counts take no `lang` — they return no titles.
+- **Reading display titles from `blueprintsearch` widens its contract** from "advisory for
+  retrieval only". Confirmed, not overturned, on three grounds: the chain always terminates at
+  `Blueprint.name` so a lost row degrades to authored text; machine titles rebuild for free from
+  the `translationunits` text-hash cache; and rows stay advisory for *visibility* because the
+  authoritative filter still runs against `blueprints`. The rejected alternative was a
+  `titleTranslations` map on the blueprint document — more obviously correct, but a second write
+  path and a migration for data that is already derivable.
+- **`User.localePreference`** (base ISO tag) + `GET`/`PATCH /api/users/me/locale-preference`,
+  mirroring `themePreference`/`dlcPreferences`: private, never in `ProfileResponse`, absent
+  means "never chosen". It reports `null` rather than `'en'` when unset, unlike
+  `themePreference` — the client's own default is `navigator.language`, and answering `'en'`
+  would override that on every device. The language set is **open** (shape-validated only): a
+  user may declare a language we never translate *into*.
+- **Picker** — `components/dialogs/dialog-content-language/`, mounted in the site nav and opened
+  off `ContentLocaleService.openRequests$`, so the user-menu entry and the ambient entry point
+  on the details page both reach it with no component wiring. Three states kept distinct:
+  declared (localStorage + account), guessed (`navigator.language`, **never persisted** — a
+  default that writes itself is indistinguishable from a choice, which would ruin the §2.10
+  "who reads in what language" measurement), and English. Login adopts a local declaration into
+  an account that has none; a *failed* lookup is explicitly not "the account has none", or one
+  flaky GET would overwrite a preference set elsewhere. Selecting reloads the page — the locale
+  is a request parameter, so everything on screen was fetched under the old one.
+- **Disclosure is mandatory and ships with the display** (§2.7): cards carry a quiet
+  `pi-language` glyph whose tooltip holds the author's original; the details page states the
+  fact, shows the original, and links to the picker. Machine output is never presented as the
+  author's own words.
 
 ### Blueprint titles are Unicode
 `Blueprint.name` was `/^[a-zA-Z0-9_ -]+$/`, which 400'd every non-English title at save. The
