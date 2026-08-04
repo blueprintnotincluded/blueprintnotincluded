@@ -35,6 +35,20 @@ export interface BlueprintSearch extends Document {
   textLang: string;
   origin: SearchRowOrigin;
   title: string;
+  // The author's own title, retained ONLY when `title` has been replaced by a
+  // translation (spec/search-followups.md Part 1 §1). Before this field, a row
+  // flipping to `origin: 'machine'` deleted the authored text from the index
+  // entirely: 'Cozinha estrategia em choque' became findable by "strategic
+  // cooking" and no longer by its own words. That is worst exactly where
+  // query translation also fails — romanized or diacritic-stripped text, whose
+  // language neither end detects — so both ends broke at once and the literal
+  // fallback had been thrown away.
+  //
+  // null while `origin` is 'authored', deliberately: there it would duplicate
+  // `title` verbatim and double that text's weight in the text index for no
+  // gain. It is derived wholesale, never appended to, so it cannot accumulate
+  // stale pseudo-titles the way a `terms[]` entry would have.
+  titleOriginal: string | null;
   description: string;
   // Localized display names of contained buildings/rooms — text-searchable.
   terms: string[];
@@ -72,6 +86,7 @@ export class BlueprintSearchModel {
         textLang: { type: String, required: true, default: 'none' },
         origin: { type: String, enum: SEARCH_ROW_ORIGINS, required: true },
         title: { type: String, required: true, default: '' },
+        titleOriginal: { type: String, default: null },
         description: { type: String, default: '' },
         terms: { type: [String], default: [] },
         termIds: { type: [String], default: [] },
@@ -92,10 +107,18 @@ export class BlueprintSearchModel {
     searchSchema.index({ blueprintId: 1, lang: 1 }, { unique: true });
     searchSchema.index({ termIds: 1 });
     searchSchema.index({ clusterKey: 1 });
+    // Adding/removing a field here changes the index definition, which Mongo
+    // will not do in place — see migrations/20260804000000_search-title-original.js,
+    // which drops and recreates it under the same name.
+    //
+    // titleOriginal sits at the `terms` weight, not `title`'s: a
+    // machine-translated row holds both forms, and equal weighting would make
+    // it compete with itself, letting a translated row outrank an authored one
+    // purely for carrying the same text twice.
     searchSchema.index(
-      { title: 'text', terms: 'text', description: 'text' },
+      { title: 'text', titleOriginal: 'text', terms: 'text', description: 'text' },
       {
-        weights: { title: 10, terms: 4, description: 1 },
+        weights: { title: 10, titleOriginal: 4, terms: 4, description: 1 },
         language_override: 'textLang',
         default_language: 'en',
         name: 'blueprint_search_text',

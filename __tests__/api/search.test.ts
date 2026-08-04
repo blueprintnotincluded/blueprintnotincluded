@@ -533,6 +533,90 @@ describe('Search (blueprintsearch)', function () {
     });
   });
 
+  // spec/search-followups.md Part 1 §1. Translating a title used to DELETE the
+  // authored text from the index; titleOriginal keeps it, so a translation can
+  // only ever add a match.
+  describe('titleOriginal (Part 1 §1)', function () {
+    let fake: FakeTranslationProvider;
+
+    beforeEach(async function () {
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+      fake = new FakeTranslationProvider();
+      TranslationService.setInstanceForTest(new TranslationService(fake));
+    });
+
+    afterEach(async function () {
+      TranslationService.setInstanceForTest(null);
+      await TranslationUnitModel.model.deleteMany({});
+      await TranslationBudgetModel.model.deleteMany({});
+    });
+
+    it('is null on an authored row, where it would only duplicate title', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Cooling Loop System For My Base',
+        data: bpData(['WaterPurifier']),
+      });
+      expect(deriveSearchRow(doc).titleOriginal).to.equal(null);
+    });
+
+    it('holds the authored title once the row flips to machine', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Máy lọc nước',
+        data: bpData(['WaterPurifier']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null);
+      expect(fields.origin).to.equal('machine');
+      expect(fields.title).to.equal('[en] Máy lọc nước');
+      expect(fields.titleOriginal).to.equal('Máy lọc nước');
+    });
+
+    // The actual deliverable: the blueprint stays findable by the words its
+    // author typed, even though the indexed title is now English.
+    it('keeps a translated blueprint findable by its authored title', async function () {
+      const englishProvider: TranslationProvider = {
+        isConfigured: () => true,
+        translate: async texts => texts.map(() => ({ text: 'Strategic cooking', detectedSourceLang: 'pt' })),
+      };
+      TranslationService.setInstanceForTest(new TranslationService(englishProvider));
+
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Cozinha estrategia em choque',
+        data: bpData(['WaterPurifier']),
+        isPublished: true,
+      });
+      const fields = await deriveSearchRowWithTranslation(doc, null);
+      await BlueprintSearchModel.model.updateOne(
+        { blueprintId: doc._id, lang: 'en' },
+        { $set: { title: fields.title, titleOriginal: fields.titleOriginal, origin: fields.origin } }
+      );
+
+      const id = (doc._id as Types.ObjectId).toString();
+
+      // Both forms hit the same row.
+      const english = await searchBlueprintIds('strategic cooking');
+      expect(english.map(String)).to.include(id);
+
+      const authored = await searchBlueprintIds('cozinha estrategia');
+      expect(authored.map(String)).to.include(id);
+    });
+
+    // Derived wholesale on every full derivation, so it cannot accumulate —
+    // the objection that ruled out putting the authored text in terms[].
+    it('is cleared when a re-derivation resets the row to authored', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Máy lọc nước',
+        data: bpData(['WaterPurifier']),
+      });
+      const translated = await deriveSearchRowWithTranslation(doc, null);
+      expect(translated.titleOriginal).to.not.equal(null);
+
+      doc.name = 'Water Sieve Setup For My Base';
+      expect(deriveSearchRow(doc).titleOriginal).to.equal(null);
+    });
+  });
+
   describe('query translation (phase 4)', function () {
     let fake: FakeTranslationProvider;
 

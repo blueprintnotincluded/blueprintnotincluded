@@ -24,6 +24,19 @@ const waitForDbReady = () => {
   });
 };
 
+// A long-lived local test database keeps whatever indexes an older schema
+// created, and Mongo refuses to redefine one in place — so a field newly added
+// to the blueprintsearch text index is simply not indexed, and the failure
+// surfaces as a search test that finds nothing rather than as an index error.
+// CI never hits this (fresh mongo per run); a developer's machine always does.
+// syncIndexes drops what the schema no longer declares and creates what it
+// does, which is exactly the migration's effect on the test database.
+const syncTestIndexes = async () => {
+  for (const name of Object.keys(mongoose.models)) {
+    await mongoose.models[name].syncIndexes().catch(() => undefined);
+  }
+};
+
 export const mochaHooks: RootHookObject = {
   beforeAll: [
     function () {
@@ -34,5 +47,6 @@ export const mochaHooks: RootHookObject = {
       console.error = fail('error') as typeof console.error;
     },
     waitForDbReady,
+    syncTestIndexes,
   ],
 };
