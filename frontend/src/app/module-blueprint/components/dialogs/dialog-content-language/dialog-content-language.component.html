@@ -1,0 +1,66 @@
+<p-dialog
+  i18n-header
+  header="Content language"
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '460px' }"
+  [breakpoints]="{ '600px': '92vw' }"
+  [draggable]="false"
+  styleClass="bni-skin"
+>
+  <p class="lang-intro" i18n>
+    Which language you read blueprint titles in. Titles written in another
+    language are shown machine-translated into yours where we have a
+    translation, and marked as such — the original is always one click away.
+  </p>
+  <p class="lang-intro lang-intro--aside" i18n>
+    This does not change the language of the site itself, which is English for
+    now.
+  </p>
+
+  <div
+    class="lang-grid"
+    role="radiogroup"
+    aria-label="Content language"
+    i18n-aria-label
+  >
+    <button
+      *ngFor="let option of options"
+      type="button"
+      role="radio"
+      class="lang-option"
+      [class.active]="current === option.code"
+      [attr.aria-checked]="current === option.code"
+      (click)="select(option.code)"
+    >
+      <span class="lang-endonym">{{ option.endonym }}</span>
+      <span class="lang-label">{{ option.label }}</span>
+      <svg
+        *ngIf="current === option.code"
+        class="lang-check"
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 12.5l5.5 5.5L20 6"></path>
+      </svg>
+    </button>
+  </div>
+
+  <p class="lang-footnote" *ngIf="guessed" i18n>
+    Nothing chosen yet — this is your browser's language. Pick one to make it
+    stick.
+  </p>
+  <p class="lang-footnote" *ngIf="!guessed && loggedIn" i18n>
+    Saved to your account, so it follows you to other devices.
+  </p>
+  <p class="lang-footnote" *ngIf="!guessed && !loggedIn" i18n>
+    Saved in this browser. Log in and it will follow you to other devices.
+  </p>
+</p-dialog>

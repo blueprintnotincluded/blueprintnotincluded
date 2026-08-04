@@ -103,6 +103,7 @@ import { TranslationService } from "./services/translation.service";
 import { BlueprintVersionService } from "./services/blueprint-version.service";
 import { BrowsePageComponent } from "./components/browse-page/browse-page.component";
 import { DialogThemeComponent } from "./components/dialogs/dialog-theme/dialog-theme.component";
+import { DialogContentLanguageComponent } from "./components/dialogs/dialog-content-language/dialog-content-language.component";
 import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
 import { DialogFollowListComponent } from "./components/dialogs/dialog-follow-list/dialog-follow-list.component";
 import { NotificationBellComponent } from "./components/notification-bell/notification-bell.component";
@@ -166,6 +167,7 @@ import { TerrainToolComponent } from "./components/side-bar/terrain-tool/terrain
     BlueprintDetailsPageComponent,
     BrowsePageComponent,
     DialogThemeComponent,
+    DialogContentLanguageComponent,
     ProfilePageComponent,
     DialogFollowListComponent,
     NotificationBellComponent,

@@ -12,6 +12,7 @@ import { BlueprintService } from "../../services/blueprint-service";
 import { AuthenticationService } from "../../services/authentification-service";
 import { ModsService } from "../../services/mods-service";
 import { TranslationService } from "../../services/translation.service";
+import { ContentLocaleService } from "../../services/content-locale.service";
 
 function makeDetails(overrides: any = {}) {
   return {
@@ -53,17 +54,23 @@ describe("BlueprintDetailsPageComponent", () => {
   let router: any;
   let modsService: any;
   let translationService: any;
+  let contentLocaleService: any;
 
   beforeEach(async () => {
     blueprintService = {
       getBlueprintDetails: vi.fn().mockReturnValue(of(makeDetails())),
       getRelatedBlueprints: vi.fn().mockReturnValue(of({ blueprints: [] })),
+      downloadBlueprintFile: vi.fn().mockReturnValue(of(undefined)),
       setPublished: vi.fn().mockReturnValue(of({ isPublished: true })),
       deleteBlueprint: vi.fn().mockReturnValue(of({ deleteBlueprint: "OK" })),
     };
     authService = { isLoggedIn: vi.fn().mockReturnValue(true) };
     messageService = { add: vi.fn() };
     router = { navigate: vi.fn() };
+    contentLocaleService = {
+      labelFor: (code: string | null) => code ?? "",
+      openPicker: vi.fn(),
+    };
     modsService = {
       getMods: vi.fn().mockReturnValue(
         of([
@@ -93,6 +100,7 @@ describe("BlueprintDetailsPageComponent", () => {
         { provide: MessageService, useValue: messageService },
         { provide: ModsService, useValue: modsService },
         { provide: TranslationService, useValue: translationService },
+        { provide: ContentLocaleService, useValue: contentLocaleService },
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
@@ -413,6 +421,92 @@ describe("BlueprintDetailsPageComponent", () => {
     expect(downloads.nativeElement.textContent).toContain("1");
     expect(downloads.nativeElement.textContent).toContain("download");
     expect(downloads.nativeElement.textContent).not.toContain("downloads");
+  });
+
+  describe("machine-translated title", () => {
+    it("renders the authored name when the response carries no resolution", () => {
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css("h1")).nativeElement.textContent,
+      ).toContain("Super Coal Generator Setup");
+      expect(
+        fixture.debugElement.query(By.css(".details-title-translated")),
+      ).toBeNull();
+    });
+
+    it("renders the resolved title with the original alongside it", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(
+          makeDetails({
+            name: "Cozinha estrategia em choque",
+            displayName: "Strategic cooking in conflict",
+            nameTranslated: true,
+            nameSourceLang: "pt",
+          }),
+        ),
+      );
+      fixture = TestBed.createComponent(BlueprintDetailsPageComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      expect(
+        fixture.debugElement.query(By.css("h1")).nativeElement.textContent,
+      ).toContain("Strategic cooking in conflict");
+
+      const disclosure = fixture.debugElement.query(
+        By.css(".details-title-translated"),
+      );
+      expect(disclosure).not.toBeNull();
+      expect(disclosure.nativeElement.textContent).toContain(
+        "Cozinha estrategia em choque",
+      );
+    });
+
+    // The ambient entry point: a reader looking at a machine translation is
+    // exactly the reader who wants to find the setting behind it.
+    it("opens the language picker from the disclosure", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(
+          makeDetails({
+            displayName: "Translated",
+            nameTranslated: true,
+            nameSourceLang: "pt",
+          }),
+        ),
+      );
+      fixture = TestBed.createComponent(BlueprintDetailsPageComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css(".details-title-lang"))
+        .nativeElement.click();
+      expect(contentLocaleService.openPicker).toHaveBeenCalled();
+    });
+
+    // The download filename, the delete confirmation and the publish toasts
+    // are about the author's own blueprint, not about what this reader sees.
+    it("downloads under the authored name, not the translated one", () => {
+      blueprintService.getBlueprintDetails.mockReturnValue(
+        of(
+          makeDetails({
+            name: "Cozinha estrategia em choque",
+            displayName: "Strategic cooking in conflict",
+            nameTranslated: true,
+            nameSourceLang: "pt",
+          }),
+        ),
+      );
+      fixture = TestBed.createComponent(BlueprintDetailsPageComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.downloadBlueprint(new Event("click"));
+      expect(blueprintService.downloadBlueprintFile).toHaveBeenCalledWith(
+        "bp1",
+        "Cozinha estrategia em choque",
+      );
+    });
   });
 
   describe("translate description", () => {

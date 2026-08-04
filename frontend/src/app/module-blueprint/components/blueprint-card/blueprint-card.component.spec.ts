@@ -4,6 +4,7 @@ import { By } from "@angular/platform-browser";
 
 import { BlueprintCardComponent } from "./blueprint-card.component";
 import { QueuedPreviewDirective } from "../../directives/queued-preview.directive";
+import { ContentLocaleService } from "../../services/content-locale.service";
 
 function makeItem(overrides: any = {}) {
   return {
@@ -37,6 +38,14 @@ describe("BlueprintCardComponent", () => {
       declarations: [BlueprintCardComponent],
       imports: [QueuedPreviewDirective],
       schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        // Only used for the "translated from X" tooltip; stubbed so the card
+        // spec stays free of HttpClient.
+        {
+          provide: ContentLocaleService,
+          useValue: { labelFor: (code: string | null) => code ?? "" },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BlueprintCardComponent);
@@ -47,6 +56,68 @@ describe("BlueprintCardComponent", () => {
     component.item = makeItem();
     fixture.detectChanges();
     expect(component).toBeTruthy();
+  });
+
+  describe("viewer-resolved title", () => {
+    it("shows the authored name when the response carries no resolution", () => {
+      component.item = makeItem();
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".bni-card__title")).nativeElement
+          .textContent,
+      ).toContain("Real Blueprint");
+      expect(
+        fixture.debugElement.query(By.css(".card-title-translated")),
+      ).toBeNull();
+    });
+
+    it("shows the resolved display title when there is one", () => {
+      component.item = makeItem({
+        name: "Cozinha estrategia em choque",
+        displayName: "Strategic cooking in conflict",
+        nameTranslated: true,
+        nameSourceLang: "pt",
+      });
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".bni-card__title")).nativeElement
+          .textContent,
+      ).toContain("Strategic cooking in conflict");
+    });
+
+    // Machine output must never be presented as the author's own words, and
+    // the original has to stay reachable.
+    it("marks a machine-translated title and keeps the original in the tooltip", () => {
+      component.item = makeItem({
+        name: "Cozinha estrategia em choque",
+        displayName: "Strategic cooking in conflict",
+        nameTranslated: true,
+        nameSourceLang: "pt",
+      });
+      fixture.detectChanges();
+
+      const marker = fixture.debugElement.query(
+        By.css(".card-title-translated"),
+      );
+      expect(marker).not.toBeNull();
+      expect(marker.nativeElement.getAttribute("title")).toContain(
+        "Cozinha estrategia em choque",
+      );
+      expect(marker.nativeElement.getAttribute("title")).toContain("pt");
+    });
+
+    // A human-reviewed translation is a different claim from a machine one.
+    it("does not mark a resolved title that is not machine output", () => {
+      component.item = makeItem({
+        name: "Ферма",
+        displayName: "Farm",
+        nameTranslated: false,
+      });
+      fixture.detectChanges();
+      expect(
+        fixture.debugElement.query(By.css(".card-title-translated")),
+      ).toBeNull();
+    });
   });
 
   it("links the thumbnail and title to the details page, not the editor", () => {

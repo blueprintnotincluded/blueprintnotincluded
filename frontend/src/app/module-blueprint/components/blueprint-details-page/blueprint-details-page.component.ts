@@ -27,6 +27,7 @@ import sanitize from "sanitize-filename";
 import { ModsService } from "../../services/mods-service";
 import { TranslationService } from "../../services/translation.service";
 import { TranslateBlueprintResponse } from "../../../../../../lib/index";
+import { ContentLocaleService } from "../../services/content-locale.service";
 
 const BACK_TO_DISCOVER = $localize`:blueprintDetails.backToDiscover:Back to Discover`;
 const BACK_TO_PROFILE = $localize`:blueprintDetails.backToProfile:Back to Profile`;
@@ -79,6 +80,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     private modsService: ModsService,
     private translationService: TranslationService,
     public authService: AuthenticationService,
+    private contentLocaleService: ContentLocaleService,
   ) {}
 
   // Only shown when logged in (the translate endpoint requires auth — an
@@ -93,6 +95,33 @@ export class BlueprintDetailsPageComponent implements OnInit {
       sourceLang != null &&
       !this.translationService.matchesViewerLang(sourceLang)
     );
+  }
+
+  /**
+   * The heading. `details.name` stays the authored title and is what the
+   * download filename, the delete confirmation and the publish toasts use —
+   * those are about the author's own blueprint, not about what this reader is
+   * shown.
+   */
+  get displayTitle(): string {
+    return this.details?.displayName ?? this.details?.name ?? "";
+  }
+
+  /** " from Portuguese", or "" when detection was never confident. */
+  get translatedFromSuffix(): string {
+    const from = this.contentLocaleService.labelFor(
+      this.details?.nameSourceLang,
+    );
+    return from ? $localize` from ${from}` : "";
+  }
+
+  /**
+   * The ambient entry point (§2.7): a reader who is looking at a machine
+   * translation is exactly the reader who wants to know where that setting
+   * lives. Opens the picker mounted in the site nav.
+   */
+  openLanguagePicker(): void {
+    this.contentLocaleService.openPicker();
   }
 
   translating = false;
