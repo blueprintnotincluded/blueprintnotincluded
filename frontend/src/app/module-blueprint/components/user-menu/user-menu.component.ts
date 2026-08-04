@@ -10,6 +10,7 @@ import { Menu } from "primeng/menu";
 import { MenuItem, MessageService } from "primeng/api";
 import { Router } from "@angular/router";
 import { AuthenticationService } from "../../services/authentification-service";
+import { ContentLocaleService } from "../../services/content-locale.service";
 
 export interface BrowseData {
   filterUserId: string;
@@ -43,6 +44,7 @@ export class UserMenuComponent implements OnInit {
     public authService: AuthenticationService,
     private messageService: MessageService,
     private router: Router,
+    private contentLocaleService: ContentLocaleService,
   ) {}
 
   ngOnInit() {
@@ -74,6 +76,11 @@ export class UserMenuComponent implements OnInit {
         label: $localize`Appearance`,
         icon: "pi pi-palette",
         command: () => this.appearance.emit(),
+      },
+      {
+        label: $localize`Content language`,
+        icon: "pi pi-globe",
+        command: () => this.contentLocaleService.openPicker(),
       },
       {
         label: $localize`Send Feedback`,

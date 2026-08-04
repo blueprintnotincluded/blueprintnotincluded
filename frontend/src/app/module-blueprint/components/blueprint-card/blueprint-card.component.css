@@ -31,6 +31,23 @@
   background: var(--bni-tag-hi);
 }
 
+/* The machine-translation marker. Sits with the title, not with the chips:
+   it qualifies the words next to it, and a reader scanning for "why did this
+   match" looks at the title. Muted against the tag stock so it reads as a
+   footnote rather than a status. */
+.card-title-translated {
+  flex: none;
+  align-self: center;
+  /* The row is space-between over title and stars; without this the marker
+     becomes a third distributed item and floats into the middle of the gap
+     instead of staying attached to the words it qualifies. */
+  margin-right: auto;
+  margin-left: -6px;
+  font-size: 12px;
+  opacity: 0.55;
+  cursor: help;
+}
+
 .card-stars {
   flex: none;
   padding-top: 3px;

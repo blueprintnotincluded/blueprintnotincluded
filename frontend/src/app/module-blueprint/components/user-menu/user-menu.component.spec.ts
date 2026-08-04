@@ -8,6 +8,7 @@ import {
   AuthenticationService,
   UserDetails,
 } from "src/app/module-blueprint/services/authentification-service";
+import { ContentLocaleService } from "src/app/module-blueprint/services/content-locale.service";
 
 function makeUser(role: "user" | "admin" = "user"): UserDetails {
   return {
@@ -25,6 +26,7 @@ describe("UserMenuComponent", () => {
   let authService: any;
   let router: any;
   let messageService: any;
+  let contentLocaleService: any;
 
   beforeEach(async () => {
     authService = {
@@ -34,6 +36,7 @@ describe("UserMenuComponent", () => {
     };
     router = { navigate: vi.fn() };
     messageService = { add: vi.fn() };
+    contentLocaleService = { openPicker: vi.fn() };
 
     authService.getUserDetails.mockReturnValue(null);
     authService.isLoggedIn.mockReturnValue(false);
@@ -45,6 +48,7 @@ describe("UserMenuComponent", () => {
         { provide: AuthenticationService, useValue: authService },
         { provide: Router, useValue: router },
         { provide: MessageService, useValue: messageService },
+        { provide: ContentLocaleService, useValue: contentLocaleService },
       ],
     }).compileComponents();
   });

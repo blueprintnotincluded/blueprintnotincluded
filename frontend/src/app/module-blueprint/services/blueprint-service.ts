@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "./authentification-service";
+import { ContentLocaleService } from "./content-locale.service";
 import { of } from "rxjs";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
 import {
@@ -65,6 +66,7 @@ export class BlueprintService implements IObsBlueprintChange {
     private http: HttpClient,
     private authService: AuthenticationService,
     private location: Location,
+    private contentLocale: ContentLocaleService,
   ) {
     this.blueprint = new Blueprint();
 
@@ -390,7 +392,7 @@ export class BlueprintService implements IObsBlueprintChange {
     // 404s draft blueprints for anonymous viewers
     const request = this.http
       .get<BlueprintResponse>(
-        `/api/getblueprint/${id}`,
+        this.contentLocale.appendToUrl(`/api/getblueprint/${id}`),
         this.authService.isLoggedIn()
           ? {
               headers: {
@@ -445,6 +447,8 @@ export class BlueprintService implements IObsBlueprintChange {
   downloadBlueprintFile(id: string, friendlyName: string) {
     return this.http
       .get<BlueprintResponse>(
+        // No `lang=`: this fetch produces a file, not a display surface, and
+        // the filename comes from the caller's authored name either way.
         `/api/getblueprint/${id}`,
         this.authService.isLoggedIn()
           ? {
@@ -568,7 +572,7 @@ export class BlueprintService implements IObsBlueprintChange {
   // the backend uses it to personalize myRating/ownedByMe.
   getBlueprintDetails(id: string) {
     return this.http.get<BlueprintDetailsResponse>(
-      `/api/blueprints/${id}`,
+      this.contentLocale.appendToUrl(`/api/blueprints/${id}`),
       this.authService.isLoggedIn()
         ? {
             headers: {
@@ -583,7 +587,7 @@ export class BlueprintService implements IObsBlueprintChange {
   // backend uses it to personalize myRating/ownedByMe on the returned cards.
   getRelatedBlueprints(id: string) {
     return this.http.get<RelatedBlueprintsResponse>(
-      `/api/blueprints/${id}/related`,
+      this.contentLocale.appendToUrl(`/api/blueprints/${id}/related`),
       this.authService.isLoggedIn()
         ? {
             headers: {
@@ -697,10 +701,19 @@ export class BlueprintService implements IObsBlueprintChange {
     const needsAuth = filterUserId != null || filterRatedBy != null;
     const request =
       needsAuth && this.authService.isLoggedIn()
-        ? this.http.get("/api/getblueprintsSecure?" + parameters, {
-            headers: { Authorization: `Bearer ${this.authService.getToken()}` },
-          })
-        : this.http.get("/api/getblueprints?" + parameters);
+        ? this.http.get(
+            this.contentLocale.appendToUrl(
+              "/api/getblueprintsSecure?" + parameters,
+            ),
+            {
+              headers: {
+                Authorization: `Bearer ${this.authService.getToken()}`,
+              },
+            },
+          )
+        : this.http.get(
+            this.contentLocale.appendToUrl("/api/getblueprints?" + parameters),
+          );
 
     request.pipe(
       map((response: any) => {

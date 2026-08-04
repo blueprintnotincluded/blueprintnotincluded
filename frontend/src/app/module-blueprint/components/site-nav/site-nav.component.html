@@ -29,3 +29,8 @@
     ></app-user-menu>
   </ng-template>
 </p-menubar>
+<!-- Mounted here rather than per page so every surface carrying the nav can
+     reach it, and so the ambient entry point (the "translated" marker on a
+     details page) has somewhere to open: the dialog listens on the locale
+     service's request stream, not on an @Output. -->
+<app-dialog-content-language></app-dialog-content-language>

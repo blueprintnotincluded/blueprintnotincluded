@@ -11,7 +11,7 @@
     <img
       [appQueuedPreview]="cardPreviewUrl()"
       [previewFallback]="thumbnailFallbackUrl()"
-      [alt]="item.name"
+      [alt]="title"
       width="480"
       height="480"
     />
@@ -23,8 +23,18 @@
         class="bni-card__title"
         [routerLink]="['/blueprint', item.id]"
         [state]="linkState"
-        >{{ item.name }}</a
+        >{{ title }}</a
       >
+      <!-- Machine-translation disclosure (spec/search-followups.md §2.7).
+           Deliberately a quiet glyph, not a badge: it must be noticeable to
+           someone wondering why a card matched their English search, without
+           shouting on every card in a mostly-translated list. -->
+      <i
+        *ngIf="item.nameTranslated"
+        class="pi pi-language card-title-translated"
+        [attr.title]="translatedTitleTooltip"
+        [attr.aria-label]="translatedTitleTooltip"
+      ></i>
       <app-star-rating
         class="card-stars"
         [average]="item.rating"
@@ -243,6 +253,6 @@
     </svg>
   </div>
   <div class="card-info">
-    <span class="bni-card__title">{{ item.name }}</span>
+    <span class="bni-card__title">{{ title }}</span>
   </div>
 </div>

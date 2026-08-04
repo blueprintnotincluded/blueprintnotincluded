@@ -52,7 +52,29 @@
         </div>
 
         <div class="details-meta">
-          <h1>{{ details.name }}</h1>
+          <h1>{{ displayTitle }}</h1>
+
+          <!-- Machine-translation disclosure (spec/search-followups.md §2.7).
+               The details page has room to do this properly: the original is
+               shown outright rather than hidden in a tooltip, and the control
+               that explains WHY a reader is seeing English is one click from
+               the sentence that raises the question. -->
+          <p *ngIf="details.nameTranslated" class="details-title-translated">
+            <i class="pi pi-language" aria-hidden="true"></i>
+            <span i18n
+              >Title machine-translated{{ translatedFromSuffix }}. Originally
+              <span class="details-title-original">{{ details.name }}</span
+              >.</span
+            >
+            <button
+              type="button"
+              class="details-title-lang"
+              (click)="openLanguagePicker()"
+              i18n
+            >
+              Change language
+            </button>
+          </p>
 
           <app-star-rating
             class="details-stars"

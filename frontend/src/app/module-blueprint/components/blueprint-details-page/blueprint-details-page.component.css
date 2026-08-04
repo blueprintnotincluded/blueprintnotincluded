@@ -85,6 +85,45 @@
   margin: 0 0 8px;
 }
 
+/* Machine-translation disclosure. Deliberately quiet — the same weight as the
+   byline, not a warning — because the fact is ordinary and the reader needs it
+   to make sense of the heading, not to be alarmed by it. */
+.details-title-translated {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -2px 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--bni-faint);
+}
+
+.details-title-original {
+  color: var(--bni-muted);
+  font-style: italic;
+}
+
+.details-title-lang {
+  padding: 0;
+  font: inherit;
+  color: var(--bni-mark);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.details-title-lang:hover {
+  color: var(--bni-mark-hi);
+}
+
+.details-title-lang:focus-visible {
+  outline: 2px solid var(--bni-mark);
+  outline-offset: 2px;
+}
+
 .details-byline {
   display: flex;
   gap: 12px;

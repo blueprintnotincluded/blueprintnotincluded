@@ -10,6 +10,7 @@ import {
 } from "../../utils/chip-tooltip";
 import { dlcLabel } from "../../../../../../lib/index";
 import { roomTypeLabel } from "../../utils/room-labels";
+import { ContentLocaleService } from "../../services/content-locale.service";
 
 const MAX_ROOM_CHIPS = 3;
 
@@ -21,6 +22,31 @@ const MAX_ROOM_CHIPS = 3;
 })
 export class BlueprintCardComponent {
   @Input() item!: BlueprintListItem;
+
+  /**
+   * The title to render. `name` is the authored value and stays the fallback,
+   * so a response built without resolution shows the author's own words rather
+   * than nothing.
+   */
+  get title(): string {
+    return this.item.displayName ?? this.item.name;
+  }
+
+  /**
+   * Machine-translation disclosure (spec/search-followups.md §2.7). A card has
+   * no room for a second line, so the marker is a glyph and the author's own
+   * title is the tooltip — subdued, but the original is never more than a
+   * hover (or a tap through to the details page) away. Presenting machine
+   * output as the author's words unmarked is the one thing this must not do.
+   */
+  get translatedTitleTooltip(): string {
+    const from = this.localeService.labelFor(this.item.nameSourceLang);
+    return from
+      ? $localize`Machine-translated from ${from}. Original: ${this.item.name}`
+      : $localize`Machine-translated. Original: ${this.item.name}`;
+  }
+
+  constructor(private localeService: ContentLocaleService) {}
   @Input() loggedIn = false;
   @Input() showOwner = true;
   /** Router navigation state attached to the details link, e.g. to enable a history-aware back-link. */

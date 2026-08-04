@@ -7,12 +7,21 @@ describe("BlueprintService", () => {
   let mockHttp: any;
   let mockAuth: any;
   let mockLocation: any;
+  let mockContentLocale: any;
 
   beforeEach(() => {
     mockHttp = { get: vi.fn(), post: vi.fn() };
     mockAuth = { isLoggedIn: vi.fn(() => false), getToken: vi.fn(() => "") };
     mockLocation = { replaceState: vi.fn() };
-    service = new BlueprintService(mockHttp, mockAuth, mockLocation);
+    // English reader: appendToUrl is the identity, which is the shape every
+    // existing URL assertion below was written against.
+    mockContentLocale = { appendToUrl: vi.fn((url: string) => url) };
+    service = new BlueprintService(
+      mockHttp,
+      mockAuth,
+      mockLocation,
+      mockContentLocale,
+    );
   });
 
   describe("savedBlueprint getter", () => {
