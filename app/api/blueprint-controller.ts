@@ -21,6 +21,7 @@ import {
   RawSourceFormat,
   validateBlueprintName,
   resolveContentLocale,
+  normalizeContentLocale,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { computeHotScore } from '../../lib/index';
@@ -1643,6 +1644,20 @@ export class BlueprintController {
     return resolveContentLocale(req.query.lang);
   }
 
+  // The author's content-locale preference, or null if they never set one.
+  // One lean lookup per save; a failure is never fatal — detection simply
+  // falls back to the Accept-Language prior, i.e. today's behaviour.
+  private static async authorDeclaredLang(ownerId: string): Promise<string | null> {
+    try {
+      const user = await UserModel.model.findById(ownerId).select('localePreference').lean();
+      return normalizeContentLocale(user?.localePreference);
+    } catch (err) {
+      console.log('author locale preference lookup error');
+      console.log(err);
+      return null;
+    }
+  }
+
   private static authorLocalePrior(req: Request): string | null {
     const preferred = req.acceptsLanguages().find(lang => lang !== '*');
     return preferred != null ? preferred.split('-')[0].toLowerCase() : null;
@@ -1699,8 +1714,15 @@ export class BlueprintController {
     // reads `name`, not `metadata.description`. The locale prior only ever
     // supplies a fallback for a title too short/ambiguous to detect on its
     // own; it never overrides a confident statistical read.
+    // The author's own declaration beats the browser's default as the prior
+    // (spec/search-followups.md §2.6). Passing a DECLARED prior is also what
+    // makes `confidence: 'prior'` trustworthy downstream — the reversal of the
+    // existing rule is deliberate and rests entirely on the difference in
+    // evidence: an Accept-Language header is a default nobody chose, a picker
+    // setting is a user's own statement.
+    const declaredLang = await BlueprintController.authorDeclaredLang(ownerId);
     blueprint.sourceLang = detectLanguage(name, {
-      prior: BlueprintController.authorLocalePrior(req),
+      prior: declaredLang ?? BlueprintController.authorLocalePrior(req),
     }).lang;
     // Derived fact, never client-supplied — any `rooms` key in the request
     // body is ignored (same policy as a client trying to set ratingCount).
@@ -1757,7 +1779,7 @@ export class BlueprintController {
       // forget: a translation call can take up to 15s, and the corpus becomes
       // searchable to English queries moments after the save responds, not
       // atomically with it (same rationale as syncSearchRowStatus below).
-      syncMachineTitle(newBlueprint, ownerId);
+      syncMachineTitle(newBlueprint, ownerId, declaredLang);
     } catch (error) {
       console.log('Blueprint save error');
       console.log(error);
