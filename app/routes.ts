@@ -121,6 +121,10 @@ export class Routes {
     app
       .route('/api/users/me/theme-preference')
       .patch(auth, this.userController.updateThemePreference);
+    app.route('/api/users/me/locale-preference').get(auth, this.userController.getLocalePreference);
+    app
+      .route('/api/users/me/locale-preference')
+      .patch(auth, this.userController.updateLocalePreference);
     // Optional seed photo arrives as a raw image/* body (no multipart in this
     // API surface); anything else falls through to random generation
     app

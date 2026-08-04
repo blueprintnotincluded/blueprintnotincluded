@@ -17,6 +17,7 @@ import {
   sanitizeCustomThemeColors,
   CUSTOM_THEME_ID,
   THEME_IDS,
+  normalizeContentLocale,
 } from '../../lib/index';
 import { NotificationController } from './notification-controller';
 import { apiError } from './utils/apiError';
@@ -289,6 +290,70 @@ export class UserController {
         console.log('updateThemePreference error');
         console.log(err);
         res.status(500).json(apiError(500, 'Failed to update theme preference'));
+      });
+  }
+
+  // Which language this user reads blueprint content in. Private account
+  // state — same rule as dlcPreferences/themePreference: never merged into
+  // getProfile/ProfileResponse.
+  //
+  // Reports `null` rather than 'en' when the account has never chosen: the
+  // client's own default is navigator.language, and collapsing "never chose"
+  // into "chose English" here would override that on every device the user
+  // has ever logged in from.
+  public getLocalePreference(req: Request, res: Response): void {
+    const user = req.user as UserJwt;
+
+    UserModel.model
+      .findById(user._id)
+      .select('localePreference')
+      .lean()
+      .then(found => {
+        if (!found) {
+          res.status(404).json(apiError(404, 'User not found'));
+          return;
+        }
+        res.json({ locale: normalizeContentLocale(found.localePreference) });
+      })
+      .catch(err => {
+        console.log('getLocalePreference error');
+        console.log(err);
+        res.status(500).json(apiError(500, 'Failed to retrieve locale preference'));
+      });
+  }
+
+  // The content-language set is deliberately OPEN (spec/search-followups.md
+  // §2.3) — any base ISO tag, not a closed list like themePreference's. A
+  // user may read and write in a language we never translate INTO; declaring
+  // it costs nothing and gets them their own titles back. So this validates
+  // shape only, which is also what keeps it from being a string injection
+  // point: the stored value reaches a `?lang=` query param and a `lang`
+  // equality test, never markup.
+  public updateLocalePreference(req: Request, res: Response): void {
+    const user = req.user as UserJwt;
+    const { locale } = req.body as { locale?: unknown };
+
+    const normalized = normalizeContentLocale(locale);
+    if (normalized == null) {
+      res
+        .status(400)
+        .json(apiError(400, 'locale must be a base ISO language tag (2-3 letters), e.g. "en" or "vi"'));
+      return;
+    }
+
+    UserModel.model
+      .findByIdAndUpdate(user._id, { localePreference: normalized }, { new: true })
+      .then(updated => {
+        if (!updated) {
+          res.status(404).json(apiError(404, 'User not found'));
+          return;
+        }
+        res.json({ locale: normalizeContentLocale(updated.localePreference) });
+      })
+      .catch(err => {
+        console.log('updateLocalePreference error');
+        console.log(err);
+        res.status(500).json(apiError(500, 'Failed to update locale preference'));
       });
   }
 
