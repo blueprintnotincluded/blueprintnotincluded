@@ -7,8 +7,30 @@ export interface BlueprintListResponse {
   remaining: number;
 }
 
-export interface BlueprintListItem {
+// Title fields shared by every response that shows a blueprint's name
+// (spec/search-followups.md §2.5). `name` is ALWAYS the authored title and
+// never changes meaning — it is what the {owner, name} duplicate check, the
+// download filename and the editor's save path all read. The viewer-resolved
+// title is a separate field so a display surface that hasn't been updated
+// degrades to the author's own words rather than silently translating a
+// filename.
+export interface TranslatedTitleFields {
+  // What to render. Absent = show `name` (server built the response without
+  // resolution, or resolution failed — always safe).
+  displayName?: string;
+  // True when `displayName` is machine output rather than the author's words.
+  // The UI must disclose this and keep `name` reachable (§2.7): presenting a
+  // machine title as the author's own is the one thing this feature must not
+  // do.
+  nameTranslated?: boolean;
+  // Language the author wrote the title in, when known — "Translated from
+  // Portuguese". null = detection was never confident.
+  nameSourceLang?: string | null;
+}
+
+export interface BlueprintListItem extends TranslatedTitleFields {
   id: string;
+  // The authored title, verbatim. See TranslatedTitleFields.
   name: string;
   ownerId: string;
   ownerName: string;
@@ -111,7 +133,11 @@ export interface BlueprintDelete {
   blueprintId: string;
 }
 
-export interface BlueprintResponse {
+// Editor-open payload. `name` here is load-bearing beyond display: the editor
+// stores it and the save dialog pre-fills from it, so an overwrite save writes
+// it straight back to Blueprint.name. It therefore stays authored, always, and
+// the resolved title rides along in displayName for chrome that wants it.
+export interface BlueprintResponse extends TranslatedTitleFields {
   id: string;
   name: string;
   data: any;

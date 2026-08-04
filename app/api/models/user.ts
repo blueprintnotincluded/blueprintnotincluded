@@ -47,6 +47,17 @@ export interface User extends Document {
   // property on the client. Same privacy rule as themePreference.
   customThemeColors?: CustomThemeColors;
 
+  // Which language the user reads blueprint CONTENT in (base ISO tag —
+  // spec/search-followups.md Part 2). Not the UI locale: the chrome is
+  // English for everyone regardless. Absent means "never chosen", which
+  // resolves to DEFAULT_CONTENT_LOCALE at read time rather than being written
+  // eagerly — same rule as themePreference/dlcPreferences, and for the same
+  // reason: a default that writes itself is indistinguishable from a choice,
+  // which would make the §2.10 "who actually reads in what language"
+  // measurement meaningless. Private account data: never in ProfileResponse
+  // or any other payload another user can reach.
+  localePreference?: string;
+
   setPassword(password: string): void;
   validPassword(password: string): boolean;
   generateJwt(role?: string): string;
@@ -95,6 +106,7 @@ export class UserModel {
         excludedDlcs: { type: [String], default: [] },
       },
       themePreference: { type: String },
+      localePreference: { type: String },
       // Written whole on every save (findByIdAndUpdate $set), validated in the
       // controller via sanitizeCustomThemeColors — Mixed here is just storage.
       customThemeColors: { type: mongoose.Schema.Types.Mixed },

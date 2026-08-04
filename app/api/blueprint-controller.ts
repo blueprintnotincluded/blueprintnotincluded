@@ -20,6 +20,7 @@ import {
   RAW_SOURCE_FORMATS,
   RawSourceFormat,
   validateBlueprintName,
+  resolveContentLocale,
 } from '../../lib/index';
 import { Blueprint as sharedBlueprint, BlueprintDetailsResponse } from '../../lib/index';
 import { computeHotScore } from '../../lib/index';
@@ -46,6 +47,13 @@ import { deriveDlcs } from './services/dlc-derivation-service';
 import { detectLanguage } from './services/language-detection-service';
 import { TranslationService } from './services/translation-service';
 import { upsertSearchRow, syncMachineTitle, syncSearchRowStatus } from './services/search-index-service';
+import {
+  resolveTitles,
+  resolveOneTitle,
+  titleFields,
+  titleSourceOf,
+  ResolvedTitleMap,
+} from './services/title-resolution-service';
 import {
   collapseClusters,
   SearchMatch,
@@ -543,9 +551,19 @@ export class BlueprintController {
         myRating = mine?.value ?? null;
       }
 
+      // Editor-open resolves a title for CHROME only. `name` below stays the
+      // authored value: the editor stores it and the save dialog pre-fills
+      // from it, so translating it here would quietly rewrite the author's
+      // title on the next overwrite save — the exact mutation §2.5 forbids.
+      const resolvedTitle = await resolveOneTitle(
+        titleSourceOf(blueprint),
+        BlueprintController.viewerContentLang(req)
+      );
+
       let response: BlueprintResponse = {
         id: (blueprint._id as any).toString(),
         name: blueprint.name,
+        ...titleFields(resolvedTitle, blueprint.name),
         data: await resolveCurrentData(blueprint),
         nbRatings: blueprint.ratingCount ?? 0,
         rating: blueprint.ratingAverage ?? 0,
@@ -1125,6 +1143,11 @@ export class BlueprintController {
         console.log(err);
       }
 
+      const resolvedTitles = await resolveTitles(
+        page.map(titleSourceOf),
+        BlueprintController.viewerContentLang(req)
+      );
+
       for (const blueprint of page) {
         if (blueprint.createdAt < returnValue.oldest) returnValue.oldest = blueprint.createdAt;
         returnValue.blueprints.push(
@@ -1132,7 +1155,8 @@ export class BlueprintController {
             blueprint,
             commentCounts,
             forkedFromNames,
-            duplicateCounts
+            duplicateCounts,
+            resolvedTitles
           )
         );
       }
@@ -1146,11 +1170,17 @@ export class BlueprintController {
   // viewer-independent: no per-viewer fields, so responses built from it are
   // byte-identical for every viewer and safe to cache at the edge. Per-viewer
   // state (myRating/ownedByMe) belongs to the details response only.
+  //
+  // The resolved display title is the one exception, and it does not break
+  // that property: it varies by the explicit `?lang=` parameter, which is part
+  // of the URL and therefore part of the cache key, not by anything about who
+  // is asking.
   private static buildListItem(
     blueprint: Blueprint,
     commentCounts: Map<string, number>,
     forkedFromNames: Map<string, string | null>,
-    duplicateCounts: Map<string, number> = new Map()
+    duplicateCounts: Map<string, number> = new Map(),
+    resolvedTitles: ResolvedTitleMap = new Map()
   ): BlueprintListItem {
     const id = (blueprint._id as any).toString();
 
@@ -1164,6 +1194,7 @@ export class BlueprintController {
     return {
       id,
       name: blueprint.name,
+      ...titleFields(resolvedTitles.get(id), blueprint.name),
       ownerId,
       ownerName: username,
       createdAt: blueprint.createdAt,
@@ -1317,9 +1348,20 @@ export class BlueprintController {
         console.log(err);
       }
 
+      const resolvedTitles = await resolveTitles(
+        page.map(titleSourceOf),
+        BlueprintController.viewerContentLang(req)
+      );
+
       const response: RelatedBlueprintsResponse = {
         blueprints: page.map(blueprint =>
-          BlueprintController.buildListItem(blueprint, commentCounts, forkedFromNames)
+          BlueprintController.buildListItem(
+            blueprint,
+            commentCounts,
+            forkedFromNames,
+            new Map(),
+            resolvedTitles
+          )
         ),
       };
       setFeedCacheControl(req, res);
@@ -1469,9 +1511,15 @@ export class BlueprintController {
         }
       }
 
+      const resolvedTitle = await resolveOneTitle(
+        titleSourceOf(blueprint),
+        BlueprintController.viewerContentLang(req)
+      );
+
       const response: BlueprintDetailsResponse = {
         id: (blueprint._id as any).toString(),
         name: blueprint.name,
+        ...titleFields(resolvedTitle, blueprint.name),
         ownerId,
         ownerName,
         createdAt: blueprint.createdAt,
@@ -1583,6 +1631,18 @@ export class BlueprintController {
   // text isn't statistically conclusive — it never affects what gets billed
   // for translation (see search-index-service's confidentTitleLang, which
   // re-detects from the text alone for that decision).
+  // The viewer's content locale, as an EXPLICIT query parameter rather than
+  // Accept-Language (spec/search-followups.md §2.5). These responses are
+  // Cloudflare-cached and viewer-independent apart from this: a `?lang=` value
+  // keys cleanly at the edge, whereas `Vary: Accept-Language` would fragment
+  // the cache across every browser's full header. The frontend sends the
+  // parameter only when the resolved locale is not English, so the ordinary
+  // browse URL — which is nearly all traffic — stays byte-identical to what
+  // it was before this feature.
+  public static viewerContentLang(req: Request): string {
+    return resolveContentLocale(req.query.lang);
+  }
+
   private static authorLocalePrior(req: Request): string | null {
     const preferred = req.acceptsLanguages().find(lang => lang !== '*');
     return preferred != null ? preferred.split('-')[0].toLowerCase() : null;
