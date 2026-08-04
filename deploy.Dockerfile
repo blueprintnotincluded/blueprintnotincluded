@@ -8,6 +8,11 @@ RUN npm ci --ignore-scripts && npm cache clean --force
 # TODO separate build build stage for asset extract
 COPY ./assets/database/database-2024.json ./assets/database/database-2024.json
 COPY ./assets/avatar-reference ./assets/avatar-reference
+# Read at runtime by search-term-dictionary (community-jargon query aliases:
+# spom, aquatuner, rodriguez…). copy_assets.sh rsyncs assets/ into build/, but
+# it can only copy what this stage COPYs in — an omission here is silent, since
+# a missing alias file only degrades query resolution rather than failing.
+COPY ./assets/search-aliases.json ./assets/search-aliases.json
 
 FROM extract as build-backend
 WORKDIR /bpni

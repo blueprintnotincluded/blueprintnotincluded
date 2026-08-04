@@ -29,6 +29,8 @@ import {
 } from '../../../lib/index';
 import { BlueprintModel } from '../models/blueprint';
 import { BlueprintSearchModel } from '../models/blueprint-search';
+import { TranslationUnitModel } from '../models/translation-unit';
+import { TranslationBudgetModel } from '../models/translation-budget';
 import { deriveSearchRow, SearchRowFields } from '../services/search-index-service';
 import { detectLanguageCode } from '../services/language-detection-service';
 import { TranslationService } from '../services/translation-service';
@@ -80,6 +82,14 @@ async function run(dryRun: boolean, limit: number | null) {
   await mongoose.connect(mongoUri);
   BlueprintModel.init();
   BlueprintSearchModel.init();
+  // The title-translation pass goes through TranslationService, which reads
+  // the translationunits cache and the budget rows directly. db.ts inits
+  // these for the running app; a batch process gets no such bootstrap, and
+  // the failure is a TypeError on an undefined model deep inside
+  // translateMany — caught per batch and logged as "translation error,
+  // skipping", so the run still exits 0 having translated nothing.
+  TranslationUnitModel.init();
+  TranslationBudgetModel.init();
 
   console.log(describeScope(limit, dryRun));
 
@@ -143,9 +153,21 @@ async function run(dryRun: boolean, limit: number | null) {
   console.log(`\nSearch rows — processed: ${processed}${dryRun ? ' (dry run)' : ''}`);
   console.log(`  new: ${created}, stale (re-derived): ${refreshed}, fresh: ${fresh}`);
 
-  await translateTitles(dryRun, processedIds);
+  const failedBatches = await translateTitles(dryRun, processedIds);
 
   await mongoose.disconnect();
+
+  // A translation pass that failed every batch still wrote 5,308 perfectly
+  // good rows, so without this the run reports success and the operator has
+  // to read stack traces to notice the phase-3b half did nothing. Same
+  // policy as import:2024 — an incomplete run exits non-zero.
+  if (failedBatches > 0) {
+    throw new Error(
+      `${failedBatches} title-translation batch(es) failed — search rows are written, but ` +
+        `non-English titles were not machine-translated. Fix the cause and re-run; ` +
+        `rows already translated are left alone.`
+    );
+  }
 }
 
 // Phase 3b: machine-translate every confidently non-English title into its
@@ -158,13 +180,15 @@ async function run(dryRun: boolean, limit: number | null) {
 // text written earlier in the SAME call isn't visible yet.
 const TRANSLATE_BATCH_SIZE = 100;
 
+// Returns the number of batches that failed, so the caller can exit non-zero
+// rather than reporting a successful run that translated nothing.
 async function translateTitles(
   dryRun: boolean,
   blueprintIds: mongoose.Types.ObjectId[]
-): Promise<void> {
+): Promise<number> {
   if (!TranslationService.instance.isConfigured()) {
     console.log('\nTitle translation — GOOGLE_TRANSLATE_API_KEY not set, skipping.');
-    return;
+    return 0;
   }
 
   // Chunked so an unlimited run (thousands of blueprints) never issues one
@@ -200,9 +224,10 @@ async function translateTitles(
       ` (${alreadyMachine} rows already machine-translated, left alone)`
   );
 
-  if (dryRun || uniqueTitles.length === 0) return;
+  if (dryRun || uniqueTitles.length === 0) return 0;
 
   let done = 0;
+  let failedBatches = 0;
   for (let i = 0; i < uniqueTitles.length; i += TRANSLATE_BATCH_SIZE) {
     const batch = uniqueTitles.slice(i, i + TRANSLATE_BATCH_SIZE);
     let results: Awaited<ReturnType<typeof TranslationService.instance.translateMany>>;
@@ -215,6 +240,7 @@ async function translateTitles(
       console.log(`  batch ${i}-${i + batch.length} translation error, skipping`);
       console.log(err);
       done += batch.length;
+      failedBatches++;
       continue;
     }
 
@@ -236,6 +262,7 @@ async function translateTitles(
     done += batch.length;
     console.log(`  ...${done}/${uniqueTitles.length} unique titles translated`);
   }
+  return failedBatches;
 }
 
 if (require.main === module) {
