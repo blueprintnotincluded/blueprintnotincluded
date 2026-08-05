@@ -175,17 +175,26 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 ## Current Status
 
-- **Phase**: multilingual search + content locale (search plan phases 0–5 and
-  `spec/search-followups.md` Part 1 §1/§2 + Part 2 all shipped). Asset pipeline is still
-  OniExtract2024 flat-icon rendering.
+- **Phase**: multilingual search + content locale plan is **fully shipped** (search plan
+  phases 0–5, `spec/search-followups.md` Part 1 §1/§2/§4 and all of Part 2 including native-
+  language rows). Retrieval now reads a viewer's content locale (`?lang=`) alongside the `en`
+  pivot; open decision #1 in the search plan is resolved. Only the Part 1 §5 precision audit
+  remains, and only because it's blocked on the prod activation below. Remaining plan items
+  (IDF weighting, `.po` acquisition, near-duplicate clustering, phase 6 semantic retrieval) are
+  each either explicitly deferred with a stated trigger or decided against — see
+  `spec/multilingual-search-plan.md` §8. Asset pipeline is still OniExtract2024 flat-icon
+  rendering.
 - **Date**: 2026-08-04
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
-- **Tests**: ✅ Backend 1022 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
+- **Tests**: ✅ Backend 1033 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
   load locally and pass on a clean run) · Frontend 1226 passing (Vitest/jsdom)
-- **⚠️ Pending prod activation**: `npm run migrate:up` then `npm run derive-search` (in that
-  order — see "Search (blueprintsearch)"). Until both run, no row has a `titleOriginal` and
-  romanized non-English titles are still untranslated.
+- **⚠️ Pending prod activation — blocking**: `npm run migrate:up` then `npm run derive-search`
+  (in that order — see "Search (blueprintsearch)"). Until both run, no row has a
+  `titleOriginal`, romanized non-English titles are still untranslated, and the Part 1 §5
+  precision audit (search-followups.md) has nothing to measure. Run `derive-search:dry-run`
+  first and report the candidate counts before spending — see search-followups.md's "Prod
+  activation" note for exact commands and expected output.
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 - **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
@@ -391,6 +400,23 @@ Part 1 §1/§2.
   asserts ordering properties, not scores). Term dictionary is built lazily from the loaded
   `OniItem` display names + room names + `assets/search-aliases.json` (hand-maintained jargon:
   `spom`, `aquatuner`, …; validate ids against the database when editing).
+  `lexicalRetrieval` widens its `$in` to `[viewerLang, 'en']` (`SearchOptions.viewerLang`,
+  threaded from the same `?lang=` the content-locale picker introduced) rather than
+  hard-coding `'en'` — search-followups.md Part 1 §4. `structuralRetrieval` deliberately stays
+  `en`-only: `termIds` are language-independent and identical across a blueprint's rows, so
+  widening it would only return a duplicate row for no new signal. Rows are deduped to one per
+  blueprint before fusion — `fuseRanks` has no id-uniqueness precondition on its input arrays,
+  so a duplicate id would otherwise double-add its RRF score.
+- **Native-language rows** (§2.9) — `deriveNativeSearchRow`/`upsertSearchRow`
+  (`search-index-service.ts`) write a second row per blueprint, `lang: blueprint.sourceLang`,
+  `origin: 'authored'`, holding the title/description verbatim (never `titleOriginal` — this
+  row IS the original). Kept alongside `titleOriginal` rather than replacing it: `titleOriginal`
+  is the language-independent floor (works with no declared/detected `sourceLang` at all);
+  the native row is the precision upgrade once a language is known, since it gets Mongo's real
+  per-language stemmer via `language_override`, which a field on an `en`-stemmed row cannot
+  provide. Stale rows (title re-authored in a different language) are pruned on the next save,
+  scoped to `origin: 'authored'` so a phase-5 accreted `origin: 'machine'` row in some other
+  language is never touched.
 - **Endpoint integration** — `filterName` on `getblueprints`/`blueprintfacets` resolves through
   the search service to a ranked id list (`_id $in`); under the default `recent` sort the page
   is a rank-ordered slice (offset pagination — the client sends `skip` and drops the
@@ -480,9 +506,14 @@ Part 1 §1/§2.
   misdeclaration cheap: the provider must report non-`en`, and a provider that returns the input
   unchanged never marks the row `'machine'` (which would claim a translation that isn't there
   and index the same string twice).
-- **Not built yet** (later phases of the plan): IDF weighting for structural matches, semantic
-  retrieval, native-language search rows (`spec/search-followups.md` §2.9), and retrieval
-  reading the accreted non-English rows at all (still hard-codes `lang: 'en'` — Part 1 §4).
+- **Decided not to build** (`spec/multilingual-search-plan.md` §8, 2026-08-04): IDF weighting
+  for structural matches (needs a new maintained per-`termId` document-frequency table for an
+  unmeasured payoff) and near-duplicate clustering + its fork-migration offer (needs a global
+  pass; the offer is an unrequested product feature). Phase 6 semantic retrieval stays gated on
+  `searchqueries` telemetry, re-checked 2026-08-04 and still nothing to justify starting — the
+  trigger number is written into the plan's §4.5. `.po` acquisition is scoped but not decided —
+  it needs real prod `sourceLang`/`searchqueries` traffic the still-pending activation would
+  generate.
 
 ### Content locale (what language you read blueprints in)
 `spec/search-followups.md` Part 2. **Not** UI localization — the chrome stays English for
