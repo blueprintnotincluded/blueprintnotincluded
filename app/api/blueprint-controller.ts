@@ -876,21 +876,24 @@ export class BlueprintController {
   // req/userId feed the query-translation path (phase 4): the Accept-
   // Language prior for telemetry, and userId so a translation spend counts
   // against that user's daily cap rather than only the anonymous site pool.
+  // applyViewerLang: false for facets — §2.11 "facet counts take no lang".
+  // The frontend never sends `?lang=` to /api/blueprintfacets, but relying on
+  // that alone isn't a guarantee: it's a public, unauthenticated GET, so
+  // nothing stops a client from adding the param directly. Passing it through
+  // there would widen facet matching independently of the list endpoint,
+  // making counts vary by a param the endpoint was never designed to accept.
   private static async resolveSearchMatches(
     filterName: string | null,
     req: Request,
-    userId: string | null
+    userId: string | null,
+    applyViewerLang: boolean = true
   ): Promise<SearchMatch[] | null> {
     if (filterName == null || !searchV2Enabled()) return null;
     try {
       return await searchBlueprints(filterName, {
         localePrior: BlueprintController.authorLocalePrior(req),
         userId,
-        // Facets never receive `?lang=` from the frontend (§2.11: "facet
-        // counts take no lang"), so this resolves to 'en' there and the
-        // widening is inert — one code path, correct behaviour on both
-        // callers with no special-casing.
-        viewerLang: BlueprintController.viewerContentLang(req),
+        viewerLang: applyViewerLang ? BlueprintController.viewerContentLang(req) : null,
       });
     } catch (err) {
       console.log('search resolution error — falling back to name regex');
@@ -988,7 +991,7 @@ export class BlueprintController {
     // setting).
     const searchIds =
       (
-        await BlueprintController.resolveSearchMatches(parsed.filterName, req, userId || null)
+        await BlueprintController.resolveSearchMatches(parsed.filterName, req, userId || null, false)
       )?.map(match => match.id) ?? null;
 
     const isAdmin = userJwt?.role === 'admin';

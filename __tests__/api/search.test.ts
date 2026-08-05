@@ -817,9 +817,11 @@ describe('Search (blueprintsearch)', function () {
         name: 'Fallback Pivot Base',
         data: bpData(['Ladder']),
       });
-      const ids = (
-        await searchBlueprintIds('fallback pivot', { viewerLang: 'not-a-real-language-tag' })
-      ).map(String);
+      // normalizeContentLocale takes the segment before the first '-'/'_' and
+      // accepts a 2-3 letter base tag — 'not-a-real-language-tag' would
+      // normalize to the (accepted) 'not', so this uses a value that fails
+      // the shape check outright: a 4-letter segment with no separator.
+      const ids = (await searchBlueprintIds('fallback pivot', { viewerLang: 'zzzz' })).map(String);
       expect(ids).to.include((doc._id as Types.ObjectId).toString());
     });
 
