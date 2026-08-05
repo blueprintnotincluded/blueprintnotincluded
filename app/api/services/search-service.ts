@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import {
   electClusterCanonical,
   fuseRanks,
+  normalizeContentLocale,
   rankCandidates,
   RankingCandidate,
   resolveTerms,
@@ -64,22 +65,52 @@ const RETRIEVAL_FIELDS =
   'blueprintId title ratingAverage ratingCount downloadCount forkCount clusterKey blueprintCreatedAt';
 
 // Lexical retrieval: $text over title/terms/description, per-row stemming.
-// Restricted to the viewer-relevant languages — today the 'en' pivot rows
-// every blueprint has; a viewerLang joins the $in once non-English rows exist.
-async function lexicalRetrieval(normalizedQuery: string): Promise<RetrievedRow[]> {
+// `langs` is always ['en'] or ['<viewerLang>', 'en'] (searchBlueprints
+// de-dupes and always keeps 'en' in the set) — the pivot invariant that
+// structural retrieval depends on holds here too: every blueprint's 'en' row
+// is always in scope, a native/accreted viewerLang row only ADDS a candidate,
+// never replaces the pivot (search-followups.md Part 1 §4).
+async function lexicalRetrieval(normalizedQuery: string, langs: readonly string[]): Promise<RetrievedRow[]> {
   if (normalizedQuery.length === 0) return [];
-  return BlueprintSearchModel.model
-    .find({ $text: { $search: normalizedQuery }, lang: { $in: ['en'] }, deletedAt: null })
+  const rows = await BlueprintSearchModel.model
+    .find({ $text: { $search: normalizedQuery }, lang: { $in: [...langs] }, deletedAt: null })
     .select(RETRIEVAL_FIELDS)
     .sort({ score: { $meta: 'textScore' } })
-    .limit(RETRIEVAL_LIMIT)
+    // Widening langs beyond ['en'] can surface two rows for one blueprint
+    // (its 'en' pivot AND a native/accreted viewerLang row both matching) —
+    // over-fetch so the dedup below still leaves RETRIEVAL_LIMIT distinct
+    // blueprints rather than silently shrinking the candidate pool.
+    .limit(RETRIEVAL_LIMIT * langs.length)
     .lean();
+
+  // Collapse to one row per blueprint. searchBlueprints fuses by blueprintId;
+  // two rows for one blueprint here would give it two ranks within this one
+  // retrieval instead of the single rank a bilingual match should have —
+  // silent double-counting, not a bonus. Rows arrive sorted by textScore, so
+  // the first occurrence of a blueprintId is already its best-scoring row.
+  const seen = new Set<string>();
+  const deduped: RetrievedRow[] = [];
+  for (const row of rows as RetrievedRow[]) {
+    const key = row.blueprintId.toString();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(row);
+    if (deduped.length >= RETRIEVAL_LIMIT) break;
+  }
+  return deduped;
 }
 
 // Structural retrieval: termIds intersection, language-independent. For the
 // 99.5% of the corpus with no description this is the backbone, not a
 // supplement. Ordered by number of matched ids (then hotScore) — id-rarity
 // IDF weighting is a noted follow-up, not built yet.
+//
+// Deliberately stays on lang:'en' only, unlike lexicalRetrieval — termIds are
+// language-independent and every writer (deriveSearchRow, the phase 3b
+// translated-title writer, phase 5's accretion) copies the SAME termIds onto
+// every language row for a blueprint. Widening this $in would only return a
+// second row carrying identical termIds for the same blueprint: a dedup cost
+// for zero new signal, not a real narrowing of the pivot invariant.
 async function structuralRetrieval(resolvedIds: string[]): Promise<RetrievedRow[]> {
   if (resolvedIds.length === 0) return [];
   const rows = await BlueprintSearchModel.model.aggregate([
@@ -116,6 +147,13 @@ export interface SearchOptions {
   // Drives the per-user daily translation cap; null for anonymous/system
   // callers (site-wide monthly budget still applies either way).
   userId?: string | null;
+  // The viewer's declared/resolved content locale (search-followups.md §2.5,
+  // Part 1 §4) — joins 'en' in lexicalRetrieval's $in so a native-language
+  // row (§2.9) or a lazily-accreted translated row (phase 5) can match
+  // lexically too. Unset/invalid/'en' all resolve to ['en'] only, which
+  // reproduces retrieval's pre-widening behaviour exactly — this is a pure
+  // addition for every viewer who never touched the content-locale picker.
+  viewerLang?: string | null;
 }
 
 // Attempts to translate the unresolved remainder of a query to English,
@@ -212,9 +250,18 @@ export async function searchBlueprints(
 
   recordSearchQuery(normalizedQuery, telemetryLang, translated);
 
+  // Bounded to at most two languages regardless of what the caller passes —
+  // normalizeContentLocale only accepts a 2-3 letter base tag or returns
+  // null, and the Set collapses 'en' to one entry. `?lang=` is a public,
+  // unauthenticated query param (search-followups.md's session brief), so
+  // this is what keeps it from becoming an unbounded fan-out over the
+  // language set: there is no input that grows this $in past two languages.
+  const viewerLang = normalizeContentLocale(options.viewerLang) ?? 'en';
+  const lexicalLangs = [...new Set([viewerLang, 'en'])];
+
   const lexicalQuery = lexicalTokens.join(' ');
   const [lexical, structural] = await Promise.all([
-    lexicalRetrieval(lexicalQuery),
+    lexicalRetrieval(lexicalQuery, lexicalLangs),
     structuralRetrieval(structuralIds),
   ]);
 
