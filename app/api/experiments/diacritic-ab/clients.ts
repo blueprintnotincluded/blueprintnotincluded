@@ -115,9 +115,9 @@ export class DigitalOceanExperimentClient {
       body: serialized,
       timeoutMs: DO_TIMEOUT_MS,
     });
-    assertSuccess(response, 'DO completion request');
     const raw = response.body as ChatCompletionResponse;
     captureRaw?.(raw);
+    assertSuccess(response, 'DO completion request');
     const content = raw.choices?.[0]?.message?.content;
     if (typeof content !== 'string') throw new Error('DO response has no completion content');
     const promptTokens = raw.usage?.prompt_tokens;

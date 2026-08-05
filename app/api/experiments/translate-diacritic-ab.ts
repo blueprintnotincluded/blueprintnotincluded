@@ -28,21 +28,26 @@ import { buildDoRequest } from './diacritic-ab/prompts';
 import { ArmOutput, ArmResult, DiacriticCase, ExperimentArm } from './diacritic-ab/types';
 
 interface CliOptions {
-  execute: boolean;
+  mode: 'dry-run' | 'execute' | 'resume-reviewed-402';
   acknowledged: boolean;
 }
 
 function parseCli(argv: string[]): CliOptions {
-  const allowed = new Set(['--execute', '--ack-max-usd=0.02']);
+  const allowed = new Set(['--execute', '--resume-reviewed-402', '--ack-max-usd=0.02']);
   const unknown = argv.filter(arg => !allowed.has(arg));
   if (unknown.length > 0) throw new Error(`Unknown argument(s): ${unknown.join(', ')}`);
   const execute = argv.includes('--execute');
+  const resume = argv.includes('--resume-reviewed-402');
   const acknowledged = argv.includes('--ack-max-usd=0.02');
-  if (!execute && acknowledged) throw new Error('The acknowledgement is valid only with --execute');
-  if (execute && !acknowledged) {
+  if (execute && resume)
+    throw new Error('--execute and --resume-reviewed-402 are mutually exclusive');
+  if (!execute && !resume && acknowledged) {
+    throw new Error('The acknowledgement is valid only with a live execution mode');
+  }
+  if ((execute || resume) && !acknowledged) {
     throw new Error('Live execution requires the exact acknowledgement --ack-max-usd=0.02');
   }
-  return { execute, acknowledged };
+  return { mode: resume ? 'resume-reviewed-402' : execute ? 'execute' : 'dry-run', acknowledged };
 }
 
 function promptHash(request: ReturnType<typeof buildDoRequest>): string {
@@ -119,14 +124,22 @@ function makeManifest(rootDir: string, cases: DiacriticCase[]) {
 
 function printPreflight(
   manifest: ReturnType<typeof makeManifest>['manifest'],
-  execute: boolean
+  mode: CliOptions['mode']
 ): void {
   console.log(JSON.stringify(manifest, null, 2));
-  console.log(
-    execute
-      ? `Live execution acknowledged. Reserving exactly 2 DO calls, 3 Google calls, and $${manifest.reservation.maximumUsd.toFixed(7)} maximum calculated usage ($0.02 fail-closed ledger).`
-      : 'Offline dry run complete. No live client was constructed and no provider request was sent.'
-  );
+  if (mode === 'execute') {
+    console.log(
+      `Live execution acknowledged. Reserving exactly 2 DO calls, 3 Google calls, and $${manifest.reservation.maximumUsd.toFixed(7)} maximum calculated usage ($0.02 fail-closed ledger).`
+    );
+  } else if (mode === 'resume-reviewed-402') {
+    console.log(
+      'Reviewed HTTP 402 continuation acknowledged. Reusing 2 captured Google arms and reserving only the remaining 2 DO calls plus 1 Google call.'
+    );
+  } else {
+    console.log(
+      'Offline dry run complete. No live client was constructed and no provider request was sent.'
+    );
+  }
 }
 
 function googleOutputs(cases: DiacriticCase[], texts: string[]): ArmOutput[] {
@@ -140,6 +153,105 @@ function googleOutputs(cases: DiacriticCase[], texts: string[]): ArmOutput[] {
 
 function armGoogleCharacters(...values: number[]): number {
   return values.reduce((sum, value) => sum + value, 0);
+}
+
+interface Reviewed402Reservation {
+  state?: unknown;
+  failure?: unknown;
+  calls?: { digitalOcean?: unknown; google?: unknown };
+  manifestFixtureSha256?: unknown;
+  resume?: unknown;
+  [key: string]: unknown;
+}
+
+interface PartialResultsArtifact {
+  partial?: unknown;
+  arms?: unknown;
+  operationalFailure?: { arm?: unknown; message?: unknown };
+}
+
+function validateCapturedGoogleArm(
+  value: unknown,
+  expectedArm: 'google-auto' | 'google-vi',
+  cases: DiacriticCase[]
+): ArmResult {
+  const arm = value as Partial<ArmResult>;
+  const expectedIds = new Set(cases.map(item => item.id));
+  const outputs = arm.outputs;
+  if (
+    arm.arm !== expectedArm ||
+    !Array.isArray(outputs) ||
+    outputs.length !== cases.length ||
+    arm.googleSourceCharacters !== cases.reduce((sum, item) => sum + item.asciiInput.length, 0)
+  ) {
+    throw new Error(`Captured ${expectedArm} arm does not match the reviewed fixture`);
+  }
+  const seen = new Set<string>();
+  for (const output of outputs) {
+    if (
+      typeof output.id !== 'string' ||
+      !expectedIds.has(output.id) ||
+      seen.has(output.id) ||
+      output.status !== 'resolved' ||
+      typeof output.english !== 'string' ||
+      !Array.isArray(output.alternatives) ||
+      output.alternatives.length !== 0
+    ) {
+      throw new Error(`Captured ${expectedArm} output is incomplete or misaligned`);
+    }
+    seen.add(output.id);
+  }
+  return arm as ArmResult;
+}
+
+export function loadReviewed402Continuation(
+  store: ArtifactStore,
+  cases: DiacriticCase[],
+  fixtureHash: string
+): { reservation: Reviewed402Reservation; results: ArmResult[] } {
+  if (!store.exists('reservation.json') || !store.exists('results.json')) {
+    throw new Error('Reviewed HTTP 402 continuation requires reservation.json and results.json');
+  }
+  const reservation = store.read('reservation.json') as Reviewed402Reservation;
+  const partial = store.read('results.json') as PartialResultsArtifact;
+  if (
+    reservation.state !== 'failed' ||
+    reservation.failure !== 'DO completion request failed with HTTP 402' ||
+    reservation.calls?.digitalOcean !== CAPS.doCalls ||
+    reservation.calls?.google !== CAPS.googleCalls ||
+    reservation.manifestFixtureSha256 !== fixtureHash ||
+    reservation.resume != null
+  ) {
+    throw new Error(
+      'Reservation is not the single reviewed HTTP 402 state authorized for continuation'
+    );
+  }
+  if (
+    partial.partial !== true ||
+    partial.operationalFailure?.arm !== 'llm-end-to-end' ||
+    partial.operationalFailure.message !== 'DO completion request failed with HTTP 402' ||
+    !Array.isArray(partial.arms) ||
+    partial.arms.length !== 2
+  ) {
+    throw new Error('Partial results are not the reviewed two-Google-arm HTTP 402 artifact');
+  }
+  for (const name of ['llm-end-to-end.json', 'llm-restore.json', 'restore-google.json']) {
+    if (fs.existsSync(path.join(store.responsesDir, name))) {
+      throw new Error(`Cannot continue because responses/${name} already exists`);
+    }
+  }
+  for (const name of ['google-auto.json', 'google-vi.json']) {
+    if (!fs.existsSync(path.join(store.responsesDir, name))) {
+      throw new Error(`Cannot continue without responses/${name}`);
+    }
+  }
+  return {
+    reservation,
+    results: [
+      validateCapturedGoogleArm(partial.arms[0], 'google-auto', cases),
+      validateCapturedGoogleArm(partial.arms[1], 'google-vi', cases),
+    ],
+  };
 }
 
 async function executeLive(
@@ -290,6 +402,120 @@ async function executeLive(
   }
 }
 
+async function resumeReviewed402(
+  store: ArtifactStore,
+  cases: DiacriticCase[],
+  endToEndRequest: ReturnType<typeof buildDoRequest>,
+  restoreRequest: ReturnType<typeof buildDoRequest>,
+  manifest: ReturnType<typeof makeManifest>['manifest']
+): Promise<void> {
+  const reviewed = loadReviewed402Continuation(store, cases, manifest.fixture.sha256);
+  dotenv.config();
+  const doKey = process.env.DO_INFERENCE_API_KEY;
+  const googleKey = process.env.GOOGLE_TRANSLATE_API_KEY;
+  if (!doKey || !googleKey) {
+    throw new Error(
+      'DO_INFERENCE_API_KEY and GOOGLE_TRANSLATE_API_KEY are required for the continuation'
+    );
+  }
+  const updateReservation = (state: string, extra: Record<string, unknown> = {}) =>
+    store.writeJson('reservation.json', {
+      ...(store.read('reservation.json') as Record<string, unknown>),
+      state,
+      updatedAt: new Date().toISOString(),
+      ...extra,
+    });
+  updateReservation('resume-running', {
+    resume: {
+      authorizedAt: new Date().toISOString(),
+      reason: 'manually-reviewed-http-402-before-inference',
+      consumedBeforeResume: { digitalOcean: 0, google: 2 },
+      remainingCalls: { digitalOcean: 2, google: 1 },
+    },
+  });
+
+  const doClient = new DigitalOceanExperimentClient(createFetchTransport(doKey));
+  const googleSdk = new Translate({ key: googleKey, autoRetry: false, maxRetries: 0 });
+  const googleClient = new GoogleExperimentClient(googleSdk);
+  const results = [...reviewed.results];
+  let currentOperation = 'model-access';
+  const persistPartialResults = () =>
+    store.writeJson('results.json', {
+      partial: true,
+      updatedAt: new Date().toISOString(),
+      arms: results,
+      mechanical: mechanicalRows(cases, results),
+      observedCost: observedCost(results),
+      continuation: 'reviewed-http-402',
+    });
+  try {
+    await doClient.assertModelAvailable();
+
+    currentOperation = 'llm-end-to-end';
+    const llmEndToEnd = await doClient.complete(endToEndRequest, cases, 'end-to-end', raw =>
+      store.writeJson('responses/llm-end-to-end.json', raw)
+    );
+    results.push({ arm: 'llm-end-to-end', outputs: llmEndToEnd.outputs, usage: llmEndToEnd.usage });
+    persistPartialResults();
+
+    currentOperation = 'restore-google';
+    const restored = await doClient.complete(restoreRequest, cases, 'restore', raw =>
+      store.writeJson('responses/llm-restore.json', raw)
+    );
+    const restoredTexts = restored.outputs.map(output => output.restoredVi!);
+    const restoreGoogle = await googleClient.translate(restoredTexts, 'vi', raw =>
+      store.writeJson('responses/restore-google.json', raw)
+    );
+    results.push({
+      arm: 'restore-google',
+      outputs: restored.outputs.map((output, index) => ({
+        ...output,
+        english: restoreGoogle.texts[index],
+      })),
+      usage: restored.usage,
+      googleSourceCharacters: restoreGoogle.sourceCharacters,
+    });
+    persistPartialResults();
+
+    const blind = blindResults(cases, results);
+    store.writeJson('results.json', {
+      completedAt: new Date().toISOString(),
+      partial: false,
+      arms: results,
+      mechanical: mechanicalRows(cases, results),
+      observedCost: observedCost(results),
+      blindMapping: blind.mapping,
+      googleCharacters: results.reduce(
+        (sum, result) => sum + (result.googleSourceCharacters ?? 0),
+        0
+      ),
+      continuation: 'reviewed-http-402',
+    });
+    store.writeText('review.md', blind.review);
+    updateReservation('complete', {
+      completedAt: new Date().toISOString(),
+      resumeCompletedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    const message = (error as Error).message
+      .split(doKey)
+      .join('[REDACTED]')
+      .split(googleKey)
+      .join('[REDACTED]');
+    store.writeJson('results.json', {
+      partial: true,
+      updatedAt: new Date().toISOString(),
+      arms: results,
+      mechanical: mechanicalRows(cases, results),
+      observedCost: observedCost(results),
+      operationalFailure: { arm: currentOperation, message },
+      continuation: 'reviewed-http-402',
+    });
+    updateReservation('failed', { resumeFailure: message });
+    throw new Error(message);
+  }
+}
+
 export async function main(argv = process.argv.slice(2), rootDir = process.cwd()): Promise<void> {
   const options = parseCli(argv);
   const cases = loadFixture(rootDir);
@@ -297,9 +523,13 @@ export async function main(argv = process.argv.slice(2), rootDir = process.cwd()
   const store = new ArtifactStore(path.resolve(rootDir, ARTIFACT_DIR));
   store.prepare();
   store.writeJson('manifest.json', manifest);
-  printPreflight(manifest, options.execute);
-  if (!options.execute) return;
-  await executeLive(store, cases, endToEnd, restore, manifest, reservation);
+  printPreflight(manifest, options.mode);
+  if (options.mode === 'dry-run') return;
+  if (options.mode === 'resume-reviewed-402') {
+    await resumeReviewed402(store, cases, endToEnd, restore, manifest);
+  } else {
+    await executeLive(store, cases, endToEnd, restore, manifest, reservation);
+  }
 }
 
 if (require.main === module) {
