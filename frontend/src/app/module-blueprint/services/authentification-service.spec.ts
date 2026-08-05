@@ -56,6 +56,21 @@ describe("AuthenticationService", () => {
       expect(service.getToken()).toBe("abc123");
     });
 
+    // The one signal a session-scoped service (theme, content locale) can
+    // react to — login completes via an in-SPA route navigation, never a
+    // page reload, so this is what lets AppComponent load account state for
+    // a session that starts after its own one-shot init already ran.
+    it("emits on sessionEstablished$ every time a token is saved", () => {
+      const emissions: void[] = [];
+      service.sessionEstablished$.subscribe(() => emissions.push(undefined));
+
+      service.saveToken("abc123");
+      expect(emissions).toHaveLength(1);
+
+      service.saveToken("def456");
+      expect(emissions).toHaveLength(2);
+    });
+
     it("reads token from localStorage when in-memory token is empty", () => {
       localStorage.setItem("blueprintnotincluded-token", "stored-token");
       (service as any).token = "";
