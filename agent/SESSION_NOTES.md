@@ -1,3 +1,56 @@
+# Session Notes - 2026-08-04
+
+## What We Accomplished ✅
+
+### Content locale + search follow-ups (PR #206, merged)
+
+All of `spec/search-followups.md` Part 2 plus Part 1 §1 and §2, in one branch — the pieces
+only make sense together: surfacing a machine title without disclosure puts words in an
+author's mouth, and trusting provider-side detection without `titleOriginal` can lose a good
+match.
+
+- **`User.localePreference`** + private `GET`/`PATCH /api/users/me/locale-preference`.
+  Reports `null` (not `'en'`) when unset, unlike `themePreference` — the client's default is
+  `navigator.language` and answering `'en'` would override it on every device.
+- **Content-language picker** in the site nav, opened off a service subject so the user menu
+  and the details-page disclosure both reach it with no component wiring.
+- **`?lang=` + one shared title resolver** applied at the response boundary of the list,
+  details, related-shelf and editor-open responses.
+- **`titleOriginal`** in the text index (weight 4) — translating a title used to delete the
+  author's own words from the index.
+- **Provider-side detection pass** in `derive-search` for titles our detector can't place.
+- **Declared `sourceLang`** on the save path.
+
+### Decisions worth remembering
+
+- **`blueprintsearch` is now a display source**, widening its "advisory for retrieval only"
+  contract. Confirmed rather than overturned; reasoning and the rejected
+  `titleTranslations`-on-the-document alternative are in `title-resolution-service.ts`.
+- **The resolved title is `displayName`, never `name`.** Returning a translated value in a
+  response's `name` field is the same mutation seen from the client — the editor stores it,
+  the save dialog pre-fills from it, and the details page builds the download filename from
+  it.
+- **The picker is deliberately absent from the editor.** Selecting reloads the page (the
+  locale is a request parameter), which would discard unsaved editor work.
+
+### Gotchas found
+
+- **`translateMany` short-circuits on `sourceLang == null && ASCII_ONLY`** — exactly the
+  romanized-title candidate set. `forceProviderDetection` bypasses it; without that the pass
+  makes zero provider calls and still reports success.
+- **A long-lived local test DB keeps stale indexes** and Mongo won't redefine one in place.
+  The symptom was a search test finding nothing, never an index error — CI (fresh mongo)
+  never sees it. `__tests__/hooks.ts` now runs `syncIndexes()` and reports failures by model.
+
+### Left for the next session
+
+**Prod activation is blocking and not done**: `npm run migrate:up` then
+`npm run derive-search`, in that order. See `agent/TODO.md`.
+
+- **Tests**: backend 1022, frontend 1226 — all green.
+
+---
+
 # Session Notes - 2026-07-05
 
 ## What We Accomplished ✅

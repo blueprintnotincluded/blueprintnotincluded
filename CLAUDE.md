@@ -175,11 +175,17 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 ## Current Status
 
-- **Phase**: OniExtract2024 flat-icon rendering (current asset pipeline)
-- **Date**: 2026-07-12
+- **Phase**: multilingual search + content locale (search plan phases 0–5 and
+  `spec/search-followups.md` Part 1 §1/§2 + Part 2 all shipped). Asset pipeline is still
+  OniExtract2024 flat-icon rendering.
+- **Date**: 2026-08-04
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
-- **Tests**: ✅ Backend 796 passing (Mocha 11 + Chai 4; 2 workos-provision specs flake locally, green in CI) · Frontend 1120 passing (Vitest/jsdom)
+- **Tests**: ✅ Backend 1022 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
+  load locally and pass on a clean run) · Frontend 1226 passing (Vitest/jsdom)
+- **⚠️ Pending prod activation**: `npm run migrate:up` then `npm run derive-search` (in that
+  order — see "Search (blueprintsearch)"). Until both run, no row has a `titleOriginal` and
+  romanized non-English titles are still untranslated.
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 - **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
