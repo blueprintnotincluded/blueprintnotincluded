@@ -17,6 +17,9 @@ Dockerfile
 /frontend/tmp
 /frontend/out-tsc
 
+# Development-only, offline provider experiment; never compile it into a deploy image.
+/app/api/experiments
+
 # Only exists if Bazel was run
 /frontend/bazel-out
 

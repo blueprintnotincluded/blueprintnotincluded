@@ -1,0 +1,310 @@
+import fs from 'fs';
+import path from 'path';
+import { Translate } from '@google-cloud/translate/build/src/v2';
+import dotenv from 'dotenv';
+import { ArtifactStore, sha256 } from './diacritic-ab/artifacts';
+import {
+  assertDoRequestWithinCap,
+  assertGoogleCharacters,
+  fullReservation,
+} from './diacritic-ab/caps';
+import {
+  createFetchTransport,
+  DigitalOceanExperimentClient,
+  GoogleExperimentClient,
+} from './diacritic-ab/clients';
+import {
+  ARTIFACT_DIR,
+  CAPS,
+  DO_ENDPOINT,
+  DO_MODEL,
+  FIXTURE_PATH,
+  PROMPT_VERSIONS,
+  RATES,
+} from './diacritic-ab/constants';
+import { blindResults, mechanicalRows, observedCost } from './diacritic-ab/evaluation';
+import { loadFixture } from './diacritic-ab/fixture';
+import { buildDoRequest } from './diacritic-ab/prompts';
+import { ArmOutput, ArmResult, DiacriticCase, ExperimentArm } from './diacritic-ab/types';
+
+interface CliOptions {
+  execute: boolean;
+  acknowledged: boolean;
+}
+
+function parseCli(argv: string[]): CliOptions {
+  const allowed = new Set(['--execute', '--ack-max-usd=0.02']);
+  const unknown = argv.filter(arg => !allowed.has(arg));
+  if (unknown.length > 0) throw new Error(`Unknown argument(s): ${unknown.join(', ')}`);
+  const execute = argv.includes('--execute');
+  const acknowledged = argv.includes('--ack-max-usd=0.02');
+  if (!execute && acknowledged) throw new Error('The acknowledgement is valid only with --execute');
+  if (execute && !acknowledged) {
+    throw new Error('Live execution requires the exact acknowledgement --ack-max-usd=0.02');
+  }
+  return { execute, acknowledged };
+}
+
+function promptHash(request: ReturnType<typeof buildDoRequest>): string {
+  const withoutInputs = {
+    ...request,
+    messages: request.messages.map(message =>
+      message.role === 'user' ? { ...message, content: '<fixture-inputs>' } : message
+    ),
+  };
+  return sha256(JSON.stringify(withoutInputs));
+}
+
+function cacheIdentity(
+  arm: ExperimentArm,
+  provider: string,
+  promptVersion: string,
+  fixtureHash: string
+): string {
+  return sha256(`${arm}\n${provider}\n${promptVersion}\n${fixtureHash}`);
+}
+
+function makeManifest(rootDir: string, cases: DiacriticCase[]) {
+  const fixtureBytes = fs.readFileSync(path.resolve(rootDir, FIXTURE_PATH));
+  const fixtureHash = sha256(fixtureBytes);
+  const endToEnd = buildDoRequest(cases, 'end-to-end');
+  const restore = buildDoRequest(cases, 'restore');
+  const serializedEndToEnd = JSON.stringify(endToEnd);
+  const serializedRestore = JSON.stringify(restore);
+  const sourceCharacters = cases.reduce((sum, item) => sum + item.asciiInput.length, 0);
+  const reservation = fullReservation();
+  const manifest = {
+    experiment: 'vi-diacritic-ab-v1',
+    createdAt: new Date().toISOString(),
+    fixture: { path: FIXTURE_PATH, sha256: fixtureHash, cases: cases.length, sourceCharacters },
+    prompts: {
+      endToEnd: { version: PROMPT_VERSIONS.endToEnd, sha256: promptHash(endToEnd) },
+      restore: { version: PROMPT_VERSIONS.restore, sha256: promptHash(restore) },
+    },
+    provider: {
+      digitalOcean: { endpoint: DO_ENDPOINT, model: DO_MODEL },
+      google: { api: 'basic-v2' },
+    },
+    requestReservations: {
+      doEndToEndInputTokens: assertDoRequestWithinCap(serializedEndToEnd),
+      doRestoreInputTokens: assertDoRequestWithinCap(serializedRestore),
+      doOutputTokensPerCall: CAPS.doOutputTokensPerCall,
+      googleCharactersPerFixtureBatch: assertGoogleCharacters(
+        cases.map(item => item.asciiInput),
+        CAPS.sourceCharacters
+      ),
+    },
+    calls: { digitalOceanInference: 2, googleTranslation: 3, retries: 0, concurrency: 1 },
+    rates: RATES,
+    rateSources: {
+      digitalOcean: 'https://docs.digitalocean.com/products/inference/details/pricing/',
+      google: 'https://cloud.google.com/translate/pricing',
+    },
+    caps: CAPS,
+    reservation,
+    identities: {
+      googleAuto: cacheIdentity('google-auto', 'google-basic-v2', 'batch-auto-v1', fixtureHash),
+      googleVi: cacheIdentity('google-vi', 'google-basic-v2', 'batch-forced-vi-v1', fixtureHash),
+      llmEndToEnd: cacheIdentity('llm-end-to-end', DO_MODEL, PROMPT_VERSIONS.endToEnd, fixtureHash),
+      restoreGoogle: cacheIdentity(
+        'restore-google',
+        `${DO_MODEL}+google-basic-v2`,
+        PROMPT_VERSIONS.restore,
+        fixtureHash
+      ),
+    },
+  };
+  return { manifest, endToEnd, restore, reservation };
+}
+
+function printPreflight(
+  manifest: ReturnType<typeof makeManifest>['manifest'],
+  execute: boolean
+): void {
+  console.log(JSON.stringify(manifest, null, 2));
+  console.log(
+    execute
+      ? `Live execution acknowledged. Reserving exactly 2 DO calls, 3 Google calls, and $${manifest.reservation.maximumUsd.toFixed(7)} maximum calculated usage ($0.02 fail-closed ledger).`
+      : 'Offline dry run complete. No live client was constructed and no provider request was sent.'
+  );
+}
+
+function googleOutputs(cases: DiacriticCase[], texts: string[]): ArmOutput[] {
+  return cases.map((item, index) => ({
+    id: item.id,
+    status: 'resolved',
+    english: texts[index],
+    alternatives: [],
+  }));
+}
+
+function armGoogleCharacters(...values: number[]): number {
+  return values.reduce((sum, value) => sum + value, 0);
+}
+
+async function executeLive(
+  store: ArtifactStore,
+  cases: DiacriticCase[],
+  endToEndRequest: ReturnType<typeof buildDoRequest>,
+  restoreRequest: ReturnType<typeof buildDoRequest>,
+  manifest: ReturnType<typeof makeManifest>['manifest'],
+  reservation: ReturnType<typeof fullReservation>
+): Promise<void> {
+  if (store.exists('reservation.json')) {
+    console.log(JSON.stringify(store.read('reservation.json'), null, 2));
+    if (store.exists('results.json')) {
+      console.log(JSON.stringify(store.read('results.json'), null, 2));
+    }
+    throw new Error(
+      'Reservation already exists; captured or partial results require manual review'
+    );
+  }
+  dotenv.config();
+  const doKey = process.env.DO_INFERENCE_API_KEY;
+  const googleKey = process.env.GOOGLE_TRANSLATE_API_KEY;
+  if (!doKey || !googleKey) {
+    throw new Error('DO_INFERENCE_API_KEY and GOOGLE_TRANSLATE_API_KEY are required for --execute');
+  }
+  const now = new Date().toISOString();
+  store.createReservation({
+    state: 'reserved',
+    reservedAt: now,
+    updatedAt: now,
+    calls: { digitalOcean: reservation.doCalls, google: reservation.googleCalls },
+    tokens: { input: reservation.doInputTokens, output: reservation.doOutputTokens },
+    googleSourceCharacters: reservation.googleSourceCharacters,
+    usd: CAPS.acknowledgedUsd,
+    calculatedMaximumUsd: reservation.maximumUsd,
+    manifestFixtureSha256: manifest.fixture.sha256,
+  });
+  const updateReservation = (
+    state: 'running' | 'complete' | 'failed',
+    extra: Record<string, unknown> = {}
+  ) =>
+    store.writeJson('reservation.json', {
+      ...(store.read('reservation.json') as Record<string, unknown>),
+      state,
+      updatedAt: new Date().toISOString(),
+      ...extra,
+    });
+
+  const doClient = new DigitalOceanExperimentClient(createFetchTransport(doKey));
+  const googleSdk = new Translate({ key: googleKey, autoRetry: false, maxRetries: 0 });
+  const googleClient = new GoogleExperimentClient(googleSdk);
+  const inputs = cases.map(item => item.asciiInput);
+  const results: ArmResult[] = [];
+  let currentOperation = 'model-access';
+  const persistPartialResults = () =>
+    store.writeJson('results.json', {
+      partial: true,
+      updatedAt: new Date().toISOString(),
+      arms: results,
+      mechanical: mechanicalRows(cases, results),
+      observedCost: observedCost(results),
+    });
+  try {
+    updateReservation('running');
+    await doClient.assertModelAvailable();
+
+    currentOperation = 'google-auto';
+    const googleAuto = await googleClient.translate(inputs, 'auto', raw =>
+      store.writeJson('responses/google-auto.json', raw)
+    );
+    results.push({
+      arm: 'google-auto',
+      outputs: googleOutputs(cases, googleAuto.texts),
+      googleSourceCharacters: googleAuto.sourceCharacters,
+    });
+    persistPartialResults();
+
+    currentOperation = 'google-vi';
+    const googleVi = await googleClient.translate(inputs, 'vi', raw =>
+      store.writeJson('responses/google-vi.json', raw)
+    );
+    results.push({
+      arm: 'google-vi',
+      outputs: googleOutputs(cases, googleVi.texts),
+      googleSourceCharacters: googleVi.sourceCharacters,
+    });
+    persistPartialResults();
+
+    currentOperation = 'llm-end-to-end';
+    const llmEndToEnd = await doClient.complete(endToEndRequest, cases, 'end-to-end', raw =>
+      store.writeJson('responses/llm-end-to-end.json', raw)
+    );
+    results.push({ arm: 'llm-end-to-end', outputs: llmEndToEnd.outputs, usage: llmEndToEnd.usage });
+    persistPartialResults();
+
+    currentOperation = 'restore-google';
+    const restored = await doClient.complete(restoreRequest, cases, 'restore', raw =>
+      store.writeJson('responses/llm-restore.json', raw)
+    );
+    const restoredTexts = restored.outputs.map(output => output.restoredVi!);
+    const restoreGoogle = await googleClient.translate(restoredTexts, 'vi', raw =>
+      store.writeJson('responses/restore-google.json', raw)
+    );
+    const combined = restored.outputs.map((output, index) => ({
+      ...output,
+      english: restoreGoogle.texts[index],
+    }));
+    results.push({
+      arm: 'restore-google',
+      outputs: combined,
+      usage: restored.usage,
+      googleSourceCharacters: restoreGoogle.sourceCharacters,
+    });
+    persistPartialResults();
+
+    const blind = blindResults(cases, results);
+    store.writeJson('results.json', {
+      completedAt: new Date().toISOString(),
+      partial: false,
+      arms: results,
+      mechanical: mechanicalRows(cases, results),
+      observedCost: observedCost(results),
+      blindMapping: blind.mapping,
+      googleCharacters: armGoogleCharacters(
+        googleAuto.sourceCharacters,
+        googleVi.sourceCharacters,
+        restoreGoogle.sourceCharacters
+      ),
+    });
+    store.writeText('review.md', blind.review);
+    updateReservation('complete', { completedAt: new Date().toISOString() });
+  } catch (error) {
+    const message = (error as Error).message
+      .split(doKey)
+      .join('[REDACTED]')
+      .split(googleKey)
+      .join('[REDACTED]');
+    store.writeJson('results.json', {
+      partial: true,
+      updatedAt: new Date().toISOString(),
+      arms: results,
+      mechanical: mechanicalRows(cases, results),
+      observedCost: observedCost(results),
+      operationalFailure: { arm: currentOperation, message },
+    });
+    updateReservation('failed', { failure: message });
+    throw new Error(message);
+  }
+}
+
+export async function main(argv = process.argv.slice(2), rootDir = process.cwd()): Promise<void> {
+  const options = parseCli(argv);
+  const cases = loadFixture(rootDir);
+  const { manifest, endToEnd, restore, reservation } = makeManifest(rootDir, cases);
+  const store = new ArtifactStore(path.resolve(rootDir, ARTIFACT_DIR));
+  store.prepare();
+  store.writeJson('manifest.json', manifest);
+  printPreflight(manifest, options.execute);
+  if (!options.execute) return;
+  await executeLive(store, cases, endToEnd, restore, manifest, reservation);
+}
+
+if (require.main === module) {
+  main().catch(error => {
+    process.stderr.write(`${(error as Error).message}\n`);
+    process.exitCode = 1;
+  });
+}
