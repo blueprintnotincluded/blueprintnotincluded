@@ -25,6 +25,12 @@
 # Server-rendered blueprint preview image cache (regenerated on demand)
 /preview-cache
 
+# Offline LLM diacritic experiment reservations and provider responses
+/tmp/llm-diacritic-ab/
+
+# Local implementation plans and working specifications
+/specs/
+
 # avatar smoke test scratch output
 avatar-smoke-test*.png
 
