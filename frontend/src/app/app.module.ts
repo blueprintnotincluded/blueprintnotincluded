@@ -2,6 +2,7 @@ import { BrowserModule, EventManager } from "@angular/platform-browser";
 import { NgModule, ErrorHandler } from "@angular/core";
 import { Router } from "@angular/router";
 import {
+  HTTP_INTERCEPTORS,
   provideHttpClient,
   withInterceptorsFromDi,
 } from "@angular/common/http";
@@ -21,6 +22,7 @@ import { AppComponent } from "./app.component";
 import { ModuleBlueprintModule } from "./module-blueprint/module-blueprint.module";
 import { CustomEventManager } from "./module-blueprint/directives/custom-event-manager";
 import { RequestResetComponent } from "./password-reset/request-reset.component";
+import { AuthInterceptor } from "./module-blueprint/services/auth-interceptor";
 
 const BniTheme = definePreset(Aura, {
   primitive: {
@@ -67,6 +69,7 @@ const BniTheme = definePreset(Aura, {
   ],
   providers: [
     { provide: EventManager, useClass: CustomEventManager },
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     {
       provide: ErrorHandler,
       useValue: Sentry.createErrorHandler({
