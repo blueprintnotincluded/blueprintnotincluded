@@ -2,20 +2,25 @@ import { expect } from 'chai';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { ArtifactStore, sha256 } from '../../../app/api/experiments/diacritic-ab/artifacts';
+import { ArtifactStore } from '../../../app/api/experiments/diacritic-ab/artifacts';
 import {
-  assertDoRequestWithinCap,
+  assertGeminiRequestWithinCap,
   assertGoogleCharacters,
   calculateMaximumCost,
   fullReservation,
 } from '../../../app/api/experiments/diacritic-ab/caps';
 import {
-  DigitalOceanExperimentClient,
+  createGeminiFetchTransport,
+  GeminiExperimentClient,
   GoogleExperimentClient,
   GoogleTransport,
   validateLlmOutputs,
 } from '../../../app/api/experiments/diacritic-ab/clients';
-import { DO_ENDPOINT, DO_MODEL } from '../../../app/api/experiments/diacritic-ab/constants';
+import {
+  EXPERIMENT_REVISION,
+  GEMINI_ENDPOINT,
+  GEMINI_MODEL,
+} from '../../../app/api/experiments/diacritic-ab/constants';
 import {
   blindResults,
   mechanicalRows,
@@ -26,14 +31,14 @@ import {
   stripVietnameseDiacritics,
   validateFixture,
 } from '../../../app/api/experiments/diacritic-ab/fixture';
-import { buildDoRequest } from '../../../app/api/experiments/diacritic-ab/prompts';
+import { buildGeminiRequest } from '../../../app/api/experiments/diacritic-ab/prompts';
 import {
   ArmOutput,
   ArmResult,
   HttpRequest,
   HttpTransport,
 } from '../../../app/api/experiments/diacritic-ab/types';
-import { loadReviewed402Continuation } from '../../../app/api/experiments/translate-diacritic-ab';
+import { makeManifest, parseCli } from '../../../app/api/experiments/translate-diacritic-ab';
 
 describe('diacritic A/B experiment', () => {
   const cases = loadFixture();
@@ -69,20 +74,20 @@ describe('diacritic A/B experiment', () => {
 
   describe('caps', () => {
     it('calculates the acknowledged worst case exactly', () => {
-      expect(calculateMaximumCost()).to.equal(0.0175104);
+      expect(calculateMaximumCost()).to.equal(0.0167936);
       expect(fullReservation()).to.deep.include({
-        doCalls: 2,
+        geminiCalls: 2,
         googleCalls: 3,
-        doInputTokens: 8192,
-        doOutputTokens: 1536,
+        geminiInputTokens: 8192,
+        geminiOutputTokens: 1536,
         googleSourceCharacters: 768,
-        maximumUsd: 0.0175104,
+        maximumUsd: 0.0167936,
       });
     });
 
     it('accepts exact per-request boundaries and rejects one unit over', () => {
-      expect(assertDoRequestWithinCap('x'.repeat(4032))).to.equal(4096);
-      expect(() => assertDoRequestWithinCap('x'.repeat(4033))).to.throw('per-call cap');
+      expect(assertGeminiRequestWithinCap('x'.repeat(4032))).to.equal(4096);
+      expect(() => assertGeminiRequestWithinCap('x'.repeat(4033))).to.throw('per-call cap');
       expect(assertGoogleCharacters(['x'.repeat(256)], 256)).to.equal(256);
       expect(() => assertGoogleCharacters(['x'.repeat(257)], 256)).to.throw('source characters');
     });
@@ -91,19 +96,23 @@ describe('diacritic A/B experiment', () => {
   describe('prompt serialization', () => {
     it('pins model/settings and keeps evaluation ground truth out of both requests', () => {
       for (const mode of ['end-to-end', 'restore'] as const) {
-        const request = buildDoRequest(cases, mode);
+        const request = buildGeminiRequest(cases, mode);
         const serialized = JSON.stringify(request);
-        expect(request.model).to.equal(DO_MODEL);
-        expect(request.temperature).to.equal(0);
-        expect(request.max_completion_tokens).to.equal(768);
-        expect(request.response_format.type).to.equal('json_schema');
+        expect(request.generationConfig.temperature).to.equal(0);
+        expect(request.generationConfig.candidateCount).to.equal(1);
+        expect(request.generationConfig.maxOutputTokens).to.equal(768);
+        expect(request.generationConfig.thinkingConfig.thinkingBudget).to.equal(0);
+        expect(request.generationConfig.responseMimeType).to.equal('application/json');
+        expect(request.generationConfig.responseJsonSchema).to.be.an('object');
+        expect(request).not.to.have.property('tools');
+        expect(request).not.to.have.property('cachedContent');
         expect(serialized).not.to.contain('canonicalVietnamese');
         expect(serialized).not.to.contain('acceptableEnglish');
         expect(serialized).not.to.contain('reviewerNote');
         expect(serialized).not.to.contain('Điện phân');
         expect(serialized).not.to.contain('Electrolysis');
         expect(serialized).not.to.contain('Short tone collision');
-        expect(assertDoRequestWithinCap(serialized)).to.be.at.most(4096);
+        expect(assertGeminiRequestWithinCap(serialized)).to.be.at.most(4096);
       }
     });
   });
@@ -132,35 +141,57 @@ describe('diacritic A/B experiment', () => {
       expect(calls[0].texts).to.have.length(12);
     });
 
-    it('pins the DO endpoint/model and validates complete aligned output and usage', async () => {
+    it('pins the Gemini endpoint/model and validates complete aligned output and usage', async () => {
       const requests: HttpRequest[] = [];
       const outputs = resolvedOutputs(false);
       const transport: HttpTransport = {
         async send(request) {
           requests.push(request);
-          if (request.method === 'GET') return { status: 200, body: { data: [{ id: DO_MODEL }] } };
+          if (request.method === 'GET') {
+            return { status: 200, body: { name: `models/${GEMINI_MODEL}` } };
+          }
           return {
             status: 200,
             body: {
-              choices: [{ message: { content: JSON.stringify({ results: outputs }) } }],
-              usage: { prompt_tokens: 400, completion_tokens: 200 },
+              candidates: [
+                {
+                  finishReason: 'STOP',
+                  content: { parts: [{ text: JSON.stringify({ results: outputs }) }] },
+                },
+              ],
+              usageMetadata: {
+                promptTokenCount: 400,
+                candidatesTokenCount: 200,
+                totalTokenCount: 600,
+              },
             },
           };
         },
       };
-      const client = new DigitalOceanExperimentClient(transport);
+      const client = new GeminiExperimentClient(transport);
       await client.assertModelAvailable();
-      const result = await client.complete(buildDoRequest(cases, 'restore'), cases, 'restore');
+      const result = await client.complete(buildGeminiRequest(cases, 'restore'), cases, 'restore');
       expect(result.outputs).to.deep.equal(outputs);
-      expect(result.usage).to.deep.equal({ promptTokens: 400, completionTokens: 200 });
-      expect(requests[0].url).to.equal(`${DO_ENDPOINT}/v1/models`);
-      expect(requests[1].url).to.equal(`${DO_ENDPOINT}/v1/chat/completions`);
-      expect(JSON.parse(requests[1].body!).model).to.equal(DO_MODEL);
+      expect(result.usage).to.deep.equal({
+        promptTokens: 400,
+        completionTokens: 200,
+        thoughtTokens: 0,
+        totalTokens: 600,
+      });
+      expect(requests[0].url).to.equal(`${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}`);
+      expect(requests[1].url).to.equal(`${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}:generateContent`);
+      const body = JSON.parse(requests[1].body!);
+      expect(body.generationConfig.thinkingConfig).to.deep.equal({ thinkingBudget: 0 });
     });
 
-    it('captures a raw DO response before failing closed on missing usage', async () => {
+    it('captures a raw Gemini response before failing closed on missing usage', async () => {
       const raw = {
-        choices: [{ message: { content: JSON.stringify({ results: resolvedOutputs(false) }) } }],
+        candidates: [
+          {
+            finishReason: 'STOP',
+            content: { parts: [{ text: JSON.stringify({ results: resolvedOutputs(false) }) }] },
+          },
+        ],
       };
       const transport: HttpTransport = {
         async send() {
@@ -168,9 +199,9 @@ describe('diacritic A/B experiment', () => {
         },
       };
       let captured: unknown;
-      const client = new DigitalOceanExperimentClient(transport);
+      const client = new GeminiExperimentClient(transport);
       try {
-        await client.complete(buildDoRequest(cases, 'restore'), cases, 'restore', value => {
+        await client.complete(buildGeminiRequest(cases, 'restore'), cases, 'restore', value => {
           captured = value;
         });
         expect.fail('missing usage should fail');
@@ -180,24 +211,79 @@ describe('diacritic A/B experiment', () => {
       expect(captured).to.equal(raw);
     });
 
-    it('captures a raw DO error body before failing closed on HTTP 402', async () => {
-      const raw = { id: 'payment_required', message: 'Prepayment required' };
+    it('captures a raw Gemini error body before failing closed on HTTP errors', async () => {
+      const raw = { error: { code: 429, message: 'Quota exceeded' } };
       const transport: HttpTransport = {
         async send() {
-          return { status: 402, body: raw };
+          return { status: 429, body: raw };
         },
       };
       let captured: unknown;
-      const client = new DigitalOceanExperimentClient(transport);
+      const client = new GeminiExperimentClient(transport);
       try {
-        await client.complete(buildDoRequest(cases, 'restore'), cases, 'restore', value => {
+        await client.complete(buildGeminiRequest(cases, 'restore'), cases, 'restore', value => {
           captured = value;
         });
-        expect.fail('HTTP 402 should fail');
+        expect.fail('HTTP 429 should fail');
       } catch (error) {
-        expect((error as Error).message).to.contain('HTTP 402');
+        expect((error as Error).message).to.contain('HTTP 429');
       }
       expect(captured).to.equal(raw);
+    });
+
+    it('fails closed on blocked or truncated Gemini candidates', async () => {
+      for (const body of [
+        { promptFeedback: { blockReason: 'SAFETY' } },
+        {
+          candidates: [
+            {
+              finishReason: 'MAX_TOKENS',
+              content: { parts: [{ text: JSON.stringify({ results: resolvedOutputs(false) }) }] },
+            },
+          ],
+        },
+      ]) {
+        const client = new GeminiExperimentClient({
+          async send() {
+            return { status: 200, body };
+          },
+        });
+        try {
+          await client.complete(buildGeminiRequest(cases, 'restore'), cases, 'restore');
+          expect.fail('blocked or truncated output should fail');
+        } catch (error) {
+          expect((error as Error).message).to.match(/blocked|did not finish normally/);
+        }
+      }
+    });
+
+    it('puts the Gemini key only in the API-key header', async () => {
+      const originalFetch = global.fetch;
+      let observedUrl: string | undefined;
+      let observedHeaders: Record<string, string> | undefined;
+      global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+        observedUrl = String(input);
+        observedHeaders = init?.headers as Record<string, string>;
+        return {
+          status: 200,
+          async text() {
+            return '{}';
+          },
+        } as Response;
+      }) as typeof fetch;
+      try {
+        await createGeminiFetchTransport('test-secret').send({
+          url: `${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}`,
+          method: 'GET',
+          headers: {},
+          timeoutMs: 100,
+        });
+      } finally {
+        global.fetch = originalFetch;
+      }
+      expect(observedUrl).not.to.contain('test-secret');
+      expect(observedHeaders).to.deep.equal({ 'x-goog-api-key': 'test-secret' });
+      expect(observedHeaders).not.to.have.property('authorization');
     });
 
     it('rejects missing, duplicate, unknown, and extra output IDs', () => {
@@ -227,51 +313,26 @@ describe('diacritic A/B experiment', () => {
       expect(() => store.createReservation({ state: 'reserved' })).to.throw('already exists');
     });
 
-    it('accepts only the exact reviewed 402 continuation artifacts once', () => {
-      directory = fs.mkdtempSync(path.join(os.tmpdir(), 'diacritic-resume-'));
-      const store = new ArtifactStore(directory);
-      const fixtureHash = sha256(
-        fs.readFileSync('app/api/experiments/fixtures/vi-diacritic-cases.json')
-      );
-      const sourceCharacters = cases.reduce((sum, item) => sum + item.asciiInput.length, 0);
-      const googleAuto: ArmResult = {
-        arm: 'google-auto',
-        outputs: resolvedOutputs(true).map(({ restoredVi: _restoredVi, ...output }) => output),
-        googleSourceCharacters: sourceCharacters,
-      };
-      const googleVi: ArmResult = {
-        arm: 'google-vi',
-        outputs: resolvedOutputs(true).map(({ restoredVi: _restoredVi, ...output }) => output),
-        googleSourceCharacters: sourceCharacters,
-      };
-      store.writeJson('reservation.json', {
-        state: 'failed',
-        failure: 'DO completion request failed with HTTP 402',
-        calls: { digitalOcean: 2, google: 3 },
-        manifestFixtureSha256: fixtureHash,
-      });
-      store.writeJson('results.json', {
-        partial: true,
-        arms: [googleAuto, googleVi],
-        operationalFailure: {
-          arm: 'llm-end-to-end',
-          message: 'DO completion request failed with HTTP 402',
-        },
-      });
-      store.writeJson('responses/google-auto.json', { data: {} });
-      store.writeJson('responses/google-vi.json', { data: {} });
+    it('uses a distinct Gemini v2 identity rather than a continuation mode', () => {
+      expect(() => parseCli(['--resume-reviewed-402'], 'development')).to.throw('Unknown argument');
+      const { manifest } = makeManifest(process.cwd(), cases);
+      expect(manifest.experiment).to.equal(EXPERIMENT_REVISION);
+      expect(manifest.provider.gemini.model).to.equal(GEMINI_MODEL);
+      expect(manifest.identities.llmEndToEnd).to.be.a('string').with.length(64);
+      expect(manifest.reservation.maximumUsd).to.equal(0.0167936);
+    });
 
-      expect(loadReviewed402Continuation(store, cases, fixtureHash).results).to.deep.equal([
-        googleAuto,
-        googleVi,
-      ]);
-      store.writeJson('reservation.json', {
-        ...(store.read('reservation.json') as Record<string, unknown>),
-        resume: { authorizedAt: new Date().toISOString() },
-      });
-      expect(() => loadReviewed402Continuation(store, cases, fixtureHash)).to.throw(
-        'single reviewed HTTP 402 state'
+    it('rejects live execution in tests and requires the exact acknowledgement', () => {
+      expect(() => parseCli(['--execute'], 'development')).to.throw('exact acknowledgement');
+      expect(() => parseCli(['--ack-max-usd=0.02'], 'development')).to.throw(
+        'valid only with --execute'
       );
+      expect(() => parseCli(['--execute', '--ack-max-usd=0.02'], 'test')).to.throw(
+        'disabled when NODE_ENV=test'
+      );
+      expect(parseCli(['--execute', '--ack-max-usd=0.02'], 'development')).to.deep.equal({
+        mode: 'execute',
+      });
     });
 
     it('computes mechanical measures/cost and emits a blinded review mapping', () => {
@@ -281,12 +342,12 @@ describe('diacritic A/B experiment', () => {
         {
           arm: 'llm-end-to-end',
           outputs: resolvedOutputs(true),
-          usage: { promptTokens: 100, completionTokens: 50 },
+          usage: { promptTokens: 100, completionTokens: 50, thoughtTokens: 0, totalTokens: 150 },
         },
         {
           arm: 'restore-google',
           outputs: resolvedOutputs(true),
-          usage: { promptTokens: 100, completionTokens: 50 },
+          usage: { promptTokens: 100, completionTokens: 50, thoughtTokens: 0, totalTokens: 150 },
           googleSourceCharacters: 130,
         },
       ];

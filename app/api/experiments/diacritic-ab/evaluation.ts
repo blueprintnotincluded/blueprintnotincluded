@@ -52,8 +52,11 @@ export function observedCost(arms: ArmResult[]): { usd: number; complete: boolea
   let usd = 0;
   for (const arm of arms) {
     if (arm.usage != null) {
-      usd += (arm.usage.promptTokens * RATES.doInputUsdPerMillionTokens) / 1_000_000;
-      usd += (arm.usage.completionTokens * RATES.doOutputUsdPerMillionTokens) / 1_000_000;
+      usd += (arm.usage.promptTokens * RATES.geminiInputUsdPerMillionTokens) / 1_000_000;
+      usd +=
+        ((arm.usage.completionTokens + arm.usage.thoughtTokens) *
+          RATES.geminiOutputUsdPerMillionTokens) /
+        1_000_000;
     }
     if (arm.googleSourceCharacters != null) {
       usd += (arm.googleSourceCharacters * RATES.googleUsdPerMillionCharacters) / 1_000_000;
