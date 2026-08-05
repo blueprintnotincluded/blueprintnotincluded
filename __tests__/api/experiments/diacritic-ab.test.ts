@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { ArtifactStore } from '../../../app/api/experiments/diacritic-ab/artifacts';
+import { ArtifactStore, sha256 } from '../../../app/api/experiments/diacritic-ab/artifacts';
 import {
   assertDoRequestWithinCap,
   assertGoogleCharacters,
@@ -33,6 +33,7 @@ import {
   HttpRequest,
   HttpTransport,
 } from '../../../app/api/experiments/diacritic-ab/types';
+import { loadReviewed402Continuation } from '../../../app/api/experiments/translate-diacritic-ab';
 
 describe('diacritic A/B experiment', () => {
   const cases = loadFixture();
@@ -179,6 +180,26 @@ describe('diacritic A/B experiment', () => {
       expect(captured).to.equal(raw);
     });
 
+    it('captures a raw DO error body before failing closed on HTTP 402', async () => {
+      const raw = { id: 'payment_required', message: 'Prepayment required' };
+      const transport: HttpTransport = {
+        async send() {
+          return { status: 402, body: raw };
+        },
+      };
+      let captured: unknown;
+      const client = new DigitalOceanExperimentClient(transport);
+      try {
+        await client.complete(buildDoRequest(cases, 'restore'), cases, 'restore', value => {
+          captured = value;
+        });
+        expect.fail('HTTP 402 should fail');
+      } catch (error) {
+        expect((error as Error).message).to.contain('HTTP 402');
+      }
+      expect(captured).to.equal(raw);
+    });
+
     it('rejects missing, duplicate, unknown, and extra output IDs', () => {
       const base = resolvedOutputs(false);
       expect(() => validateLlmOutputs(base.slice(1), cases, 'restore')).to.throw('exactly 12');
@@ -204,6 +225,53 @@ describe('diacritic A/B experiment', () => {
       store.createReservation({ state: 'reserved', usd: 0.02 });
       expect(store.read('reservation.json')).to.deep.equal({ state: 'reserved', usd: 0.02 });
       expect(() => store.createReservation({ state: 'reserved' })).to.throw('already exists');
+    });
+
+    it('accepts only the exact reviewed 402 continuation artifacts once', () => {
+      directory = fs.mkdtempSync(path.join(os.tmpdir(), 'diacritic-resume-'));
+      const store = new ArtifactStore(directory);
+      const fixtureHash = sha256(
+        fs.readFileSync('app/api/experiments/fixtures/vi-diacritic-cases.json')
+      );
+      const sourceCharacters = cases.reduce((sum, item) => sum + item.asciiInput.length, 0);
+      const googleAuto: ArmResult = {
+        arm: 'google-auto',
+        outputs: resolvedOutputs(true).map(({ restoredVi: _restoredVi, ...output }) => output),
+        googleSourceCharacters: sourceCharacters,
+      };
+      const googleVi: ArmResult = {
+        arm: 'google-vi',
+        outputs: resolvedOutputs(true).map(({ restoredVi: _restoredVi, ...output }) => output),
+        googleSourceCharacters: sourceCharacters,
+      };
+      store.writeJson('reservation.json', {
+        state: 'failed',
+        failure: 'DO completion request failed with HTTP 402',
+        calls: { digitalOcean: 2, google: 3 },
+        manifestFixtureSha256: fixtureHash,
+      });
+      store.writeJson('results.json', {
+        partial: true,
+        arms: [googleAuto, googleVi],
+        operationalFailure: {
+          arm: 'llm-end-to-end',
+          message: 'DO completion request failed with HTTP 402',
+        },
+      });
+      store.writeJson('responses/google-auto.json', { data: {} });
+      store.writeJson('responses/google-vi.json', { data: {} });
+
+      expect(loadReviewed402Continuation(store, cases, fixtureHash).results).to.deep.equal([
+        googleAuto,
+        googleVi,
+      ]);
+      store.writeJson('reservation.json', {
+        ...(store.read('reservation.json') as Record<string, unknown>),
+        resume: { authorizedAt: new Date().toISOString() },
+      });
+      expect(() => loadReviewed402Continuation(store, cases, fixtureHash)).to.throw(
+        'single reviewed HTTP 402 state'
+      );
     });
 
     it('computes mechanical measures/cost and emits a blinded review mapping', () => {
