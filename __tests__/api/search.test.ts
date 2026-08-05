@@ -10,8 +10,13 @@ process.env.NODE_ENV = 'test';
 import { TestSetup, TestDbHelper } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { BlueprintSearchModel } from '../../app/api/models/blueprint-search';
-import { deriveSearchRow, deriveSearchRowWithTranslation } from '../../app/api/services/search-index-service';
-import { searchBlueprintIds } from '../../app/api/services/search-service';
+import {
+  deriveNativeSearchRow,
+  deriveSearchRow,
+  deriveSearchRowWithTranslation,
+  upsertSearchRow,
+} from '../../app/api/services/search-index-service';
+import { searchBlueprintIds, searchBlueprints } from '../../app/api/services/search-service';
 import { getSearchTermDictionary } from '../../app/api/services/search-term-dictionary';
 import { TranslationService } from '../../app/api/services/translation-service';
 import { TranslationProvider } from '../../app/api/services/translation-provider';
@@ -614,6 +619,237 @@ describe('Search (blueprintsearch)', function () {
 
       doc.name = 'Water Sieve Setup For My Base';
       expect(deriveSearchRow(doc).titleOriginal).to.equal(null);
+    });
+  });
+
+  // spec/search-followups.md §2.9 — resolves open decision #1 in the main
+  // plan. Once sourceLang is known, a second row holding the AUTHORED text
+  // verbatim under its own lang is free: no provider call, just a write.
+  // Distinct from titleOriginal: that field lives on the 'en' pivot with the
+  // pivot's own textLang, so a Russian title stemmed as English gets no real
+  // stemming benefit from it; this row gets Mongo's real per-language
+  // stemmer via language_override.
+  describe('native-language rows (§2.9)', function () {
+    describe('deriveNativeSearchRow', function () {
+      it('returns null when sourceLang was never set', async function () {
+        const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+          name: 'No Locale Base',
+          data: bpData(['Ladder']),
+        });
+        expect(deriveNativeSearchRow(doc)).to.equal(null);
+      });
+
+      it('returns null when sourceLang is en — the pivot already covers it', async function () {
+        const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+          name: 'English Base',
+          data: bpData(['Ladder']),
+        });
+        doc.sourceLang = 'en';
+        expect(deriveNativeSearchRow(doc)).to.equal(null);
+      });
+
+      it('holds the authored text verbatim, never a titleOriginal, under its own lang', async function () {
+        const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+          name: 'Máy lọc nước',
+          data: bpData(['WaterPurifier']),
+        });
+        doc.sourceLang = 'vi';
+
+        const native = deriveNativeSearchRow(doc);
+        expect(native).to.not.equal(null);
+        expect(native!.lang).to.equal('vi');
+        expect(native!.title).to.equal('Máy lọc nước');
+        expect(native!.origin).to.equal('authored');
+        expect(native!.titleOriginal).to.equal(null);
+        // termIds/clusterKey are language-independent — same content as the
+        // pivot, just filed under a different lang for its own stemming.
+        const pivot = deriveSearchRow(doc);
+        expect(native!.termIds).to.deep.equal(pivot.termIds);
+        expect(native!.clusterKey).to.equal(pivot.clusterKey);
+      });
+    });
+
+    describe('upsertSearchRow writes and prunes the native row', function () {
+      it('writes a native row alongside the en pivot when sourceLang is declared', async function () {
+        const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+          name: 'Máy lọc nước hai',
+          data: bpData(['WaterPurifier']),
+        });
+        doc.sourceLang = 'vi';
+        await upsertSearchRow(doc);
+
+        const rows = await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean();
+        const langs = rows.map(r => r.lang).sort();
+        expect(langs).to.deep.equal(['en', 'vi']);
+        const native = rows.find(r => r.lang === 'vi')!;
+        expect(native.origin).to.equal('authored');
+        expect(native.title).to.equal('Máy lọc nước hai');
+      });
+
+      it('prunes the old native row when sourceLang moves to a different language', async function () {
+        const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+          name: 'Título Original',
+          data: bpData(['WaterPurifier']),
+        });
+        doc.sourceLang = 'pt';
+        await upsertSearchRow(doc);
+        expect((await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean()).map(r => r.lang).sort()).to.deep.equal(['en', 'pt']);
+
+        // The title was re-authored in a different language.
+        doc.name = 'Máy lọc nước ba';
+        doc.sourceLang = 'vi';
+        await upsertSearchRow(doc);
+
+        const rows = await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean();
+        expect(rows.map(r => r.lang).sort()).to.deep.equal(['en', 'vi']);
+      });
+
+      it('prunes the native row entirely when sourceLang reverts to English/unknown', async function () {
+        const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+          name: 'Máy lọc nước bon',
+          data: bpData(['WaterPurifier']),
+        });
+        doc.sourceLang = 'vi';
+        await upsertSearchRow(doc);
+        expect((await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean())).to.have.length(2);
+
+        doc.name = 'Now An English Title';
+        doc.sourceLang = 'en';
+        await upsertSearchRow(doc);
+
+        const rows = await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean();
+        expect(rows.map(r => r.lang)).to.deep.equal(['en']);
+      });
+
+      it('never touches a phase-5 accreted machine row in some other language', async function () {
+        const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+          name: 'Máy lọc nước bon',
+          data: bpData(['WaterPurifier']),
+        });
+        doc.sourceLang = 'vi';
+        await upsertSearchRow(doc);
+
+        // Simulate a reader having JIT-translated this blueprint into
+        // Russian (phase 5) — origin 'machine', unrelated to sourceLang.
+        await BlueprintSearchModel.model.create({
+          blueprintId: doc._id,
+          lang: 'ru',
+          textLang: 'ru',
+          origin: 'machine',
+          title: 'Русский заголовок',
+          titleOriginal: null,
+          description: '',
+          terms: [],
+          termIds: [],
+          clusterKey: null,
+          sourceHash: 'accreted-ru-hash',
+          isPublished: true,
+          deletedAt: null,
+        });
+
+        // sourceLang changes again — the vi native row goes stale, but the
+        // accreted ru row is a real translation a reader asked for.
+        doc.name = 'Título Original Dois';
+        doc.sourceLang = 'pt';
+        await upsertSearchRow(doc);
+
+        const rows = await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean();
+        expect(rows.map(r => r.lang).sort()).to.deep.equal(['en', 'pt', 'ru']);
+        expect(rows.find(r => r.lang === 'ru')!.origin).to.equal('machine');
+      });
+    });
+  });
+
+  // spec/search-followups.md Part 1 §4 — retrieval reading the rows phase 5
+  // (and now §2.9) accretes. lexicalRetrieval widens its $in to
+  // [viewerLang, 'en'] instead of hard-coding ['en'].
+  describe('viewer-language retrieval (Part 1 §4)', function () {
+    it('finds a blueprint via its native-language row only when the viewer content locale is set', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Máy lọc nước',
+        data: bpData(['Ladder']),
+      });
+      // Simulate a pre-titleOriginal-backfill row: the pivot was already
+      // machine-translated away from the Vietnamese words, and (unlike the
+      // usual phase 3b write) titleOriginal is still null here — isolating
+      // this test to what the native row alone buys, not what titleOriginal
+      // (Part 1 §1) already covers on its own.
+      await BlueprintSearchModel.model.updateOne(
+        { blueprintId: doc._id, lang: 'en' },
+        { $set: { title: 'Water Filter Farm', origin: 'machine', titleOriginal: null } }
+      );
+      const enRow = await BlueprintSearchModel.model.findOne({ blueprintId: doc._id, lang: 'en' }).lean();
+      await BlueprintSearchModel.model.create({
+        blueprintId: doc._id,
+        lang: 'vi',
+        textLang: 'none',
+        origin: 'authored',
+        title: 'Máy lọc nước',
+        titleOriginal: null,
+        description: '',
+        terms: enRow!.terms,
+        termIds: enRow!.termIds,
+        clusterKey: enRow!.clusterKey,
+        sourceHash: 'native-vi-hash',
+        isPublished: true,
+        deletedAt: null,
+      });
+
+      const id = (doc._id as Types.ObjectId).toString();
+      const enOnly = (await searchBlueprintIds('máy lọc')).map(String);
+      expect(enOnly).to.not.include(id);
+
+      const withViewerLang = (await searchBlueprintIds('máy lọc', { viewerLang: 'vi' })).map(String);
+      expect(withViewerLang).to.include(id);
+    });
+
+    it('widening the $in never narrows away the en pivot for a viewer in another language', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Solo Pivot Base',
+        data: bpData(['Ladder']),
+      });
+      const ids = (await searchBlueprintIds('solo pivot', { viewerLang: 'ru' })).map(String);
+      expect(ids).to.include((doc._id as Types.ObjectId).toString());
+    });
+
+    it('an unparseable viewerLang is ignored rather than fanning the $in out unbounded', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Fallback Pivot Base',
+        data: bpData(['Ladder']),
+      });
+      const ids = (
+        await searchBlueprintIds('fallback pivot', { viewerLang: 'not-a-real-language-tag' })
+      ).map(String);
+      expect(ids).to.include((doc._id as Types.ObjectId).toString());
+    });
+
+    it('a bilingual match (both rows hit the query) contributes exactly one entry, not two', async function () {
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Zephyr Crate Bunker',
+        data: bpData(['Ladder']),
+      });
+      const enRow = await BlueprintSearchModel.model.findOne({ blueprintId: doc._id, lang: 'en' }).lean();
+      // A native row carrying the SAME text as the pivot — both rows match
+      // the same query, the double-counting shape Part 1 §4 warned about.
+      await BlueprintSearchModel.model.create({
+        blueprintId: doc._id,
+        lang: 'vi',
+        textLang: 'none',
+        origin: 'authored',
+        title: 'Zephyr Crate Bunker',
+        titleOriginal: null,
+        description: '',
+        terms: enRow!.terms,
+        termIds: enRow!.termIds,
+        clusterKey: enRow!.clusterKey,
+        sourceHash: 'bilingual-dup-hash',
+        isPublished: true,
+        deletedAt: null,
+      });
+
+      const matches = await searchBlueprints('zephyr crate bunker', { viewerLang: 'vi' });
+      const id = (doc._id as Types.ObjectId).toString();
+      expect(matches.filter(m => m.id.toString() === id)).to.have.length(1);
     });
   });
 

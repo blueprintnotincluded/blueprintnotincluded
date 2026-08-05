@@ -886,6 +886,11 @@ export class BlueprintController {
       return await searchBlueprints(filterName, {
         localePrior: BlueprintController.authorLocalePrior(req),
         userId,
+        // Facets never receive `?lang=` from the frontend (§2.11: "facet
+        // counts take no lang"), so this resolves to 'en' there and the
+        // widening is inert — one code path, correct behaviour on both
+        // callers with no special-casing.
+        viewerLang: BlueprintController.viewerContentLang(req),
       });
     } catch (err) {
       console.log('search resolution error — falling back to name regex');

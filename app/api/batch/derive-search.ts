@@ -37,7 +37,7 @@ import { BlueprintModel } from '../models/blueprint';
 import { BlueprintSearchModel } from '../models/blueprint-search';
 import { TranslationUnitModel } from '../models/translation-unit';
 import { TranslationBudgetModel } from '../models/translation-budget';
-import { deriveSearchRow, SearchRowFields } from '../services/search-index-service';
+import { deriveNativeSearchRow, deriveSearchRow, SearchRowFields } from '../services/search-index-service';
 import { detectLanguageCode } from '../services/language-detection-service';
 import { TranslationService } from '../services/translation-service';
 import { getSearchTermDictionary } from '../services/search-term-dictionary';
@@ -118,12 +118,26 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
       });
     }
 
+    // Existing native-language rows (§2.9) for whatever this run touches, so
+    // a blueprint whose sourceLang moved (title re-authored in a different
+    // language, or a re-run's detection now disagrees) prunes the old row
+    // instead of leaving stale authored text behind forever.
+    const existingNative = new Map<string, string>(); // blueprintId -> lang
+    for await (const row of BlueprintSearchModel.model
+      .find({ origin: 'authored', lang: { $ne: 'en' } })
+      .select('blueprintId lang')
+      .cursor()) {
+      existingNative.set(row.blueprintId.toString(), row.lang);
+    }
+
     const cursor = sampledCursor(BlueprintModel.model, {}, limit);
     let processed = 0;
     let created = 0;
     let refreshed = 0;
     let fresh = 0;
     let originalsBackfilled = 0;
+    let nativeWritten = 0;
+    let nativePruned = 0;
     let pending: mongoose.AnyBulkWriteOperation[] = [];
     // Scopes the translation pass to exactly the blueprints this run touched —
     // matters when --limit samples a subset; with no limit this is every row.
@@ -174,6 +188,32 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
           upsert: true,
         },
       });
+      // Native-language row (§2.9): pure derivation, no translation call, so
+      // unlike the pivot above there is nothing to protect by only touching
+      // signals on a fresh row — always $set the full row. Nothing else ever
+      // mutates an `origin: 'authored'` row, so this can never stomp a
+      // translation the way blindly overwriting the pivot could.
+      const native = deriveNativeSearchRow(doc);
+      if (native != null) {
+        pending.push({
+          updateOne: {
+            filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: native.lang },
+            update: { $set: native },
+            upsert: true,
+          },
+        });
+        nativeWritten++;
+      }
+      const priorNativeLang = existingNative.get(key);
+      if (priorNativeLang != null && priorNativeLang !== native?.lang) {
+        pending.push({
+          deleteOne: {
+            filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: priorNativeLang, origin: 'authored' },
+          },
+        });
+        nativePruned++;
+      }
+
       if (pending.length >= BULK_BATCH_SIZE) await flush();
       if (processed % 500 === 0) console.log(`  ...${processed} processed`);
     }
@@ -184,6 +224,7 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
     if (originalsBackfilled > 0) {
       console.log(`  titleOriginal backfilled on ${originalsBackfilled} already-translated row(s)`);
     }
+    console.log(`  native-language rows: ${nativeWritten} written, ${nativePruned} pruned (stale sourceLang)`);
 
     let failedBatches = await translateTitles(dryRun, processedIds);
     if (providerDetect) {

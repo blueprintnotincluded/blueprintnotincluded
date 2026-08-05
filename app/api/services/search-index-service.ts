@@ -145,13 +145,97 @@ export function deriveSearchRow(blueprint: Blueprint): SearchRowFields {
   };
 }
 
+// The native-language row (spec/search-followups.md §2.9, resolving open
+// decision #1 in the main plan). Once `blueprint.sourceLang` is set — by the
+// picker's declared-beats-detected write path (§2.6) or by plain statistical
+// detection — writing the AUTHORED text verbatim under its own language is
+// free: no provider call, just a second row alongside the 'en' pivot.
+//
+// Deliberately distinct from `titleOriginal` (Part 1 §1), which also keeps
+// authored text searchable: titleOriginal is a second FIELD on the 'en' pivot
+// row, indexed with no per-language stemming (`textLang` stays 'en' there,
+// since the pivot's textLang follows 'en'); this is a second ROW, indexed
+// with correct per-language stemming (`textLang` follows `sourceLang`) via
+// `language_override`. Kept BOTH rather than one replacing the other:
+//   - titleOriginal costs nothing extra to maintain (already shipped, already
+//     backfilled) and is what makes a query that mixes scripts in one string
+//     work at all, since a row has exactly one `textLang`;
+//   - a native row is what lets Mongo's real per-language stemmer do its job
+//     (Russian query matching a Russian title's declined form) — titleOriginal
+//     living on an 'en'-stemmed row cannot do that;
+//   - a native row is also the thing retrieval's widened $in (Part 1 §4)
+//     actually needs: lexicalRetrieval joins viewerLang alongside 'en', and a
+//     row that only exists as a secondary field on the 'en' row buys nothing
+//     from that join, since 'en' was already in scope before this shipped.
+// So titleOriginal remains the language-independent floor (works even with no
+// declared/detected sourceLang at all, e.g. a CJK title with no picker use),
+// and the native row is the precision upgrade once a language is known.
+//
+// `origin` stays 'authored' — this is the author's own words, not a
+// translation, and must never carry a `titleOriginal` (it would just
+// duplicate `title` under a language whose stemmer may not even use it).
+// Returns null when there is nothing to write (no sourceLang, or it's 'en' —
+// the pivot already covers that case).
+export function deriveNativeSearchRow(blueprint: Blueprint): SearchRowFields | null {
+  const lang = normalizeContentLocale(blueprint.sourceLang);
+  if (lang == null || lang === 'en') return null;
+  const pivot = deriveSearchRow(blueprint);
+  return {
+    ...pivot,
+    lang,
+    textLang: mongoTextLang(lang),
+    // sourceHash is re-derived under this row's own lang tag (rather than
+    // reusing the pivot's) so a blueprint whose sourceLang changes — the
+    // title was edited, or a later, better-informed detection disagrees —
+    // is recognized as stale by the same freshness check every other row
+    // uses, not just by the cleanup delete below.
+    sourceHash: computeSourceHash([pivot.title, pivot.description, pivot.termIds, pivot.clusterKey, lang]),
+  };
+}
+
+// Deletes any leftover native-language row that no longer matches the
+// blueprint's current sourceLang — the title was edited into a different (or
+// no longer confidently detected) language since the row was written. Scoped
+// to `origin: 'authored'` non-'en' rows only: it must never touch the 'en'
+// pivot (whatever its origin) or a phase-5 accreted row in some OTHER
+// language (origin 'machine'/'human') — those are real translations a reader
+// asked for, unrelated to what language the author wrote in.
+async function pruneStaleNativeRow(
+  blueprintId: mongoose.Types.ObjectId,
+  currentLang: string | null
+): Promise<void> {
+  const keep = currentLang != null ? ['en', currentLang] : ['en'];
+  await BlueprintSearchModel.model.deleteMany({
+    blueprintId,
+    origin: 'authored',
+    lang: { $nin: keep },
+  });
+}
+
 export async function upsertSearchRow(blueprint: Blueprint): Promise<void> {
   const fields = deriveSearchRow(blueprint);
-  await BlueprintSearchModel.model.updateOne(
-    { blueprintId: blueprint._id as mongoose.Types.ObjectId, lang: fields.lang },
-    { $set: fields },
-    { upsert: true }
-  );
+  const blueprintId = blueprint._id as mongoose.Types.ObjectId;
+  const native = deriveNativeSearchRow(blueprint);
+  const ops: mongoose.AnyBulkWriteOperation[] = [
+    {
+      updateOne: {
+        filter: { blueprintId, lang: fields.lang },
+        update: { $set: fields },
+        upsert: true,
+      },
+    },
+  ];
+  if (native != null) {
+    ops.push({
+      updateOne: {
+        filter: { blueprintId, lang: native.lang },
+        update: { $set: native },
+        upsert: true,
+      },
+    });
+  }
+  await BlueprintSearchModel.model.bulkWrite(ops as any);
+  await pruneStaleNativeRow(blueprintId, native?.lang ?? null);
 }
 
 // Whether a title is confidently written in a language other than English —
