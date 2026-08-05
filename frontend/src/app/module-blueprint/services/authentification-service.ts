@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 
 export interface UserDetails {
@@ -23,11 +23,24 @@ export class AuthenticationService {
 
   private token: string = "";
 
+  // Fired whenever a token is stored — every login-completion component
+  // (password, magic-link, email-verification) funnels through saveToken,
+  // so this is the one place a session actually starts. Session-scoped
+  // services (theme, content locale) need this because login completes via
+  // an in-SPA route navigation (`router.navigate(["/"])`), never a full page
+  // reload — so AppComponent.ngOnInit's one-shot "am I logged in" check
+  // never re-runs after login, and without this signal, account state
+  // (and, for content locale, adopting a pre-login local declaration into
+  // the account) would only ever load on the NEXT hard refresh.
+  private readonly sessionEstablished = new Subject<void>();
+  readonly sessionEstablished$ = this.sessionEstablished.asObservable();
+
   constructor(private http: HttpClient) {}
 
   public saveToken(token: string): void {
     localStorage.setItem(AuthenticationService.localStorage, token);
     this.token = token;
+    this.sessionEstablished.next();
   }
 
   public getToken(): string {

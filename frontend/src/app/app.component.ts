@@ -1,4 +1,5 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
 import { ThemeService } from "./module-blueprint/services/theme.service";
 import { ContentLocaleService } from "./module-blueprint/services/content-locale.service";
 import { AuthenticationService } from "./module-blueprint/services/authentification-service";
@@ -9,8 +10,10 @@ import { AuthenticationService } from "./module-blueprint/services/authentificat
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = "blueprintnotincluded";
+
+  private sessionSubscription: Subscription | null = null;
 
   constructor(
     private themeService: ThemeService,
@@ -27,8 +30,26 @@ export class AppComponent implements OnInit {
     // request goes out, not after.
     this.contentLocaleService.initFromLocal();
     if (this.authService.isLoggedIn()) {
-      this.themeService.loadForUser().subscribe({ error: () => {} });
-      this.contentLocaleService.loadForUser().subscribe({ error: () => {} });
+      this.loadAccountState();
     }
+    // Login completes via an in-SPA route navigation
+    // (login-page/magic-callback/etc. all `router.navigate(["/"])`), never a
+    // full page reload — so a session that starts AFTER this component has
+    // already run its one-shot init above needs its own signal, or account
+    // state (and the content locale's adopt-local-declaration-into-account
+    // step) never loads until the next hard refresh.
+    this.sessionSubscription = this.authService.sessionEstablished$.subscribe(
+      () => this.loadAccountState(),
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.sessionSubscription?.unsubscribe();
+    this.sessionSubscription = null;
+  }
+
+  private loadAccountState(): void {
+    this.themeService.loadForUser().subscribe({ error: () => {} });
+    this.contentLocaleService.loadForUser().subscribe({ error: () => {} });
   }
 }
