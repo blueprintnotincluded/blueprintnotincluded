@@ -1,11 +1,11 @@
-import { CAPS, DO_MODEL, PROMPT_VERSIONS } from './constants';
+import { CAPS, PROMPT_VERSIONS } from './constants';
 import { DiacriticCase } from './types';
 
 export type LlmMode = 'end-to-end' | 'restore';
 
 const SHARED_PROMPT = `Inputs are user-authored Oxygen Not Included blueprint titles that may be Vietnamese typed without diacritics. Use ONI context only to disambiguate; never invent absent details. Preserve digits, version markers, punctuation, and ASCII game jargon such as SPOM. Return English or acronym-only controls unchanged. If meaning is genuinely underdetermined, use status "ambiguous" and at most three plausible alternatives instead of guessing. Return only data matching the schema.`;
 
-function responseSchema(mode: LlmMode): Record<string, unknown> {
+export function responseSchema(mode: LlmMode): Record<string, unknown> {
   const properties: Record<string, unknown> = {
     id: { type: 'string' },
     status: { type: 'string', enum: ['resolved', 'ambiguous'] },
@@ -32,20 +32,20 @@ function responseSchema(mode: LlmMode): Record<string, unknown> {
   };
 }
 
-export interface DoRequestBody {
-  model: typeof DO_MODEL;
-  messages: { role: 'system' | 'user'; content: string }[];
-  temperature: 0;
-  max_completion_tokens: number;
-  response_format: {
-    type: 'json_schema';
-    json_schema: { name: string; strict: true; schema: Record<string, unknown> };
+export interface GeminiRequestBody {
+  systemInstruction: { parts: { text: string }[] };
+  contents: { role: 'user'; parts: { text: string }[] }[];
+  generationConfig: {
+    temperature: 0;
+    candidateCount: 1;
+    maxOutputTokens: number;
+    responseMimeType: 'application/json';
+    responseJsonSchema: Record<string, unknown>;
+    thinkingConfig: { thinkingBudget: 0 };
   };
 }
 
-export function buildDoRequest(cases: DiacriticCase[], mode: LlmMode): DoRequestBody {
-  // Only IDs and experiment inputs enter the provider layer. Ground truth and
-  // reviewer notes remain in fixture/evaluation code.
+export function buildGeminiRequest(cases: DiacriticCase[], mode: LlmMode): GeminiRequestBody {
   const inputs = cases.map(item => ({ id: item.id, text: item.asciiInput }));
   const task =
     mode === 'end-to-end'
@@ -53,20 +53,15 @@ export function buildDoRequest(cases: DiacriticCase[], mode: LlmMode): DoRequest
       : 'Restore the intended Vietnamese only; do not translate it to English.';
   const version = mode === 'end-to-end' ? PROMPT_VERSIONS.endToEnd : PROMPT_VERSIONS.restore;
   return {
-    model: DO_MODEL,
-    messages: [
-      { role: 'system', content: `${version}\n${SHARED_PROMPT}\n${task}` },
-      { role: 'user', content: JSON.stringify({ inputs }) },
-    ],
-    temperature: 0,
-    max_completion_tokens: CAPS.doOutputTokensPerCall,
-    response_format: {
-      type: 'json_schema',
-      json_schema: {
-        name: `vi_diacritic_${mode.replace(/-/g, '_')}`,
-        strict: true,
-        schema: responseSchema(mode),
-      },
+    systemInstruction: { parts: [{ text: `${version}\n${SHARED_PROMPT}\n${task}` }] },
+    contents: [{ role: 'user', parts: [{ text: JSON.stringify({ inputs }) }] }],
+    generationConfig: {
+      temperature: 0,
+      candidateCount: CAPS.geminiCandidates,
+      maxOutputTokens: CAPS.geminiOutputTokensPerCall,
+      responseMimeType: 'application/json',
+      responseJsonSchema: responseSchema(mode),
+      thinkingConfig: { thinkingBudget: CAPS.geminiThinkingBudget },
     },
   };
 }

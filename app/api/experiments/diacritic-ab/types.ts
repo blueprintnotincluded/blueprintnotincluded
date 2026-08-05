@@ -22,6 +22,8 @@ export interface ArmOutput {
 export interface TokenUsage {
   promptTokens: number;
   completionTokens: number;
+  thoughtTokens: number;
+  totalTokens: number;
 }
 
 export interface ArmResult {

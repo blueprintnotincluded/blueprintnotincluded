@@ -1,7 +1,13 @@
 import { TranslateRequest } from '@google-cloud/translate/build/src/v2';
-import { CAPS, DO_ENDPOINT, DO_MODEL, DO_TIMEOUT_MS, GOOGLE_TIMEOUT_MS } from './constants';
-import { assertDoRequestWithinCap, assertGoogleCharacters } from './caps';
-import { DoRequestBody, LlmMode } from './prompts';
+import {
+  CAPS,
+  GEMINI_ENDPOINT,
+  GEMINI_MODEL,
+  GEMINI_TIMEOUT_MS,
+  GOOGLE_TIMEOUT_MS,
+} from './constants';
+import { assertGeminiRequestWithinCap, assertGoogleCharacters } from './caps';
+import { GeminiRequestBody, LlmMode } from './prompts';
 import {
   ArmOutput,
   DiacriticCase,
@@ -70,74 +76,129 @@ export class GoogleExperimentClient {
   }
 }
 
-interface ChatCompletionResponse {
-  choices?: { message?: { content?: string } }[];
-  usage?: { prompt_tokens?: number; completion_tokens?: number };
+interface GeminiResponse {
+  candidates?: {
+    finishReason?: string;
+    content?: { parts?: { text?: string }[] };
+  }[];
+  promptFeedback?: { blockReason?: string };
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    thoughtsTokenCount?: number;
+    totalTokenCount?: number;
+  };
   [key: string]: unknown;
 }
 
-export interface DoBatchResult {
+export interface GeminiBatchResult {
   outputs: ArmOutput[];
-  raw: ChatCompletionResponse;
+  raw: GeminiResponse;
   usage: TokenUsage;
 }
 
-export class DigitalOceanExperimentClient {
+export class GeminiExperimentClient {
   public constructor(private readonly transport: HttpTransport) {}
 
   public async assertModelAvailable(): Promise<void> {
     const response = await this.transport.send({
-      url: `${DO_ENDPOINT}/v1/models`,
+      url: `${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}`,
       method: 'GET',
       headers: {},
-      timeoutMs: DO_TIMEOUT_MS,
+      timeoutMs: GEMINI_TIMEOUT_MS,
     });
-    assertSuccess(response, 'DO model-list request');
-    const data = (response.body as { data?: { id?: string }[] })?.data;
-    if (!Array.isArray(data) || !data.some(model => model.id === DO_MODEL)) {
-      throw new Error(`Required model ${DO_MODEL} is unavailable to this key`);
+    assertSuccess(response, 'Gemini model metadata request');
+    const name = (response.body as { name?: unknown })?.name;
+    if (name !== `models/${GEMINI_MODEL}`) {
+      throw new Error(`Required model ${GEMINI_MODEL} is unavailable to this key`);
     }
   }
 
   public async complete(
-    requestBody: DoRequestBody,
+    requestBody: GeminiRequestBody,
     cases: DiacriticCase[],
     mode: LlmMode,
-    captureRaw?: (raw: ChatCompletionResponse) => void
-  ): Promise<DoBatchResult> {
-    if (requestBody.model !== DO_MODEL) throw new Error(`Unexpected model: ${requestBody.model}`);
+    captureRaw?: (raw: GeminiResponse) => void
+  ): Promise<GeminiBatchResult> {
+    assertFixedGeminiConfig(requestBody);
     const serialized = JSON.stringify(requestBody);
-    assertDoRequestWithinCap(serialized);
+    assertGeminiRequestWithinCap(serialized);
     const response = await this.transport.send({
-      url: `${DO_ENDPOINT}/v1/chat/completions`,
+      url: `${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}:generateContent`,
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: serialized,
-      timeoutMs: DO_TIMEOUT_MS,
+      timeoutMs: GEMINI_TIMEOUT_MS,
     });
-    const raw = response.body as ChatCompletionResponse;
+    const raw = response.body as GeminiResponse;
     captureRaw?.(raw);
-    assertSuccess(response, 'DO completion request');
-    const content = raw.choices?.[0]?.message?.content;
-    if (typeof content !== 'string') throw new Error('DO response has no completion content');
-    const promptTokens = raw.usage?.prompt_tokens;
-    const completionTokens = raw.usage?.completion_tokens;
-    if (!Number.isInteger(promptTokens) || !Number.isInteger(completionTokens)) {
-      throw new Error('DO response omitted token usage');
+    assertSuccess(response, 'Gemini completion request');
+    if (raw.promptFeedback?.blockReason != null) {
+      throw new Error(`Gemini blocked the prompt: ${raw.promptFeedback.blockReason}`);
     }
-    if (
-      promptTokens! > CAPS.doInputTokensPerCall ||
-      completionTokens! > CAPS.doOutputTokensPerCall
-    ) {
-      throw new Error('DO reported usage beyond a per-call cap');
+    const candidate = raw.candidates?.[0];
+    if (candidate?.finishReason !== 'STOP') {
+      throw new Error(
+        `Gemini completion did not finish normally: ${candidate?.finishReason ?? 'none'}`
+      );
     }
+    const content = candidate.content?.parts
+      ?.map(part => part.text)
+      .filter((text): text is string => typeof text === 'string')
+      .join('');
+    if (content == null || content.length === 0) {
+      throw new Error('Gemini response has no completion content');
+    }
+    const usage = validateGeminiUsage(raw.usageMetadata);
     const parsed = JSON.parse(content) as { results?: unknown };
-    return {
-      outputs: validateLlmOutputs(parsed.results, cases, mode),
-      raw,
-      usage: { promptTokens: promptTokens!, completionTokens: completionTokens! },
-    };
+    return { outputs: validateLlmOutputs(parsed.results, cases, mode), raw, usage };
   }
+}
+
+function assertFixedGeminiConfig(request: GeminiRequestBody): void {
+  const config = request.generationConfig;
+  if (
+    config.temperature !== 0 ||
+    config.candidateCount !== CAPS.geminiCandidates ||
+    config.maxOutputTokens !== CAPS.geminiOutputTokensPerCall ||
+    config.responseMimeType !== 'application/json' ||
+    config.thinkingConfig.thinkingBudget !== CAPS.geminiThinkingBudget
+  ) {
+    throw new Error('Gemini request does not match the fixed experiment configuration');
+  }
+  const forbidden = ['tools', 'toolConfig', 'cachedContent'] as const;
+  for (const key of forbidden) {
+    if (key in (request as unknown as Record<string, unknown>)) {
+      throw new Error(`Gemini request contains forbidden capability: ${key}`);
+    }
+  }
+}
+
+function validateGeminiUsage(value: GeminiResponse['usageMetadata']): TokenUsage {
+  const promptTokens = value?.promptTokenCount;
+  const completionTokens = value?.candidatesTokenCount;
+  const thoughtTokens = value?.thoughtsTokenCount ?? 0;
+  const totalTokens = value?.totalTokenCount;
+  if (
+    !Number.isInteger(promptTokens) ||
+    !Number.isInteger(completionTokens) ||
+    !Number.isInteger(thoughtTokens) ||
+    !Number.isInteger(totalTokens)
+  ) {
+    throw new Error('Gemini response omitted token usage');
+  }
+  if (
+    promptTokens! > CAPS.geminiInputTokensPerCall ||
+    completionTokens! + thoughtTokens > CAPS.geminiOutputTokensPerCall
+  ) {
+    throw new Error('Gemini reported usage beyond a per-call cap');
+  }
+  return {
+    promptTokens: promptTokens!,
+    completionTokens: completionTokens!,
+    thoughtTokens,
+    totalTokens: totalTokens!,
+  };
 }
 
 function assertSuccess(response: HttpResponse, operation: string): void {
@@ -177,7 +238,7 @@ export function validateLlmOutputs(
   return value as ArmOutput[];
 }
 
-export function createFetchTransport(apiKey: string): HttpTransport {
+export function createGeminiFetchTransport(apiKey: string): HttpTransport {
   return {
     async send(request: HttpRequest): Promise<HttpResponse> {
       const controller = new AbortController();
@@ -185,11 +246,18 @@ export function createFetchTransport(apiKey: string): HttpTransport {
       try {
         const response = await fetch(request.url, {
           method: request.method,
-          headers: { ...request.headers, authorization: `Bearer ${apiKey}` },
+          headers: { ...request.headers, 'x-goog-api-key': apiKey },
           body: request.body,
           signal: controller.signal,
         });
-        return { status: response.status, body: (await response.json()) as unknown };
+        const text = await response.text();
+        let body: unknown = text;
+        try {
+          body = JSON.parse(text) as unknown;
+        } catch {
+          // Preserve a non-JSON provider error for the redacted raw artifact.
+        }
+        return { status: response.status, body };
       } finally {
         clearTimeout(timer);
       }
