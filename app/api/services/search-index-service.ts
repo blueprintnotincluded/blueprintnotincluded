@@ -176,10 +176,19 @@ export function deriveSearchRow(blueprint: Blueprint): SearchRowFields {
 // duplicate `title` under a language whose stemmer may not even use it).
 // Returns null when there is nothing to write (no sourceLang, or it's 'en' —
 // the pivot already covers that case).
-export function deriveNativeSearchRow(blueprint: Blueprint): SearchRowFields | null {
+//
+// `pivot` is optional and defaults to a fresh `deriveSearchRow(blueprint)` so
+// this stays callable standalone (batch/test call sites do exactly that) —
+// but every real call site already has the pivot in hand (upsertSearchRow,
+// the derive-search backfill loop), and `deriveSearchRow` re-walks the
+// content (contentTermIds, the dictionary lookup, the cluster-key hash) on
+// every call, so passing it through avoids doing that work twice per save.
+export function deriveNativeSearchRow(
+  blueprint: Blueprint,
+  pivot: SearchRowFields = deriveSearchRow(blueprint)
+): SearchRowFields | null {
   const lang = normalizeContentLocale(blueprint.sourceLang);
   if (lang == null || lang === 'en') return null;
-  const pivot = deriveSearchRow(blueprint);
   return {
     ...pivot,
     lang,
@@ -215,7 +224,7 @@ async function pruneStaleNativeRow(
 export async function upsertSearchRow(blueprint: Blueprint): Promise<void> {
   const fields = deriveSearchRow(blueprint);
   const blueprintId = blueprint._id as mongoose.Types.ObjectId;
-  const native = deriveNativeSearchRow(blueprint);
+  const native = deriveNativeSearchRow(blueprint, fields);
   const ops: mongoose.AnyBulkWriteOperation[] = [
     {
       updateOne: {

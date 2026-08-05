@@ -271,10 +271,27 @@ export async function searchBlueprints(
   ]);
 
   // Ranking signals come from whichever retrieval saw the row — both carry
-  // the same denormalized values.
+  // the same denormalized values regardless of which language row matched.
   const signalsById = new Map<string, RetrievedRow>();
   for (const row of [...lexical, ...structural]) {
     signalsById.set(row.blueprintId.toString(), row);
+  }
+
+  // Titles are NOT interchangeable the way the signals above are: lexical can
+  // match a blueprint via its native-language row while structural always
+  // reads the 'en' pivot's title, so the same blueprintId can carry two
+  // different title strings across the two retrievals. Keep both — the
+  // single-map overwrite this replaced (structural spread after lexical)
+  // would silently drop the native-language title whenever the same
+  // blueprint also matched structurally, failing titleMatch for an exact
+  // native-language match for no reason but map insertion order.
+  const titlesById = new Map<string, string[]>();
+  for (const row of [...lexical, ...structural]) {
+    if (row.title == null) continue;
+    const key = row.blueprintId.toString();
+    const list = titlesById.get(key);
+    if (list != null) list.push(row.title);
+    else titlesById.set(key, [row.title]);
   }
 
   // "The title says what you typed": every query token appears in the
@@ -282,11 +299,15 @@ export async function searchBlueprints(
   // can't express this). Uses lexicalTokens, not the raw query tokens — a
   // translated query's original-language tokens can never appear in an
   // English row's title, so the effective (possibly-translated) tokens are
-  // what "says what you typed" has to mean once translation ran.
-  const titleMatches = (title: string | undefined): boolean => {
-    if (title == null) return false;
-    const titleTokens = new Set(tokenize(title));
-    return lexicalTokens.every(token => titleTokens.has(token));
+  // what "says what you typed" has to mean once translation ran. Checked
+  // against every title retained for the id — a match on ANY of them counts.
+  const titleMatches = (id: string): boolean => {
+    const titles = titlesById.get(id);
+    if (titles == null) return false;
+    return titles.some(title => {
+      const titleTokens = new Set(tokenize(title));
+      return lexicalTokens.every(token => titleTokens.has(token));
+    });
   };
 
   const candidates: RankingCandidate[] = fused.map(({ id, score }) => {
@@ -294,7 +315,7 @@ export async function searchBlueprints(
     return {
       id,
       fusionScore: score,
-      titleMatch: titleMatches(row?.title),
+      titleMatch: titleMatches(id),
       signals: {
         ratingAverage: row?.ratingAverage ?? 0,
         ratingCount: row?.ratingCount ?? 0,

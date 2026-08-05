@@ -121,13 +121,21 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
     // Existing native-language rows (§2.9) for whatever this run touches, so
     // a blueprint whose sourceLang moved (title re-authored in a different
     // language, or a re-run's detection now disagrees) prunes the old row
-    // instead of leaving stale authored text behind forever.
-    const existingNative = new Map<string, string>(); // blueprintId -> lang
+    // instead of leaving stale authored text behind forever. A list per
+    // blueprint, not a single value: this is a batch pass over rows that may
+    // predate the save-path's own pruning (upsertSearchRow's
+    // pruneStaleNativeRow), so a blueprint can carry more than one leftover
+    // authored non-'en' row here — a Map<string, string> would keep only the
+    // last one the cursor happened to see and silently leave the rest.
+    const existingNative = new Map<string, string[]>(); // blueprintId -> langs
     for await (const row of BlueprintSearchModel.model
       .find({ origin: 'authored', lang: { $ne: 'en' } })
       .select('blueprintId lang')
       .cursor()) {
-      existingNative.set(row.blueprintId.toString(), row.lang);
+      const key = row.blueprintId.toString();
+      const langs = existingNative.get(key);
+      if (langs != null) langs.push(row.lang);
+      else existingNative.set(key, [row.lang]);
     }
 
     const cursor = sampledCursor(BlueprintModel.model, {}, limit);
@@ -193,7 +201,7 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
       // signals on a fresh row — always $set the full row. Nothing else ever
       // mutates an `origin: 'authored'` row, so this can never stomp a
       // translation the way blindly overwriting the pivot could.
-      const native = deriveNativeSearchRow(doc);
+      const native = deriveNativeSearchRow(doc, fields);
       if (native != null) {
         pending.push({
           updateOne: {
@@ -204,8 +212,9 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
         });
         nativeWritten++;
       }
-      const priorNativeLang = existingNative.get(key);
-      if (priorNativeLang != null && priorNativeLang !== native?.lang) {
+      const priorNativeLangs = existingNative.get(key) ?? [];
+      for (const priorNativeLang of priorNativeLangs) {
+        if (priorNativeLang === native?.lang) continue;
         pending.push({
           deleteOne: {
             filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: priorNativeLang, origin: 'authored' },
