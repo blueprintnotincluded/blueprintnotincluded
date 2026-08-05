@@ -1,12 +1,58 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Social evolution — likes, auto-derived metadata, profiles/follows/activity feed, blueprint comments, and the blueprint details page all shipped
-- **Date**: 2026-07-06
+- **Phase**: Multilingual search + content locale — search plan phases 0–5 shipped, plus
+  `spec/search-followups.md` Part 1 §1/§2 and all of Part 2 (PR #206)
+- **Date**: 2026-08-04
 - **Branch**: `master`
-- **Stack**: Node 20.19.4 · TypeScript 5.9.2 strict · Mongoose 8.18.1 · Express 5.1.0 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: 326 backend (Mocha + Chai) · 573 frontend (Vitest, 2 skipped) — all green
+- **Stack**: Node 20.19.4 · TypeScript 5.9.3 strict · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
+- **Tests**: 1022 backend (Mocha + Chai) · 1226 frontend (Vitest, 2 skipped) — all green
 - **Enforcement**: zero-warning flags enabled backend, lib, and frontend (`strict` + `strictTemplates`); CI improvements all complete (mongo:8.0.23 + mongosh health check)
+
+## ⚠️ Blocking: activate the content-locale work in prod
+
+PR #206 is merged but **inert until two commands run, in this order**:
+
+```bash
+cd /bpni/build
+npm run migrate:up        # 20260804000000_search-title-original — rebuilds the text index
+npm run derive-search     # backfills titleOriginal + runs provider-side detection
+```
+
+Take a DB backup first (DO dashboard → Backups → Create backup now), per the migration
+runbook. `derive-search` is rerunnable; do a `derive-search:dry-run` first to see the
+candidate counts. The detection pass spends real money against `GOOGLE_TRANSLATE_API_KEY`
+(one-time, ~59K characters, inside the 500K/month free tier) — re-runs are cache reads.
+
+Until this runs: no row has a `titleOriginal` (so a machine-translated blueprint is still
+unfindable by its authored title), and romanized non-English titles are still untranslated.
+
+## Multilingual search — what's left
+
+Full detail in `spec/multilingual-search-plan.md` §4.5 and `spec/search-followups.md`.
+
+- **Retrieval never reads the non-English rows** (followups Part 1 §4). Phase 5 accretes
+  rows in the reader's language, but `lexicalRetrieval`/`structuralRetrieval` still
+  hard-code `lang: 'en'`. They cost nothing and buy nothing until a viewer-language signal
+  is threaded in — which `?lang=` now supplies for the first time, so this is unblocked.
+- **`changed: false` precision audit** (followups Part 1 §5). Cheap aggregate; measures
+  whether `confidentTitleLang` over-fires. Worth running against prod **after** the
+  activation above, since the new detection pass adds to the population.
+- **Native-language search rows** (followups §2.9). Now that `sourceLang` can be declared,
+  writing a row with `lang: sourceLang` holding the authored text verbatim is free — no API
+  call. It overlaps `titleOriginal`; design them together or there will be two mechanisms
+  for one job.
+- **Sticky "always show original titles"** (followups §2.12) — does an English reader ever
+  want the authored title instead? Product question, not mechanical.
+- **Phase 6 — semantic retrieval**, only if `searchqueries` telemetry justifies it. It held
+  ~2 dev rows as of 2026-08-04; needs real production traffic first.
+- **IDF weighting for structural matches** (plan §2.3 B) — still ordered by raw matched-id
+  count.
+- **`.po` acquisition** for non-English term dictionaries (plan §7.3) — research and
+  licensing, not engineering, but it caps how good non-English search gets at zero cost.
+- **Near-duplicate clustering** (plan §2.5 signal 2, multiset Jaccard) — needs a global
+  pass, so it was skipped in phase 2. Its consumer, the **fork-migration offer to cluster
+  members**, is the feature whose absence produced 86 copies of one ranch.
 
 ## OniExtract2024 follow-ups
 
@@ -153,6 +199,8 @@ WorkOS in-app auth work; rate limiting is Cloudflare's job — do not add expres
 
 ## Next steps
 
+0. **Activate PR #206 in prod** — migrate, then `derive-search`. See the blocking section
+   above; nothing about the content-locale feature works until this runs.
 1. Rename `import:2024` to a version-neutral script name (keep alias one cycle).
 2. Export side: emit `uiImageRect` for the 145 buildings still missing it.
 3. Monitor WorkOS legacy-user migration (`GET /api/migration/status`); retire the legacy
