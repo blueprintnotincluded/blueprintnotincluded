@@ -9,8 +9,14 @@ import { TRANSLATION_TARGET_LANGS } from '../../../lib/index';
 // rebuild. This collection replaces the earlier per-document `translations`
 // cache, which never shipped (empty in prod), so the re-key is a schema edit
 // rather than a migration.
-export type TranslationProviderName = 'google-v2' | 'human';
-const TRANSLATION_PROVIDERS: TranslationProviderName[] = ['google-v2', 'human'];
+export type TranslationProviderName = 'google-v2' | 'gemini-3.1-flash-lite' | 'human';
+const TRANSLATION_PROVIDERS: TranslationProviderName[] = [
+  'google-v2',
+  'gemini-3.1-flash-lite',
+  'human',
+];
+export type TranslationMode = 'standard' | 'vi-romanized-title-v1';
+export const STANDARD_TRANSLATION_MODE: TranslationMode = 'standard';
 
 // sourceLang key value written while the provider auto-detects. Today EVERY
 // row uses it: the Google provider never sees the caller's declared source
@@ -19,7 +25,7 @@ const TRANSLATION_PROVIDERS: TranslationProviderName[] = ['google-v2', 'human'];
 // writing real codes — new keys, no migration.
 export const AUTO_SOURCE_LANG = 'auto';
 
-export interface TranslationUnit extends Document {
+export interface TranslationUnit extends Omit<Document, 'model'> {
   // sha256 of the source text, first 16 hex chars — the cache key. Freshness
   // needs no separate field: a source edit changes the hash, which is a new
   // key, so a stale row is simply never found again.
@@ -27,12 +33,18 @@ export interface TranslationUnit extends Document {
   // Declared source language at translate time, or 'auto' when unknown.
   sourceLang: string;
   targetLang: string;
+  mode: TranslationMode;
   // What the provider reported the source actually was (null for human rows
   // and providers that don't detect).
   detectedSourceLang: string | null;
   translatedText: string;
   provider: TranslationProviderName;
   charCount: number;
+  promptVersion?: string | null;
+  model?: string | null;
+  restoredSourceText?: string | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
   // Phase 4 (deferred): human-submitted corrections. null = machine.
   reviewedBy?: mongoose.Types.ObjectId | null;
   createdAt: Date;
@@ -48,16 +60,30 @@ export class TranslationUnitModel {
         textHash: { type: String, required: true },
         sourceLang: { type: String, required: true },
         targetLang: { type: String, enum: TRANSLATION_TARGET_LANGS, required: true },
+        mode: {
+          type: String,
+          enum: ['standard', 'vi-romanized-title-v1'],
+          default: STANDARD_TRANSLATION_MODE,
+          required: true,
+        },
         detectedSourceLang: { type: String, default: null },
         translatedText: { type: String, required: true },
         provider: { type: String, enum: TRANSLATION_PROVIDERS, required: true },
         charCount: { type: Number, required: true },
+        promptVersion: { type: String, default: null },
+        model: { type: String, default: null },
+        restoredSourceText: { type: String, default: null },
+        inputTokens: { type: Number, default: null },
+        outputTokens: { type: Number, default: null },
         reviewedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
       },
       { timestamps: true }
     );
 
-    translationUnitSchema.index({ textHash: 1, sourceLang: 1, targetLang: 1 }, { unique: true });
+    translationUnitSchema.index(
+      { textHash: 1, sourceLang: 1, targetLang: 1, mode: 1 },
+      { unique: true }
+    );
 
     TranslationUnitModel.model =
       (mongoose.models['TranslationUnit'] as Model<TranslationUnit>) ??

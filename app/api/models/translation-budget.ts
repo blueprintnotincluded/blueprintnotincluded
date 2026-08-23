@@ -14,6 +14,11 @@ export interface TranslationBudget extends Document {
   userId?: mongoose.Types.ObjectId | null;
   charCount: number;
   requestCount: number;
+  geminiReservedMicroUsd: number;
+  geminiObservedMicroUsd: number;
+  geminiInputTokens: number;
+  geminiOutputTokens: number;
+  geminiRequestCount: number;
 }
 
 export class TranslationBudgetModel {
@@ -26,6 +31,11 @@ export class TranslationBudgetModel {
       userId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
       charCount: { type: Number, default: 0 },
       requestCount: { type: Number, default: 0 },
+      geminiReservedMicroUsd: { type: Number, default: 0 },
+      geminiObservedMicroUsd: { type: Number, default: 0 },
+      geminiInputTokens: { type: Number, default: 0 },
+      geminiOutputTokens: { type: Number, default: 0 },
+      geminiRequestCount: { type: Number, default: 0 },
     });
 
     // Site row: { month, userId: null, day: null }; per-user row: { month,
