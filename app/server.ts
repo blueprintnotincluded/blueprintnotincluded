@@ -8,6 +8,7 @@ import app from './app';
 import { PreviewImageService } from './api/services/preview-image-service';
 import { BlueprintCounterService } from './api/services/blueprint-counter-service';
 import { startMemoryHeartbeat } from './api/services/memory-heartbeat';
+import { isVietnameseTitleGateActive } from './api/services/vietnamese-title-translation-service';
 
 // Loud, unmissable startup check — avatar endpoints answer 503 until the key
 // exists, but the server still boots so a missing key can't take the site down.
@@ -25,16 +26,14 @@ if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
   );
 }
 
-const viTitleEnabled = process.env.GEMINI_VI_TITLE_TRANSLATION_ENABLED === 'true';
-const viTitleBudget = Number(process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD ?? 0);
+// Same predicate the batch pass and save path spend against, so the banner
+// cannot report a state the code disagrees with.
 console.log(
   `[vi-title] ${
-    viTitleEnabled &&
-    process.env.GEMINI_API_KEY &&
-    Number.isFinite(viTitleBudget) &&
-    viTitleBudget > 0
-      ? `ENABLED (monthly cap ${viTitleBudget} micro-USD)`
-      : 'DISABLED (requires kill switch, GEMINI_API_KEY, and a positive monthly budget)'
+    isVietnameseTitleGateActive()
+      ? `ENABLED (monthly cap ${process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD} micro-USD)`
+      : 'DISABLED (requires GEMINI_VI_TITLE_TRANSLATION_ENABLED=true, GEMINI_API_KEY, and a ' +
+        'positive GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD)'
   }`
 );
 

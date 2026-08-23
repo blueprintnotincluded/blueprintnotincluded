@@ -267,8 +267,15 @@ export class VietnameseTitleTranslationService {
 
   private acceptedEnglish(source: string, restoredVi: string, english: string): string | null {
     const normalizedEnglish = normalizeBlueprintName(english);
+    // Case-folded: this check proves the model restored DIACRITICS on the very
+    // text we sent rather than inventing a different phrase, and letter case
+    // carries no diacritic information. A hallucinated phrase still fails it;
+    // a title-cased restoration of the right phrase no longer does.
+    const restoredMatchesSource =
+      normalizeRomanizedVietnamese(restoredVi).toLocaleLowerCase('en') ===
+      source.replace(/\s+/g, ' ').trim().toLocaleLowerCase('en');
     const accepted =
-      normalizeRomanizedVietnamese(restoredVi) === source.replace(/\s+/g, ' ').trim() &&
+      restoredMatchesSource &&
       normalizedEnglish.length <= MAX_BLUEPRINT_NAME_LENGTH &&
       checkNormalizedBlueprintName(normalizedEnglish).ok &&
       !sameMeaninglessForm(source, normalizedEnglish) &&

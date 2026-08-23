@@ -624,7 +624,14 @@ export function batchVietnameseCandidates(
 async function continueNotVietnameseWithGoogle(candidates: AmbiguousCandidate[]): Promise<number> {
   if (candidates.length === 0) return 0;
   if (!TranslationService.instance.isConfigured()) {
-    console.log('  Google continuation — GOOGLE_TRANSLATE_API_KEY not set, leaving authored.');
+    // Return 0 rather than a count: the caller's tally is FAILED BATCHES, and
+    // nothing failed here. The number operators need is the skipped titles, so
+    // say it here where it is unambiguous.
+    const documents = candidates.reduce((n, [, rows]) => n + rows.length, 0);
+    console.log(
+      `  Google continuation — GOOGLE_TRANSLATE_API_KEY not set: ${candidates.length} title(s) ` +
+        `across ${documents} document(s) left authored.`
+    );
     return 0;
   }
   let failures = 0;
