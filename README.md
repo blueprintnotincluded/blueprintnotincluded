@@ -73,14 +73,44 @@ For the Vietnamese-title rollout, deploy with
 `GEMINI_VI_TITLE_TRANSLATION_ENABLED=false` and
 `GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD=0`, then:
 
-1. Back up Mongo and run `npm run migrate:up`. Migration order is
+1. Run `npm run migrate:up`. Migration order is
    `20260804000000_search-title-original.js` followed by
-   `20260805000000_translation-unit-modes.js`.
+   `20260805000000_translation-unit-modes.js`. Both are additive and reversible
+   with `npm run migrate:down`; neither drops a field or rewrites text.
 2. Run `npm run derive-search:dry-run` and review its exact census and maximum
    reservation before choosing a positive monthly allowance.
 3. Enable the kill switch and reviewed allowance, restart the API, then run
    `npm run derive-search` once. Do not run the old Google-only provider
    detection backfill before this code is deployed.
+
+**Staging and production share one database.** Two consequences worth knowing
+before running any migration:
+
+- migrate-mongo's `migrations` tracking collection is shared too, so whichever
+  environment runs `migrate:up` first applies it for both. The second one
+  reports nothing pending — that is correct, not a skipped step.
+- There is therefore no safe rehearsal on staging. Migrating staging has
+  already migrated production. Rehearse locally against a prod restore instead
+  (see "Pre-merge process for every migration" in CLAUDE.md).
+
+Because every migration is effectively run twice against the same data, each
+must be idempotent, and must match indexes by **key pattern rather than by
+name**. Mongoose's `autoIndex` races migrations on deploy: whichever creates an
+index first wins, and if the two disagree about its name the loser fails with
+`Index already exists with a different name`. Either pin the same explicit
+name in both the schema and the migration, or match on the key pattern — the
+Vietnamese-title migration does both.
+
+If `derive-search` hits a Gemini **401/403** (bad, revoked, or unauthorized
+key) or **429** (rate limit / quota exhausted), the pass stops immediately
+rather than trying the remaining batches, and logs
+`Gemini pass STOPPED ... needs action, not a retry` with the count of
+unprocessed titles. This matters because budget is reserved *before* each
+call: continuing would spend the whole monthly allowance on failures. Fix the
+cause and re-run — accepted translations are cached and translated rows are
+skipped, so a re-run resumes rather than redoing. An exhausted allowance stops
+the pass the same way. Ordinary one-off errors (a 500, a malformed response)
+still skip just that batch.
 
 Rollback sets the kill switch false and the allowance to zero, then restarts
 the API. This stops new Gemini calls while accepted cache rows remain usable;
