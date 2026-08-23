@@ -24,6 +24,8 @@ import { TranslationUnitModel } from '../../app/api/models/translation-unit';
 import { TranslationBudgetModel } from '../../app/api/models/translation-budget';
 import { SearchQueryModel } from '../../app/api/models/search-query';
 import { FakeTranslationProvider } from '../helpers/fake-translation-provider';
+import { VietnameseTitleTranslationService } from '../../app/api/services/vietnamese-title-translation-service';
+import { VietnameseTitleProvider } from '../../app/api/services/gemini-vietnamese-title-provider';
 
 // Search over blueprintsearch rows (spec/multilingual-search-plan.md Phases
 // 0-1): derivation, retrieval/fusion/ranking, and the getblueprints
@@ -501,7 +503,8 @@ describe('Search (blueprintsearch)', function () {
       // returned — an English query finds a blueprint titled in Vietnamese.
       const englishProvider: TranslationProvider = {
         isConfigured: () => true,
-        translate: async texts => texts.map(() => ({ text: 'Water Filter Farm', detectedSourceLang: 'vi' })),
+        translate: async texts =>
+          texts.map(() => ({ text: 'Water Filter Farm', detectedSourceLang: 'vi' })),
       };
       TranslationService.setInstanceForTest(new TranslationService(englishProvider));
 
@@ -582,7 +585,8 @@ describe('Search (blueprintsearch)', function () {
     it('keeps a translated blueprint findable by its authored title', async function () {
       const englishProvider: TranslationProvider = {
         isConfigured: () => true,
-        translate: async texts => texts.map(() => ({ text: 'Strategic cooking', detectedSourceLang: 'pt' })),
+        translate: async texts =>
+          texts.map(() => ({ text: 'Strategic cooking', detectedSourceLang: 'pt' })),
       };
       TranslationService.setInstanceForTest(new TranslationService(englishProvider));
 
@@ -594,7 +598,9 @@ describe('Search (blueprintsearch)', function () {
       const fields = await deriveSearchRowWithTranslation(doc, null);
       await BlueprintSearchModel.model.updateOne(
         { blueprintId: doc._id, lang: 'en' },
-        { $set: { title: fields.title, titleOriginal: fields.titleOriginal, origin: fields.origin } }
+        {
+          $set: { title: fields.title, titleOriginal: fields.titleOriginal, origin: fields.origin },
+        }
       );
 
       const id = (doc._id as Types.ObjectId).toString();
@@ -693,7 +699,11 @@ describe('Search (blueprintsearch)', function () {
         });
         doc.sourceLang = 'pt';
         await upsertSearchRow(doc);
-        expect((await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean()).map(r => r.lang).sort()).to.deep.equal(['en', 'pt']);
+        expect(
+          (await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean())
+            .map(r => r.lang)
+            .sort()
+        ).to.deep.equal(['en', 'pt']);
 
         // The title was re-authored in a different language.
         doc.name = 'Máy lọc nước ba';
@@ -711,7 +721,9 @@ describe('Search (blueprintsearch)', function () {
         });
         doc.sourceLang = 'vi';
         await upsertSearchRow(doc);
-        expect((await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean())).to.have.length(2);
+        expect(
+          await BlueprintSearchModel.model.find({ blueprintId: doc._id }).lean()
+        ).to.have.length(2);
 
         doc.name = 'Now An English Title';
         doc.sourceLang = 'en';
@@ -778,7 +790,9 @@ describe('Search (blueprintsearch)', function () {
         { blueprintId: doc._id, lang: 'en' },
         { $set: { title: 'Water Filter Farm', origin: 'machine', titleOriginal: null } }
       );
-      const enRow = await BlueprintSearchModel.model.findOne({ blueprintId: doc._id, lang: 'en' }).lean();
+      const enRow = await BlueprintSearchModel.model
+        .findOne({ blueprintId: doc._id, lang: 'en' })
+        .lean();
       await BlueprintSearchModel.model.create({
         blueprintId: doc._id,
         lang: 'vi',
@@ -799,7 +813,9 @@ describe('Search (blueprintsearch)', function () {
       const enOnly = (await searchBlueprintIds('máy lọc')).map(String);
       expect(enOnly).to.not.include(id);
 
-      const withViewerLang = (await searchBlueprintIds('máy lọc', { viewerLang: 'vi' })).map(String);
+      const withViewerLang = (await searchBlueprintIds('máy lọc', { viewerLang: 'vi' })).map(
+        String
+      );
       expect(withViewerLang).to.include(id);
     });
 
@@ -830,7 +846,9 @@ describe('Search (blueprintsearch)', function () {
         name: 'Zephyr Crate Bunker',
         data: bpData(['Ladder']),
       });
-      const enRow = await BlueprintSearchModel.model.findOne({ blueprintId: doc._id, lang: 'en' }).lean();
+      const enRow = await BlueprintSearchModel.model
+        .findOne({ blueprintId: doc._id, lang: 'en' })
+        .lean();
       // A native row carrying the SAME text as the pivot — both rows match
       // the same query, the double-counting shape Part 1 §4 warned about.
       await BlueprintSearchModel.model.create({
@@ -860,40 +878,80 @@ describe('Search (blueprintsearch)', function () {
   // title gets translated at save time rather than waiting for the batch pass.
   describe('declared source language (§2.6)', function () {
     let fake: FakeTranslationProvider;
+    let viCalls: string[];
 
     beforeEach(async function () {
       await TranslationUnitModel.model.deleteMany({});
       await TranslationBudgetModel.model.deleteMany({});
       fake = new FakeTranslationProvider();
       TranslationService.setInstanceForTest(new TranslationService(fake));
+      viCalls = [];
+      const viProvider: VietnameseTitleProvider = {
+        translate: async inputs => {
+          viCalls.push(...inputs.map(input => input.text));
+          return {
+            results: inputs.map(input =>
+              input.text === 'Dien phan full'
+                ? {
+                    id: input.id,
+                    status: 'translated' as const,
+                    restoredVi: 'Điện phân full',
+                    english: 'Electrolysis full',
+                    alternatives: [],
+                  }
+                : {
+                    id: input.id,
+                    status: 'not-vietnamese' as const,
+                    restoredVi: '',
+                    english: '',
+                    alternatives: [],
+                  }
+            ),
+            usage: { inputTokens: 100, outputTokens: 20, thoughtTokens: 0, totalTokens: 120 },
+            latencyMs: 1,
+          };
+        },
+      };
+      VietnameseTitleTranslationService.setInstanceForTest(
+        new VietnameseTitleTranslationService(viProvider)
+      );
+      process.env.GEMINI_VI_TITLE_TRANSLATION_ENABLED = 'true';
+      process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD = '100000';
+      process.env.GEMINI_API_KEY = 'test-only';
     });
 
     afterEach(async function () {
       TranslationService.setInstanceForTest(null);
+      VietnameseTitleTranslationService.setInstanceForTest(null);
+      delete process.env.GEMINI_VI_TITLE_TRANSLATION_ENABLED;
+      delete process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD;
+      delete process.env.GEMINI_API_KEY;
       await TranslationUnitModel.model.deleteMany({});
       await TranslationBudgetModel.model.deleteMany({});
     });
 
     // The title our own detector cannot place — the whole point.
     it('translates a title the detector cannot place when the author declared a language', async function () {
-      fake.detectedSourceLang = 'vi';
       const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
         name: 'Dien phan full',
         data: bpData(['Electrolyzer']),
       });
 
-      expect(await deriveSearchRowWithTranslation(doc, null)).to.have.property('origin', 'authored');
+      expect(await deriveSearchRowWithTranslation(doc, null)).to.have.property(
+        'origin',
+        'authored'
+      );
 
       const declared = await deriveSearchRowWithTranslation(doc, null, 'vi');
       expect(declared.origin).to.equal('machine');
-      expect(declared.title).to.equal('[en] Dien phan full');
+      expect(declared.title).to.equal('Electrolysis full');
       expect(declared.titleOriginal).to.equal('Dien phan full');
+      expect(viCalls).to.deep.equal(['Dien phan full']);
     });
 
     // The guard that makes a misdeclaration cheap: a Vietnamese-locale author
     // writing an English title comes back reported as English and stays put.
     it('leaves the row authored when the provider says the text was English', async function () {
-      fake.detectedSourceLang = 'en';
       const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
         name: 'Spom v2 base',
         data: bpData(['Electrolyzer']),
@@ -902,6 +960,25 @@ describe('Search (blueprintsearch)', function () {
       const fields = await deriveSearchRowWithTranslation(doc, null, 'vi');
       expect(fields.origin).to.equal('authored');
       expect(fields.title).to.equal('Spom v2 base');
+    });
+
+    // Regression: the gate declining a title and the gate being switched off
+    // both surface as a non-translated outcome, but only the first is a
+    // verdict. Read as one, the default configuration silently stops
+    // translating declared-Vietnamese titles that Google handles today.
+    it('still uses Google when the Vietnamese gate is switched off', async function () {
+      process.env.GEMINI_VI_TITLE_TRANSLATION_ENABLED = 'false';
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Dien phan full',
+        data: bpData(['Electrolyzer']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null, 'vi');
+
+      expect(viCalls).to.have.length(0);
+      expect(fake.calls).to.have.length(1);
+      expect(fields.origin).to.equal('machine');
+      expect(fields.titleOriginal).to.equal('Dien phan full');
     });
 
     it('does not act on a declaration of English', async function () {
@@ -1091,7 +1168,8 @@ describe('Search (blueprintsearch)', function () {
       // blueprint, not just that some string came back.
       const englishProvider: TranslationProvider = {
         isConfigured: () => true,
-        translate: async texts => texts.map(() => ({ text: 'water filter', detectedSourceLang: 'vi' })),
+        translate: async texts =>
+          texts.map(() => ({ text: 'water filter', detectedSourceLang: 'vi' })),
       };
       TranslationService.setInstanceForTest(new TranslationService(englishProvider));
 
@@ -1134,17 +1212,23 @@ describe('Search (blueprintsearch)', function () {
     it('falls back to an untranslated (empty) search when the monthly budget is exhausted, without throwing', async function () {
       const month = `${new Date().getUTCFullYear()}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}`;
       process.env.MONTHLY_CHAR_BUDGET = '1';
-      await TranslationBudgetModel.model.create({ month, userId: null, charCount: 999999, requestCount: 1 });
+      await TranslationBudgetModel.model.create({
+        month,
+        userId: null,
+        charCount: 999999,
+        requestCount: 1,
+      });
 
       const ids = await searchBlueprintIds('máy lọc nước');
       expect(ids).to.deep.equal([]);
       expect(fake.calls).to.have.length(0);
     });
 
-    it('a translation spend counts against the searching user\'s daily cap', async function () {
+    it("a translation spend counts against the searching user's daily cap", async function () {
       const englishProvider: TranslationProvider = {
         isConfigured: () => true,
-        translate: async texts => texts.map(() => ({ text: 'water filter', detectedSourceLang: 'vi' })),
+        translate: async texts =>
+          texts.map(() => ({ text: 'water filter', detectedSourceLang: 'vi' })),
       };
       TranslationService.setInstanceForTest(new TranslationService(englishProvider));
 
