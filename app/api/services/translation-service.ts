@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import {
   AUTO_SOURCE_LANG,
+  STANDARD_TRANSLATION_MODE,
   TranslationUnit,
   TranslationUnitModel,
 } from '../models/translation-unit';
@@ -151,14 +152,22 @@ export class TranslationService {
     requestCount: number
   ): Promise<void> {
     try {
-      await TranslationBudgetModel.model.updateOne(filter, { $inc: { charCount, requestCount } }, { upsert: true });
+      await TranslationBudgetModel.model.updateOne(
+        filter,
+        { $inc: { charCount, requestCount } },
+        { upsert: true }
+      );
     } catch (err) {
       if ((err as { code?: number })?.code !== 11000) throw err;
       await TranslationBudgetModel.model.updateOne(filter, { $inc: { charCount, requestCount } });
     }
   }
 
-  private async recordSpend(charCount: number, requestCount: number, userId: string | null): Promise<void> {
+  private async recordSpend(
+    charCount: number,
+    requestCount: number,
+    userId: string | null
+  ): Promise<void> {
     const month = this.monthKey();
     await this.incrementBudget({ month, userId: null }, charCount, requestCount);
     if (userId != null) {
@@ -175,14 +184,22 @@ export class TranslationService {
     sourceLangKey: string,
     targetLang: string
   ): Promise<TranslationUnit | null> {
-    return TranslationUnitModel.model.findOne({ textHash, sourceLang: sourceLangKey, targetLang });
+    return TranslationUnitModel.model.findOne({
+      textHash,
+      sourceLang: sourceLangKey,
+      targetLang,
+      mode: STANDARD_TRANSLATION_MODE,
+    });
   }
 
   // Translates a batch of inputs sharing one targetLang in as few provider
   // calls as possible (comment "translate all" is naturally a batch; a single
   // blueprint description is a batch of one). userId drives the per-user
   // daily cap — pass null for anonymous/system callers.
-  public async translateMany(inputs: TranslateInput[], userId: string | null): Promise<TranslateResult[]> {
+  public async translateMany(
+    inputs: TranslateInput[],
+    userId: string | null
+  ): Promise<TranslateResult[]> {
     const results: (TranslateResult | undefined)[] = new Array(inputs.length);
     const misses: {
       index: number;
@@ -278,7 +295,12 @@ export class TranslationService {
 
         const detectedSourceLang = raw.detectedSourceLang ?? input.sourceLang ?? null;
         await TranslationUnitModel.model.updateOne(
-          { textHash, sourceLang: sourceLangKey, targetLang: input.targetLang },
+          {
+            textHash,
+            sourceLang: sourceLangKey,
+            targetLang: input.targetLang,
+            mode: STANDARD_TRANSLATION_MODE,
+          },
           {
             $set: {
               detectedSourceLang,
@@ -304,7 +326,10 @@ export class TranslationService {
     return results as TranslateResult[];
   }
 
-  public async translateOne(input: TranslateInput, userId: string | null): Promise<TranslateResult> {
+  public async translateOne(
+    input: TranslateInput,
+    userId: string | null
+  ): Promise<TranslateResult> {
     const [result] = await this.translateMany([input], userId);
     return result;
   }
