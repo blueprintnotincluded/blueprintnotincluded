@@ -73,15 +73,24 @@ For the Vietnamese-title rollout, deploy with
 `GEMINI_VI_TITLE_TRANSLATION_ENABLED=false` and
 `GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD=0`, then:
 
-1. Run `npm run migrate:up`. Migration order is
+1. Run `npm run migrate:up` **before the new code serves traffic**. The
+   translation cache now filters on `mode`, so against un-migrated rows a
+   lookup misses and the write then collides with the old three-field unique
+   index — a duplicate-key error on ordinary translation, not just on the
+   Vietnamese path. Migration order is
    `20260804000000_search-title-original.js` followed by
    `20260805000000_translation-unit-modes.js`. Both are additive and reversible
    with `npm run migrate:down`; neither drops a field or rewrites text.
 2. Run `npm run derive-search:dry-run` and review its exact census and maximum
    reservation before choosing a positive monthly allowance.
-3. Enable the kill switch and reviewed allowance, restart the API, then run
-   `npm run derive-search` once. Do not run the old Google-only provider
-   detection backfill before this code is deployed.
+3. Set `GEMINI_VI_TITLE_TRANSLATION_ENABLED=true` and
+   `GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD` to the reviewed value, restart the
+   API, then run `npm run derive-search` once. Do not run the old Google-only
+   provider detection backfill before this code is deployed.
+
+   The API logs `[vi-title] ENABLED (monthly cap N micro-USD)` at startup when
+   all three conditions are met, and `[vi-title] DISABLED (...)` otherwise —
+   check that line before running the backfill.
 
 **Staging and production share one database.** Two consequences worth knowing
 before running any migration:
@@ -112,8 +121,8 @@ skipped, so a re-run resumes rather than redoing. An exhausted allowance stops
 the pass the same way. Ordinary one-off errors (a 500, a malformed response)
 still skip just that batch.
 
-Rollback sets the kill switch false and the allowance to zero, then restarts
-the API. This stops new Gemini calls while accepted cache rows remain usable;
+Rollback sets `GEMINI_VI_TITLE_TRANSLATION_ENABLED=false` and
+`GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD=0`, then restarts the API. This stops new Gemini calls while accepted cache rows remain usable;
 authored `Blueprint.name` values are never changed. If quality problems require
 removal, delete only translation units with mode `vi-romanized-title-v1` and
 rebuild the disposable search rows from authored blueprints.
