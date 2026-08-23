@@ -26,6 +26,7 @@ import {
 import {
   isVietnameseTitleGateActive,
   normalizeRomanizedVietnamese,
+  vietnameseTitleDryRunCaps,
   VietnameseTitleTranslationService,
 } from '../../app/api/services/vietnamese-title-translation-service';
 import {
@@ -360,9 +361,7 @@ describe('VietnameseTitleTranslationService', function () {
     expect(await TranslationUnitModel.model.countDocuments({ mode: 'vi-romanized-title-v1' })).to.equal(8);
   });
 
-  it('rejects malformed caps and invalid input without constructing a call', async function () {
-    process.env.GEMINI_VI_TITLE_MAX_INPUT_TOKENS = '999999';
-    process.env.GEMINI_VI_TITLE_MAX_OUTPUT_TOKENS = 'not-a-number';
+  it('rejects non-ASCII input without constructing a call', async function () {
     try {
       await service.translateOne('Điện phân', null);
       expect.fail('non-ASCII input must fail');
@@ -370,6 +369,25 @@ describe('VietnameseTitleTranslationService', function () {
       expect((error as Error).message).to.contain('non-empty ASCII');
     }
     expect(fake.calls).to.have.length(0);
+  });
+
+  // The documented guarantee is that env vars can LOWER the token caps and
+  // never raise them. The old combined test set these alongside a non-ASCII
+  // input, so it threw on validation before the caps were ever read and this
+  // path went untested.
+  it('clamps out-of-range and malformed token caps to the code-pinned defaults', async function () {
+    process.env.GEMINI_VI_TITLE_MAX_INPUT_TOKENS = '999999';
+    process.env.GEMINI_VI_TITLE_MAX_OUTPUT_TOKENS = 'not-a-number';
+
+    expect(vietnameseTitleDryRunCaps()).to.include({ inputTokens: 4096, outputTokens: 768 });
+
+    const result = await service.translateOne('Dien phan', null);
+    expect(result.status).to.equal('translated');
+    expect(fake.calls).to.have.length(1);
+
+    // Lowering still works — the cap is a ceiling, not a fixed value.
+    process.env.GEMINI_VI_TITLE_MAX_INPUT_TOKENS = '1024';
+    expect(vietnameseTitleDryRunCaps().inputTokens).to.equal(1024);
   });
 
   it('strips Vietnamese marks and d-with-stroke mechanically', function () {

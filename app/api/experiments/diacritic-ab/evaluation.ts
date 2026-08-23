@@ -113,7 +113,12 @@ export function blindResults(
       status,
     ];
     lines.push(
-      `| ${cells.map(value => String(value).replace(/\|/g, '\\|')).join(' | ')} |  |  |  |  |  |  |`
+      // Normalized before escaping: restoredVi/english/alternatives are model
+      // output, and a newline in any of them ends the row early and corrupts
+      // the blinded grading sheet. Pipes are escaped, not stripped.
+      `| ${cells
+        .map(value => whitespaceNormalized(String(value)).replace(/\|/g, '\\|'))
+        .join(' | ')} |  |  |  |  |  |  |`
     );
   });
   return { mapping, review: `${lines.join('\n')}\n` };

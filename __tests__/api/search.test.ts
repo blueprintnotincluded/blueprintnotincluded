@@ -968,6 +968,10 @@ describe('Search (blueprintsearch)', function () {
     // translating declared-Vietnamese titles that Google handles today.
     it('still uses Google when the Vietnamese gate is switched off', async function () {
       process.env.GEMINI_VI_TITLE_TRANSLATION_ENABLED = 'false';
+      // Stated rather than inherited from the fake's default: this test is
+      // about the gate being bypassed, so the provider's verdict must not be
+      // the variable.
+      fake.detectedSourceLang = 'vi';
       const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
         name: 'Dien phan full',
         data: bpData(['Electrolyzer']),
@@ -979,6 +983,25 @@ describe('Search (blueprintsearch)', function () {
       expect(fake.calls).to.have.length(1);
       expect(fields.origin).to.equal('machine');
       expect(fields.titleOriginal).to.equal('Dien phan full');
+    });
+
+    // Bypassing the gate must not bypass the guard behind it: with our own
+    // detector silent, an English verdict from the provider is the only
+    // evidence there is, and it means leave the title alone.
+    it('keeps the row authored when the gate is off and Google reports English', async function () {
+      process.env.GEMINI_VI_TITLE_TRANSLATION_ENABLED = 'false';
+      fake.detectedSourceLang = 'en';
+      const doc = await TestDbHelper.createTestBlueprint(testData.users.user1._id, {
+        name: 'Dien phan full',
+        data: bpData(['Electrolyzer']),
+      });
+
+      const fields = await deriveSearchRowWithTranslation(doc, null, 'vi');
+
+      expect(viCalls).to.have.length(0);
+      expect(fake.calls).to.have.length(1);
+      expect(fields.origin).to.equal('authored');
+      expect(fields.title).to.equal('Dien phan full');
     });
 
     it('does not act on a declaration of English', async function () {
