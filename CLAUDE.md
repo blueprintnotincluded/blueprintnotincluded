@@ -449,7 +449,10 @@ Part 1 §1/§2.
   search layer errors.
 - **Translation cache** — `translationunits` (`app/api/models/translation-unit.ts`), keyed
   `{textHash, sourceLang('auto' when unknown), targetLang, mode}` — by **text**, never by document:
-  identical text is billed once corpus-wide. `mode:'standard'` preserves Google/human behavior;
+  identical text is billed once per full cache key, so every document sharing a title and a
+  target language reuses one translation. Differing on any key component — a second target
+  language, or the Gemini mode against the standard one — is a separate row and a separate
+  charge. `mode:'standard'` preserves Google/human behavior;
   accepted Gemini romanized-Vietnamese titles use `mode:'vi-romanized-title-v1'`, source `vi`,
   target `en`, plus immutable prompt/model, restored Vietnamese, and token provenance.
   Ambiguous/negative/invalid Gemini answers are never cached. Google character-budget behavior
