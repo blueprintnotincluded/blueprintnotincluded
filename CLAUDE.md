@@ -15,7 +15,7 @@ This is the source repository for blueprintnotincluded.org, a web application fo
   - JWT authentication for user sessions
   - Blueprint processing and image generation using Canvas and PIXI.js
   - Batch processing scripts for assets in `app/api/batch/`
-  
+
 - **Frontend**: Angular application (`frontend/` directory)
   - Blueprint visualization and editing interface
   - Multi-language support (English, Chinese, Russian, Korean)
@@ -29,27 +29,32 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 ## Development Commands
 
 ### Development (Recommended)
+
 - `./dev-setup.sh` - Start dependencies (database + mail)
 - `npm run dev` - Start backend with live reloading
 - `cd frontend && npm start` - Start frontend with live reloading
 - Frontend: http://localhost:4200, Backend: http://localhost:3000
 
 ### Production Testing
+
 - `docker compose up` - Start with pre-built images
 - Visit: http://localhost:3000
 
 ### Backend Development
+
 - `npm run dev` - Start development server with auto-reload
 - `npm run tsc` - Compile TypeScript
 - `npm run build` - Full build (backend + frontend + lib)
 - `npm run serve:prod` - Run production build
 
 ### Testing
+
 - `npm run test` - Run tests with database setup
 - `npm run test:only` - Run tests without database setup
 - `npm run test:db-setup` - Setup test database only
 
 ### Frontend Development (from frontend/ directory)
+
 - `npm start` - Start Angular development server
 - `npm run build` - Build for production
 - `npm run lint` - Run Angular linting
@@ -57,9 +62,11 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 - `npm run test:coverage` - Run tests with V8 coverage report
 
 ### Asset Processing
+
 **OniExtract2024 import (current pipeline):** after dropping a fresh export into
 `export/` (`export/database/`, `export/ui_image/`, `export/connection_sprites/`),
 run the single repeatable step:
+
 - `npm run import:2024` - Regenerate `database-2024.json` into both asset roots
   (`assets/database/` + `frontend/src/assets/database/`), content-aware sync `ui_image/`
   and `connection_sprites/` into both roots, flatten `po_string.json` into the frontend's
@@ -75,7 +82,7 @@ run the single repeatable step:
 - Sprite sync rewrites a file only when it actually changed and prunes removed ones, so
   unchanged icons keep their mtime and git shows only real changes. The export is NOT
   byte-deterministic across game updates (Klei re-rasterizes untouched art), so a PNG
-  that differs in bytes is additionally checked *perceptually* (`pngVisuallyEqual`:
+  that differs in bytes is additionally checked _perceptually_ (`pngVisuallyEqual`:
   alpha-premultiply → small Gaussian blur → count pixels still differing) and preserved
   when the pixels are visually identical. The blur is what distinguishes real redraws from
   sub-pixel re-rasterization jitter even on densely-textured sprites. Re-importing the same
@@ -93,16 +100,18 @@ The legacy 2020/2023 atlas pipeline has been removed — the `generate-icons/whi
 `enhanced-extract-export`, `extract-export`, `test-canvas`, and `add-info-icons` batch scripts
 and their `npm run generate*` / `seed` / `enhancedSeed` / `testCanvas` entries no longer exist.
 Remaining batch utilities:
+
 - `npm run fixHtmlLabels` - Fix HTML formatting in labels.
 - `npm run derive-metadata` - Backfill `requiredDlcs`, `mods`, `modded` and `category` on all blueprint documents from stored building IDs. Use `--dry-run` flag (`npm run derive-metadata:dry-run`) to preview counts without writing. Both modes report the prefab ids found in blueprints but missing from `database-2024.json` — those ids drive `modded=true` **and** contribute no `dlcIds`, so each one is a blueprint silently reading as base game. `modded` is written in both directions (a false positive can be cleared), except that `hadUnknownBuildings: true` always wins — those blueprints had unknown buildings stripped at import, so re-derivation can't rediscover them. Note `Element` is an editor annotation synthesized by `OniItem.load`, not a database building; it must be added to any `knownIds` set built from `database-2024.json` or every annotated blueprint reads as modded. The retired `Info` id belongs in that set too — it no longer registers an `OniItem`, but pre-migration documents can still carry it. Add `--recategorize` (`npm run derive-metadata -- --recategorize`) to re-derive `category` for documents that already have one, overwriting user picks; needed whenever the scoring rules in `blueprint-analyzer` change, since the default only fills in nulls.
 - `npm run derive-rooms` / `derive-rooms:dry-run` - Re-derive the `rooms` field on all non-deleted blueprints with the same detector the save path uses.
-- `npm run derive-search` / `derive-search:dry-run` - Rebuild the `blueprintsearch` rows, then run two translation passes over the titles: confidently non-English ones, and (unless `--skip-provider-detect`) the ones our own detector can't place, which are sent to the provider to identify. Rerunnable — fresh rows only get their ranking signals refreshed, already-translated rows are left alone, and repeat provider questions are cache reads. **Run `npm run migrate:up` first** whenever the text index has changed.
+- `npm run derive-search` / `derive-search:dry-run` - Rebuild the `blueprintsearch` rows, then run two translation passes over the titles: confidently non-English ones through Google, and (unless `--skip-provider-detect`) conservative undetectable ASCII candidates through Gemini's romanized-Vietnamese gate first. Only explicit `not-vietnamese` results continue to Google's general provider detection; ambiguous/invalid results remain authored. Gemini batches are at most 12 titles / 720 characters, concurrency 1, zero retries. Dry-run constructs no Gemini client and reports exact title/document/character/batch/token/micro-USD ceilings. Rerunnable — fresh rows only get their ranking signals refreshed, already-translated rows are left alone, and accepted translations are cache reads. **Run `npm run migrate:up` first** whenever the text or translation-unit index has changed.
 - **`--limit N` on both derive tasks** - A full pass loads every stored blueprint blob (~10 min on the live corpus), so diagnostic dry runs take `--limit N` (`npm run derive-metadata -- --dry-run --limit 100`). The capped run samples **randomly**, not the first N: natural order tracks insertion date and so does everything these reports measure, so a head sample would report the oldest blueprints' problems as the corpus average. Percentages from a sampled run extrapolate; the absolute counts don't. Shared helper: `app/api/batch/batch-sampling.ts`.
 - `npm run avatars:smoke` / `avatars:seed-batch -- --count N` / `avatars:backfill[:dry-run]` - Gemini avatar pipeline (costs real money per generation; setup + rollout order in `agent/AVATARS.md`).
 - `npm run backfill-previews` - Render preview images for all non-deleted blueprints (newest first) and store them durably in Mongo (`previewimages` collection). Skips blueprints whose durable rows are already fresh, so it's rerunnable/resumable. Use `--dry-run` (`npm run backfill-previews:dry-run`) to report the fresh/stale split without rendering or writing.
 - **Running batch tasks in production:** the deploy image has no devDependencies or TS sources, but ships `package.json` + `scripts/batch.sh` into `/bpni/build`, so the same npm task names work there: `cd /bpni/build && npm run avatars:seed-batch -- --count 10` (likewise `derive-metadata`, `backfill-previews`, `migrate:up`, …). `batch.sh` dispatches to compiled `app/api/batch/<name>.js` in the image and `ts-node` in a dev checkout. Direct `node app/api/batch/<name>.js` also works. New prod-runnable batch tasks must go through `scripts/batch.sh`, and any files they read at runtime must land in `build/` (copy_assets.sh + a `COPY` in deploy.Dockerfile). Full checklist: README "Running batch tasks in production".
 
 ### Docker
+
 - `docker-compose up` - Full development environment with database
 - `docker build . -t bpni:latest` - Build production image
 
@@ -130,13 +139,15 @@ gh api repos/blueprintnotincluded/blueprintnotincluded/actions/permissions/workf
 The GitHub repo is at https://github.com/blueprintnotincluded/blueprintnotincluded.
 
 ### CI Workflows
+
 - `backend-test.yml` — runs on push/PR to master touching backend paths
-- `frontend-test.yml` — runs on push/PR to master touching frontend paths  
+- `frontend-test.yml` — runs on push/PR to master touching frontend paths
 - `publish.yml` — deploys to DigitalOcean on push to master only
 
 ## Environment Configuration
 
 Copy `.env.sample` to `.env` and configure:
+
 - `DB_URI` - MongoDB connection string
 - `JWT_SECRET` - Secret key for JWT tokens
 - `ENV_NAME` - Environment identifier (`production` enables Mailjet; otherwise nodemailer/SMTP)
@@ -147,6 +158,7 @@ Copy `.env.sample` to `.env` and configure:
 ## Database
 
 Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mongoose models in `app/api/models/`:
+
 - `blueprint.ts` - Blueprint documents
 - `user.ts` - User accounts
 
@@ -162,11 +174,13 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 ## Testing
 
 **Backend**: Mocha with Chai and TypeScript support. Test files in `__tests__/` directory. The test database setup script creates a clean test environment.
+
 - **Framework**: Mocha with Chai — do not introduce Jest
 - **Maintenance**: When removing large dependency sets, regenerate package-lock.json with `rm package-lock.json && npm install` to prevent corruption
 - **Email in tests**: `emailService.ts` skips SMTP when `NODE_ENV=test` — no mail server needed
 
 **Frontend**: Vitest with jsdom (no real browser). Runner: `@angular/build:unit-test`. Coverage via `@vitest/coverage-v8`.
+
 - All specs in `frontend/src/**/*.spec.ts`; run with `npm test` from `frontend/`
 - Run a single spec via the `--include` glob: `npm test -- --include='**/login-page.component.spec.ts'`. Do NOT run `vitest`/`ng test` against a bare file path — globals and the Angular TestBed are wired by the builder setup file, so plain `vitest run <file>` fails with `describe is not defined`
 - `npm run test:coverage` generates a text summary + lcov report
@@ -199,8 +213,10 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
 ### Asset rendering: OniExtract2024 flat icons
+
 Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas. Contract and
 converter details: `app/api/batch/convert-export-2024.md`.
+
 - **Types**: `lib/src/b-export/b-export-2024.ts` — raw 2024 export shapes (13 files).
 - **Import**: `app/api/batch/convert-export-2024.ts` (`npm run import:2024`) → consolidated
   `database-2024.json` written to both asset roots (committed; the `.zip` is a gitignored
@@ -216,7 +232,7 @@ converter details: `app/api/batch/convert-export-2024.md`.
   menu keeps the single canonical icon (`iconUrl`).
 - **Utility ports** (275/449 buildings): `BBuildingDef2024.utilities[]` carries each
   input/output port as `{offset, type, isSecondary}`. The U59 export emits `type` as the
-  `ConnectionType` enum *name* (string); the converter maps it to the int via
+  `ConnectionType` enum _name_ (string); the converter maps it to the int via
   `CONNECTION_TYPE_BY_NAME`. Offsets are pre-rotation/y-up/footprint-relative and already
   match the website's internal convention (no transform). `BlueprintItem.drawPixiUtility`
   draws the markers per overlay; the 8 indicator sprites (`input`/`output`/`logicInput`…)
@@ -230,7 +246,9 @@ converter details: `app/api/batch/convert-export-2024.md`.
   `kPrefabID.requiredDlcIds`. Used by `BlueprintAnalyzer` to derive metadata.
 
 ### Keyboard shortcuts
+
 Editor input goes through an action layer, never raw key comparisons.
+
 - **`frontend/src/app/module-blueprint/keybindings/shortcut-actions.ts`** — the catalogue of
   rebindable actions (id, category, label, default chords). Defaults mirror Oxygen Not
   Included's own controls where the game has an equivalent action; website-only actions take
@@ -249,7 +267,8 @@ Editor input goes through an action layer, never raw key comparisons.
 - **UI**: `components/dialogs/dialog-keybindings/` — Edit ▸ Keyboard shortcuts, or `Shift+/`.
 
 ### Terrain annotations (geysers, vents, volcanoes)
-Natural map features placed on a blueprint as *annotations* — "this pump array sits on a
+
+Natural map features placed on a blueprint as _annotations_ — "this pump array sits on a
 chlorine vent". Dupes cannot build them, so they are excluded from every build-related model:
 no `BlueprintItem`, no material cost, no ingredient totals, no build order, and never an entry
 in the exported `buildings` array (a geyser written as a building resolves to a null
@@ -276,7 +295,7 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
 - **Storage** — the mod's v6.2.0 top-level `metadata` field, which deserializes into a C#
   `Dictionary<string, string>`: **flat, string-valued only**. Any other JSON token type is
   silently dropped on the next in-game save (`"count": 3` dies, `"count": "3"` lives). So the
-  whole payload is one JSON-encoded *string* under `bni/terrain`
+  whole payload is one JSON-encoded _string_ under `bni/terrain`
   (`lib/src/blueprint/terrain-metadata.ts`), namespaced because the mod does not namespace its
   own keys and reserves the right to add some. Foreign keys are read whole, mutated narrowly,
   and written whole back — including across the server-side MDB hop
@@ -290,7 +309,7 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   and plans when either minimum is negative, but does **not** touch `metadata`. So
   `toBniBlueprint` mirrors that arithmetic itself (`lib/src/blueprint/bpv2-sanitize.ts`) and
   shifts the annotations by the identical offset, making the mod's own pass a guaranteed no-op
-  on every file we write. Note the mod shifts *both* axes once *either* is negative, so a
+  on every file we write. Note the mod shifts _both_ axes once _either_ is negative, so a
   positive minY moves the blueprint down — an export that disagreed would leave the mod
   something to do, which is exactly what desyncs the markers.
   The **import** side deliberately does not re-origin: terrain shares a coordinate space with
@@ -321,7 +340,7 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   into the game instead of being dropped on export, and it costs no new model — world notes
   already render, export, undo and import. It also carries no explanatory text, because the
   mod writes only id/mass/temp for an element note and discards title/text/tint.
-  *Seeded, not owned* — the user then edits or deletes them with the note tool, so deleting
+  _Seeded, not owned_ — the user then edits or deletes them with the note tool, so deleting
   the annotation leaves them alone rather than discarding their edits, and a cell that already
   holds a note is never overwritten. The annotation and its base are one
   `emitBlueprintChanged`, hence one undo step.
@@ -333,7 +352,7 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   `color` (white) and `uiColor` (magenta) are both sentinels — the game never renders it as a
   material — so it gets a render-time `NEUTRONIUM_DISPLAY_COLOR` (`#0e0e0e`, the near-black
   the game's own tile reads as), with the database left as the export wrote it. The override
-  applies wherever Neutronium is drawn: element cells *and* the element-note badges the
+  applies wherever Neutronium is drawn: element cells _and_ the element-note badges the
   terrain tool seeds (`noteBadgeColor`). This lets the user draw or extend a base by hand.
 - **Active tile / area of effect** — a feature acts on exactly ONE cell, not on its whole
   footprint, and the cell differs by kind: a **volcano** erupts from the middle of its 3x3
@@ -343,12 +362,12 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   Fissure, Oil Reservoir, Tidal Spring, NiobiumGeyser) carry no shape and fall back to the
   volcano cell. Current split: 18 geyser-offset, 13 volcano-offset.
   Selecting a feature highlights that single cell, the way a selected building shows its
-  `areasOfEffect`; the footprint outline is the feature's *body*, not its effect. Offsets are
+  `areasOfEffect`; the footprint outline is the feature's _body_, not its effect. Offsets are
   emitted per feature by the importer (`terrainActiveTile()` → `BTerrainFeature.activeTile`)
   rather than derived at render time, so an exception is a data fix.
   `TerrainFeature.importFrom` clamps into the footprint; an unknown id falls back to its own
   anchor. Drawn on a second Graphics layer kept above the icons — unlike a building's AoE it
-  sits *inside* the art, so underneath it would be invisible. Magenta because it overprints
+  sits _inside_ the art, so underneath it would be invisible. Magenta because it overprints
   grey rock, blue ice and orange lava alike (a warm marker vanished into the volcano sprite).
   **Gotcha:** the frontend reads the gitignored `database-2024.zip`, regenerated by
   `prestart`. Starting the dev server with `npx ng serve` instead of `npm start` skips that,
@@ -362,10 +381,12 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   `blueprintItems`, so an annotation-only blueprint gets no stored preview.
 
 ### World notes (annotations)
+
 The mod's world notes are the **only** annotation model. The website's own `Info` type — a
 pseudo-building with a title, body and coloured badge — is retired: it could not be written to
 a .blueprint file at all, so `toBniBlueprint` skipped it and every website annotation vanished
-on download. `Info` now survives as an *input* format only.
+on download. `Info` now survives as an _input_ format only.
+
 - **Conversion** — `lib/src/blueprint/note-conversion.ts` (`infoBuildingToWorldNote`), applied
   in `Blueprint.importFromMdb`. Badge colour → `tinthex`, the twelve `InfoIcon`s → the mod's
   `note_info`/`note_warn`/`note_question`/`note_num_N` symbols, both written explicitly because
@@ -380,8 +401,10 @@ on download. `Info` now survives as an *input* format only.
 - **Editing** — `NotesTool` + `components/note-edit-panel/`. There is no other annotation UI.
 
 ### Search (blueprintsearch) & user-content translation
+
 `spec/multilingual-search-plan.md` phases 0–5 (all shipped) + `spec/search-followups.md`
 Part 1 §1/§2.
+
 - **Search documents** — `blueprintsearch` collection (`app/api/models/blueprint-search.ts`),
   one row per `(blueprintId, lang)`; every blueprint has an `en` row (the pivot invariant).
   Holds title/`titleOriginal`/description/`terms[]` (display names) under the collection's
@@ -425,12 +448,15 @@ Part 1 §1/§2.
   legacy escaped-regex substring match, which also remains the automatic fallback if the
   search layer errors.
 - **Translation cache** — `translationunits` (`app/api/models/translation-unit.ts`), keyed
-  `{textHash, sourceLang('auto' when unknown), targetLang}` — by **text**, never by document:
-  identical text is billed once corpus-wide. Replaced the per-document `translations` cache
-  before anything shipped (prod-empty, so no migration). Budget guard unchanged
-  (`translation-budget.ts`).
+  `{textHash, sourceLang('auto' when unknown), targetLang, mode}` — by **text**, never by document:
+  identical text is billed once corpus-wide. `mode:'standard'` preserves Google/human behavior;
+  accepted Gemini romanized-Vietnamese titles use `mode:'vi-romanized-title-v1'`, source `vi`,
+  target `en`, plus immutable prompt/model, restored Vietnamese, and token provenance.
+  Ambiguous/negative/invalid Gemini answers are never cached. Google character-budget behavior
+  is unchanged; Gemini maximum/observed micro-USD and token accounting shares the site-month row
+  in `translation-budget.ts`.
 - **Language detection** — `detectLanguage(text, {prior}) → {lang, confidence:
-  'high'|'prior'|'none'}` (`language-detection-service.ts`): statistical margin for ≥20 chars;
+'high'|'prior'|'none'}` (`language-detection-service.ts`): statistical margin for ≥20 chars;
   short texts need a stronger margin AND a non-ASCII signal, else they fall to the caller's
   prior (recorded as `'prior'` so callers can decide whether to spend money on it).
   `detectLanguageCode()` is the high-confidence-only convenience the save paths use.
@@ -473,7 +499,7 @@ Part 1 §1/§2.
   through the live API produced `sourceLang: 'vi'` and a `blueprintsearch` row with
   `origin: 'machine'`, and an English query then found it.
 - **`titleOriginal`** (`spec/search-followups.md` Part 1 §1) — translating a title used to
-  *replace* it, deleting the author's own words from the index: `Cozinha estrategia em choque`
+  _replace_ it, deleting the author's own words from the index: `Cozinha estrategia em choque`
   became findable by "strategic cooking" and no longer by itself. Worst exactly where query
   translation also fails (romanized text neither end detects), so both directions broke at once.
   The field holds the authored text whenever `origin` is `'machine'` and is **null while
@@ -484,7 +510,7 @@ Part 1 §1/§2.
   Mongo won't alter an index in place and Mongoose's autoIndex hits IndexOptionsConflict, which
   surfaces only as a logged error. **Deploy order: migrate, then `npm run derive-search`.**
   The backfill also fills the field on rows an earlier run already translated — those rows are
-  *fresh*, so they never reach full re-derivation, and their `sourceHash` pins them to the
+  _fresh_, so they never reach full re-derivation, and their `sourceHash` pins them to the
   current `blueprint.name`, making the authored text recoverable exactly with no provider call.
 - **Provider-side detection** (`spec/search-followups.md` Part 1 §2) — `derive-search`'s **second
   translation pass**, for titles `detectLanguageCode` can't place at all: short, romanized or
@@ -516,8 +542,10 @@ Part 1 §1/§2.
   generate.
 
 ### Content locale (what language you read blueprints in)
+
 `spec/search-followups.md` Part 2. **Not** UI localization — the chrome stays English for
 everyone (see "UI localization state"), so this routes no bundles and prefixes no paths.
+
 - **The rule** (§2.5), one shared implementation in `lib/src/blueprint/content-locale.ts`'s
   `resolveTitle`: authored-in-your-language → a translation into your language → the English
   translation → the authored title. The last step is what lets this ship ahead of any backfill:
@@ -538,7 +566,7 @@ everyone (see "UI localization state"), so this routes no bundles and prefixes n
 - **Reading display titles from `blueprintsearch` widens its contract** from "advisory for
   retrieval only". Confirmed, not overturned, on three grounds: the chain always terminates at
   `Blueprint.name` so a lost row degrades to authored text; machine titles rebuild for free from
-  the `translationunits` text-hash cache; and rows stay advisory for *visibility* because the
+  the `translationunits` text-hash cache; and rows stay advisory for _visibility_ because the
   authoritative filter still runs against `blueprints`. The rejected alternative was a
   `titleTranslations` map on the blueprint document — more obviously correct, but a second write
   path and a migration for data that is already derivable.
@@ -547,14 +575,14 @@ everyone (see "UI localization state"), so this routes no bundles and prefixes n
   means "never chosen". It reports `null` rather than `'en'` when unset, unlike
   `themePreference` — the client's own default is `navigator.language`, and answering `'en'`
   would override that on every device. The language set is **open** (shape-validated only): a
-  user may declare a language we never translate *into*.
+  user may declare a language we never translate _into_.
 - **Picker** — `components/dialogs/dialog-content-language/`, mounted in the site nav and opened
   off `ContentLocaleService.openRequests$`, so the user-menu entry and the ambient entry point
   on the details page both reach it with no component wiring. Three states kept distinct:
   declared (localStorage + account), guessed (`navigator.language`, **never persisted** — a
   default that writes itself is indistinguishable from a choice, which would ruin the §2.10
   "who reads in what language" measurement), and English. Login adopts a local declaration into
-  an account that has none; a *failed* lookup is explicitly not "the account has none", or one
+  an account that has none; a _failed_ lookup is explicitly not "the account has none", or one
   flaky GET would overwrite a preference set elsewhere. Selecting reloads the page — the locale
   is a request parameter, so everything on screen was fetched under the old one.
 - **Disclosure is mandatory and ships with the display** (§2.7): cards carry a quiet
@@ -563,13 +591,15 @@ everyone (see "UI localization state"), so this routes no bundles and prefixes n
   author's own words.
 
 ### Blueprint titles are Unicode
+
 `Blueprint.name` was `/^[a-zA-Z0-9_ -]+$/`, which 400'd every non-English title at save. The
 policy is now one shared module, `lib/src/blueprint/blueprint-name.ts`, used by the save
 dialog (`blueprint-name-validation.directive.ts`), the upload endpoint and the Mongoose
 schema — three surfaces that must not be able to disagree, since the failure mode is a form
 that accepts what the server rejects.
+
 - **Allowed**: every script, punctuation, emoji. **Rejected**: control characters, `\p{Cf}`
-  format characters (bidi overrides and the rest) *except* ZWNJ/ZWJ, unassigned/private-use/
+  format characters (bidi overrides and the rest) _except_ ZWNJ/ZWJ, unassigned/private-use/
   surrogate code points, runs of more than 4 combining marks, and Latin mixed with Cyrillic or
   Greek **inside one word** — the "Rоdriguez" homoglyph spoof. The confusable rule is per-word
   and only those scripts on purpose: mixing across words is ordinary (`Ферма SPOM v2`,
@@ -594,6 +624,7 @@ that accepts what the server rejects.
   letters, and search rows are derived on save (covered end-to-end in `search.test.ts`).
 
 ### Blueprint metadata auto-derivation
+
 `requiredDlcs`, `gameVersion` and `modded` are derived deterministically from the blueprint
 content — users no longer set these manually. `multiplayerSafe` has been removed entirely.
 
@@ -603,7 +634,7 @@ content — users no longer set these manually. `multiplayerSafe` has been remov
     current model; `deriveGameVersion` below is retained only until the frontend stops
     importing it (step 4 of `spec/dlc-requirements-plan.md`).
   - `deriveGameVersion(buildingDlcIds: string[][]): GameVersion` — **superseded.** Collapses
-    the set to the highest-priority DLC found, so it can't express "needs Frosty *and*
+    the set to the highest-priority DLC found, so it can't express "needs Frosty _and_
     Bionic", and its `DLC5_ID`→bionicBooster mapping is wrong (DLC5 is the Aquatic pack).
   - `deriveModded(prefabIds: string[], knownIds: Set<string>): boolean` — true if any ID is absent
     from the loaded database
@@ -631,8 +662,8 @@ content — users no longer set these manually. `multiplayerSafe` has been remov
   `createdAt`-sorted index and applies the exclusion as a per-doc FETCH filter) — checked with
   `explain()`, not a collscan, just no extra narrowing.
 - **DLC exclusion preference** — `dlcPreferences.excludedDlcs` on `User` (raw ids, `default:
-  []`), read/written via `GET`/`PATCH /api/users/me/dlc-preferences`. Applied automatically on
-  Discover load for a logged-in user *only* when the URL has no explicit `excludeDlc` param;
+[]`), read/written via `GET`/`PATCH /api/users/me/dlc-preferences`. Applied automatically on
+  Discover load for a logged-in user _only_ when the URL has no explicit `excludeDlc` param;
   written back only on real interaction (toggle/clear), never merely from loading it, never for
   a logged-out visitor. Private account data — never in `ProfileResponse` or any other
   user-facing payload.
@@ -648,10 +679,12 @@ content — users no longer set these manually. `multiplayerSafe` has been remov
 - **Backfill** — `npm run derive-metadata` re-derives `gameVersion`, `requiredDlcs`, `mods`
   and `modded` for all existing blueprints. **The `?dlc=` filter matches nothing until this
   runs** — no document written before the field existed has a set at all (prod: `cd /bpni/build
-  && npm run derive-metadata`, dry-run first).
+&& npm run derive-metadata`, dry-run first).
 
 ### Session Management Files
+
 Check these files in `agent/` directory for current status:
+
 - `agent/TODO.md` - Improvement roadmap and remaining work
 - `agent/SESSION_NOTES.md` - Session-by-session progress
 - `agent/WORKOS_PLAN.md` - WorkOS auth operational reference (env mapping, admin roles)
@@ -659,6 +692,7 @@ Check these files in `agent/` directory for current status:
 - `UPGRADE_PLAN.md` - Upgrade history and strategy
 
 ### Quick Status Check Commands
+
 ```bash
 # Environment verification
 node --version        # Should be 20.19.4
@@ -674,6 +708,7 @@ head -20 agent/TODO.md
 ```
 
 ### All Upgrade Phases Complete
+
 1. ✅ **Phase 1A**: Node.js 20.18.0 → 20.19.4 (volta + .nvmrc)
 2. ✅ **Phase 1B**: lib TypeScript 3.5.3 → 5.9.2, ES2020 target
 3. ✅ **Phase 2A**: Backend TypeScript 4.9.5 → 5.9.2, strict mode
@@ -684,6 +719,7 @@ head -20 agent/TODO.md
 8. ✅ **CI**: All GitHub Actions improvements applied
 
 ### Key Constraints
+
 - Canvas 3.x requires Node 20 — do not upgrade to Node 22
 - All test infrastructure is Mocha + Chai — do not introduce Jest
 - Rate limiting is handled by Cloudflare — do not add express-rate-limit
@@ -694,6 +730,7 @@ Uses **migrate-mongo** — Rails-style versioned migrations tracked in the `migr
 Migration files live in `migrations/` as plain CommonJS `.js` files (no compilation needed).
 
 ### Commands
+
 ```bash
 npm run migrate:status          # show applied / pending migrations
 npm run migrate:up              # run all pending migrations
@@ -702,6 +739,7 @@ npm run migrate:create -- <name>  # scaffold a new migration file
 ```
 
 ### Authoring a migration
+
 Scaffold with `npm run migrate:create -- <name>`, then fill in `up` and `down`:
 
 ```js
@@ -717,12 +755,14 @@ module.exports = {
 ```
 
 Rules:
+
 - Both `up` and `down` must be idempotent (safe to re-run if interrupted).
 - Never `$unset` the old field in the same operation that reads it as a filter.
 - Set new fields first, verify counts, clean up old fields in a separate migration.
 - Leave orphaned old fields in place; they disappear naturally once removed from the Mongoose schema.
 
 ### Credential rules
+
 - Admin URI (`doadmin`) — DO app console env only. Never on local machine.
 - `doctl` — installed; use it freely for reads (app logs, specs, deployments). The API
   token is normally **read-only**; writes (`doctl apps update` etc.) fail by design. For
@@ -733,6 +773,7 @@ Rules:
 - `/prod-dump/` — gitignored. Real prod data; never commit.
 
 ### Pre-merge process for every migration
+
 ```bash
 # 1. Tests pass
 npm run test
@@ -755,6 +796,7 @@ DB_URI=mongodb://localhost:27017/bpni-prod npm run migrate:up
 ```
 
 ### Post-deploy execution (DO app console)
+
 ```bash
 # DO dashboard → prod cluster → Backups → Create backup now  (wait for completion)
 npm run migrate:status   # confirm which migrations are pending
@@ -767,6 +809,7 @@ npm run migrate:up
 `{ deletedAt: { $exists: false } }` so it safely no-ops on already-migrated documents.
 
 ### Rollback
+
 `npm run migrate:down` rolls back the last migration via its `down` method.
 For a full restore: DO dashboard → Backups → restore the pre-deploy snapshot to a new cluster → update `DB_URI` env var in App Platform.
 
@@ -779,6 +822,7 @@ requests, so a session that ends with only local commits is a dead session — t
 sits invisible until someone comes back and pushes it. Do not stop at "committed".
 
 **Session start:**
+
 1. `git fetch origin master`
 2. Create a new branch based on `origin/master` (master is push-protected; never work on it)
 
@@ -788,6 +832,7 @@ Commit autonomously at every logical break point — do NOT pause to ask permiss
 A logical break point is: a feature complete, a refactor complete, tests passing, a migration applied, or any other self-contained unit of work.
 
 Commit message format:
+
 - Subject: conventional commits style (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`), ≤72 chars
 - Body (when the why is non-obvious): explain motivation and any constraints a future reader would need; skip if the subject is self-explanatory
 - Always append a `Co-Authored-By` trailer with the current model name, e.g. `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
@@ -795,12 +840,14 @@ Commit message format:
 Stage only relevant files — never `git add -A` blindly. Do not skip hooks (`--no-verify`).
 
 **Session end — push and open a PR (autonomously, without asking):**
+
 1. Update any committed docs that describe shipped state (e.g. `spec/ROADMAP.md`, `agent/TODO.md`) so they reflect what this branch ships
 2. `git push -u origin <branch>`
 3. `gh pr create` with a real description: what shipped, design decisions and spec deviations, how it was verified (test counts, migrations run), and anything deferred
 4. Report the PR URL as the session's final output
 
 ## Important Instructions
+
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
