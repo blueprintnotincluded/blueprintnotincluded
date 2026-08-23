@@ -49,11 +49,42 @@ export interface VietnameseTitleProvider {
   translate(inputs: VietnameseTitleInput[]): Promise<GeminiVietnameseTitleBatchResult>;
 }
 
-function sanitizeProviderError(error: unknown, key?: string, sensitiveTexts: string[] = []): Error {
+// Carries the HTTP status through the sanitizer so callers can tell a
+// per-batch hiccup from a condition every later batch will hit too.
+export class GeminiVietnameseTitleHttpError extends Error {
+  public constructor(
+    message: string,
+    public readonly status: number
+  ) {
+    super(message);
+    this.name = 'GeminiVietnameseTitleHttpError';
+  }
+}
+
+function sanitizeProviderError(
+  error: unknown,
+  key?: string,
+  sensitiveTexts: string[] = [],
+  status?: number
+): Error {
   let message = error instanceof Error ? error.message : String(error);
   if (key) message = message.split(key).join('[REDACTED]');
   for (const text of sensitiveTexts) message = message.split(text).join('[REDACTED]');
-  return new Error(message.slice(0, 300));
+  const sanitized = message.slice(0, 300);
+  return status == null
+    ? new Error(sanitized)
+    : new GeminiVietnameseTitleHttpError(sanitized, status);
+}
+
+// 401/403 mean the key is wrong, revoked, or lacks access to the model; 429
+// means rate-limited or out of quota. None of them clear up by moving on to
+// the next batch, and every attempt reserves budget BEFORE the call — so
+// marching through the rest of the census would burn the whole monthly
+// allowance without producing a single translation. These need a human, so
+// the caller stops and says so rather than retrying into the cap.
+export function isUnrecoverableProviderError(error: unknown): boolean {
+  const status = (error as { status?: unknown })?.status;
+  return status === 401 || status === 403 || status === 429;
 }
 
 export function createGeminiVietnameseTitleTransport(
@@ -134,7 +165,8 @@ export class GeminiVietnameseTitleProvider implements VietnameseTitleProvider {
           typeof detail === 'string' ? `: ${detail}` : ''
         }`,
         this.apiKey,
-        inputs.map(input => input.text)
+        inputs.map(input => input.text),
+        response.status
       );
     }
     if (raw.promptFeedback?.blockReason) {
