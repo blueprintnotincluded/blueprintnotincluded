@@ -17,6 +17,13 @@ export function calculateMaximumCost(): number {
   );
 }
 
+export function calculateAccessCheckMaximumCost(): number {
+  const maximum =
+    (CAPS.geminiAccessCheckInputTokens * RATES.geminiInputUsdPerMillionTokens) / 1_000_000 +
+    (CAPS.geminiAccessCheckOutputTokens * RATES.geminiOutputUsdPerMillionTokens) / 1_000_000;
+  return Number(maximum.toFixed(10));
+}
+
 export function assertApprovedRates(): void {
   for (const key of Object.keys(MAX_APPROVED_RATES) as (keyof typeof MAX_APPROVED_RATES)[]) {
     if (RATES[key] > MAX_APPROVED_RATES[key]) {

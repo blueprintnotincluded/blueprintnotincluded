@@ -6,6 +6,7 @@ import { ArtifactStore } from '../../../app/api/experiments/diacritic-ab/artifac
 import {
   assertGeminiRequestWithinCap,
   assertGoogleCharacters,
+  calculateAccessCheckMaximumCost,
   calculateMaximumCost,
   fullReservation,
 } from '../../../app/api/experiments/diacritic-ab/caps';
@@ -74,14 +75,15 @@ describe('diacritic A/B experiment', () => {
 
   describe('caps', () => {
     it('calculates the acknowledged worst case exactly', () => {
-      expect(calculateMaximumCost()).to.equal(0.0167936);
+      expect(calculateMaximumCost()).to.equal(0.019712);
+      expect(calculateAccessCheckMaximumCost()).to.equal(0.0000055);
       expect(fullReservation()).to.deep.include({
         geminiCalls: 2,
         googleCalls: 3,
         geminiInputTokens: 8192,
         geminiOutputTokens: 1536,
         googleSourceCharacters: 768,
-        maximumUsd: 0.0167936,
+        maximumUsd: 0.019712,
       });
     });
 
@@ -101,7 +103,7 @@ describe('diacritic A/B experiment', () => {
         expect(request.generationConfig.temperature).to.equal(0);
         expect(request.generationConfig.candidateCount).to.equal(1);
         expect(request.generationConfig.maxOutputTokens).to.equal(768);
-        expect(request.generationConfig.thinkingConfig.thinkingBudget).to.equal(0);
+        expect(request.generationConfig.thinkingConfig.thinkingLevel).to.equal('minimal');
         expect(request.generationConfig.responseMimeType).to.equal('application/json');
         expect(request.generationConfig.responseJsonSchema).to.be.an('object');
         expect(request).not.to.have.property('tools');
@@ -147,8 +149,18 @@ describe('diacritic A/B experiment', () => {
       const transport: HttpTransport = {
         async send(request) {
           requests.push(request);
-          if (request.method === 'GET') {
-            return { status: 200, body: { name: `models/${GEMINI_MODEL}` } };
+          if (requests.length === 1) {
+            return {
+              status: 200,
+              body: {
+                candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ text: 'K' }] } }],
+                usageMetadata: {
+                  promptTokenCount: 4,
+                  candidatesTokenCount: 1,
+                  totalTokenCount: 5,
+                },
+              },
+            };
           }
           return {
             status: 200,
@@ -169,7 +181,13 @@ describe('diacritic A/B experiment', () => {
         },
       };
       const client = new GeminiExperimentClient(transport);
-      await client.assertModelAvailable();
+      const accessUsage = await client.checkGenerationAccess();
+      expect(accessUsage).to.deep.equal({
+        promptTokens: 4,
+        completionTokens: 1,
+        thoughtTokens: 0,
+        totalTokens: 5,
+      });
       const result = await client.complete(buildGeminiRequest(cases, 'restore'), cases, 'restore');
       expect(result.outputs).to.deep.equal(outputs);
       expect(result.usage).to.deep.equal({
@@ -178,10 +196,28 @@ describe('diacritic A/B experiment', () => {
         thoughtTokens: 0,
         totalTokens: 600,
       });
-      expect(requests[0].url).to.equal(`${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}`);
+      expect(requests[0].url).to.equal(`${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}:generateContent`);
+      expect(requests[0].method).to.equal('POST');
       expect(requests[1].url).to.equal(`${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}:generateContent`);
       const body = JSON.parse(requests[1].body!);
-      expect(body.generationConfig.thinkingConfig).to.deep.equal({ thinkingBudget: 0 });
+      expect(body.generationConfig.thinkingConfig).to.deep.equal({ thinkingLevel: 'minimal' });
+    });
+
+    it('accepts a successful access check without usage and retains the caller reservation', async () => {
+      const transport: HttpTransport = {
+        async send() {
+          return {
+            status: 200,
+            body: {
+              candidates: [
+                { finishReason: 'MAX_TOKENS', content: { parts: [{ text: 'K' }] } },
+              ],
+            },
+          };
+        },
+      };
+      const client = new GeminiExperimentClient(transport);
+      expect(await client.checkGenerationAccess()).to.equal(undefined);
     });
 
     it('captures a raw Gemini response before failing closed on missing usage', async () => {
@@ -227,6 +263,7 @@ describe('diacritic A/B experiment', () => {
         expect.fail('HTTP 429 should fail');
       } catch (error) {
         expect((error as Error).message).to.contain('HTTP 429');
+        expect((error as Error).message).to.contain('Quota exceeded');
       }
       expect(captured).to.equal(raw);
     });
@@ -273,7 +310,7 @@ describe('diacritic A/B experiment', () => {
       }) as typeof fetch;
       try {
         await createGeminiFetchTransport('test-secret').send({
-          url: `${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}`,
+          url: `${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}:generateContent`,
           method: 'GET',
           headers: {},
           timeoutMs: 100,
@@ -313,13 +350,14 @@ describe('diacritic A/B experiment', () => {
       expect(() => store.createReservation({ state: 'reserved' })).to.throw('already exists');
     });
 
-    it('uses a distinct Gemini v2 identity rather than a continuation mode', () => {
+    it('uses a distinct Gemini 3.1 v3 identity rather than a continuation mode', () => {
       expect(() => parseCli(['--resume-reviewed-402'], 'development')).to.throw('Unknown argument');
       const { manifest } = makeManifest(process.cwd(), cases);
       expect(manifest.experiment).to.equal(EXPERIMENT_REVISION);
       expect(manifest.provider.gemini.model).to.equal(GEMINI_MODEL);
       expect(manifest.identities.llmEndToEnd).to.be.a('string').with.length(64);
-      expect(manifest.reservation.maximumUsd).to.equal(0.0167936);
+      expect(manifest.reservation.maximumUsd).to.equal(0.019712);
+      expect(manifest.accessCheckMaximumUsd).to.equal(0.0000055);
     });
 
     it('rejects live execution in tests and requires the exact acknowledgement', () => {
@@ -328,8 +366,28 @@ describe('diacritic A/B experiment', () => {
         'valid only with --execute'
       );
       expect(() => parseCli(['--execute', '--ack-max-usd=0.02'], 'test')).to.throw(
-        'disabled when NODE_ENV=test'
+        'network access is disabled when NODE_ENV=test'
       );
+      expect(() =>
+        parseCli(['--check-gemini-access', '--ack-access-check-usd=0.0000055'], 'test')
+      ).to.throw('network access is disabled when NODE_ENV=test');
+      expect(() =>
+        parseCli(
+          [
+            '--execute',
+            '--check-gemini-access',
+            '--ack-max-usd=0.02',
+            '--ack-access-check-usd=0.0000055',
+          ],
+          'development'
+        )
+      ).to.throw('mutually exclusive');
+      expect(() => parseCli(['--check-gemini-access'], 'development')).to.throw(
+        'exact acknowledgement'
+      );
+      expect(
+        parseCli(['--check-gemini-access', '--ack-access-check-usd=0.0000055'], 'development')
+      ).to.deep.equal({ mode: 'check-gemini-access' });
       expect(parseCli(['--execute', '--ack-max-usd=0.02'], 'development')).to.deep.equal({
         mode: 'execute',
       });

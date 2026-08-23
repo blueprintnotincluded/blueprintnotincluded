@@ -28,6 +28,8 @@
 # Offline LLM diacritic experiment reservations and provider responses
 /tmp/llm-diacritic-ab/
 /tmp/llm-diacritic-ab-gemini/
+/tmp/llm-diacritic-ab-gemini-3-1/
+/tmp/llm-diacritic-ab-gemini-3-1-sandbox-failure/
 
 # Local implementation plans and working specifications
 /specs/

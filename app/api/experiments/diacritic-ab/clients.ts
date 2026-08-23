@@ -1,6 +1,7 @@
 import { TranslateRequest } from '@google-cloud/translate/build/src/v2';
 import {
   CAPS,
+  GEMINI_ACCESS_CHECK_TEXT,
   GEMINI_ENDPOINT,
   GEMINI_MODEL,
   GEMINI_TIMEOUT_MS,
@@ -100,18 +101,36 @@ export interface GeminiBatchResult {
 export class GeminiExperimentClient {
   public constructor(private readonly transport: HttpTransport) {}
 
-  public async assertModelAvailable(): Promise<void> {
+  public async checkGenerationAccess(): Promise<TokenUsage | undefined> {
     const response = await this.transport.send({
-      url: `${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}`,
-      method: 'GET',
-      headers: {},
+      url: `${GEMINI_ENDPOINT}/models/${GEMINI_MODEL}:generateContent`,
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: GEMINI_ACCESS_CHECK_TEXT }] }],
+        generationConfig: {
+          temperature: 0,
+          candidateCount: 1,
+          maxOutputTokens: CAPS.geminiAccessCheckOutputTokens,
+          thinkingConfig: { thinkingLevel: CAPS.geminiThinkingLevel },
+        },
+      }),
       timeoutMs: GEMINI_TIMEOUT_MS,
     });
-    assertSuccess(response, 'Gemini model metadata request');
-    const name = (response.body as { name?: unknown })?.name;
-    if (name !== `models/${GEMINI_MODEL}`) {
-      throw new Error(`Required model ${GEMINI_MODEL} is unavailable to this key`);
+    assertSuccess(response, 'Gemini one-token access check');
+    const raw = response.body as GeminiResponse;
+    if (raw.candidates?.length !== 1) {
+      throw new Error('Gemini access check returned invalid or excessive output');
     }
+    if (raw.usageMetadata == null) return undefined;
+    const usage = validateGeminiUsage(raw.usageMetadata);
+    if (
+      usage.promptTokens > CAPS.geminiAccessCheckInputTokens ||
+      usage.completionTokens + usage.thoughtTokens > CAPS.geminiAccessCheckOutputTokens
+    ) {
+      throw new Error('Gemini access check returned invalid or excessive output');
+    }
+    return usage;
   }
 
   public async complete(
@@ -162,7 +181,7 @@ function assertFixedGeminiConfig(request: GeminiRequestBody): void {
     config.candidateCount !== CAPS.geminiCandidates ||
     config.maxOutputTokens !== CAPS.geminiOutputTokensPerCall ||
     config.responseMimeType !== 'application/json' ||
-    config.thinkingConfig.thinkingBudget !== CAPS.geminiThinkingBudget
+    config.thinkingConfig.thinkingLevel !== CAPS.geminiThinkingLevel
   ) {
     throw new Error('Gemini request does not match the fixed experiment configuration');
   }
@@ -203,7 +222,9 @@ function validateGeminiUsage(value: GeminiResponse['usageMetadata']): TokenUsage
 
 function assertSuccess(response: HttpResponse, operation: string): void {
   if (response.status < 200 || response.status >= 300) {
-    throw new Error(`${operation} failed with HTTP ${response.status}`);
+    const providerMessage = (response.body as { error?: { message?: unknown } })?.error?.message;
+    const detail = typeof providerMessage === 'string' ? `: ${providerMessage}` : '';
+    throw new Error(`${operation} failed with HTTP ${response.status}${detail}`);
   }
 }
 
