@@ -6,6 +6,7 @@ import { ArtifactStore, sha256 } from './diacritic-ab/artifacts';
 import {
   assertGeminiRequestWithinCap,
   assertGoogleCharacters,
+  calculateAccessCheckMaximumCost,
   fullReservation,
 } from './diacritic-ab/caps';
 import {
@@ -18,11 +19,13 @@ import {
   CAPS,
   EXPERIMENT_REVISION,
   FIXTURE_PATH,
+  GEMINI_CREDENTIAL_NAME,
   GEMINI_ENDPOINT,
   GEMINI_MODEL,
   PROMPT_VERSIONS,
   RATES,
   V1_ARTIFACT_DIR,
+  V2_ARTIFACT_DIR,
 } from './diacritic-ab/constants';
 import { blindResults, mechanicalRows, observedCost } from './diacritic-ab/evaluation';
 import { loadFixture } from './diacritic-ab/fixture';
@@ -30,25 +33,43 @@ import { buildGeminiRequest } from './diacritic-ab/prompts';
 import { ArmOutput, ArmResult, DiacriticCase, ExperimentArm } from './diacritic-ab/types';
 
 interface CliOptions {
-  mode: 'dry-run' | 'execute';
+  mode: 'dry-run' | 'check-gemini-access' | 'execute';
 }
 
 export function parseCli(argv: string[], nodeEnv = process.env.NODE_ENV): CliOptions {
-  const allowed = new Set(['--execute', '--ack-max-usd=0.02']);
+  const allowed = new Set([
+    '--check-gemini-access',
+    '--ack-access-check-usd=0.0000055',
+    '--execute',
+    '--ack-max-usd=0.02',
+  ]);
   const unknown = argv.filter(arg => !allowed.has(arg));
   if (unknown.length > 0) throw new Error(`Unknown argument(s): ${unknown.join(', ')}`);
   const execute = argv.includes('--execute');
+  const checkGeminiAccess = argv.includes('--check-gemini-access');
   const acknowledged = argv.includes('--ack-max-usd=0.02');
+  const accessCheckAcknowledged = argv.includes('--ack-access-check-usd=0.0000055');
+  if (execute && checkGeminiAccess) {
+    throw new Error('--execute and --check-gemini-access are mutually exclusive');
+  }
   if (!execute && acknowledged) {
     throw new Error('The acknowledgement is valid only with --execute');
+  }
+  if (!checkGeminiAccess && accessCheckAcknowledged) {
+    throw new Error('The access-check acknowledgement is valid only with --check-gemini-access');
+  }
+  if (checkGeminiAccess && !accessCheckAcknowledged) {
+    throw new Error(
+      'Gemini access check requires the exact acknowledgement --ack-access-check-usd=0.0000055'
+    );
   }
   if (execute && !acknowledged) {
     throw new Error('Live execution requires the exact acknowledgement --ack-max-usd=0.02');
   }
-  if (execute && nodeEnv === 'test') {
-    throw new Error('Live experiment execution is disabled when NODE_ENV=test');
+  if ((execute || checkGeminiAccess) && nodeEnv === 'test') {
+    throw new Error('Experiment network access is disabled when NODE_ENV=test');
   }
-  return { mode: execute ? 'execute' : 'dry-run' };
+  return { mode: execute ? 'execute' : checkGeminiAccess ? 'check-gemini-access' : 'dry-run' };
 }
 
 function promptHash(request: ReturnType<typeof buildGeminiRequest>): string {
@@ -79,9 +100,14 @@ export function makeManifest(rootDir: string, cases: DiacriticCase[]) {
   const manifest = {
     experiment: EXPERIMENT_REVISION,
     createdAt: new Date().toISOString(),
-    v1Disposition: fs.existsSync(path.resolve(rootDir, V1_ARTIFACT_DIR))
-      ? 'preserved-local-artifact-present'
-      : 'local-artifact-absent-or-deleted',
+    priorArtifactDisposition: {
+      digitalOceanV1: fs.existsSync(path.resolve(rootDir, V1_ARTIFACT_DIR))
+        ? 'preserved-local-artifact-present'
+        : 'local-artifact-absent-or-deleted',
+      gemini25V2: fs.existsSync(path.resolve(rootDir, V2_ARTIFACT_DIR))
+        ? 'preserved-local-artifact-present'
+        : 'local-artifact-absent-or-deleted',
+    },
     fixture: { path: FIXTURE_PATH, sha256: fixtureHash, cases: cases.length, sourceCharacters },
     prompts: {
       endToEnd: { version: PROMPT_VERSIONS.endToEnd, sha256: promptHash(endToEnd) },
@@ -91,7 +117,7 @@ export function makeManifest(rootDir: string, cases: DiacriticCase[]) {
       gemini: { endpoint: GEMINI_ENDPOINT, model: GEMINI_MODEL, api: 'generateContent-v1beta' },
       google: { api: 'cloud-translation-basic-v2' },
     },
-    credentialNames: ['GEMINI_API_KEY', 'GOOGLE_TRANSLATE_API_KEY'],
+    credentialNames: [GEMINI_CREDENTIAL_NAME, 'GOOGLE_TRANSLATE_API_KEY'],
     requestReservations: {
       geminiEndToEndInputTokens: assertGeminiRequestWithinCap(JSON.stringify(endToEnd)),
       geminiRestoreInputTokens: assertGeminiRequestWithinCap(JSON.stringify(restore)),
@@ -103,7 +129,7 @@ export function makeManifest(rootDir: string, cases: DiacriticCase[]) {
     },
     calls: {
       geminiInference: CAPS.geminiCalls,
-      geminiMetadataPreflight: 1,
+      optionalGeminiAccessCheckInference: 1,
       googleTranslation: CAPS.googleCalls,
       retries: CAPS.retries,
       concurrency: CAPS.concurrency,
@@ -115,6 +141,7 @@ export function makeManifest(rootDir: string, cases: DiacriticCase[]) {
     },
     caps: CAPS,
     reservation,
+    accessCheckMaximumUsd: calculateAccessCheckMaximumCost(),
     identities: {
       googleAuto: cacheIdentity('google-auto', 'google-basic-v2', 'batch-auto-v1', fixtureHash),
       googleVi: cacheIdentity('google-vi', 'google-basic-v2', 'batch-forced-vi-v1', fixtureHash),
@@ -144,10 +171,31 @@ function printPreflight(
     console.log(
       `Live execution acknowledged. Reserving exactly 2 Gemini inference calls, 3 Google translation calls, and $${manifest.reservation.maximumUsd.toFixed(7)} maximum calculated usage ($0.02 fail-closed ledger).`
     );
-  } else {
+  } else if (mode === 'dry-run') {
     console.log(
       'Offline dry run complete. No credential was read, no live client was constructed, and no provider request was sent.'
     );
+  }
+}
+
+async function checkGeminiAccess(): Promise<void> {
+  dotenv.config();
+  const geminiKey = process.env[GEMINI_CREDENTIAL_NAME];
+  if (!geminiKey) throw new Error(`${GEMINI_CREDENTIAL_NAME} is required for the access check`);
+  try {
+    const client = new GeminiExperimentClient(createGeminiFetchTransport(geminiKey));
+    const usage = await client.checkGenerationAccess();
+    if (usage == null) {
+      console.log(
+        `Gemini one-token access check succeeded for ${GEMINI_MODEL}. Gemini omitted usage metadata; conservatively retain the full $${calculateAccessCheckMaximumCost()} access-check ceiling.`
+      );
+    } else {
+      console.log(
+        `Gemini one-token access check succeeded for ${GEMINI_MODEL}. Reported usage: ${usage.promptTokens} input, ${usage.completionTokens + usage.thoughtTokens} output tokens.`
+      );
+    }
+  } catch (error) {
+    throw new Error((error as Error).message.split(geminiKey).join('[REDACTED]'));
   }
 }
 
@@ -186,10 +234,12 @@ async function executeLive(
   }
 
   dotenv.config();
-  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiKey = process.env[GEMINI_CREDENTIAL_NAME];
   const googleKey = process.env.GOOGLE_TRANSLATE_API_KEY;
   if (!geminiKey || !googleKey) {
-    throw new Error('GEMINI_API_KEY and GOOGLE_TRANSLATE_API_KEY are required for --execute');
+    throw new Error(
+      `${GEMINI_CREDENTIAL_NAME} and GOOGLE_TRANSLATE_API_KEY are required for --execute`
+    );
   }
   const secrets = [geminiKey, googleKey];
   const capture = (name: string) => (raw: unknown) =>
@@ -224,7 +274,7 @@ async function executeLive(
   const googleClient = new GoogleExperimentClient(googleSdk);
   const inputs = cases.map(item => item.asciiInput);
   const results: ArmResult[] = [];
-  let currentOperation = 'model-access';
+  let currentOperation = 'llm-end-to-end';
   const persistPartialResults = () =>
     store.writeJson('results.json', {
       partial: true,
@@ -236,7 +286,14 @@ async function executeLive(
 
   try {
     updateReservation('running');
-    await geminiClient.assertModelAvailable();
+    const llmEndToEnd = await geminiClient.complete(
+      endToEndRequest,
+      cases,
+      'end-to-end',
+      capture('llm-end-to-end')
+    );
+    results.push({ arm: 'llm-end-to-end', outputs: llmEndToEnd.outputs, usage: llmEndToEnd.usage });
+    persistPartialResults();
 
     currentOperation = 'google-auto';
     const googleAuto = await googleClient.translate(inputs, 'auto', capture('google-auto'));
@@ -254,16 +311,6 @@ async function executeLive(
       outputs: googleOutputs(cases, googleVi.texts),
       googleSourceCharacters: googleVi.sourceCharacters,
     });
-    persistPartialResults();
-
-    currentOperation = 'llm-end-to-end';
-    const llmEndToEnd = await geminiClient.complete(
-      endToEndRequest,
-      cases,
-      'end-to-end',
-      capture('llm-end-to-end')
-    );
-    results.push({ arm: 'llm-end-to-end', outputs: llmEndToEnd.outputs, usage: llmEndToEnd.usage });
     persistPartialResults();
 
     currentOperation = 'restore-google';
@@ -331,6 +378,10 @@ export async function main(argv = process.argv.slice(2), rootDir = process.cwd()
   store.writeJson('manifest.json', manifest);
   printPreflight(manifest, options.mode);
   if (options.mode === 'dry-run') return;
+  if (options.mode === 'check-gemini-access') {
+    await checkGeminiAccess();
+    return;
+  }
   await executeLive(store, cases, endToEnd, restore, manifest, reservation);
 }
 

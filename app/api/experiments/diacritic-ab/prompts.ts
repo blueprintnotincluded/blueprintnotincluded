@@ -41,7 +41,7 @@ export interface GeminiRequestBody {
     maxOutputTokens: number;
     responseMimeType: 'application/json';
     responseJsonSchema: Record<string, unknown>;
-    thinkingConfig: { thinkingBudget: 0 };
+    thinkingConfig: { thinkingLevel: 'minimal' };
   };
 }
 
@@ -61,7 +61,7 @@ export function buildGeminiRequest(cases: DiacriticCase[], mode: LlmMode): Gemin
       maxOutputTokens: CAPS.geminiOutputTokensPerCall,
       responseMimeType: 'application/json',
       responseJsonSchema: responseSchema(mode),
-      thinkingConfig: { thinkingBudget: CAPS.geminiThinkingBudget },
+      thinkingConfig: { thinkingLevel: CAPS.geminiThinkingLevel },
     },
   };
 }
