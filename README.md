@@ -7,6 +7,7 @@ It is a combined curated version of the original blueprintnotincluded web app.
 ## Development Setup
 
 ### Development (Recommended)
+
 For ARM64 Macs and local development with live reloading:
 
 ```bash
@@ -27,6 +28,7 @@ cd frontend && npm start # Frontend with live reloading
 - **Mail testing**: http://localhost:8025 (Mailpit web UI)
 
 ### Production Testing
+
 Test with pre-built images (may require AMD64 emulation on ARM64 Macs):
 
 ```bash
@@ -49,6 +51,7 @@ Run npm tasks by name from the build directory — same task names as local dev:
 cd /bpni/build
 npm run migrate:status
 npm run migrate:up
+npm run derive-search:dry-run
 npm run avatars:smoke
 npm run avatars:seed-batch -- --count 10
 npm run derive-metadata:dry-run
@@ -60,11 +63,36 @@ Batch tasks dispatch through `scripts/batch.sh`, which runs the compiled
 `.ts` source (dev checkout). Direct invocation also works as a fallback:
 `node app/api/batch/<name>.js [args]` (no `--` separator needed).
 
+`derive-search:dry-run` performs the romanized-Vietnamese candidate census
+without constructing a Gemini client or reading `GEMINI_API_KEY`. It reports
+unique titles, affected documents, source characters, planned batches, token
+ceilings, and the maximum micro-USD reservation. Gemini batches are fixed at
+no more than 12 titles / 720 source characters, concurrency 1, and zero retries.
+
+For the Vietnamese-title rollout, deploy with
+`GEMINI_VI_TITLE_TRANSLATION_ENABLED=false` and
+`GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD=0`, then:
+
+1. Back up Mongo and run `npm run migrate:up`. Migration order is
+   `20260804000000_search-title-original.js` followed by
+   `20260805000000_translation-unit-modes.js`.
+2. Run `npm run derive-search:dry-run` and review its exact census and maximum
+   reservation before choosing a positive monthly allowance.
+3. Enable the kill switch and reviewed allowance, restart the API, then run
+   `npm run derive-search` once. Do not run the old Google-only provider
+   detection backfill before this code is deployed.
+
+Rollback sets the kill switch false and the allowance to zero, then restarts
+the API. This stops new Gemini calls while accepted cache rows remain usable;
+authored `Blueprint.name` values are never changed. If quality problems require
+removal, delete only translation units with mode `vi-romanized-title-v1` and
+rebuild the disposable search rows from authored blueprints.
+
 **Shipping new batch/asset code — deploy-image checklist.** Code that works locally can
 still fail in the image; before relying on something in production, confirm:
 
 - Runtime file reads (assets, fixtures) resolve relative to `/bpni/build` and the files
-  actually land there — via `scripts/copy_assets.sh` *and* a `COPY` line in
+  actually land there — via `scripts/copy_assets.sh` _and_ a `COPY` line in
   `deploy.Dockerfile` (the build stage only copies what's explicitly listed).
 - Any package the script imports is in `dependencies`, not `devDependencies`.
 - New npm tasks meant for production go through `scripts/batch.sh` (plain `ts-node`
@@ -87,6 +115,7 @@ Run the image and backend
 Visit http://localhost:3000
 
 ## Image reconstruction
+
 Export iamges from oniextract2020
 Copy assets/manual/ into assets/images
 `npm run fixHtmlLabels -- database.json`
