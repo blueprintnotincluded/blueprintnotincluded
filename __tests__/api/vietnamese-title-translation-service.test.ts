@@ -24,6 +24,7 @@ import {
   VietnameseTitleResult,
 } from '../../app/api/services/vietnamese-title-prompts';
 import {
+  isEligibleVietnameseTitleInput,
   isVietnameseTitleGateActive,
   normalizeRomanizedVietnamese,
   vietnameseTitleDryRunCaps,
@@ -693,6 +694,24 @@ describe('GeminiVietnameseTitleProvider', function () {
       expect(message).not.to.contain('Dien phan');
       expect(message.length).to.be.at.most(300);
     }
+  });
+});
+
+// The census in derive-search uses this predicate to keep ineligible titles
+// out of Gemini batches, because validateInputs rejects the WHOLE batch: one
+// non-ASCII title would otherwise take up to 11 eligible ones down with it on
+// every run. The predicate must therefore agree exactly with validateInputs.
+describe('isEligibleVietnameseTitleInput', function () {
+  it('admits exactly what validateInputs admits', function () {
+    expect(isEligibleVietnameseTitleInput('Dien phan full')).to.equal(true);
+    expect(isEligibleVietnameseTitleInput('a'.repeat(60))).to.equal(true);
+    // Non-ASCII in any form: accented, CJK, emoji.
+    expect(isEligibleVietnameseTitleInput('Điện phân')).to.equal(false);
+    expect(isEligibleVietnameseTitleInput('電解 2')).to.equal(false);
+    expect(isEligibleVietnameseTitleInput('SPOM 🔥')).to.equal(false);
+    // Empty and over the title length cap.
+    expect(isEligibleVietnameseTitleInput('')).to.equal(false);
+    expect(isEligibleVietnameseTitleInput('a'.repeat(61))).to.equal(false);
   });
 });
 

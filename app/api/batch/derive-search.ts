@@ -45,6 +45,7 @@ import {
 import { detectLanguageCode } from '../services/language-detection-service';
 import { TranslationService } from '../services/translation-service';
 import {
+  isEligibleVietnameseTitleInput,
   isVietnameseTitleGateActive,
   VietnameseTitleTranslationOutcome,
   VietnameseTitleTranslationService,
@@ -453,6 +454,11 @@ async function detectAmbiguousTitles(
     string,
     Array<{ blueprintId: mongoose.Types.ObjectId; sourceHash: string }>
   >();
+  // Undetectable but not Gemini-eligible (non-ASCII, or over the title length
+  // cap): the service's validateInputs would throw on the WHOLE batch, taking
+  // eligible titles down with it — on every re-run. Google has no such shape
+  // restriction, so these go straight to its continuation instead.
+  const googleOnlyByTitle: typeof byTitle = new Map();
   let skippedResolved = 0;
   let skippedDetected = 0;
   for (const row of rows) {
@@ -470,16 +476,18 @@ async function detectAmbiguousTitles(
       skippedResolved++;
       continue;
     }
-    const group = byTitle.get(title);
+    const bucket = isEligibleVietnameseTitleInput(title) ? byTitle : googleOnlyByTitle;
+    const group = bucket.get(title);
     const target = { blueprintId: row.blueprintId, sourceHash: row.sourceHash };
     if (group != null) group.push(target);
-    else byTitle.set(title, [target]);
+    else bucket.set(title, [target]);
   }
 
   // Batched by UNIQUE title text, same reason as translateTitles: the cache
   // row for a text written earlier in the same call is not visible to
   // findCached yet, so duplicates would each be billed.
   const candidates = [...byTitle.entries()];
+  const googleOnly = [...googleOnlyByTitle.entries()];
   const documentCount = candidates.reduce((n, [, ids]) => n + ids.length, 0);
   const sourceCharacters = candidates.reduce((n, [title]) => n + title.length, 0);
   const geminiBatches = batchVietnameseCandidates(candidates);
@@ -488,6 +496,12 @@ async function detectAmbiguousTitles(
     `\nRomanized Vietnamese census — ${candidates.length} unique candidate titles across ${documentCount} documents` +
       ` (${skippedDetected} already detected locally, ${skippedResolved} fully resolved by the term dictionary)`
   );
+  if (googleOnly.length > 0) {
+    console.log(
+      `  ${googleOnly.length} undetectable title(s) are not Gemini-eligible ` +
+        `(non-ASCII or over-length) and go straight to Google provider-side detection`
+    );
+  }
   console.log(`  source characters: ${sourceCharacters}`);
   console.log(
     `  planned Gemini batches: ${geminiBatches.length} (max ${GEMINI_VI_TITLE_BATCH_SIZE} titles / ` +
@@ -500,7 +514,7 @@ async function detectAmbiguousTitles(
       `${geminiBatches.length * dryRunCaps.maximumMicroUsd} micro-USD maximum`
   );
 
-  if (dryRun || candidates.length === 0) return 0;
+  if (dryRun || (candidates.length === 0 && googleOnly.length === 0)) return 0;
 
   // With the gate off — its default, and the state the README has prod deploy
   // in — every candidate comes back 'invalid' and contributes nothing to
@@ -513,13 +527,13 @@ async function detectAmbiguousTitles(
       '  Gemini romanized-Vietnamese gate inactive (kill switch, GEMINI_API_KEY, or monthly ' +
         'allowance) — continuing every candidate to Google provider-side detection.'
     );
-    return continueNotVietnameseWithGoogle(candidates);
+    return continueNotVietnameseWithGoogle([...candidates, ...googleOnly]);
   }
 
   let done = 0;
   let accepted = 0;
   let failedBatches = 0;
-  const googleCandidates: typeof candidates = [];
+  const googleCandidates: typeof candidates = [...googleOnly];
   for (let i = 0; i < geminiBatches.length; i++) {
     const batch = geminiBatches[i];
     let results: VietnameseTitleTranslationOutcome[];
@@ -587,7 +601,8 @@ async function detectAmbiguousTitles(
   failedBatches += await continueNotVietnameseWithGoogle(googleCandidates);
   console.log(
     `  Gemini accepted ${accepted}/${candidates.length} titles; ` +
-      `${googleCandidates.length} explicit not-vietnamese result(s) continued to Google`
+      `${googleCandidates.length} title(s) continued to Google ` +
+      `(explicit not-vietnamese results plus the ${googleOnly.length} Gemini-ineligible)`
   );
   return failedBatches;
 }

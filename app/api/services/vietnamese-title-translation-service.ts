@@ -28,6 +28,14 @@ import {
 
 const ASCII_NONEMPTY = /^[\x20-\x7e]+$/;
 
+// The per-title shape validateInputs enforces, exported so the census in
+// derive-search can route ineligible titles (non-ASCII, over-length) straight
+// to the Google continuation instead of poisoning a whole Gemini batch with
+// a validation throw.
+export function isEligibleVietnameseTitleInput(text: string): boolean {
+  return ASCII_NONEMPTY.test(text) && text.length <= MAX_BLUEPRINT_NAME_LENGTH;
+}
+
 export interface VietnameseTitleTranslationOutcome {
   id: string;
   status: VietnameseTitleStatus | 'invalid';
@@ -251,7 +259,7 @@ export class VietnameseTitleTranslationService {
       if (!input.id || ids.has(input.id))
         throw new Error('Vietnamese-title input IDs must be unique');
       ids.add(input.id);
-      if (!ASCII_NONEMPTY.test(input.text) || input.text.length > MAX_BLUEPRINT_NAME_LENGTH) {
+      if (!isEligibleVietnameseTitleInput(input.text)) {
         throw new Error(
           'Vietnamese-title input must be non-empty ASCII within the title length policy'
         );
