@@ -25,6 +25,19 @@ if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
   );
 }
 
+const viTitleEnabled = process.env.GEMINI_VI_TITLE_TRANSLATION_ENABLED === 'true';
+const viTitleBudget = Number(process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD ?? 0);
+console.log(
+  `[vi-title] ${
+    viTitleEnabled &&
+    process.env.GEMINI_API_KEY &&
+    Number.isFinite(viTitleBudget) &&
+    viTitleBudget > 0
+      ? `ENABLED (monthly cap ${viTitleBudget} micro-USD)`
+      : 'DISABLED (requires kill switch, GEMINI_API_KEY, and a positive monthly budget)'
+  }`
+);
+
 const PORT = 3000;
 const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -45,7 +58,9 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
 
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`Error: port ${PORT} is already in use. Is another server or Docker container running?`);
+    console.error(
+      `Error: port ${PORT} is already in use. Is another server or Docker container running?`
+    );
     process.exit(1);
   }
   throw err;

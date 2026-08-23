@@ -6,6 +6,10 @@ import { BlueprintSearchModel, mongoTextLang, SearchRowOrigin } from '../models/
 import { getSearchTermDictionary } from './search-term-dictionary';
 import { detectLanguageCode } from './language-detection-service';
 import { TranslationService } from './translation-service';
+import {
+  isVietnameseTitleGateActive,
+  VietnameseTitleTranslationService,
+} from './vietnamese-title-translation-service';
 
 // Derives and upserts blueprintsearch rows (spec/multilingual-search-plan.md
 // §2.1). Phase 0 scope: the authored 'en' pivot row only — every blueprint
@@ -21,7 +25,11 @@ import { TranslationService } from './translation-service';
 // hash is used as a content-pin (the backfill's freshness check, and phase
 // 5's concurrent-save guard below).
 function computeSourceHash(parts: readonly unknown[]): string {
-  return crypto.createHash('sha256').update(JSON.stringify(parts), 'utf8').digest('hex').slice(0, 16);
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify(parts), 'utf8')
+    .digest('hex')
+    .slice(0, 16);
 }
 
 export interface SearchRowFields {
@@ -198,7 +206,13 @@ export function deriveNativeSearchRow(
     // title was edited, or a later, better-informed detection disagrees —
     // is recognized as stale by the same freshness check every other row
     // uses, not just by the cleanup delete below.
-    sourceHash: computeSourceHash([pivot.title, pivot.description, pivot.termIds, pivot.clusterKey, lang]),
+    sourceHash: computeSourceHash([
+      pivot.title,
+      pivot.description,
+      pivot.termIds,
+      pivot.clusterKey,
+      lang,
+    ]),
   };
 }
 
@@ -282,12 +296,39 @@ export async function deriveSearchRowWithTranslation(
   const base = deriveSearchRow(blueprint);
   const detected = confidentTitleLang(base.title);
   const declared =
-    declaredLang != null && declaredLang !== 'en' && declaredLang !== detected ? declaredLang : null;
+    declaredLang != null && declaredLang !== 'en' && declaredLang !== detected
+      ? declaredLang
+      : null;
   const sourceLang = detected ?? declared;
   if (sourceLang == null) return base;
-  if (!TranslationService.instance.isConfigured()) return base;
 
   try {
+    const declaredNormalized = normalizeContentLocale(declaredLang);
+    const isAsciiVietnamese =
+      /^[\x20-\x7e]+$/.test(base.title) && (detected === 'vi' || declaredNormalized === 'vi');
+    // Gate ACTIVE and this looks Vietnamese: its verdict is final, including
+    // its refusals. An 'ambiguous' or 'not-vietnamese' answer means the gate
+    // looked and declined, and handing the title to Google to guess instead is
+    // the outcome the gate exists to prevent.
+    //
+    // Gate INACTIVE is a different thing entirely and must not be read as a
+    // refusal: without this check the default configuration would silently stop
+    // translating declared-Vietnamese titles that Google handles today.
+    if (isAsciiVietnamese && isVietnameseTitleGateActive()) {
+      const result = await VietnameseTitleTranslationService.instance.translateOne(
+        base.title,
+        userId
+      );
+      if (result.status !== 'translated' || result.translatedText == null) return base;
+      return {
+        ...base,
+        title: result.translatedText,
+        titleOriginal: base.title,
+        origin: 'machine',
+      };
+    }
+
+    if (!TranslationService.instance.isConfigured()) return base;
     const result = await TranslationService.instance.translateOne(
       { sourceText: base.title, sourceLang, targetLang: 'en' },
       userId
@@ -346,7 +387,9 @@ export function syncMachineTitle(
           lang: fields.lang,
           sourceHash: fields.sourceHash,
         },
-        { $set: { title: fields.title, titleOriginal: fields.titleOriginal, origin: fields.origin } }
+        {
+          $set: { title: fields.title, titleOriginal: fields.titleOriginal, origin: fields.origin },
+        }
       );
     })
     .catch(err => {
@@ -362,15 +405,22 @@ export function syncMachineTitle(
 export function syncSearchRowStatus(
   blueprintId: string | mongoose.Types.ObjectId,
   patch: Partial<
-    Pick<SearchRowFields, 'isPublished' | 'deletedAt' | 'ratingAverage' | 'ratingCount' | 'hotScore' | 'downloadCount' | 'forkCount'>
+    Pick<
+      SearchRowFields,
+      | 'isPublished'
+      | 'deletedAt'
+      | 'ratingAverage'
+      | 'ratingCount'
+      | 'hotScore'
+      | 'downloadCount'
+      | 'forkCount'
+    >
   >
 ): void {
-  BlueprintSearchModel.model
-    .updateMany({ blueprintId }, { $set: patch })
-    .catch(err => {
-      console.log('search index status sync error');
-      console.log(err);
-    });
+  BlueprintSearchModel.model.updateMany({ blueprintId }, { $set: patch }).catch(err => {
+    console.log('search index status sync error');
+    console.log(err);
+  });
 }
 
 // Phase 5 (spec/multilingual-search-plan.md — lazy accretion): a reader who
@@ -423,7 +473,10 @@ export async function upsertTranslatedSearchRow(params: {
 
   let translatedTitle = title;
   try {
-    const result = await TranslationService.instance.translateOne({ sourceText: title, sourceLang, targetLang }, userId);
+    const result = await TranslationService.instance.translateOne(
+      { sourceText: title, sourceLang, targetLang },
+      userId
+    );
     if (!result.degraded) translatedTitle = result.translatedText;
   } catch (err) {
     console.log('lazy accretion title translation error');
@@ -439,14 +492,22 @@ export async function upsertTranslatedSearchRow(params: {
   // the next reader translate click (or the next save's own derivation)
   // will re-derive against the fresh state.
   if (base != null) {
-    const fresh = await BlueprintSearchModel.model.findOne({ blueprintId, lang: 'en' }).select('sourceHash').lean();
+    const fresh = await BlueprintSearchModel.model
+      .findOne({ blueprintId, lang: 'en' })
+      .select('sourceHash')
+      .lean();
     if (fresh?.sourceHash !== base.sourceHash) return;
   }
 
   const termIds = base?.termIds ?? [];
   const terms = base?.terms ?? [];
   const clusterKey = base?.clusterKey ?? null;
-  const sourceHash = computeSourceHash([translatedTitle, translatedDescription, termIds, clusterKey]);
+  const sourceHash = computeSourceHash([
+    translatedTitle,
+    translatedDescription,
+    termIds,
+    clusterKey,
+  ]);
 
   await BlueprintSearchModel.model.updateOne(
     { blueprintId, lang: targetLang },
