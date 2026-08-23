@@ -37,9 +37,23 @@ import { BlueprintModel } from '../models/blueprint';
 import { BlueprintSearchModel } from '../models/blueprint-search';
 import { TranslationUnitModel } from '../models/translation-unit';
 import { TranslationBudgetModel } from '../models/translation-budget';
-import { deriveNativeSearchRow, deriveSearchRow, SearchRowFields } from '../services/search-index-service';
+import {
+  deriveNativeSearchRow,
+  deriveSearchRow,
+  SearchRowFields,
+} from '../services/search-index-service';
 import { detectLanguageCode } from '../services/language-detection-service';
 import { TranslationService } from '../services/translation-service';
+import {
+  isVietnameseTitleGateActive,
+  VietnameseTitleTranslationOutcome,
+  VietnameseTitleTranslationService,
+  vietnameseTitleDryRunCaps,
+} from '../services/vietnamese-title-translation-service';
+import {
+  GEMINI_VI_TITLE_BATCH_CHARACTERS,
+  GEMINI_VI_TITLE_BATCH_SIZE,
+} from '../services/vietnamese-title-prompts';
 import { getSearchTermDictionary } from '../services/search-term-dictionary';
 import { normalizeContentLocale, resolveTerms, tokenize } from '../../../lib/index';
 import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
@@ -217,7 +231,11 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
         if (priorNativeLang === native?.lang) continue;
         pending.push({
           deleteOne: {
-            filter: { blueprintId: doc._id as mongoose.Types.ObjectId, lang: priorNativeLang, origin: 'authored' },
+            filter: {
+              blueprintId: doc._id as mongoose.Types.ObjectId,
+              lang: priorNativeLang,
+              origin: 'authored',
+            },
           },
         });
         nativePruned++;
@@ -233,7 +251,9 @@ async function run(dryRun: boolean, limit: number | null, providerDetect: boolea
     if (originalsBackfilled > 0) {
       console.log(`  titleOriginal backfilled on ${originalsBackfilled} already-translated row(s)`);
     }
-    console.log(`  native-language rows: ${nativeWritten} written, ${nativePruned} pruned (stale sourceLang)`);
+    console.log(
+      `  native-language rows: ${nativeWritten} written, ${nativePruned} pruned (stale sourceLang)`
+    );
 
     let failedBatches = await translateTitles(dryRun, processedIds);
     if (providerDetect) {
@@ -285,17 +305,28 @@ async function translateTitles(
 
   // Chunked so an unlimited run (thousands of blueprints) never issues one
   // $in spanning the whole corpus.
-  const rows: { blueprintId: mongoose.Types.ObjectId; title: string; origin: string }[] = [];
+  const rows: {
+    blueprintId: mongoose.Types.ObjectId;
+    title: string;
+    origin: string;
+    sourceHash: string;
+  }[] = [];
   for (let i = 0; i < blueprintIds.length; i += BULK_BATCH_SIZE) {
     const chunk = blueprintIds.slice(i, i + BULK_BATCH_SIZE);
     const chunkRows = await BlueprintSearchModel.model
       .find({ lang: 'en', blueprintId: { $in: chunk } })
-      .select('blueprintId title origin')
+      .select('blueprintId title origin sourceHash')
       .lean();
-    rows.push(...(chunkRows as { blueprintId: mongoose.Types.ObjectId; title: string; origin: string }[]));
+    rows.push(...(chunkRows as typeof rows));
   }
 
-  const byTitle = new Map<string, { blueprintIds: mongoose.Types.ObjectId[]; sourceLang: string }>();
+  const byTitle = new Map<
+    string,
+    {
+      rows: Array<{ blueprintId: mongoose.Types.ObjectId; sourceHash: string }>;
+      sourceLang: string;
+    }
+  >();
   let alreadyMachine = 0;
   for (const row of rows) {
     if (row.origin === 'machine') {
@@ -305,12 +336,13 @@ async function translateTitles(
     const lang = detectLanguageCode(row.title);
     if (lang == null || lang === 'en') continue;
     const group = byTitle.get(row.title);
-    if (group != null) group.blueprintIds.push(row.blueprintId);
-    else byTitle.set(row.title, { blueprintIds: [row.blueprintId], sourceLang: lang });
+    const target = { blueprintId: row.blueprintId, sourceHash: row.sourceHash };
+    if (group != null) group.rows.push(target);
+    else byTitle.set(row.title, { rows: [target], sourceLang: lang });
   }
 
   const uniqueTitles = [...byTitle.entries()];
-  const documentCount = uniqueTitles.reduce((n, [, group]) => n + group.blueprintIds.length, 0);
+  const documentCount = uniqueTitles.reduce((n, [, group]) => n + group.rows.length, 0);
   console.log(
     `\nTitle translation — ${uniqueTitles.length} unique non-English titles across ${documentCount} documents` +
       ` (${alreadyMachine} rows already machine-translated, left alone)`
@@ -325,7 +357,11 @@ async function translateTitles(
     let results: Awaited<ReturnType<typeof TranslationService.instance.translateMany>>;
     try {
       results = await TranslationService.instance.translateMany(
-        batch.map(([title, group]) => ({ sourceText: title, sourceLang: group.sourceLang, targetLang: 'en' })),
+        batch.map(([title, group]) => ({
+          sourceText: title,
+          sourceLang: group.sourceLang,
+          targetLang: 'en',
+        })),
         null
       );
     } catch (err) {
@@ -347,10 +383,10 @@ async function translateTitles(
       // translation that isn't there while indexing the same string twice
       // (title + titleOriginal).
       if (result.translatedText === originalTitle) continue;
-      for (const blueprintId of group.blueprintIds) {
+      for (const { blueprintId, sourceHash } of group.rows) {
         ops.push({
           updateOne: {
-            filter: { blueprintId, lang: 'en' },
+            filter: { blueprintId, lang: 'en', sourceHash },
             update: {
               $set: {
                 title: result.translatedText,
@@ -378,9 +414,9 @@ async function translateTitles(
 // an English searcher. These titles are absent from the 446 the first backfill
 // found and no amount of re-running the pass above will pick them up.
 //
-// So stop guessing and ask the provider, which is far better than tinyld on
-// short romanized text, and whose answer we already persist
-// (TranslationUnit.detectedSourceLang).
+// Gemini first identifies/restores/translates romanized Vietnamese. Only its
+// explicit not-vietnamese results continue to Google's general provider-side
+// detection; ambiguous or invalid results stay authored.
 //
 // Precision, not cost, is the constraint here (~59K characters one time,
 // against a 500K/month free tier). Three things keep a wrong answer cheap:
@@ -394,24 +430,27 @@ async function detectAmbiguousTitles(
   dryRun: boolean,
   blueprintIds: mongoose.Types.ObjectId[]
 ): Promise<number> {
-  if (!TranslationService.instance.isConfigured()) {
-    console.log('\nProvider-side detection — GOOGLE_TRANSLATE_API_KEY not set, skipping.');
-    return 0;
-  }
-
   const dictionary = getSearchTermDictionary();
 
-  const rows: { blueprintId: mongoose.Types.ObjectId; title: string; origin: string }[] = [];
+  const rows: {
+    blueprintId: mongoose.Types.ObjectId;
+    title: string;
+    origin: string;
+    sourceHash: string;
+  }[] = [];
   for (let i = 0; i < blueprintIds.length; i += BULK_BATCH_SIZE) {
     const chunk = blueprintIds.slice(i, i + BULK_BATCH_SIZE);
     const chunkRows = await BlueprintSearchModel.model
       .find({ lang: 'en', origin: 'authored', blueprintId: { $in: chunk } })
-      .select('blueprintId title origin')
+      .select('blueprintId title origin sourceHash')
       .lean();
-    rows.push(...(chunkRows as { blueprintId: mongoose.Types.ObjectId; title: string; origin: string }[]));
+    rows.push(...(chunkRows as typeof rows));
   }
 
-  const byTitle = new Map<string, mongoose.Types.ObjectId[]>();
+  const byTitle = new Map<
+    string,
+    Array<{ blueprintId: mongoose.Types.ObjectId; sourceHash: string }>
+  >();
   let skippedResolved = 0;
   let skippedDetected = 0;
   for (const row of rows) {
@@ -430,8 +469,9 @@ async function detectAmbiguousTitles(
       continue;
     }
     const group = byTitle.get(title);
-    if (group != null) group.push(row.blueprintId);
-    else byTitle.set(title, [row.blueprintId]);
+    const target = { blueprintId: row.blueprintId, sourceHash: row.sourceHash };
+    if (group != null) group.push(target);
+    else byTitle.set(title, [target]);
   }
 
   // Batched by UNIQUE title text, same reason as translateTitles: the cache
@@ -439,34 +479,55 @@ async function detectAmbiguousTitles(
   // findCached yet, so duplicates would each be billed.
   const candidates = [...byTitle.entries()];
   const documentCount = candidates.reduce((n, [, ids]) => n + ids.length, 0);
+  const sourceCharacters = candidates.reduce((n, [title]) => n + title.length, 0);
+  const geminiBatches = batchVietnameseCandidates(candidates);
+  const dryRunCaps = vietnameseTitleDryRunCaps();
   console.log(
-    `\nProvider-side detection — ${candidates.length} undetectable titles across ${documentCount} documents` +
+    `\nRomanized Vietnamese census — ${candidates.length} unique candidate titles across ${documentCount} documents` +
       ` (${skippedDetected} already detected locally, ${skippedResolved} fully resolved by the term dictionary)`
+  );
+  console.log(`  source characters: ${sourceCharacters}`);
+  console.log(
+    `  planned Gemini batches: ${geminiBatches.length} (max ${GEMINI_VI_TITLE_BATCH_SIZE} titles / ` +
+      `${GEMINI_VI_TITLE_BATCH_CHARACTERS} source characters each, concurrency 1, retries 0)`
+  );
+  console.log(
+    `  reservation: max ${dryRunCaps.inputTokens} input + ${dryRunCaps.outputTokens} output tokens/call; ` +
+      `${geminiBatches.length * dryRunCaps.inputTokens} input + ` +
+      `${geminiBatches.length * dryRunCaps.outputTokens} output tokens total; ` +
+      `${geminiBatches.length * dryRunCaps.maximumMicroUsd} micro-USD maximum`
   );
 
   if (dryRun || candidates.length === 0) return 0;
 
+  // With the gate off — its default, and the state the README has prod deploy
+  // in — every candidate comes back 'invalid' and contributes nothing to
+  // googleCandidates, so the Google detection pass this gate sits in front of
+  // would silently do nothing at all. That is a regression against the shipped
+  // behaviour, not a decision. Send the whole census straight to Google
+  // instead, and say which pass actually ran.
+  if (!isVietnameseTitleGateActive()) {
+    console.log(
+      '  Gemini romanized-Vietnamese gate inactive (kill switch, GEMINI_API_KEY, or monthly ' +
+        'allowance) — continuing every candidate to Google provider-side detection.'
+    );
+    return continueNotVietnameseWithGoogle(candidates);
+  }
+
   let done = 0;
   let accepted = 0;
   let failedBatches = 0;
-  for (let i = 0; i < candidates.length; i += TRANSLATE_BATCH_SIZE) {
-    const batch = candidates.slice(i, i + TRANSLATE_BATCH_SIZE);
-    let results: Awaited<ReturnType<typeof TranslationService.instance.translateMany>>;
+  const googleCandidates: typeof candidates = [];
+  for (let i = 0; i < geminiBatches.length; i++) {
+    const batch = geminiBatches[i];
+    let results: VietnameseTitleTranslationOutcome[];
     try {
-      results = await TranslationService.instance.translateMany(
-        batch.map(([title]) => ({
-          sourceText: title,
-          sourceLang: null,
-          targetLang: 'en',
-          // Without this the ASCII short-circuit returns every one of these
-          // titles untouched with no provider call — the pass would report
-          // success having done nothing at all.
-          forceProviderDetection: true,
-        })),
+      results = await VietnameseTitleTranslationService.instance.translateMany(
+        batch.map(([title], index) => ({ id: `vi-${i}-${index}`, text: title })),
         null
       );
     } catch (err) {
-      console.log(`  batch ${i}-${i + batch.length} detection error, skipping`);
+      console.log(`  Gemini batch ${i + 1}/${geminiBatches.length} error, skipping`);
       console.log(err);
       done += batch.length;
       failedBatches++;
@@ -477,22 +538,23 @@ async function detectAmbiguousTitles(
     for (let b = 0; b < batch.length; b++) {
       const result = results[b];
       const [title, ids] = batch[b];
-      if (result.degraded) continue;
-      const detected = normalizeContentLocale(result.sourceLang);
-      // Both conditions matter. A non-English report with unchanged text means
-      // the provider found nothing to translate; unchanged text with an English
-      // report means it was English all along. Either way the row stays
-      // authored, which is the correct, free outcome.
-      if (detected == null || detected === 'en') continue;
-      if (result.translatedText === title) continue;
+      if (result.status === 'not-vietnamese') {
+        googleCandidates.push(batch[b]);
+        continue;
+      }
+      if (result.status !== 'translated' || result.translatedText == null) continue;
 
       accepted++;
-      for (const blueprintId of ids) {
+      for (const { blueprintId, sourceHash } of ids) {
         ops.push({
           updateOne: {
-            filter: { blueprintId, lang: 'en' },
+            filter: { blueprintId, lang: 'en', sourceHash },
             update: {
-              $set: { title: result.translatedText, titleOriginal: title, origin: 'machine' },
+              $set: {
+                title: result.translatedText,
+                titleOriginal: title,
+                origin: 'machine',
+              },
             },
           },
         });
@@ -500,14 +562,100 @@ async function detectAmbiguousTitles(
     }
     if (ops.length > 0) await BlueprintSearchModel.model.bulkWrite(ops as any);
     done += batch.length;
-    console.log(`  ...${done}/${candidates.length} checked, ${accepted} translated`);
+    console.log(`  ...${done}/${candidates.length} checked by Gemini, ${accepted} translated`);
   }
 
+  failedBatches += await continueNotVietnameseWithGoogle(googleCandidates);
   console.log(
-    `  provider-side detection accepted ${accepted}/${candidates.length} titles ` +
-      `(the rest came back English or unchanged and stay authored)`
+    `  Gemini accepted ${accepted}/${candidates.length} titles; ` +
+      `${googleCandidates.length} explicit not-vietnamese result(s) continued to Google`
   );
   return failedBatches;
+}
+
+type AmbiguousCandidate = [
+  string,
+  Array<{ blueprintId: mongoose.Types.ObjectId; sourceHash: string }>,
+];
+
+export function batchVietnameseCandidates(
+  candidates: AmbiguousCandidate[]
+): AmbiguousCandidate[][] {
+  const batches: AmbiguousCandidate[][] = [];
+  let batch: AmbiguousCandidate[] = [];
+  let characters = 0;
+  for (const candidate of candidates) {
+    const nextCharacters = characters + candidate[0].length;
+    if (
+      batch.length > 0 &&
+      (batch.length >= GEMINI_VI_TITLE_BATCH_SIZE ||
+        nextCharacters > GEMINI_VI_TITLE_BATCH_CHARACTERS)
+    ) {
+      batches.push(batch);
+      batch = [];
+      characters = 0;
+    }
+    batch.push(candidate);
+    characters += candidate[0].length;
+  }
+  if (batch.length > 0) batches.push(batch);
+  return batches;
+}
+
+async function continueNotVietnameseWithGoogle(candidates: AmbiguousCandidate[]): Promise<number> {
+  if (candidates.length === 0) return 0;
+  if (!TranslationService.instance.isConfigured()) {
+    console.log('  Google continuation — GOOGLE_TRANSLATE_API_KEY not set, leaving authored.');
+    return 0;
+  }
+  let failures = 0;
+  for (let i = 0; i < candidates.length; i += TRANSLATE_BATCH_SIZE) {
+    const batch = candidates.slice(i, i + TRANSLATE_BATCH_SIZE);
+    try {
+      const results = await TranslationService.instance.translateMany(
+        batch.map(([title]) => ({
+          sourceText: title,
+          sourceLang: null,
+          targetLang: 'en',
+          forceProviderDetection: true,
+        })),
+        null
+      );
+      const ops: mongoose.AnyBulkWriteOperation[] = [];
+      for (let index = 0; index < batch.length; index++) {
+        const result = results[index];
+        const [title, rows] = batch[index];
+        const detected = normalizeContentLocale(result.sourceLang);
+        if (
+          result.degraded ||
+          detected == null ||
+          detected === 'en' ||
+          result.translatedText === title
+        )
+          continue;
+        for (const { blueprintId, sourceHash } of rows) {
+          ops.push({
+            updateOne: {
+              filter: { blueprintId, lang: 'en', sourceHash },
+              update: {
+                $set: {
+                  title: result.translatedText,
+                  titleOriginal: title,
+                  origin: 'machine',
+                },
+              },
+            },
+          });
+        }
+      }
+      if (ops.length > 0) await BlueprintSearchModel.model.bulkWrite(ops as any);
+    } catch (error) {
+      console.log(`  Google continuation batch ${i}-${i + batch.length} error, skipping`);
+      console.log(error);
+      failures++;
+    }
+  }
+  return failures;
 }
 
 if (require.main === module) {
