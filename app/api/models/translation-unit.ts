@@ -80,6 +80,12 @@ export class TranslationUnitModel {
       { timestamps: true }
     );
 
+    // Unnamed on purpose: Mongo's generated name is what
+    // migrations/20260805000000_translation-unit-modes.js creates too, so
+    // autoIndex and the migration cannot disagree about it. Pinning a
+    // friendlier name here means pinning the identical string there as well,
+    // or whichever runs second dies with "Index already exists with a
+    // different name".
     translationUnitSchema.index(
       { textHash: 1, sourceLang: 1, targetLang: 1, mode: 1 },
       { unique: true }

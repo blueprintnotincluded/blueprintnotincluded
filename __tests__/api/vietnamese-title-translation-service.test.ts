@@ -15,6 +15,7 @@ import {
   GeminiVietnameseTitleTransport,
   VietnameseTitleProvider,
   createGeminiVietnameseTitleTransport,
+  isUnrecoverableProviderError,
 } from '../../app/api/services/gemini-vietnamese-title-provider';
 import {
   GEMINI_VI_TITLE_ENDPOINT,
@@ -233,6 +234,43 @@ describe('VietnameseTitleTranslationService', function () {
   // declined it and when it is simply switched off. Callers branch on that
   // difference to decide whether the Google pass behind the gate should still
   // run, so each of the three switches must be visible from the outside.
+  // A rate limit or a bad key is trivially identifiable but not recoverable
+  // without a human. Since budget is reserved BEFORE each provider call, a
+  // caller that treats these as per-batch hiccups and moves on spends the
+  // whole monthly allowance on failures — so they must be distinguishable
+  // from an ordinary one-batch error.
+  it('marks auth and rate-limit failures as needing action, not a retry', async function () {
+    const statuses = [401, 403, 429, 500, 400];
+    const seen: Array<{ status: number; unrecoverable: boolean }> = [];
+
+    for (const status of statuses) {
+      const transport: GeminiVietnameseTitleTransport = {
+        send: async () => ({
+          status,
+          body: { error: { message: `boom ${status}` } },
+        }),
+      };
+      try {
+        await new GeminiVietnameseTitleProvider(transport, 'k').translate([
+          { id: 'a', text: 'Dien phan' },
+        ]);
+        expect.fail(`expected HTTP ${status} to throw`);
+      } catch (error) {
+        expect((error as { status?: number }).status).to.equal(status);
+        seen.push({ status, unrecoverable: isUnrecoverableProviderError(error) });
+      }
+    }
+
+    expect(seen).to.deep.equal([
+      { status: 401, unrecoverable: true },
+      { status: 403, unrecoverable: true },
+      { status: 429, unrecoverable: true },
+      // Transient: one batch is skipped, the pass continues.
+      { status: 500, unrecoverable: false },
+      { status: 400, unrecoverable: false },
+    ]);
+  });
+
   it('reports the gate inactive for each switch that stops it spending', function () {
     expect(isVietnameseTitleGateActive()).to.equal(true);
 
@@ -246,6 +284,59 @@ describe('VietnameseTitleTranslationService', function () {
 
     process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD = '0';
     expect(isVietnameseTitleGateActive()).to.equal(false);
+  });
+
+  // Regression: staging and production share ONE database, so every migration
+  // is run at least twice over the same data and the second run must be a
+  // no-op, not an error. The first failure was real — Mongoose's autoIndex had
+  // already built the widened key under its own generated name, and the
+  // migration insisted on a different one:
+  //   "Index already exists with a different name:
+  //    textHash_1_sourceLang_1_targetLang_1_mode_1"
+  it('converges whether autoIndex or the migration builds the key first', async function () {
+    // The name Mongo generates for the widened key — what the schema's
+    // unnamed index and the migration must both end up agreeing on.
+    const AUTO_INDEX_NAME = 'textHash_1_sourceLang_1_targetLang_1_mode_1';
+    const collection = mongoose.connection.db!.collection('translationunits');
+    const keyOf = async () =>
+      (await collection.indexes()).find(
+        index =>
+          JSON.stringify(index.key) ===
+          JSON.stringify({ textHash: 1, sourceLang: 1, targetLang: 1, mode: 1 })
+      );
+
+    // Stand the collection up the way a running app does: autoIndex first.
+    await collection.dropIndexes();
+    await collection.createIndex(
+      { textHash: 1, sourceLang: 1, targetLang: 1, mode: 1 },
+      { unique: true }
+    );
+
+    await translationUnitModeMigration.up(mongoose.connection.db);
+    expect((await keyOf())!.name).to.equal(AUTO_INDEX_NAME);
+
+    // A legacy hand-picked name for the same keys is adopted too, not
+    // duplicated — the state a partially-fixed database can be left in.
+    await collection.dropIndexes();
+    await collection.createIndex(
+      { textHash: 1, sourceLang: 1, targetLang: 1, mode: 1 },
+      { unique: true, name: 'translation_unit_mode_key' }
+    );
+    await translationUnitModeMigration.up(mongoose.connection.db);
+    expect((await keyOf())!.name).to.equal(AUTO_INDEX_NAME);
+
+    // The second environment's deploy, over the same database.
+    await translationUnitModeMigration.up(mongoose.connection.db);
+    const settled = await keyOf();
+    expect(settled!.name).to.equal(AUTO_INDEX_NAME);
+    expect(settled!.unique).to.equal(true);
+
+    // And down/up must survive the same double-run.
+    await translationUnitModeMigration.down(mongoose.connection.db);
+    await translationUnitModeMigration.down(mongoose.connection.db);
+    expect(await keyOf()).to.equal(undefined);
+    await translationUnitModeMigration.up(mongoose.connection.db);
+    expect((await keyOf())!.name).to.equal(AUTO_INDEX_NAME);
   });
 
   it('reproduces the reviewed A/B verdicts on the full experiment fixture', async function () {
@@ -325,14 +416,16 @@ describe('VietnameseTitleTranslationService', function () {
     await translationUnitModeMigration.up(db);
 
     expect(await collection.countDocuments({ mode: 'standard' })).to.equal(2);
+    // Located by KEY PATTERN, not by name: the key is the invariant the
+    // collection depends on, and pinning a name here is what let the name
+    // itself drift out of step with the schema's autoIndex.
     const migratedIndexes = await collection.indexes();
-    const migratedIndex = migratedIndexes.find(index => index.name === 'translation_unit_mode_key');
-    expect(migratedIndex!.key).to.deep.equal({
-      textHash: 1,
-      sourceLang: 1,
-      targetLang: 1,
-      mode: 1,
-    });
+    const migratedIndex = migratedIndexes.find(
+      index =>
+        JSON.stringify(index.key) ===
+        JSON.stringify({ textHash: 1, sourceLang: 1, targetLang: 1, mode: 1 })
+    );
+    expect(migratedIndex, 'mode-aware unique index').to.not.equal(undefined);
     expect(migratedIndex!.unique).to.equal(true);
     await collection.insertOne({
       textHash: 'legacy-human',
