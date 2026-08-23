@@ -54,6 +54,8 @@ import {
   GEMINI_VI_TITLE_BATCH_CHARACTERS,
   GEMINI_VI_TITLE_BATCH_SIZE,
 } from '../services/vietnamese-title-prompts';
+import { isUnrecoverableProviderError } from '../services/gemini-vietnamese-title-provider';
+import { TranslationBudgetExceeded } from '../services/translation-service';
 import { getSearchTermDictionary } from '../services/search-term-dictionary';
 import { normalizeContentLocale, resolveTerms, tokenize } from '../../../lib/index';
 import { parseBatchArgs, sampledCursor, describeScope } from './batch-sampling';
@@ -527,10 +529,27 @@ async function detectAmbiguousTitles(
         null
       );
     } catch (err) {
+      failedBatches++;
+      // A bad key, a revoked key, a rate limit, or an exhausted allowance is
+      // not a per-batch hiccup: every remaining batch hits it too, and each
+      // attempt reserves budget BEFORE the provider call. Continuing would
+      // spend the entire monthly allowance on failures. Stop, and say plainly
+      // that this one needs a person.
+      if (err instanceof TranslationBudgetExceeded || isUnrecoverableProviderError(err)) {
+        console.log(
+          `  Gemini pass STOPPED at batch ${i + 1}/${geminiBatches.length} — needs action, ` +
+            `not a retry: ${(err as Error).message}`
+        );
+        console.log(
+          `  ${candidates.length - done} candidate title(s) left unprocessed. Re-running after ` +
+            `the cause is fixed is safe: accepted translations are cached and already-translated ` +
+            `rows are skipped.`
+        );
+        break;
+      }
       console.log(`  Gemini batch ${i + 1}/${geminiBatches.length} error, skipping`);
       console.log(err);
       done += batch.length;
-      failedBatches++;
       continue;
     }
 
