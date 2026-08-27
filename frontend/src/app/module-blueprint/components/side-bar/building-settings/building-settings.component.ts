@@ -114,6 +114,16 @@ export class BuildingSettingsComponent {
     this.commit();
   }
 
+  // `rows` is a getter that rebuilds a fresh array of fresh objects on every
+  // change-detection cycle (which fires on every keystroke, since the
+  // (keydown.enter) binding registers a real keydown listener zone.js wakes
+  // up for). Without a stable trackBy, *ngFor's default identity diffing
+  // treats every row as removed-and-re-added on each cycle and tears down
+  // the <input> DOM nodes mid-edit, discarding whatever the user just typed.
+  trackByRow(_index: number, row: EditableSettingRow): string {
+    return `${row.key}:${row.field}`;
+  }
+
   onFieldInput(row: EditableSettingRow, rawInput: string | boolean) {
     let value: any = rawInput;
     if (row.type == "bool") {

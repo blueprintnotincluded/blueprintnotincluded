@@ -9,7 +9,10 @@
     <span class="ui-fieldset-legend-text" i18n>Building settings</span>
   </legend>
 
-  <div class="building-setting-row" *ngFor="let row of rows">
+  <div
+    class="building-setting-row"
+    *ngFor="let row of rows; trackBy: trackByRow"
+  >
     <span class="building-setting-label">{{ row.label }}</span>
 
     <span class="building-setting-control">
