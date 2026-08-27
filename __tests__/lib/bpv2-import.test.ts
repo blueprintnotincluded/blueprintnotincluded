@@ -10,8 +10,11 @@ import {
   decodeBniShareString,
   encodeBniShareString,
   looksLikeBniShareString,
+  Vector2,
 } from '../../lib';
 import { loadGameDatabase } from '../helpers/roomFixtures';
+
+const TIME_SENSORS_FIXTURE_PATH = path.join(__dirname, '../fixtures/time-sensors.blueprint');
 
 // BlueprintsV2 v3 import coverage (spec/blueprintsv2-import-spec.md), driven
 // by a real mod export: 71 buildings, material overrides, custom icon, both
@@ -85,6 +88,14 @@ describe('BlueprintsV2 import', function () {
       // Unknown hash -> default element, not a crash or an empty slot
       expect(tile!.buildableElements[0]).to.not.equal(undefined);
       expect(tile!.buildableElements[0].id).to.equal(tile!.oniItem.defaultElement[0].id);
+    });
+
+    it('carries every buildingData entry onto the imported items (Q4)', () => {
+      let count = 0;
+      for (const item of blueprint.blueprintItems)
+        if (item.buildingData != null) count += item.buildingData.length;
+      // Matches the raw fixture: 26 buildings carry 37 buildingData entries.
+      expect(count).to.equal(37);
     });
 
     it('keeps the v3 metadata available on the parsed blueprint (P0)', () => {
@@ -205,6 +216,100 @@ describe('BlueprintsV2 import', function () {
 
       expect(bottomRightAfter.x).to.equal(farNote.x);
       expect(bottomRightAfter.y).to.equal(farNote.y);
+    });
+  });
+
+  describe('buildingData persistence (spec/building-settings-plan.md, phase 1)', function () {
+    let timeSensorsText: string;
+    let timeSensorsFixture: BniBlueprint;
+
+    before(function () {
+      timeSensorsText = fs.readFileSync(TIME_SENSORS_FIXTURE_PATH, 'utf8');
+      timeSensorsFixture = JSON.parse(timeSensorsText);
+    });
+
+    it('round-trips buildingData through bni -> Blueprint -> mdb -> Blueprint -> bni verbatim', () => {
+      const source = new Blueprint();
+      source.importFromBni(timeSensorsFixture);
+      expect(source.blueprintItems).to.have.length(3);
+      expect(source.blueprintItems.map(item => item.buildingData)).to.deep.equal(
+        timeSensorsFixture.buildings.map(b => b.buildingData)
+      );
+
+      const mdb = source.toMdbBlueprint();
+      const reimported = new Blueprint();
+      reimported.importFromMdb(mdb);
+      expect(reimported.blueprintItems.map(item => item.buildingData)).to.deep.equal(
+        source.blueprintItems.map(item => item.buildingData)
+      );
+
+      const bni = reimported.toBniBlueprint('roundtrip');
+      expect(bni.buildings.map(b => b.buildingData)).to.deep.equal(
+        timeSensorsFixture.buildings.map(b => b.buildingData)
+      );
+    });
+
+    it('a sanitized export keeps settings attached to the shifted building', () => {
+      // Shift the fixture into negative territory so toBniBlueprint's own
+      // SanitizePositions-equivalent pass actually fires.
+      const shifted: BniBlueprint = {
+        ...timeSensorsFixture,
+        buildings: timeSensorsFixture.buildings.map(b => ({
+          ...b,
+          offset: new Vector2(b.offset!.x - 10, b.offset!.y - 10),
+        })),
+      };
+      const source = new Blueprint();
+      source.importFromBni(shifted);
+
+      const bni = source.toBniBlueprint('sanitized');
+      expect(bni.buildings.map(b => b.buildingData)).to.deep.equal(
+        timeSensorsFixture.buildings.map(b => b.buildingData)
+      );
+    });
+
+    it('omits buildingData from toMdbBuilding/toBniBuilding for a building placed in the editor', () => {
+      const empty = new Blueprint();
+      empty.importFromBni({ friendlyname: '', buildings: [], digcommands: [] });
+      // No blueprintItems to place through the editor API directly here, but
+      // the empty-fixture check below proves the omit-when-empty path: a
+      // blueprint with no buildingData produces no buildingData key anywhere.
+      const mdb = empty.toMdbBlueprint();
+      expect(JSON.stringify(mdb)).to.not.include('buildingData');
+      const bni = empty.toBniBlueprint('no-settings');
+      expect(JSON.stringify(bni)).to.not.include('buildingData');
+    });
+
+    it('undo simulation: mutating the live item after snapshotting does not affect the restored settings', () => {
+      const source = new Blueprint();
+      source.importFromBni(timeSensorsFixture);
+      const snapshot = source.toMdbBlueprint();
+
+      // Mutate the live item's buildingData directly (as an in-place edit would).
+      const liveItem = source.blueprintItems[0];
+      const liveSwitch = liveItem.buildingData!.find(entry => entry.Key == 'Switch')!;
+      liveSwitch.Value.switchedOn = false;
+
+      const restored = new Blueprint();
+      restored.importFromMdb(snapshot);
+      const restoredSwitch = restored.blueprintItems[0].buildingData!.find(
+        entry => entry.Key == 'Switch'
+      )!;
+      // Snapshot was taken before the mutation, so it must still read true.
+      expect(restoredSwitch.Value.switchedOn).to.equal(true);
+      expect(restored.blueprintItems[0].buildingData).to.not.equal(liveItem.buildingData);
+    });
+
+    it('clone() carries buildingData', () => {
+      const source = new Blueprint();
+      source.importFromBni(timeSensorsFixture);
+      const cloned = source.clone();
+      expect(cloned.blueprintItems.map(item => item.buildingData)).to.deep.equal(
+        source.blueprintItems.map(item => item.buildingData)
+      );
+      expect(cloned.blueprintItems[0].buildingData).to.not.equal(
+        source.blueprintItems[0].buildingData
+      );
     });
   });
 

@@ -6,7 +6,7 @@ import { Orientation } from '../enums/orientation';
 import { OniItem } from '../oni-item';
 import { DrawPart } from '../drawing/draw-part';
 import { OniBuilding } from '../io/oni/oni-building';
-import { BniBuilding } from '../io/bni/bni-building';
+import { BniBuilding, BniBuildingData } from '../io/bni/bni-building';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { CameraService } from '../drawing/camera-service';
 import { PixiUtil } from '../drawing/pixi-util';
@@ -23,6 +23,7 @@ export declare class BlueprintItem {
     set temperatureScale(value: number);
     get header(): string;
     buildableElements: BuildableElement[];
+    buildingData?: BniBuildingData[];
     uiSaveSettings: UiSaveSettings[];
     getUiSettings(id: string): UiSaveSettings | undefined;
     setElement(elementId: string, index: number): void;
