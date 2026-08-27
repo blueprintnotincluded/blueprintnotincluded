@@ -1,3 +1,42 @@
+# Session Notes - 2026-08-26/27
+
+## What We Accomplished ✅
+
+### Prod activation of the multilingual-search + Vietnamese-title-gate work
+
+The full rollout, runbook-driven (`spec/archive/rollout-vi-gate.md`, local): three local
+rehearsals against a prod restore, two blockers found and fixed before prod spent a cent,
+then migrations, promotion, backfill, and verification.
+
+- **PR #211** — the 768 Gemini output-token cap truncated 113/199 batches with MAX_TOKENS
+  (output counts completion + thought; a full 12-title batch measures ~716–800). Default
+  raised to 2048; per-call reservation is now 4,096 micro-USD.
+- **Google Cloud quotas** — three console quotas were at deliberately-tiny 1,000
+  (chars/day, chars/min/user, req/min). Quota 403s are invisibly retried inside the v2
+  client's gax layer until the app's 15s timer fires, so exhaustion logs as "Translation
+  request timed out". All raised; the app-side `MONTHLY_CHAR_BUDGET` (400k chars ≈ $8/mo)
+  is the binding cost guard.
+- **Changelog wipe** — prod's `migrations` tracking collection was found empty despite 15
+  recorded runs in the previous day's dump. Restored from the dump; both new migrations
+  validated by DB fingerprints (index keys/weights, backfilled fields), which is the
+  trustworthy check when `migrate:status` claims "all pending".
+- **Pre-guard no-op cleanup** — 645 machine rows from the 2026-08-05 backfill were
+  byte-identical to their authored titles (written before the "provider must change the
+  text" guard); flipped back to authored so the run re-considered them properly.
+- **The run** — 2,378 titles / 199 Gemini calls / 26 accepted (all correct) / 2,248
+  continued to Google / 0 failed batches / ~$0.24 observed against a $1.50 cap. Precision
+  audit: zero unchanged-title machine rows. Verified live both directions ("full
+  electrolysis" ↔ `Dien Phan Z`).
+- **Post-activation incident, fixed same day** — Google mangled short jargon titles
+  (`drecko` → "Shit", `10 dupe SPOM` → "10 ass SPOM"; 52 titles / 89 rows). Reverted and
+  cache-pinned to source text so re-derives can't re-apply them. Systemic guard is the new
+  top open item in TODO.md.
+
+PRs: #211 (token cap), #213 (CLAUDE.md), this one (agent docs). Docs archived:
+`spec/rollout-vi-gate.md` and the vi-gate `next-session-prompt.md` → `spec/archive/`.
+
+---
+
 # Session Notes - 2026-08-04
 
 ## What We Accomplished ✅

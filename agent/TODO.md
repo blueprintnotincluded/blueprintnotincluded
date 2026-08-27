@@ -1,47 +1,36 @@
 # Agent TODO - Blueprint Not Included
 
 ## Current Status
-- **Phase**: Multilingual search + content locale — search plan phases 0–5 shipped, plus
-  `spec/search-followups.md` Part 1 §1/§2 and all of Part 2 (PR #206)
-- **Date**: 2026-08-04
+- **Phase**: Multilingual search + content locale — fully shipped AND activated in prod
+  (2026-08-27): migrations, Vietnamese-title gate (PR #210 + #211), full derive-search
+  backfill, precision audit clean
+- **Date**: 2026-08-27
 - **Branch**: `master`
 - **Stack**: Node 20.19.4 · TypeScript 5.9.3 strict · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20
-- **Tests**: 1022 backend (Mocha + Chai) · 1226 frontend (Vitest, 2 skipped) — all green
+- **Tests**: 1072 backend (Mocha + Chai) · 1226 frontend (Vitest, 2 skipped) — all green
 - **Enforcement**: zero-warning flags enabled backend, lib, and frontend (`strict` + `strictTemplates`); CI improvements all complete (mongo:8.0.23 + mongosh health check)
 
-## ⚠️ Blocking: activate the content-locale work in prod
+## Prod activation — DONE 2026-08-27
 
-PR #206 is merged but **inert until two commands run, in this order**:
-
-```bash
-cd /bpni/build
-npm run migrate:up        # 20260804000000_search-title-original — rebuilds the text index
-npm run derive-search     # backfills titleOriginal + runs provider-side detection
-```
-
-Take a DB backup first (DO dashboard → Backups → Create backup now), per the migration
-runbook. `derive-search` is rerunnable; do a `derive-search:dry-run` first to see the
-candidate counts. The detection pass spends real money against `GOOGLE_TRANSLATE_API_KEY`
-(one-time, ~59K characters, inside the 500K/month free tier) — re-runs are cache reads.
-
-Until this runs: no row has a `titleOriginal` (so a machine-translated blueprint is still
-unfindable by its authored title), and romanized non-English titles are still untranslated.
+Migrations applied (validated by DB fingerprints — the `migrations` changelog collection was
+found inexplicably empty and had to be restored from a dump; if `migrate:status` ever shows
+"all pending" again, check the collection before believing it). Gate enabled, full backfill
+run: 2,378 titles / 199 Gemini calls / 26 accepted / 0 failed batches / ~$0.24 observed.
+Precision audit (`search-followups.md` Part 1 §5): zero unchanged-title machine rows.
+Verified live in both query directions. Rollout trail: `spec/archive/rollout-vi-gate.md`
+(local).
 
 ## Multilingual search — what's left
 
 Full detail in `spec/multilingual-search-plan.md` §4.5 and `spec/search-followups.md`.
 
-- **Retrieval never reads the non-English rows** (followups Part 1 §4). Phase 5 accretes
-  rows in the reader's language, but `lexicalRetrieval`/`structuralRetrieval` still
-  hard-code `lang: 'en'`. They cost nothing and buy nothing until a viewer-language signal
-  is threaded in — which `?lang=` now supplies for the first time, so this is unblocked.
-- **`changed: false` precision audit** (followups Part 1 §5). Cheap aggregate; measures
-  whether `confidentTitleLang` over-fires. Worth running against prod **after** the
-  activation above, since the new detection pass adds to the population.
-- **Native-language search rows** (followups §2.9). Now that `sourceLang` can be declared,
-  writing a row with `lang: sourceLang` holding the authored text verbatim is free — no API
-  call. It overlaps `titleOriginal`; design them together or there will be two mechanisms
-  for one job.
+- **Guard game jargon from the Google translation passes** — found in prod 2026-08-27:
+  Google confidently mistranslates short all-jargon titles it misreads as another language
+  (`drecko` → "Shit", `10 dupe SPOM` → "10 ass SPOM", SPOM → "memory", pacu → "race"; 89
+  rows reverted and cache-pinned). The term-dictionary fully-resolved filter only guards the
+  Gemini census — extend it to the Google continuation and phase-3b passes, and consider
+  adding `drecko`/`pacu`/`dupe`/`puft` to `assets/search-aliases.json`. **Do before any full
+  re-derive** — the cache pins protect the 52 known titles, not the class.
 - **Sticky "always show original titles"** (followups §2.12) — does an English reader ever
   want the authored title instead? Product question, not mechanical.
 - **Phase 6 — semantic retrieval**, only if `searchqueries` telemetry justifies it. It held
