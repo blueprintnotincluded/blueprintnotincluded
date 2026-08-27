@@ -1,11 +1,14 @@
-import { describe, it } from 'mocha';
+import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import {
+  Blueprint,
+  BlueprintHelpers,
   BniBuildingData,
   formatBuildingDataEntry,
   isKnownSettingsKey,
   SETTINGS_CATALOG,
 } from '../../lib/index';
+import { loadGameDatabase } from '../helpers/roomFixtures';
 
 // Catalogue + formatter unit coverage (spec/building-settings-plan.md phase 2).
 // Pure, no game database needed.
@@ -126,5 +129,158 @@ describe('formatBuildingDataEntry', function () {
       Value: { maxCount: 3 },
     })!;
     expect(rows).to.deep.equal([{ field: 'maxCount', label: 'Target count', text: '3' }]);
+  });
+});
+
+// Write path (spec/building-settings-plan.md phase 3 step 1). Needs the real
+// game database so BlueprintHelpers.createInstance can build real items.
+describe('BlueprintItem.setBuildingSetting / addBuildingSetting', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  it('replaces one field on an already-present Key, keeping every other field verbatim', () => {
+    const item = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    item.buildingData = [
+      { Key: 'Switch', Value: { switchedOn: true } },
+      {
+        Key: 'LogicTimerSensor',
+        Value: {
+          onDuration: 5.0,
+          offDuration: 5.0,
+          timeElapsedInCurrentState: 3.099925,
+          displayCyclesMode: false,
+        },
+      },
+    ];
+
+    item.setBuildingSetting('LogicTimerSensor', 'onDuration', 42);
+
+    const entry = item.buildingData.find(e => e.Key == 'LogicTimerSensor')!;
+    expect(entry.Value).to.deep.equal({
+      onDuration: 42,
+      offDuration: 5.0,
+      timeElapsedInCurrentState: 3.099925,
+      displayCyclesMode: false,
+    });
+    // Untouched sibling Key survives.
+    expect(item.buildingData.find(e => e.Key == 'Switch')!.Value).to.deep.equal({
+      switchedOn: true,
+    });
+  });
+
+  it('creates a complete Value object from catalogue defaults when the Key is absent', () => {
+    const item = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    expect(item.buildingData).to.equal(undefined);
+
+    item.setBuildingSetting('LogicTimerSensor', 'onDuration', 42);
+
+    expect(item.buildingData).to.have.length(1);
+    expect(item.buildingData![0]).to.deep.equal({
+      Key: 'LogicTimerSensor',
+      Value: {
+        onDuration: 42,
+        offDuration: 10,
+        timeElapsedInCurrentState: 0,
+        displayCyclesMode: false,
+      },
+    });
+  });
+
+  it('addBuildingSetting creates every default field without an explicit edit', () => {
+    const item = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    const created = item.addBuildingSetting('LogicTimerSensor');
+
+    expect(created).to.equal(true);
+    expect(item.buildingData![0].Value).to.deep.equal({
+      onDuration: 10,
+      offDuration: 10,
+      timeElapsedInCurrentState: 0,
+      displayCyclesMode: false,
+    });
+  });
+
+  it('addBuildingSetting is a no-op (still true) when the Key is already present', () => {
+    const item = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    item.buildingData = [{ Key: 'LogicTimerSensor', Value: { onDuration: 99 } }];
+
+    expect(item.addBuildingSetting('LogicTimerSensor')).to.equal(true);
+    // Existing entry is untouched, not replaced with defaults.
+    expect(item.buildingData).to.have.length(1);
+    expect(item.buildingData[0].Value).to.deep.equal({ onDuration: 99 });
+  });
+
+  it('rejects creating a Key with no verified defaults on this building', () => {
+    // LogicCounter's resetCountAtMax/advancedMode defaults are not verified
+    // (settings-catalog.ts), so it must not be creatable from scratch.
+    const item = BlueprintHelpers.createInstance('LogicCounter')!;
+    expect(item.addBuildingSetting('LogicCounter')).to.equal(false);
+    expect(() => item.setBuildingSetting('LogicCounter', 'maxCount', 5)).to.throw(
+      /is not present.*no creatable defaults/
+    );
+  });
+
+  it('rejects creating a Key on a building where it is not the hand-checked creatable one', () => {
+    // LogicTimerSensor's own Key is creatable on that building, but a Key
+    // that has no defaults entry at all for this prefab must still reject.
+    const item = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    expect(() => item.setBuildingSetting('LogicCounter', 'maxCount', 5)).to.throw();
+  });
+
+  it('does not share the created Value object with the catalogue defaults or another item', () => {
+    const itemA = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    const itemB = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    itemA.addBuildingSetting('LogicTimerSensor');
+    itemB.addBuildingSetting('LogicTimerSensor');
+
+    itemA.setBuildingSetting('LogicTimerSensor', 'onDuration', 1);
+    itemB.setBuildingSetting('LogicTimerSensor', 'onDuration', 2);
+
+    expect(itemA.buildingData![0].Value.onDuration).to.equal(1);
+    expect(itemB.buildingData![0].Value.onDuration).to.equal(2);
+
+    // A third creation still gets the pristine default, proving the module
+    // constant itself was never mutated by the two edits above.
+    const itemC = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    itemC.addBuildingSetting('LogicTimerSensor');
+    expect(itemC.buildingData![0].Value.onDuration).to.equal(10);
+  });
+
+  it('full loop: editing a duration reaches toBniBlueprint as a complete LogicTimerSensor object', () => {
+    const blueprint = new Blueprint();
+    blueprint.importFromBni({
+      friendlyname: '',
+      buildings: [
+        {
+          offset: { x: 1, y: 1 },
+          buildingdef: 'LogicTimerSensor',
+          selected_elements: [-1725038055],
+          buildingData: [
+            { Key: 'Switch', Value: { switchedOn: true } },
+            {
+              Key: 'LogicTimerSensor',
+              Value: {
+                onDuration: 5.0,
+                offDuration: 5.0,
+                timeElapsedInCurrentState: 3.099925,
+                displayCyclesMode: false,
+              },
+            },
+          ],
+        },
+      ],
+      digcommands: [],
+    } as any);
+
+    blueprint.blueprintItems[0].setBuildingSetting('LogicTimerSensor', 'onDuration', 30);
+
+    const bni = blueprint.toBniBlueprint('edited');
+    const timerEntry = bni.buildings[0].buildingData!.find(e => e.Key == 'LogicTimerSensor')!;
+    expect(timerEntry.Value).to.deep.equal({
+      onDuration: 30,
+      offDuration: 5.0,
+      timeElapsedInCurrentState: 3.099925,
+      displayCyclesMode: false,
+    });
   });
 });

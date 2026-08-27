@@ -8,6 +8,7 @@ import { OniItem } from '../oni-item';
 import { DrawPart } from '../drawing/draw-part';
 import { OniBuilding } from '../io/oni/oni-building';
 import { BniBuilding, BniBuildingData } from '../io/bni/bni-building';
+import { getCreatableSettingDefaults } from './building-settings/settings-catalog';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { SpriteTag } from '../enums/sprite-tag';
 import { CameraService } from '../drawing/camera-service';
@@ -58,6 +59,37 @@ export class BlueprintItem {
   // undefined/empty for buildings placed in the editor (the mod applies its
   // own defaults on load), preserved verbatim for anything read from a file.
   public buildingData?: BniBuildingData[];
+
+  // Creates a Key from scratch using its hand-checked catalogue defaults
+  // (settings-catalog.ts CREATABLE_SETTINGS). No-op if the Key is already
+  // present. Returns whether an entry now exists (already-present counts).
+  public addBuildingSetting(key: string): boolean {
+    if (this.buildingData?.some(entry => entry.Key == key)) return true;
+
+    const defaults = getCreatableSettingDefaults(this.id, key);
+    if (defaults == null) return false;
+
+    if (this.buildingData == null) this.buildingData = [];
+    this.buildingData.push({ Key: key, Value: structuredClone(defaults) });
+    return true;
+  }
+
+  // Sets one field of one buildingData Key, matching the mod's own edit
+  // contract: every other field of that Key's Value object is left verbatim
+  // (TryApplyData requires the whole object present, and most components
+  // bail on the whole thing if even one expected field is missing — spec
+  // §3). Throws if the Key is absent and not creatable from scratch on this
+  // building; the editor UI must only offer fields it has already gated
+  // through addBuildingSetting/creatableSettingsKeysFor.
+  public setBuildingSetting(key: string, field: string, value: any) {
+    if (!this.buildingData?.some(entry => entry.Key == key) && !this.addBuildingSetting(key))
+      throw new Error(
+        `BlueprintItem.setBuildingSetting: '${key}' is not present on '${this.id}' and has no creatable defaults`
+      );
+
+    const entry = this.buildingData!.find(entry => entry.Key == key)!;
+    entry.Value[field] = value;
+  }
 
   public uiSaveSettings: UiSaveSettings[] = [];
   public getUiSettings(id: string): UiSaveSettings | undefined {

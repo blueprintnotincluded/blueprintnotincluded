@@ -1,12 +1,38 @@
 .building-setting-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 8px;
   padding: 2px 0;
 }
 
 .building-setting-label {
   color: var(--p-text-muted-color);
+}
+
+.building-setting-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.building-setting-number {
+  width: 70px;
+}
+
+.building-setting-text {
+  width: 140px;
+}
+
+.building-setting-unit,
+.building-setting-hint {
+  color: var(--p-text-muted-color);
+  font-size: smaller;
+}
+
+.building-setting-add {
+  width: 100%;
+  margin-top: 6px;
 }
 
 .building-setting-other {
