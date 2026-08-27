@@ -44,6 +44,12 @@
     [blueprintItem]="itemCollection.items[0]"
   >
   </app-ui-screen-container>
+
+  <app-building-settings
+    *ngIf="itemCollection.items.length === 1"
+    [blueprintItem]="itemCollection.items[0]"
+  >
+  </app-building-settings>
 </div>
 
 <div *ngIf="showPipeContent">

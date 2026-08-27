@@ -72,6 +72,7 @@ import { BuildableElementPickerComponent } from "./components/side-bar/buildable
 import { ElementReport } from "./common/tools/element-report";
 import { ElementReportToolComponent } from "./components/side-bar/element-report-tool/element-report-tool.component";
 import { UiScreenContainerComponent } from "./components/side-bar/ui-screens/ui-screen-container/ui-screen-container.component";
+import { BuildingSettingsComponent } from "./components/side-bar/building-settings/building-settings.component";
 import { SingleSliderScreenComponent } from "./components/side-bar/ui-screens/single-slider-screen/single-slider-screen.component";
 import { ThresholdSwhitchScreenComponent } from "./components/side-bar/ui-screens/threshold-switch-screen/threshold-switch-screen.component";
 import { ActiveRangeScreenComponent } from "./components/side-bar/ui-screens/active-range-screen/active-range-screen.component";
@@ -140,6 +141,7 @@ import { TerrainToolComponent } from "./components/side-bar/terrain-tool/terrain
     BuildableElementPickerComponent,
     ElementReportToolComponent,
     UiScreenContainerComponent,
+    BuildingSettingsComponent,
     SingleSliderScreenComponent,
     ThresholdSwhitchScreenComponent,
     ActiveRangeScreenComponent,
