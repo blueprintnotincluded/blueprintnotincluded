@@ -215,12 +215,12 @@ describe('VietnameseTitleTranslationService', function () {
       expect((error as Error).message).to.equal('provider failed');
     }
     const row = await TranslationBudgetModel.model.findOne({ userId: null });
-    expect(row!.geminiReservedMicroUsd).to.equal(2176);
+    expect(row!.geminiReservedMicroUsd).to.equal(4096);
     expect(row!.geminiObservedMicroUsd).to.equal(0);
   });
 
   it('atomically rejects concurrent reservations above the monthly cap', async function () {
-    process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD = '2176';
+    process.env.GEMINI_VI_TITLE_MONTHLY_BUDGET_MICRO_USD = '4096';
     fake.delayMs = 20;
     const results = await Promise.allSettled([
       service.translateOne('Dien phan', null),
@@ -380,7 +380,7 @@ describe('VietnameseTitleTranslationService', function () {
     process.env.GEMINI_VI_TITLE_MAX_INPUT_TOKENS = '999999';
     process.env.GEMINI_VI_TITLE_MAX_OUTPUT_TOKENS = 'not-a-number';
 
-    expect(vietnameseTitleDryRunCaps()).to.include({ inputTokens: 4096, outputTokens: 768 });
+    expect(vietnameseTitleDryRunCaps()).to.include({ inputTokens: 4096, outputTokens: 2048 });
 
     const result = await service.translateOne('Dien phan', null);
     expect(result.status).to.equal('translated');
@@ -531,7 +531,7 @@ describe('GeminiVietnameseTitleProvider', function () {
     expect(body.generationConfig).to.include({
       temperature: 0,
       candidateCount: 1,
-      maxOutputTokens: 768,
+      maxOutputTokens: 2048,
       responseMimeType: 'application/json',
     });
     expect(body.generationConfig.thinkingConfig).to.deep.equal({ thinkingLevel: 'minimal' });
