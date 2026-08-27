@@ -1,0 +1,17 @@
+.building-setting-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.building-setting-label {
+  color: var(--p-text-muted-color);
+}
+
+.building-setting-other {
+  margin-top: 6px;
+  font-size: smaller;
+  color: var(--p-text-muted-color);
+  cursor: default;
+}

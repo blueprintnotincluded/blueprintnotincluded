@@ -1,0 +1,29 @@
+<fieldset
+  *ngIf="hasSettings"
+  legend="Settings"
+  class="ui-fieldset ui-widget ui-widget-content ui-corner-all"
+>
+  <legend
+    class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text"
+  >
+    <span class="ui-fieldset-legend-text" i18n>Building settings</span>
+  </legend>
+
+  <div class="building-setting-row" *ngFor="let row of rows">
+    <span class="building-setting-label">{{ row.label }}</span>
+    <span class="building-setting-value">{{ row.text }}</span>
+  </div>
+
+  <div
+    *ngIf="otherKeys.length > 0"
+    class="building-setting-other"
+    [pTooltip]="otherKeysTooltip"
+    tooltipEvent="both"
+  >
+    {{ otherKeys.length }} other stored setting<span
+      *ngIf="otherKeys.length !== 1"
+      >s</span
+    >
+    (preserved)
+  </div>
+</fieldset>
