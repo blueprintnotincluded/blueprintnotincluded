@@ -234,4 +234,48 @@ describe("BuildingSettingsComponent", () => {
       fixture.nativeElement.querySelector(".building-setting-add"),
     ).toBeNull();
   });
+
+  it("renders no editable row for a null Value, without crashing (CodeRabbit #212)", () => {
+    // A hand-edited file or a mod version we don't know about could leave a
+    // known Key with a null/malformed Value. rows() must skip it rather than
+    // render a blank editable control backed by nothing.
+    setItem("SomeBuilding", [{ Key: "Switch", Value: null as any }]);
+
+    expect(() => fixture.detectChanges()).not.toThrow();
+    expect(fixture.nativeElement.querySelector("fieldset")).toBeNull();
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+  });
+
+  it("caps a string field at the catalogue's max length, in the template and the handler", () => {
+    setItem("LogicAlarm", [
+      {
+        Key: "LogicAlarm",
+        Value: {
+          notificationName: "short",
+          notificationTooltip: "t",
+          notificationType: 0,
+          pauseOnNotify: false,
+          zoomOnNotify: false,
+          cooldown: 1,
+        },
+      },
+    ]);
+
+    const nameInput = fixture.nativeElement.querySelector(
+      "input[type=text]",
+    ) as HTMLInputElement;
+    // notificationName's catalogue max is 200.
+    expect(nameInput.maxLength).toBe(200);
+
+    // A programmatic value (e.g. a paste) can still exceed maxlength; the
+    // handler must clamp it before it reaches setBuildingSetting.
+    nameInput.value = "x".repeat(250);
+    nameInput.dispatchEvent(new Event("blur"));
+
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "LogicAlarm",
+      "notificationName",
+      "x".repeat(200),
+    );
+  });
 });

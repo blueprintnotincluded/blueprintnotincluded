@@ -52,6 +52,7 @@
         type="text"
         class="building-setting-text"
         [value]="row.displayValue"
+        [attr.maxlength]="row.displayMax"
         (blur)="onFieldInput(row, textInput.value)"
         (keydown.enter)="onFieldInput(row, textInput.value); textInput.blur()"
       />
