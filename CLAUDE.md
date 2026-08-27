@@ -684,6 +684,70 @@ content — users no longer set these manually. `multiplayerSafe` has been remov
   runs** — no document written before the field existed has a set at all (prod: `cd /bpni/build
 && npm run derive-metadata`, dry-run first).
 
+### Building settings (buildingData)
+
+`spec/building-settings-plan.md`. A blueprint's per-component settings — timer durations,
+switch state, logic gate delays, threshold values, ... — written by the BlueprintsV2 mod as
+`buildings[].buildingData: {Key, Value}[]` (`Key` is the ONI component class name). Previously
+dropped on import and never written back; now round-trips, displays, and (for a curated set)
+edits.
+
+- **Round-trip** — `BlueprintItem.buildingData?: BniBuildingData[]` and the matching
+  `MdbBuilding.buildingData` field carry the array end-to-end (import/export/clone/undo),
+  deep-copied at every model boundary via `structuredClone` so undo snapshots never alias the
+  live item. `MdbBuilding` omits the field when empty, so every pre-existing stored
+  blueprint's MDB fingerprint (and therefore `rawSource` freshness) is unaffected — same
+  reasoning as `worldNotes`. `bpv2-sanitize.ts`'s position shift mutates building objects in
+  place and never touches `buildingData`, so a sanitized export keeps settings attached for
+  free.
+- **Catalogue** — `lib/src/blueprint/building-settings/settings-catalog.ts` is a curated,
+  hand-authored table (`SETTINGS_CATALOG`) of the automation-relevant keys (`Switch`,
+  `LogicTimerSensor`, `LogicTimeOfDaySensor`, `LogicCounter`, `LogicGateBuffer`/`Filter`,
+  `LogicRibbonReader`/`Writer`, `LogicCritterCountSensor`, `LogicAlarm`, `IThresholdSwitch`,
+  `IActivationRangeTarget`, `BuildingEnabledButton`, `Automatable`) with per-field type/unit/
+  bounds — cross-checked against the mod's real `DataTransferHelpers.cs`/`API_Methods.cs`
+  source (available locally as an additional working directory), not just the import spec's
+  summary table. Every other key (`Door`, `Valve`, filters, `AccessControl`, `PixelPack`,
+  skins, ...) is preserved opaquely and never rendered as anything but a count.
+  `format-setting.ts` formats known fields for display (durations show seconds plus a cycle
+  count once ≥600s; `LogicTimeOfDaySensor` fractions show as % of cycle, matching the game's
+  own side screen).
+- **Display + edit** — `BuildingSettingsComponent`
+  (`frontend/.../side-bar/building-settings/`), mounted in `item-collection-info` next to the
+  dormant `app-ui-screen-container` (the old website's own settings model, `uiScreens`/
+  `uiSaveSettings` — untouched, has no data source since the 2024 export ships empty
+  `uiScreens` for every building). Renders one row per known field (checkbox/number/text
+  input), a count line for unrecognized keys ("N other stored settings (preserved)", raw
+  `Key` names only in the tooltip — never dumped as JSON), and an "Add automation settings"
+  button when the selected building can create a currently-absent key from scratch.
+  `BlueprintItem.setBuildingSetting(key, field, value)` replaces one field on an
+  already-present key, keeping every other field verbatim — required because the mod's
+  `TryApplyData` bails on the **whole** Value object if even one expected field is missing
+  (confirmed against real mod source; the one exception found is `LogicAlarm`, which applies
+  each field independently). `addBuildingSetting(key)` constructs a complete Value object from
+  scratch using hand-verified defaults.
+- **Creatable-from-scratch is deliberately narrow** — `CREATABLE_SETTINGS` in
+  `settings-catalog.ts` currently has only `LogicTimerSensor` (`onDuration`/`offDuration`:
+  10s each; `timeElapsedInCurrentState`: 0, definitionally correct for a fresh component;
+  `displayCyclesMode`: false, a display-only toggle with no simulation effect even if wrong).
+  Every other key, including `LogicCounter` (whose `resetCountAtMax`/`advancedMode` real
+  defaults aren't confirmed), stays edit-only-when-the-file-already-has-it: synthesizing an
+  incomplete or wrong default for a gameplay-affecting field would silently change build
+  behaviour on export. Extend the list only once a key's real in-game defaults are verified.
+- **Edits commit on blur/Enter/change** (one undo step per completed edit, not per keystroke),
+  matching the world-notes editor pattern — `blueprintService.blueprint.emitBlueprintChanged()`.
+  Editing a setting invalidates `rawSource` through the same fingerprint comparison phase 1's
+  round-trip already wired into `toMdbBuilding` — no new invalidation code needed (see
+  `spec/blueprintsv2-followups.md` task 5, "editor UX gap").
+  **Gotcha**: a `*ngFor` over a getter-backed array with no `trackBy` breaks live typing —
+  `rows` rebuilds fresh objects on every change-detection cycle (which fires on every
+  keystroke because the `(keydown.enter)` binding registers a real `keydown` listener), and
+  without `trackBy` Angular's default identity diffing tears down and rebuilds the `<input>`
+  DOM nodes mid-edit, discarding whatever was just typed. Fixed with
+  `trackBy: trackByRow` keyed on `Key:field`; a regression spec (re-queries the DOM after a
+  simulated mid-edit change-detection tick rather than reusing a captured node reference)
+  fails without the fix and passes with it.
+
 ### Session Management Files
 
 Check these files in `agent/` directory for current status:
