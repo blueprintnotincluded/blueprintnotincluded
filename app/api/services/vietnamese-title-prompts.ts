@@ -6,7 +6,12 @@ export const GEMINI_VI_TITLE_TIMEOUT_MS = 15_000;
 export const GEMINI_VI_TITLE_BATCH_SIZE = 12;
 export const GEMINI_VI_TITLE_BATCH_CHARACTERS = 720;
 export const GEMINI_VI_TITLE_DEFAULT_MAX_INPUT_TOKENS = 4096;
-export const GEMINI_VI_TITLE_DEFAULT_MAX_OUTPUT_TOKENS = 768;
+// Output usage counts completion + thought tokens (validateUsage). Measured on
+// the 2026-08-26 prod-restore rehearsal: a full 12-title batch spends 716-740
+// output tokens even at thinkingLevel minimal, so the previous 768 cap
+// truncated 113 of 199 batches with MAX_TOKENS. 2048 leaves ~3x headroom; the
+// env override (boundedPositiveInt) can only lower this, never raise it.
+export const GEMINI_VI_TITLE_DEFAULT_MAX_OUTPUT_TOKENS = 2048;
 
 export type VietnameseTitleStatus = 'translated' | 'ambiguous' | 'not-vietnamese';
 
