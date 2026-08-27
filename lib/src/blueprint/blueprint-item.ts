@@ -88,6 +88,11 @@ export class BlueprintItem {
       );
 
     const entry = this.buildingData!.find(entry => entry.Key == key)!;
+    // A pre-existing entry can have a null/malformed Value (hand-edited file,
+    // a mod version we don't know about) — repair rather than crash on the
+    // write. The editor UI itself never offers a field for that case (see
+    // BuildingSettingsComponent.rows), so this only guards a direct caller.
+    if (entry.Value == null || typeof entry.Value !== 'object') entry.Value = {};
     entry.Value[field] = value;
   }
 

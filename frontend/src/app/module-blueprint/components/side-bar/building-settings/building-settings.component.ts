@@ -61,10 +61,18 @@ export class BuildingSettingsComponent {
       const descriptors = SETTINGS_CATALOG[entry.Key];
       if (descriptors == null) continue;
 
+      const value = entry.Value;
+      if (value == null || typeof value !== "object") continue;
+
       for (const descriptor of descriptors) {
         if (descriptor.hidden) continue;
+        // Mirrors formatBuildingDataEntry: a missing field means this entry
+        // is incomplete/malformed (or from a newer mod version) — skip it
+        // rather than rendering an editable row backed by nothing, which
+        // would crash setBuildingSetting the moment the user touched it.
+        if (!(descriptor.field in value)) continue;
         const scale = displayScale(descriptor.unit);
-        const raw = entry.Value?.[descriptor.field];
+        const raw = value[descriptor.field];
         rows.push({
           key: entry.Key,
           field: descriptor.field,
@@ -137,6 +145,10 @@ export class BuildingSettingsComponent {
       if (row.type == "int") value = Math.round(value);
     } else if (row.type == "string") {
       value = String(rawInput);
+      // The template's [attr.maxlength] stops interactive typing, but not a
+      // paste or a value set programmatically, so enforce the catalogue
+      // bound here too before it reaches storage/export.
+      if (row.displayMax != null) value = value.slice(0, row.displayMax);
     }
 
     this.blueprintItem.setBuildingSetting(row.key, row.field, value);

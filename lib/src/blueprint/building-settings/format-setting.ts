@@ -12,7 +12,11 @@ export interface FormattedSettingRow {
 // Trims a fixed-decimal string down to its meaningful digits: 5.00 -> "5",
 // 5.10 -> "5.1". toFixed alone would print every trailing zero.
 function formatNumber(value: number, decimals: number): string {
-  return value.toFixed(decimals).replace(/\.?0+$/, '') || '0';
+  const text = value.toFixed(decimals);
+  // decimals === 0 never produces a decimal point, so every trailing zero is
+  // a real digit (10 -> "10", not "1") — only trim when there's a fractional
+  // part to strip.
+  return decimals === 0 ? text : text.replace(/\.?0+$/, '') || '0';
 }
 
 function formatDuration(seconds: number, displayCyclesMode: boolean | undefined): string {

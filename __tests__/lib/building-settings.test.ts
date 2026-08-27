@@ -130,6 +130,40 @@ describe('formatBuildingDataEntry', function () {
     })!;
     expect(rows).to.deep.equal([{ field: 'maxCount', label: 'Target count', text: '3' }]);
   });
+
+  it('does not eat a real trailing zero on a whole-number int field (CodeRabbit #212)', () => {
+    // formatNumber(10, 0) previously stripped the trailing zero as if it were
+    // decimal-formatting noise, displaying "1" for a target count of 10.
+    const rows = formatBuildingDataEntry({
+      Key: 'LogicCounter',
+      Value: { maxCount: 10 },
+    })!;
+    expect(rows).to.deep.equal([{ field: 'maxCount', label: 'Target count', text: '10' }]);
+  });
+
+  it('does not eat trailing zeroes on other whole-number int fields (100, 20)', () => {
+    const rows100 = formatBuildingDataEntry({
+      Key: 'LogicCritterCountSensor',
+      Value: {
+        countThreshold: 100,
+        activateOnGreaterThan: true,
+        countCritters: true,
+        countEggs: false,
+      },
+    })!;
+    expect(rows100.find(r => r.field == 'countThreshold')!.text).to.equal('100');
+
+    const rows20 = formatBuildingDataEntry({
+      Key: 'LogicCritterCountSensor',
+      Value: {
+        countThreshold: 20,
+        activateOnGreaterThan: true,
+        countCritters: true,
+        countEggs: false,
+      },
+    })!;
+    expect(rows20.find(r => r.field == 'countThreshold')!.text).to.equal('20');
+  });
 });
 
 // Write path (spec/building-settings-plan.md phase 3 step 1). Needs the real
@@ -225,6 +259,14 @@ describe('BlueprintItem.setBuildingSetting / addBuildingSetting', function () {
     // that has no defaults entry at all for this prefab must still reject.
     const item = BlueprintHelpers.createInstance('LogicTimerSensor')!;
     expect(() => item.setBuildingSetting('LogicCounter', 'maxCount', 5)).to.throw();
+  });
+
+  it('repairs a null/malformed Value on an already-present Key instead of crashing (CodeRabbit #212)', () => {
+    const item = BlueprintHelpers.createInstance('LogicTimerSensor')!;
+    item.buildingData = [{ Key: 'Switch', Value: null as any }];
+
+    expect(() => item.setBuildingSetting('Switch', 'switchedOn', true)).to.not.throw();
+    expect(item.buildingData[0].Value).to.deep.equal({ switchedOn: true });
   });
 
   it('does not share the created Value object with the catalogue defaults or another item', () => {
