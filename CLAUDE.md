@@ -192,23 +192,28 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Phase**: multilingual search + content locale plan is **fully shipped** (search plan
   phases 0–5, `spec/search-followups.md` Part 1 §1/§2/§4 and all of Part 2 including native-
   language rows). Retrieval now reads a viewer's content locale (`?lang=`) alongside the `en`
-  pivot; open decision #1 in the search plan is resolved. Only the Part 1 §5 precision audit
-  remains, and only because it's blocked on the prod activation below. Remaining plan items
+  pivot; open decision #1 in the search plan is resolved. The Part 1 §5 precision audit ran
+  clean against prod on 2026-08-27 (zero unchanged-title machine rows). Remaining plan items
   (IDF weighting, `.po` acquisition, near-duplicate clustering, phase 6 semantic retrieval) are
   each either explicitly deferred with a stated trigger or decided against — see
   `spec/multilingual-search-plan.md` §8. Asset pipeline is still OniExtract2024 flat-icon
   rendering.
-- **Date**: 2026-08-04
+- **Date**: 2026-08-27
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
 - **Tests**: ✅ Backend 1033 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
   load locally and pass on a clean run) · Frontend 1226 passing (Vitest/jsdom)
-- **⚠️ Pending prod activation — blocking**: `npm run migrate:up` then `npm run derive-search`
-  (in that order — see "Search (blueprintsearch)"). Until both run, no row has a
-  `titleOriginal`, romanized non-English titles are still untranslated, and the Part 1 §5
-  precision audit (search-followups.md) has nothing to measure. Run `derive-search:dry-run`
-  first and report the candidate counts before spending — see search-followups.md's "Prod
-  activation" note for exact commands and expected output.
+- **Prod activation: DONE 2026-08-27** — both migrations applied, the Vietnamese-title gate
+  enabled (`GEMINI_VI_TITLE_TRANSLATION_ENABLED=true`, monthly cap 1,500,000 micro-USD), and
+  the full `derive-search` backfill run against prod: 2,378 titles checked by Gemini in 199
+  calls, 26 accepted, 2,248 continued to Google, 0 failed batches, observed spend ~$0.24.
+  Verified live in both directions (English query finds romanized-Vietnamese titles and vice
+  versa). Two ops facts worth keeping: the prod console has node but no mongosh (DB scripts
+  are `node` heredocs over `process.env.DB_URI`), and the `migrations` changelog collection
+  was once found inexplicably empty — validate migrations by their DB fingerprints (index
+  keys/weights, backfilled fields), not by `migrate:status` alone. Google Cloud quotas on the
+  translate key were raised from deliberately-tiny values; the app-side `MONTHLY_CHAR_BUDGET`
+  (400k chars/month) is the binding cost guard.
 - **Build**: ✅ `npm run tsc` clean · `npm run build` clean
 - **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
 
