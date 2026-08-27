@@ -12,4 +12,7 @@ export interface SettingFieldDescriptor {
 }
 export declare const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]>;
 export declare function isKnownSettingsKey(key: string): boolean;
+export declare const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, any>>>;
+export declare function creatableSettingsKeysFor(prefabId: string): string[];
+export declare function getCreatableSettingDefaults(prefabId: string, key: string): Record<string, any> | undefined;
 //# sourceMappingURL=settings-catalog.d.ts.map

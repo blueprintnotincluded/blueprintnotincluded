@@ -11,8 +11,60 @@
 
   <div class="building-setting-row" *ngFor="let row of rows">
     <span class="building-setting-label">{{ row.label }}</span>
-    <span class="building-setting-value">{{ row.text }}</span>
+
+    <span class="building-setting-control">
+      <input
+        *ngIf="row.type === 'bool'"
+        type="checkbox"
+        [checked]="row.displayValue"
+        (change)="onFieldInput(row, $any($event.target).checked)"
+      />
+
+      <ng-container *ngIf="row.type === 'int' || row.type === 'float'">
+        <input
+          #numInput
+          type="number"
+          class="building-setting-number"
+          [value]="row.displayValue"
+          [attr.min]="row.displayMin"
+          [attr.max]="row.displayMax"
+          [attr.step]="row.type === 'int' ? 1 : 0.1"
+          (blur)="onFieldInput(row, numInput.value)"
+          (keydown.enter)="onFieldInput(row, numInput.value); numInput.blur()"
+        />
+        <span class="building-setting-unit" *ngIf="row.unit === 's'">s</span>
+        <span
+          class="building-setting-unit"
+          *ngIf="row.unit === 'cycleFraction' || row.unit === '%'"
+          >%</span
+        >
+        <span class="building-setting-hint" *ngIf="row.cycleHint">
+          ({{ row.cycleHint }})
+        </span>
+      </ng-container>
+
+      <input
+        *ngIf="row.type === 'string'"
+        #textInput
+        type="text"
+        class="building-setting-text"
+        [value]="row.displayValue"
+        (blur)="onFieldInput(row, textInput.value)"
+        (keydown.enter)="onFieldInput(row, textInput.value); textInput.blur()"
+      />
+    </span>
   </div>
+
+  <button
+    *ngFor="let key of creatableKeys"
+    pButton
+    type="button"
+    class="ui-button building-setting-add"
+    (click)="addSetting(key)"
+    i18n
+  >
+    Add automation settings
+  </button>
 
   <div
     *ngIf="otherKeys.length > 0"
