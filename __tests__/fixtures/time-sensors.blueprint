@@ -1,0 +1,85 @@
+{
+  "blueprintVersion": 3,
+  "friendlyname": "Time Sensors",
+  "buildings": [
+    {
+      "offset": {
+        "x": 1,
+        "y": 1
+      },
+      "buildingdef": "LogicTimerSensor",
+      "selected_elements": [
+        -1725038055
+      ],
+      "buildingData": [
+        {
+          "Key": "Switch",
+          "Value": {
+            "switchedOn": true
+          }
+        },
+        {
+          "Key": "LogicTimerSensor",
+          "Value": {
+            "onDuration": 5.0,
+            "offDuration": 5.0,
+            "timeElapsedInCurrentState": 3.099925,
+            "displayCyclesMode": false
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 2,
+        "y": 1
+      },
+      "buildingdef": "LogicTimerSensor",
+      "selected_elements": [
+        -1725038055
+      ],
+      "buildingData": [
+        {
+          "Key": "Switch",
+          "Value": {
+            "switchedOn": true
+          }
+        },
+        {
+          "Key": "LogicTimerSensor",
+          "Value": {
+            "onDuration": 6.0,
+            "offDuration": 6000.0,
+            "timeElapsedInCurrentState": 0.78333354,
+            "displayCyclesMode": true
+          }
+        }
+      ]
+    },
+    {
+      "offset": {
+        "x": 3,
+        "y": 1
+      },
+      "buildingdef": "LogicTimeOfDaySensor",
+      "selected_elements": [
+        -1725038055
+      ],
+      "buildingData": [
+        {
+          "Key": "Switch",
+          "Value": {
+            "switchedOn": false
+          }
+        },
+        {
+          "Key": "LogicTimeOfDaySensor",
+          "Value": {
+            "startTime": 0.249224767,
+            "duration": 0.000996187
+          }
+        }
+      ]
+    }
+  ]
+}

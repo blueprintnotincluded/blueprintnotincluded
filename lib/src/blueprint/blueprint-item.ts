@@ -7,7 +7,7 @@ import { Orientation } from '../enums/orientation';
 import { OniItem } from '../oni-item';
 import { DrawPart } from '../drawing/draw-part';
 import { OniBuilding } from '../io/oni/oni-building';
-import { BniBuilding } from '../io/bni/bni-building';
+import { BniBuilding, BniBuildingData } from '../io/bni/bni-building';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { SpriteTag } from '../enums/sprite-tag';
 import { CameraService } from '../drawing/camera-service';
@@ -52,6 +52,12 @@ export class BlueprintItem {
   }
 
   public buildableElements: BuildableElement[] = [];
+
+  // BlueprintsV2 per-component settings (§3 of the import spec: timer
+  // durations, switch state, logic gate delays, ...). Opaque passthrough —
+  // undefined/empty for buildings placed in the editor (the mod applies its
+  // own defaults on load), preserved verbatim for anything read from a file.
+  public buildingData?: BniBuildingData[];
 
   public uiSaveSettings: UiSaveSettings[] = [];
   public getUiSettings(id: string): UiSaveSettings | undefined {
@@ -202,6 +208,13 @@ export class BlueprintItem {
 
     this.changeOrientation(building.orientation);
 
+    // Deep-copied: undo snapshots and the live item must never share
+    // references into the same Value objects.
+    this.buildingData =
+      building.buildingData != null && building.buildingData.length > 0
+        ? structuredClone(building.buildingData)
+        : undefined;
+
     // Construction materials: each entry is a Klei tag hash in recipe order
     // (BlueprintsV2 §2.3). Unknown hashes or surplus slots keep the default
     // material — cleanUp() backfills every unset slot.
@@ -236,6 +249,11 @@ export class BlueprintItem {
       for (let setting of original.settings)
         this.uiSaveSettings.push(UiSaveSettings.clone(setting));
     }
+
+    this.buildingData =
+      original.buildingData != null && original.buildingData.length > 0
+        ? structuredClone(original.buildingData)
+        : undefined;
 
     // TODO default temperature
     if (original.temperature == undefined) this.temperature = BlueprintItem.defaultTemperature;
@@ -402,6 +420,9 @@ export class BlueprintItem {
       }
     }
 
+    if (this.buildingData != null && this.buildingData.length > 0)
+      returnValue.buildingData = structuredClone(this.buildingData);
+
     if (this.orientation != Orientation.Neutral) returnValue.orientation = this.orientation;
 
     return returnValue;
@@ -415,6 +436,9 @@ export class BlueprintItem {
       orientation: this.orientation,
       selected_elements: this.getSelectedElementsTag(),
     };
+
+    if (this.buildingData != null && this.buildingData.length > 0)
+      returnValue.buildingData = structuredClone(this.buildingData);
 
     return returnValue;
   }
