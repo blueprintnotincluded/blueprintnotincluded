@@ -141,6 +141,40 @@ describe("BuildingSettingsComponent", () => {
     expect(emitBlueprintChanged).toHaveBeenCalled();
   });
 
+  it("keeps a typed value across a change-detection cycle mid-edit (trackBy regression)", () => {
+    // Reported bug: the editor's global zone.js hooks re-run change
+    // detection on every keystroke (the (keydown.enter) binding registers a
+    // real keydown listener). Without a stable trackBy, *ngFor's identity
+    // diffing tore down and rebuilt the <input> DOM node on every such
+    // cycle, discarding whatever had just been typed but not yet committed.
+    setItem("LogicTimerSensor", [
+      {
+        Key: "LogicTimerSensor",
+        Value: {
+          onDuration: 5.0,
+          offDuration: 5.0,
+          timeElapsedInCurrentState: 0,
+          displayCyclesMode: false,
+        },
+      },
+    ]);
+
+    let numberInput = fixture.nativeElement.querySelector(
+      "input[type=number]",
+    ) as HTMLInputElement;
+    numberInput.value = "42";
+    // Simulate an incidental app-wide change-detection tick firing while the
+    // field still holds an uncommitted keystroke.
+    fixture.detectChanges();
+    // Re-query rather than reuse the captured reference: a torn-down/rebuilt
+    // node would leave `numberInput` pointing at a detached element, masking
+    // the bug from a naive assertion on the stale reference.
+    numberInput = fixture.nativeElement.querySelector(
+      "input[type=number]",
+    ) as HTMLInputElement;
+    expect(numberInput.value).toBe("42");
+  });
+
   it("clamps a number field to the catalogue's soft bounds on commit", () => {
     setItem("LogicRibbonReader", [
       { Key: "LogicRibbonReader", Value: { selectedBit: 1 } },
