@@ -116,6 +116,12 @@ limiting is Cloudflare's job — do not add express-rate-limit.)
 
 ## Future Technical Debt
 
+Code-review plans (2026-08-28, `spec/code-review-2026-08.md`, local): `getFeed` misses
+`-rawSource`; dead passport auth path + unused deps; lib compiles into `lib/src` (71
+committed generated `.d.ts`); split 1,867-line `blueprint-controller.ts`; remove dormant
+`uiScreens` model; Angular standalone migration (unblocks bundle splitting); preview-worker
+terrain/annotation parity; retire the concluded diacritic A/B experiment dir.
+
 - **API Documentation** — no OpenAPI/Swagger spec exists
 - **Bundle size** — production bundle ~3.25 MB, budget `3.5mb warn / 4mb error`; tightening
   further requires real reduction work (tree-shaking pixi.js, lazy-loading PrimeNG modules)

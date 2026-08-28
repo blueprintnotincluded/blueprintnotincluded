@@ -682,7 +682,7 @@ have been removed entirely (steps 1–4 of the DLC-requirements plan all shipped
 
 ### Building settings (buildingData)
 
-`spec/building-settings-plan.md`. A blueprint's per-component settings — timer durations,
+`spec/archive/building-settings-plan.md`. A blueprint's per-component settings — timer durations,
 switch state, logic gate delays, threshold values, ... — written by the BlueprintsV2 mod as
 `buildings[].buildingData: {Key, Value}[]` (`Key` is the ONI component class name). Previously
 dropped on import and never written back; now round-trips, displays, and (for a curated set)
@@ -892,7 +892,7 @@ Stage only relevant files — never `git add -A` blindly. Do not skip hooks (`--
 
 **Session end — push and open a PR (autonomously, without asking):**
 
-1. Update any committed docs that describe shipped state (e.g. `spec/ROADMAP.md`, `agent/TODO.md`) so they reflect what this branch ships
+1. Update any committed docs that describe shipped state (e.g. `agent/TODO.md`) so they reflect what this branch ships
 2. `git push -u origin <branch>`
 3. `gh pr create` with a real description: what shipped, design decisions and spec deviations, how it was verified (test counts, migrations run), and anything deferred
 4. Report the PR URL as the session's final output
