@@ -153,16 +153,21 @@ Run the image and backend
 
 Visit http://localhost:3000
 
-## Image reconstruction
+## Game asset import
 
-Export iamges from oniextract2020
-Copy assets/manual/ into assets/images
-`npm run fixHtmlLabels -- database.json`
-`npm run addInfoIcons -- database.json`
-`npm run generateIcons`
-`npm run generateGroups`
-`npm run generateWhite`
-`npm run generateRepack`
-zip assets/database/database.json
-copy zip to frontend/src/assets/database
-copy assets/database/database-repack.json to frontend/src/assets/database.json
+Drop a fresh OniExtract2024 export into `export/`, then:
+
+```bash
+npm run import:2024:dry-run   # validate + report only
+npm run import:2024           # regenerate database-2024.json + sync sprites into both asset roots
+```
+
+Contract and converter details: `app/api/batch/convert-export-2024.md`. The legacy
+2020-era atlas pipeline (`generateIcons`/`generateGroups`/…) is retired.
+
+## Version tracking
+
+The About dialog and `GET /api/version` report version (`package.json`), commit, branch,
+build time, and environment. In production these come from `BUILD_DATE` / `GIT_COMMIT` /
+`GIT_BRANCH` / `ENV_NAME` build args, wired up by `.github/workflows/publish.yml`; in dev
+they fall back to git detection at server start.
