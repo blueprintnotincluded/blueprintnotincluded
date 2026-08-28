@@ -189,19 +189,15 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 ## Current Status
 
-- **Phase**: multilingual search + content locale plan is **fully shipped** (search plan
-  phases 0–5, `spec/search-followups.md` Part 1 §1/§2/§4 and all of Part 2 including native-
-  language rows). Retrieval now reads a viewer's content locale (`?lang=`) alongside the `en`
-  pivot; open decision #1 in the search plan is resolved. The Part 1 §5 precision audit ran
-  clean against prod on 2026-08-27 (zero unchanged-title machine rows). Remaining plan items
-  (IDF weighting, `.po` acquisition, near-duplicate clustering, phase 6 semantic retrieval) are
-  each either explicitly deferred with a stated trigger or decided against — see
-  `spec/multilingual-search-plan.md` §8. Asset pipeline is still OniExtract2024 flat-icon
-  rendering.
-- **Date**: 2026-08-27
+- **Phase**: building-settings editing shipped (PR #212). Multilingual search + content
+  locale fully shipped and activated in prod 2026-08-27 — status doc `spec/language-plan.md`,
+  open items in `agent/TODO.md` (deferred plan items each have a stated trigger or were
+  decided against, see `spec/archive/multilingual-search-plan.md` §8). Asset pipeline is
+  OniExtract2024 flat-icon rendering.
+- **Date**: 2026-08-28
 - **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
-- **Tests**: ✅ Backend 1033 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
+- **Tests**: ✅ Backend 1072 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
   load locally and pass on a clean run) · Frontend 1226 passing (Vitest/jsdom)
 - **Prod activation: DONE 2026-08-27** — both migrations applied, the Vietnamese-title gate
   enabled (`GEMINI_VI_TITLE_TRANSLATION_ENABLED=true`, monthly cap 1,500,000 micro-USD), and
@@ -407,8 +403,9 @@ on download. `Info` now survives as an _input_ format only.
 
 ### Search (blueprintsearch) & user-content translation
 
-`spec/multilingual-search-plan.md` phases 0–5 (all shipped) + `spec/search-followups.md`
-Part 1 §1/§2.
+All shipped and activated in prod (2026-08-27). Current status doc: `spec/language-plan.md`;
+the plan docs referenced below (`multilingual-search-plan.md`, `search-followups.md`) are
+archived under `spec/archive/` and kept for design rationale only.
 
 - **Search documents** — `blueprintsearch` collection (`app/api/models/blueprint-search.ts`),
   one row per `(blueprintId, lang)`; every blueprint has an `en` row (the pivot invariant).
@@ -506,7 +503,7 @@ Part 1 §1/§2.
   translation call. Verified against the real Google provider: a Vietnamese title saved
   through the live API produced `sourceLang: 'vi'` and a `blueprintsearch` row with
   `origin: 'machine'`, and an English query then found it.
-- **`titleOriginal`** (`spec/search-followups.md` Part 1 §1) — translating a title used to
+- **`titleOriginal`** (`spec/archive/search-followups.md` Part 1 §1) — translating a title used to
   _replace_ it, deleting the author's own words from the index: `Cozinha estrategia em choque`
   became findable by "strategic cooking" and no longer by itself. Worst exactly where query
   translation also fails (romanized text neither end detects), so both directions broke at once.
@@ -520,7 +517,7 @@ Part 1 §1/§2.
   The backfill also fills the field on rows an earlier run already translated — those rows are
   _fresh_, so they never reach full re-derivation, and their `sourceHash` pins them to the
   current `blueprint.name`, making the authored text recoverable exactly with no provider call.
-- **Provider-side detection** (`spec/search-followups.md` Part 1 §2) — `derive-search`'s **second
+- **Provider-side detection** (`spec/archive/search-followups.md` Part 1 §2) — `derive-search`'s **second
   translation pass**, for titles `detectLanguageCode` can't place at all: short, romanized or
   diacritic-stripped non-English (`Dien phan full`). Those clear neither detection gate, so
   phase 3b never sees them and no amount of re-running it will. Candidates are rows still
@@ -532,7 +529,7 @@ Part 1 §1/§2.
   provider reports a non-`en` source **and** changed the text. On by default;
   `--skip-provider-detect` opts out. Re-runs are cache reads (`translationunits` is keyed by
   text hash), so it is idempotent and near-free after the first.
-- **Declared source language** (`spec/search-followups.md` §2.6) — `saveBlueprint` prefers the
+- **Declared source language** (`spec/archive/search-followups.md` §2.6) — `saveBlueprint` prefers the
   author's stored `localePreference` over `Accept-Language` as the detection prior, and passes
   it to `syncMachineTitle`. On that path `confidence: 'prior'` **is** trusted, deliberately
   reversing the rule phase 3b set: same mechanism, different evidence — a browser header is a
@@ -540,7 +537,7 @@ Part 1 §1/§2.
   misdeclaration cheap: the provider must report non-`en`, and a provider that returns the input
   unchanged never marks the row `'machine'` (which would claim a translation that isn't there
   and index the same string twice).
-- **Decided not to build** (`spec/multilingual-search-plan.md` §8, 2026-08-04): IDF weighting
+- **Decided not to build** (`spec/archive/multilingual-search-plan.md` §8, 2026-08-04): IDF weighting
   for structural matches (needs a new maintained per-`termId` document-frequency table for an
   unmeasured payoff) and near-duplicate clustering + its fork-migration offer (needs a global
   pass; the offer is an unrequested product feature). Phase 6 semantic retrieval stays gated on
@@ -551,7 +548,7 @@ Part 1 §1/§2.
 
 ### Content locale (what language you read blueprints in)
 
-`spec/search-followups.md` Part 2. **Not** UI localization — the chrome stays English for
+`spec/archive/search-followups.md` Part 2. **Not** UI localization — the chrome stays English for
 everyone (see "UI localization state"), so this routes no bundles and prefixes no paths.
 
 - **The rule** (§2.5), one shared implementation in `lib/src/blueprint/content-locale.ts`'s
@@ -633,17 +630,13 @@ that accepts what the server rejects.
 
 ### Blueprint metadata auto-derivation
 
-`requiredDlcs`, `gameVersion` and `modded` are derived deterministically from the blueprint
-content — users no longer set these manually. `multiplayerSafe` has been removed entirely.
+`requiredDlcs` and `modded` are derived deterministically from the blueprint content —
+users no longer set these manually. `multiplayerSafe` and the ordered `gameVersion` model
+have been removed entirely (steps 1–4 of the DLC-requirements plan all shipped).
 
 - **`lib/src/blueprint/blueprint-analyzer.ts`** — pure functions (TDD-covered):
   - `deriveRequiredDlcs(buildingDlcIds: string[][]): string[]` — the union of every placed
-    building's raw Klei DLC ids, deduped and sorted; `[]` = base game only. This is the
-    current model; `deriveGameVersion` below is retained only until the frontend stops
-    importing it (step 4 of `spec/dlc-requirements-plan.md`).
-  - `deriveGameVersion(buildingDlcIds: string[][]): GameVersion` — **superseded.** Collapses
-    the set to the highest-priority DLC found, so it can't express "needs Frosty _and_
-    Bionic", and its `DLC5_ID`→bionicBooster mapping is wrong (DLC5 is the Aquatic pack).
+    building's raw Klei DLC ids, deduped and sorted; `[]` = base game only.
   - `deriveModded(prefabIds: string[], knownIds: Set<string>): boolean` — true if any ID is absent
     from the loaded database
 - **`lib/src/blueprint/dlc.ts`** — `DLC_LABELS`/`dlcLabel(id)`, the one place raw ids become
@@ -682,12 +675,10 @@ content — users no longer set these manually. `multiplayerSafe` has been remov
   a pack can't be in both, selecting it in one clears it from the other. Exclusion chips use the
   danger accent (`exclude: true` on `ActiveFilterChip`) so the two read as opposite intents.
 - **Save dialog** — the DLC requirement set and `modded` are read-only, derived from blueprint
-  content on open (`gameVersion` is still derived and submitted, but no longer displayed).
-  `researchTier` is hidden (no tech-tree data in current export; field kept in schema for future use).
-- **Backfill** — `npm run derive-metadata` re-derives `gameVersion`, `requiredDlcs`, `mods`
-  and `modded` for all existing blueprints. **The `?dlc=` filter matches nothing until this
-  runs** — no document written before the field existed has a set at all (prod: `cd /bpni/build
-&& npm run derive-metadata`, dry-run first).
+  content on open. `researchTier` is hidden (no tech-tree data in current export; field kept
+  in schema for future use).
+- **Backfill** — `npm run derive-metadata` re-derives `requiredDlcs`, `mods` and `modded`
+  for all existing blueprints. Prod backfill ran 2026-07-25 (5,252 processed).
 
 ### Building settings (buildingData)
 
@@ -761,7 +752,6 @@ Check these files in `agent/` directory for current status:
 - `agent/SESSION_NOTES.md` - Session-by-session progress
 - `agent/WORKOS_PLAN.md` - WorkOS auth operational reference (env mapping, admin roles)
 - `agent/AVATARS.md` - Gemini avatar generation operational reference (API key setup, pool, costs)
-- `UPGRADE_PLAN.md` - Upgrade history and strategy
 
 ### Quick Status Check Commands
 
@@ -778,17 +768,6 @@ npm run tsc          # Should compile without errors
 gh run list --limit 5
 head -20 agent/TODO.md
 ```
-
-### All Upgrade Phases Complete
-
-1. ✅ **Phase 1A**: Node.js 20.18.0 → 20.19.4 (volta + .nvmrc)
-2. ✅ **Phase 1B**: lib TypeScript 3.5.3 → 5.9.2, ES2020 target
-3. ✅ **Phase 2A**: Backend TypeScript 4.9.5 → 5.9.2, strict mode
-4. ✅ **Phase 2B**: Mongoose 5.7.7 → 8.18.1 (incremental)
-5. ✅ **Phase 3**: Express 4.x → 5.1.0
-6. ✅ **Phase 4**: Canvas 2.6.1 → 3.2.3
-7. ✅ **Phase 5**: Angular 13 → 20, PrimeNG 19 → 20
-8. ✅ **CI**: All GitHub Actions improvements applied
 
 ### Key Constraints
 
