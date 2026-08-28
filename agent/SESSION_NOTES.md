@@ -1,3 +1,29 @@
+# Session Notes - 2026-08-28
+
+## Docs + code review (branch `docs-review`)
+
+Project-wide docs audit. Deleted retired committed docs (`ASSET_PROCESSING_PLAN.md` —
+described the removed 2020 atlas pipeline; `UPGRADE_PLAN.md` — all phases complete;
+`VERSION_TRACKING.md` — condensed into a README section; `scripts/test-github-actions.md`
+— pre-mongosh CI fix note). Fixed README's dead "Image reconstruction" section. Brought
+CLAUDE.md and agent/TODO.md back in line with shipped reality: `gameVersion` is deleted
+(DLC steps 1–4 shipped), the mod UI and facet counts shipped, search plan docs live under
+`spec/archive/` with `spec/language-plan.md` as status doc, prod activation is done.
+
+Local `spec/` pass: archived 14 shipped plan docs with dated banners (building-settings,
+DLC ×2, element-notes ×3, theme-customizer, trending-hotscore, mod-import ×3, terrain
+rects, ROADMAP + ROADMAP_DECISIONS); marked BPv2 followups task 3 (buildingData) shipped.
+
+Code review findings → `spec/code-review-2026-08.md` (plans only, nothing implemented):
+`getFeed` missing `-rawSource`, dead passport auth path, lib in-place compilation with 71
+committed generated `.d.ts`, blueprint-controller split, dormant `uiScreens` removal,
+Angular standalone migration, preview-worker annotation parity, experiments-dir retirement.
+
+Flagged, not touched: `spec/icon-triage/` is 234MB of local scratch from the July icon
+work — delete when confident it's no longer needed.
+
+---
+
 # Session Notes - 2026-08-26/27
 
 ## What We Accomplished ✅
