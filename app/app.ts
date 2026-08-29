@@ -4,8 +4,6 @@ import path from 'path';
 import { Routes } from './routes';
 import { Database } from './api/db';
 import requestIp from 'request-ip';
-import { Auth } from './api/auth';
-import passport from 'passport';
 import fs from 'fs';
 import {
   BBuilding,
@@ -24,7 +22,6 @@ import {
 class App {
   public db: Database;
   public app: express.Application;
-  public auth: Auth;
   public routePrv: Routes = new Routes();
 
   constructor() {
@@ -62,9 +59,8 @@ class App {
     TerrainFeature.init();
     TerrainFeature.load(json.terrainFeatures);
 
-    // initialize database and authentication middleware
+    // initialize database
     this.db = new Database();
-    this.auth = new Auth();
 
     // Create a new express application instance and add middleware
     this.app = express();
@@ -107,7 +103,6 @@ class App {
 
     this.app.use(requestIp.mw());
     this.app.use(express.json({ limit: '1mb' }));
-    this.app.use(passport.initialize());
 
     // Subdomain redirects
     this.app.use((req, res, next) => {
