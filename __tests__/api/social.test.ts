@@ -10,7 +10,8 @@ process.env.NODE_ENV = 'test';
 import { TestSetup } from '../setup/testSetup';
 import { BlueprintModel } from '../../app/api/models/blueprint';
 import { FollowModel } from '../../app/api/models/follow';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
+import sinon from 'sinon';
 
 describe('Profile, Follow, Feed API', function () {
   let testData: any;
@@ -395,6 +396,43 @@ describe('Profile, Follow, Feed API', function () {
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.body.blueprints).to.deep.equal([]);
+    });
+
+    it('excludes rawSource from the underlying feed blueprint query', async function () {
+      // buildListItem already field-picks the response explicitly, so
+      // rawSource never reaches response JSON regardless of the Mongo
+      // select() — the actual risk is pulling up to ~2MB of verbatim
+      // blueprint text per row across the wire from Mongo. Assert on the
+      // query itself (every other list/feed query in app/api uses
+      // '-data -thumbnail -rawSource'; this one was the sole outlier).
+      await FollowModel.model.create({
+        followerId: testData.users.user2._id,
+        followeeId: testData.users.user1._id,
+      });
+      await BlueprintModel.model.updateOne(
+        { _id: testData.blueprints.popularBlueprint._id },
+        { rawSource: '{"friendlyname":"x"}', rawSourceFormat: 'bpv2-json' }
+      );
+
+      const selectSpy = sinon.spy(mongoose.Query.prototype, 'select');
+      try {
+        const token = testData.users.user2.generateJwt();
+        const response = await TestSetup.request()
+          .get('/api/feed')
+          .query({ olderthan: Date.now() })
+          .set('Authorization', `Bearer ${token}`);
+
+        expect(response.status).to.equal(200);
+
+        const blueprintSelectCall = selectSpy
+          .getCalls()
+          .find(call => typeof call.args[0] === 'string' && call.args[0].includes('-data'));
+        expect(blueprintSelectCall, 'expected the feed blueprint query to call .select()').to
+          .exist;
+        expect(blueprintSelectCall!.args[0]).to.include('-rawSource');
+      } finally {
+        selectSpy.restore();
+      }
     });
 
     it('paginates with the olderthan cursor', async function () {
