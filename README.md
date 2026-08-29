@@ -155,7 +155,10 @@ Visit http://localhost:3000
 
 ## Game asset import
 
-Drop a fresh OniExtract2024 export into `export/`, then:
+**Local dev checkout only** — the importer runs from TypeScript sources with
+devDependencies and reads the `export/` drop, none of which exist in the deploy image;
+its outputs (`database-2024.json`, synced sprites) are committed, so production only
+ever consumes the results. Drop a fresh OniExtract2024 export into `export/`, then:
 
 ```bash
 npm run import:2024:dry-run   # validate + report only
