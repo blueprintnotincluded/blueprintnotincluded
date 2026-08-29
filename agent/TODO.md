@@ -12,8 +12,10 @@
 ## Search / translation — what's left
 
 Status doc: `spec/language-plan.md`. Design rationale: `spec/archive/multilingual-search-plan.md`
-and `spec/archive/search-followups.md`. Prod activation completed 2026-08-27 (2,378 titles,
-~$0.24, precision audit clean); rollout trail in `spec/archive/rollout-vi-gate.md`. If
+and `spec/archive/search-followups.md`. (All `spec/` docs are local — the directory is
+gitignored, so these exist only on the dev machine, not in a clean checkout.) Prod activation
+completed 2026-08-27 (2,378 titles, ~$0.24, precision audit clean); rollout trail in
+`spec/archive/rollout-vi-gate.md` (local). If
 `migrate:status` ever claims "all pending", check the `migrations` collection before believing
 it — it was once found inexplicably empty and had to be restored from a dump.
 
@@ -36,10 +38,13 @@ it — it was once found inexplicably empty and had to be restored from a dump.
 
 ## OniExtract2024 follow-ups
 
-Open items only (import pipeline, render cutover, legacy-pipeline removal, English
-`po_string` → `strings.json` flattening, and the modded-buildings feature — data layer AND
-UI (build-menu badges, details-page mod chips, `/mods` supported-mods page) — are done; see
-`app/api/batch/convert-export-2024.md`).
+Done (see `app/api/batch/convert-export-2024.md`): the import pipeline, the flat-icon
+render cutover, legacy-pipeline removal, English `po_string` → `strings.json` flattening,
+and the whole modded-buildings feature — both the data layer (`mod`/`modTitle`,
+`blueprint.mods`, `GET /api/mods`) and its UI (build-menu badges, details-page mod chips,
+the `/mods` supported-mods page).
+
+Open items:
 
 - **Rename `import:2024`** to a version-neutral name — "2024" leaked everywhere from the
   milestone. Keep an alias for one cycle (`convert:2024` already aliases it).

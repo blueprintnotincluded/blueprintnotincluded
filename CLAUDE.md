@@ -543,8 +543,8 @@ archived under `spec/archive/` and kept for design rationale only.
   pass; the offer is an unrequested product feature). Phase 6 semantic retrieval stays gated on
   `searchqueries` telemetry, re-checked 2026-08-04 and still nothing to justify starting — the
   trigger number is written into the plan's §4.5. `.po` acquisition is scoped but not decided —
-  it needs real prod `sourceLang`/`searchqueries` traffic the still-pending activation would
-  generate.
+  it needs real prod `sourceLang`/`searchqueries` traffic, which has only been accumulating
+  since the 2026-08-27 activation; revisit once there is enough to characterize demand.
 
 ### Content locale (what language you read blueprints in)
 
