@@ -422,7 +422,7 @@ export class UserController {
           })
           .sort({ createdAt: -1 })
           .limit(browseIncrement * 2)
-          .select('-data -thumbnail')
+          .select('-data -thumbnail -rawSource')
           .populate('owner')
           .then(blueprints => {
             return BlueprintController.handleGetBlueprint(req, res, blueprints);
