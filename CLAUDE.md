@@ -36,13 +36,18 @@ app container**; the host needs only a container runtime.
 
 - `docker compose --env-file .env -f .devcontainer/docker-compose.yml up -d` - Bring up the whole stack. `--env-file` is required: compose looks for `.env` beside the compose file, not at the repo root
 - `... exec app bash` - A shell in the container, where every command below runs. `app` runs no servers, so nothing you do in it disturbs one
-- `npm ci && (cd frontend && npm ci) && npm run build:lib` - First run only. The `api` and `web` services poll for the result and start serving on their own; do **not** run `npm run dev` or `npm start` by hand
+- `npm ci && (cd frontend && npm ci) && npm run build:lib && npm run migrate:up` - First run only. The migration is part of it: the schema the code expects is not the schema a fresh database has. The `api` and `web` services poll for the result and start serving on their own; do **not** run `npm run dev` or `npm start` by hand
 - `... logs -f api web` / `... restart api` - Watch or bounce a server
 - Frontend: http://localhost:4200, Backend: http://localhost:3000
 - From inside, the database is `database:27017` and mail is `mailhog:1025` — service names, not localhost
 
 To run on the host instead (Node 20.19.4 per `.nvmrc`): `./dev-setup.sh` starts
-just the database and mail, and `DB_URI` / `SMTP_HOST` become `localhost`.
+just the database and mail, and `DB_URI` / `SMTP_HOST` are already `localhost`
+in `.env.sample`. The *test* database is separate: the suite reads
+`.env.test.local` before the committed `.env.test`, so a checkout on a
+non-default `MONGO_PORT` — or one that ran in the container first, leaving a
+`.env.test.local` pointing at `database:27017` — needs that file to say
+`DB_URI=mongodb://localhost:${MONGO_PORT}/blueprintnotincluded_test`.
 
 ### Production Testing
 

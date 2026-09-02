@@ -32,6 +32,13 @@ x-node: &node
   environment: &node-env
     NODE_ENV: development
     npm_config_cache: /home/node/.npm
+    # The database and mail are sibling services in here, never localhost.
+    # Set on the container rather than left to .env so the sample file can
+    # keep the host answer: app/server.ts calls plain dotenv.config(), which
+    # does not overwrite an already-set variable, so these win over the .env
+    # the bind mount carries.
+    DB_URI: mongodb://database:27017/blueprintnotincluded
+    SMTP_HOST: mailhog
   volumes:
     - ..:/app:cached
     # Named volumes, not part of the bind mount: canvas and sharp are built for

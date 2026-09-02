@@ -18,13 +18,18 @@
     "8025": { "label": "Mailpit", "onAutoForward": "silent" }
   },
   // Bind the host's Claude Code state so auth and history survive a rebuild.
+  // A type=bind source must already exist — unlike -v, Docker will not create
+  // one and refuses to start the container — and postCreateCommand runs too
+  // late to help. initializeCommand runs on the HOST before creation, the only
+  // hook early enough, so a machine with neither path still comes up.
+  "initializeCommand": "mkdir -p \"${localEnv:HOME}/.claude\" && touch \"${localEnv:HOME}/.gitconfig\"",
   "mounts": [
     "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached"
   ],
   // The .env.test.local line is what points the suite at the container's
   // Mongo; the committed .env.test says 127.0.0.1, which is nothing in here.
-  "postCreateCommand": "[ -f .env.test.local ] || echo 'DB_URI=mongodb://database:27017/blueprintnotincluded_test' > .env.test.local; npm ci --no-audit --no-fund && (cd frontend && npm ci --no-audit --no-fund) && npm run build:lib",
+  "postCreateCommand": "[ -f .env.test.local ] || echo 'DB_URI=mongodb://database:27017/blueprintnotincluded_test' > .env.test.local; npm ci --no-audit --no-fund && (cd frontend && npm ci --no-audit --no-fund) && npm run build:lib && npm run migrate:up",
   "customizations": {
     "vscode": {
       "extensions": [
