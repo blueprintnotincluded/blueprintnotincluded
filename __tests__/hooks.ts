@@ -7,6 +7,9 @@ import mongoose from 'mongoose';
 // hooks.ts is loaded via .mocharc's `require` entries, before any test file,
 // so DB_URI isn't set yet locally (CI sets it directly as a job env var, but
 // dotenv won't override that either way — it skips already-set keys).
+// .env.test.local (gitignored) first: dotenv keeps the first value it sees, so
+// a per-checkout override (a MongoDB on another port) beats the committed file.
+dotenv.config({ path: path.resolve(__dirname, '../.env.test.local') });
 dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
 process.env.NODE_ENV = 'test';
 

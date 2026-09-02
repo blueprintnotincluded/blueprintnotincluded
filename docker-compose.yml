@@ -2,13 +2,19 @@
 # Default: pulls pre-built image from Docker Hub.
 # To build and run from local source instead:
 #   docker compose up --build
+#
+# Several checkouts can run side by side: each one sets COMPOSE_PROJECT_NAME
+# and the *_PORT variables in its own .env (compose reads that file for the
+# ${...} values below). With nothing set you get the classic single-checkout
+# layout — one project, the well-known ports.
+name: ${COMPOSE_PROJECT_NAME:-bpni}
+
 services:
   app:
     image: racefpv/bpni:latest
     build:
       context: .
       dockerfile: deploy.Dockerfile
-    container_name: bpni-prod
     environment:
       - ENV_NAME=development
       - BROWSE_INCREMENT=100
@@ -33,22 +39,24 @@ services:
       - "3000:3000"
 
   database:
-    image: mongo:8.0.23
-    container_name: bpni-mongodb
+    # MONGO_TAG: the 8.0 line (8.0.29 checked) refuses to start on Linux
+    # kernels 6.19 and newer (SERVER-121912); 8.2 does. Set MONGO_TAG=8.2 in
+    # .env on such a host rather than editing the default, which CI shares.
+    image: mongo:${MONGO_TAG:-8.0.23}
     environment:
       - "MONGO_INITDB_DATABASE=blueprintnotincluded"
     volumes:
       - ./mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - mongodb_data:/data/db
     ports:
-      - "27017:27017"
+      # Loopback only: nothing on the LAN has business with a dev database.
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
 
   mailhog:
     image: axllent/mailpit
-    container_name: bpni-mailhog
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
 
 volumes:
   mongodb_data:

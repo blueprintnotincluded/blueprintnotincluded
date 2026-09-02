@@ -27,6 +27,21 @@ cd frontend && npm start # Frontend with live reloading
 - **Database**: mongodb://localhost:27017
 - **Mail testing**: http://localhost:8025 (Mailpit web UI)
 
+### Several checkouts side by side
+
+Every port is a knob, so two worktrees can run at once on one machine without
+touching each other's database or mail. Per checkout, in `.env`: `PORT` (the
+backend's listen port; links still come from `HOST` / `SITE_URL`), the
+`MONGO_PORT` / `MAILPIT_SMTP_PORT` / `MAILPIT_UI_PORT` trio that `docker
+compose` publishes, `COMPOSE_PROJECT_NAME` so the containers and volumes stay
+apart, and `DB_URI` pointing at that Mongo. The frontend follows
+`BACKEND_PORT=<PORT> npm start -- --port <N>`. Tests read a gitignored
+`.env.test.local` before `.env.test`, so `DB_URI` there points them at the same
+Mongo. `.env.sample` has the block, commented out; the defaults above are what
+you get when it stays that way. One more knob lives beside them: `MONGO_TAG`,
+because the MongoDB 8.0 images refuse to start on Linux kernels 6.19 and
+newer (SERVER-121912) — set it to `8.2` on such a host.
+
 ### Production Testing
 
 Test with pre-built images (may require AMD64 emulation on ARM64 Macs):

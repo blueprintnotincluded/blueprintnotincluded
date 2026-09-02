@@ -37,7 +37,9 @@ console.log(
   }`
 );
 
-const PORT = 3000;
+// PORT is a listen port only: links and og:url come from HOST / SITE_URL, so
+// several checkouts can run side by side on one machine (see README).
+const PORT = Number(process.env.PORT) || 3000;
 const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
   startMemoryHeartbeat('api');
