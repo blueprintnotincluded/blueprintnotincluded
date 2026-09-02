@@ -16,7 +16,11 @@
 name: ${COMPOSE_PROJECT_NAME:-bpni-dev}
 
 # Everything that runs project code runs the same image off the same volumes.
+# `image:` names it explicitly so app, api and web share one build instead of
+# tagging three copies — and so a second checkout on the same machine reuses
+# it. It holds no checkout-specific state; the source is a bind mount.
 x-node: &node
+  image: blueprintnotincluded-dev:local
   build:
     # This directory, not the repo root: nothing is COPYed into the image (the
     # source is the bind mount below), so there is no reason to hand the
