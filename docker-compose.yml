@@ -36,7 +36,10 @@ services:
       - database
       - mailhog
     ports:
-      - "3000:3000"
+      # Host side parameterised like every other port here: the file claims
+      # several checkouts can run side by side, and a fixed 3000 made the
+      # second one fail on port allocation. The container side never moves.
+      - "${APP_PORT:-3000}:3000"
 
   database:
     # MONGO_TAG: the 8.0 line (8.0.29 checked) refuses to start on Linux

@@ -27,7 +27,7 @@ echo "MongoDB is not running on $host:$port"
 # fault to report, not something to paper over by starting another.
 if ! command -v docker >/dev/null 2>&1; then
     echo "No docker client here. If you are in the dev container, the 'database'"
-    echo "service is down or DB_URI ($uri) does not name it."
+    echo "service is down or DB_URI ($host:$port) does not name it."
     exit 1
 fi
 echo "Starting MongoDB via Docker..."
