@@ -8,39 +8,64 @@ It is a combined curated version of the original blueprintnotincluded web app.
 
 ### Development (Recommended)
 
-For ARM64 Macs and local development with live reloading:
+The whole toolchain — Node, the native build deps for `canvas` and `sharp`,
+MongoDB, Mailpit — is in `.devcontainer/`, so a checkout needs nothing on the
+host but a container runtime. Open the folder in a devcontainer-aware editor
+and it builds itself, or drive it by hand:
 
 ```bash
 # One-time setup: copy environment configuration
 cp .env.sample .env
 
-# Start dependencies only (database + mail)
-./dev-setup.sh
+# Bring the stack up. --env-file is not optional: compose looks for .env
+# beside the compose file, not at the repo root.
+dc() { docker compose --env-file .env -f .devcontainer/docker-compose.yml "$@"; }
+dc up -d
 
-# In separate terminals:
-npm run dev              # Backend with live reloading
-cd frontend && npm start # Frontend with live reloading
+# First run only: install and build, from inside the app container
+dc exec app bash -lc 'npm ci && (cd frontend && npm ci) && npm run build:lib && npm run migrate:up'
 ```
+
+That is the whole setup. `api` and `web` are services, not something you start
+by hand — they poll for `node_modules` and `lib/index.js` and begin serving the
+moment the install above finishes, live-reloading from the bind-mounted source
+after that. `dc logs -f api web` to watch them, `dc restart api` to bounce one.
 
 - **Frontend**: http://localhost:4200 (Angular dev server with API proxy)
 - **Backend API**: http://localhost:3000 (Express with ts-node-dev)
-- **Database**: mongodb://localhost:27017
+- **Database**: mongodb://localhost:27017 (`database:27017` from inside)
 - **Mail testing**: http://localhost:8025 (Mailpit web UI)
+
+`dc exec app bash` is the shell for everything else — tests, migrations, batch
+scripts, `git`, `gh`. The `app` container runs no servers, so nothing you do in
+there disturbs one.
+
+To run the app straight on the host instead — Node 20.19.4 per `.nvmrc` —
+`./dev-setup.sh` starts just the database and mail from the production compose
+file, and `DB_URI` / `SMTP_HOST` in `.env` become `localhost` rather than the
+`database` / `mailhog` service names the sample ships.
 
 ### Several checkouts side by side
 
-Every port is a knob, so two worktrees can run at once on one machine without
-touching each other's database or mail. Per checkout, in `.env`: `PORT` (the
-backend's listen port; links still come from `HOST` / `SITE_URL`), the
-`MONGO_PORT` / `MAILPIT_SMTP_PORT` / `MAILPIT_UI_PORT` trio that `docker
-compose` publishes, `COMPOSE_PROJECT_NAME` so the containers and volumes stay
-apart, and `DB_URI` pointing at that Mongo. The frontend follows
-`BACKEND_PORT=<PORT> npm start -- --port <N>`. Tests read a gitignored
-`.env.test.local` before `.env.test`, so `DB_URI` there points them at the same
-Mongo. `.env.sample` has the block, commented out; the defaults above are what
-you get when it stays that way. One more knob lives beside them: `MONGO_TAG`,
-because the MongoDB 8.0 images refuse to start on Linux kernels 6.19 and
-newer (SERVER-121912) — set it to `8.2` on such a host.
+Every port is a knob, so two checkouts can run at once on one machine without
+touching each other's database or mail. Only the *host* side moves: inside the
+container the backend is always on 3000 and Angular always on 4200, so nothing
+in there has to know which checkout it is.
+
+Per checkout, in `.env`: `WEB_PORT` (the Angular dev server — the one you open),
+`API_PORT`, `MONGO_PORT`, `MAILPIT_SMTP_PORT`, `MAILPIT_UI_PORT`, and
+`COMPOSE_PROJECT_NAME` so the containers and volumes stay apart. `.env.sample`
+has the block, commented out; the defaults above are what you get when it stays
+that way.
+
+Tests read a gitignored `.env.test.local` before `.env.test`, which is how the
+suite is pointed at the container's Mongo (`mongodb://database:27017/
+blueprintnotincluded_test`) rather than the committed `127.0.0.1` default.
+
+Two knobs are about the host rather than the checkout: `MONGO_TAG`, because no
+MongoDB 8.0 image starts on Linux kernels 6.19 and newer (SERVER-121912) — set
+it to `8.2` on such a host — and `PORT` / `BACKEND_PORT`, which matter only if
+you are running the app outside the container on a machine where 3000 is taken.
 
 ### Production Testing
 
