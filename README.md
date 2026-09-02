@@ -20,7 +20,7 @@ cp .env.sample .env
 # Bring the stack up. --env-file is not optional: compose looks for .env
 # beside the compose file, not at the repo root.
 dc() { docker compose --env-file .env -f .devcontainer/docker-compose.yml "$@"; }
-dc up -d
+dc up -d          # add --build after editing .devcontainer/Dockerfile
 
 # First run only: install and build, from inside the app container
 dc exec app bash -lc 'npm ci && (cd frontend && npm ci) && npm run build:lib && npm run migrate:up'
