@@ -1,0 +1,123 @@
+# The development stack: toolchain, servers and services in containers, so a
+# checkout needs nothing on the host but a container runtime. Deploying is a
+# separate concern and a separate pair of files (../docker-compose.yml,
+# deploy.Dockerfile).
+#
+# Compose reads `.env` from the directory of the *first* compose file, which is
+# this one — so the repo-root .env, the same file dotenv reads, has to be named:
+#
+#   docker compose --env-file .env -f .devcontainer/docker-compose.yml up -d
+#
+# Several checkouts run side by side: each gives its own .env a
+# COMPOSE_PROJECT_NAME and its own *_PORT values. With nothing set you get one
+# project on the well-known ports. In-container ports never move — the backend
+# is always 3000 and Angular always 4200 — so only the host side of a publish
+# varies and nothing inside a container has to know which checkout it is.
+name: ${COMPOSE_PROJECT_NAME:-bpni-dev}
+
+# Everything that runs project code runs the same image off the same volumes.
+x-node: &node
+  build:
+    # This directory, not the repo root: nothing is COPYed into the image (the
+    # source is the bind mount below), so there is no reason to hand the
+    # daemon a gigabyte of blueprints and node_modules.
+    context: .
+    dockerfile: Dockerfile
+    args:
+      NODE_VERSION: '20.19.4'
+  environment: &node-env
+    NODE_ENV: development
+    npm_config_cache: /home/node/.npm
+  volumes:
+    - ..:/app:cached
+    # Named volumes, not part of the bind mount: canvas and sharp are built for
+    # the platform that installed them, so a host-side node_modules must never
+    # be what a container runs — and vice versa.
+    - node_modules:/app/node_modules
+    - frontend_node_modules:/app/frontend/node_modules
+    - npm_cache:/home/node/.npm
+  depends_on:
+    database:
+      condition: service_healthy
+    mailhog:
+      condition: service_started
+
+services:
+
+  # Where a shell, an agent, and one-off commands live. Owns nothing at
+  # runtime, so restarting a server never disturbs a session in here.
+  app:
+    <<: *node
+    command: sleep infinity
+    stdin_open: true
+    tty: true
+
+  api:
+    <<: *node
+    # The wait loop is the handshake with provisioning: npm writes
+    # node_modules/.package-lock.json only after a *successful* install, so
+    # this starts when the dependencies are actually there and not before.
+    # `docker compose exec app npm ci` in another shell is all it takes.
+    command: >
+      bash -lc 'while [ ! -f /app/node_modules/.package-lock.json ]; do
+                  echo "waiting for dependencies — run npm ci in the app container"; sleep 5;
+                done;
+                npm run dev 2>&1 | tee -a /app/log/api.log'
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${API_PORT:-3000}:3000"
+
+  web:
+    <<: *node
+    working_dir: /app/frontend
+    environment:
+      <<: *node-env
+      # frontend/proxy.conf.js. `api`, not localhost: the dev server is its own
+      # container now, so the backend is a service name away.
+      BACKEND_HOST: api
+      BACKEND_PORT: '3000'
+    # Also waits on lib/index.js — `npm run build:lib` output, which the
+    # frontend imports and cannot compile without.
+    command: >
+      bash -lc 'while [ ! -f /app/frontend/node_modules/.package-lock.json ] || [ ! -f /app/lib/index.js ]; do
+                  echo "waiting for dependencies — run npm ci and npm run build:lib in the app container"; sleep 5;
+                done;
+                npm start -- --host 0.0.0.0 --port 4200 --allowed-hosts 2>&1 | tee -a /app/log/web.log'
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${WEB_PORT:-4200}:4200"
+
+  database:
+    # MONGO_TAG: the 8.0 line (8.0.29 checked) refuses to start on Linux
+    # kernels 6.19 and newer (SERVER-121912); 8.2 does. Set MONGO_TAG=8.2 in
+    # .env on such a host rather than editing the default, which CI shares.
+    image: mongo:${MONGO_TAG:-8.0.23}
+    environment:
+      - "MONGO_INITDB_DATABASE=blueprintnotincluded"
+    volumes:
+      - ../mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongodb_data:/data/db
+    ports:
+      # Loopback only: nothing on the LAN has business with a dev database.
+      # Published at all so host tools (mongosh, Compass) can still reach it.
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
+    healthcheck:
+      # Everything else waits on this. Without it the first migrate:up of a
+      # cold stack races the database's own initdb and dies on a refused
+      # connection.
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mailhog:
+    image: axllent/mailpit
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+
+volumes:
+  mongodb_data:
+  node_modules:
+  frontend_node_modules:
+  npm_cache:

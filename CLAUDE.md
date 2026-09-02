@@ -30,10 +30,19 @@ This is the source repository for blueprintnotincluded.org, a web application fo
 
 ### Development (Recommended)
 
-- `./dev-setup.sh` - Start dependencies (database + mail)
-- `npm run dev` - Start backend with live reloading
-- `cd frontend && npm start` - Start frontend with live reloading
+The toolchain lives in `.devcontainer/` — Node, the native build deps for
+`canvas` and `sharp`, MongoDB and Mailpit. Everything below runs **inside the
+app container**; the host needs only a container runtime.
+
+- `docker compose --env-file .env -f .devcontainer/docker-compose.yml up -d` - Bring up the whole stack. `--env-file` is required: compose looks for `.env` beside the compose file, not at the repo root
+- `... exec app bash` - A shell in the container, where every command below runs. `app` runs no servers, so nothing you do in it disturbs one
+- `npm ci && (cd frontend && npm ci) && npm run build:lib` - First run only. The `api` and `web` services poll for the result and start serving on their own; do **not** run `npm run dev` or `npm start` by hand
+- `... logs -f api web` / `... restart api` - Watch or bounce a server
 - Frontend: http://localhost:4200, Backend: http://localhost:3000
+- From inside, the database is `database:27017` and mail is `mailhog:1025` — service names, not localhost
+
+To run on the host instead (Node 20.19.4 per `.nvmrc`): `./dev-setup.sh` starts
+just the database and mail, and `DB_URI` / `SMTP_HOST` become `localhost`.
 
 ### Production Testing
 
@@ -151,11 +160,11 @@ Copy `.env.sample` to `.env` and configure:
 - `DB_URI` - MongoDB connection string
 - `JWT_SECRET` - Secret key for JWT tokens
 - `ENV_NAME` - Environment identifier (`production` enables Mailjet; otherwise nodemailer/SMTP)
-- `SMTP_HOST`/`SMTP_PORT` - Mail server for dev/test (defaults to localhost:1025)
+- `SMTP_HOST`/`SMTP_PORT` - Mail server for dev/test (`mailhog:1025` in the dev container, `localhost:1025` on the host)
 - `MAILJET_API_KEY`/`MAILJET_SECRET_KEY`/`MAILJET_FROM_EMAIL` - Required in production for email
 - `SITE_URL` - Base URL included in password reset links
 - `PORT` - Backend listen port (default 3000). Links never derive from it — they use `HOST` / `SITE_URL` — so several checkouts can listen on different ports behind one hostname each
-- `MONGO_PORT` / `MAILPIT_SMTP_PORT` / `MAILPIT_UI_PORT` / `COMPOSE_PROJECT_NAME` - Read by `docker compose` from `.env` to publish the database and Mailpit on other host ports and keep one checkout's containers and volumes apart from another's. `BACKEND_PORT` steers the frontend's API proxy (`frontend/proxy.conf.js`). `MONGO_TAG` picks the compose image (default `8.0.23`; `8.2` on Linux kernels ≥ 6.19, where 8.0.x will not start — SERVER-121912). Details in README "Several checkouts side by side"
+- `WEB_PORT` / `API_PORT` / `MONGO_PORT` / `MAILPIT_SMTP_PORT` / `MAILPIT_UI_PORT` / `COMPOSE_PROJECT_NAME` - Read by `docker compose` from `.env` to publish the container's ports on other **host** ports and keep one checkout's containers and volumes apart from another's. Inside the container the ports never move (4200 and 3000), so `PORT` and `BACKEND_PORT` matter only for a host-side run. `MONGO_TAG` picks the database image (default `8.0.23`; `8.2` on Linux kernels ≥ 6.19, where 8.0.x will not start — SERVER-121912). Details in README "Several checkouts side by side"
 
 ## Database
 

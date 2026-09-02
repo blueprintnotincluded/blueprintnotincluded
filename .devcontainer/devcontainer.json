@@ -1,0 +1,38 @@
+{
+  "name": "blueprintnotincluded",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/app",
+  // The node image's own uid-1000 user. updateRemoteUserUID reconciles it with
+  // the host user at create time, which is what keeps bind-mounted files
+  // writable on Linux; on macOS Docker Desktop maps uids anyway and it is a
+  // no-op.
+  "remoteUser": "node",
+  "updateRemoteUserUID": true,
+  // Angular's dev server and the backend. Both are compose services (`web`,
+  // `api`) that start themselves once the install below finishes — see README.
+  "forwardPorts": [4200, 3000, 8025],
+  "portsAttributes": {
+    "4200": { "label": "Angular dev server", "onAutoForward": "notify" },
+    "3000": { "label": "Backend API", "onAutoForward": "silent" },
+    "8025": { "label": "Mailpit", "onAutoForward": "silent" }
+  },
+  // Bind the host's Claude Code state so auth and history survive a rebuild.
+  "mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached"
+  ],
+  // The .env.test.local line is what points the suite at the container's
+  // Mongo; the committed .env.test says 127.0.0.1, which is nothing in here.
+  "postCreateCommand": "[ -f .env.test.local ] || echo 'DB_URI=mongodb://database:27017/blueprintnotincluded_test' > .env.test.local; npm ci --no-audit --no-fund && (cd frontend && npm ci --no-audit --no-fund) && npm run build:lib",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "angular.ng-template"
+      ]
+    }
+  }
+}
