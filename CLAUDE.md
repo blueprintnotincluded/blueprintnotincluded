@@ -46,8 +46,11 @@ just the database and mail, and `DB_URI` / `SMTP_HOST` are already `localhost`
 in `.env.sample`. The *test* database is separate: the suite reads
 `.env.test.local` before the committed `.env.test`, so a checkout on a
 non-default `MONGO_PORT` — or one that ran in the container first, leaving a
-`.env.test.local` pointing at `database:27017` — needs that file to say
-`DB_URI=mongodb://localhost:${MONGO_PORT}/blueprintnotincluded_test`.
+`.env.test.local` pointing at `database:27017` — needs that file rewritten. It takes the port as a *number*: dotenv does no
+variable expansion (16.6.1), so a `${MONGO_PORT}` written there is stored and
+used literally, and `scripts/test-db-setup.sh` would then probe the
+placeholder. From a shell that has the value —
+`echo "DB_URI=mongodb://localhost:$MONGO_PORT/blueprintnotincluded_test" > .env.test.local`.
 
 ### Production Testing
 
