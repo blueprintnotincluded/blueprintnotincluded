@@ -5,6 +5,7 @@ import sinon from 'sinon';
 import { before, after } from 'mocha';
 
 // Load test environment variables before any tests run
+dotenv.config({ path: path.resolve(__dirname, '../.env.test.local') });
 dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
 
 // Set test flag to suppress initialization logs

@@ -154,6 +154,8 @@ Copy `.env.sample` to `.env` and configure:
 - `SMTP_HOST`/`SMTP_PORT` - Mail server for dev/test (defaults to localhost:1025)
 - `MAILJET_API_KEY`/`MAILJET_SECRET_KEY`/`MAILJET_FROM_EMAIL` - Required in production for email
 - `SITE_URL` - Base URL included in password reset links
+- `PORT` - Backend listen port (default 3000). Links never derive from it — they use `HOST` / `SITE_URL` — so several checkouts can listen on different ports behind one hostname each
+- `MONGO_PORT` / `MAILPIT_SMTP_PORT` / `MAILPIT_UI_PORT` / `COMPOSE_PROJECT_NAME` - Read by `docker compose` from `.env` to publish the database and Mailpit on other host ports and keep one checkout's containers and volumes apart from another's. `BACKEND_PORT` steers the frontend's API proxy (`frontend/proxy.conf.js`). `MONGO_TAG` picks the compose image (default `8.0.23`; `8.2` on Linux kernels ≥ 6.19, where 8.0.x will not start — SERVER-121912). Details in README "Several checkouts side by side"
 
 ## Database
 
@@ -178,6 +180,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Framework**: Mocha with Chai — do not introduce Jest
 - **Maintenance**: When removing large dependency sets, regenerate package-lock.json with `rm package-lock.json && npm install` to prevent corruption
 - **Email in tests**: `emailService.ts` skips SMTP when `NODE_ENV=test` — no mail server needed
+- **Test database location**: `__tests__/hooks.ts` loads a gitignored `.env.test.local` before `.env.test`, and a `DB_URI` already in the environment beats both (CI sets it as a job var). `scripts/test-db-setup.sh` resolves `DB_URI` the same way, so it checks and starts the Mongo the tests will actually use
 
 **Frontend**: Vitest with jsdom (no real browser). Runner: `@angular/build:unit-test`. Coverage via `@vitest/coverage-v8`.
 

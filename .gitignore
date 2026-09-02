@@ -1,10 +1,14 @@
 /node_modules
 /.env
 /.env.migration
+# Per-checkout test overrides (see __tests__/hooks.ts)
+/.env.test.local
 /prod-dump
 
 /build
 /.claude
+# Dev-server logs written by tooling that runs the servers in the background
+/log
 
 # TypeScript build artifacts (keep .d.ts for development)
 *.d.ts.map
