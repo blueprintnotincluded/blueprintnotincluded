@@ -6,7 +6,13 @@
   [breakpoints]="{ '560px': '92vw' }"
   [draggable]="false"
 >
-  <ng-container *ngIf="state !== 'success'">
+  <!-- Sending feedback needs an account (spam guard). Prompt to sign in before
+       the visitor types anything, rather than failing on submit. -->
+  <p *ngIf="!authService.isLoggedIn()" style="margin: 1rem 0">
+    Please sign in to send feedback — it keeps out spam and only takes a moment.
+  </p>
+
+  <ng-container *ngIf="authService.isLoggedIn() && state !== 'success'">
     <textarea
       pTextarea
       [(ngModel)]="message"
@@ -35,7 +41,15 @@
   </p>
 
   <ng-template pTemplate="footer">
-    <ng-container *ngIf="state !== 'success'">
+    <ng-container *ngIf="!authService.isLoggedIn()">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        (onClick)="visible = false"
+      ></p-button>
+      <p-button label="Sign in" (onClick)="goToLogin()"></p-button>
+    </ng-container>
+    <ng-container *ngIf="authService.isLoggedIn() && state !== 'success'">
       <p-button
         label="Cancel"
         severity="secondary"
