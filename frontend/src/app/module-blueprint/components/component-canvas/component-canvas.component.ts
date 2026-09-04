@@ -556,13 +556,13 @@ export class ComponentCanvasComponent
     this.cameraService.cameraOffset.y +=
       event.panY / this.cameraService.currentZoom;
 
-    if (event.zoomDelta) {
+    if (event.zoomScale && event.zoomScale != 1) {
       const rect = this.canvasRef.nativeElement.getBoundingClientRect();
       const centerPos = new Vector2(
         event.centerClientX - rect.left,
         event.centerClientY - rect.top,
       );
-      this.cameraService.changeZoom(event.zoomDelta, centerPos);
+      this.cameraService.pinchZoom(event.zoomScale, centerPos);
     }
   }
 
