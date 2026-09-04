@@ -46,6 +46,8 @@ export declare class CameraService {
     private currentZoomIndex;
     zoom(delta: number, zoomCenter: Vector2): void;
     setHardZoom(zoomLevel: number): void;
+    private syncZoomIndexToCurrent;
+    pinchZoom(scale: number, zoomCenter: Vector2): void;
     changeZoom(zoomDelta: number, zoomCenter: Vector2): void;
     getTileCoordsForZoom(screenCoords: Vector2): Vector2;
     getTileCoords(cursorPosition: Vector2): Vector2;

@@ -193,15 +193,42 @@ export class CameraService {
 
   setHardZoom(zoomLevel: number) {
     this.targetZoom = this.currentZoom = zoomLevel;
+    this.syncZoomIndexToCurrent();
+  }
 
+  // Keeps the wheel/keyboard zoom-step index pointing at the level nearest
+  // currentZoom, so stepping after a continuous (pinch/hard) zoom moves to an
+  // adjacent level instead of jumping to wherever the index last was.
+  private syncZoomIndexToCurrent() {
     let zoomLevelDif = -1;
     for (let zoomLevelIndex = 0; zoomLevelIndex < this.zoomLevels.length; zoomLevelIndex++) {
-      let dif = Math.abs(zoomLevel - this.zoomLevels[zoomLevelIndex]);
+      let dif = Math.abs(this.currentZoom - this.zoomLevels[zoomLevelIndex]);
       if (zoomLevelDif == -1 || dif < zoomLevelDif) {
         this.currentZoomIndex = zoomLevelIndex;
         zoomLevelDif = dif;
       }
     }
+  }
+
+  // Direct-manipulation zoom for a touch pinch: multiplicative (a 2x finger
+  // spread doubles px/tile at any zoom level), clamped to the wheel zoom's
+  // range, and applied immediately with no easing. Syncing targetZoom is the
+  // load-bearing part: updateZoom() runs every frame and eases currentZoom
+  // toward targetZoom around lastZoomCenter, so a pinch that moved only
+  // currentZoom would be fought each frame by an animation anchored at a
+  // stale center — which reads as the view zooming AND panning away from
+  // the fingers.
+  pinchZoom(scale: number, zoomCenter: Vector2) {
+    if (!isFinite(scale) || scale <= 0) return;
+
+    const minZoom = this.zoomLevels[0];
+    const maxZoom = this.zoomLevels[this.zoomLevels.length - 1];
+    const newZoom = Math.min(maxZoom, Math.max(minZoom, this.currentZoom * scale));
+
+    this.changeZoom(newZoom - this.currentZoom, zoomCenter);
+    this.targetZoom = this.currentZoom;
+    this.lastZoomCenter = zoomCenter;
+    this.syncZoomIndexToCurrent();
   }
 
   changeZoom(zoomDelta: number, zoomCenter: Vector2) {

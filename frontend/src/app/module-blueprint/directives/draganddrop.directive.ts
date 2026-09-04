@@ -7,9 +7,10 @@ import {
 } from "@angular/core";
 import { Vector2 } from "../../../../../lib/index";
 
-// How much a two-finger pinch (in screen px of finger separation) changes
-// CameraService.currentZoom (in px/tile). Lower = less sensitive pinch.
-const PINCH_ZOOM_SENSITIVITY = 0.5;
+// How far (screen px) a single touch may wander and still count as a tap.
+// Fingers never hold a pixel-exact position, so tap detection needs slop;
+// past it, the touch commits to a drag and drives the active tool.
+const TOUCH_DRAG_SLOP_PX = 8;
 
 @Directive({
   selector: "[appDragAndDrop]",
@@ -39,6 +40,19 @@ export class DragAndDropDirective {
   private gestureLastDistance: number = 0;
   private gestureLastMidpoint: Vector2 | null = null;
 
+  // A touch-down is deferred until we know its intent: a second finger makes
+  // it a pan/zoom gesture (no tool action at all), movement past the slop
+  // makes it a drag (myMouseDown fires then, at the original touch point),
+  // and lifting within the slop makes it a tap (down+click+up fire together).
+  // Without this, the first finger of an intended pinch already fired the
+  // active tool — placing a building the user only meant to zoom past.
+  private pendingTouchDown: any = null;
+
+  // After a two-finger gesture ends, a finger still on the screen is inert:
+  // it can no longer drag or tap (it was zooming, not aiming), it only
+  // hovers. Interaction resumes on the next fresh touch.
+  private inertTouchIds: Set<number> = new Set();
+
   constructor(private el: ElementRef) {
     this.isMouseDown = [];
     this.lastDragPosition = [];
@@ -64,9 +78,11 @@ export class DragAndDropDirective {
     }
 
     if (this.activePointers.size == 2) {
-      // A second finger just touched down: whatever single-pointer drag was
-      // in progress stops here (without registering as a click), and we
+      // A second finger just touched down: a still-pending first touch is
+      // discarded (it was the start of this gesture, not a tap), any
+      // committed drag stops here (without registering as a click), and we
       // switch to interpreting further movement as a pan/zoom gesture.
+      this.pendingTouchDown = null;
       this.stopDrag(event, 0);
       this.gestureActive = true;
       this.primeGestureBaseline();
@@ -79,11 +95,16 @@ export class DragAndDropDirective {
       return;
     }
 
-    // Touch has no hover state distinct from touching, so synthesize one
-    // hover event at touch-down. This drives the build tool's placement
-    // preview/validity check before the matching touch-up fires the tap.
     if (event.pointerType === "touch") {
+      this.inertTouchIds.delete(event.pointerId);
+      // Touch has no hover state distinct from touching, so synthesize one
+      // hover event at touch-down. This drives the build tool's placement
+      // preview/validity check before anything commits.
       this.myMouseMove.emit(event);
+      // Intent unknown yet — hold the down event, fire nothing else.
+      this.pendingTouchDown = event;
+      if (event.preventDefault) event.preventDefault();
+      return;
     }
 
     const dragButton: number = event.button;
@@ -125,18 +146,29 @@ export class DragAndDropDirective {
       this.gestureActive = false;
       this.gestureLastMidpoint = null;
 
-      if (this.activePointers.size == 1) {
-        // One finger is still down after the pinch ends: let the user keep
-        // dragging with it, but re-baseline drag tracking to that finger's
-        // current position so it doesn't jump.
-        const remaining = this.activePointers.values().next().value as Vector2;
-        this.isMouseDown[0] = true;
-        this.startDragPosition[0] = new Vector2(remaining.x, remaining.y);
-        this.lastDragPosition[0] = new Vector2(remaining.x, remaining.y);
-      } else {
-        this.isMouseDown[0] = false;
-        this.startDragPosition[0] = null;
-        this.lastDragPosition[0] = null;
+      // A finger still down after the pinch ends is inert until lifted: it
+      // was zooming, not aiming, so letting it drag or tap the active tool
+      // would edit the blueprint by accident.
+      for (const id of this.activePointers.keys()) this.inertTouchIds.add(id);
+      this.isMouseDown[0] = false;
+      this.startDragPosition[0] = null;
+      this.lastDragPosition[0] = null;
+      return;
+    }
+
+    if (this.inertTouchIds.delete(event.pointerId)) return;
+
+    if (this.pendingTouchDown?.pointerId === event.pointerId) {
+      // The touch never left the slop radius: it's a tap. Fire the full
+      // down/click/up sequence a desktop click produces, with the down at
+      // the original touch point.
+      const down = this.pendingTouchDown;
+      this.pendingTouchDown = null;
+      if (allowClick) {
+        this.myMouseDown.emit(down);
+        this.myMouseClick.emit(event);
+        this.myMouseUp.emit(event);
+        this.stopDrag(event, 0);
       }
       return;
     }
@@ -178,6 +210,33 @@ export class DragAndDropDirective {
     if (this.gestureActive) {
       this.handleGestureMove(event);
       return;
+    }
+
+    if (this.inertTouchIds.has(event.pointerId)) {
+      this.myMouseMove.emit(event);
+      return;
+    }
+
+    if (this.pendingTouchDown?.pointerId === event.pointerId) {
+      const moved = Math.hypot(
+        event.clientX - this.pendingTouchDown.clientX,
+        event.clientY - this.pendingTouchDown.clientY,
+      );
+      if (moved <= TOUCH_DRAG_SLOP_PX) {
+        // Still ambiguous between tap and drag — keep hovering so the
+        // placement ghost tracks the finger.
+        this.myMouseMove.emit(event);
+        return;
+      }
+      // Left the slop radius: commit to a drag, anchored at the original
+      // touch point so the whole movement counts, then let this move flow
+      // into the ordinary drag path below.
+      const down = this.pendingTouchDown;
+      this.pendingTouchDown = null;
+      this.myMouseDown.emit(down);
+      this.isMouseDown[0] = true;
+      this.startDragPosition[0] = new Vector2(down.clientX, down.clientY);
+      this.lastDragPosition[0] = new Vector2(down.clientX, down.clientY);
     }
 
     let isDragging = false;
@@ -229,8 +288,12 @@ export class DragAndDropDirective {
 
     event.panX = midpoint.x - this.gestureLastMidpoint.x;
     event.panY = midpoint.y - this.gestureLastMidpoint.y;
-    event.zoomDelta =
-      (distance - this.gestureLastDistance) * PINCH_ZOOM_SENSITIVITY;
+    // Multiplicative: the camera scales by the same ratio the finger
+    // separation changed by, which is what keeps the content glued to the
+    // fingers (an additive px/tile delta felt wildly different at 16 vs 128
+    // px/tile, and never matched the finger motion at either).
+    event.zoomScale =
+      this.gestureLastDistance > 1 ? distance / this.gestureLastDistance : 1;
     event.centerClientX = midpoint.x;
     event.centerClientY = midpoint.y;
 
