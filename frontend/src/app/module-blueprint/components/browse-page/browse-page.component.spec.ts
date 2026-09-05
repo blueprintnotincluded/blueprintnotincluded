@@ -170,6 +170,18 @@ describe("BrowsePageComponent", () => {
     // stubbed to describe the shape that matters: content shorter than the
     // window, which fires no scroll event and so used to strand the list on
     // page one.
+    // scrollHeight/innerHeight are shared globals — captured here and put back
+    // in afterEach, so a short viewport cannot leak into later tests in this
+    // file and schedule auto-fill work they never asked for.
+    const originalScrollHeight = Object.getOwnPropertyDescriptor(
+      Object.getPrototypeOf(document.documentElement),
+      "scrollHeight",
+    );
+    const originalInnerHeight = Object.getOwnPropertyDescriptor(
+      window,
+      "innerHeight",
+    );
+
     const setViewport = (docHeight: number, windowHeight: number) => {
       Object.defineProperty(document.documentElement, "scrollHeight", {
         value: docHeight,
@@ -190,6 +202,16 @@ describe("BrowsePageComponent", () => {
 
     afterEach(() => {
       vi.useRealTimers();
+      // Own-property overrides shadow the prototype getter; deleting restores it.
+      delete (document.documentElement as any).scrollHeight;
+      if (originalScrollHeight)
+        Object.defineProperty(
+          Object.getPrototypeOf(document.documentElement),
+          "scrollHeight",
+          originalScrollHeight,
+        );
+      if (originalInnerHeight)
+        Object.defineProperty(window, "innerHeight", originalInnerHeight);
     });
 
     it("loads another page when the content is shorter than the window", () => {
@@ -217,6 +239,40 @@ describe("BrowsePageComponent", () => {
         });
 
       component.handleGetBlueprints(page(10));
+      vi.runAllTimers();
+
+      expect(loadMore).not.toHaveBeenCalled();
+    });
+
+    // Deliberately does not flip `working`: with the real guard removed, three
+    // queued callbacks would each reach loadMore, which is the duplication
+    // being prevented here.
+    it("queues one deferred check across a burst of resize events", () => {
+      vi.useFakeTimers();
+      setViewport(1044, 2040);
+      const loadMore = vi
+        .spyOn(component, "loadMore")
+        .mockImplementation(() => {});
+      component.working = false; // the component starts mid-load
+
+      component.onWindowResize();
+      component.onWindowResize();
+      component.onWindowResize();
+      vi.runAllTimers();
+
+      expect(loadMore).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not load a page after the component is destroyed", () => {
+      vi.useFakeTimers();
+      setViewport(1044, 2040);
+      const loadMore = vi
+        .spyOn(component, "loadMore")
+        .mockImplementation(() => {});
+      component.working = false; // the component starts mid-load
+
+      component.onWindowResize();
+      component.ngOnDestroy();
       vi.runAllTimers();
 
       expect(loadMore).not.toHaveBeenCalled();

@@ -123,6 +123,8 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   listSwitching = false;
   private switchTimer: ReturnType<typeof setTimeout> | null = null;
   private dwellTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Pending deferred auto-fill check; at most one is ever queued. */
+  private autoFillTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingResponse: BlueprintListResponse | null = null;
   private pendingError = false;
   private awaitingFade = false;
@@ -297,6 +299,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     this.filterFacetSubject.complete();
     if (this.switchTimer) clearTimeout(this.switchTimer);
     if (this.dwellTimer) clearTimeout(this.dwellTimer);
+    if (this.autoFillTimer) clearTimeout(this.autoFillTimer);
   }
 
   /**
@@ -770,7 +773,12 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   private fillViewport() {
     if (this.noMoreBlueprints || this.working) return;
     if (this.autoFillCount >= MAX_AUTO_FILLS) return;
-    setTimeout(() => {
+    // Coalesced: a burst of resize events must not queue a callback each, or
+    // every one of them loads a page. Cleared in ngOnDestroy so a check
+    // outliving the component cannot request for it.
+    if (this.autoFillTimer) return;
+    this.autoFillTimer = setTimeout(() => {
+      this.autoFillTimer = null;
       if (this.noMoreBlueprints || this.working) return;
       if (document.documentElement.scrollHeight > window.innerHeight) return;
       this.autoFillCount++;
