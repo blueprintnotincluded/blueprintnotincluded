@@ -590,18 +590,51 @@ export class BlueprintService implements IObsBlueprintChange {
   async copyBlueprintShareString(friendlyName: string) {
     // Checked before encoding: absent outside a secure context, and there is
     // no point gzipping a blueprint we cannot deliver.
-    if (!navigator.clipboard?.writeText)
-      throw new Error("Clipboard API unavailable");
+    const clipboard = navigator.clipboard;
+    if (!clipboard) throw new Error("Clipboard API unavailable");
 
+    // Snapshotted before the awaits below: the beacon must credit the
+    // blueprint we serialized, not whatever happens to be open by the time
+    // the clipboard write resolves.
+    const exportedBlueprintId = this.id;
     const json = JSON.stringify(this.blueprint.toBniBlueprint(friendlyName));
-    const shareString = await encodeBniShareString(json);
+    const encoded = encodeBniShareString(json);
 
-    // May still reject — e.g. Safari drops user activation across the await
-    // above. The caller reports it.
-    await navigator.clipboard.writeText(shareString);
+    await BlueprintService.writeClipboardText(clipboard, encoded);
 
     // Same accounting as a file download — both are the user taking a copy.
-    if (this.id != null) this.trackDownload(this.id);
+    if (exportedBlueprintId != null) this.trackDownload(exportedBlueprintId);
+  }
+
+  // Safari only honours a clipboard write that *starts* inside the user
+  // gesture, and gzipping is async — so where write() and ClipboardItem exist
+  // we hand over the still-pending promise, keeping the write itself within
+  // the gesture. Firefox shipped both long after the other engines, so
+  // writeText stays as a fallback rather than being replaced outright.
+  private static async writeClipboardText(
+    clipboard: Clipboard,
+    text: Promise<string>,
+  ) {
+    const type = "text/plain";
+
+    if (typeof ClipboardItem !== "undefined" && clipboard.write) {
+      try {
+        await clipboard.write([
+          new ClipboardItem({
+            [type]: text.then((t) => new Blob([t], { type })),
+          }),
+        ]);
+        return;
+      } catch {
+        // A browser that has ClipboardItem but rejects a promise-backed one
+        // still gets a working copy through writeText below. If the encode
+        // itself failed, awaiting it again rethrows rather than silently
+        // writing nothing.
+      }
+    }
+
+    if (!clipboard.writeText) throw new Error("Clipboard API unavailable");
+    await clipboard.writeText(await text);
   }
 
   static saveTextFile(text: string, filename: string) {
