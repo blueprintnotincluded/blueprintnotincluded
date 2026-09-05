@@ -165,6 +165,84 @@ describe("BrowsePageComponent", () => {
     });
   });
 
+  describe("viewport that the first page does not fill", () => {
+    // scrollHeight/innerHeight are not really laid out under jsdom, so they are
+    // stubbed to describe the shape that matters: content shorter than the
+    // window, which fires no scroll event and so used to strand the list on
+    // page one.
+    const setViewport = (docHeight: number, windowHeight: number) => {
+      Object.defineProperty(document.documentElement, "scrollHeight", {
+        value: docHeight,
+        configurable: true,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        value: windowHeight,
+        configurable: true,
+      });
+    };
+
+    const page = (n: number) =>
+      ({
+        oldest: Date.now(),
+        blueprints: Array.from({ length: n }, (_, i) => ({ id: `b${i}` })),
+        remaining: 50,
+      }) as any;
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("loads another page when the content is shorter than the window", () => {
+      vi.useFakeTimers();
+      setViewport(1044, 2040); // ~10 cards on a 4K display at 100% scaling
+      const loadMore = vi
+        .spyOn(component, "loadMore")
+        .mockImplementation(() => {
+          component.working = true;
+        });
+
+      component.handleGetBlueprints(page(10));
+      vi.runAllTimers();
+
+      expect(loadMore).toHaveBeenCalled();
+    });
+
+    it("does not load another page when the content already overflows", () => {
+      vi.useFakeTimers();
+      setViewport(1844, 960); // the same page on a 1080p display
+      const loadMore = vi
+        .spyOn(component, "loadMore")
+        .mockImplementation(() => {
+          component.working = true;
+        });
+
+      component.handleGetBlueprints(page(10));
+      vi.runAllTimers();
+
+      expect(loadMore).not.toHaveBeenCalled();
+    });
+
+    it("stops auto-filling once the server reports no more results", () => {
+      vi.useFakeTimers();
+      setViewport(1044, 2040);
+      const loadMore = vi
+        .spyOn(component, "loadMore")
+        .mockImplementation(() => {
+          component.working = true;
+        });
+
+      component.handleGetBlueprints({
+        oldest: Date.now(),
+        blueprints: [{ id: "only" }],
+        remaining: 0,
+      } as any);
+      vi.runAllTimers();
+
+      expect(component.noMoreBlueprints).toBe(true);
+      expect(loadMore).not.toHaveBeenCalled();
+    });
+  });
+
   describe("duplicate collapse", () => {
     it("is on by default and only offers the toggle while searching", () => {
       expect(component.collapseDuplicates).toBe(true);
