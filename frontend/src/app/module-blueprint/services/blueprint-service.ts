@@ -7,6 +7,7 @@ import { of } from "rxjs";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
 import {
   decodeBniShareString,
+  encodeBniShareString,
   RawSourceFormat,
   Blueprint,
   IObsBlueprintChange,
@@ -575,6 +576,32 @@ export class BlueprintService implements IObsBlueprintChange {
     }
 
     generate();
+  }
+
+  // Editor "Download → Blueprint (copy text)": the inverse of the paste-import
+  // above — the mod's clipboard share-string, written to the system clipboard.
+  //
+  // Unlike exportBlueprintFile this never serves the held raw source, even for
+  // an unedited import. Renaming a blueprint does not invalidate rawSource (the
+  // freshness check compares toMdbBlueprint(), which carries no name), so the
+  // verbatim text can hold a stale friendlyname — and a share-string has no
+  // filename to correct it with, so the old name would follow the blueprint
+  // back into the game. Always generating keeps the pasted name truthful.
+  async copyBlueprintShareString(friendlyName: string) {
+    // Checked before encoding: absent outside a secure context, and there is
+    // no point gzipping a blueprint we cannot deliver.
+    if (!navigator.clipboard?.writeText)
+      throw new Error("Clipboard API unavailable");
+
+    const json = JSON.stringify(this.blueprint.toBniBlueprint(friendlyName));
+    const shareString = await encodeBniShareString(json);
+
+    // May still reject — e.g. Safari drops user activation across the await
+    // above. The caller reports it.
+    await navigator.clipboard.writeText(shareString);
+
+    // Same accounting as a file download — both are the user taking a copy.
+    if (this.id != null) this.trackDownload(this.id);
   }
 
   static saveTextFile(text: string, filename: string) {

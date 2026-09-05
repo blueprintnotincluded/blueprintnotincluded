@@ -1,5 +1,5 @@
 import { BlueprintService, BlueprintFileType } from "./blueprint-service";
-import { Blueprint } from "../../../../../lib/index";
+import { Blueprint, decodeBniShareString } from "../../../../../lib/index";
 import { of, throwError } from "rxjs";
 
 describe("BlueprintService", () => {
@@ -969,6 +969,80 @@ describe("BlueprintService", () => {
       expect(saveSpy).toHaveBeenCalledWith(
         expect.stringContaining("friendlyname"),
         "Fresh.blueprint",
+      );
+    });
+  });
+
+  describe("copyBlueprintShareString()", () => {
+    let writeText: any;
+
+    const setClipboard = (impl: any) => {
+      writeText = impl;
+      Object.defineProperty(navigator, "clipboard", {
+        value: impl == null ? undefined : { writeText: impl },
+        configurable: true,
+      });
+    };
+
+    afterEach(() => {
+      setClipboard(undefined);
+      vi.restoreAllMocks();
+    });
+
+    it("writes a share string the import path can read back", async () => {
+      setClipboard(vi.fn(async () => {}));
+
+      await service.copyBlueprintShareString("Round Trip");
+
+      const written = writeText.mock.calls[0][0];
+      expect(typeof written).toBe("string");
+      expect(JSON.parse(await decodeBniShareString(written)).friendlyname).toBe(
+        "Round Trip",
+      );
+    });
+
+    // Renaming does not invalidate rawSource (the freshness check compares
+    // toMdbBlueprint(), which carries no name), so serving the held raw text
+    // would paste the old name back into the game.
+    it("regenerates rather than serving the held raw import", async () => {
+      setClipboard(vi.fn(async () => {}));
+      await service.openBlueprintFromShareString(
+        JSON.stringify({ friendlyname: "Old Name", buildings: [] }),
+      );
+
+      await service.copyBlueprintShareString("New Name");
+
+      const written = writeText.mock.calls[0][0];
+      expect(JSON.parse(await decodeBniShareString(written)).friendlyname).toBe(
+        "New Name",
+      );
+    });
+
+    it("rejects when the clipboard API is unavailable", async () => {
+      setClipboard(undefined);
+
+      await expect(service.copyBlueprintShareString("T")).rejects.toThrow();
+    });
+
+    it("does not count a download when the blueprint is unsaved", async () => {
+      setClipboard(vi.fn(async () => {}));
+
+      await service.copyBlueprintShareString("T");
+
+      expect(mockHttp.post).not.toHaveBeenCalled();
+    });
+
+    it("counts a download for a saved blueprint", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.post.mockReturnValue(of({}));
+      service.id = "abc123";
+
+      await service.copyBlueprintShareString("T");
+
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/blueprints/abc123/downloads",
+        {},
+        expect.anything(),
       );
     });
   });
