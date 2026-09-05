@@ -34,6 +34,10 @@ const NO_RESULTS_STR = $localize`:browse.noResults:No Results`;
 // distinct from "no blueprints have ever been uploaded" (see activeFilterChips
 // bar below — the sidebar can be scrolled out of view, so this and the chip
 // bar are the only clue a filter combination is too narrow).
+// Bounds the auto-fill loop (see fillViewport). 10 pages is far more than any
+// viewport needs; hitting it means something else is wrong.
+const MAX_AUTO_FILLS = 10;
+
 const NO_RESULTS_FILTERED_STR = $localize`:browse.noResultsFiltered:No blueprints match these filters`;
 
 interface ActiveFilterChip {
@@ -100,6 +104,10 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
   remaining = 0;
   sort: BlueprintSort = DEFAULT_SORT;
   skipCount = 0;
+  /** Consecutive auto-fills since the last reset. Bounds the "keep loading
+   * until the viewport overflows" loop so a page that somehow never grows
+   * cannot walk the whole corpus one request at a time. */
+  private autoFillCount = 0;
   private requestId = 0;
   /** Advisory sidebar counts; null when not yet loaded or the request
    * failed — the sidebar renders unfiltered/enabled either way. */
@@ -342,6 +350,7 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
     // unique and defeat the CDN cache (see the field comment)
     this.oldestDate = null;
     this.skipCount = 0;
+    this.autoFillCount = 0;
     this.noMoreBlueprints = false;
     this.working = true;
     this.remaining = 0;
@@ -729,11 +738,44 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
 
   @HostListener("window:scroll")
   onWindowScroll() {
+    this.maybeLoadMore();
+  }
+
+  // A taller window can uncover the bottom of the list without ever firing a
+  // scroll event.
+  @HostListener("window:resize")
+  onWindowResize() {
+    this.fillViewport();
+  }
+
+  private maybeLoadMore() {
+    if (this.noMoreBlueprints || this.working) return;
     const scrolled = window.scrollY + window.innerHeight;
     const total = document.documentElement.scrollHeight;
-    if (!this.noMoreBlueprints && !this.working && scrolled > total - 300) {
+    if (scrolled > total - 300) this.loadMore();
+  }
+
+  /**
+   * Scroll events alone cannot start pagination: when a page does not overflow
+   * the viewport there is nothing to scroll, so no event ever fires and the
+   * list stays stuck on page one. A page is BROWSE_INCREMENT (10) cards in a
+   * width-capped 3-column grid, so the document is ~1844px tall — any viewport
+   * taller than that (a 4K at 100% scaling, a portrait monitor, a zoomed-out
+   * window) reproduces it, as does collapsing duplicates down to fewer rows.
+   *
+   * Deferred a task so the just-appended cards have been rendered and
+   * scrollHeight reflects them; otherwise this measures the previous layout
+   * and loads a page too many.
+   */
+  private fillViewport() {
+    if (this.noMoreBlueprints || this.working) return;
+    if (this.autoFillCount >= MAX_AUTO_FILLS) return;
+    setTimeout(() => {
+      if (this.noMoreBlueprints || this.working) return;
+      if (document.documentElement.scrollHeight > window.innerHeight) return;
+      this.autoFillCount++;
       this.loadMore();
-    }
+    });
   }
 
   isReal(thumbnail: string): boolean {
@@ -947,6 +989,9 @@ export class BrowsePageComponent implements OnInit, OnDestroy {
         : NO_RESULTS_STR;
       this.blueprintListItems.push(this.nothingBlueprintItem);
     }
+
+    // The page that just landed may still not reach the bottom of the window.
+    this.fillViewport();
   }
 
   loadMore() {
