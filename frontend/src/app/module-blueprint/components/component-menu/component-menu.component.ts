@@ -263,6 +263,15 @@ export class ComponentMenuComponent
                   });
                 },
               },
+              {
+                label: $localize`Blueprint (copy text)`,
+                command: (_event: any) => {
+                  this.menuCommand.emit({
+                    type: MenuCommandType.exportBlueprintText,
+                    data: null,
+                  });
+                },
+              },
             ],
           },
           {
@@ -503,6 +512,7 @@ export enum MenuCommandType {
   getShareableUrl,
   exportImages,
   exportBlueprint,
+  exportBlueprintText,
 
   fetchIcons,
   downloadIcons,

@@ -379,6 +379,8 @@ export class ComponentBlueprintParentComponent
       this.saveBlueprint();
     else if (menuCommand.type == MenuCommandType.exportBlueprint)
       this.exportBlueprint();
+    else if (menuCommand.type == MenuCommandType.exportBlueprintText)
+      this.copyBlueprintText();
     // Technical (repack, generate solid sprites, etc)
     else if (menuCommand.type == MenuCommandType.fetchIcons)
       this.canvas.fetchIcons();
@@ -510,6 +512,41 @@ export class ComponentBlueprintParentComponent
       // unedited import; otherwise generates from the parsed model
       this.blueprintService.exportBlueprintFile(friendlyname);
     }
+  }
+
+  // Copies the mod's share-string to the clipboard — the inverse of
+  // "Upload → Blueprint (paste text)". Needs no dialog: there is nothing for
+  // the user to type, unlike the paste side.
+  copyBlueprintText() {
+    if (this.blueprintService.blueprint.blueprintItems.length == 0) {
+      this.messageService.add({
+        severity: "error",
+        summary: $localize`Empty blueprint`,
+        detail: $localize`Add some buildings before trying to save`,
+      });
+      return;
+    }
+
+    let friendlyname = "new blueprint";
+    if (this.blueprintService.name != undefined)
+      friendlyname = this.blueprintService.name;
+
+    this.blueprintService
+      .copyBlueprintShareString(friendlyname)
+      .then(() => {
+        this.messageService.add({
+          severity: "success",
+          summary: $localize`Blueprint copied`,
+          detail: $localize`Paste it into the game with the BlueprintsV2 mod`,
+        });
+      })
+      .catch(() => {
+        this.messageService.add({
+          severity: "error",
+          summary: $localize`Could not copy blueprint`,
+          detail: $localize`Your browser did not allow writing to the clipboard`,
+        });
+      });
   }
 
   updateThumbnail() {
