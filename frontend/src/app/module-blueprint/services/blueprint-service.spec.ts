@@ -1018,6 +1018,74 @@ describe("BlueprintService", () => {
       );
     });
 
+    // Safari only honours a clipboard write started inside the user gesture,
+    // so where write()/ClipboardItem exist the still-pending encode promise is
+    // handed over rather than awaited first.
+    it("hands write() a promise-backed ClipboardItem when supported", async () => {
+      const captured: any[] = [];
+      (globalThis as any).ClipboardItem = class {
+        constructor(public items: Record<string, Promise<Blob>>) {
+          captured.push(items);
+        }
+      };
+      const write = vi.fn(async () => {});
+      const writeTextSpy = vi.fn(async (_text: string) => {});
+      Object.defineProperty(navigator, "clipboard", {
+        value: { write, writeText: writeTextSpy },
+        configurable: true,
+      });
+
+      await service.copyBlueprintShareString("Gesture");
+
+      expect(write).toHaveBeenCalled();
+      expect(writeTextSpy).not.toHaveBeenCalled();
+      const blob = await captured[0]["text/plain"];
+      const decoded = await decodeBniShareString(await blob.text());
+      expect(JSON.parse(decoded).friendlyname).toBe("Gesture");
+
+      delete (globalThis as any).ClipboardItem;
+    });
+
+    it("falls back to writeText when write() rejects", async () => {
+      (globalThis as any).ClipboardItem = class {
+        constructor(public items: any) {}
+      };
+      const write = vi.fn(async () => {
+        throw new Error("promise-backed items unsupported");
+      });
+      const writeTextSpy = vi.fn(async (_text: string) => {});
+      Object.defineProperty(navigator, "clipboard", {
+        value: { write, writeText: writeTextSpy },
+        configurable: true,
+      });
+
+      await service.copyBlueprintShareString("Fallback");
+
+      expect(writeTextSpy).toHaveBeenCalled();
+      const decoded = await decodeBniShareString(writeTextSpy.mock.calls[0][0]);
+      expect(JSON.parse(decoded).friendlyname).toBe("Fallback");
+
+      delete (globalThis as any).ClipboardItem;
+    });
+
+    // The beacon must credit the blueprint that was serialized, not whatever
+    // is open by the time the async clipboard write resolves.
+    it("counts the download against the blueprint that was copied", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.post.mockReturnValue(of({}));
+      service.id = "original";
+
+      const pending = service.copyBlueprintShareString("T");
+      service.id = "opened-something-else";
+      await pending;
+
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/blueprints/original/downloads",
+        {},
+        expect.anything(),
+      );
+    });
+
     it("rejects when the clipboard API is unavailable", async () => {
       setClipboard(undefined);
 
