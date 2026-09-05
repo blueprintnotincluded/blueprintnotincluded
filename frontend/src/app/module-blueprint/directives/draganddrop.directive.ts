@@ -82,8 +82,10 @@ export class DragAndDropDirective {
       // discarded (it was the start of this gesture, not a tap), any
       // committed drag stops here (without registering as a click), and we
       // switch to interpreting further movement as a pan/zoom gesture.
+      // stopDrag only fires if a drag actually committed - an uncommitted
+      // touch never reached the tool, so there is nothing to stop.
       this.pendingTouchDown = null;
-      this.stopDrag(event, 0);
+      if (this.isMouseDown[0]) this.stopDrag(event, 0);
       this.gestureActive = true;
       this.primeGestureBaseline();
       if (event.preventDefault) event.preventDefault();

@@ -333,8 +333,10 @@ describe("DragAndDropDirective", () => {
     it("never fires the tool at all when the second finger lands before the first committed", () => {
       const downHandler = vi.fn();
       const clickHandler = vi.fn();
+      const stopDragHandler = vi.fn();
       dir.myMouseDown.subscribe(downHandler);
       dir.myMouseClick.subscribe(clickHandler);
+      dir.myMouseStopDrag.subscribe(stopDragHandler);
 
       dir.onPointerDown(
         pointerEvent(0, 10, 10, { pointerId: 1, pointerType: "touch" }),
@@ -349,9 +351,11 @@ describe("DragAndDropDirective", () => {
         pointerEvent(0, 10, 10, { pointerId: 1, pointerType: "touch" }),
       );
 
-      // The first finger of an intended pinch must not place/select anything.
+      // The first finger of an intended pinch must not place/select anything,
+      // and there was no committed drag, so there is nothing to stop either.
       expect(downHandler).not.toHaveBeenCalled();
       expect(clickHandler).not.toHaveBeenCalled();
+      expect(stopDragHandler).not.toHaveBeenCalled();
     });
 
     it("emits myMultiTouchGesture with pan and zoom deltas as the two fingers move", () => {
