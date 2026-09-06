@@ -465,7 +465,7 @@ describe('threshold sensors against the game database', function () {
 
     const blueprint = new Blueprint();
     blueprint.blueprintItems = [item];
-    const exported = blueprint.toBniBlueprint();
+    const exported = blueprint.toBniBlueprint('threshold');
     expect(exported.buildings![0].buildingData).to.deep.equal([
       { Key: 'IThresholdSwitch', Value: { Threshold: 1.5, ActivateAboveThreshold: true } },
     ]);
