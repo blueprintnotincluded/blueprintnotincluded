@@ -768,7 +768,7 @@ edits.
 ### Threshold sensors (IThresholdSwitch)
 
 `lib/src/blueprint/building-settings/threshold-sensors.ts`. The mod registers handlers by
-*component* name, not per prefab, so all 16 threshold sensors write the same two fields —
+*component* name, not per prefab, so every threshold sensor writes the same two fields —
 but `Threshold` is the raw sim value of whatever that **building** measures, never what the
 game's side screen showed the player. `THRESHOLD_SENSORS` is the per-prefab table that gives
 the bare float a meaning; conversion is affine both ways
@@ -776,13 +776,20 @@ the bare float a meaning; conversion is affine both ways
 
 - **The two that convert**: gas pressure is stored in kg and displayed in **grams** (×1000),
   and temperature is stored in **Kelvin** regardless of the authoring player's °C/°F setting
-  and displayed in °C (the site is Celsius throughout). Liquid pressure, lux, germs, rads and
-  critter counts are 1:1.
-- **Coverage**: Atmo/Hydro/Thermo Sensor *and* the matching Atmo/Hydro/Thermo **Switch**, the
-  three pipe/rail thermo sensors, Germ Sensor + three pipe/rail germ sensors, Light Sensor,
-  Radiation Sensor, Critter Sensor. Deliberately **not** `LogicWattageSensor` or
-  `LogicHEPSensor`: neither is a confirmed carrier, and radbolt thresholds live on
-  `HighEnergyParticleSpawner`/`HEPBattery.particleThreshold` — different keys entirely.
+  and displayed in °C (the site is Celsius throughout). Liquid pressure, lux, germs and rads
+  are 1:1.
+- **Coverage**: Atmo/Hydro/Thermo Sensor, the three pipe/rail thermo sensors, Germ Sensor +
+  three pipe/rail germ sensors, Light Sensor, Radiation Sensor. Deliberately **not**
+  `LogicWattageSensor` or `LogicHEPSensor`: neither is a confirmed carrier, and radbolt
+  thresholds live on `HighEnergyParticleSpawner`/`HEPBattery.particleThreshold` — different
+  keys entirely. Also **not** `PressureSwitchGas`/`PressureSwitchLiquid`/
+  `TemperatureControlledSwitch` ("Atmo/Hydro/Thermo Switch") — an earlier version of this
+  table included them on the strength of the 2024 export's full name/description/
+  buildMenuItems data (filed under Power/Electrical), but neither ONI wiki has a page for any
+  of them, web search for "Thermo Switch" surfaces Thermo *Sensor* results instead, and a
+  live playthrough did not find them in the Electrical build menu. Reads as pre-Automation-
+  Update legacy prefab data the export tool still dumps despite the live game not actually
+  offering them. Pulled until confirmed placeable via a debug/sandbox build menu.
 - **Ranges are soft.** They come from `IThresholdSwitch.RangeMin/RangeMax`, serialized
   per-prefab fields the setter does not enforce. A typed value outside them is **pulled to the
   nearest bound on commit**, never rejected; a value already stored outside them is displayed

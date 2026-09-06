@@ -115,11 +115,24 @@ function germs(): ThresholdSensorSpec {
 // Keyed by the building's prefab id (BlueprintItem.id / OniItem.id).
 //
 // The seven base sensors' units and ranges are the ones confirmed against the
-// game assembly; the pipe/rail sensors and the three Switch buildings measure
-// the same quantity as their room-sensor twin and inherit its unit.
+// game assembly; the pipe/rail sensors measure the same quantity as their
+// room-sensor twin and inherit its unit.
 //
 // Deliberately absent:
 //
+//  - PressureSwitchGas, PressureSwitchLiquid, TemperatureControlledSwitch
+//    ("Atmo/Hydro/Thermo Switch"). The 2024 export carries full names,
+//    descriptions and a buildMenuItems entry for all three (filed under
+//    Power/Electrical, not Automation), which is what led an earlier version
+//    of this table to include them. But neither wiki (wiki.gg or Fandom) has
+//    a page for any of them, web search for "Thermo Switch" returns Thermo
+//    *Sensor* results instead, and a live playthrough did not find them in
+//    the Electrical build menu. That combination looks like pre-Automation-
+//    Update legacy data (simple threshold switches, superseded by Sensor +
+//    Logic Gate) that the export tool still dumps because it reads prefab
+//    definitions rather than actual build-menu reachability. Pulled until
+//    someone confirms in a debug/sandbox build menu (which shows disabled
+//    content) whether they're placeable at all.
 //  - LogicWattageSensor and LogicHEPSensor. Neither is a confirmed
 //    IThresholdSwitch carrier, and radbolt thresholds demonstrably live on
 //    HighEnergyParticleSpawner.particleThreshold /
@@ -136,17 +149,14 @@ function germs(): ThresholdSensorSpec {
 //    also discarding what it counts. Deferred to its own change rather than
 //    solved badly here.
 export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
-  // Atmo Sensor / Atmo Switch — 1000 g is the game's own starting point.
+  // Atmo Sensor — 1000 g is the game's own starting point.
   LogicPressureSensorGas: pressureGas(1),
-  PressureSwitchGas: pressureGas(1),
 
-  // Hydro Sensor / Hydro Switch.
+  // Hydro Sensor.
   LogicPressureSensorLiquid: pressureLiquid(100),
-  PressureSwitchLiquid: pressureLiquid(100),
 
-  // Thermo Sensor / Thermo Switch and the three pipe/rail thermo sensors.
+  // Thermo Sensor and the three pipe/rail thermo sensors.
   LogicTemperatureSensor: temperature(),
-  TemperatureControlledSwitch: temperature(),
   GasConduitTemperatureSensor: temperature(),
   LiquidConduitTemperatureSensor: temperature(),
   SolidConduitTemperatureSensor: temperature(),

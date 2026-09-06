@@ -351,11 +351,8 @@ describe('threshold sensors', function () {
         'LogicPressureSensorLiquid',
         'LogicRadiationSensor',
         'LogicTemperatureSensor',
-        'PressureSwitchGas',
-        'PressureSwitchLiquid',
         'SolidConduitDiseaseSensor',
         'SolidConduitTemperatureSensor',
-        'TemperatureControlledSwitch',
       ].sort()
     );
   });
