@@ -176,7 +176,7 @@ export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
     displayScale: 1,
     displayOffset: 0,
     storedMin: 0,
-    storedMax: 5000,
+    storedMax: 4727,
     step: 1,
     decimals: 0,
     defaultThreshold: 280,
