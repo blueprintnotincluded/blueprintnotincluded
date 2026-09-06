@@ -79,7 +79,7 @@
           [value]="row.displayValue"
           [attr.min]="row.displayMin"
           [attr.max]="row.displayMax"
-          [attr.step]="row.step"
+          [attr.step]="row.stepAttr"
           (blur)="onFieldInput(row, numInput.value, numInput)"
           (keydown.enter)="
             onFieldInput(row, numInput.value, numInput); numInput.blur()

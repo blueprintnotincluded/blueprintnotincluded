@@ -240,11 +240,9 @@ export const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, an
 };
 
 for (const [prefabId, spec] of Object.entries(THRESHOLD_SENSORS)) {
-  // Note the critter sensor gets IThresholdSwitch only, never its own
-  // LogicCritterCountSensor key: LogicCritterCountSensor.Threshold is a float
-  // property wrapping countThreshold, so applying IThresholdSwitch alone sets
-  // the count correctly and leaves countCritters/countEggs at the game's own
-  // defaults instead of guessing them.
+  // Every prefab in THRESHOLD_SENSORS gets IThresholdSwitch as a creatable
+  // key. (LogicCritterCountSensor is not among them — it's excluded from
+  // THRESHOLD_SENSORS entirely; see threshold-sensors.ts for why.)
   const forPrefab = (CREATABLE_SETTINGS[prefabId] ??= {});
   forPrefab['IThresholdSwitch'] = {
     Threshold: spec.defaultThreshold,

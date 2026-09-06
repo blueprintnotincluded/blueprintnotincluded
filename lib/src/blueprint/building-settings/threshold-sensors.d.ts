@@ -12,5 +12,4 @@ export interface ThresholdSensorSpec {
 }
 export declare const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec>;
 export declare function thresholdSensorSpec(prefabId: string): ThresholdSensorSpec | undefined;
-export declare function isThresholdSensor(prefabId: string): boolean;
 //# sourceMappingURL=threshold-sensors.d.ts.map

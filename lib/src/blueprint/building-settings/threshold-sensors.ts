@@ -199,7 +199,3 @@ export function thresholdSensorSpec(prefabId: string): ThresholdSensorSpec | und
     ? THRESHOLD_SENSORS[prefabId]
     : undefined;
 }
-
-export function isThresholdSensor(prefabId: string): boolean {
-  return thresholdSensorSpec(prefabId) != null;
-}

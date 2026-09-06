@@ -585,6 +585,31 @@ describe("BuildingSettingsComponent", () => {
     expect(numberInput().value).toBe("20000");
   });
 
+  it("does not rewrite a stored value already outside the range on an untouched blur", () => {
+    // An imported blueprint's stored Threshold can already sit outside the
+    // sensor's soft display bounds. That value must be displayed and
+    // preserved untouched — a blur with no edit must not clamp it onto the
+    // boundary. This is the exact hole a clamp-before-no-op-check ordering
+    // opens: 25 kg (25000 g display) is above the 20000 g RangeMax.
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 25, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const input = numberInput();
+    expect(input.value).toBe("25000");
+
+    // No edit — the value round-trips through blur exactly as typed.
+    input.value = "25000";
+    input.dispatchEvent(new Event("blur"));
+    fixture.detectChanges();
+
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+    expect(numberInput().value).toBe("25000");
+  });
+
   it("shows the clamped value when clamping does change the stored value", () => {
     setItem("LogicPressureSensorGas", [
       {
@@ -604,6 +629,32 @@ describe("BuildingSettingsComponent", () => {
       20,
     );
     expect(numberInput().value).toBe("20000");
+  });
+
+  it("relaxes step to 'any' when min isn't a step multiple (Thermo Sensor)", () => {
+    // displayMin is -273.15 (0 K) with step 1 — a native number input
+    // validates (value - min) as a step multiple, so a whole-degree value
+    // like 20 would otherwise be marked :invalid and the spinner arrows
+    // would walk fractional degrees instead of whole ones.
+    setItem("LogicTemperatureSensor", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 293.15, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    expect(numberInput().getAttribute("step")).toBe("any");
+  });
+
+  it("keeps a numeric step when min is already step-aligned (Atmo Sensor)", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 1, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    expect(numberInput().getAttribute("step")).toBe("1");
   });
 
   it("clamps a value below the minimum up to the bound", () => {

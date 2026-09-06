@@ -28,6 +28,14 @@ interface EditableSettingRow {
   // bare count), which is why this is not optional-with-fallback.
   unitSuffix: string;
   step: number;
+  // What the template actually binds to [attr.step]. A native number input
+  // validates step against min (value - min must be a step multiple), so a
+  // fractional displayMin (Thermo Sensor's -273.15 °C) combined with an
+  // integer step marks a perfectly normal value like 20 as :invalid — the
+  // spinner arrows land on 20.85, 21.85, ... instead of whole degrees.
+  // "any" disables that check without changing the increment shown by the
+  // spinner buttons in browsers that still honour step for those.
+  stepAttr: number | "any";
   // Set on a boolean that is a two-way choice (a threshold sensor's
   // above/below direction), which renders as a pair of options rather than a
   // checkbox. Absent means an ordinary on/off checkbox.
@@ -57,6 +65,21 @@ function suffixOf(descriptor: SettingFieldDescriptor): string {
 function roundTo(value: number, decimals: number): number {
   const factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
+}
+
+// Whether (value - min) is a whole multiple of step, within floating-point
+// tolerance — the condition the browser's own step-mismatch validation uses.
+function isStepAligned(min: number, step: number): boolean {
+  if (step <= 0) return false;
+  const remainder = Math.abs(min) % step;
+  return remainder < 1e-9 || Math.abs(remainder - step) < 1e-9;
+}
+
+function stepAttrFor(
+  step: number,
+  displayMin: number | undefined,
+): number | "any" {
+  return displayMin != null && !isStepAligned(displayMin, step) ? "any" : step;
 }
 
 const CYCLE_SECONDS = 600;
@@ -144,6 +167,13 @@ export class BuildingSettingsComponent {
         const decimals =
           descriptor.decimals ?? (descriptor.type == "int" ? 0 : 2);
         const raw = value[descriptor.field];
+        const step = descriptor.step ?? (descriptor.type == "int" ? 1 : 0.1);
+        // Bounds are stored-unit in the catalogue, so they go through the
+        // same conversion as the value they constrain.
+        const displayMin =
+          descriptor.min != null
+            ? toDisplayValue(descriptor, descriptor.min)
+            : undefined;
         rows.push({
           key: entry.Key,
           field: descriptor.field,
@@ -152,18 +182,14 @@ export class BuildingSettingsComponent {
           type: descriptor.type,
           unit: descriptor.unit,
           unitSuffix: suffixOf(descriptor),
-          step: descriptor.step ?? (descriptor.type == "int" ? 1 : 0.1),
+          step,
+          stepAttr: stepAttrFor(step, displayMin),
           booleanLabels: descriptor.booleanLabels,
           displayValue:
             typeof raw == "number"
               ? roundTo(toDisplayValue(descriptor, raw), decimals)
               : raw,
-          // Bounds are stored-unit in the catalogue, so they go through the
-          // same conversion as the value they constrain.
-          displayMin:
-            descriptor.min != null
-              ? toDisplayValue(descriptor, descriptor.min)
-              : undefined,
+          displayMin,
           displayMax:
             descriptor.max != null
               ? toDisplayValue(descriptor, descriptor.max)
@@ -256,12 +282,26 @@ export class BuildingSettingsComponent {
         this.reconcile(el, row.displayValue);
         return;
       }
+      // Blurring an untouched input must not write — checked BEFORE clamping,
+      // against the raw typed number. A value already stored outside the
+      // sensor's soft range (e.g. an imported blueprint's Threshold above the
+      // display max) must round-trip through an untouched blur unchanged; if
+      // this check ran after clamping, the clamped number would never equal
+      // the (out-of-range) displayValue, and blurring the field with no edit
+      // would silently pull a stored value onto the boundary and detach
+      // rawSource for nothing. Also handles the ordinary case: the displayed
+      // value is rounded, so re-deriving a stored value from it would nudge a
+      // Thermo Sensor stored at 293.153 K to 293.15.
+      if (num === row.displayValue) {
+        this.reconcile(el, num);
+        return;
+      }
       // Soft bounds: the range comes from the sensor prefab's own
       // RangeMin/RangeMax, which the game's setter does not enforce either, so
       // an out-of-range entry is pulled to the nearest bound rather than
       // rejected. Note this only ever applies to values the user types — a
       // value already stored outside the range is displayed and preserved
-      // untouched.
+      // untouched (handled by the no-op-blur check above).
       if (row.displayMin != null && num < row.displayMin) num = row.displayMin;
       if (row.displayMax != null && num > row.displayMax) num = row.displayMax;
       // Show what was actually taken. Angular's [value] binding only rewrites
@@ -269,10 +309,12 @@ export class BuildingSettingsComponent {
       // the value already stored (typing 999999 into a sensor already at its
       // 20000 max) would otherwise leave 999999 sitting in the box.
       this.reconcile(el, num);
-      // Blurring an untouched input must not write. The displayed value is
-      // rounded, so re-deriving a stored value from it would nudge a
-      // Thermo Sensor stored at 293.153 K to 293.15 — a silent data change
-      // that also detaches rawSource for nothing.
+      // A real edit attempt (num !== displayValue above) can still clamp back
+      // onto the value already stored — typing 999999 into a sensor already
+      // at its 20000 max. That is not a change either, so it must not write
+      // or detach rawSource; this is a second, independent no-op check from
+      // the one above, since it depends on the clamped number rather than
+      // what was typed.
       if (num === row.displayValue) return;
       value = toStoredValue(row.descriptor, num);
       if (row.type == "int") value = Math.round(value);
