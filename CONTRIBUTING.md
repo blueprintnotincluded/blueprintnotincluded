@@ -65,6 +65,6 @@ A few constraints worth knowing before you design a change:
 - An automated reviewer (CodeRabbit) usually comments first. Engage with it
   as you see fit — its findings are suggestions, and reasoned pushback is
   fine.
-- The maintainer doesn't live in GitHub notifications; there's an alert set
-  up for new PRs, but a day of latency can still happen. It's not a lack of
-  interest.
+- The maintainer doesn't live in GitHub notifications; an alert for new PRs
+  is planned (inactive until its Slack webhook is configured), so a day or
+  two of latency can still happen. It's not a lack of interest.

@@ -24,9 +24,9 @@ Delete the section if there were none. -->
 <!--
 What was actually run and what happened. Be explicit about what was NOT
 verified — an honest gap is easy to check at review time; a hidden one isn't.
+-->
 
 - [ ] Backend: `npm run tsc` and `npm run test` (if backend/lib changed)
-- [ ] Frontend: `npm run lint` and `npm test` (if frontend changed)
+- [ ] Frontend: `cd frontend && npm run lint` and `cd frontend && npm test` (if frontend changed)
 - [ ] New/changed behaviour covered by a test that fails without the change
 - [ ] Manually exercised (say where: local dev server, real game, browser…)
--->
