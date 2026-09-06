@@ -7,12 +7,13 @@ import {
   resolveSettingDescriptors,
   SettingFieldDescriptor,
   SettingFieldType,
-  settingMirrorFor,
   SettingUnit,
   thresholdSensorSpec,
   toDisplayValue,
   toStoredValue,
 } from "../../../../../../../lib/index";
+
+const THRESHOLD_KEY = "IThresholdSwitch";
 
 interface EditableSettingRow {
   key: string;
@@ -81,14 +82,47 @@ export class BuildingSettingsComponent {
     return (
       this.rows.length > 0 ||
       this.otherKeys.length > 0 ||
-      this.creatableSettings.length > 0
+      this.creatableSettings.length > 0 ||
+      this.thresholdLabel != null
     );
   }
 
-  get rows(): EditableSettingRow[] {
-    const present = new Set(
-      (this.blueprintItem.buildingData ?? []).map((entry) => entry.Key),
+  // A threshold sensor with no IThresholdSwitch key is not "at 0" and not
+  // "at the default we would have written" — the blueprint simply says nothing
+  // about it, and the mod leaves the built sensor on the game's own default.
+  // That state is shown rather than hidden behind a button, so the difference
+  // between "no opinion" and "pinned to a value" is visible in the panel.
+  private get thresholdSpec() {
+    return thresholdSensorSpec(this.blueprintItem.id);
+  }
+
+  private get hasThreshold(): boolean {
+    return (this.blueprintItem.buildingData ?? []).some(
+      (entry) => entry.Key == THRESHOLD_KEY,
     );
+  }
+
+  // The row label for a threshold sensor that has no threshold stored; null
+  // for anything that is not a threshold sensor, or that already has one.
+  get thresholdLabel(): string | null {
+    const spec = this.thresholdSpec;
+    return spec != null && !this.hasThreshold ? spec.label : null;
+  }
+
+  get canClearThreshold(): boolean {
+    return this.thresholdSpec != null && this.hasThreshold;
+  }
+
+  setThreshold() {
+    this.blueprintItem.addBuildingSetting(THRESHOLD_KEY);
+    this.commit();
+  }
+
+  clearThreshold() {
+    if (this.blueprintItem.removeBuildingSetting(THRESHOLD_KEY)) this.commit();
+  }
+
+  get rows(): EditableSettingRow[] {
     const rows: EditableSettingRow[] = [];
     for (const entry of this.blueprintItem.buildingData ?? []) {
       const descriptors = resolveSettingDescriptors(
@@ -102,11 +136,6 @@ export class BuildingSettingsComponent {
 
       for (const descriptor of descriptors) {
         if (descriptor.hidden) continue;
-        // This field is a mirror of one already rendered under another Key
-        // that the building carries (the critter sensor writes its count and
-        // above/below twice). Show it once — editing either moves both.
-        const mirror = settingMirrorFor(entry.Key, descriptor.field);
-        if (mirror?.redundant && present.has(mirror.key)) continue;
         // Mirrors formatBuildingDataEntry: a missing field means this entry
         // is incomplete/malformed (or from a newer mod version) — skip it
         // rather than rendering an editable row backed by nothing, which
@@ -170,19 +199,15 @@ export class BuildingSettingsComponent {
     const existing = new Set(
       (this.blueprintItem.buildingData ?? []).map((entry) => entry.Key),
     );
-    return creatableSettingsKeysFor(this.blueprintItem.id)
-      .filter((key) => !existing.has(key))
-      .map((key) => ({ key, label: this.creatableLabel(key) }));
-  }
-
-  // A threshold key names what it sets, since a building can offer more than
-  // one creatable key and "Add automation settings" would not say which.
-  private creatableLabel(key: string): string {
-    if (key != "IThresholdSwitch") return $localize`Add automation settings`;
-    const spec = thresholdSensorSpec(this.blueprintItem.id);
-    return spec == null
-      ? $localize`Add automation settings`
-      : $localize`Set ${spec.label.toLowerCase()}:label: threshold`;
+    return (
+      creatableSettingsKeysFor(this.blueprintItem.id)
+        .filter((key) => !existing.has(key))
+        // The threshold has its own always-present row, which carries both the
+        // unset state and the control that sets it — a second button here
+        // would offer the same thing twice.
+        .filter((key) => key != THRESHOLD_KEY)
+        .map((key) => ({ key, label: $localize`Add automation settings` }))
+    );
   }
 
   trackByCreatable(_index: number, item: CreatableSetting): string {

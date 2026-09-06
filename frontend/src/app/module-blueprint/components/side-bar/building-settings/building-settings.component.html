@@ -9,6 +9,23 @@
     <span class="ui-fieldset-legend-text" i18n>Building settings</span>
   </legend>
 
+  <!-- A threshold sensor with nothing stored: the blueprint says nothing
+       about the threshold, and the game's own default applies on build. -->
+  <div class="building-setting-row" *ngIf="thresholdLabel as label">
+    <span class="building-setting-label">{{ label }}</span>
+    <span class="building-setting-control">
+      <span class="building-setting-unset" i18n>Not set</span>
+      <button
+        type="button"
+        class="building-setting-link"
+        (click)="setThreshold()"
+        i18n
+      >
+        Set
+      </button>
+    </span>
+  </div>
+
   <div
     class="building-setting-row"
     *ngFor="let row of rows; trackBy: trackByRow"
@@ -84,6 +101,19 @@
         "
       />
     </span>
+  </div>
+
+  <div class="building-setting-row" *ngIf="canClearThreshold">
+    <button
+      type="button"
+      class="building-setting-link"
+      (click)="clearThreshold()"
+      i18n
+      pTooltip="Removes the stored threshold so the blueprint says nothing about it, and the game's own default applies on build."
+      tooltipEvent="both"
+    >
+      Clear threshold
+    </button>
   </div>
 
   <button

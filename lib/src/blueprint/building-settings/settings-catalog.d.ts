@@ -23,14 +23,6 @@ export declare const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]>;
 export declare function isKnownSettingsKey(key: string): boolean;
 export declare function toDisplayValue(descriptor: SettingFieldDescriptor, stored: number): number;
 export declare function toStoredValue(descriptor: SettingFieldDescriptor, display: number): number;
-export interface SettingMirror {
-    key: string;
-    field: string;
-    toInt?: boolean;
-    redundant?: boolean;
-}
-export declare const SETTING_MIRRORS: Record<string, Record<string, SettingMirror>>;
-export declare function settingMirrorFor(key: string, field: string): SettingMirror | undefined;
 export declare function resolveSettingDescriptors(prefabId: string, key: string): SettingFieldDescriptor[];
 export declare const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, any>>>;
 export declare function creatableSettingsKeysFor(prefabId: string): string[];

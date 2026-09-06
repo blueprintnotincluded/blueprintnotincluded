@@ -64,6 +64,28 @@
   color: var(--p-primary-contrast-color);
 }
 
+.building-setting-unset {
+  color: var(--p-text-muted-color);
+  font-style: italic;
+}
+
+/* Small inline action (Set / Clear threshold) — deliberately not a pButton:
+   these sit inside a settings row, not at the panel's edge. */
+.building-setting-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--p-primary-color);
+  font: inherit;
+  font-size: smaller;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.building-setting-link:hover {
+  color: var(--p-primary-hover-color, var(--p-primary-color));
+}
+
 .building-setting-add {
   width: 100%;
   margin-top: 6px;

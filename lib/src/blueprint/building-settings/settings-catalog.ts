@@ -158,49 +158,6 @@ export function toStoredValue(descriptor: SettingFieldDescriptor, display: numbe
   return (display - (descriptor.displayOffset ?? 0)) / displayScaleOf(descriptor);
 }
 
-// Two Keys that describe one component state, so an edit to either must move
-// both or the file contradicts itself. The mod applies handlers in registration
-// order (ModAPI/API_Methods.cs), and IThresholdSwitch is registered *after*
-// LogicCritterCountSensor, so on a disagreement IThresholdSwitch silently wins.
-//
-// `toInt` marks the direction that lands on an int field:
-// LogicCritterCountSensor.Threshold is a float property wrapping the
-// countThreshold int (`countThreshold = (int)value`).
-export interface SettingMirror {
-  key: string;
-  field: string;
-  toInt?: boolean;
-  // True on the redundant half of the pair: when both Keys are present the UI
-  // renders this field once, under the *other* Key. The generic
-  // IThresholdSwitch is the half that yields, because the specific key carries
-  // the rest of the building's settings (countCritters/countEggs) alongside.
-  redundant?: boolean;
-}
-
-export const SETTING_MIRRORS: Record<string, Record<string, SettingMirror>> = {
-  LogicCritterCountSensor: {
-    countThreshold: { key: 'IThresholdSwitch', field: 'Threshold' },
-    activateOnGreaterThan: { key: 'IThresholdSwitch', field: 'ActivateAboveThreshold' },
-  },
-  IThresholdSwitch: {
-    Threshold: {
-      key: 'LogicCritterCountSensor',
-      field: 'countThreshold',
-      toInt: true,
-      redundant: true,
-    },
-    ActivateAboveThreshold: {
-      key: 'LogicCritterCountSensor',
-      field: 'activateOnGreaterThan',
-      redundant: true,
-    },
-  },
-};
-
-export function settingMirrorFor(key: string, field: string): SettingMirror | undefined {
-  return SETTING_MIRRORS[key]?.[field];
-}
-
 // The descriptors to render for one Key *on one building*. Identical to
 // SETTINGS_CATALOG[key] except where the building changes what the Key means:
 //

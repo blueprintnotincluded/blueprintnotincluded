@@ -57,6 +57,13 @@ describe("BuildingSettingsComponent", () => {
         ];
         return true;
       }),
+      removeBuildingSetting: vi.fn(function (this: any, key: string) {
+        const before = this.buildingData?.length ?? 0;
+        this.buildingData = (this.buildingData ?? []).filter(
+          (e: any) => e.Key != key,
+        );
+        return this.buildingData.length != before;
+      }),
     } as unknown as BlueprintItem;
   }
 
@@ -420,15 +427,38 @@ describe("BuildingSettingsComponent", () => {
     ).toBeNull();
   });
 
-  it("offers a named threshold button on a freshly placed sensor", () => {
+  it("shows an unset threshold as Not set, with a control to set it", () => {
     setItem("LogicPressureSensorGas", undefined);
 
-    const addButton = fixture.nativeElement.querySelector(
-      ".building-setting-add",
-    ) as HTMLButtonElement;
-    expect(addButton.textContent.trim()).toBe("Set pressure threshold");
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-label")
+        .textContent,
+    ).toBe("Pressure");
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-unset")
+        .textContent,
+    ).toBe("Not set");
+    // No number input and no direction toggle until it is set.
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-number"),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-toggle"),
+    ).toBeNull();
+    // ...and no second, redundant "add" button offering the same thing.
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-add"),
+    ).toBeNull();
+  });
 
-    addButton.click();
+  it("writes the key when the unset threshold is set", () => {
+    setItem("LogicPressureSensorGas", undefined);
+
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-link",
+      ) as HTMLButtonElement
+    ).click();
 
     expect(component.blueprintItem.addBuildingSetting).toHaveBeenCalledWith(
       "IThresholdSwitch",
@@ -440,9 +470,66 @@ describe("BuildingSettingsComponent", () => {
       },
     ]);
     expect(emitBlueprintChanged).toHaveBeenCalled();
+
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-unset"),
+    ).toBeNull();
+    expect(numberInput().value).toBe("1000");
   });
 
-  it("renders a critter sensor's duplicated state once, under its own key", () => {
+  it("clears a stored threshold back to not set", () => {
+    setItem("LogicPressureSensorGas", [
+      { Key: "Switch", Value: { switchedOn: true } },
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 1.5, ActivateAboveThreshold: true },
+      },
+    ]);
+    expect(component.canClearThreshold).toBe(true);
+
+    const clear = Array.from(
+      fixture.nativeElement.querySelectorAll(".building-setting-link"),
+    ).find((b: any) => b.textContent.trim() === "Clear threshold") as
+      HTMLButtonElement | undefined;
+    clear!.click();
+
+    expect(component.blueprintItem.removeBuildingSetting).toHaveBeenCalledWith(
+      "IThresholdSwitch",
+    );
+    // The unrelated stowaway key is untouched.
+    expect(component.blueprintItem.buildingData).toEqual([
+      { Key: "Switch", Value: { switchedOn: true } },
+    ]);
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-unset")
+        .textContent,
+    ).toBe("Not set");
+  });
+
+  it("offers no clear on a building that is not a threshold sensor", () => {
+    setItem("LogicTimerSensor", [
+      {
+        Key: "LogicTimerSensor",
+        Value: {
+          onDuration: 5.0,
+          offDuration: 5.0,
+          timeElapsedInCurrentState: 0,
+          displayCyclesMode: false,
+        },
+      },
+    ]);
+
+    expect(component.canClearThreshold).toBe(false);
+    expect(component.thresholdLabel).toBeNull();
+  });
+
+  it("leaves the critter sensor to the plain catalogue, unchanged", () => {
+    // Out of scope for the threshold work: it writes the same values under two
+    // keys, and its own key also carries countCritters/countEggs.
     setItem("LogicCritterCountSensor", [
       {
         Key: "LogicCritterCountSensor",
@@ -453,32 +540,16 @@ describe("BuildingSettingsComponent", () => {
           countEggs: false,
         },
       },
-      {
-        Key: "IThresholdSwitch",
-        Value: { Threshold: 3, ActivateAboveThreshold: true },
-      },
     ]);
 
-    // countThreshold, not IThresholdSwitch.Threshold.
+    expect(component.thresholdLabel).toBeNull();
+    expect(component.canClearThreshold).toBe(false);
     expect(component.rows.map((r: any) => `${r.key}.${r.field}`)).toEqual([
       "LogicCritterCountSensor.countThreshold",
       "LogicCritterCountSensor.activateOnGreaterThan",
       "LogicCritterCountSensor.countCritters",
       "LogicCritterCountSensor.countEggs",
     ]);
-
-    const input = numberInput();
-    input.value = "8";
-    input.dispatchEvent(new Event("blur"));
-
-    // The mirroring itself lives in BlueprintItem.setBuildingSetting; the
-    // panel's job is to edit the specific key and let the model keep the
-    // generic one in step.
-    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
-      "LogicCritterCountSensor",
-      "countThreshold",
-      8,
-    );
   });
 
   it("shows the clamped value back in the input, not what was typed", () => {

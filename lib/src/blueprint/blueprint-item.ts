@@ -8,10 +8,7 @@ import { OniItem } from '../oni-item';
 import { DrawPart } from '../drawing/draw-part';
 import { OniBuilding } from '../io/oni/oni-building';
 import { BniBuilding, BniBuildingData } from '../io/bni/bni-building';
-import {
-  getCreatableSettingDefaults,
-  settingMirrorFor,
-} from './building-settings/settings-catalog';
+import { getCreatableSettingDefaults } from './building-settings/settings-catalog';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { SpriteTag } from '../enums/sprite-tag';
 import { CameraService } from '../drawing/camera-service';
@@ -97,26 +94,28 @@ export class BlueprintItem {
     // BuildingSettingsComponent.rows), so this only guards a direct caller.
     if (entry.Value == null || typeof entry.Value !== 'object') entry.Value = {};
     entry.Value[field] = value;
+  }
 
-    // Some state is written twice under two Keys (the critter sensor's count
-    // and above/below, which it emits both as its own key and as
-    // IThresholdSwitch). The mod applies handlers in registration order, so on
-    // a disagreement the later Key silently wins — an edit has to move both.
-    //
-    // Only when the twin Key is ALREADY present: creating it here as a side
-    // effect would change what the file says the building is, which is never
-    // what an edit to one field asked for.
-    const mirror = settingMirrorFor(key, field);
-    if (mirror == null) return;
+  // The inverse of addBuildingSetting: drops a Key entirely, returning the
+  // building to "this blueprint says nothing about that setting". That is a
+  // real, distinct state and not the same as storing a default — the mod only
+  // applies keys the file actually carries (ModAPI/API_Methods.cs), so an
+  // absent Key leaves the built building on the game's own default. Without
+  // an inverse the editor could move a blueprint from unspecified to pinned
+  // but never back, silently changing what an older file means.
+  //
+  // Returns whether anything was removed.
+  public removeBuildingSetting(key: string): boolean {
+    if (this.buildingData == null) return false;
 
-    const twin = this.buildingData!.find(entry => entry.Key == mirror.key);
-    if (twin == null || twin.Value == null || typeof twin.Value !== 'object') return;
-    // The twin is only a mirror of a field it actually carries — a Value
-    // missing it is malformed, and adding the field would not repair it.
-    if (!(mirror.field in twin.Value)) return;
+    const remaining = this.buildingData.filter(entry => entry.Key != key);
+    if (remaining.length == this.buildingData.length) return false;
 
-    twin.Value[mirror.field] =
-      mirror.toInt && typeof value === 'number' ? Math.round(value) : value;
+    // Kept as an empty array rather than undefined; toBniBuilding/toMdbBuilding
+    // already omit the field when empty, so the exported document is identical
+    // either way.
+    this.buildingData = remaining;
+    return true;
   }
 
   public uiSaveSettings: UiSaveSettings[] = [];

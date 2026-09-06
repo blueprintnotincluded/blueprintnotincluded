@@ -809,13 +809,25 @@ the bare float a meaning; conversion is affine both ways
   at copy time, which the game overwrites within ~1.8s. `resolveSettingDescriptors` returns
   `[]` for `Switch` on a threshold sensor: it round-trips, but it is not a setting and is not
   counted as an unrecognized one either. The manual `LogicSwitch` keeps its editable row.
-- **The critter sensor writes its state twice** — its own key *and* `IThresholdSwitch` over
-  the same two values. The mod applies handlers in registration order and `IThresholdSwitch`
-  is registered last, so a disagreement silently wins. `SETTING_MIRRORS` +
-  `BlueprintItem.setBuildingSetting` move both, but **only when the twin Key is already
-  present** — creating it as a side effect of an edit would change what the file says the
-  building is. The panel renders the pair once, under the specific key (which also carries
-  `countCritters`/`countEggs`); the `redundant` flag marks the half that yields.
+- **"Not set" is a state, not a default.** The mod applies only the keys a file actually
+  carries, so an absent `IThresholdSwitch` leaves the built sensor on the game's own default —
+  which is different from pinning it to any value. The panel shows that explicitly (a
+  `Pressure — Not set` row rather than a bare button), and
+  `BlueprintItem.removeBuildingSetting` is the inverse of `addBuildingSetting` so the state is
+  reachable again. Without the inverse the editor could move a blueprint from unspecified to
+  pinned but never back, silently changing what an older file means after a stray click. A
+  cleared sensor exports byte-identically to one that was never touched, since
+  `toBniBuilding`/`toMdbBuilding` omit `buildingData` when empty.
+  Note a sensor copied **in-game** always carries the key (`TryGetData` returns it whenever
+  the component exists), so "not set" only arises from editor-placed buildings and older files.
+- **The critter sensor is deliberately out of the threshold table.** It *is* an
+  `IThresholdSwitch` carrier, but it writes the same two values twice — under its own key as
+  `countThreshold`/`activateOnGreaterThan` and again under `IThresholdSwitch` — and its own key
+  also carries `countCritters`/`countEggs`, which are not threshold settings. They cannot be
+  separated: the mod's handler bails on the whole `Value` object if any field is missing, so a
+  partial write applies nothing. Clearing a critter sensor's threshold therefore cannot avoid
+  discarding what it counts. Its rows still render through the plain catalogue exactly as
+  before; the two keys can still disagree, which is pre-existing. Owed a change of its own.
 - **Blurring an untouched input must not write.** The displayed value is rounded, so
   re-deriving a stored value from it would nudge a Thermo Sensor stored at 293.153 K to
   293.15 — a silent data change that also detaches `rawSource` for nothing.

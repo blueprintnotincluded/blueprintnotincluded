@@ -118,12 +118,23 @@ function germs(): ThresholdSensorSpec {
 // game assembly; the pipe/rail sensors and the three Switch buildings measure
 // the same quantity as their room-sensor twin and inherit its unit.
 //
-// Deliberately absent: LogicWattageSensor and LogicHEPSensor. Neither is a
-// confirmed IThresholdSwitch carrier, and radbolt thresholds demonstrably live
-// on HighEnergyParticleSpawner.particleThreshold / HEPBattery.particleThreshold
-// — different keys entirely. Element sensors (LogicElementSensorGas and the
-// conduit element sensors) have no threshold at all: their setting is a
-// Filterable/SelectedTag element name, handled separately.
+// Deliberately absent:
+//
+//  - LogicWattageSensor and LogicHEPSensor. Neither is a confirmed
+//    IThresholdSwitch carrier, and radbolt thresholds demonstrably live on
+//    HighEnergyParticleSpawner.particleThreshold /
+//    HEPBattery.particleThreshold — different keys entirely.
+//  - Element sensors (LogicElementSensorGas and the conduit element sensors)
+//    have no threshold at all: their setting is a Filterable/SelectedTag
+//    element name.
+//  - LogicCritterCountSensor. It *is* a carrier, but it writes the same two
+//    values twice — under its own key as countThreshold/activateOnGreaterThan
+//    and again under IThresholdSwitch — and its own key also carries
+//    countCritters/countEggs, which are not threshold settings and cannot be
+//    separated (the mod's handler bails on the whole Value object if any
+//    field is missing). So clearing a critter sensor's threshold cannot avoid
+//    also discarding what it counts. Deferred to its own change rather than
+//    solved badly here.
 export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
   // Atmo Sensor / Atmo Switch — 1000 g is the game's own starting point.
   LogicPressureSensorGas: pressureGas(1),
@@ -172,21 +183,6 @@ export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
     defaultActivateAbove: true,
   },
 
-  // Critter Sensor. LogicCritterCountSensor.Threshold is a float property
-  // wrapping the countThreshold int, so IThresholdSwitch expresses the same
-  // state — see SETTING_MIRRORS in settings-catalog.ts.
-  LogicCritterCountSensor: {
-    label: 'Critters',
-    unitSuffix: '',
-    displayScale: 1,
-    displayOffset: 0,
-    storedMin: 0,
-    storedMax: 64,
-    step: 1,
-    decimals: 0,
-    defaultThreshold: 3,
-    defaultActivateAbove: true,
-  },
 };
 
 export function thresholdSensorSpec(prefabId: string): ThresholdSensorSpec | undefined {
