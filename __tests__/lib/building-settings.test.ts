@@ -536,8 +536,8 @@ describe('BlueprintItem.removeBuildingSetting', function () {
     expect(thresholdSensorSpec('LogicCritterCountSensor')).to.equal(undefined);
     expect(creatableSettingsKeysFor('LogicCritterCountSensor')).to.deep.equal([]);
     // Its rows still render through the plain catalogue, unchanged.
-    expect(resolveSettingDescriptors('LogicCritterCountSensor', 'LogicCritterCountSensor')).to.equal(
-      SETTINGS_CATALOG.LogicCritterCountSensor
-    );
+    expect(
+      resolveSettingDescriptors('LogicCritterCountSensor', 'LogicCritterCountSensor')
+    ).to.equal(SETTINGS_CATALOG.LogicCritterCountSensor);
   });
 });

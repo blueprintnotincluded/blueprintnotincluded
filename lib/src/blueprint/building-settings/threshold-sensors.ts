@@ -192,7 +192,6 @@ export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
     defaultThreshold: 280,
     defaultActivateAbove: false,
   },
-
 };
 
 export function thresholdSensorSpec(prefabId: string): ThresholdSensorSpec | undefined {
