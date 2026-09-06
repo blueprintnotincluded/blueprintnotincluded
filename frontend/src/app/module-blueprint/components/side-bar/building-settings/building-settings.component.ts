@@ -4,28 +4,54 @@ import {
   BlueprintItem,
   creatableSettingsKeysFor,
   formatBuildingDataEntry,
-  SETTINGS_CATALOG,
+  resolveSettingDescriptors,
+  SettingFieldDescriptor,
   SettingFieldType,
+  settingMirrorFor,
   SettingUnit,
+  thresholdSensorSpec,
+  toDisplayValue,
+  toStoredValue,
 } from "../../../../../../../lib/index";
-
-// A percentage unit is stored as a 0-1 fraction (LogicTimeOfDaySensor's
-// startTime/duration) but edited as a 0-100 number, matching the game's own
-// side screen. Every other unit round-trips 1:1.
-function displayScale(unit: SettingUnit | undefined): number {
-  return unit == "cycleFraction" || unit == "%" ? 100 : 1;
-}
 
 interface EditableSettingRow {
   key: string;
   field: string;
+  // The resolved descriptor this row was built from — carried so committing an
+  // edit inverts exactly the conversion that produced displayValue.
+  descriptor: SettingFieldDescriptor;
   label: string;
   type: SettingFieldType;
   unit?: SettingUnit;
+  // What to render after the input. Empty string means no suffix at all (a
+  // bare count), which is why this is not optional-with-fallback.
+  unitSuffix: string;
+  step: number;
   displayValue: any;
   displayMin?: number;
   displayMax?: number;
   cycleHint: string | null;
+}
+
+interface CreatableSetting {
+  key: string;
+  label: string;
+}
+
+// The suffix implied by a descriptor that predates per-building units.
+function legacySuffix(unit: SettingUnit | undefined): string {
+  if (unit == "s") return "s";
+  if (unit == "cycleFraction" || unit == "%") return "%";
+  return "";
+}
+
+function suffixOf(descriptor: SettingFieldDescriptor): string {
+  return descriptor.unitSuffix ?? legacySuffix(descriptor.unit);
+}
+
+function roundTo(value: number, decimals: number): number {
+  const factor = Math.pow(10, decimals);
+  return Math.round(value * factor) / factor;
 }
 
 const CYCLE_SECONDS = 600;
@@ -51,39 +77,63 @@ export class BuildingSettingsComponent {
     return (
       this.rows.length > 0 ||
       this.otherKeys.length > 0 ||
-      this.creatableKeys.length > 0
+      this.creatableSettings.length > 0
     );
   }
 
   get rows(): EditableSettingRow[] {
+    const present = new Set(
+      (this.blueprintItem.buildingData ?? []).map((entry) => entry.Key),
+    );
     const rows: EditableSettingRow[] = [];
     for (const entry of this.blueprintItem.buildingData ?? []) {
-      const descriptors = SETTINGS_CATALOG[entry.Key];
-      if (descriptors == null) continue;
+      const descriptors = resolveSettingDescriptors(
+        this.blueprintItem.id,
+        entry.Key,
+      );
+      if (descriptors.length == 0) continue;
 
       const value = entry.Value;
       if (value == null || typeof value !== "object") continue;
 
       for (const descriptor of descriptors) {
         if (descriptor.hidden) continue;
+        // This field is a mirror of one already rendered under another Key
+        // that the building carries (the critter sensor writes its count and
+        // above/below twice). Show it once — editing either moves both.
+        const mirror = settingMirrorFor(entry.Key, descriptor.field);
+        if (mirror?.redundant && present.has(mirror.key)) continue;
         // Mirrors formatBuildingDataEntry: a missing field means this entry
         // is incomplete/malformed (or from a newer mod version) — skip it
         // rather than rendering an editable row backed by nothing, which
         // would crash setBuildingSetting the moment the user touched it.
         if (!(descriptor.field in value)) continue;
-        const scale = displayScale(descriptor.unit);
+        const decimals =
+          descriptor.decimals ?? (descriptor.type == "int" ? 0 : 2);
         const raw = value[descriptor.field];
         rows.push({
           key: entry.Key,
           field: descriptor.field,
+          descriptor,
           label: descriptor.labelKey,
           type: descriptor.type,
           unit: descriptor.unit,
-          displayValue: typeof raw == "number" ? raw * scale : raw,
+          unitSuffix: suffixOf(descriptor),
+          step: descriptor.step ?? (descriptor.type == "int" ? 1 : 0.1),
+          displayValue:
+            typeof raw == "number"
+              ? roundTo(toDisplayValue(descriptor, raw), decimals)
+              : raw,
+          // Bounds are stored-unit in the catalogue, so they go through the
+          // same conversion as the value they constrain.
           displayMin:
-            descriptor.min != null ? descriptor.min * scale : undefined,
+            descriptor.min != null
+              ? toDisplayValue(descriptor, descriptor.min)
+              : undefined,
           displayMax:
-            descriptor.max != null ? descriptor.max * scale : undefined,
+            descriptor.max != null
+              ? toDisplayValue(descriptor, descriptor.max)
+              : undefined,
           cycleHint:
             descriptor.unit == "s" &&
             typeof raw == "number" &&
@@ -98,7 +148,10 @@ export class BuildingSettingsComponent {
 
   get otherKeys(): string[] {
     return (this.blueprintItem.buildingData ?? [])
-      .filter((entry) => formatBuildingDataEntry(entry) == null)
+      .filter(
+        (entry) =>
+          formatBuildingDataEntry(entry, this.blueprintItem.id) == null,
+      )
       .map((entry) => entry.Key);
   }
 
@@ -108,13 +161,27 @@ export class BuildingSettingsComponent {
 
   // Keys this specific building can create from scratch (hand-checked
   // catalogue defaults) that it does not already have.
-  get creatableKeys(): string[] {
+  get creatableSettings(): CreatableSetting[] {
     const existing = new Set(
       (this.blueprintItem.buildingData ?? []).map((entry) => entry.Key),
     );
-    return creatableSettingsKeysFor(this.blueprintItem.id).filter(
-      (key) => !existing.has(key),
-    );
+    return creatableSettingsKeysFor(this.blueprintItem.id)
+      .filter((key) => !existing.has(key))
+      .map((key) => ({ key, label: this.creatableLabel(key) }));
+  }
+
+  // A threshold key names what it sets, since a building can offer more than
+  // one creatable key and "Add automation settings" would not say which.
+  private creatableLabel(key: string): string {
+    if (key != "IThresholdSwitch") return $localize`Add automation settings`;
+    const spec = thresholdSensorSpec(this.blueprintItem.id);
+    return spec == null
+      ? $localize`Add automation settings`
+      : $localize`Set ${spec.label.toLowerCase()}:label: threshold`;
+  }
+
+  trackByCreatable(_index: number, item: CreatableSetting): string {
+    return item.key;
   }
 
   addSetting(key: string) {
@@ -141,7 +208,12 @@ export class BuildingSettingsComponent {
       if (Number.isNaN(num)) return;
       if (row.displayMin != null && num < row.displayMin) num = row.displayMin;
       if (row.displayMax != null && num > row.displayMax) num = row.displayMax;
-      value = num / displayScale(row.unit);
+      // Blurring an untouched input must not write. The displayed value is
+      // rounded, so re-deriving a stored value from it would nudge a
+      // Thermo Sensor stored at 293.153 K to 293.15 — a silent data change
+      // that also detaches rawSource for nothing.
+      if (num === row.displayValue) return;
+      value = toStoredValue(row.descriptor, num);
       if (row.type == "int") value = Math.round(value);
     } else if (row.type == "string") {
       value = String(rawInput);

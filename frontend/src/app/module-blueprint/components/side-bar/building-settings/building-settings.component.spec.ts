@@ -3,7 +3,10 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
-import { BlueprintItem } from "../../../../../../../lib/index";
+import {
+  BlueprintItem,
+  getCreatableSettingDefaults,
+} from "../../../../../../../lib/index";
 import { BuildingSettingsComponent } from "./building-settings.component";
 
 describe("BuildingSettingsComponent", () => {
@@ -43,10 +46,14 @@ describe("BuildingSettingsComponent", () => {
         const entry = this.buildingData.find((e: any) => e.Key == key);
         entry.Value[field] = value;
       }),
+      // Uses the real catalogue defaults, so a test that clicks the add
+      // button sees the object the editor would actually write.
       addBuildingSetting: vi.fn(function (this: any, key: string) {
+        const defaults = getCreatableSettingDefaults(this.id, key);
+        if (defaults == null) return false;
         this.buildingData = [
           ...(this.buildingData ?? []),
-          { Key: key, Value: { onDuration: 10, offDuration: 10 } },
+          { Key: key, Value: { ...defaults } },
         ];
         return true;
       }),
@@ -276,6 +283,197 @@ describe("BuildingSettingsComponent", () => {
       "LogicAlarm",
       "notificationName",
       "x".repeat(200),
+    );
+  });
+
+  // --- Threshold sensors -------------------------------------------------
+  // IThresholdSwitch stores the raw sim value; the panel has to show what the
+  // game's own side screen showed the player, and convert back on edit.
+
+  function numberInput(): HTMLInputElement {
+    return fixture.nativeElement.querySelector(
+      ".building-setting-number",
+    ) as HTMLInputElement;
+  }
+
+  it("shows an Atmo Sensor threshold in grams, not stored kilograms", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    expect(numberInput().value).toBe("500");
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-unit").textContent,
+    ).toBe("g");
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-label")
+        .textContent,
+    ).toBe("Pressure");
+  });
+
+  it("stores an edited gas pressure back in kilograms", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const input = numberInput();
+    input.value = "1500";
+    input.dispatchEvent(new Event("blur"));
+
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "IThresholdSwitch",
+      "Threshold",
+      1.5,
+    );
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+  });
+
+  it("shows a Thermo Sensor threshold in Celsius and stores Kelvin", () => {
+    setItem("LogicTemperatureSensor", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 293.15, ActivateAboveThreshold: false },
+      },
+    ]);
+
+    expect(numberInput().value).toBe("20");
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-unit").textContent,
+    ).toBe("°C");
+
+    const input = numberInput();
+    input.value = "-10";
+    input.dispatchEvent(new Event("blur"));
+
+    const call = (component.blueprintItem.setBuildingSetting as any).mock
+      .calls[0];
+    expect(call[0]).toBe("IThresholdSwitch");
+    expect(call[1]).toBe("Threshold");
+    expect(call[2]).toBeCloseTo(263.15, 9);
+  });
+
+  it("does not write when an input is blurred without being edited", () => {
+    // The displayed value is rounded, so re-deriving a stored value from it
+    // would nudge 293.153 K to 293.15 and detach rawSource for nothing.
+    setItem("LogicTemperatureSensor", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 293.153, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    numberInput().dispatchEvent(new Event("blur"));
+
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+    expect(emitBlueprintChanged).not.toHaveBeenCalled();
+  });
+
+  it("clamps a typed value to the sensor's own soft bounds", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const input = numberInput();
+    input.value = "999999";
+    input.dispatchEvent(new Event("blur"));
+
+    // 20000 g is the 20 kg RangeMax, converted back to stored units.
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "IThresholdSwitch",
+      "Threshold",
+      20,
+    );
+  });
+
+  it("hides the stowaway Switch key a copied sensor carries", () => {
+    // Sensors extend Switch, so the mod's Switch handler stores the sensor's
+    // sampled output. It round-trips, but it is not a setting.
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+      { Key: "Switch", Value: { switchedOn: true } },
+    ]);
+
+    // One checkbox only: ActivateAboveThreshold, not switchedOn.
+    const checkboxes = fixture.nativeElement.querySelectorAll(
+      'input[type="checkbox"]',
+    );
+    expect(checkboxes.length).toBe(1);
+    // ...and it is not reported as an unrecognized preserved setting either.
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-other"),
+    ).toBeNull();
+  });
+
+  it("offers a named threshold button on a freshly placed sensor", () => {
+    setItem("LogicPressureSensorGas", undefined);
+
+    const addButton = fixture.nativeElement.querySelector(
+      ".building-setting-add",
+    ) as HTMLButtonElement;
+    expect(addButton.textContent.trim()).toBe("Set pressure threshold");
+
+    addButton.click();
+
+    expect(component.blueprintItem.addBuildingSetting).toHaveBeenCalledWith(
+      "IThresholdSwitch",
+    );
+    expect(component.blueprintItem.buildingData).toEqual([
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 1, ActivateAboveThreshold: true },
+      },
+    ]);
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+  });
+
+  it("renders a critter sensor's duplicated state once, under its own key", () => {
+    setItem("LogicCritterCountSensor", [
+      {
+        Key: "LogicCritterCountSensor",
+        Value: {
+          countThreshold: 3,
+          activateOnGreaterThan: true,
+          countCritters: true,
+          countEggs: false,
+        },
+      },
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 3, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    // countThreshold, not IThresholdSwitch.Threshold.
+    expect(component.rows.map((r: any) => `${r.key}.${r.field}`)).toEqual([
+      "LogicCritterCountSensor.countThreshold",
+      "LogicCritterCountSensor.activateOnGreaterThan",
+      "LogicCritterCountSensor.countCritters",
+      "LogicCritterCountSensor.countEggs",
+    ]);
+
+    const input = numberInput();
+    input.value = "8";
+    input.dispatchEvent(new Event("blur"));
+
+    // The mirroring itself lives in BlueprintItem.setBuildingSetting; the
+    // panel's job is to edit the specific key and let the model keep the
+    // generic one in step.
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "LogicCritterCountSensor",
+      "countThreshold",
+      8,
     );
   });
 });

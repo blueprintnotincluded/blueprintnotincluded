@@ -4,9 +4,16 @@ import {
   Blueprint,
   BlueprintHelpers,
   BniBuildingData,
+  creatableSettingsKeysFor,
   formatBuildingDataEntry,
   isKnownSettingsKey,
+  OniItem,
+  resolveSettingDescriptors,
   SETTINGS_CATALOG,
+  THRESHOLD_SENSORS,
+  thresholdSensorSpec,
+  toDisplayValue,
+  toStoredValue,
 } from '../../lib/index';
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
@@ -324,5 +331,192 @@ describe('BlueprintItem.setBuildingSetting / addBuildingSetting', function () {
       timeElapsedInCurrentState: 3.099925,
       displayCyclesMode: false,
     });
+  });
+});
+
+// Per-building meaning of the IThresholdSwitch key. The handler is registered
+// by component name, so every threshold sensor writes the same two fields but
+// `Threshold` is the raw sim value of whatever that building measures.
+describe('threshold sensors', function () {
+  it('covers the confirmed IThresholdSwitch carriers and nothing unverified', () => {
+    expect(Object.keys(THRESHOLD_SENSORS).sort()).to.deep.equal(
+      [
+        'GasConduitDiseaseSensor',
+        'GasConduitTemperatureSensor',
+        'LiquidConduitDiseaseSensor',
+        'LiquidConduitTemperatureSensor',
+        'LogicCritterCountSensor',
+        'LogicDiseaseSensor',
+        'LogicLightSensor',
+        'LogicPressureSensorGas',
+        'LogicPressureSensorLiquid',
+        'LogicRadiationSensor',
+        'LogicTemperatureSensor',
+        'PressureSwitchGas',
+        'PressureSwitchLiquid',
+        'SolidConduitDiseaseSensor',
+        'SolidConduitTemperatureSensor',
+        'TemperatureControlledSwitch',
+      ].sort()
+    );
+  });
+
+  it('converts gas pressure between stored kg and displayed grams', () => {
+    const descriptor = resolveSettingDescriptors('LogicPressureSensorGas', 'IThresholdSwitch').find(
+      d => d.field == 'Threshold'
+    )!;
+    expect(descriptor.unitSuffix).to.equal('g');
+    expect(toDisplayValue(descriptor, 1.5)).to.equal(1500);
+    expect(toStoredValue(descriptor, 1500)).to.equal(1.5);
+    // The catalogue bound is stored-unit; 20 kg is the 20000 g the UI shows.
+    expect(toDisplayValue(descriptor, descriptor.max!)).to.equal(20000);
+  });
+
+  it('converts temperature between stored Kelvin and displayed Celsius', () => {
+    const descriptor = resolveSettingDescriptors('LogicTemperatureSensor', 'IThresholdSwitch').find(
+      d => d.field == 'Threshold'
+    )!;
+    expect(descriptor.unitSuffix).to.equal('°C');
+    expect(toDisplayValue(descriptor, 293.15)).to.be.closeTo(20, 1e-9);
+    expect(toStoredValue(descriptor, -10)).to.be.closeTo(263.15, 1e-9);
+  });
+
+  it('round-trips every spec through display and back', () => {
+    for (const [prefabId, spec] of Object.entries(THRESHOLD_SENSORS)) {
+      const descriptor = resolveSettingDescriptors(prefabId, 'IThresholdSwitch').find(
+        d => d.field == 'Threshold'
+      )!;
+      for (const stored of [spec.storedMin, spec.defaultThreshold, spec.storedMax]) {
+        expect(toStoredValue(descriptor, toDisplayValue(descriptor, stored))).to.be.closeTo(
+          stored,
+          1e-6,
+          `${prefabId} @ ${stored}`
+        );
+      }
+    }
+  });
+
+  it('leaves the ActivateAboveThreshold toggle alone', () => {
+    const descriptor = resolveSettingDescriptors('LogicLightSensor', 'IThresholdSwitch').find(
+      d => d.field == 'ActivateAboveThreshold'
+    )!;
+    expect(descriptor.type).to.equal('bool');
+    expect(descriptor.unitSuffix).to.equal(undefined);
+  });
+
+  it('falls back to the bare catalogue entry on a building with no spec', () => {
+    expect(resolveSettingDescriptors('LogicCounter', 'IThresholdSwitch')).to.deep.equal(
+      SETTINGS_CATALOG.IThresholdSwitch
+    );
+    expect(thresholdSensorSpec('LogicCounter')).to.equal(undefined);
+  });
+
+  // Sensors extend Switch, so the mod's Switch handler matches them and a
+  // copied sensor carries a stowaway switchedOn holding its sampled output.
+  it('suppresses the stowaway Switch key on a sensor but not on a real switch', () => {
+    expect(resolveSettingDescriptors('LogicPressureSensorGas', 'Switch')).to.deep.equal([]);
+    expect(resolveSettingDescriptors('LogicSwitch', 'Switch')).to.deep.equal(
+      SETTINGS_CATALOG.Switch
+    );
+  });
+
+  it('still counts a suppressed Switch as known, not as an unknown stored setting', () => {
+    const entry: BniBuildingData = { Key: 'Switch', Value: { switchedOn: true } };
+    expect(formatBuildingDataEntry(entry, 'LogicPressureSensorGas')).to.deep.equal([]);
+    expect(formatBuildingDataEntry({ Key: 'Door', Value: {} }, 'LogicPressureSensorGas')).to.equal(
+      null
+    );
+  });
+
+  it('formats a threshold in the unit of the building that carries it', () => {
+    const entry: BniBuildingData = {
+      Key: 'IThresholdSwitch',
+      Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+    };
+    const rows = formatBuildingDataEntry(entry, 'LogicPressureSensorGas')!;
+    expect(rows.find(r => r.field == 'Threshold')!.text).to.equal('500 g');
+    // Unqualified, it is still the bare catalogue number it always was.
+    expect(formatBuildingDataEntry(entry)!.find(r => r.field == 'Threshold')!.text).to.equal('0.5');
+  });
+});
+
+describe('threshold sensors against the game database', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  it('names only prefabs that exist in database-2024.json', () => {
+    for (const prefabId of Object.keys(THRESHOLD_SENSORS))
+      expect(() => OniItem.getOniItem(prefabId), prefabId).to.not.throw();
+  });
+
+  it('offers IThresholdSwitch as creatable on every sensor', () => {
+    for (const prefabId of Object.keys(THRESHOLD_SENSORS))
+      expect(creatableSettingsKeysFor(prefabId), prefabId).to.include('IThresholdSwitch');
+    // ...and on nothing else. LogicTimerSensor keeps its own creatable key.
+    expect(creatableSettingsKeysFor('LogicTimerSensor')).to.deep.equal(['LogicTimerSensor']);
+    expect(creatableSettingsKeysFor('LogicCounter')).to.deep.equal([]);
+  });
+
+  it('creates a complete Value that survives a blueprint round-trip', () => {
+    const item = BlueprintHelpers.createInstance('LogicPressureSensorGas')!;
+    expect(item.addBuildingSetting('IThresholdSwitch')).to.equal(true);
+    item.setBuildingSetting('IThresholdSwitch', 'Threshold', 1.5);
+
+    const blueprint = new Blueprint();
+    blueprint.blueprintItems = [item];
+    const exported = blueprint.toBniBlueprint();
+    expect(exported.buildings![0].buildingData).to.deep.equal([
+      { Key: 'IThresholdSwitch', Value: { Threshold: 1.5, ActivateAboveThreshold: true } },
+    ]);
+  });
+
+  // The critter sensor writes its count and above/below twice; the mod applies
+  // IThresholdSwitch last, so a disagreement would silently win.
+  it('mirrors an edit onto the twin Key when the building carries both', () => {
+    const item = BlueprintHelpers.createInstance('LogicCritterCountSensor')!;
+    item.buildingData = [
+      {
+        Key: 'LogicCritterCountSensor',
+        Value: {
+          countThreshold: 3,
+          activateOnGreaterThan: true,
+          countCritters: true,
+          countEggs: false,
+        },
+      },
+      { Key: 'IThresholdSwitch', Value: { Threshold: 3.0, ActivateAboveThreshold: true } },
+    ];
+
+    item.setBuildingSetting('LogicCritterCountSensor', 'countThreshold', 8);
+    item.setBuildingSetting('LogicCritterCountSensor', 'activateOnGreaterThan', false);
+
+    const twin = item.buildingData.find(e => e.Key == 'IThresholdSwitch')!;
+    expect(twin.Value).to.deep.equal({ Threshold: 8, ActivateAboveThreshold: false });
+
+    // ...and back the other way, rounding onto the int field.
+    item.setBuildingSetting('IThresholdSwitch', 'Threshold', 5.4);
+    const own = item.buildingData.find(e => e.Key == 'LogicCritterCountSensor')!;
+    expect(own.Value.countThreshold).to.equal(5);
+    expect(own.Value.countCritters).to.equal(true);
+  });
+
+  it('never creates the twin Key as a side effect of an edit', () => {
+    const item = BlueprintHelpers.createInstance('LogicCritterCountSensor')!;
+    item.buildingData = [
+      {
+        Key: 'LogicCritterCountSensor',
+        Value: {
+          countThreshold: 3,
+          activateOnGreaterThan: true,
+          countCritters: true,
+          countEggs: false,
+        },
+      },
+    ];
+
+    item.setBuildingSetting('LogicCritterCountSensor', 'countThreshold', 9);
+
+    expect(item.buildingData.map(e => e.Key)).to.deep.equal(['LogicCritterCountSensor']);
   });
 });

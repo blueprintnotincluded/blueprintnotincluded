@@ -54,6 +54,7 @@ export * from './src/blueprint/terrain-metadata';
 export * from './src/blueprint/note-conversion';
 export * from './src/blueprint/bpv2-sanitize';
 export * from './src/blueprint/translation';
+export * from './src/blueprint/building-settings/threshold-sensors';
 export * from './src/blueprint/building-settings/settings-catalog';
 export * from './src/blueprint/building-settings/format-setting';
 export * from './src/search/query-normalize';

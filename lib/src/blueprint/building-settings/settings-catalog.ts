@@ -1,3 +1,5 @@
+import { THRESHOLD_SENSORS, thresholdSensorSpec } from './threshold-sensors';
+
 // Curated catalogue of the BlueprintsV2 `buildingData` component keys we
 // know how to display (and, from phase 3, edit) — spec/building-settings-plan.md
 // "Automation keys in scope" table, verified against
@@ -29,6 +31,20 @@ export interface SettingFieldDescriptor {
   // `LogicTimerSensor.timeElapsedInCurrentState` today — a runtime value the
   // mod's TryApplyData still requires present in a written Value object.
   hidden?: boolean;
+
+  // Affine stored <-> display conversion, for fields whose stored value is a
+  // raw sim number rather than what the game showed the player:
+  //   display = stored * displayScale + displayOffset
+  // Both default to the `unit`-derived legacy behaviour (see displayScaleOf)
+  // when absent, so a descriptor that sets neither is unchanged.
+  displayScale?: number;
+  displayOffset?: number;
+  // Literal suffix rendered after the input ('g', '°C', 'lux', ...). When
+  // absent the UI falls back to the symbol implied by `unit`.
+  unitSuffix?: string;
+  // Display-space rounding and input step.
+  decimals?: number;
+  step?: number;
 }
 
 // Keyed by the component `Key` (nameof the ONI component class — the mod's
@@ -111,6 +127,109 @@ export function isKnownSettingsKey(key: string): boolean {
   return Object.prototype.hasOwnProperty.call(SETTINGS_CATALOG, key);
 }
 
+// The stored -> display multiplier for a descriptor. An explicit displayScale
+// wins; otherwise the legacy unit-derived rule applies, where a 0-1 fraction
+// (LogicTimeOfDaySensor) is edited as a 0-100 number to match the game's own
+// side screen. Every other unit round-trips 1:1.
+function displayScaleOf(descriptor: SettingFieldDescriptor): number {
+  if (descriptor.displayScale != null) return descriptor.displayScale;
+  return descriptor.unit == 'cycleFraction' || descriptor.unit == '%' ? 100 : 1;
+}
+
+export function toDisplayValue(descriptor: SettingFieldDescriptor, stored: number): number {
+  return stored * displayScaleOf(descriptor) + (descriptor.displayOffset ?? 0);
+}
+
+export function toStoredValue(descriptor: SettingFieldDescriptor, display: number): number {
+  return (display - (descriptor.displayOffset ?? 0)) / displayScaleOf(descriptor);
+}
+
+// Two Keys that describe one component state, so an edit to either must move
+// both or the file contradicts itself. The mod applies handlers in registration
+// order (ModAPI/API_Methods.cs), and IThresholdSwitch is registered *after*
+// LogicCritterCountSensor, so on a disagreement IThresholdSwitch silently wins.
+//
+// `toInt` marks the direction that lands on an int field:
+// LogicCritterCountSensor.Threshold is a float property wrapping the
+// countThreshold int (`countThreshold = (int)value`).
+export interface SettingMirror {
+  key: string;
+  field: string;
+  toInt?: boolean;
+  // True on the redundant half of the pair: when both Keys are present the UI
+  // renders this field once, under the *other* Key. The generic
+  // IThresholdSwitch is the half that yields, because the specific key carries
+  // the rest of the building's settings (countCritters/countEggs) alongside.
+  redundant?: boolean;
+}
+
+export const SETTING_MIRRORS: Record<string, Record<string, SettingMirror>> = {
+  LogicCritterCountSensor: {
+    countThreshold: { key: 'IThresholdSwitch', field: 'Threshold' },
+    activateOnGreaterThan: { key: 'IThresholdSwitch', field: 'ActivateAboveThreshold' },
+  },
+  IThresholdSwitch: {
+    Threshold: {
+      key: 'LogicCritterCountSensor',
+      field: 'countThreshold',
+      toInt: true,
+      redundant: true,
+    },
+    ActivateAboveThreshold: {
+      key: 'LogicCritterCountSensor',
+      field: 'activateOnGreaterThan',
+      redundant: true,
+    },
+  },
+};
+
+export function settingMirrorFor(key: string, field: string): SettingMirror | undefined {
+  return SETTING_MIRRORS[key]?.[field];
+}
+
+// The descriptors to render for one Key *on one building*. Identical to
+// SETTINGS_CATALOG[key] except where the building changes what the Key means:
+//
+//  - `IThresholdSwitch` on a threshold sensor: the bare unitless `Threshold`
+//    float becomes the quantity that building actually measures, with the
+//    conversion and soft bounds from THRESHOLD_SENSORS.
+//  - `Switch` on a threshold sensor: nothing. Sensors extend Switch, so the
+//    mod's Switch handler matches them and a copied sensor carries a stowaway
+//    `switchedOn` holding its sampled *output* at copy time, which the game
+//    overwrites within ~1.8s. It round-trips, but it is not a setting and must
+//    not be offered as one. The manual LogicSwitch is not a threshold sensor,
+//    so it keeps its editable row.
+export function resolveSettingDescriptors(
+  prefabId: string,
+  key: string
+): SettingFieldDescriptor[] {
+  const base = SETTINGS_CATALOG[key];
+  if (base == null) return [];
+
+  const spec = thresholdSensorSpec(prefabId);
+  if (spec == null) return base;
+
+  if (key == 'Switch') return [];
+  if (key != 'IThresholdSwitch') return base;
+
+  return base.map(descriptor => {
+    if (descriptor.field != 'Threshold') return descriptor;
+    return {
+      ...descriptor,
+      labelKey: spec.label,
+      unitSuffix: spec.unitSuffix,
+      displayScale: spec.displayScale,
+      displayOffset: spec.displayOffset,
+      // min/max stay in STORED units, like every other catalogue bound — the
+      // UI converts them through toDisplayValue alongside the value itself.
+      min: spec.storedMin,
+      max: spec.storedMax,
+      decimals: spec.decimals,
+      step: spec.step,
+    };
+  });
+}
+
 // Editing an already-present Key is offered for every entry in
 // SETTINGS_CATALOG above. *Creating* a Key from scratch (a building placed in
 // the editor, or an uploaded file that omitted it because it was all-default)
@@ -120,7 +239,7 @@ export function isKnownSettingsKey(key: string): boolean {
 // and worse, a wrong guess for a gameplay-affecting field changes the
 // building's behaviour versus leaving it absent.
 //
-// v1 ships only LogicTimerSensor, whose four fields are all either given
+// LogicTimerSensor, whose four fields are all either given
 // (onDuration/offDuration: spec/building-settings-plan.md phase 3 step 1) or
 // definitionally safe (timeElapsedInCurrentState: 0 for a fresh component;
 // displayCyclesMode: a display-only toggle with no simulation effect even if
@@ -128,6 +247,14 @@ export function isKnownSettingsKey(key: string): boolean {
 // LogicCounter, whose resetCountAtMax/advancedMode defaults are not
 // confirmed — stays edit-only-when-present until its real defaults are
 // verified in-game. Extend CREATABLE_SETTINGS then, per building prefab id.
+//
+// `IThresholdSwitch` on every threshold sensor is the second entry, and it is
+// safe for the same reason: the handler reads exactly two fields and we write
+// both, so there is no partial-Value hazard, and TryApplyData is guarded by
+// TryGetComponent so a building that turns out not to carry the component
+// simply ignores it. Without this the feature would only work on blueprints
+// imported from the game — a sensor placed in the editor has no buildingData
+// at all.
 export const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, any>>> = {
   LogicTimerSensor: {
     LogicTimerSensor: {
@@ -138,6 +265,19 @@ export const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, an
     },
   },
 };
+
+for (const [prefabId, spec] of Object.entries(THRESHOLD_SENSORS)) {
+  // Note the critter sensor gets IThresholdSwitch only, never its own
+  // LogicCritterCountSensor key: LogicCritterCountSensor.Threshold is a float
+  // property wrapping countThreshold, so applying IThresholdSwitch alone sets
+  // the count correctly and leaves countCritters/countEggs at the game's own
+  // defaults instead of guessing them.
+  const forPrefab = (CREATABLE_SETTINGS[prefabId] ??= {});
+  forPrefab['IThresholdSwitch'] = {
+    Threshold: spec.defaultThreshold,
+    ActivateAboveThreshold: spec.defaultActivateAbove,
+  };
+}
 
 // The Keys creatable from scratch on a specific building prefab id.
 export function creatableSettingsKeysFor(prefabId: string): string[] {

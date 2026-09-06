@@ -31,16 +31,13 @@
           [value]="row.displayValue"
           [attr.min]="row.displayMin"
           [attr.max]="row.displayMax"
-          [attr.step]="row.type === 'int' ? 1 : 0.1"
+          [attr.step]="row.step"
           (blur)="onFieldInput(row, numInput.value)"
           (keydown.enter)="onFieldInput(row, numInput.value); numInput.blur()"
         />
-        <span class="building-setting-unit" *ngIf="row.unit === 's'">s</span>
-        <span
-          class="building-setting-unit"
-          *ngIf="row.unit === 'cycleFraction' || row.unit === '%'"
-          >%</span
-        >
+        <span class="building-setting-unit" *ngIf="row.unitSuffix">{{
+          row.unitSuffix
+        }}</span>
         <span class="building-setting-hint" *ngIf="row.cycleHint">
           ({{ row.cycleHint }})
         </span>
@@ -60,14 +57,13 @@
   </div>
 
   <button
-    *ngFor="let key of creatableKeys"
+    *ngFor="let item of creatableSettings; trackBy: trackByCreatable"
     pButton
     type="button"
     class="ui-button building-setting-add"
-    (click)="addSetting(key)"
-    i18n
+    (click)="addSetting(item.key)"
   >
-    Add automation settings
+    {{ item.label }}
   </button>
 
   <div

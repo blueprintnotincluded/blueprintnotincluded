@@ -1,5 +1,11 @@
 import { BniBuildingData } from '../../io/bni/bni-building';
-import { SETTINGS_CATALOG, SettingFieldDescriptor } from './settings-catalog';
+import {
+  isKnownSettingsKey,
+  resolveSettingDescriptors,
+  SETTINGS_CATALOG,
+  SettingFieldDescriptor,
+  toDisplayValue,
+} from './settings-catalog';
 
 const CYCLE_SECONDS = 600;
 
@@ -41,6 +47,13 @@ function formatFieldValue(
     case 'int':
     case 'float':
       if (typeof raw !== 'number' || Number.isNaN(raw)) return String(raw);
+      // A descriptor carrying an explicit suffix owns its own conversion —
+      // the per-building threshold units (grams, °C, lux, germs, rads). The
+      // unit switch below stays for the symbolic units that predate it.
+      if (descriptor.unitSuffix != null) {
+        const display = formatNumber(toDisplayValue(descriptor, raw), descriptor.decimals ?? 2);
+        return descriptor.unitSuffix === '' ? display : `${display} ${descriptor.unitSuffix}`;
+      }
       switch (descriptor.unit) {
         case 's':
           return formatDuration(raw, value.displayCyclesMode);
@@ -61,9 +74,16 @@ function formatFieldValue(
 // the "N other stored settings (preserved)" line for those, and for any
 // entry whose shape this throws on (mods can register their own Keys through
 // the ModAPI, and a game update can add fields we don't know about yet).
-export function formatBuildingDataEntry(entry: BniBuildingData): FormattedSettingRow[] | null {
-  const descriptors = SETTINGS_CATALOG[entry.Key];
-  if (descriptors == null) return null;
+export function formatBuildingDataEntry(
+  entry: BniBuildingData,
+  prefabId?: string
+): FormattedSettingRow[] | null {
+  // Known-ness is a property of the Key alone; a resolved descriptor list can
+  // legitimately be empty for a known key (a sensor's stowaway `Switch`), and
+  // that must not read as "unrecognized" and land in the preserved-count line.
+  if (!isKnownSettingsKey(entry.Key)) return null;
+  const descriptors =
+    prefabId != null ? resolveSettingDescriptors(prefabId, entry.Key) : SETTINGS_CATALOG[entry.Key];
 
   const value = entry.Value ?? {};
   const rows: FormattedSettingRow[] = [];
