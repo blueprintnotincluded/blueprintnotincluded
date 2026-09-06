@@ -405,11 +405,15 @@ describe("BuildingSettingsComponent", () => {
       { Key: "Switch", Value: { switchedOn: true } },
     ]);
 
-    // One checkbox only: ActivateAboveThreshold, not switchedOn.
-    const checkboxes = fixture.nativeElement.querySelectorAll(
-      'input[type="checkbox"]',
-    );
-    expect(checkboxes.length).toBe(1);
+    // No checkbox at all: ActivateAboveThreshold renders as an above/below
+    // toggle, and switchedOn is not rendered.
+    expect(
+      fixture.nativeElement.querySelectorAll('input[type="checkbox"]').length,
+    ).toBe(0);
+    expect(component.rows.map((r: any) => `${r.key}.${r.field}`)).toEqual([
+      "IThresholdSwitch.Threshold",
+      "IThresholdSwitch.ActivateAboveThreshold",
+    ]);
     // ...and it is not reported as an unrecognized preserved setting either.
     expect(
       fixture.nativeElement.querySelector(".building-setting-other"),
@@ -475,5 +479,193 @@ describe("BuildingSettingsComponent", () => {
       "countThreshold",
       8,
     );
+  });
+
+  it("shows the clamped value back in the input, not what was typed", () => {
+    // Stored is already at the 20kg RangeMax, so clamping 999999 lands on the
+    // value the row already displays. The commit guard correctly skips the
+    // write — but the input must not be left showing 999999 while the model
+    // holds 20000.
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 20, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const input = numberInput();
+    expect(input.value).toBe("20000");
+
+    input.value = "999999";
+    input.dispatchEvent(new Event("blur"));
+    fixture.detectChanges();
+
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+    expect(numberInput().value).toBe("20000");
+  });
+
+  it("shows the clamped value when clamping does change the stored value", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const input = numberInput();
+    input.value = "999999";
+    input.dispatchEvent(new Event("blur"));
+    fixture.detectChanges();
+
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "IThresholdSwitch",
+      "Threshold",
+      20,
+    );
+    expect(numberInput().value).toBe("20000");
+  });
+
+  it("clamps a value below the minimum up to the bound", () => {
+    setItem("LogicTemperatureSensor", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 293.15, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const input = numberInput();
+    input.value = "-500";
+    input.dispatchEvent(new Event("blur"));
+    fixture.detectChanges();
+
+    // 0 K is the RangeMin, which is -273.15 °C.
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "IThresholdSwitch",
+      "Threshold",
+      0,
+    );
+    expect(numberInput().value).toBe("-273.15");
+  });
+
+  // --- Above/Below direction toggle ---------------------------------------
+
+  function toggleOptions(): HTMLButtonElement[] {
+    return Array.from(
+      fixture.nativeElement.querySelectorAll(".building-setting-toggle-option"),
+    );
+  }
+
+  it("renders the above/below direction as two options, not a checkbox", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const options = toggleOptions();
+    expect(options.map((b) => b.textContent.trim())).toEqual([
+      "Above",
+      "Below",
+    ]);
+    expect(options[0].classList.contains("selected")).toBe(true);
+    expect(options[1].classList.contains("selected")).toBe(false);
+    expect(
+      fixture.nativeElement.querySelectorAll('input[type="checkbox"]').length,
+    ).toBe(0);
+
+    const labels = Array.from(
+      fixture.nativeElement.querySelectorAll(".building-setting-label"),
+    ).map((e: any) => e.textContent.trim());
+    expect(labels).toContain("Activate when");
+  });
+
+  it("marks Below as selected when the stored direction is false", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: false },
+      },
+    ]);
+
+    const options = toggleOptions();
+    expect(options[0].classList.contains("selected")).toBe(false);
+    expect(options[1].classList.contains("selected")).toBe(true);
+  });
+
+  it("commits the direction when the other option is picked", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    toggleOptions()[1].click();
+
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "IThresholdSwitch",
+      "ActivateAboveThreshold",
+      false,
+    );
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+
+    fixture.detectChanges();
+    expect(toggleOptions()[1].classList.contains("selected")).toBe(true);
+  });
+
+  it("does not push an undo step when the selected option is re-picked", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    toggleOptions()[0].click();
+
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+    expect(emitBlueprintChanged).not.toHaveBeenCalled();
+  });
+
+  it("gives the critter sensor the same above/below control", () => {
+    setItem("LogicCritterCountSensor", [
+      {
+        Key: "LogicCritterCountSensor",
+        Value: {
+          countThreshold: 3,
+          activateOnGreaterThan: false,
+          countCritters: true,
+          countEggs: false,
+        },
+      },
+    ]);
+
+    const options = toggleOptions();
+    expect(options.map((b) => b.textContent.trim())).toEqual([
+      "Above",
+      "Below",
+    ]);
+    expect(options[1].classList.contains("selected")).toBe(true);
+    // countCritters/countEggs stay ordinary on/off checkboxes.
+    expect(
+      fixture.nativeElement.querySelectorAll('input[type="checkbox"]').length,
+    ).toBe(2);
+  });
+
+  it("restores the stored value when a number field is emptied", () => {
+    setItem("LogicPressureSensorGas", [
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 0.5, ActivateAboveThreshold: true },
+      },
+    ]);
+
+    const input = numberInput();
+    input.value = "";
+    input.dispatchEvent(new Event("blur"));
+
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+    expect(numberInput().value).toBe("500");
   });
 });

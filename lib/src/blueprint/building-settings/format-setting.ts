@@ -39,6 +39,8 @@ function formatFieldValue(
 ): string {
   switch (descriptor.type) {
     case 'bool':
+      if (descriptor.booleanLabels != null)
+        return raw ? descriptor.booleanLabels.whenTrue : descriptor.booleanLabels.whenFalse;
       return raw ? 'On' : 'Off';
     case 'string':
       return raw == null || raw === '' ? '—' : String(raw);

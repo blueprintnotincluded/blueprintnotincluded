@@ -27,6 +27,10 @@ interface EditableSettingRow {
   // bare count), which is why this is not optional-with-fallback.
   unitSuffix: string;
   step: number;
+  // Set on a boolean that is a two-way choice (a threshold sensor's
+  // above/below direction), which renders as a pair of options rather than a
+  // checkbox. Absent means an ordinary on/off checkbox.
+  booleanLabels?: { whenTrue: string; whenFalse: string };
   displayValue: any;
   displayMin?: number;
   displayMax?: number;
@@ -120,6 +124,7 @@ export class BuildingSettingsComponent {
           unit: descriptor.unit,
           unitSuffix: suffixOf(descriptor),
           step: descriptor.step ?? (descriptor.type == "int" ? 1 : 0.1),
+          booleanLabels: descriptor.booleanLabels,
           displayValue:
             typeof raw == "number"
               ? roundTo(toDisplayValue(descriptor, raw), decimals)
@@ -199,15 +204,46 @@ export class BuildingSettingsComponent {
     return `${row.key}:${row.field}`;
   }
 
-  onFieldInput(row: EditableSettingRow, rawInput: string | boolean) {
+  // `el` is the control the edit came from. It is reconciled to the value
+  // actually committed, because a rejected or adjusted edit otherwise leaves
+  // the DOM showing something the model does not hold — see the clamp note
+  // below.
+  onFieldInput(
+    row: EditableSettingRow,
+    rawInput: string | boolean,
+    el?: HTMLInputElement,
+  ) {
     let value: any = rawInput;
     if (row.type == "bool") {
       value = Boolean(rawInput);
+      // Re-picking the option already in force is not an edit; without this a
+      // click on the selected half of an above/below toggle would push an
+      // undo step that changes nothing.
+      if (value === row.displayValue) return;
     } else if (row.type == "int" || row.type == "float") {
-      let num = Number(rawInput);
-      if (Number.isNaN(num)) return;
+      // An emptied field is not an edit to zero — and Number("") is 0, so it
+      // has to be caught before the parse. Same for a stray paste that does
+      // not parse: restore what the model holds rather than leaving the
+      // control showing something that corresponds to nothing.
+      const text = String(rawInput).trim();
+      let num = Number(text);
+      if (text === "" || Number.isNaN(num)) {
+        this.reconcile(el, row.displayValue);
+        return;
+      }
+      // Soft bounds: the range comes from the sensor prefab's own
+      // RangeMin/RangeMax, which the game's setter does not enforce either, so
+      // an out-of-range entry is pulled to the nearest bound rather than
+      // rejected. Note this only ever applies to values the user types — a
+      // value already stored outside the range is displayed and preserved
+      // untouched.
       if (row.displayMin != null && num < row.displayMin) num = row.displayMin;
       if (row.displayMax != null && num > row.displayMax) num = row.displayMax;
+      // Show what was actually taken. Angular's [value] binding only rewrites
+      // the DOM when the bound value changes, so clamping an entry down onto
+      // the value already stored (typing 999999 into a sensor already at its
+      // 20000 max) would otherwise leave 999999 sitting in the box.
+      this.reconcile(el, num);
       // Blurring an untouched input must not write. The displayed value is
       // rounded, so re-deriving a stored value from it would nudge a
       // Thermo Sensor stored at 293.153 K to 293.15 — a silent data change
@@ -221,10 +257,16 @@ export class BuildingSettingsComponent {
       // paste or a value set programmatically, so enforce the catalogue
       // bound here too before it reaches storage/export.
       if (row.displayMax != null) value = value.slice(0, row.displayMax);
+      this.reconcile(el, value);
+      if (value === row.displayValue) return;
     }
 
     this.blueprintItem.setBuildingSetting(row.key, row.field, value);
     this.commit();
+  }
+
+  private reconcile(el: HTMLInputElement | undefined, value: unknown) {
+    if (el != null) el.value = String(value);
   }
 
   private commit() {

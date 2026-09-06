@@ -14,6 +14,10 @@ export interface SettingFieldDescriptor {
     unitSuffix?: string;
     decimals?: number;
     step?: number;
+    booleanLabels?: {
+        whenTrue: string;
+        whenFalse: string;
+    };
 }
 export declare const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]>;
 export declare function isKnownSettingsKey(key: string): boolean;

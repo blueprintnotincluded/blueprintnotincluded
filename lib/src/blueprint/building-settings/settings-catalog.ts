@@ -45,7 +45,21 @@ export interface SettingFieldDescriptor {
   // Display-space rounding and input step.
   decimals?: number;
   step?: number;
+  // type: 'bool' only. A boolean that is really a two-way choice rather than
+  // an on/off switch — rendered as a pair of labelled options instead of a
+  // checkbox, and formatted with these words instead of On/Off.
+  booleanLabels?: { whenTrue: string; whenFalse: string };
 }
+
+// The above/below choice every threshold sensor carries. It is a direction,
+// not an on/off state, so a checkbox labelled "Activate above threshold" makes
+// the reader negate it in their head to understand "below"; the game's own
+// side screen shows the two directions side by side.
+const ABOVE_BELOW: Pick<SettingFieldDescriptor, 'labelKey' | 'type' | 'booleanLabels'> = {
+  labelKey: 'Activate when',
+  type: 'bool',
+  booleanLabels: { whenTrue: 'Above', whenFalse: 'Below' },
+};
 
 // Keyed by the component `Key` (nameof the ONI component class — the mod's
 // own registry, API_Methods.cs RegisterVanillaBuildings()).
@@ -92,7 +106,7 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
 
   LogicCritterCountSensor: [
     { field: 'countThreshold', labelKey: 'Threshold', type: 'int', min: 0 },
-    { field: 'activateOnGreaterThan', labelKey: 'Activate above threshold', type: 'bool' },
+    { field: 'activateOnGreaterThan', ...ABOVE_BELOW },
     { field: 'countCritters', labelKey: 'Count critters', type: 'bool' },
     { field: 'countEggs', labelKey: 'Count eggs', type: 'bool' },
   ],
@@ -110,7 +124,7 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
 
   IThresholdSwitch: [
     { field: 'Threshold', labelKey: 'Threshold', type: 'float' },
-    { field: 'ActivateAboveThreshold', labelKey: 'Activate above threshold', type: 'bool' },
+    { field: 'ActivateAboveThreshold', ...ABOVE_BELOW },
   ],
 
   IActivationRangeTarget: [

@@ -784,8 +784,22 @@ the bare float a meaning; conversion is affine both ways
   `LogicHEPSensor`: neither is a confirmed carrier, and radbolt thresholds live on
   `HighEnergyParticleSpawner`/`HEPBattery.particleThreshold` — different keys entirely.
 - **Ranges are soft.** They come from `IThresholdSwitch.RangeMin/RangeMax`, serialized
-  per-prefab fields the setter does not enforce. Clamp what the user types; never reject or
-  rewrite a stored value that falls outside them.
+  per-prefab fields the setter does not enforce. A typed value outside them is **pulled to the
+  nearest bound on commit**, never rejected; a value already stored outside them is displayed
+  and preserved untouched. An emptied or unparseable field is not an edit to zero (note
+  `Number('') === 0`, so empty has to be caught before the parse) — the control is restored to
+  what the model holds.
+- **Every commit path reconciles the DOM control** (`reconcile()`), because Angular's `[value]`
+  binding only rewrites the input when the *bound* value changes. Clamping an entry down onto
+  the value already stored — typing 999999 into a sensor already at its 20000 max — otherwise
+  leaves 999999 sitting in a box whose model says 20000. Regression spec covers exactly that.
+- **The above/below choice is a direction, not a switch.** `booleanLabels` on a descriptor
+  (`{whenTrue:'Above', whenFalse:'Below'}`, shared by `IThresholdSwitch.ActivateAboveThreshold`
+  and `LogicCritterCountSensor.activateOnGreaterThan` via `ABOVE_BELOW`) renders a two-option
+  segmented control instead of a checkbox, and `formatBuildingDataEntry` prints the same words
+  instead of On/Off. A checkbox labelled "Activate above threshold" makes the reader negate it
+  in their head to understand "below". Re-picking the option already in force is not an edit
+  and pushes no undo step.
 - **`resolveSettingDescriptors(prefabId, key)`** is how the per-prefab meaning reaches both
   the panel and `formatBuildingDataEntry` — inlining it per call site is how a row and its
   read-only formatting end up disagreeing. Catalogue `min`/`max` stay in **stored** units and

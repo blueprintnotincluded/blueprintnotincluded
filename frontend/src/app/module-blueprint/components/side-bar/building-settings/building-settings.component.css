@@ -30,6 +30,40 @@
   font-size: smaller;
 }
 
+/* Two-way choice (a threshold sensor's above/below direction) rendered as one
+   segmented control, so the two directions read as alternatives rather than as
+   a switch the user has to negate in their head. */
+.building-setting-toggle {
+  display: inline-flex;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  overflow: hidden;
+}
+
+.building-setting-toggle-option {
+  padding: 2px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--p-text-muted-color);
+  font: inherit;
+  font-size: smaller;
+  cursor: pointer;
+}
+
+.building-setting-toggle-option + .building-setting-toggle-option {
+  border-left: 1px solid var(--p-content-border-color);
+}
+
+.building-setting-toggle-option:hover:not(.selected) {
+  background: var(--p-content-hover-background);
+  color: var(--p-text-color);
+}
+
+.building-setting-toggle-option.selected {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+}
+
 .building-setting-add {
   width: 100%;
   margin-top: 6px;

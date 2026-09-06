@@ -16,8 +16,34 @@
     <span class="building-setting-label">{{ row.label }}</span>
 
     <span class="building-setting-control">
+      <span
+        class="building-setting-toggle"
+        *ngIf="row.type === 'bool' && row.booleanLabels"
+        role="group"
+        [attr.aria-label]="row.label"
+      >
+        <button
+          type="button"
+          class="building-setting-toggle-option"
+          [class.selected]="row.displayValue"
+          [attr.aria-pressed]="row.displayValue"
+          (click)="onFieldInput(row, true)"
+        >
+          {{ row.booleanLabels.whenTrue }}
+        </button>
+        <button
+          type="button"
+          class="building-setting-toggle-option"
+          [class.selected]="!row.displayValue"
+          [attr.aria-pressed]="!row.displayValue"
+          (click)="onFieldInput(row, false)"
+        >
+          {{ row.booleanLabels.whenFalse }}
+        </button>
+      </span>
+
       <input
-        *ngIf="row.type === 'bool'"
+        *ngIf="row.type === 'bool' && !row.booleanLabels"
         type="checkbox"
         [checked]="row.displayValue"
         (change)="onFieldInput(row, $any($event.target).checked)"
@@ -32,8 +58,10 @@
           [attr.min]="row.displayMin"
           [attr.max]="row.displayMax"
           [attr.step]="row.step"
-          (blur)="onFieldInput(row, numInput.value)"
-          (keydown.enter)="onFieldInput(row, numInput.value); numInput.blur()"
+          (blur)="onFieldInput(row, numInput.value, numInput)"
+          (keydown.enter)="
+            onFieldInput(row, numInput.value, numInput); numInput.blur()
+          "
         />
         <span class="building-setting-unit" *ngIf="row.unitSuffix">{{
           row.unitSuffix
@@ -50,8 +78,10 @@
         class="building-setting-text"
         [value]="row.displayValue"
         [attr.maxlength]="row.displayMax"
-        (blur)="onFieldInput(row, textInput.value)"
-        (keydown.enter)="onFieldInput(row, textInput.value); textInput.blur()"
+        (blur)="onFieldInput(row, textInput.value, textInput)"
+        (keydown.enter)="
+          onFieldInput(row, textInput.value, textInput); textInput.blur()
+        "
       />
     </span>
   </div>
