@@ -6,8 +6,30 @@
   <legend
     class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text"
   >
-    <span class="ui-fieldset-legend-text" i18n>Building settings</span>
+    <span class="ui-fieldset-legend-text building-setting-legend" i18n
+      >Building settings</span
+    >
   </legend>
+
+  <!-- A threshold sensor with nothing stored: the blueprint says nothing
+       about the threshold, and the game's own default applies on build. -->
+  <div class="building-setting-row" *ngIf="thresholdLabel as label">
+    <span class="building-setting-label"
+      >{{ label }} <span class="building-setting-unset" i18n>(Not set)</span>
+    </span>
+    <span class="building-setting-control">
+      <button
+        pButton
+        type="button"
+        size="small"
+        class="building-setting-button building-setting-set"
+        (click)="setThreshold()"
+        i18n
+      >
+        Set
+      </button>
+    </span>
+  </div>
 
   <div
     class="building-setting-row"
@@ -16,8 +38,34 @@
     <span class="building-setting-label">{{ row.label }}</span>
 
     <span class="building-setting-control">
+      <span
+        class="building-setting-toggle"
+        *ngIf="row.type === 'bool' && row.booleanLabels"
+        role="group"
+        [attr.aria-label]="row.label"
+      >
+        <button
+          type="button"
+          class="building-setting-toggle-option"
+          [class.selected]="row.displayValue"
+          [attr.aria-pressed]="row.displayValue"
+          (click)="onFieldInput(row, true)"
+        >
+          {{ row.booleanLabels.whenTrue }}
+        </button>
+        <button
+          type="button"
+          class="building-setting-toggle-option"
+          [class.selected]="!row.displayValue"
+          [attr.aria-pressed]="!row.displayValue"
+          (click)="onFieldInput(row, false)"
+        >
+          {{ row.booleanLabels.whenFalse }}
+        </button>
+      </span>
+
       <input
-        *ngIf="row.type === 'bool'"
+        *ngIf="row.type === 'bool' && !row.booleanLabels"
         type="checkbox"
         [checked]="row.displayValue"
         (change)="onFieldInput(row, $any($event.target).checked)"
@@ -31,16 +79,15 @@
           [value]="row.displayValue"
           [attr.min]="row.displayMin"
           [attr.max]="row.displayMax"
-          [attr.step]="row.type === 'int' ? 1 : 0.1"
-          (blur)="onFieldInput(row, numInput.value)"
-          (keydown.enter)="onFieldInput(row, numInput.value); numInput.blur()"
+          [attr.step]="row.stepAttr"
+          (blur)="onFieldInput(row, numInput.value, numInput)"
+          (keydown.enter)="
+            onFieldInput(row, numInput.value, numInput); numInput.blur()
+          "
         />
-        <span class="building-setting-unit" *ngIf="row.unit === 's'">s</span>
-        <span
-          class="building-setting-unit"
-          *ngIf="row.unit === 'cycleFraction' || row.unit === '%'"
-          >%</span
-        >
+        <span class="building-setting-unit" *ngIf="row.unitSuffix">{{
+          row.unitSuffix
+        }}</span>
         <span class="building-setting-hint" *ngIf="row.cycleHint">
           ({{ row.cycleHint }})
         </span>
@@ -53,21 +100,41 @@
         class="building-setting-text"
         [value]="row.displayValue"
         [attr.maxlength]="row.displayMax"
-        (blur)="onFieldInput(row, textInput.value)"
-        (keydown.enter)="onFieldInput(row, textInput.value); textInput.blur()"
+        (blur)="onFieldInput(row, textInput.value, textInput)"
+        (keydown.enter)="
+          onFieldInput(row, textInput.value, textInput); textInput.blur()
+        "
       />
     </span>
   </div>
 
+  <div
+    class="building-setting-row building-setting-row-end"
+    *ngIf="canClearThreshold"
+  >
+    <button
+      pButton
+      type="button"
+      size="small"
+      severity="secondary"
+      class="building-setting-button building-setting-clear"
+      (click)="clearThreshold()"
+      i18n
+      pTooltip="Removes the stored threshold so the blueprint says nothing about it, and the game's own default applies on build."
+      tooltipEvent="both"
+    >
+      Clear threshold
+    </button>
+  </div>
+
   <button
-    *ngFor="let key of creatableKeys"
+    *ngFor="let item of creatableSettings; trackBy: trackByCreatable"
     pButton
     type="button"
     class="ui-button building-setting-add"
-    (click)="addSetting(key)"
-    i18n
+    (click)="addSetting(item.key)"
   >
-    Add automation settings
+    {{ item.label }}
   </button>
 
   <div

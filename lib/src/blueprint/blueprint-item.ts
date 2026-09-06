@@ -96,6 +96,28 @@ export class BlueprintItem {
     entry.Value[field] = value;
   }
 
+  // The inverse of addBuildingSetting: drops a Key entirely, returning the
+  // building to "this blueprint says nothing about that setting". That is a
+  // real, distinct state and not the same as storing a default — the mod only
+  // applies keys the file actually carries (ModAPI/API_Methods.cs), so an
+  // absent Key leaves the built building on the game's own default. Without
+  // an inverse the editor could move a blueprint from unspecified to pinned
+  // but never back, silently changing what an older file means.
+  //
+  // Returns whether anything was removed.
+  public removeBuildingSetting(key: string): boolean {
+    if (this.buildingData == null) return false;
+
+    const remaining = this.buildingData.filter(entry => entry.Key != key);
+    if (remaining.length == this.buildingData.length) return false;
+
+    // Kept as an empty array rather than undefined; toBniBuilding/toMdbBuilding
+    // already omit the field when empty, so the exported document is identical
+    // either way.
+    this.buildingData = remaining;
+    return true;
+  }
+
   public uiSaveSettings: UiSaveSettings[] = [];
   public getUiSettings(id: string): UiSaveSettings | undefined {
     for (let uiSave of this.uiSaveSettings) if (uiSave.id == id) return uiSave;

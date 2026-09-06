@@ -30,6 +30,65 @@
   font-size: smaller;
 }
 
+/* Two-way choice (a threshold sensor's above/below direction) rendered as one
+   segmented control, so the two directions read as alternatives rather than as
+   a switch the user has to negate in their head. */
+.building-setting-toggle {
+  display: inline-flex;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  overflow: hidden;
+}
+
+.building-setting-toggle-option {
+  padding: 2px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--p-text-muted-color);
+  font: inherit;
+  font-size: smaller;
+  cursor: pointer;
+}
+
+.building-setting-toggle-option + .building-setting-toggle-option {
+  border-left: 1px solid var(--p-content-border-color);
+}
+
+.building-setting-toggle-option:hover:not(.selected) {
+  background: var(--p-content-hover-background);
+  color: var(--p-text-color);
+}
+
+.building-setting-toggle-option.selected {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+}
+
+/* Matches the Elements and Temperature section headings, which take this
+   colour from .ui-fieldset-false-link in styles.css. That class also carries a
+   pointer cursor, because those two headings are clickable (they switch the
+   visualization overlay) — this one is not, so it takes the colour alone. */
+.building-setting-legend {
+  color: var(--p-primary-500);
+}
+
+.building-setting-unset {
+  color: var(--p-text-muted-color);
+}
+
+/* Small enough to sit inside a settings row rather than span the panel like
+   the full-width "Add automation settings" button. */
+.building-setting-button {
+  padding: 1px 10px;
+  font-size: smaller;
+}
+
+/* Clear threshold has no label beside it, so it needs pushing to the same edge
+   the Set button sits on rather than being left-aligned by space-between. */
+.building-setting-row-end {
+  justify-content: flex-end;
+}
+
 .building-setting-add {
   width: 100%;
   margin-top: 6px;

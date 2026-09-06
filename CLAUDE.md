@@ -743,9 +743,10 @@ edits.
   each field independently). `addBuildingSetting(key)` constructs a complete Value object from
   scratch using hand-verified defaults.
 - **Creatable-from-scratch is deliberately narrow** — `CREATABLE_SETTINGS` in
-  `settings-catalog.ts` currently has only `LogicTimerSensor` (`onDuration`/`offDuration`:
+  `settings-catalog.ts` holds `LogicTimerSensor` (`onDuration`/`offDuration`:
   10s each; `timeElapsedInCurrentState`: 0, definitionally correct for a fresh component;
-  `displayCyclesMode`: false, a display-only toggle with no simulation effect even if wrong).
+  `displayCyclesMode`: false, a display-only toggle with no simulation effect even if wrong)
+  plus `IThresholdSwitch` on every threshold sensor (generated from `THRESHOLD_SENSORS`).
   Every other key, including `LogicCounter` (whose `resetCountAtMax`/`advancedMode` real
   defaults aren't confirmed), stays edit-only-when-the-file-already-has-it: synthesizing an
   incomplete or wrong default for a gameplay-affecting field would silently change build
@@ -764,6 +765,88 @@ edits.
   simulated mid-edit change-detection tick rather than reusing a captured node reference)
   fails without the fix and passes with it.
 
+### Threshold sensors (IThresholdSwitch)
+
+`lib/src/blueprint/building-settings/threshold-sensors.ts`. The mod registers handlers by
+*component* name, not per prefab, so every threshold sensor writes the same two fields —
+but `Threshold` is the raw sim value of whatever that **building** measures, never what the
+game's side screen showed the player. `THRESHOLD_SENSORS` is the per-prefab table that gives
+the bare float a meaning; conversion is affine both ways
+(`display = stored * displayScale + displayOffset`, helpers `toDisplayValue`/`toStoredValue`).
+
+- **The two that convert**: gas pressure is stored in kg and displayed in **grams** (×1000),
+  and temperature is stored in **Kelvin** regardless of the authoring player's °C/°F setting
+  and displayed in °C (the site is Celsius throughout). Liquid pressure, lux, germs and rads
+  are 1:1.
+- **Coverage**: Atmo/Hydro/Thermo Sensor, the three pipe/rail thermo sensors, Germ Sensor +
+  three pipe/rail germ sensors, Light Sensor, Radiation Sensor. Deliberately **not**
+  `LogicWattageSensor` or `LogicHEPSensor`: neither is a confirmed carrier, and radbolt
+  thresholds live on `HighEnergyParticleSpawner`/`HEPBattery.particleThreshold` — different
+  keys entirely. Also **not** `PressureSwitchGas`/`PressureSwitchLiquid`/
+  `TemperatureControlledSwitch` ("Atmo/Hydro/Thermo Switch") — an earlier version of this
+  table included them on the strength of the 2024 export's full name/description/
+  buildMenuItems data (filed under Power/Electrical), but neither ONI wiki has a page for any
+  of them, web search for "Thermo Switch" surfaces Thermo *Sensor* results instead, and a
+  live playthrough did not find them in the Electrical build menu. Reads as pre-Automation-
+  Update legacy prefab data the export tool still dumps despite the live game not actually
+  offering them. Pulled until confirmed placeable via a debug/sandbox build menu.
+- **Ranges are soft.** They come from `IThresholdSwitch.RangeMin/RangeMax`, serialized
+  per-prefab fields the setter does not enforce. A typed value outside them is **pulled to the
+  nearest bound on commit**, never rejected; a value already stored outside them is displayed
+  and preserved untouched. An emptied or unparseable field is not an edit to zero (note
+  `Number('') === 0`, so empty has to be caught before the parse) — the control is restored to
+  what the model holds.
+- **Every commit path reconciles the DOM control** (`reconcile()`), because Angular's `[value]`
+  binding only rewrites the input when the *bound* value changes. Clamping an entry down onto
+  the value already stored — typing 999999 into a sensor already at its 20000 max — otherwise
+  leaves 999999 sitting in a box whose model says 20000. Regression spec covers exactly that.
+- **The above/below choice is a direction, not a switch.** `booleanLabels` on a descriptor
+  (`{whenTrue:'Above', whenFalse:'Below'}`, shared by `IThresholdSwitch.ActivateAboveThreshold`
+  and `LogicCritterCountSensor.activateOnGreaterThan` via `ABOVE_BELOW`) renders a two-option
+  segmented control instead of a checkbox, and `formatBuildingDataEntry` prints the same words
+  instead of On/Off. A checkbox labelled "Activate above threshold" makes the reader negate it
+  in their head to understand "below". Re-picking the option already in force is not an edit
+  and pushes no undo step.
+- **`resolveSettingDescriptors(prefabId, key)`** is how the per-prefab meaning reaches both
+  the panel and `formatBuildingDataEntry` — inlining it per call site is how a row and its
+  read-only formatting end up disagreeing. Catalogue `min`/`max` stay in **stored** units and
+  are converted alongside the value.
+- **The stowaway `Switch` key.** Sensors extend `Switch`, so the mod's `Switch` handler
+  matches them and a copied sensor carries `Switch.switchedOn` holding its *sampled output*
+  at copy time, which the game overwrites within ~1.8s. `resolveSettingDescriptors` returns
+  `[]` for `Switch` on a threshold sensor: it round-trips, but it is not a setting and is not
+  counted as an unrecognized one either. The manual `LogicSwitch` keeps its editable row.
+- **"Not set" is a state, not a default.** The mod applies only the keys a file actually
+  carries, so an absent `IThresholdSwitch` leaves the built sensor on the game's own default —
+  which is different from pinning it to any value. The panel shows that explicitly (a
+  `Pressure — Not set` row rather than a bare button), and
+  `BlueprintItem.removeBuildingSetting` is the inverse of `addBuildingSetting` so the state is
+  reachable again. Without the inverse the editor could move a blueprint from unspecified to
+  pinned but never back, silently changing what an older file means after a stray click. A
+  cleared sensor exports byte-identically to one that was never touched, since
+  `toBniBuilding`/`toMdbBuilding` omit `buildingData` when empty.
+  Note a sensor copied **in-game** always carries the key (`TryGetData` returns it whenever
+  the component exists), so "not set" only arises from editor-placed buildings and older files.
+- **The critter sensor is deliberately out of the threshold table.** It *is* an
+  `IThresholdSwitch` carrier, but it writes the same two values twice — under its own key as
+  `countThreshold`/`activateOnGreaterThan` and again under `IThresholdSwitch` — and its own key
+  also carries `countCritters`/`countEggs`, which are not threshold settings. They cannot be
+  separated: the mod's handler bails on the whole `Value` object if any field is missing, so a
+  partial write applies nothing. Clearing a critter sensor's threshold therefore cannot avoid
+  discarding what it counts. Its rows still render through the plain catalogue exactly as
+  before; the two keys can still disagree, which is pre-existing. Owed a change of its own.
+- **Blurring an untouched input must not write.** The displayed value is rounded, so
+  re-deriving a stored value from it would nudge a Thermo Sensor stored at 293.153 K to
+  293.15 — a silent data change that also detaches `rawSource` for nothing.
+- **Two known unit discrepancies, flagged not fixed**: a buildingData reference compiled from
+  the game assembly says `LogicTimeOfDaySensor.startTime`/`duration` are *seconds* into a
+  600s cycle (the catalogue treats them as a 0–1 fraction shown as "% of cycle"), and that
+  `IActivationRangeTarget.ActivateValue` is normalised 0–1 on batteries (the catalogue shows
+  it raw). Both need an in-game check, not a guess between secondhand sources.
+- **Element sensors are a separate feature** — they have no threshold; their setting is a
+  `Filterable`/`SelectedTag` element *name* string (not the integer hash `selected_elements`
+  uses). `cell-element-picker` already filters by Gas/Liquid/Solid and emits a
+  `BuildableElement`, so it is the natural control when that ships.
 ### Session Management Files
 
 Check these files in `agent/` directory for current status:
