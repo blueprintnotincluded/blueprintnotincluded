@@ -910,12 +910,16 @@ Commit message format:
 
 Stage only relevant files — never `git add -A` blindly. Do not skip hooks (`--no-verify`).
 
-**Session end — push and open a PR (autonomously, without asking):**
+**Session end — push and open a _draft_ PR (autonomously, without asking):**
 
 1. Update any committed docs that describe shipped state (e.g. `agent/TODO.md`) so they reflect what this branch ships
 2. `git push -u origin <branch>`
-3. `gh pr create` with a real description: what shipped, design decisions and spec deviations, how it was verified (test counts, migrations run), and anything deferred
-4. Report the PR URL as the session's final output
+3. `gh pr create --draft` with a real description: what shipped, design decisions and spec deviations, how it was verified (test counts, migrations run), and anything deferred — leading with what has **not** been verified yet
+4. Report the PR URL and the outstanding verification as the session's final output
+
+**The PR stays in draft until the feature is done, and done means manually tested by the
+user.** Passing tests are not done — they show the code does what its author intended, not
+that the feature works. Never take a PR out of draft; the user publishes it.
 
 ## Important Instructions
 
