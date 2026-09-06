@@ -22,7 +22,7 @@
         pButton
         type="button"
         size="small"
-        class="building-setting-set"
+        class="building-setting-button building-setting-set"
         (click)="setThreshold()"
         i18n
       >
@@ -108,10 +108,16 @@
     </span>
   </div>
 
-  <div class="building-setting-row" *ngIf="canClearThreshold">
+  <div
+    class="building-setting-row building-setting-row-end"
+    *ngIf="canClearThreshold"
+  >
     <button
+      pButton
       type="button"
-      class="building-setting-link"
+      size="small"
+      severity="secondary"
+      class="building-setting-button building-setting-clear"
       (click)="clearThreshold()"
       i18n
       pTooltip="Removes the stored threshold so the blueprint says nothing about it, and the game's own default applies on build."

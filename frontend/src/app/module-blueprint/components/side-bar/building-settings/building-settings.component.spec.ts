@@ -490,11 +490,11 @@ describe("BuildingSettingsComponent", () => {
     ]);
     expect(component.canClearThreshold).toBe(true);
 
-    const clear = Array.from(
-      fixture.nativeElement.querySelectorAll(".building-setting-link"),
-    ).find((b: any) => b.textContent.trim() === "Clear threshold") as
-      HTMLButtonElement | undefined;
-    clear!.click();
+    const clear = fixture.nativeElement.querySelector(
+      ".building-setting-clear",
+    ) as HTMLButtonElement;
+    expect(clear.textContent.trim()).toBe("Clear threshold");
+    clear.click();
 
     expect(component.blueprintItem.removeBuildingSetting).toHaveBeenCalledWith(
       "IThresholdSwitch",
@@ -527,6 +527,12 @@ describe("BuildingSettingsComponent", () => {
 
     expect(component.canClearThreshold).toBe(false);
     expect(component.thresholdLabel).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-clear"),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-set"),
+    ).toBeNull();
   });
 
   it("leaves the critter sensor to the plain catalogue, unchanged", () => {

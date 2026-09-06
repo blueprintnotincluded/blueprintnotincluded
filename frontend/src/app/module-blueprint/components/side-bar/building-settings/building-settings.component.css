@@ -78,26 +78,15 @@
 
 /* Small enough to sit inside a settings row rather than span the panel like
    the full-width "Add automation settings" button. */
-.building-setting-set {
+.building-setting-button {
   padding: 1px 10px;
   font-size: smaller;
 }
 
-/* Small inline action (Set / Clear threshold) — deliberately not a pButton:
-   these sit inside a settings row, not at the panel's edge. */
-.building-setting-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--p-primary-color);
-  font: inherit;
-  font-size: smaller;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.building-setting-link:hover {
-  color: var(--p-primary-hover-color, var(--p-primary-color));
+/* Clear threshold has no label beside it, so it needs pushing to the same edge
+   the Set button sits on rather than being left-aligned by space-between. */
+.building-setting-row-end {
+  justify-content: flex-end;
 }
 
 .building-setting-add {
