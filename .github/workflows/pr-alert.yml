@@ -1,0 +1,52 @@
+name: PR Alert
+
+# Posts to Slack when a pull request is opened, so external contributions get
+# noticed the day they arrive instead of whenever notifications get read.
+#
+# Setup (one-time): create a Slack incoming webhook (Slack app directory →
+# "Incoming WebHooks", pick the channel) and store its URL as the repo secret
+# SLACK_WEBHOOK_URL. Until the secret exists this workflow is a no-op.
+#
+# This uses pull_request_target, not pull_request, on purpose: a fork-opened
+# PR runs plain pull_request workflows WITHOUT secrets, so the webhook would
+# fire only for the maintainer's own branches — exactly backwards. The
+# _target variant runs the base branch's copy of this file with secrets
+# available. That is safe here because the job never checks out, builds or
+# executes anything from the PR — it only forwards event metadata to Slack.
+# Keep it that way: do not add a checkout step or run PR-controlled code in
+# this workflow.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Post to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          # PR title and author are attacker-controlled text. They are passed
+          # via env (never interpolated into the script with ${{ }}) and
+          # JSON-encoded by jq, so they can only ever be data.
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_ACTION: ${{ github.event.action }}
+          PR_ADDITIONS: ${{ github.event.pull_request.additions }}
+          PR_DELETIONS: ${{ github.event.pull_request.deletions }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "::notice::SLACK_WEBHOOK_URL secret not set; skipping notification"
+            exit 0
+          fi
+          payload=$(jq -n \
+            --arg text ":mailbox_with_mail: PR #${PR_NUMBER} ${PR_ACTION} by ${PR_AUTHOR}: ${PR_TITLE} (+${PR_ADDITIONS}/−${PR_DELETIONS}) — ${PR_URL}" \
+            '{text: $text}')
+          curl -fsS -X POST -H 'Content-Type: application/json' \
+            -d "$payload" "$SLACK_WEBHOOK_URL"
