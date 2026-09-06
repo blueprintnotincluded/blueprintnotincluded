@@ -160,7 +160,7 @@ export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
     storedMax: 15000,
     step: 1,
     decimals: 0,
-    defaultThreshold: 0,
+    defaultThreshold: 280,
     defaultActivateAbove: true,
   },
 
@@ -179,8 +179,8 @@ export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
     storedMax: 5000,
     step: 1,
     decimals: 0,
-    defaultThreshold: 0,
-    defaultActivateAbove: true,
+    defaultThreshold: 280,
+    defaultActivateAbove: false,
   },
 
 };
