@@ -431,13 +431,15 @@ describe("BuildingSettingsComponent", () => {
     setItem("LogicPressureSensorGas", undefined);
 
     expect(
-      fixture.nativeElement.querySelector(".building-setting-label")
-        .textContent,
-    ).toBe("Pressure");
+      fixture.nativeElement
+        .querySelector(".building-setting-label")
+        .textContent.replace(/\s+/g, " ")
+        .trim(),
+    ).toBe("Pressure (Not set)");
     expect(
       fixture.nativeElement.querySelector(".building-setting-unset")
         .textContent,
-    ).toBe("Not set");
+    ).toBe("(Not set)");
     // No number input and no direction toggle until it is set.
     expect(
       fixture.nativeElement.querySelector(".building-setting-number"),
@@ -456,7 +458,7 @@ describe("BuildingSettingsComponent", () => {
 
     (
       fixture.nativeElement.querySelector(
-        ".building-setting-link",
+        ".building-setting-set",
       ) as HTMLButtonElement
     ).click();
 
@@ -507,7 +509,7 @@ describe("BuildingSettingsComponent", () => {
     expect(
       fixture.nativeElement.querySelector(".building-setting-unset")
         .textContent,
-    ).toBe("Not set");
+    ).toBe("(Not set)");
   });
 
   it("offers no clear on a building that is not a threshold sensor", () => {

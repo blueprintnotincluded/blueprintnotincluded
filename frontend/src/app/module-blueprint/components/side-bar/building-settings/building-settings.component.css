@@ -64,9 +64,23 @@
   color: var(--p-primary-contrast-color);
 }
 
+/* Matches the Elements and Temperature section headings, which take this
+   colour from .ui-fieldset-false-link in styles.css. That class also carries a
+   pointer cursor, because those two headings are clickable (they switch the
+   visualization overlay) — this one is not, so it takes the colour alone. */
+.building-setting-legend {
+  color: var(--p-primary-500);
+}
+
 .building-setting-unset {
   color: var(--p-text-muted-color);
-  font-style: italic;
+}
+
+/* Small enough to sit inside a settings row rather than span the panel like
+   the full-width "Add automation settings" button. */
+.building-setting-set {
+  padding: 1px 10px;
+  font-size: smaller;
 }
 
 /* Small inline action (Set / Clear threshold) — deliberately not a pButton:

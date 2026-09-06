@@ -6,18 +6,23 @@
   <legend
     class="ui-fieldset-legend ui-corner-all ui-state-default ui-unselectable-text"
   >
-    <span class="ui-fieldset-legend-text" i18n>Building settings</span>
+    <span class="ui-fieldset-legend-text building-setting-legend" i18n
+      >Building settings</span
+    >
   </legend>
 
   <!-- A threshold sensor with nothing stored: the blueprint says nothing
        about the threshold, and the game's own default applies on build. -->
   <div class="building-setting-row" *ngIf="thresholdLabel as label">
-    <span class="building-setting-label">{{ label }}</span>
+    <span class="building-setting-label"
+      >{{ label }} <span class="building-setting-unset" i18n>(Not set)</span>
+    </span>
     <span class="building-setting-control">
-      <span class="building-setting-unset" i18n>Not set</span>
       <button
+        pButton
         type="button"
-        class="building-setting-link"
+        size="small"
+        class="building-setting-set"
         (click)="setThreshold()"
         i18n
       >
