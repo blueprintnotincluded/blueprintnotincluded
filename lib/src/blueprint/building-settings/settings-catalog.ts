@@ -56,7 +56,7 @@ export interface SettingFieldDescriptor {
 // the reader negate it in their head to understand "below"; the game's own
 // side screen shows the two directions side by side.
 const ABOVE_BELOW: Pick<SettingFieldDescriptor, 'labelKey' | 'type' | 'booleanLabels'> = {
-  labelKey: 'Activate when',
+  labelKey: 'Active',
   type: 'bool',
   booleanLabels: { whenTrue: 'Above', whenFalse: 'Below' },
 };
@@ -122,9 +122,11 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
     { field: 'cooldown', labelKey: 'Cooldown', type: 'float', unit: 's', min: 0 },
   ],
 
+  // Direction first: it frames the number that follows ("active above ... 1000 g"),
+  // and it is the field a reader checks first when scanning a sensor.
   IThresholdSwitch: [
-    { field: 'Threshold', labelKey: 'Threshold', type: 'float' },
     { field: 'ActivateAboveThreshold', ...ABOVE_BELOW },
+    { field: 'Threshold', labelKey: 'Threshold', type: 'float' },
   ],
 
   IActivationRangeTarget: [

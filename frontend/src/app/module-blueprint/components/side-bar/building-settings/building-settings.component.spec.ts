@@ -315,10 +315,12 @@ describe("BuildingSettingsComponent", () => {
     expect(
       fixture.nativeElement.querySelector(".building-setting-unit").textContent,
     ).toBe("g");
+    // Direction row comes first, so the threshold label is the second one.
     expect(
-      fixture.nativeElement.querySelector(".building-setting-label")
-        .textContent,
-    ).toBe("Pressure");
+      Array.from(
+        fixture.nativeElement.querySelectorAll(".building-setting-label"),
+      ).map((e: any) => e.textContent.trim()),
+    ).toEqual(["Active", "Pressure"]);
   });
 
   it("stores an edited gas pressure back in kilograms", () => {
@@ -418,8 +420,8 @@ describe("BuildingSettingsComponent", () => {
       fixture.nativeElement.querySelectorAll('input[type="checkbox"]').length,
     ).toBe(0);
     expect(component.rows.map((r: any) => `${r.key}.${r.field}`)).toEqual([
-      "IThresholdSwitch.Threshold",
       "IThresholdSwitch.ActivateAboveThreshold",
+      "IThresholdSwitch.Threshold",
     ]);
     // ...and it is not reported as an unrecognized preserved setting either.
     expect(
@@ -656,7 +658,7 @@ describe("BuildingSettingsComponent", () => {
     const labels = Array.from(
       fixture.nativeElement.querySelectorAll(".building-setting-label"),
     ).map((e: any) => e.textContent.trim());
-    expect(labels).toContain("Activate when");
+    expect(labels).toContain("Active");
   });
 
   it("marks Below as selected when the stored direction is false", () => {
