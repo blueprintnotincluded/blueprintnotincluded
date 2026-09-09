@@ -1,15 +1,19 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, ViewChild } from "@angular/core";
+import { Popover } from "primeng/popover";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import {
   BlueprintItem,
+  BuildableElement,
   creatableSettingsKeysFor,
   formatBuildingDataEntry,
+  NONE_TAG,
   primarySettingsKey,
   redundantEchoKeysFor,
   resolveSettingDescriptors,
   SettingFieldDescriptor,
   SettingFieldType,
   SettingUnit,
+  stripNoteMarkup,
   toDisplayValue,
   toStoredValue,
 } from "../../../../../../../lib/index";
@@ -39,6 +43,10 @@ interface EditableSettingRow {
   // above/below direction), which renders as a pair of options rather than a
   // checkbox. Absent means an ordinary on/off checkbox.
   booleanLabels?: { whenTrue: string; whenFalse: string };
+  // type: 'element' only. The picker's phase filter (from the descriptor) and
+  // the resolved element for the current value (undefined = none / unknown id).
+  elementForceTag?: string;
+  element?: BuildableElement;
   displayValue: any;
   displayMin?: number;
   displayMax?: number;
@@ -97,6 +105,11 @@ const CYCLE_SECONDS = 600;
 })
 export class BuildingSettingsComponent {
   @Input() blueprintItem!: BlueprintItem;
+
+  // One shared element picker popover — a building carries `Filterable` at most
+  // once, so there is never more than one element row on screen.
+  @ViewChild("elementPanel", { static: false }) elementPanel?: Popover;
+  elementPickerRow?: EditableSettingRow;
 
   constructor(private blueprintService: BlueprintService) {}
 
@@ -208,6 +221,11 @@ export class BuildingSettingsComponent {
           step,
           stepAttr: stepAttrFor(step, displayMin),
           booleanLabels: descriptor.booleanLabels,
+          elementForceTag: descriptor.elementForceTag,
+          element:
+            descriptor.type == "element" && typeof raw == "string"
+              ? BuildableElement.getElementById(raw)
+              : undefined,
           displayValue:
             typeof raw == "number"
               ? roundTo(toDisplayValue(descriptor, raw), decimals)
@@ -357,6 +375,34 @@ export class BuildingSettingsComponent {
 
   private reconcile(el: HTMLInputElement | undefined, value: unknown) {
     if (el != null) el.value = String(value);
+  }
+
+  // The current-element label for a `type: 'element'` row: the element's
+  // display name (markup stripped), the raw id when it isn't in the database,
+  // or "None" when nothing is selected.
+  elementLabel(row: EditableSettingRow): string {
+    if (row.element != null) return stripNoteMarkup(row.element.name);
+    const raw = row.displayValue;
+    return raw == null || raw === "" || raw === NONE_TAG
+      ? $localize`None`
+      : String(raw);
+  }
+
+  openElementPicker(row: EditableSettingRow, event: Event) {
+    this.elementPickerRow = row;
+    this.elementPanel?.toggle?.(event);
+  }
+
+  // Commit from the element picker. "None" (id) maps to the mod's Void
+  // sentinel; Clear (removeBuildingSetting) is the way to unset the whole key.
+  onElementPicked(element: BuildableElement) {
+    this.elementPanel?.hide?.();
+    const row = this.elementPickerRow;
+    if (row == null) return;
+    const value = element.id === "None" ? NONE_TAG : element.id;
+    if (value === row.displayValue) return;
+    this.blueprintItem.setBuildingSetting(row.key, row.field, value);
+    this.commit();
   }
 
   private commit() {

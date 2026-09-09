@@ -668,6 +668,82 @@ describe("BuildingSettingsComponent", () => {
     ]);
   });
 
+  it("shows an element sensor one Element row, no stowaway Switch", () => {
+    setItem("LogicElementSensorGas", [
+      { Key: "Switch", Value: { switchedOn: true } },
+      { Key: "Filterable", Value: { SelectedTag: "Oxygen" } },
+    ]);
+
+    expect(component.rows.map((r: any) => `${r.key}.${r.field}`)).toEqual([
+      "Filterable.SelectedTag",
+    ]);
+    expect(component.rows[0].type).toBe("element");
+    expect(component.rows[0].elementForceTag).toBe("Gas");
+    expect(
+      fixture.nativeElement.querySelectorAll('input[type="checkbox"]').length,
+    ).toBe(0);
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-element"),
+    ).not.toBeNull();
+    expect(component.canClearPrimary).toBe(true);
+  });
+
+  it("commits a picked element as Filterable.SelectedTag; None maps to Void", () => {
+    setItem("LogicElementSensorGas", [
+      { Key: "Filterable", Value: { SelectedTag: "Oxygen" } },
+    ]);
+    component.elementPickerRow = component.rows[0];
+
+    component.onElementPicked({ id: "Hydrogen" } as any);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "Filterable",
+      "SelectedTag",
+      "Hydrogen",
+    );
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+
+    component.elementPickerRow = component.rows[0];
+    component.onElementPicked({ id: "None" } as any);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "Filterable",
+      "SelectedTag",
+      "Void",
+    );
+  });
+
+  it("sets and clears an element sensor's Filterable key", () => {
+    setItem("LogicElementSensorGas", [
+      { Key: "Switch", Value: { switchedOn: true } },
+    ]);
+    expect(component.primaryUnsetLabel).toBe("Element");
+
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-set",
+      ) as HTMLButtonElement
+    ).click();
+    expect(component.blueprintItem.addBuildingSetting).toHaveBeenCalledWith(
+      "Filterable",
+    );
+    expect(
+      component.blueprintItem.buildingData!.find((e) => e.Key == "Filterable")!
+        .Value,
+    ).toEqual({ SelectedTag: "Void" });
+
+    setItem("LogicElementSensorGas", [
+      { Key: "Switch", Value: { switchedOn: true } },
+      { Key: "Filterable", Value: { SelectedTag: "Oxygen" } },
+    ]);
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-clear",
+      ) as HTMLButtonElement
+    ).click();
+    expect(component.blueprintItem.buildingData).toEqual([
+      { Key: "Switch", Value: { switchedOn: true } },
+    ]);
+  });
+
   it("shows the clamped value back in the input, not what was typed", () => {
     // Stored is already at the 20kg RangeMax, so clamping 999999 lands on the
     // value the row already displays. The commit guard correctly skips the
