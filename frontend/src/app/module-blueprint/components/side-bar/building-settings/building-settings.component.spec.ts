@@ -5,6 +5,7 @@ import { CommonModule } from "@angular/common";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import {
   BlueprintItem,
+  BuildableElement,
   getCreatableSettingDefaults,
   redundantEchoField,
 } from "../../../../../../../lib/index";
@@ -709,6 +710,21 @@ describe("BuildingSettingsComponent", () => {
       "SelectedTag",
       "Void",
     );
+  });
+
+  it("labels a Void selection 'None' even though 'Void' is a real element id", () => {
+    // The game ships an element whose id is "Void"; elementLabel must treat the
+    // NONE_TAG sentinel as "nothing selected" before it resolves an element.
+    const spy = vi
+      .spyOn(BuildableElement, "getElementById")
+      .mockReturnValue({ name: '<link="VOID">Void</link>' } as any);
+    setItem("GasFilter", [
+      { Key: "Filterable", Value: { SelectedTag: "Void" } },
+    ]);
+
+    expect(component.rows[0].element).toBeUndefined();
+    expect(component.elementLabel(component.rows[0])).toBe("None");
+    spy.mockRestore();
   });
 
   it("sets and clears an element sensor's Filterable key", () => {

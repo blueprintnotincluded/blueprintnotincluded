@@ -222,8 +222,12 @@ export class BuildingSettingsComponent {
           stepAttr: stepAttrFor(step, displayMin),
           booleanLabels: descriptor.booleanLabels,
           elementForceTag: descriptor.elementForceTag,
+          // NONE_TAG ('Void') is "nothing selected" — the game ships a real
+          // element with that id, so it must not be resolved as one.
           element:
-            descriptor.type == "element" && typeof raw == "string"
+            descriptor.type == "element" &&
+            typeof raw == "string" &&
+            raw !== NONE_TAG
               ? BuildableElement.getElementById(raw)
               : undefined,
           displayValue:
@@ -381,11 +385,10 @@ export class BuildingSettingsComponent {
   // display name (markup stripped), the raw id when it isn't in the database,
   // or "None" when nothing is selected.
   elementLabel(row: EditableSettingRow): string {
-    if (row.element != null) return stripNoteMarkup(row.element.name);
     const raw = row.displayValue;
-    return raw == null || raw === "" || raw === NONE_TAG
-      ? $localize`None`
-      : String(raw);
+    if (raw == null || raw === "" || raw === NONE_TAG) return $localize`None`;
+    if (row.element != null) return stripNoteMarkup(row.element.name);
+    return String(raw);
   }
 
   openElementPicker(row: EditableSettingRow, event: Event) {
