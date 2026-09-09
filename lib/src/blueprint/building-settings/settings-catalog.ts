@@ -61,6 +61,15 @@ const ABOVE_BELOW: Pick<SettingFieldDescriptor, 'labelKey' | 'type' | 'booleanLa
   booleanLabels: { whenTrue: 'Above', whenFalse: 'Below' },
 };
 
+const THRESHOLD_KEY = 'IThresholdSwitch';
+
+// The Critter Sensor. Handled like a threshold sensor (its own Key is the
+// single canonical settings key; the stowaway Switch and a redundant
+// IThresholdSwitch echo are both suppressed) but kept out of THRESHOLD_SENSORS
+// because it needs no unit conversion and its IThresholdSwitch is suppressed
+// rather than rewritten. See threshold-sensors.ts.
+export const CRITTER_COUNT_SENSOR_ID = 'LogicCritterCountSensor';
+
 // Keyed by the component `Key` (nameof the ONI component class — the mod's
 // own registry, API_Methods.cs RegisterVanillaBuildings()).
 export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
@@ -105,7 +114,9 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
   ],
 
   LogicCritterCountSensor: [
-    { field: 'countThreshold', labelKey: 'Threshold', type: 'int', min: 0 },
+    // RangeMin 0 / RangeMax 64 from the decompiled LogicCritterCountSensor
+    // (soft, like every threshold sensor bound).
+    { field: 'countThreshold', labelKey: 'Threshold', type: 'int', min: 0, max: 64 },
     { field: 'activateOnGreaterThan', ...ABOVE_BELOW },
     { field: 'countCritters', labelKey: 'Count critters', type: 'bool' },
     { field: 'countEggs', labelKey: 'Count eggs', type: 'bool' },
@@ -179,11 +190,19 @@ export function resolveSettingDescriptors(
   const base = SETTINGS_CATALOG[key];
   if (base == null) return [];
 
+  // Critter Sensor: its own Key is authoritative. `Switch` is the sampled
+  // output (stowaway); `IThresholdSwitch` is a pure echo — in the game source
+  // LogicCritterCountSensor.Threshold is `get => countThreshold`. Both
+  // round-trip but neither is a setting to show.
+  if (prefabId == CRITTER_COUNT_SENSOR_ID) {
+    return key == 'Switch' || key == THRESHOLD_KEY ? [] : base;
+  }
+
   const spec = thresholdSensorSpec(prefabId);
   if (spec == null) return base;
 
   if (key == 'Switch') return [];
-  if (key != 'IThresholdSwitch') return base;
+  if (key != THRESHOLD_KEY) return base;
 
   return base.map(descriptor => {
     if (descriptor.field != 'Threshold') return descriptor;
@@ -237,6 +256,20 @@ export const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, an
       displayCyclesMode: false,
     },
   },
+
+  // All four values are the real defaults from the decompiled
+  // LogicCritterCountSensor `[Serialize]` field initializers
+  // (countEggs/countCritters/activateOnGreaterThan default true; countThreshold
+  // is an int with no initializer, i.e. 0), so a synthesized Value matches a
+  // freshly-placed in-game sensor exactly.
+  [CRITTER_COUNT_SENSOR_ID]: {
+    [CRITTER_COUNT_SENSOR_ID]: {
+      countThreshold: 0,
+      activateOnGreaterThan: true,
+      countCritters: true,
+      countEggs: true,
+    },
+  },
 };
 
 for (const [prefabId, spec] of Object.entries(THRESHOLD_SENSORS)) {
@@ -261,4 +294,37 @@ export function getCreatableSettingDefaults(
   key: string
 ): Record<string, any> | undefined {
   return CREATABLE_SETTINGS[prefabId]?.[key];
+}
+
+// Some prefabs keep their settings under one canonical Key that the panel
+// treats as pinned-vs-not: when it is absent the mod leaves the built building
+// on the game's own defaults, which is a real state distinct from any stored
+// value. Threshold sensors -> `IThresholdSwitch` (labelled by the measured
+// quantity); the Critter Sensor -> its own Key. Anything else -> null (every
+// present Key is just an editable row).
+export function primarySettingsKey(
+  prefabId: string
+): { key: string; label: string } | null {
+  if (prefabId == CRITTER_COUNT_SENSOR_ID)
+    return { key: CRITTER_COUNT_SENSOR_ID, label: 'Critter count' };
+  const spec = thresholdSensorSpec(prefabId);
+  return spec != null ? { key: THRESHOLD_KEY, label: spec.label } : null;
+}
+
+// The Critter Sensor's `IThresholdSwitch` entry (present on every in-game copy)
+// echoes two fields of its own Key. An edit to the own Key must be mirrored
+// onto an existing echo, or the mod's key-apply pass could overwrite the fresh
+// value from the stale echo (IThresholdSwitch.TryApplyData sets
+// countThreshold = (int)Threshold). Returns the echo field for a given own-Key
+// field, or null when there is nothing to mirror.
+export function redundantEchoField(
+  prefabId: string,
+  key: string,
+  field: string
+): { key: string; field: string } | null {
+  if (prefabId != CRITTER_COUNT_SENSOR_ID || key != CRITTER_COUNT_SENSOR_ID) return null;
+  if (field == 'countThreshold') return { key: THRESHOLD_KEY, field: 'Threshold' };
+  if (field == 'activateOnGreaterThan')
+    return { key: THRESHOLD_KEY, field: 'ActivateAboveThreshold' };
+  return null;
 }

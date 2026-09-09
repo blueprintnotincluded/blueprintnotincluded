@@ -140,14 +140,18 @@ function germs(): ThresholdSensorSpec {
 //  - Element sensors (LogicElementSensorGas and the conduit element sensors)
 //    have no threshold at all: their setting is a Filterable/SelectedTag
 //    element name.
-//  - LogicCritterCountSensor. It *is* a carrier, but it writes the same two
-//    values twice — under its own key as countThreshold/activateOnGreaterThan
-//    and again under IThresholdSwitch — and its own key also carries
-//    countCritters/countEggs, which are not threshold settings and cannot be
-//    separated (the mod's handler bails on the whole Value object if any
-//    field is missing). So clearing a critter sensor's threshold cannot avoid
-//    also discarding what it counts. Deferred to its own change rather than
-//    solved badly here.
+//  - LogicCritterCountSensor. It *is* an IThresholdSwitch carrier, but this
+//    table is for prefabs whose bare `Threshold` float needs a unit and a
+//    conversion — and the critter sensor's threshold is a plain count with no
+//    conversion at all. It is still handled *like* a threshold sensor
+//    (settings-catalog.ts: CRITTER_COUNT_SENSOR_ID): its own Key is the single
+//    canonical settings key primarySettingsKey() reports, and both the
+//    stowaway `Switch` and the redundant `IThresholdSwitch` echo — in the game
+//    source LogicCritterCountSensor.Threshold is literally `get =>
+//    countThreshold` — are suppressed by resolveSettingDescriptors rather than
+//    rewritten. An edit to the own Key is mirrored onto an existing echo
+//    (redundantEchoField) so the mod's key-apply pass can't clobber it, and
+//    Clear drops both keys.
 export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
   // Atmo Sensor — 1000 g is the game's own starting point.
   LogicPressureSensorGas: pressureGas(1),

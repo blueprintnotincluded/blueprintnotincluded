@@ -6,6 +6,7 @@ import { BlueprintService } from "src/app/module-blueprint/services/blueprint-se
 import {
   BlueprintItem,
   getCreatableSettingDefaults,
+  redundantEchoField,
 } from "../../../../../../../lib/index";
 import { BuildingSettingsComponent } from "./building-settings.component";
 
@@ -45,6 +46,16 @@ describe("BuildingSettingsComponent", () => {
       ) {
         const entry = this.buildingData.find((e: any) => e.Key == key);
         entry.Value[field] = value;
+        // Mirror the real BlueprintItem: an edit to a Key that has a redundant
+        // echo (the critter sensor's IThresholdSwitch) updates an existing echo.
+        const echo = redundantEchoField(this.id, key, field);
+        if (echo != null) {
+          const echoEntry = this.buildingData.find(
+            (e: any) => e.Key == echo.key,
+          );
+          if (echoEntry?.Value != null && typeof echoEntry.Value === "object")
+            echoEntry.Value[echo.field] = value;
+        }
       }),
       // Uses the real catalogue defaults, so a test that clicks the add
       // button sees the object the editor would actually write.
@@ -490,12 +501,12 @@ describe("BuildingSettingsComponent", () => {
         Value: { Threshold: 1.5, ActivateAboveThreshold: true },
       },
     ]);
-    expect(component.canClearThreshold).toBe(true);
+    expect(component.canClearPrimary).toBe(true);
 
     const clear = fixture.nativeElement.querySelector(
       ".building-setting-clear",
     ) as HTMLButtonElement;
-    expect(clear.textContent.trim()).toBe("Clear threshold");
+    expect(clear.textContent.trim()).toBe("Clear");
     clear.click();
 
     expect(component.blueprintItem.removeBuildingSetting).toHaveBeenCalledWith(
@@ -527,8 +538,8 @@ describe("BuildingSettingsComponent", () => {
       },
     ]);
 
-    expect(component.canClearThreshold).toBe(false);
-    expect(component.thresholdLabel).toBeNull();
+    expect(component.canClearPrimary).toBe(false);
+    expect(component.primaryUnsetLabel).toBeNull();
     expect(
       fixture.nativeElement.querySelector(".building-setting-clear"),
     ).toBeNull();
@@ -537,28 +548,120 @@ describe("BuildingSettingsComponent", () => {
     ).toBeNull();
   });
 
-  it("leaves the critter sensor to the plain catalogue, unchanged", () => {
-    // Out of scope for the threshold work: it writes the same values under two
-    // keys, and its own key also carries countCritters/countEggs.
+  it("shows the critter sensor one clean group: no stowaway Switch, no duplicate threshold", () => {
+    // A copied in-game sensor carries three keys. Only the own key's four
+    // fields are shown; Switch (sampled output) and the redundant
+    // IThresholdSwitch echo are suppressed.
     setItem("LogicCritterCountSensor", [
+      { Key: "Switch", Value: { switchedOn: true } },
       {
         Key: "LogicCritterCountSensor",
         Value: {
-          countThreshold: 3,
-          activateOnGreaterThan: true,
+          countThreshold: 7,
+          activateOnGreaterThan: false,
           countCritters: true,
           countEggs: false,
         },
       },
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 7, ActivateAboveThreshold: false },
+      },
     ]);
 
-    expect(component.thresholdLabel).toBeNull();
-    expect(component.canClearThreshold).toBe(false);
     expect(component.rows.map((r: any) => `${r.key}.${r.field}`)).toEqual([
       "LogicCritterCountSensor.countThreshold",
       "LogicCritterCountSensor.activateOnGreaterThan",
       "LogicCritterCountSensor.countCritters",
       "LogicCritterCountSensor.countEggs",
+    ]);
+    // countCritters + countEggs only — no "On" checkbox for the stowaway Switch.
+    expect(
+      fixture.nativeElement.querySelectorAll('input[type="checkbox"]').length,
+    ).toBe(2);
+    expect(component.primaryUnsetLabel).toBeNull();
+    expect(component.canClearPrimary).toBe(true);
+  });
+
+  it("mirrors a critter-sensor threshold edit onto the redundant echo", () => {
+    setItem("LogicCritterCountSensor", [
+      {
+        Key: "LogicCritterCountSensor",
+        Value: {
+          countThreshold: 7,
+          activateOnGreaterThan: false,
+          countCritters: true,
+          countEggs: false,
+        },
+      },
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 7, ActivateAboveThreshold: false },
+      },
+    ]);
+
+    const input = numberInput();
+    input.value = "12";
+    input.dispatchEvent(new Event("blur"));
+
+    const bd = component.blueprintItem.buildingData!;
+    expect(
+      bd.find((e) => e.Key == "LogicCritterCountSensor")!.Value.countThreshold,
+    ).toBe(12);
+    expect(bd.find((e) => e.Key == "IThresholdSwitch")!.Value.Threshold).toBe(
+      12,
+    );
+  });
+
+  it("sets and clears the critter sensor's canonical key", () => {
+    setItem("LogicCritterCountSensor", [
+      { Key: "Switch", Value: { switchedOn: true } },
+    ]);
+    expect(component.primaryUnsetLabel).toBe("Critter count");
+
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-set",
+      ) as HTMLButtonElement
+    ).click();
+    expect(component.blueprintItem.addBuildingSetting).toHaveBeenCalledWith(
+      "LogicCritterCountSensor",
+    );
+    expect(
+      component.blueprintItem.buildingData!.find(
+        (e) => e.Key == "LogicCritterCountSensor",
+      )!.Value,
+    ).toEqual({
+      countThreshold: 0,
+      activateOnGreaterThan: true,
+      countCritters: true,
+      countEggs: true,
+    });
+
+    // Now clear: drops both the own key and the redundant echo, keeps Switch.
+    setItem("LogicCritterCountSensor", [
+      { Key: "Switch", Value: { switchedOn: true } },
+      {
+        Key: "LogicCritterCountSensor",
+        Value: {
+          countThreshold: 7,
+          activateOnGreaterThan: false,
+          countCritters: true,
+          countEggs: false,
+        },
+      },
+      {
+        Key: "IThresholdSwitch",
+        Value: { Threshold: 7, ActivateAboveThreshold: false },
+      },
+    ]);
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-clear",
+      ) as HTMLButtonElement
+    ).click();
+    expect(component.blueprintItem.buildingData).toEqual([
+      { Key: "Switch", Value: { switchedOn: true } },
     ]);
   });
 
