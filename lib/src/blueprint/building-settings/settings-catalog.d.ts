@@ -1,5 +1,5 @@
 export type SettingUnit = 's' | 'cycleFraction' | 'bit' | '%';
-export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum';
+export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum' | 'element';
 export interface SettingFieldDescriptor {
     field: string;
     labelKey: string;
@@ -18,8 +18,12 @@ export interface SettingFieldDescriptor {
         whenTrue: string;
         whenFalse: string;
     };
+    elementForceTag?: string;
 }
 export declare const CRITTER_COUNT_SENSOR_ID = "LogicCritterCountSensor";
+export declare const NONE_TAG = "Void";
+export declare const FILTERABLE_BUILDINGS: Record<string, string>;
+export declare function filterableBuildingForceTag(prefabId: string): string | undefined;
 export declare const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]>;
 export declare function isKnownSettingsKey(key: string): boolean;
 export declare function toDisplayValue(descriptor: SettingFieldDescriptor, stored: number): number;

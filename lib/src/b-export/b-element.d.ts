@@ -28,6 +28,7 @@ export declare class BuildableElement {
     static init(): void;
     static load(originals: BuildableElement[]): void;
     static getElement(id: string): BuildableElement;
+    static getElementById(id: string): BuildableElement | undefined;
     static getElementByTag(tag: number): BuildableElement | undefined;
     static getElementsFromTag(tag: string): BuildableElement[];
     static getElementsFromTags(tags: string[]): BuildableElement[][];

@@ -24,6 +24,23 @@
   width: 140px;
 }
 
+/* The current element on an element-sensor / filter row: an icon + name that
+   opens the shared element picker popover. */
+.building-setting-element {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+  color: inherit;
+  cursor: pointer;
+}
+.building-setting-element:hover {
+  border-color: var(--p-primary-color);
+}
+
 .building-setting-unit,
 .building-setting-hint {
   color: var(--p-text-muted-color);
