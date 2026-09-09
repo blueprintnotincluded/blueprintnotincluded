@@ -272,7 +272,9 @@ edits.
   `settings-catalog.ts` holds `LogicTimerSensor` (`onDuration`/`offDuration`:
   10s each; `timeElapsedInCurrentState`: 0, definitionally correct for a fresh component;
   `displayCyclesMode`: false, a display-only toggle with no simulation effect even if wrong)
-  plus `IThresholdSwitch` on every threshold sensor (generated from `THRESHOLD_SENSORS`).
+  plus `IThresholdSwitch` on every threshold sensor (generated from `THRESHOLD_SENSORS`)
+  plus `LogicCritterCountSensor` on itself (`countThreshold` 0 / `activateOnGreaterThan`,
+  `countCritters`, `countEggs` all true — the decompiled `[Serialize]` field initializers).
   Every other key, including `LogicCounter` (whose `resetCountAtMax`/`advancedMode` real
   defaults aren't confirmed), stays edit-only-when-the-file-already-has-it: synthesizing an
   incomplete or wrong default for a gameplay-affecting field would silently change build
@@ -340,12 +342,16 @@ the bare float a meaning; conversion is affine both ways
 - **The stowaway `Switch` key.** Sensors extend `Switch`, so the mod's `Switch` handler
   matches them and a copied sensor carries `Switch.switchedOn` holding its *sampled output*
   at copy time, which the game overwrites within ~1.8s. `resolveSettingDescriptors` returns
-  `[]` for `Switch` on a threshold sensor: it round-trips, but it is not a setting and is not
-  counted as an unrecognized one either. The manual `LogicSwitch` keeps its editable row.
+  `[]` for `Switch` on a threshold sensor (and on `LogicCritterCountSensor`): it round-trips,
+  but it is not a setting and is not counted as an unrecognized one either. The manual
+  `LogicSwitch` keeps its editable row.
 - **"Not set" is a state, not a default.** The mod applies only the keys a file actually
-  carries, so an absent `IThresholdSwitch` leaves the built sensor on the game's own default —
-  which is different from pinning it to any value. The panel shows that explicitly (a
-  `Pressure — Not set` row rather than a bare button), and
+  carries, so an absent canonical settings key leaves the built sensor on the game's own
+  default — which is different from pinning it to any value. `primarySettingsKey(prefabId)`
+  names that key: `IThresholdSwitch` for a threshold sensor (label = the measured quantity),
+  the own key for `LogicCritterCountSensor` (label "Critter count"), `null` otherwise. The
+  panel shows the absent state explicitly (a `Pressure — Not set` row rather than a bare
+  button, via the `primary*` getters / `setPrimary`/`clearPrimary`), and
   `BlueprintItem.removeBuildingSetting` is the inverse of `addBuildingSetting` so the state is
   reachable again. Without the inverse the editor could move a blueprint from unspecified to
   pinned but never back, silently changing what an older file means after a stray click. A
@@ -353,14 +359,16 @@ the bare float a meaning; conversion is affine both ways
   `toBniBuilding`/`toMdbBuilding` omit `buildingData` when empty.
   Note a sensor copied **in-game** always carries the key (`TryGetData` returns it whenever
   the component exists), so "not set" only arises from editor-placed buildings and older files.
-- **The critter sensor is deliberately out of the threshold table.** It *is* an
-  `IThresholdSwitch` carrier, but it writes the same two values twice — under its own key as
-  `countThreshold`/`activateOnGreaterThan` and again under `IThresholdSwitch` — and its own key
-  also carries `countCritters`/`countEggs`, which are not threshold settings. They cannot be
-  separated: the mod's handler bails on the whole `Value` object if any field is missing, so a
-  partial write applies nothing. Clearing a critter sensor's threshold therefore cannot avoid
-  discarding what it counts. Its rows still render through the plain catalogue exactly as
-  before; the two keys can still disagree, which is pre-existing. Owed a change of its own.
+- **The critter sensor is handled like a threshold sensor, not in the threshold table.** It
+  *is* an `IThresholdSwitch` carrier, but that key is a pure redundant echo — in the game
+  source `LogicCritterCountSensor.Threshold` is `get => countThreshold` — so
+  `resolveSettingDescriptors` suppresses it (and `Switch`) to `[]` for this prefab and its own
+  key is the sole editable group (`countThreshold` 0–64, above/below, `countCritters`,
+  `countEggs`). It stays out of `THRESHOLD_SENSORS` because it needs no unit conversion. An
+  edit to `countThreshold`/`activateOnGreaterThan` is mirrored onto an existing echo
+  (`redundantEchoField`, applied in `BlueprintItem.setBuildingSetting`) so the mod's key-apply
+  pass can't clobber the fresh value from a stale echo; **Clear** drops both the own key and
+  the `IThresholdSwitch` echo (`Switch` is kept, like every threshold sensor).
 - **Blurring an untouched input must not write.** The displayed value is rounded, so
   re-deriving a stored value from it would nudge a Thermo Sensor stored at 293.153 K to
   293.15 — a silent data change that also detaches `rawSource` for nothing.

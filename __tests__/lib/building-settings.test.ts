@@ -6,8 +6,10 @@ import {
   BniBuildingData,
   creatableSettingsKeysFor,
   formatBuildingDataEntry,
+  getCreatableSettingDefaults,
   isKnownSettingsKey,
   OniItem,
+  primarySettingsKey,
   resolveSettingDescriptors,
   SETTINGS_CATALOG,
   THRESHOLD_SENSORS,
@@ -50,6 +52,58 @@ describe('building-settings catalogue', function () {
       d => d.field == 'timeElapsedInCurrentState'
     )!;
     expect(descriptor.hidden).to.equal(true);
+  });
+
+  describe('critter sensor (LogicCritterCountSensor)', () => {
+    it('suppresses the stowaway Switch and the redundant IThresholdSwitch echo', () => {
+      expect(resolveSettingDescriptors('LogicCritterCountSensor', 'Switch')).to.deep.equal([]);
+      expect(
+        resolveSettingDescriptors('LogicCritterCountSensor', 'IThresholdSwitch')
+      ).to.deep.equal([]);
+    });
+
+    it('renders its own Key through the plain catalogue, unchanged', () => {
+      expect(
+        resolveSettingDescriptors('LogicCritterCountSensor', 'LogicCritterCountSensor')
+      ).to.equal(SETTINGS_CATALOG.LogicCritterCountSensor);
+      const threshold = SETTINGS_CATALOG.LogicCritterCountSensor.find(
+        d => d.field == 'countThreshold'
+      )!;
+      expect(threshold.min).to.equal(0);
+      expect(threshold.max).to.equal(64);
+    });
+
+    it('is not in the threshold table but is creatable from scratch', () => {
+      // Not a unit-converting threshold sensor...
+      expect(thresholdSensorSpec('LogicCritterCountSensor')).to.equal(undefined);
+      // ...but its own Key can be synthesized, with the real game defaults.
+      expect(creatableSettingsKeysFor('LogicCritterCountSensor')).to.deep.equal([
+        'LogicCritterCountSensor',
+      ]);
+      expect(
+        getCreatableSettingDefaults('LogicCritterCountSensor', 'LogicCritterCountSensor')
+      ).to.deep.equal({
+        countThreshold: 0,
+        activateOnGreaterThan: true,
+        countCritters: true,
+        countEggs: true,
+      });
+    });
+
+    it('is the primary settings key for itself', () => {
+      expect(primarySettingsKey('LogicCritterCountSensor')).to.deep.equal({
+        key: 'LogicCritterCountSensor',
+        label: 'Critter count',
+      });
+    });
+  });
+
+  it('reports the primary settings key per prefab', () => {
+    expect(primarySettingsKey('LogicTemperatureSensor')).to.deep.equal({
+      key: 'IThresholdSwitch',
+      label: 'Temperature',
+    });
+    expect(primarySettingsKey('LogicSwitch')).to.equal(null);
   });
 });
 
@@ -529,15 +583,82 @@ describe('BlueprintItem.removeBuildingSetting', function () {
     expect(exportOf(edited).buildingData).to.equal(undefined);
   });
 
-  it('leaves the critter sensor out of the threshold table entirely', () => {
-    // It carries the same two values under two Keys, and its own Key also
-    // holds countCritters/countEggs, which cannot be separated from them —
-    // so clearing its threshold would discard what it counts. Deferred.
-    expect(thresholdSensorSpec('LogicCritterCountSensor')).to.equal(undefined);
-    expect(creatableSettingsKeysFor('LogicCritterCountSensor')).to.deep.equal([]);
-    // Its rows still render through the plain catalogue, unchanged.
+});
+
+describe('critter sensor buildingData round-trip', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  const withEcho = () => {
+    const item = BlueprintHelpers.createInstance('LogicCritterCountSensor')!;
+    item.buildingData = [
+      { Key: 'Switch', Value: { switchedOn: true } },
+      {
+        Key: 'LogicCritterCountSensor',
+        Value: {
+          countThreshold: 7,
+          activateOnGreaterThan: false,
+          countCritters: true,
+          countEggs: false,
+        },
+      },
+      { Key: 'IThresholdSwitch', Value: { Threshold: 7, ActivateAboveThreshold: false } },
+    ];
+    return item;
+  };
+
+  it('mirrors a countThreshold edit onto an existing IThresholdSwitch echo', () => {
+    const item = withEcho();
+    item.setBuildingSetting('LogicCritterCountSensor', 'countThreshold', 12);
     expect(
-      resolveSettingDescriptors('LogicCritterCountSensor', 'LogicCritterCountSensor')
-    ).to.equal(SETTINGS_CATALOG.LogicCritterCountSensor);
+      item.buildingData!.find(e => e.Key == 'LogicCritterCountSensor')!.Value.countThreshold
+    ).to.equal(12);
+    expect(item.buildingData!.find(e => e.Key == 'IThresholdSwitch')!.Value.Threshold).to.equal(12);
+  });
+
+  it('mirrors an activateOnGreaterThan edit onto the echo', () => {
+    const item = withEcho();
+    item.setBuildingSetting('LogicCritterCountSensor', 'activateOnGreaterThan', true);
+    expect(
+      item.buildingData!.find(e => e.Key == 'IThresholdSwitch')!.Value.ActivateAboveThreshold
+    ).to.equal(true);
+  });
+
+  it('does not touch the echo for a countCritters/countEggs edit', () => {
+    const item = withEcho();
+    item.setBuildingSetting('LogicCritterCountSensor', 'countCritters', false);
+    expect(item.buildingData!.find(e => e.Key == 'IThresholdSwitch')!.Value).to.deep.equal({
+      Threshold: 7,
+      ActivateAboveThreshold: false,
+    });
+  });
+
+  it('never creates an echo when the file does not carry one', () => {
+    const item = BlueprintHelpers.createInstance('LogicCritterCountSensor')!;
+    item.buildingData = [
+      {
+        Key: 'LogicCritterCountSensor',
+        Value: {
+          countThreshold: 3,
+          activateOnGreaterThan: true,
+          countCritters: true,
+          countEggs: true,
+        },
+      },
+    ];
+    item.setBuildingSetting('LogicCritterCountSensor', 'countThreshold', 9);
+    expect(item.buildingData!.map(e => e.Key)).to.deep.equal(['LogicCritterCountSensor']);
+  });
+
+  it('creates its own Key from scratch with the real game defaults', () => {
+    const item = BlueprintHelpers.createInstance('LogicCritterCountSensor')!;
+    expect(item.addBuildingSetting('LogicCritterCountSensor')).to.equal(true);
+    expect(item.buildingData!.find(e => e.Key == 'LogicCritterCountSensor')!.Value).to.deep.equal({
+      countThreshold: 0,
+      activateOnGreaterThan: true,
+      countCritters: true,
+      countEggs: true,
+    });
   });
 });

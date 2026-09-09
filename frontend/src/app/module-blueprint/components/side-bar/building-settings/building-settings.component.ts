@@ -4,11 +4,11 @@ import {
   BlueprintItem,
   creatableSettingsKeysFor,
   formatBuildingDataEntry,
+  primarySettingsKey,
   resolveSettingDescriptors,
   SettingFieldDescriptor,
   SettingFieldType,
   SettingUnit,
-  thresholdSensorSpec,
   toDisplayValue,
   toStoredValue,
 } from "../../../../../../../lib/index";
@@ -106,43 +106,58 @@ export class BuildingSettingsComponent {
       this.rows.length > 0 ||
       this.otherKeys.length > 0 ||
       this.creatableSettings.length > 0 ||
-      this.thresholdLabel != null
+      this.primaryUnsetLabel != null
     );
   }
 
-  // A threshold sensor with no IThresholdSwitch key is not "at 0" and not
-  // "at the default we would have written" — the blueprint simply says nothing
-  // about it, and the mod leaves the built sensor on the game's own default.
-  // That state is shown rather than hidden behind a button, so the difference
-  // between "no opinion" and "pinned to a value" is visible in the panel.
-  private get thresholdSpec() {
-    return thresholdSensorSpec(this.blueprintItem.id);
+  // Some sensors keep their settings under one canonical Key (threshold sensors
+  // -> IThresholdSwitch; the Critter Sensor -> its own Key). When that Key is
+  // absent the blueprint says nothing and the mod leaves the built sensor on
+  // the game's own default — a state distinct from "pinned to a value", so it
+  // is shown as an explicit row rather than hidden behind a button.
+  private get primaryKey(): { key: string; label: string } | null {
+    return primarySettingsKey(this.blueprintItem.id);
   }
 
-  private get hasThreshold(): boolean {
-    return (this.blueprintItem.buildingData ?? []).some(
-      (entry) => entry.Key == THRESHOLD_KEY,
+  private get hasPrimary(): boolean {
+    const pk = this.primaryKey;
+    return (
+      pk != null &&
+      (this.blueprintItem.buildingData ?? []).some(
+        (entry) => entry.Key == pk.key,
+      )
     );
   }
 
-  // The row label for a threshold sensor that has no threshold stored; null
-  // for anything that is not a threshold sensor, or that already has one.
-  get thresholdLabel(): string | null {
-    const spec = this.thresholdSpec;
-    return spec != null && !this.hasThreshold ? spec.label : null;
+  // The row label for a sensor whose canonical settings Key is not stored; null
+  // for anything without such a Key, or that already has one.
+  get primaryUnsetLabel(): string | null {
+    const pk = this.primaryKey;
+    return pk != null && !this.hasPrimary ? pk.label : null;
   }
 
-  get canClearThreshold(): boolean {
-    return this.thresholdSpec != null && this.hasThreshold;
+  get canClearPrimary(): boolean {
+    return this.primaryKey != null && this.hasPrimary;
   }
 
-  setThreshold() {
-    this.blueprintItem.addBuildingSetting(THRESHOLD_KEY);
+  setPrimary() {
+    const pk = this.primaryKey;
+    if (pk == null) return;
+    this.blueprintItem.addBuildingSetting(pk.key);
     this.commit();
   }
 
-  clearThreshold() {
-    if (this.blueprintItem.removeBuildingSetting(THRESHOLD_KEY)) this.commit();
+  clearPrimary() {
+    const pk = this.primaryKey;
+    if (pk == null) return;
+    let removed = this.blueprintItem.removeBuildingSetting(pk.key);
+    // The Critter Sensor's canonical Key is its own, but a copied sensor also
+    // carries a redundant IThresholdSwitch echo of the threshold — drop that
+    // too, or the threshold stays pinned through the echo.
+    if (pk.key != THRESHOLD_KEY)
+      removed =
+        this.blueprintItem.removeBuildingSetting(THRESHOLD_KEY) || removed;
+    if (removed) this.commit();
   }
 
   get rows(): EditableSettingRow[] {
@@ -228,10 +243,10 @@ export class BuildingSettingsComponent {
     return (
       creatableSettingsKeysFor(this.blueprintItem.id)
         .filter((key) => !existing.has(key))
-        // The threshold has its own always-present row, which carries both the
-        // unset state and the control that sets it — a second button here
-        // would offer the same thing twice.
-        .filter((key) => key != THRESHOLD_KEY)
+        // The canonical settings Key has its own always-present row, which
+        // carries both the unset state and the control that sets it — a second
+        // button here would offer the same thing twice.
+        .filter((key) => key != this.primaryKey?.key)
         .map((key) => ({ key, label: $localize`Add automation settings` }))
     );
   }

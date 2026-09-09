@@ -11,9 +11,9 @@
     >
   </legend>
 
-  <!-- A threshold sensor with nothing stored: the blueprint says nothing
-       about the threshold, and the game's own default applies on build. -->
-  <div class="building-setting-row" *ngIf="thresholdLabel as label">
+  <!-- A sensor with its canonical settings key not stored: the blueprint says
+       nothing, and the game's own default applies on build. -->
+  <div class="building-setting-row" *ngIf="primaryUnsetLabel as label">
     <span class="building-setting-label"
       >{{ label }} <span class="building-setting-unset" i18n>(Not set)</span>
     </span>
@@ -23,7 +23,7 @@
         type="button"
         size="small"
         class="building-setting-button building-setting-set"
-        (click)="setThreshold()"
+        (click)="setPrimary()"
         i18n
       >
         Set
@@ -110,7 +110,7 @@
 
   <div
     class="building-setting-row building-setting-row-end"
-    *ngIf="canClearThreshold"
+    *ngIf="canClearPrimary"
   >
     <button
       pButton
@@ -118,12 +118,12 @@
       size="small"
       severity="secondary"
       class="building-setting-button building-setting-clear"
-      (click)="clearThreshold()"
+      (click)="clearPrimary()"
       i18n
-      pTooltip="Removes the stored threshold so the blueprint says nothing about it, and the game's own default applies on build."
+      pTooltip="Removes these stored settings so the blueprint says nothing about them, and the game's own defaults apply on build."
       tooltipEvent="both"
     >
-      Clear threshold
+      Clear
     </button>
   </div>
 

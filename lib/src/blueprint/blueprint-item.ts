@@ -8,7 +8,7 @@ import { OniItem } from '../oni-item';
 import { DrawPart } from '../drawing/draw-part';
 import { OniBuilding } from '../io/oni/oni-building';
 import { BniBuilding, BniBuildingData } from '../io/bni/bni-building';
-import { getCreatableSettingDefaults } from './building-settings/settings-catalog';
+import { getCreatableSettingDefaults, redundantEchoField } from './building-settings/settings-catalog';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { SpriteTag } from '../enums/sprite-tag';
 import { CameraService } from '../drawing/camera-service';
@@ -94,6 +94,18 @@ export class BlueprintItem {
     // BuildingSettingsComponent.rows), so this only guards a direct caller.
     if (entry.Value == null || typeof entry.Value !== 'object') entry.Value = {};
     entry.Value[field] = value;
+
+    // Keep a redundant echo of this field (the Critter Sensor's
+    // IThresholdSwitch mirror of countThreshold/activateOnGreaterThan) in sync
+    // if one is present, so the mod's key-apply pass can't overwrite the fresh
+    // value from a stale echo. Never creates the echo entry — only updates one
+    // the file already carries.
+    const echo = redundantEchoField(this.id, key, field);
+    if (echo != null) {
+      const echoEntry = this.buildingData!.find(e => e.Key == echo.key);
+      if (echoEntry != null && echoEntry.Value != null && typeof echoEntry.Value === 'object')
+        echoEntry.Value[echo.field] = value;
+    }
   }
 
   // The inverse of addBuildingSetting: drops a Key entirely, returning the
