@@ -7,6 +7,7 @@ import {
   BSpriteModifier,
   BBuilding,
   ElementState,
+  ZIndex,
 } from '../../lib';
 
 describe('Database Asset Validation', () => {
@@ -163,6 +164,57 @@ describe('Database Asset Validation', () => {
           .to.be.a('string')
           .with.length.greaterThan(0);
       });
+    });
+
+    // BlueprintItemWire.drawPixi (lib/src/blueprint/blueprint-item-wire.ts) draws the
+    // conduit-content blob's outline in the building's backColor: only buildings on
+    // sceneLayer 3 (GasConduits) or 5 (LiquidConduits) actually draw one. A regression
+    // (all-white backColor for every building) shipped invisibly for months because
+    // nothing else reads the field — this guards the one thing that does.
+    it('should give plain/insulated/radiant conduits distinct, non-white outline colours', () => {
+      const byPrefab = new Map<string, BBuilding>(
+        (database.buildings as BBuilding[]).map(building => [building.prefabId, building])
+      );
+      const conduitZIndexes: ZIndex[] = [ZIndex.GasConduits, ZIndex.LiquidConduits];
+      const drawsBlobOutline = (building: BBuilding | undefined) =>
+        !!building && conduitZIndexes.includes(building.sceneLayer);
+
+      const families: [string, string, string][] = [
+        ['GasConduit', 'InsulatedGasConduit', 'GasConduitRadiant'],
+        ['LiquidConduit', 'InsulatedLiquidConduit', 'LiquidConduitRadiant'],
+      ];
+      for (const [plainId, insulatedId, radiantId] of families) {
+        const plain = byPrefab.get(plainId);
+        const insulated = byPrefab.get(insulatedId);
+        const radiant = byPrefab.get(radiantId);
+        for (const [id, building] of [
+          [plainId, plain],
+          [insulatedId, insulated],
+          [radiantId, radiant],
+        ] as const) {
+          expect(building, `${id} should exist`).not.to.equal(undefined);
+          expect(drawsBlobOutline(building), `${id} should be on a conduit sceneLayer`).to.equal(
+            true
+          );
+          expect(
+            building!.backColor,
+            `${id} should not ship the white regression colour`
+          ).not.to.equal(0xffffff);
+        }
+        const colors = [plain, insulated, radiant].map(b => b!.backColor);
+        expect(
+          new Set(colors).size,
+          `${plainId}/${insulatedId}/${radiantId} should each have a distinct outline colour`
+        ).to.equal(3);
+      }
+
+      // Every building that actually draws the blob outline (not just the plain
+      // families above — also the high-pressure variants) must have a real colour.
+      const conduitZIndexSet = new Set<ZIndex>(conduitZIndexes);
+      const stillWhite = (database.buildings as BBuilding[])
+        .filter(b => conduitZIndexSet.has(b.sceneLayer) && b.backColor === 0xffffff)
+        .map(b => b.prefabId);
+      expect(stillWhite, `conduits still shipping white: ${stillWhite.join(', ')}`).to.be.empty;
     });
 
     it('should preserve representative areas of effect and omit empty arrays', () => {
