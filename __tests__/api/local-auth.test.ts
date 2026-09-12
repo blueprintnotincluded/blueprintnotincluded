@@ -124,14 +124,19 @@ describe('Local auth mode', function () {
       process.env.AUTH_MODE = 'local';
       const provisioning = ensureDevUsers();
 
-      const response = await TestSetup.request()
-        .post('/api/auth/login')
-        .send({ email: 'dev_you@bpni.local', password: DEV_PASSWORD });
+      try {
+        const response = await TestSetup.request()
+          .post('/api/auth/login')
+          .send({ email: 'dev_you@bpni.local', password: DEV_PASSWORD });
 
-      expect(response.status).to.equal(503);
-      expect(response.body.error).to.equal('local_auth_provisioning');
-
-      await provisioning;
+        expect(response.status).to.equal(503);
+        expect(response.body.error).to.equal('local_auth_provisioning');
+      } finally {
+        // Must complete before afterEach's cleanDatabase runs, win or lose —
+        // otherwise a failed assertion above leaves this upserting users
+        // concurrently with the next test's cleanup/setup.
+        await provisioning;
+      }
     });
   });
 
