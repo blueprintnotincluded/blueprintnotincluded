@@ -18,6 +18,12 @@ export interface User extends Document {
   authProvider: 'legacy' | 'workos';
   migratedToWorkosAt?: Date;
 
+  // Local-auth-mode only (specs/local-auth-mode-plan.md): the role a dev
+  // user's JWT carries when AUTH_MODE=local. Never set by any production
+  // code path — the WorkOS flow sources role from platform org membership,
+  // not from a document field.
+  localRole?: 'admin';
+
   resetToken?: string;
   resetTokenExpiration?: Date;
 
@@ -98,6 +104,10 @@ export class UserModel {
         default: 'legacy',
       },
       migratedToWorkosAt: Date,
+      localRole: {
+        type: String,
+        enum: ['admin'],
+      },
       resetToken: String,
       resetTokenExpiration: Date,
       bio: { type: String, maxlength: [500, 'Bio must be 500 characters or fewer'], default: '' },

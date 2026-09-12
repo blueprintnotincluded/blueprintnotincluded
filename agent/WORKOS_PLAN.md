@@ -16,9 +16,16 @@ environment would be invalid in the other:
 
 | Deployment | Database | WorkOS Environment |
 |---|---|---|
-| Local dev | Local dev DB | **Staging** |
+| Local dev | Local dev DB | **Staging** (or `AUTH_MODE=local`, the devcontainer default) |
 | Staging website | Shared prod DB | **Production** |
 | Production website | Shared prod DB | **Production** |
+
+**Local dev defaults to `AUTH_MODE=local`** (`specs/local-auth-mode-plan.md`), not the Staging
+mapping above: no checkout ships real WorkOS keys, and with several local databases the Staging
+mapping would reproduce the cross-database link mismatch this table exists to avoid. Staging
+keys are only for validating the WorkOS-specific flows (magic link, password reset, email
+verification) themselves, in one designated checkout with `AUTH_MODE=workos` and real Staging
+credentials in its `.env`.
 
 ## Admin roles
 

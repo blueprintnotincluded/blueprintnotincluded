@@ -16,6 +16,8 @@ import { TranslationUnitModel } from './models/translation-unit';
 import { BlueprintSearchModel } from './models/blueprint-search';
 import { TranslationBudgetModel } from './models/translation-budget';
 import { SearchQueryModel } from './models/search-query';
+import { isLocalAuthMode } from './auth-mode';
+import { ensureDevUsers } from './dev-users';
 
 export class Database {
   constructor() {
@@ -48,6 +50,10 @@ export class Database {
       BlueprintSearchModel.init();
       TranslationBudgetModel.init();
       SearchQueryModel.init();
+
+      if (isLocalAuthMode()) {
+        ensureDevUsers().catch(err => console.error('[auth] failed to ensure dev users:', err));
+      }
     });
     mongoose.connection.on('error', err => {
       if (process.env.NODE_ENV !== 'test') {
