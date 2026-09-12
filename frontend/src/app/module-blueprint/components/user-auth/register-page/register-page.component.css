@@ -70,3 +70,14 @@
 .auth-links a:hover {
   text-decoration: underline;
 }
+
+.local-auth-banner {
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  color: #1a1f2e;
+  background: #ffb020;
+  border-radius: 4px;
+  padding: 0.4rem;
+}

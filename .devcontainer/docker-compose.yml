@@ -39,6 +39,11 @@ x-node: &node
     # the bind mount carries.
     DB_URI: mongodb://database:27017/blueprintnotincluded
     SMTP_HOST: mailhog
+    # No checkout ships real WorkOS keys, so the devcontainer runs auth
+    # locally: dev users are seeded at boot and the login page offers a
+    # one-click picker. Never set in the deploy stack. See AUTH_MODE in
+    # .env.sample and CLAUDE.md "Environment Configuration".
+    AUTH_MODE: local
   volumes:
     - ..:/app:cached
     # Named volumes, not part of the bind mount: canvas and sharp are built for

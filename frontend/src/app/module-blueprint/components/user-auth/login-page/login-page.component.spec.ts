@@ -21,6 +21,9 @@ describe("LoginPageComponent", () => {
     mockAuth = {
       loginWithPassword: vi.fn(),
       saveToken: vi.fn(),
+      getAuthMode: vi
+        .fn()
+        .mockReturnValue(of({ mode: "workos", devUsers: [] })),
     };
     mockRouter = { navigate: vi.fn() };
     mockRoute = { snapshot: { queryParams: {} } };
@@ -157,6 +160,81 @@ describe("LoginPageComponent", () => {
       expect(mockRouter.navigate).toHaveBeenCalledWith(["/login/forgot"], {
         queryParams: { email: "test@example.com" },
       });
+    });
+  });
+
+  describe("local auth mode", () => {
+    it("stays in workos mode with no dev users by default", () => {
+      component.ngOnInit();
+      expect(component.authMode).toBe("workos");
+      expect(component.devUsers).toEqual([]);
+    });
+
+    it("picks up the dev user roster when the mode response says local", () => {
+      mockAuth.getAuthMode.mockReturnValue(
+        of({
+          mode: "local",
+          devUsers: [
+            { username: "dev_you", email: "dev_you@bpni.local", role: "admin" },
+          ],
+          devPassword: "dev_password",
+        }),
+      );
+      component.ngOnInit();
+      expect(component.authMode).toBe("local");
+      expect(component.devUsers).toEqual([
+        { username: "dev_you", email: "dev_you@bpni.local", role: "admin" },
+      ]);
+    });
+
+    it("does nothing when a login is already in flight", () => {
+      component.loading = true;
+      component.loginAsDevUser({
+        username: "dev_you",
+        email: "dev_you@bpni.local",
+        role: "admin",
+      });
+      expect(mockAuth.loginWithPassword).not.toHaveBeenCalled();
+    });
+
+    it("logs in with the dev user's email and the shared dev password", () => {
+      mockAuth.getAuthMode.mockReturnValue(
+        of({
+          mode: "local",
+          devUsers: [],
+          devPassword: "dev_password",
+        }),
+      );
+      component.ngOnInit();
+      mockAuth.loginWithPassword.mockReturnValue(
+        of({ kind: "success", token: "jwt" }),
+      );
+
+      component.loginAsDevUser({
+        username: "dev_you",
+        email: "dev_you@bpni.local",
+        role: "admin",
+      });
+
+      expect(mockAuth.loginWithPassword).toHaveBeenCalledWith(
+        "dev_you@bpni.local",
+        "dev_password",
+      );
+      expect(mockAuth.saveToken).toHaveBeenCalledWith("jwt");
+      expect(mockRouter.navigate).toHaveBeenCalledWith(["/"]);
+    });
+
+    it("shows an error when the dev user login is rejected", () => {
+      mockAuth.loginWithPassword.mockReturnValue(
+        of({ kind: "invalid_credentials" }),
+      );
+      component.loginAsDevUser({
+        username: "dev_you",
+        email: "dev_you@bpni.local",
+        role: "admin",
+      });
+      expect(component.errorMessage).toBeTruthy();
+      expect(component.loading).toBe(false);
     });
   });
 });

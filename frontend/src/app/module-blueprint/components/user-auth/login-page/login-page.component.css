@@ -89,3 +89,33 @@
   margin: 0 0.4rem;
   color: var(--text-color-secondary, #6b7280);
 }
+
+.local-auth-banner {
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  color: #1a1f2e;
+  background: #ffb020;
+  border-radius: 4px;
+  padding: 0.4rem;
+}
+
+.dev-user-picker {
+  margin-bottom: 1rem;
+}
+
+.dev-user-picker-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.dev-user-button {
+  margin-bottom: 0.5rem;
+}
+
+.dev-user-picker-divider {
+  border: none;
+  border-top: 1px solid var(--surface-border, #3a4256);
+  margin: 1rem 0;
+}

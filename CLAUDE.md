@@ -40,6 +40,8 @@ app container**; the host needs only a container runtime.
 - `... logs -f api web` / `... restart api` - Watch or bounce a server
 - Frontend: http://localhost:4200, Backend: http://localhost:3000
 - From inside, the database is `database:27017` and mail is `mailhog:1025` — service names, not localhost
+- The dev container runs in local auth mode: open the login page and pick a dev user, or log in
+  with the form using any `@bpni.local` email — the password is `dev_password`
 
 To run on the host instead (Node 20.19.4 per `.nvmrc`): `./dev-setup.sh` starts
 just the database and mail, and `DB_URI` / `SMTP_HOST` are already `localhost`
@@ -167,6 +169,10 @@ Copy `.env.sample` to `.env` and configure:
 
 - `DB_URI` - MongoDB connection string
 - `JWT_SECRET` - Secret key for JWT tokens
+- `AUTH_MODE` - `workos` (default) or `local`. Local mode seeds a fixed roster of dev users at
+  boot and lets `/api/auth/login` authenticate them directly with no WorkOS keys — the
+  devcontainer sets this on the container itself (`.devcontainer/docker-compose.yml`). Refused
+  outright when `ENV_NAME=production`. Details: `specs/local-auth-mode-plan.md`.
 - `ENV_NAME` - Environment identifier (`production` enables Mailjet; otherwise nodemailer/SMTP)
 - `SMTP_HOST`/`SMTP_PORT` - Mail server for dev/test (`mailhog:1025` in the dev container, `localhost:1025` on the host)
 - `MAILJET_API_KEY`/`MAILJET_SECRET_KEY`/`MAILJET_FROM_EMAIL` - Required in production for email
