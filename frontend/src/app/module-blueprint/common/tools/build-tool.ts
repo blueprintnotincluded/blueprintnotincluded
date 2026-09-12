@@ -65,6 +65,12 @@ export class BuildTool implements ITool {
     const isBridge = BRIDGE_LOCATION_RULES.has(
       this.templateItemToBuild.oniItem.buildLocationRule,
     );
+    // Element cells are annotations, not construction — they coexist with
+    // whatever else is on the tile (a building, or another cell) rather than
+    // competing for it, so painting one is never blocked. build() below
+    // removes whatever element cell was already there, so painting over one
+    // replaces it instead of stacking a second cell on the same tile.
+    const isElement = this.templateItemToBuild.oniItem.isElement;
 
     for (const tileIndex of this.templateItemToBuild.tileIndexes) {
       for (const templateItem of this.blueprintService.blueprint.getBlueprintItemsAtIndex(
@@ -74,6 +80,7 @@ export class BuildTool implements ITool {
         // We skip this step for bridges, who only care about their utility ports
         if (
           !isBridge &&
+          !isElement &&
           this.templateItemToBuild.oniItem.objectLayer ==
             templateItem.oniItem.objectLayer
         ) {
@@ -134,6 +141,21 @@ export class BuildTool implements ITool {
 
   build() {
     if (!this.templateItemToBuild.buildCandidateResult.canBuild) return;
+
+    // Painting an element cell over one that's already there replaces it
+    // rather than stacking a second cell on the same tile — the same
+    // "sample it, tweak it, repaint it" loop a real building can't have,
+    // since two buildings can never legally share a tile in the first place.
+    if (this.templateItemToBuild.oniItem.isElement) {
+      for (const tileIndex of this.templateItemToBuild.tileIndexes) {
+        const existingElements = this.blueprintService.blueprint
+          .getBlueprintItemsAtIndex(tileIndex)
+          .filter((item) => item.oniItem.isElement)
+          .slice();
+        for (const item of existingElements)
+          this.blueprintService.blueprint.destroyBlueprintItem(item);
+      }
+    }
 
     const newItem = BlueprintHelpers.cloneBlueprintItem(
       this.templateItemToBuild,

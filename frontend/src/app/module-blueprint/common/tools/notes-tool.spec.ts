@@ -35,7 +35,7 @@ describe("NotesTool", () => {
     expect(tool.toggleable).toBe(false);
   });
 
-  it("places a text note built from the pending template", () => {
+  it("places a text note built from the pending template, leaving it unselected", () => {
     tool.mode = "text";
     tool.pendingTextNote.tinthex = "ff0000ff";
     tool.mouseDown(new Vector2(4, 5));
@@ -47,11 +47,14 @@ describe("NotesTool", () => {
       type: 0,
       tinthex: "ff0000ff",
     });
-    expect(worldNoteService.selected).to.equal(blueprint.worldNotes[0]);
+    // Deliberately not selected: the edit panel keeps showing the pending
+    // template, so the next field edit configures the *next* click rather
+    // than the note that was just placed.
+    expect(worldNoteService.selected).to.equal(null);
     expect(blueprint.emitBlueprintChanged).toHaveBeenCalledOnce();
   });
 
-  it("places an element note built from the pending template", () => {
+  it("places an element note built from the pending template, leaving it unselected", () => {
     tool.mode = "element";
     tool.pendingElementNote = {
       x: 0,
@@ -66,7 +69,19 @@ describe("NotesTool", () => {
     expect(blueprint.worldNotes).to.deep.equal([
       { x: 1, y: 2, type: 1, id: 7, mass: 100, temp: 300 },
     ]);
-    expect(worldNoteService.selected).to.equal(blueprint.worldNotes[0]);
+    expect(worldNoteService.selected).to.equal(null);
+  });
+
+  it("clears a previous selection rather than leaving it in place when a new note is placed", () => {
+    const existing: BniWorldNote = { x: 9, y: 9, type: 0, title: "existing" };
+    blueprint.worldNotes.push(existing);
+    worldNoteService.select(existing);
+    expect(worldNoteService.selected).to.equal(existing);
+
+    tool.mode = "text";
+    tool.mouseDown(new Vector2(1, 2));
+
+    expect(worldNoteService.selected).to.equal(null);
   });
 
   it("seeds a fresh element note with Water and its defaults when the mode is picked", () => {
@@ -142,6 +157,18 @@ describe("NotesTool", () => {
     expect(blueprint.worldNotes).to.have.length(1);
     expect(worldNoteService.selected).to.equal(existing);
     expect(blueprint.emitBlueprintChanged).not.toHaveBeenCalled();
+  });
+
+  it("reveals a hidden note layer on placement, so the click never looks like nothing happened", () => {
+    worldNoteService.visible = false;
+    tool.mouseDown(new Vector2(1, 2));
+    expect(worldNoteService.visible).toBe(true);
+  });
+
+  it("reveals a hidden note layer on switchTo", () => {
+    worldNoteService.visible = false;
+    tool.switchTo();
+    expect(worldNoteService.visible).toBe(true);
   });
 
   it("right-click returns to the select tool", () => {

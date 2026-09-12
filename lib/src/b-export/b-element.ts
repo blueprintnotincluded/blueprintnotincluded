@@ -1,4 +1,5 @@
 import { ElementState } from '../enums/element-state';
+import { Overlay } from '../enums/overlay';
 
 // Neutronium's element id in the game's data. The indestructible material every
 // geyser, vent and volcano is anchored on, which is why the editor seeds a row
@@ -166,4 +167,35 @@ export class BuildableElement {
 
     return returnValue;
   }
+}
+
+// Shared alpha for anything dimmed outside its own overlay — buildings
+// (BlueprintItem.cameraChanged), element cells and element world notes all
+// use this same value so the whole canvas dims consistently.
+export const OVERLAY_DIMMED_ALPHA = 0.3;
+
+// The overlay (besides Base) an element state renders opaque in, mirroring
+// BlueprintItem's primary/secondary overlay split for buildings. Solid has
+// none: it annotates natural terrain, which has no gas/liquid overlay of its
+// own to belong to. Shared by element cells and element world notes so both
+// fade identically.
+export function elementOwnOverlay(element: BuildableElement): Overlay | null {
+  if (element.hasTag('Liquid')) return Overlay.Liquid;
+  if (element.hasTag('Gas') || element.hasTag('Vacuum')) return Overlay.Gas;
+  return null;
+}
+
+// The Room overlay tints cavities on top of the normal Base render (like
+// every other item — BlueprintItem.cameraChanged), so it maps to Base here
+// too rather than needing a case of its own.
+export function elementItemOverlay(overlay: Overlay): Overlay {
+  return overlay === Overlay.Room ? Overlay.Base : overlay;
+}
+
+// Whether `overlay` is one this element renders fully opaque in (Base, or its
+// own overlay). Outside that set it should still render, just dimmed to
+// OVERLAY_DIMMED_ALPHA rather than hidden outright.
+export function isElementOverlayPrimary(element: BuildableElement, overlay: Overlay): boolean {
+  const itemOverlay = elementItemOverlay(overlay);
+  return itemOverlay === Overlay.Base || itemOverlay === elementOwnOverlay(element);
 }
