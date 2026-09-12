@@ -105,11 +105,18 @@ export class NotesTool implements ITool {
   }
   switchTo() {
     if (this.mode === "element") this.seedPendingElement();
+    // Placing into a hidden layer would look like the click did nothing, so
+    // entering the tool reveals the layer rather than landing invisibly (see
+    // TerrainTool.switchTo).
+    this.worldNoteService.visible = true;
   }
   mouseOut() {
     this.hoverTile = null;
   }
   mouseDown(tile: Vector2) {
+    // Placing into a hidden layer would look like the click did nothing.
+    this.worldNoteService.visible = true;
+
     const position = DrawHelpers.getIntegerTile(tile);
     const blueprint = this.blueprintService.blueprint;
     const existing = findNoteAt(blueprint.worldNotes, position);
@@ -119,7 +126,13 @@ export class NotesTool implements ITool {
     }
     const note = this.buildPendingNote(position);
     blueprint.worldNotes.push(note);
-    this.worldNoteService.select(note);
+    // Deliberately left deselected (never the note just placed): the panel
+    // then keeps showing the pending template, so the element/mass/temp the
+    // user dials in next paints the *next* click rather than editing the one
+    // that just landed. Clearing rather than leaving whatever was selected
+    // before also covers placing a new note right after inspecting an
+    // existing one.
+    this.worldNoteService.clear();
     this.worldNoteService.commit();
   }
   leftClick(_tile: Vector2) {}

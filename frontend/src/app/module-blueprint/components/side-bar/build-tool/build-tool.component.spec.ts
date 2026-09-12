@@ -185,10 +185,16 @@ describe("ComponentSideBuildToolComponent", () => {
   });
 
   describe("changeElement", () => {
-    it("flags the template for a camera reload", () => {
-      buildTool.templateItemToBuild.reloadCamera = false;
-      component.changeElement({} as any);
-      expect(buildTool.templateItemToBuild.reloadCamera).toBe(true);
+    it("writes the picked element onto the brush, not just a reload flag", () => {
+      buildTool.templateItemToBuild.setElement = vi.fn();
+      const newElement = { id: "Oxygen" } as any;
+
+      component.changeElement({ newElement, index: 1 });
+
+      expect(buildTool.templateItemToBuild.setElement).toHaveBeenCalledWith(
+        "Oxygen",
+        1,
+      );
     });
   });
 
@@ -247,6 +253,56 @@ describe("ComponentSideBuildToolComponent", () => {
     it("tolerates missing item panels", () => {
       component.itemPanels = null as any;
       expect(() => component.toolChanged(ToolType.select)).not.toThrow();
+    });
+
+    // The "B resets an already-configured element brush to Vacuum" bug:
+    // re-entering the build tool fires toolChanged(build) even when nothing
+    // actually changed, so it must not blindly rebuild every time.
+    it("does not rebuild when the build tool already shows the same item (re-entering via B)", () => {
+      const spy = vi.spyOn(BlueprintHelpers, "createInstance");
+      buildTool.templateItemToBuild.oniItem = {
+        id: "Element",
+        isElement: true,
+      };
+      component.currentItem = { id: "Element" } as any;
+      const a = makePanel();
+      component.itemPanels = makePanelList([a]);
+
+      component.toolChanged(ToolType.build);
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(buildTool.changeItem).not.toHaveBeenCalled();
+      expect(a.hide).toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it("rebuilds when the build tool shows a different item than currentItem", () => {
+      const instance = { id: "Wire" } as any;
+      const spy = vi
+        .spyOn(BlueprintHelpers, "createInstance")
+        .mockReturnValue(instance);
+      buildTool.templateItemToBuild.oniItem = { id: "Tile", isElement: false };
+      component.currentItem = { id: "Wire" } as any;
+
+      component.toolChanged(ToolType.build);
+
+      expect(spy).toHaveBeenCalledWith("Wire");
+      expect(buildTool.changeItem).toHaveBeenCalledWith(instance);
+      spy.mockRestore();
+    });
+
+    it("rebuilds when there is no template item yet", () => {
+      const instance = { id: "Tile" } as any;
+      const spy = vi
+        .spyOn(BlueprintHelpers, "createInstance")
+        .mockReturnValue(instance);
+      buildTool.templateItemToBuild = null as any;
+      component.currentItem = { id: "Tile" } as any;
+
+      component.toolChanged(ToolType.build);
+
+      expect(spy).toHaveBeenCalledWith("Tile");
+      spy.mockRestore();
     });
   });
 

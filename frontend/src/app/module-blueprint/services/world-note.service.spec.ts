@@ -135,4 +135,19 @@ describe("WorldNoteService", () => {
     expect(blueprint.worldNotes).to.deep.equal([a]);
     expect(service.selected).to.equal(a);
   });
+
+  // Visibility is view state only: it must never reach what is stored.
+  it("toggling visibility drops the selection but not the data", () => {
+    const n = textNote(1);
+    blueprint.worldNotes = [n];
+    service.select(n);
+    service.toggleVisible();
+
+    expect(service.visible).toBe(false);
+    expect(service.selected).to.equal(null);
+    expect(blueprint.worldNotes).to.deep.equal([n]);
+
+    service.toggleVisible();
+    expect(service.visible).toBe(true);
+  });
 });

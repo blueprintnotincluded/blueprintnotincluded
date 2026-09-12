@@ -106,6 +106,15 @@
       ></app-element-note-editor>
     </ng-template>
 
+    <label class="note-panel-visibility-row">
+      <input
+        type="checkbox"
+        [checked]="noteService.visible"
+        (change)="noteService.toggleVisible()"
+      />
+      <span i18n>Show notes</span>
+    </label>
+
     <p class="note-panel-hint" *ngIf="isDraft" i18n>
       Click on the blueprint to place a note. Right-click to return to Select.
     </p>

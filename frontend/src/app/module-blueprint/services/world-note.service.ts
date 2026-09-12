@@ -30,6 +30,11 @@ export function findNoteAt(
 export class WorldNoteService {
   private selectedTile: { x: number; y: number } | null = null;
 
+  // "Show notes" — a clean build view hides the pin layer. View state only:
+  // hiding never changes what is stored or exported (mirrors
+  // TerrainAnnotationService.visible).
+  visible = true;
+
   constructor(private blueprintService: BlueprintService) {}
 
   get selected(): BniWorldNote | null {
@@ -49,6 +54,12 @@ export class WorldNoteService {
 
   clear() {
     this.selectedTile = null;
+  }
+
+  toggleVisible() {
+    this.visible = !this.visible;
+    // Hiding the layer must not leave an invisible thing selected and editable.
+    if (!this.visible) this.clear();
   }
 
   get isTextNote(): boolean {

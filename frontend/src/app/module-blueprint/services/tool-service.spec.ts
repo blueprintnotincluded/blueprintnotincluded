@@ -2,6 +2,7 @@ import { ToolService } from "./tool-service";
 import { ToolType } from "../common/tools/tool";
 import {
   BlueprintHelpers,
+  BniWorldNote,
   CameraService,
   Overlay,
   Vector2,
@@ -10,6 +11,8 @@ import { PlanningTool } from "../common/tools/planning-tool";
 import { NotesTool } from "../common/tools/notes-tool";
 import { TerrainTool } from "../common/tools/terrain-tool";
 import { ShortcutAction } from "../keybindings/shortcut-actions";
+import { BlueprintService } from "./blueprint-service";
+import { WorldNoteService } from "./world-note.service";
 
 const makeTool = (toolType: ToolType, toolGroup = 1) => ({
   toolType,
@@ -42,8 +45,15 @@ describe("ToolService", () => {
   let mockElementReport: any;
   let mockScissors: ReturnType<typeof makeTool>;
   let mockPlanning: ReturnType<typeof makeTool>;
-  let mockNotes: ReturnType<typeof makeTool>;
+  let mockNotes: ReturnType<typeof makeTool> & {
+    pendingElementNote: BniWorldNote;
+    mode: "text" | "element";
+  };
   let mockTerrain: ReturnType<typeof makeTool>;
+  let blueprintItemsAt: any[];
+  let worldNotes: BniWorldNote[];
+  let mockBlueprintService: { blueprint: any };
+  let mockWorldNoteService: { selected: BniWorldNote | null };
 
   beforeEach(() => {
     mockSelect = makeTool(ToolType.select);
@@ -51,8 +61,22 @@ describe("ToolService", () => {
     mockElementReport = {};
     mockScissors = makeTool(ToolType.scissors);
     mockPlanning = makeTool(ToolType.planning);
-    mockNotes = makeTool(ToolType.notes);
+    mockNotes = {
+      ...makeTool(ToolType.notes),
+      pendingElementNote: { x: 0, y: 0, type: 1 },
+      mode: "text",
+    };
     mockTerrain = makeTool(ToolType.terrain);
+
+    blueprintItemsAt = [];
+    worldNotes = [];
+    mockBlueprintService = {
+      blueprint: {
+        getBlueprintItemsAt: vi.fn().mockReturnValue(blueprintItemsAt),
+        worldNotes,
+      },
+    };
+    mockWorldNoteService = { selected: null };
 
     service = new ToolService(
       mockSelect as any,
@@ -62,6 +86,8 @@ describe("ToolService", () => {
       mockPlanning as unknown as PlanningTool,
       mockNotes as unknown as NotesTool,
       mockTerrain as unknown as TerrainTool,
+      mockBlueprintService as unknown as BlueprintService,
+      mockWorldNoteService as unknown as WorldNoteService,
     );
   });
 
@@ -265,6 +291,101 @@ describe("ToolService", () => {
       );
       expect(mockBuild.visible).toBe(true);
       expect(mockBuild.changeItem).toHaveBeenCalledWith(clone);
+    });
+
+    // With nothing selected, B instead samples whatever is under the cursor.
+    it("samples the frontmost item under the cursor when nothing is selected", () => {
+      const hovered = { id: "Wire", depth: 5 };
+      const clone = { id: "Wire clone" };
+      blueprintItemsAt.push(hovered);
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
+        clone as any,
+      );
+
+      service.hover(new Vector2(3, 4));
+      service.handleShortcut(ShortcutAction.toolBuild);
+
+      expect(
+        mockBlueprintService.blueprint.getBlueprintItemsAt,
+      ).toHaveBeenCalledWith(new Vector2(3, 4));
+      expect(BlueprintHelpers.cloneBlueprintItem).toHaveBeenCalledWith(hovered);
+      expect(mockBuild.visible).toBe(true);
+      expect(mockBuild.changeItem).toHaveBeenCalledWith(clone);
+    });
+
+    it("picks the highest-depth item when a building and an element cell share a tile", () => {
+      const cell = { id: "Element", depth: 17 };
+      const building = { id: "Wire", depth: 119 };
+      blueprintItemsAt.push(cell, building);
+      const clone = {};
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
+        clone as any,
+      );
+
+      service.hover(new Vector2(1, 1));
+      service.handleShortcut(ShortcutAction.toolBuild);
+
+      expect(BlueprintHelpers.cloneBlueprintItem).toHaveBeenCalledWith(
+        building,
+      );
+    });
+
+    it("switches to the notes tool with an element note under the cursor as the pending brush", () => {
+      const note: BniWorldNote = {
+        x: 2,
+        y: 2,
+        type: 1,
+        id: 7,
+        mass: 500,
+        temp: 300,
+      };
+      worldNotes.push(note);
+
+      service.hover(new Vector2(2, 2));
+      service.handleShortcut(ShortcutAction.toolBuild);
+
+      expect(mockNotes.pendingElementNote).to.include({
+        id: 7,
+        mass: 500,
+        temp: 300,
+      });
+      expect(mockNotes.mode).toBe("element");
+      expect(mockNotes.visible).toBe(true);
+      expect(mockBuild.changeItem).not.toHaveBeenCalled();
+    });
+
+    it("prefers a selected world note over the hover tile, mirroring the selected-building rule", () => {
+      const selectedNote: BniWorldNote = {
+        x: 9,
+        y: 9,
+        type: 1,
+        id: 3,
+        mass: 10,
+        temp: 280,
+      };
+      mockWorldNoteService.selected = selectedNote;
+      blueprintItemsAt.push({ id: "Wire", depth: 5 });
+
+      service.hover(new Vector2(0, 0));
+      service.handleShortcut(ShortcutAction.toolBuild);
+
+      expect(mockNotes.pendingElementNote).to.include({
+        id: 3,
+        mass: 10,
+        temp: 280,
+      });
+      expect(mockNotes.mode).toBe("element");
+    });
+
+    it("declines to sample a text note under the cursor (deferred) and just switches to the build tool", () => {
+      const note: BniWorldNote = { x: 5, y: 5, type: 0, title: "hi" };
+      worldNotes.push(note);
+
+      service.hover(new Vector2(5, 5));
+      service.handleShortcut(ShortcutAction.toolBuild);
+
+      expect(mockBuild.visible).toBe(true);
+      expect(mockBuild.changeItem).not.toHaveBeenCalled();
     });
   });
 });

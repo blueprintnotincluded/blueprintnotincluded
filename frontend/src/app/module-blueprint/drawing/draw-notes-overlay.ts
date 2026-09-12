@@ -7,6 +7,7 @@ import {
   NOTE_ICON_TILE_FRACTION,
   noteBadgeColor,
   noteMarkerSprite,
+  noteOverlayAlpha,
 } from "../../../../../lib/index";
 import { DrawPixi } from "./draw-pixi";
 
@@ -91,10 +92,11 @@ export class DrawNotesOverlay {
     this.container.visible = true;
     this.graphics.clear();
 
+    const resolve = (tag: number) => BuildableElement.getElementByTag(tag);
+
     if (notes !== this.lastNotes) {
       this.lastNotes = notes;
       this.prepared = notes.map((n) => {
-        const resolve = (tag: number) => BuildableElement.getElementByTag(tag);
         const c = noteBadgeColor(n, resolve);
         return {
           x: n.x,
@@ -125,9 +127,19 @@ export class DrawNotesOverlay {
 
       const sprite = this.sprites[i];
       if (sprite != null) {
+        // Computed fresh every frame (never cached into `prepared`, unlike
+        // marker/color above): the current overlay can change without the
+        // note array itself changing, and this same overlay can otherwise be
+        // reused unchanged across several export passes (saveImages draws
+        // one shared instance per selected overlay).
+        const overlayAlpha = noteOverlayAlpha(
+          notes[i],
+          camera.overlay,
+          resolve,
+        );
         sprite.texture = this.textures[note.marker];
         sprite.tint = note.color;
-        sprite.alpha = note.alpha;
+        sprite.alpha = note.alpha * overlayAlpha;
         sprite.width = size;
         sprite.height = size;
         sprite.x = screenX;
