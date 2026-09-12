@@ -16,6 +16,7 @@ import { BlueprintVersionModel } from '../../app/api/models/blueprint-version';
 import { PreviewImageModel } from '../../app/api/models/preview-image';
 import {
   PreviewImageService,
+  PREVIEW_RENDER_VERSION,
   PREVIEW_VARIANTS,
 } from '../../app/api/services/preview-image-service';
 import { Types } from 'mongoose';
@@ -457,8 +458,13 @@ describe('Blueprint preview images', function () {
     let renderCount: number;
 
     // Seeds the three durable rows the way a previous deploy's render would
-    // have (disk cache empty — the redeploy scenario).
-    async function seedMongoRows(sourceModifiedAt: Date | null) {
+    // have (disk cache empty — the redeploy scenario). `renderVersion`
+    // defaults to the current pipeline version — pass an override to
+    // simulate a row written before the render-version gate existed.
+    async function seedMongoRows(
+      sourceModifiedAt: Date | null,
+      renderVersion: number | null = PREVIEW_RENDER_VERSION
+    ) {
       const renderedAt = new Date();
       await PreviewImageModel.model.create(
         PREVIEW_VARIANTS.map(variant => ({
@@ -468,6 +474,7 @@ describe('Blueprint preview images', function () {
           contentType: variant.endsWith('.png') ? 'image/png' : 'image/webp',
           renderedAt,
           sourceModifiedAt,
+          renderVersion,
         }))
       );
     }
@@ -556,6 +563,24 @@ describe('Blueprint preview images', function () {
       }
     });
 
+    // The render-version gate: a row from before this pipeline change (no
+    // grid baked in) must not keep serving indefinitely just because
+    // sourceModifiedAt still looks fresh — it needs to regenerate once.
+    it('treats a pre-existing row with no renderVersion as stale and regenerates it', async function () {
+      const modifiedAt = new Date(Date.now() - 60_000);
+      await seedMongoRows(modifiedAt, null);
+      const service = makeService();
+
+      const result = await service.getVariant(blueprintId, modifiedAt, 'card.webp', async () => ({
+        items: [],
+      }));
+      expect(result).to.not.equal(null);
+      expect(renderCount).to.equal(1);
+
+      const rows = await PreviewImageModel.model.find({ blueprintId }).lean();
+      for (const row of rows) expect(row.renderVersion).to.equal(PREVIEW_RENDER_VERSION);
+    });
+
     it('serves durable rows even when rendering is disabled (redeploy acceptance)', async function () {
       const modifiedAt = new Date(Date.now() - 60_000);
       await seedMongoRows(modifiedAt);
@@ -578,6 +603,131 @@ describe('Blueprint preview images', function () {
       service.prerender(blueprintId, modifiedAt, async () => ({ items: [] }));
       await new Promise(resolve => setTimeout(resolve, 100));
       expect(renderCount).to.equal(0);
+    });
+  });
+
+  // ─── Cell-pitch grid (spec: "Blueprint previews: terrain features and a
+  //     real cell grid") ────────────────────────────────────────────────────
+
+  describe('cell-pitch grid (framing)', function () {
+    it('bakes a phase-aligned grid into card.webp and hero.webp when framing is present', async function () {
+      this.timeout(10000);
+      const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-grid-'));
+      const size = 64;
+      const raw = Buffer.alloc(size * size * 4); // fully transparent
+      const framing = { tileSize: 8, offsetPx: { x: 0, y: 0 } };
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => ({ raw, width: size, height: size, framing }),
+      });
+
+      const card = await service.getVariant(blueprintId, null, 'card.webp', async () => ({
+        items: [],
+      }));
+      const { data: cardData, info: cardInfo } = await sharp(card!.buffer)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const cardAlphaAt = (x: number, y: number) =>
+        cardData[(y * cardInfo.width + x) * cardInfo.channels + 3];
+      // Card is resized 64 -> 480 (scale 7.5): grid lines land at x = n*60.
+      expect(cardAlphaAt(60, 100)).to.be.greaterThan(15);
+      expect(cardAlphaAt(30, 100)).to.be.lessThan(15);
+
+      const hero = await service.getVariant(blueprintId, null, 'hero.webp', async () => ({
+        items: [],
+      }));
+      const { data: heroData, info: heroInfo } = await sharp(hero!.buffer)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const heroAlphaAt = (x: number, y: number) =>
+        heroData[(y * heroInfo.width + x) * heroInfo.channels + 3];
+      // Hero keeps the master's own size (no resize): lines land at x = n*8.
+      expect(heroAlphaAt(8, 30)).to.be.greaterThan(15);
+      expect(heroAlphaAt(4, 30)).to.be.lessThan(15);
+
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
+    it('composites no grid when the master carries no framing', async function () {
+      this.timeout(10000);
+      const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-grid-none-'));
+      // A legacy renderMasterFn shape (a plain Buffer) has no way to carry
+      // framing at all — same as a RawMaster whose framing came back null.
+      const transparentMaster = await sharp({
+        create: { width: 64, height: 64, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+      })
+        .png()
+        .toBuffer();
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => transparentMaster,
+      });
+
+      const card = await service.getVariant(blueprintId, null, 'card.webp', async () => ({
+        items: [],
+      }));
+      const { data, info } = await sharp(card!.buffer)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      for (let i = 3; i < data.length; i += info.channels) expect(data[i]).to.equal(0);
+
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
+    it('leaves og.png unaffected by framing while still changing card.webp', async function () {
+      this.timeout(10000);
+      const size = 64;
+      // Mostly transparent, with a small opaque block in a corner: enough
+      // content for the og trim step to have something to keep, but plenty
+      // of transparent area left for a composited grid line to actually
+      // change a pixel (a fully-opaque master would hide the grid entirely
+      // — it's drawn *behind* the artwork).
+      const raw = Buffer.alloc(size * size * 4);
+      for (let y = 0; y < 16; y++) {
+        for (let x = 0; x < 16; x++) {
+          const i = (y * size + x) * 4;
+          raw[i + 1] = 200;
+          raw[i + 3] = 255;
+        }
+      }
+      const framing = { tileSize: 8, offsetPx: { x: 0, y: 0 } };
+      const loadMdb = async () => ({ items: [] });
+      // Distinct ids (not the shared `blueprintId` fixture, and distinct from
+      // each other) so the two renders can't shadow one another through the
+      // durable Mongo row: getVariant treats a `modifiedAt: null` row as
+      // fresh regardless of source, so if both used the same id the second
+      // render would just read back the first one's bytes from Mongo.
+      const idWithGrid = new Types.ObjectId().toString();
+      const idNoGrid = new Types.ObjectId().toString();
+
+      const cacheDirWithGrid = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-og-grid-'));
+      const withGrid = new PreviewImageService({
+        cacheDir: cacheDirWithGrid,
+        disabled: false,
+        renderMasterFn: async () => ({ raw, width: size, height: size, framing }),
+      });
+      const cardWithGrid = await withGrid.getVariant(idWithGrid, null, 'card.webp', loadMdb);
+      const ogWithGrid = await withGrid.getVariant(idWithGrid, null, 'og.png', loadMdb);
+
+      const cacheDirNoGrid = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-og-nogrid-'));
+      const noGrid = new PreviewImageService({
+        cacheDir: cacheDirNoGrid,
+        disabled: false,
+        renderMasterFn: async () => ({ raw, width: size, height: size }),
+      });
+      const cardNoGrid = await noGrid.getVariant(idNoGrid, null, 'card.webp', loadMdb);
+      const ogNoGrid = await noGrid.getVariant(idNoGrid, null, 'og.png', loadMdb);
+
+      expect(ogWithGrid!.buffer.equals(ogNoGrid!.buffer)).to.equal(true);
+      expect(cardWithGrid!.buffer.equals(cardNoGrid!.buffer)).to.equal(false);
+
+      fs.rmSync(cacheDirWithGrid, { recursive: true, force: true });
+      fs.rmSync(cacheDirNoGrid, { recursive: true, force: true });
     });
   });
 });

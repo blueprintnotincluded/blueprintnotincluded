@@ -25,16 +25,15 @@
   box-shadow: 0 0 18px rgba(0, 0, 0, 0.55);
 }
 
+/* No decorative grid here: the server-rendered hero now bakes a real grid at
+ * the blueprint's own cell pitch into its transparent regions. --bni-thumbbg
+ * stays the ground colour behind the (still-transparent) image. */
 .details-thumbnail {
   flex: 1 1 340px;
   max-width: 100%;
   position: relative;
   overflow: hidden;
   background-color: var(--bni-thumbbg);
-  background-image:
-    linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
-  background-size: 32px 32px;
 }
 
 .details-thumbnail img {
@@ -46,9 +45,15 @@
   object-fit: cover;
 }
 
+/* Shown in place of the hero <img> while there is no real thumbnail yet —
+ * genuinely a placeholder, so it keeps the old decorative fixed-pitch grid. */
 .thumbnail-placeholder {
   width: 100%;
   aspect-ratio: 4 / 3;
+  background-image:
+    linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 /* the melt: art fades into the hero gradient instead of a hard edge */

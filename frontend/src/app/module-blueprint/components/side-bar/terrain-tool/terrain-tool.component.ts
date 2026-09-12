@@ -1,15 +1,13 @@
 import { Component } from "@angular/core";
 import {
+  activeTileOf,
   BniTerrainFeature,
+  terrainDisplayName,
+  terrainIconUrl,
   TerrainFeature,
 } from "../../../../../../../lib/index";
 import { TerrainTool } from "../../../common/tools/terrain-tool";
 import { TerrainAnnotationService } from "../../../services/terrain-annotation.service";
-import {
-  activeTileOf,
-  terrainDisplayName,
-  terrainIconUrl,
-} from "../../../drawing/draw-terrain-overlay";
 
 // Left-panel UI for the Terrain Annotation Tool: the palette of natural map
 // features to place, plus a detail block for whichever annotation is currently

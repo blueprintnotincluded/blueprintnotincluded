@@ -5,14 +5,14 @@ import {
   CameraService,
   TerrainFeature,
 } from "../../../../../lib/index";
-import {
-  activeTileOf,
-  DrawTerrainOverlay,
-  terrainDisplayName,
-  terrainIconPlacement,
-  terrainIconUrl,
-} from "./draw-terrain-overlay";
+import { DrawTerrainOverlay } from "./draw-terrain-overlay";
 import { DrawPixi } from "./draw-pixi";
+
+// Pure geometry (terrainIconUrl/terrainDisplayName/activeTileOf/
+// terrainIconPlacement) moved to lib/src/drawing/terrain-markers.ts and its
+// specs to __tests__/lib/terrain-markers.test.ts — the server preview worker
+// needs the same answers and cannot import from frontend/. What's left here
+// is DrawTerrainOverlay itself: pooling, selection state.
 
 // Offsets as the importer emits them: a geyser erupts from the left of its
 // footprint, a volcano from the middle of its 3x3.
@@ -46,122 +46,6 @@ const CATALOGUE: BTerrainFeature[] = [
     activeTile: { x: 1, y: 1 },
   },
 ];
-
-describe("terrain icon/name resolution", () => {
-  beforeEach(() => {
-    TerrainFeature.init();
-    TerrainFeature.load(CATALOGUE);
-  });
-
-  it("resolves a known feature to its catalogue icon and name", () => {
-    const feature: BniTerrainFeature = { id: "OilWell", x: 0, y: 0 };
-    expect(terrainIconUrl(feature)).to.equal("assets/ui_image/OilWell.png");
-    expect(terrainDisplayName(feature)).to.equal("Oil Reservoir");
-  });
-
-  // Unknown ids are kept, never dropped, so they need a marker and a label.
-  it("falls back to a placeholder glyph and the raw id when unknown", () => {
-    const feature: BniTerrainFeature = { id: "SomeModdedGeyser", x: 0, y: 0 };
-    expect(terrainIconUrl(feature)).to.equal("assets/images/notes/note.png");
-    expect(terrainDisplayName(feature)).to.equal("SomeModdedGeyser");
-  });
-});
-
-// A feature acts on one cell, not on its whole footprint — and the cell differs
-// by kind: a geyser erupts from the LEFT of its footprint, a volcano from the
-// middle of its 3x3.
-describe("activeTileOf", () => {
-  beforeEach(() => {
-    TerrainFeature.init();
-    TerrainFeature.load(CATALOGUE);
-  });
-
-  it("puts a geyser's cell on the left column, one row up", () => {
-    expect(activeTileOf({ id: "GeyserGeneric_steam", x: 10, y: 20 })).toEqual({
-      x: 10,
-      y: 21,
-    });
-  });
-
-  it("puts a volcano's cell in the middle of its 3x3", () => {
-    expect(
-      activeTileOf({ id: "GeyserGeneric_big_volcano", x: 10, y: 20 }),
-    ).toEqual({ x: 11, y: 21 });
-  });
-
-  it("follows a feature into negative coordinates", () => {
-    expect(activeTileOf({ id: "OilWell", x: -3, y: -5 })).toEqual({
-      x: -2,
-      y: -4,
-    });
-  });
-
-  it("always lands inside the footprint", () => {
-    for (const def of TerrainFeature.features) {
-      const active = activeTileOf({ id: def.id, x: 0, y: 0 });
-      expect(active.x, def.id).toBeLessThan(def.width);
-      expect(active.y, def.id).toBeLessThan(def.height);
-      expect(active.x, def.id).toBeGreaterThanOrEqual(0);
-      expect(active.y, def.id).toBeGreaterThanOrEqual(0);
-    }
-  });
-
-  // An unknown id has a single-cell footprint, so its anchor is the only cell
-  // it could possibly act on — never an offset outside itself.
-  it("uses the anchor itself for an unknown id", () => {
-    expect(activeTileOf({ id: "SomeModdedGeyser", x: 7, y: 8 })).toEqual({
-      x: 7,
-      y: 8,
-    });
-  });
-});
-
-// Terrain icons are tight-cropped ~200 px/cell renders, so a measured rect is
-// what keeps a geyser's plume above its footprint instead of squashed into it.
-describe("terrainIconPlacement", () => {
-  // Footprint of a 3x3 volcano at cell (10, 20), zoom 10, camera at the origin —
-  // the same numbers DrawTerrainOverlay computes before calling the helper.
-  const FOOTPRINT = { left: 100, top: -220, width: 30, height: 30 };
-
-  it("places a measured rect relative to the footprint's bottom-left, y-up", () => {
-    const rect = { x: -0.135, y: -0.575, w: 3.465, h: 3.625 };
-    const p = terrainIconPlacement(
-      FOOTPRINT.left,
-      FOOTPRINT.top,
-      FOOTPRINT.width,
-      FOOTPRINT.height,
-      rect,
-      10,
-    );
-    expect(p.x).toBeCloseTo(98.65);
-    expect(p.y).toBeCloseTo(-220.5);
-    expect(p.width).toBeCloseTo(34.65);
-    expect(p.height).toBeCloseTo(36.25);
-  });
-
-  // The default rect is the footprint itself, so a feature whose art happens to
-  // fit exactly draws identically either way.
-  it("reproduces the footprint for the identity rect", () => {
-    const p = terrainIconPlacement(
-      FOOTPRINT.left,
-      FOOTPRINT.top,
-      FOOTPRINT.width,
-      FOOTPRINT.height,
-      { x: 0, y: 0, w: 3, h: 3 },
-      10,
-    );
-    expect(p).toEqual({ x: 100, y: -220, width: 30, height: 30 });
-  });
-
-  it("stretches into the footprint, inset, when there is no rect", () => {
-    // 4x2 Oil Reservoir at the origin.
-    const p = terrainIconPlacement(0, -10, 40, 20, undefined, 10, 0.86);
-    expect(p.x).toBeCloseTo(2.8);
-    expect(p.y).toBeCloseTo(-8.6);
-    expect(p.width).toBeCloseTo(34.4);
-    expect(p.height).toBeCloseTo(17.2);
-  });
-});
 
 // PIXI is always mocked in specs — this is the smallest surface
 // DrawTerrainOverlay actually touches.
