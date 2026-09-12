@@ -4,7 +4,7 @@ import { WorkOSService } from './services/workos-service';
 import { apiError } from './utils/apiError';
 import { AvatarService } from './services/avatar-service';
 import { authMode } from './auth-mode';
-import { DEV_USERS, DEV_PASSWORD } from './dev-users';
+import { DEV_USERS, DEV_PASSWORD, isDevUserProvisioningInFlight } from './dev-users';
 
 /**
  * Find a unique username by appending incrementing counters.
@@ -151,6 +151,15 @@ export class AuthController {
     }
 
     if (authMode() === 'local') {
+      // Dev users are seeded fire-and-forget right after boot (~20s of real
+      // PBKDF2 hashing — see dev-users.ts) rather than blocking the server
+      // from listening. A login attempt that lands in that window would
+      // otherwise see a misleading invalid_credentials for an account that
+      // simply doesn't exist yet.
+      if (isDevUserProvisioningInFlight()) {
+        res.status(503).json({ error: 'local_auth_provisioning' });
+        return;
+      }
       try {
         const localUser = await UserModel.model.findOne({ email });
         if (!localUser || localUser.authProvider !== 'legacy' || !localUser.validPassword(password)) {
@@ -240,7 +249,17 @@ export class AuthController {
         // No email verification in local mode — log straight in.
         const token = localUser.generateJwt(localUser.localRole);
         res.status(201).json({ token, message: 'Account created.' });
-      } catch (err) {
+      } catch (err: any) {
+        // The existence checks above are not atomic with the insert — a
+        // concurrent registration can still race past them and hit the
+        // unique index, which is the same conflict as the checks above.
+        if (err?.code === 11000) {
+          const title = err?.keyPattern?.username
+            ? 'Username is already taken'
+            : 'An account with that email already exists';
+          res.status(409).json(apiError(409, title));
+          return;
+        }
         console.error('Local register error:', err);
         res.status(500).json(apiError(500, 'Registration failed'));
       }
