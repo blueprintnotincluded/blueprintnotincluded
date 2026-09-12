@@ -1051,14 +1051,16 @@ export class ComponentCanvasComponent
 
     // World-note pins are saved content now, so the stored thumbnail should
     // show them too. This snapshot has its own scratch container (never the
-    // app stage), so the overlay must render into it explicitly.
-    new DrawNotesOverlay(this.drawPixi, exportCamera.container).draw(
-      clone.worldNotes,
+    // app stage), so the overlay must render into it explicitly. Terrain is
+    // added first so it draws below the notes, matching the server preview
+    // worker's z-order (buildings < terrain < notes).
+    new DrawTerrainOverlay(this.drawPixi, exportCamera.container).draw(
+      clone.terrainFeatures,
       exportCamera,
       null,
     );
-    new DrawTerrainOverlay(this.drawPixi, exportCamera.container).draw(
-      clone.terrainFeatures,
+    new DrawNotesOverlay(this.drawPixi, exportCamera.container).draw(
+      clone.worldNotes,
       exportCamera,
       null,
     );
@@ -1132,12 +1134,14 @@ export class ComponentCanvasComponent
     // show them too — same reasoning as updateThumbnail(). One overlay
     // instance is reused across every selected overlay pass below: notes
     // don't change with the overlay, and DrawNotesOverlay already skips
-    // recomputing markers when the note array is unchanged.
-    const notesOverlay = new DrawNotesOverlay(
+    // recomputing markers when the note array is unchanged. Terrain is
+    // constructed (and added to the container) first so it draws below the
+    // notes, matching the server preview worker's z-order.
+    const terrainOverlay = new DrawTerrainOverlay(
       this.drawPixi,
       exportCamera.container,
     );
-    const terrainOverlay = new DrawTerrainOverlay(
+    const notesOverlay = new DrawNotesOverlay(
       this.drawPixi,
       exportCamera.container,
     );
@@ -1150,8 +1154,8 @@ export class ComponentCanvasComponent
         item.drawPixi(exportCamera, this.drawPixi);
       });
 
-      notesOverlay.draw(clone.worldNotes, exportCamera, null);
       terrainOverlay.draw(clone.terrainFeatures, exportCamera, null);
+      notesOverlay.draw(clone.worldNotes, exportCamera, null);
 
       const brt = new PIXI.BaseRenderTexture({
         width: sizeInPixels.x,

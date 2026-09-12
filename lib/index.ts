@@ -48,6 +48,7 @@ export * from './src/drawing/draw-part';
 export * from './src/drawing/camera-service';
 export * from './src/drawing/pixi-util';
 export * from './src/drawing/note-markers';
+export * from './src/drawing/terrain-markers';
 
 export * from './src/blueprint/blueprint';
 export * from './src/blueprint/blueprint-helpers';

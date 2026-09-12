@@ -3,6 +3,9 @@ import {
   BniTerrainFeature,
   CameraService,
   DrawHelpers,
+  FALLBACK_ICON_INSET,
+  terrainIconPlacement,
+  terrainIconUrl,
   TerrainFeature,
   Vector2,
 } from "../../../../../../lib/index";
@@ -12,11 +15,6 @@ import {
   findTerrainFeatureAt,
 } from "../../services/terrain-annotation.service";
 import { DrawPixi } from "../../drawing/draw-pixi";
-import {
-  FALLBACK_ICON_INSET,
-  terrainIconPlacement,
-  terrainIconUrl,
-} from "../../drawing/draw-terrain-overlay";
 import { ITool, ToolType } from "./tool";
 import {
   ShortcutAction,
