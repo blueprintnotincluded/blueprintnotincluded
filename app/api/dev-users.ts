@@ -62,9 +62,29 @@ export const DEV_USERS: DevUserSpec[] = [
   },
 ];
 
+// Server startup does not wait on ensureDevUsers (it runs fire-and-forget
+// from db.ts, since PBKDF2-hashing six passwords takes real wall-clock time —
+// see the comment below), so there is a real window right after boot where
+// the server is already accepting requests but a dev user doesn't exist yet.
+// login() checks this instead of returning a misleading invalid_credentials.
+let provisioningInFlight = false;
+
+export function isDevUserProvisioningInFlight(): boolean {
+  return provisioningInFlight;
+}
+
 // Idempotent: upserts each user by fixed _id and (re)applies the shared known
 // password, so it is safe to run on every boot regardless of DB state.
 export async function ensureDevUsers(): Promise<void> {
+  provisioningInFlight = true;
+  try {
+    await ensureDevUsersUnguarded();
+  } finally {
+    provisioningInFlight = false;
+  }
+}
+
+async function ensureDevUsersUnguarded(): Promise<void> {
   for (const spec of DEV_USERS) {
     const setFields: Record<string, unknown> = {
       username: spec.username,

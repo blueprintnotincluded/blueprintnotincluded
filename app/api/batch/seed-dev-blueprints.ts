@@ -638,8 +638,10 @@ async function run() {
     console.log(`  ${r.name.padEnd(24)} category=${r.category.padEnd(10)} requiredDlcs=${dlcs.padEnd(15)} modded=${r.modded}`);
   }
 
-  console.log('\n=== Dev login — paste into the browser console on the site origin, then reload ===');
-  console.log('(No WorkOS/password login exists for these accounts — a minted token is the only way in.)');
+  console.log('\n=== Dev login ===');
+  console.log(`(In AUTH_MODE=local, just log in on the site with any @bpni.local email + "${DEV_PASSWORD}".`);
+  console.log(' The tokens below are for an AUTH_MODE=workos checkout with no real WorkOS keys —');
+  console.log(' paste into the browser console on the site origin, then reload.)');
 
   // The protected account first and highlighted — this is the durable one to use.
   printLogin(

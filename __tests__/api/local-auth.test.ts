@@ -115,6 +115,24 @@ describe('Local auth mode', function () {
       expect(response.status).to.equal(401);
       expect(response.body.error).to.equal('invalid_credentials');
     });
+
+    it('returns 503 instead of a misleading invalid_credentials while dev users are still provisioning', async function () {
+      // ensureDevUsers takes real wall-clock time (PBKDF2) and runs
+      // fire-and-forget from db.ts — a login landing in that window must not
+      // see a false invalid_credentials for a dev user that isn't seeded yet.
+      this.timeout(30000);
+      process.env.AUTH_MODE = 'local';
+      const provisioning = ensureDevUsers();
+
+      const response = await TestSetup.request()
+        .post('/api/auth/login')
+        .send({ email: 'dev_you@bpni.local', password: DEV_PASSWORD });
+
+      expect(response.status).to.equal(503);
+      expect(response.body.error).to.equal('local_auth_provisioning');
+
+      await provisioning;
+    });
   });
 
   describe('POST /api/auth/register (local mode)', function () {
@@ -142,6 +160,24 @@ describe('Local auth mode', function () {
         .send({ email: existing.email, password: 'hunter2', username: `brandnew${Date.now()}` });
 
       expect(response.status).to.equal(409);
+    });
+
+    it('returns 409 (not 500) when a conflicting user is created between the pre-checks and the insert', async function () {
+      process.env.AUTH_MODE = 'local';
+      const existing = testData.users.user1;
+      // Force both pre-checks to report "not taken" even though `existing`
+      // really does hold this email — the same outcome a concurrent
+      // registration racing past the checks would produce — so the actual
+      // save() hits the real unique index and the catch branch has to
+      // handle a genuine MongoDB E11000, not a mocked one.
+      sinon.stub(UserModel.model, 'findOne').resolves(null);
+
+      const response = await TestSetup.request()
+        .post('/api/auth/register')
+        .send({ email: existing.email, password: 'hunter2', username: `brandnew${Date.now()}` });
+
+      expect(response.status).to.equal(409);
+      expect(response.body.errors[0].title).to.include('already exists');
     });
   });
 
