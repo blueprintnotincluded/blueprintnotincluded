@@ -1,7 +1,22 @@
 import mongoose, { Document, Model } from 'mongoose';
 import { CustomThemeColors } from '../../../lib/index';
-import crypto from 'crypto-js';
+import { pbkdf2Sync, randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
+
+// Password hashing parameters. These are exactly what crypto-js 4.2 (the
+// previous implementation) defaulted to — sha256, 250k iterations, a 64-byte
+// key, and the salt consumed as its 32-char hex *string* — so Node's native
+// PBKDF2 produces byte-identical hashes and every stored legacy row keeps
+// validating. Only the implementation moved: OpenSSL does this in ~90 ms
+// where crypto-js's pure-JS loop took ~3 s per hash on the same machine,
+// which used to stall the event loop for 20 s at boot in local auth mode.
+const PBKDF2_ITERATIONS = 250_000;
+const PBKDF2_KEY_BYTES = 64;
+const PBKDF2_DIGEST = 'sha256';
+
+function hashPassword(password: string, salt: string): string {
+  return pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, PBKDF2_KEY_BYTES, PBKDF2_DIGEST).toString('hex');
+}
 
 export interface User extends Document {
   email?: string;
@@ -17,6 +32,12 @@ export interface User extends Document {
   workosSessionId?: string;
   authProvider: 'legacy' | 'workos';
   migratedToWorkosAt?: Date;
+
+  // Local-auth-mode only (specs/local-auth-mode-plan.md): the role a dev
+  // user's JWT carries when AUTH_MODE=local. Never set by any production
+  // code path — the WorkOS flow sources role from platform org membership,
+  // not from a document field.
+  localRole?: 'admin';
 
   resetToken?: string;
   resetTokenExpiration?: Date;
@@ -98,6 +119,10 @@ export class UserModel {
         default: 'legacy',
       },
       migratedToWorkosAt: Date,
+      localRole: {
+        type: String,
+        enum: ['admin'],
+      },
       resetToken: String,
       resetTokenExpiration: Date,
       bio: { type: String, maxlength: [500, 'Bio must be 500 characters or fewer'], default: '' },
@@ -118,20 +143,17 @@ export class UserModel {
     userSchema.index({ authProvider: 1 });
 
     userSchema.methods.setPassword = function (password: string): void {
-      (this as any).salt = crypto.lib.WordArray.random(16).toString();
-      (this as any).hash = crypto
-        .PBKDF2(password, (this as any).salt, { keySize: 512 / 32 })
-        .toString(crypto.enc.Hex);
+      (this as any).salt = randomBytes(16).toString('hex');
+      (this as any).hash = hashPassword(password, (this as any).salt);
     };
 
     userSchema.methods.validPassword = function (password: string): boolean {
       if (!(this as any).hash || !(this as any).salt) {
         return false;
       }
-      var hash = crypto
-        .PBKDF2(password, (this as any).salt, { keySize: 512 / 32 })
-        .toString(crypto.enc.Hex);
-      return (this as any).hash === hash;
+      const stored = Buffer.from((this as any).hash, 'hex');
+      const candidate = Buffer.from(hashPassword(password, (this as any).salt), 'hex');
+      return stored.length === candidate.length && timingSafeEqual(stored, candidate);
     };
 
     userSchema.methods.generateJwt = function (role?: string): string {

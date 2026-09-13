@@ -1,10 +1,13 @@
 import {
   BuildableElement,
+  isElementOverlayPrimary,
   NEUTRONIUM_DISPLAY_COLOR,
   NEUTRONIUM_ELEMENT_ID,
+  OVERLAY_DIMMED_ALPHA,
 } from '../b-export/b-element';
 import { BniWorldNote } from '../io/bni/bni-blueprint';
 import { ElementState } from '../enums/element-state';
+import { Overlay } from '../enums/overlay';
 
 // How a world note becomes a marker on the canvas: which sprite, what colour,
 // how big. Pure and renderer-agnostic, because three renderers need the same
@@ -106,6 +109,24 @@ export function noteBadgeColor(
     color: element != null && element.uiColor ? element.uiColor : DEFAULT_BADGE_COLOR,
     alpha: 1,
   };
+}
+
+// Overlay-driven fade, on top of noteBadgeColor's own alpha (a text note's
+// tinthex, or 1 for an element note): text notes are always legible — they're
+// annotations, not something a physical overlay would ever obscure — while an
+// element note fades exactly like the cell it would sit on
+// (isElementOverlayPrimary), so the two annotation styles read consistently
+// as you switch overlays. An id we can't resolve stays opaque rather than
+// fading for a reason the viewer can't see.
+export function noteOverlayAlpha(
+  note: BniWorldNote,
+  overlay: Overlay,
+  resolveElement: (tag: number) => BuildableElement | undefined
+): number {
+  if (note.type === TEXT_NOTE) return 1;
+  const element = note.id != null ? resolveElement(note.id) : undefined;
+  if (element == null) return 1;
+  return isElementOverlayPrimary(element, overlay) ? 1 : OVERLAY_DIMMED_ALPHA;
 }
 
 // "RRGGBBAA" (the mod's Color.ToHexString) -> PIXI colour + alpha. Anything

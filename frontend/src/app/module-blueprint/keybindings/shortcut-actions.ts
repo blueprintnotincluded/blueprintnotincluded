@@ -150,11 +150,13 @@ export const SHORTCUT_ACTIONS: ShortcutActionDefinition[] = [
     defaults: ["KeyV"],
   },
   {
-    // Game: "Copy Building" (B). With something selected this also copies it
-    // into the build tool, which is what the game's B does.
+    // Game: "Copy Building" (B). With a selection (a building, or a selected
+    // world note) this loads a copy into the build tool, same as the game's
+    // B. With nothing selected it instead samples whatever is under the
+    // cursor.
     id: ShortcutAction.toolBuild,
     category: "tools",
-    label: $localize`:keyboard shortcut:Build tool (copy selected building)`,
+    label: $localize`:keyboard shortcut:Build tool / sample under cursor`,
     defaults: ["KeyB"],
   },
   // Planning and scissors ship UNBOUND on purpose. The game has no equivalent

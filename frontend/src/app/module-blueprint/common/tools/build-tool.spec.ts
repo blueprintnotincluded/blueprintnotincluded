@@ -53,6 +53,7 @@ describe("BuildTool", () => {
       getUtilityConnectionsAtIndex: vi.fn().mockReturnValue([]),
       getBlueprintItemsAt: vi.fn().mockReturnValue([]),
       addBlueprintItem: vi.fn(),
+      destroyBlueprintItem: vi.fn(),
       refreshOverlayInfo: vi.fn(),
       emitBlueprintChanged: vi.fn(),
     };
@@ -261,6 +262,44 @@ describe("BuildTool", () => {
       expect(mockBlueprint.addBlueprintItem).toHaveBeenCalledWith(cloned);
       expect(mockBlueprint.refreshOverlayInfo).toHaveBeenCalled();
     });
+
+    it("does not touch destroyBlueprintItem for an ordinary building", () => {
+      const cloned = makeTemplateItem();
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
+        cloned as any,
+      );
+      tool.build();
+      expect(mockBlueprint.destroyBlueprintItem).not.toHaveBeenCalled();
+    });
+
+    // Painting an element cell over one that's already there replaces it —
+    // there is no per-tile "in the way" block for elements (see
+    // updateBuildCandidateResult below), so build() itself removes whatever
+    // was there instead of stacking a second cell on the tile.
+    it("destroys an existing element cell at the tile before adding the painted one", () => {
+      templateItem.oniItem.isElement = true;
+      templateItem.tileIndexes = [7];
+      const existingCell = { oniItem: { isElement: true } };
+      const otherBuilding = { oniItem: { isElement: false } };
+      mockBlueprint.getBlueprintItemsAtIndex.mockReturnValue([
+        existingCell,
+        otherBuilding,
+      ]);
+      const cloned = makeTemplateItem();
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
+        cloned as any,
+      );
+
+      tool.build();
+
+      expect(mockBlueprint.destroyBlueprintItem).toHaveBeenCalledWith(
+        existingCell,
+      );
+      expect(mockBlueprint.destroyBlueprintItem).not.toHaveBeenCalledWith(
+        otherBuilding,
+      );
+      expect(mockBlueprint.addBlueprintItem).toHaveBeenCalledWith(cloned);
+    });
   });
 
   describe("hover", () => {
@@ -358,6 +397,15 @@ describe("BuildTool", () => {
     it("does not block when blocker is on a different object layer", () => {
       const blocker = { oniItem: { objectLayer: 2, name: "Other" } };
       mockBlueprint.getBlueprintItemsAtIndex.mockReturnValue([blocker]);
+      templateItem.oniItem.objectLayer = 1;
+      tool.hover(new Vector2(0, 0));
+      expect(templateItem.buildCandidateResult.canBuild).toBe(true);
+    });
+
+    it("does not block an element cell repainting over anything already on the tile", () => {
+      const blocker = { oniItem: { objectLayer: 1, name: "Blocker" } };
+      mockBlueprint.getBlueprintItemsAtIndex.mockReturnValue([blocker]);
+      templateItem.oniItem.isElement = true;
       templateItem.oniItem.objectLayer = 1;
       tool.hover(new Vector2(0, 0));
       expect(templateItem.buildCandidateResult.canBuild).toBe(true);

@@ -125,8 +125,7 @@ Code-review plans (2026-08-28, `spec/code-review-2026-08.md`, local). Items 1/2/
 (PRs #216, #217, #218): `getFeed` missing `-rawSource`; dead passport auth path + unused
 deps; the concluded diacritic A/B experiment dir. Remaining: lib compiles into `lib/src`
 (71 committed generated `.d.ts`); split 1,867-line `blueprint-controller.ts`; remove
-dormant `uiScreens` model; Angular standalone migration (unblocks bundle splitting);
-preview-worker terrain/annotation parity.
+dormant `uiScreens` model; Angular standalone migration (unblocks bundle splitting).
 
 - **API Documentation** — no OpenAPI/Swagger spec exists
 - **Bundle size** — production bundle ~3.25 MB, budget `3.5mb warn / 4mb error`; tightening

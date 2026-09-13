@@ -268,6 +268,33 @@ Temperature, Decor, Light, Rooms→Room, Radiation/Disease/Crop→Unknown); `nul
 unrecognised name is counted in the import report (`unknown viewMode names: N`) and fails the
 import.
 
+## Conduit outline colour (`backColor`)
+
+`BBuildingDef2024` carries no overlay-tint field — OniExtract2024 does not export it — so
+every building's `backColor` was hardcoded to `0xffffff` from the start of the 2024 pipeline.
+The only live consumer is `BlueprintItemWire.drawPixi`: the conduit-content blob it draws for
+gas/liquid pipes (`sceneLayer` 3/5) fills its outline in the building's `backColor`, so every
+pipe drew a white outline regardless of plain/insulated/radiant — a regression from the
+legacy site, where plain pipes were grey, insulated tan, radiant yellow.
+
+`BACK_COLOR_BY_PREFAB` (next to `CONNECTION_TYPE_BY_NAME`) restores this by prefab id,
+recovered from the legacy converter's last output
+(`git show aaa378b0^:assets/database/database.json`, the day before that file was deleted).
+It covers every conduit/wire/logic-ribbon family, not just the two that draw a blob today,
+for parity with the legacy table. Prefabs the legacy export genuinely shipped white —
+sensors, overflow/preferential-flow segments, ribbon reader/writer, the two `*HighWattage`
+bridge variants — are intentionally left at the `0xffffff` default; this is what the legacy
+data itself recorded, not an oversight.
+
+Prefabs added after the legacy table was captured (`HighPressureGasConduit(Bridge)`,
+`HighPressureLiquidConduit(Bridge)`, `WireRubber(Bridge)`) have no legacy record; they were
+assigned their non-high-pressure/non-rubber sibling's colour by family analogy and are
+**unverified in-game** — flagged in a comment at the table's definition.
+
+`__tests__/asset-processing/database-validation.test.ts` asserts every building on a
+conduit-drawing `sceneLayer` (3 or 5) has a non-white `backColor`, and that the
+plain/insulated/radiant triplet for gas and liquid each get three distinct colours.
+
 ## Schema-vs-actual caveats
 
 `EXPORT_SCHEMA.md` (in the export) is idealized in places; the converter handles the real
@@ -318,6 +345,37 @@ the capability: `items` (eggs/seeds/suits), `food`, `recipe`, `multiEntities` (s
 is read (English game strings → `strings.json`); the site is English-only, so the legacy
 per-locale `.po` files have been retired — non-English i18n would need translated sources.
 
+## Rendering model — how the site uses the converted data
+
+Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas.
+
+- **Types**: `lib/src/b-export/b-export-2024.ts` — raw 2024 export shapes (13 files).
+- **Import**: `convert-export-2024.ts` (`npm run import:2024`) → consolidated
+  `database-2024.json` written to both asset roots (committed; the `.zip` is a gitignored
+  build derivative); content-aware syncs `ui_image/` (1,241 flat PNGs) and
+  `connection_sprites/` into both asset roots.
+- **Render**: each building is one flat icon — `OniItem.flatIconId`, `DrawPart.flatIconId`,
+  no UV slice. `uiImageRect` (when present) places overhanging art relative to the
+  footprint; otherwise the icon is stretched to the footprint.
+- **Connectables** (31 prefabs): render `connection_sprites/{prefabId}/{bitmask}.png` per
+  4-bit neighbour mask (left=1, right=2, up=4, down=8). `OniItem.connectionSprites` is
+  derived from dir presence; `BlueprintItem` builds 16 tagged flat-icon draw-parts;
+  per-building `connectionScale` is measured from `15.png` at import time. The build/select
+  menu keeps the single canonical icon (`iconUrl`).
+- **Utility ports** (275/449 buildings): `BBuildingDef2024.utilities[]` carries each
+  input/output port as `{offset, type, isSecondary}`. The U59 export emits `type` as the
+  `ConnectionType` enum _name_ (string); the converter maps it to the int via
+  `CONNECTION_TYPE_BY_NAME`. Offsets are pre-rotation/y-up/footprint-relative and already
+  match the website's internal convention (no transform). `BlueprintItem.drawPixiUtility`
+  draws the markers per overlay; the 8 indicator sprites (`input`/`output`/`logicInput`…)
+  are registered from the export's own `ui_image/<name>.png` flats (copied into
+  `frontend/src/assets/images/` at import) — they no longer slice the legacy atlas pages.
+- **Loaders**: backend reads `database-2024.json` directly; frontend fetches
+  `database-2024.zip` (regenerated from the committed JSON by its `prebuild`/`prestart`).
+- **DLC data**: each building record now includes `dlcIds: string[]` (e.g. `['EXPANSION1_ID']`
+  for Spaced Out buildings). The converter (`import:2024`) populates this from the raw export's
+  `kPrefabID.requiredDlcIds`. Used by `BlueprintAnalyzer` to derive metadata.
+
 ## Open items to the export side
 
 - **Power-bridge `utilities[]`:** the wire bridges ship an empty `utilities[]` while every
@@ -328,6 +386,14 @@ per-locale `.po` files have been retired — non-English i18n would need transla
 - **`uiImageRect` rollout:** emit it for the remaining buildings whose art deviates
   from the footprint (145 have none today; the rest can omit it).
 - **`ui_image_facade/`:** drop it to shrink the handoff, or tell us what it's for.
+- **Overlay tint (`backColor`):** emit the building's overlay/outline tint so
+  `BACK_COLOR_BY_PREFAB` (see above) can be retired in favour of real per-import data instead
+  of a hand-recovered table.
+- **`conduitColor: 0`:** `Graphite` and `CrudeOil` ship `conduitColor: 0` (and also `color: 0`,
+  alongside `Naphtha`/`Aerogel`/`COMPOSITION`) straight through from `elements.json` — not a
+  converter mapping slip, since `conduitColor: e.conduitColor` is a direct pass-through. Both
+  elements render a solid-black inner blob in a pipe today. Left as-is pending an export-side
+  fix or a product decision on a fallback tint.
 - **Higher-res `ui_image`:** one test asserts each flat-icon PNG is < 5 MB — flag ahead of
   time if any icon will exceed that.
 - **Other unread JSONs:** trim if not coming, or confirm they're for future work.

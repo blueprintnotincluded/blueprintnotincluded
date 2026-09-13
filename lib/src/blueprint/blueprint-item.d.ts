@@ -26,6 +26,7 @@ export declare class BlueprintItem {
     buildingData?: BniBuildingData[];
     addBuildingSetting(key: string): boolean;
     setBuildingSetting(key: string, field: string, value: any): void;
+    removeBuildingSetting(key: string): boolean;
     uiSaveSettings: UiSaveSettings[];
     getUiSettings(id: string): UiSaveSettings | undefined;
     setElement(elementId: string, index: number): void;

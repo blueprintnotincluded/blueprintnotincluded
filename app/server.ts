@@ -4,6 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 console.log(process.env.ENV_NAME);
 
+import { authMode } from './api/auth-mode';
+// Throws before anything else boots if AUTH_MODE is unknown, or if local
+// mode is set on a production deploy (see specs/local-auth-mode-plan.md).
+console.log(`[auth] mode: ${authMode()}`);
+
 import app from './app';
 import { PreviewImageService } from './api/services/preview-image-service';
 import { BlueprintCounterService } from './api/services/blueprint-counter-service';

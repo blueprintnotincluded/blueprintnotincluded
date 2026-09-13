@@ -4,5 +4,5 @@ export interface FormattedSettingRow {
     label: string;
     text: string;
 }
-export declare function formatBuildingDataEntry(entry: BniBuildingData): FormattedSettingRow[] | null;
+export declare function formatBuildingDataEntry(entry: BniBuildingData, prefabId?: string): FormattedSettingRow[] | null;
 //# sourceMappingURL=format-setting.d.ts.map

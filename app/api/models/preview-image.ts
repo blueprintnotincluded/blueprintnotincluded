@@ -16,6 +16,13 @@ export interface PreviewImage extends Document {
   // is >= the blueprint's current modifiedAt (the Mongo twin of the disk
   // cache's mtime rule). Null when the blueprint has no modifiedAt.
   sourceModifiedAt?: Date | null;
+  // The render pipeline version that produced these bytes
+  // (PreviewImageService.PREVIEW_RENDER_VERSION). A row whose version doesn't
+  // match the running server's is always stale, however fresh sourceModifiedAt
+  // looks — this is what forces a one-time re-render after a pipeline change
+  // (e.g. the baked-in grid) that existing bytes can't retroactively reflect.
+  // Absent on rows written before this field existed, which just never match.
+  renderVersion?: number | null;
 }
 
 export class PreviewImageModel {
@@ -29,6 +36,7 @@ export class PreviewImageModel {
       contentType: { type: String, required: true },
       renderedAt: { type: Date, required: true },
       sourceModifiedAt: { type: Date, default: null },
+      renderVersion: { type: Number, default: null },
     });
 
     previewImageSchema.index({ blueprintId: 1, variant: 1 }, { unique: true });

@@ -4,14 +4,34 @@ import dotenv from 'dotenv';
 import path from 'path';
 import mongoose from 'mongoose';
 
-// hooks.ts is loaded via .mocharc's `require` entries, before any test file,
-// so DB_URI isn't set yet locally (CI sets it directly as a job env var, but
-// dotenv won't override that either way — it skips already-set keys).
-// .env.test.local (gitignored) first: dotenv keeps the first value it sees, so
-// a per-checkout override (a MongoDB on another port) beats the committed file.
-dotenv.config({ path: path.resolve(__dirname, '../.env.test.local') });
+// hooks.ts is loaded via .mocharc's `require` entries, before any test file.
+// Precedence, highest first: .env.test.local (gitignored, per-checkout) →
+// the inherited environment → the committed .env.test. The local file has to
+// *override* the environment: the devcontainer sets DB_URI on the app
+// container to the dev database, and letting that win pointed the suite's
+// cleanup at the dev data — bni-worktree-up writes .env.test.local precisely
+// so tests hit `blueprintnotincluded_test` by service name. CI has no
+// .env.test.local, so its DB_URI job var still beats .env.test.
+dotenv.config({ path: path.resolve(__dirname, '../.env.test.local'), override: true });
 dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
 process.env.NODE_ENV = 'test';
+
+// Backstop for whatever the resolution above produced: the suite drops
+// collections between tests, so it must never connect to anything but a
+// database named for the purpose. Throw before ../app/app opens the
+// connection below.
+const testDbName = (process.env.DB_URI ?? '').replace(/\?.*$/, '').split('/').pop() ?? '';
+if (!testDbName.endsWith('_test')) {
+  throw new Error(
+    `Refusing to run the test suite against database "${testDbName || '(none)'}" (DB_URI=${process.env.DB_URI}). ` +
+      'The suite wipes collections between tests; point .env.test.local or DB_URI at a database whose name ends in _test.',
+  );
+}
+// The suite's baseline is the default (workos) auth mode; specs that need
+// local mode set AUTH_MODE themselves and restore it. The devcontainer sets
+// AUTH_MODE=local on the container, so an inherited value has to be cleared
+// here or every WorkOS-mode spec silently runs in local mode and 501s.
+delete process.env.AUTH_MODE;
 
 // Importing the app here (before any test file) starts the mongoose connection
 // as early as possible and registers db.ts's `connected` listener, which is

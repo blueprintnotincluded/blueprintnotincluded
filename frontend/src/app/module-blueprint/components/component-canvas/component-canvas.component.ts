@@ -476,14 +476,23 @@ export class ComponentCanvasComponent
         const tile = this.getCurrentTile(event);
         // World notes are a top annotation layer: a left click on a note
         // selects it for editing and is consumed, so it never falls through
-        // to the tool.
-        const note = this.findNoteAt(tile);
-        if (note != null) {
-          this.worldNoteService.select(note);
-          this.terrainService.clear();
-          return;
+        // to the tool. Skipped while the Notes tool is active — its own
+        // mouseDown already resolved this exact click (selecting an existing
+        // note, or deliberately leaving a fresh placement unselected as the
+        // pending brush), and redoing the hit-test here would immediately
+        // re-select the note it just placed. Also skipped while the layer is
+        // hidden, so an invisible pin never swallows a click meant for the
+        // building underneath.
+        const notesToolActive = this.toolService.notesTool.visible;
+        if (!notesToolActive && this.worldNoteService.visible) {
+          const note = this.findNoteAt(tile);
+          if (note != null) {
+            this.worldNoteService.select(note);
+            this.terrainService.clear();
+            return;
+          }
+          this.worldNoteService.clear();
         }
-        this.worldNoteService.clear();
 
         // Terrain annotations are the layer under the note pins and above the
         // buildings: a click on one selects it for editing and is consumed.
@@ -1051,14 +1060,16 @@ export class ComponentCanvasComponent
 
     // World-note pins are saved content now, so the stored thumbnail should
     // show them too. This snapshot has its own scratch container (never the
-    // app stage), so the overlay must render into it explicitly.
-    new DrawNotesOverlay(this.drawPixi, exportCamera.container).draw(
-      clone.worldNotes,
+    // app stage), so the overlay must render into it explicitly. Terrain is
+    // added first so it draws below the notes, matching the server preview
+    // worker's z-order (buildings < terrain < notes).
+    new DrawTerrainOverlay(this.drawPixi, exportCamera.container).draw(
+      clone.terrainFeatures,
       exportCamera,
       null,
     );
-    new DrawTerrainOverlay(this.drawPixi, exportCamera.container).draw(
-      clone.terrainFeatures,
+    new DrawNotesOverlay(this.drawPixi, exportCamera.container).draw(
+      clone.worldNotes,
       exportCamera,
       null,
     );
@@ -1132,12 +1143,14 @@ export class ComponentCanvasComponent
     // show them too — same reasoning as updateThumbnail(). One overlay
     // instance is reused across every selected overlay pass below: notes
     // don't change with the overlay, and DrawNotesOverlay already skips
-    // recomputing markers when the note array is unchanged.
-    const notesOverlay = new DrawNotesOverlay(
+    // recomputing markers when the note array is unchanged. Terrain is
+    // constructed (and added to the container) first so it draws below the
+    // notes, matching the server preview worker's z-order.
+    const terrainOverlay = new DrawTerrainOverlay(
       this.drawPixi,
       exportCamera.container,
     );
-    const terrainOverlay = new DrawTerrainOverlay(
+    const notesOverlay = new DrawNotesOverlay(
       this.drawPixi,
       exportCamera.container,
     );
@@ -1150,8 +1163,8 @@ export class ComponentCanvasComponent
         item.drawPixi(exportCamera, this.drawPixi);
       });
 
-      notesOverlay.draw(clone.worldNotes, exportCamera, null);
       terrainOverlay.draw(clone.terrainFeatures, exportCamera, null);
+      notesOverlay.draw(clone.worldNotes, exportCamera, null);
 
       const brt = new PIXI.BaseRenderTexture({
         width: sizeInPixels.x,
@@ -1319,12 +1332,19 @@ export class ComponentCanvasComponent
       // World-note pins are saved blueprint content now (not editor-only
       // decoration), so they must draw on export/thumbnail canvases too, like
       // the Planning Tool overlay above. forceSize canvases never have a
-      // selection to highlight.
-      this.drawNotesOverlay.draw(
-        this.blueprint.worldNotes,
-        this.cameraService,
-        this.forceSize ? null : this.worldNoteService.selected,
-      );
+      // selection to highlight. The visibility toggle is a view-only concern
+      // (mirrors the terrain toggle below), so it hides the layer here rather
+      // than anywhere near what gets stored or exported — and only in the
+      // live editor, so a hidden layer never silently omits itself from an
+      // export.
+      if (!this.forceSize && !this.worldNoteService.visible)
+        this.drawNotesOverlay.clear();
+      else
+        this.drawNotesOverlay.draw(
+          this.blueprint.worldNotes,
+          this.cameraService,
+          this.forceSize ? null : this.worldNoteService.selected,
+        );
 
       // Terrain annotations are saved blueprint content too. The visibility
       // toggle is a view-only concern, so it hides the layer here rather than

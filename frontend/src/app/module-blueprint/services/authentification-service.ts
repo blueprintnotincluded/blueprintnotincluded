@@ -17,6 +17,21 @@ export type LoginResult =
   | { kind: "legacy_account" }
   | { kind: "invalid_credentials" };
 
+export interface DevUserInfo {
+  username: string;
+  email: string;
+  role: string | null;
+}
+
+// GET /api/auth/mode. devUsers/devPassword are only ever populated in local
+// mode — a workos-mode response always has devUsers: [] and no devPassword,
+// so the local-only picker literal never reaches the production bundle as data.
+export interface AuthModeResponse {
+  mode: "workos" | "local";
+  devUsers: DevUserInfo[];
+  devPassword?: string;
+}
+
 @Injectable()
 export class AuthenticationService {
   private static localStorage: string = "blueprintnotincluded-token";
@@ -105,11 +120,17 @@ export class AuthenticationService {
     email: string,
     password: string,
     username: string,
-  ): Observable<{ message: string; userId: string }> {
-    return this.http.post<{ message: string; userId: string }>(
+  ): Observable<{ message: string; userId?: string; token?: string }> {
+    return this.http.post<{ message: string; userId?: string; token?: string }>(
       "/api/auth/register",
       { email, password, username },
     );
+  }
+
+  // Local mode returns a token immediately (no email verification); workos
+  // mode returns devUsers: [] and no devPassword.
+  public getAuthMode(): Observable<AuthModeResponse> {
+    return this.http.get<AuthModeResponse>("/api/auth/mode");
   }
 
   public verifyEmail(

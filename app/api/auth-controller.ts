@@ -3,6 +3,8 @@ import { UserModel } from './models/user';
 import { WorkOSService } from './services/workos-service';
 import { apiError } from './utils/apiError';
 import { AvatarService } from './services/avatar-service';
+import { authMode } from './auth-mode';
+import { BOOT_DEV_USERS, DEV_PASSWORD, isDevUserProvisioningInFlight } from './dev-users';
 
 /**
  * Find a unique username by appending incrementing counters.
@@ -108,12 +110,33 @@ export class AuthController {
     this.verifyMagic = this.verifyMagic.bind(this);
     this.forgotPassword = this.forgotPassword.bind(this);
     this.resetPassword = this.resetPassword.bind(this);
+    this.mode = this.mode.bind(this);
+  }
+
+  /**
+   * GET /api/auth/mode
+   * Public. Tells the frontend which auth backend is active so the login
+   * page can render the dev-user picker instead of the WorkOS flow.
+   */
+  public async mode(_req: Request, res: Response): Promise<void> {
+    const currentMode = authMode();
+    if (currentMode === 'local') {
+      res.json({
+        mode: currentMode,
+        devUsers: BOOT_DEV_USERS.map(u => ({ username: u.username, email: u.email, role: u.localRole ?? null })),
+        devPassword: DEV_PASSWORD,
+      });
+      return;
+    }
+    res.json({ mode: currentMode, devUsers: [] });
   }
 
   /**
    * POST /api/auth/login
-   * Authenticate with email + password via WorkOS.
-   * On failure, check whether the email belongs to a legacy account.
+   * Authenticate with email + password. In local mode this checks the
+   * stored legacy password directly and never calls WorkOS. In the default
+   * (workos) mode it proxies to WorkOS and falls back to a legacy-account
+   * hint on failure.
    */
   public async login(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body ?? {};
@@ -124,6 +147,31 @@ export class AuthController {
     }
     if (!password || typeof password !== 'string') {
       res.status(400).json(apiError(400, 'password is required'));
+      return;
+    }
+
+    if (authMode() === 'local') {
+      // Dev users are seeded fire-and-forget right after boot (see
+      // dev-users.ts) rather than blocking the server from listening. A
+      // login attempt that lands in that short window would otherwise see a
+      // misleading invalid_credentials for an account that simply doesn't
+      // exist yet.
+      if (isDevUserProvisioningInFlight()) {
+        res.status(503).json({ error: 'local_auth_provisioning' });
+        return;
+      }
+      try {
+        const localUser = await UserModel.model.findOne({ email });
+        if (!localUser || localUser.authProvider !== 'legacy' || !localUser.validPassword(password)) {
+          res.status(401).json({ error: 'invalid_credentials' });
+          return;
+        }
+        const token = localUser.generateJwt(localUser.localRole);
+        res.json({ token });
+      } catch (err) {
+        console.error('Local login error:', err);
+        res.status(401).json({ error: 'invalid_credentials' });
+      }
       return;
     }
 
@@ -180,6 +228,44 @@ export class AuthController {
       return;
     }
 
+    if (authMode() === 'local') {
+      try {
+        const existingUsername = await UserModel.model.findOne({ username });
+        if (existingUsername) {
+          res.status(409).json(apiError(409, 'Username is already taken'));
+          return;
+        }
+        const existingEmail = await UserModel.model.findOne({ email });
+        if (existingEmail) {
+          res.status(409).json(apiError(409, 'An account with that email already exists'));
+          return;
+        }
+
+        const localUser = new UserModel.model({ email, username, authProvider: 'legacy' });
+        localUser.setPassword(password);
+        await localUser.save();
+        AvatarService.instance.tryAssignOnSignup((localUser._id as any).toString());
+
+        // No email verification in local mode — log straight in.
+        const token = localUser.generateJwt(localUser.localRole);
+        res.status(201).json({ token, message: 'Account created.' });
+      } catch (err: any) {
+        // The existence checks above are not atomic with the insert — a
+        // concurrent registration can still race past them and hit the
+        // unique index, which is the same conflict as the checks above.
+        if (err?.code === 11000) {
+          const title = err?.keyPattern?.username
+            ? 'Username is already taken'
+            : 'An account with that email already exists';
+          res.status(409).json(apiError(409, title));
+          return;
+        }
+        console.error('Local register error:', err);
+        res.status(500).json(apiError(500, 'Registration failed'));
+      }
+      return;
+    }
+
     try {
       // Check username uniqueness before calling WorkOS
       const existingUsername = await UserModel.model.findOne({ username });
@@ -229,6 +315,10 @@ export class AuthController {
    * hits this endpoint with that code to complete verification.
    */
   public async verifyEmail(req: Request, res: Response): Promise<void> {
+    if (authMode() === 'local') {
+      res.status(501).json({ error: 'not_available_in_local_mode' });
+      return;
+    }
     const { code, userId } = req.body ?? {};
 
     if (!code || typeof code !== 'string') {
@@ -270,6 +360,10 @@ export class AuthController {
    * Send a magic auth code to the given email. Always returns 200.
    */
   public async sendMagic(req: Request, res: Response): Promise<void> {
+    if (authMode() === 'local') {
+      res.status(501).json({ error: 'not_available_in_local_mode' });
+      return;
+    }
     const { email } = req.body ?? {};
 
     if (!email || typeof email !== 'string') {
@@ -292,6 +386,10 @@ export class AuthController {
    * Exchange a magic auth code for a JWT.
    */
   public async verifyMagic(req: Request, res: Response): Promise<void> {
+    if (authMode() === 'local') {
+      res.status(501).json({ error: 'not_available_in_local_mode' });
+      return;
+    }
     const { code, email } = req.body ?? {};
 
     if (!code || typeof code !== 'string') {
@@ -322,6 +420,10 @@ export class AuthController {
    * Trigger a password reset email via WorkOS. Always returns 200.
    */
   public async forgotPassword(req: Request, res: Response): Promise<void> {
+    if (authMode() === 'local') {
+      res.status(501).json({ error: 'not_available_in_local_mode' });
+      return;
+    }
     const { email } = req.body ?? {};
 
     if (!email || typeof email !== 'string') {
@@ -349,6 +451,10 @@ export class AuthController {
    * Reset a user's password using a WorkOS reset token.
    */
   public async resetPassword(req: Request, res: Response): Promise<void> {
+    if (authMode() === 'local') {
+      res.status(501).json({ error: 'not_available_in_local_mode' });
+      return;
+    }
     const { token, newPassword } = req.body ?? {};
 
     if (!token || typeof token !== 'string') {

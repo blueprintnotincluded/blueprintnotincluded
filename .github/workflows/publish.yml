@@ -110,7 +110,7 @@ jobs:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           
       - name: Log in to DO Container Registry
-        run: doctl registry login --expiry-seconds 600
+        run: doctl registry login --expiry-seconds 3600
         
       - name: Tag image
         run: docker tag bni-deploy ${{ vars.DIGITALOCEAN_REGISTRY }}/${{ vars.IMAGE_NAME }}

@@ -1,7 +1,14 @@
 import {
+  activeTileOf,
   BniTerrainFeature,
   CameraService,
+  drawDashedRect,
+  drawTerrainFootprint,
+  FALLBACK_ICON_INSET,
+  positionTerrainSprite,
+  terrainIconUrl,
   TerrainFeature,
+  TerrainIconRect,
 } from "../../../../../lib/index";
 import { DrawPixi } from "./draw-pixi";
 
@@ -10,18 +17,12 @@ import { DrawPixi } from "./draw-pixi";
 // So each one is drawn as a translucent icon inside a dashed outline of its
 // real footprint, rather than as an opaque sprite flush to the grid. The
 // treatment reads as "context", and it also keeps a 4x2 Oil Reservoir from
-// looking like a 4x2 building you forgot to cost.
-const FEATURE_ALPHA = 0.65;
-const OUTLINE_COLOR = 0x7dd3fc;
-const OUTLINE_ALPHA = 0.9;
-const FILL_ALPHA = 0.12;
+// looking like a 4x2 building you forgot to cost. The shared geometry
+// (footprint drawing, icon placement) lives in lib/src/drawing/terrain-markers.ts
+// so the server-side preview worker draws the same thing; what's left here is
+// the selection-only treatment (white outline, magenta active-tile highlight)
+// and per-frame sprite pooling.
 const SELECTED_COLOR = 0xffffff;
-
-// Only for features with no measured rect (see terrainIconPlacement): keeps the
-// stretched icon just inside the dashed outline instead of overprinting it.
-// Exported so TerrainTool's cursor ghost insets identically — the ghost has no
-// outline of its own, but it has to predict where the placed icon will land.
-export const FALLBACK_ICON_INSET = 0.86;
 
 // Area of effect for a selected feature. A geyser acts on exactly ONE cell —
 // where it erupts — not on its whole footprint, which is mostly scenery. So a
@@ -36,80 +37,6 @@ export const FALLBACK_ICON_INSET = 0.86;
 const ACTIVE_TILE_COLOR = 0xff3ea5;
 const ACTIVE_TILE_FILL_ALPHA = 0.4;
 const ACTIVE_TILE_BORDER_ALPHA = 1;
-
-// An id the catalogue doesn't know still gets a marker — never drop data we
-// don't recognise. It renders as the outline plus this placeholder glyph, and
-// the panel shows the raw id.
-const PLACEHOLDER_URL = "assets/images/notes/note.png";
-
-// Dashes are drawn manually: PIXI has no dashed line style, and a dashed
-// outline is what separates "existing terrain" from the solid selection boxes
-// the editor already uses for buildings.
-const DASH_TILES = 0.25;
-
-export function terrainIconUrl(feature: BniTerrainFeature): string {
-  const known = TerrainFeature.getFeature(feature.id);
-  return known != null ? known.iconUrl : PLACEHOLDER_URL;
-}
-
-export function terrainDisplayName(feature: BniTerrainFeature): string {
-  const known = TerrainFeature.getFeature(feature.id);
-  return known != null ? known.name : feature.id;
-}
-
-export interface TerrainIconRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-export interface TerrainIconPlacement {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-// Where a feature's flat icon goes, in screen pixels, given its footprint's screen
-// box. Top-left anchored, so callers set anchor(0, 0) once and never branch.
-//
-// Terrain icons are tight-cropped ~200 px/cell renders, not footprint-shaped art:
-// a geyser's plume overhangs the top of its footprint and the rock skirt overhangs
-// the sides. Stretching one to the footprint therefore both distorts it and hides
-// the overhang the render was framed to include, which is what `uiImageRect` fixes
-// — it is the measured rectangle, in cells, that the PNG maps linearly onto.
-//
-// Pure so both the overlay and the placement ghost can share it (they must agree,
-// or the icon jumps between hover and click) and so it can be unit tested.
-export function terrainIconPlacement(
-  left: number,
-  top: number,
-  width: number,
-  height: number,
-  rect: TerrainIconRect | undefined,
-  zoom: number,
-  inset: number = 1,
-): TerrainIconPlacement {
-  if (rect != null) {
-    // The rect's origin is the footprint's bottom-left with +y up; screen y runs
-    // down, so the icon's top edge is measured up from the footprint's bottom edge.
-    return {
-      x: left + rect.x * zoom,
-      y: top + height - (rect.y + rect.h) * zoom,
-      width: rect.w * zoom,
-      height: rect.h * zoom,
-    };
-  }
-  // No measurement — an id this catalogue doesn't know, or a database predating
-  // the rects. Fill the footprint: wrong aspect, but the marker is still there.
-  return {
-    x: left + (width * (1 - inset)) / 2,
-    y: top + (height * (1 - inset)) / 2,
-    width: width * inset,
-    height: height * inset,
-  };
-}
 
 // One resolved marker: footprint in cells plus the texture to draw inside it.
 interface PreparedFeature {
@@ -137,21 +64,6 @@ function prepare(feature: BniTerrainFeature): PreparedFeature {
     activeX: active.x,
     activeY: active.y,
     rect: known?.uiImageRect,
-  };
-}
-
-// The absolute cell a placed feature acts on. The offset comes from the
-// catalogue (see BTerrainFeature.activeTile); an id we do not recognise has a
-// single-cell footprint, so its anchor is the only cell it can act on.
-export function activeTileOf(feature: BniTerrainFeature): {
-  x: number;
-  y: number;
-} {
-  const known = TerrainFeature.getFeature(feature.id);
-  if (known == null) return { x: feature.x, y: feature.y };
-  return {
-    x: feature.x + known.activeTile.x,
-    y: feature.y + known.activeTile.y,
   };
 }
 
@@ -240,18 +152,14 @@ export class DrawTerrainOverlay {
         selected.x === feature.x &&
         selected.y === feature.y;
 
-      this.graphics.beginFill(OUTLINE_COLOR, FILL_ALPHA);
-      this.graphics.lineStyle(0);
-      this.graphics.drawRect(left, top, width, height);
-      this.graphics.endFill();
-
-      this.drawDashedRect(
+      drawTerrainFootprint(
+        this.graphics,
         left,
         top,
         width,
         height,
         zoom,
-        isSelected ? SELECTED_COLOR : OUTLINE_COLOR,
+        isSelected ? SELECTED_COLOR : undefined,
         Math.max(isSelected ? 2.5 : 1.5, (isSelected ? 0.08 : 0.05) * zoom),
       );
 
@@ -271,7 +179,8 @@ export class DrawTerrainOverlay {
         this.activeTileGraphics.drawRect(activeLeft, activeTop, zoom, zoom);
         this.activeTileGraphics.endFill();
 
-        this.drawDashedRect(
+        drawDashedRect(
+          this.activeTileGraphics,
           activeLeft,
           activeTop,
           zoom,
@@ -280,18 +189,17 @@ export class DrawTerrainOverlay {
           ACTIVE_TILE_COLOR,
           Math.max(2, 0.06 * zoom),
           ACTIVE_TILE_BORDER_ALPHA,
-          this.activeTileGraphics,
         );
       }
 
       const sprite = this.sprites[i];
       if (sprite != null) {
-        sprite.alpha = FEATURE_ALPHA;
         // A measured rect is drawn exactly, overhang and all. Without one the
         // icon is inset slightly so it sits inside its outline rather than
         // overprinting it — an inset the rect deliberately does not get, since
         // shrinking a measured placement would just make it wrong on purpose.
-        const p = terrainIconPlacement(
+        positionTerrainSprite(
+          sprite,
           left,
           top,
           width,
@@ -300,75 +208,7 @@ export class DrawTerrainOverlay {
           zoom,
           FALLBACK_ICON_INSET,
         );
-        sprite.x = p.x;
-        sprite.y = p.y;
-        sprite.width = p.width;
-        sprite.height = p.height;
       }
-    }
-  }
-
-  private drawDashedRect(
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-    zoom: number,
-    color: number,
-    thickness: number,
-    alpha: number = OUTLINE_ALPHA,
-    target: any = this.graphics,
-  ) {
-    const dash = Math.max(4, DASH_TILES * zoom);
-    target.lineStyle(thickness, color, alpha);
-    this.dashedLine(target, left, top, left + width, top, dash);
-    this.dashedLine(
-      target,
-      left + width,
-      top,
-      left + width,
-      top + height,
-      dash,
-    );
-    this.dashedLine(
-      target,
-      left + width,
-      top + height,
-      left,
-      top + height,
-      dash,
-    );
-    this.dashedLine(target, left, top + height, left, top, dash);
-  }
-
-  private dashedLine(
-    target: any,
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number,
-    dash: number,
-  ) {
-    const length = Math.hypot(x1 - x0, y1 - y0);
-    if (length === 0) return;
-    const stepX = ((x1 - x0) / length) * dash;
-    const stepY = ((y1 - y0) / length) * dash;
-    const steps = Math.floor(length / dash);
-
-    let x = x0;
-    let y = y0;
-    for (let i = 0; i < steps; i++) {
-      if (i % 2 === 0) {
-        target.moveTo(x, y);
-        target.lineTo(x + stepX, y + stepY);
-      }
-      x += stepX;
-      y += stepY;
-    }
-    // Finish the edge so corners always close, whatever the remainder.
-    if (steps % 2 === 0) {
-      target.moveTo(x, y);
-      target.lineTo(x1, y1);
     }
   }
 

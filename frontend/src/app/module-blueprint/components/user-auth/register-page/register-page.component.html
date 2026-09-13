@@ -8,6 +8,9 @@
       />
       <div class="auth-site-name">Blueprint Not Included</div>
     </a>
+    <div class="local-auth-banner" *ngIf="authMode === 'local'">
+      LOCAL AUTH MODE
+    </div>
     <p-card header="Create account">
       <form (ngSubmit)="submit()" #registerForm="ngForm">
         <div class="field">

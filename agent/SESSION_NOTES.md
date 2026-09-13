@@ -14,6 +14,31 @@ Local `spec/` pass: archived 14 shipped plan docs with dated banners (building-s
 DLC ×2, element-notes ×3, theme-customizer, trending-hotscore, mod-import ×3, terrain
 rects, ROADMAP + ROADMAP_DECISIONS); marked BPv2 followups task 3 (buildingData) shipped.
 
+## Status snapshot (2026-08-28)
+
+- **Phase**: building-settings editing shipped (PR #212). Multilingual search + content
+  locale fully shipped and activated in prod 2026-08-27 — status doc `spec/language-plan.md`,
+  open items in `agent/TODO.md` (deferred plan items each have a stated trigger or were
+  decided against, see `spec/archive/multilingual-search-plan.md` §8). Asset pipeline is
+  OniExtract2024 flat-icon rendering.
+- **Node.js**: 20.19.4 (via volta)
+- **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
+- **Tests**: Backend 1072 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
+  load locally and pass on a clean run) · Frontend 1226 passing (Vitest/jsdom)
+- **Prod activation: DONE 2026-08-27** — both migrations applied, the Vietnamese-title gate
+  enabled (`GEMINI_VI_TITLE_TRANSLATION_ENABLED=true`, monthly cap 1,500,000 micro-USD), and
+  the full `derive-search` backfill run against prod: 2,378 titles checked by Gemini in 199
+  calls, 26 accepted, 2,248 continued to Google, 0 failed batches, observed spend ~$0.24.
+  Verified live in both directions (English query finds romanized-Vietnamese titles and vice
+  versa). Two ops facts worth keeping: the prod console has node but no mongosh (DB scripts
+  are `node` heredocs over `process.env.DB_URI`), and the `migrations` changelog collection
+  was once found inexplicably empty — validate migrations by their DB fingerprints (index
+  keys/weights, backfilled fields), not by `migrate:status` alone. Google Cloud quotas on the
+  translate key were raised from deliberately-tiny values; the app-side `MONTHLY_CHAR_BUDGET`
+  (400k chars/month) is the binding cost guard.
+- **Build**: `npm run tsc` clean · `npm run build` clean
+- **Lint**: `cd frontend && npm run lint` (ESLint 9 flat config, `frontend/eslint.config.js`); backend has no ESLint yet — Prettier only
+
 Code review findings → `spec/code-review-2026-08.md` (plans only, nothing implemented):
 `getFeed` missing `-rawSource`, dead passport auth path, lib in-place compilation with 71
 committed generated `.d.ts`, blueprint-controller split, dormant `uiScreens` removal,

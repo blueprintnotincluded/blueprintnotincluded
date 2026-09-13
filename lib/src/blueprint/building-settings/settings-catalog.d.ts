@@ -9,10 +9,31 @@ export interface SettingFieldDescriptor {
     max?: number;
     enumLabels?: Record<number, string>;
     hidden?: boolean;
+    displayScale?: number;
+    displayOffset?: number;
+    unitSuffix?: string;
+    decimals?: number;
+    step?: number;
+    booleanLabels?: {
+        whenTrue: string;
+        whenFalse: string;
+    };
 }
+export declare const CRITTER_COUNT_SENSOR_ID = "LogicCritterCountSensor";
 export declare const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]>;
 export declare function isKnownSettingsKey(key: string): boolean;
+export declare function toDisplayValue(descriptor: SettingFieldDescriptor, stored: number): number;
+export declare function toStoredValue(descriptor: SettingFieldDescriptor, display: number): number;
+export declare function resolveSettingDescriptors(prefabId: string, key: string): SettingFieldDescriptor[];
 export declare const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, any>>>;
 export declare function creatableSettingsKeysFor(prefabId: string): string[];
 export declare function getCreatableSettingDefaults(prefabId: string, key: string): Record<string, any> | undefined;
+export declare function primarySettingsKey(prefabId: string): {
+    key: string;
+    label: string;
+} | null;
+export declare function redundantEchoField(prefabId: string, key: string, field: string): {
+    key: string;
+    field: string;
+} | null;
 //# sourceMappingURL=settings-catalog.d.ts.map

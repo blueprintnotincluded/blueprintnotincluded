@@ -115,7 +115,6 @@
   align-items: center;
   justify-content: center;
   background-color: var(--bni-inset);
-  background-image: none;
   color: var(--bni-faint);
 }
 

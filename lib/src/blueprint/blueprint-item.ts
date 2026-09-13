@@ -8,7 +8,7 @@ import { OniItem } from '../oni-item';
 import { DrawPart } from '../drawing/draw-part';
 import { OniBuilding } from '../io/oni/oni-building';
 import { BniBuilding, BniBuildingData } from '../io/bni/bni-building';
-import { getCreatableSettingDefaults } from './building-settings/settings-catalog';
+import { getCreatableSettingDefaults, redundantEchoField } from './building-settings/settings-catalog';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { SpriteTag } from '../enums/sprite-tag';
 import { CameraService } from '../drawing/camera-service';
@@ -94,6 +94,40 @@ export class BlueprintItem {
     // BuildingSettingsComponent.rows), so this only guards a direct caller.
     if (entry.Value == null || typeof entry.Value !== 'object') entry.Value = {};
     entry.Value[field] = value;
+
+    // Keep a redundant echo of this field (the Critter Sensor's
+    // IThresholdSwitch mirror of countThreshold/activateOnGreaterThan) in sync
+    // if one is present, so the mod's key-apply pass can't overwrite the fresh
+    // value from a stale echo. Never creates the echo entry — only updates one
+    // the file already carries.
+    const echo = redundantEchoField(this.id, key, field);
+    if (echo != null) {
+      const echoEntry = this.buildingData!.find(e => e.Key == echo.key);
+      if (echoEntry != null && echoEntry.Value != null && typeof echoEntry.Value === 'object')
+        echoEntry.Value[echo.field] = value;
+    }
+  }
+
+  // The inverse of addBuildingSetting: drops a Key entirely, returning the
+  // building to "this blueprint says nothing about that setting". That is a
+  // real, distinct state and not the same as storing a default — the mod only
+  // applies keys the file actually carries (ModAPI/API_Methods.cs), so an
+  // absent Key leaves the built building on the game's own default. Without
+  // an inverse the editor could move a blueprint from unspecified to pinned
+  // but never back, silently changing what an older file means.
+  //
+  // Returns whether anything was removed.
+  public removeBuildingSetting(key: string): boolean {
+    if (this.buildingData == null) return false;
+
+    const remaining = this.buildingData.filter(entry => entry.Key != key);
+    if (remaining.length == this.buildingData.length) return false;
+
+    // Kept as an empty array rather than undefined; toBniBuilding/toMdbBuilding
+    // already omit the field when empty, so the exported document is identical
+    // either way.
+    this.buildingData = remaining;
+    return true;
   }
 
   public uiSaveSettings: UiSaveSettings[] = [];

@@ -19,6 +19,7 @@ import * as path from 'path';
 import mongoose from 'mongoose';
 import sharp from 'sharp';
 import { PreviewImageModel } from '../models/preview-image';
+import { buildPreviewGridSvg, PreviewFraming } from './preview-grid';
 
 export type PreviewVariant = 'card.webp' | 'hero.webp' | 'og.png';
 
@@ -29,6 +30,16 @@ const CARD_SIZE = 480;
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 const OG_MARGIN = 30;
+const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
+
+// Bumped whenever the render pipeline's *output* changes in a way existing
+// rows can't retroactively reflect (e.g. this PR's baked-in grid) — forces
+// every blueprint to re-render once, rather than keep serving pre-change
+// bytes indefinitely under the ordinary modifiedAt freshness rule. Read at
+// write time only: the ephemeral L1 disk cache doesn't carry a version (it's
+// wiped on every redeploy anyway; see the file header), just the durable L2
+// Mongo rows that actually outlive a deploy.
+export const PREVIEW_RENDER_VERSION = 2;
 
 const RENDER_TIMEOUT_MS = 30_000;
 const WORKER_START_TIMEOUT_MS = 60_000;
@@ -43,6 +54,8 @@ export interface RawMaster {
   raw: Buffer;
   width: number;
   height: number;
+  /** Absent for legacy renderMasterFn test doubles — treated as "no grid". */
+  framing?: PreviewFraming | null;
 }
 
 /** A master render: raw pixels from the worker, or an encoded image (tests). */
@@ -184,11 +197,13 @@ export class PreviewImageService {
 
   // --- Mongo (L2) storage ---
 
-  /** The Mongo twin of the disk mtime rule. */
+  /** The Mongo twin of the disk mtime rule, plus the render-version gate. */
   public static isRowFresh(
     sourceModifiedAt: Date | null | undefined,
-    modifiedAt: Date | null | undefined
+    modifiedAt: Date | null | undefined,
+    renderVersion: number | null | undefined
   ): boolean {
+    if (renderVersion !== PREVIEW_RENDER_VERSION) return false;
     if (modifiedAt == null) return true;
     return sourceModifiedAt != null && sourceModifiedAt.getTime() >= modifiedAt.getTime();
   }
@@ -205,7 +220,11 @@ export class PreviewImageService {
     if (!PreviewImageService.mongoAvailable()) return null;
     try {
       const row = await PreviewImageModel.model.findOne({ blueprintId, variant }).lean();
-      if (!row || !PreviewImageService.isRowFresh(row.sourceModifiedAt, modifiedAt)) return null;
+      if (
+        !row ||
+        !PreviewImageService.isRowFresh(row.sourceModifiedAt, modifiedAt, row.renderVersion)
+      )
+        return null;
       // lean() may surface the bytes as a driver Binary instead of a Buffer.
       const bytes: any = row.bytes;
       const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes.buffer);
@@ -229,14 +248,16 @@ export class PreviewImageService {
     try {
       const rows = await PreviewImageModel.model
         .find({ blueprintId })
-        .select('variant sourceModifiedAt')
+        .select('variant sourceModifiedAt renderVersion')
         .lean();
-      const byVariant = new Map(rows.map(row => [row.variant, row.sourceModifiedAt]));
-      return PREVIEW_VARIANTS.every(
-        variant =>
-          byVariant.has(variant) &&
-          PreviewImageService.isRowFresh(byVariant.get(variant), modifiedAt)
-      );
+      const byVariant = new Map(rows.map(row => [row.variant, row]));
+      return PREVIEW_VARIANTS.every(variant => {
+        const row = byVariant.get(variant);
+        return (
+          row != null &&
+          PreviewImageService.isRowFresh(row.sourceModifiedAt, modifiedAt, row.renderVersion)
+        );
+      });
     } catch {
       return false;
     }
@@ -260,6 +281,7 @@ export class PreviewImageService {
                 contentType: PreviewImageService.contentType(variant),
                 renderedAt,
                 sourceModifiedAt: modifiedAt ?? null,
+                renderVersion: PREVIEW_RENDER_VERSION,
               },
             },
             upsert: true,
@@ -361,6 +383,28 @@ export class PreviewImageService {
     return render.finally(() => this.renderQueueDepth--);
   }
 
+  // Composites a phase-aligned grid at cell pitch behind the (still
+  // transparent) artwork, when framing is known and dense enough to read as
+  // a grid; otherwise passes the artwork through unchanged. The grid is
+  // drawn *under* the artwork (compositing the artwork over it) so the
+  // artwork's opaque pixels still cover it exactly as before — only the
+  // transparent gaps a fixed-size CSS grid used to fill get real lines.
+  private async compositeGrid(
+    artwork: ReturnType<typeof sharp>,
+    width: number,
+    height: number,
+    framing: PreviewFraming | undefined,
+    scale: number
+  ): Promise<Buffer> {
+    const artworkPng = await artwork.png().toBuffer();
+    const svg = framing && buildPreviewGridSvg(width, height, framing, scale);
+    if (!svg) return artworkPng;
+    return sharp(Buffer.from(svg))
+      .composite([{ input: artworkPng }])
+      .png()
+      .toBuffer();
+  }
+
   private async renderAllVariants(
     blueprintId: string,
     modifiedAt: Date | null | undefined,
@@ -387,14 +431,27 @@ export class PreviewImageService {
       : sharp(masterImage.raw, {
           raw: { width: masterImage.width, height: masterImage.height, channels: 4 },
         });
-    const card = master
-      .clone()
-      .resize(CARD_SIZE, CARD_SIZE, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .webp({ quality: 82 })
-      .toBuffer();
-    const hero = master.clone().webp({ quality: 82 }).toBuffer();
+    // Absent for a legacy renderMasterFn test double (a plain Buffer, no way
+    // to carry framing) — compositeGrid treats that the same as "too sparse
+    // to draw", i.e. no grid.
+    const framing = Buffer.isBuffer(masterImage) ? undefined : (masterImage.framing ?? undefined);
+    const masterMeta = await master.clone().metadata();
+    const masterSize = masterMeta.width ?? MASTER_SIZE;
+
+    const card = this.compositeGrid(
+      master.clone().resize(CARD_SIZE, CARD_SIZE, { fit: 'contain', background: TRANSPARENT }),
+      CARD_SIZE,
+      CARD_SIZE,
+      framing,
+      CARD_SIZE / masterSize
+    ).then(buf => sharp(buf).webp({ quality: 82 }).toBuffer());
+    const hero = this.compositeGrid(master.clone(), masterSize, masterSize, framing, 1).then(buf =>
+      sharp(buf).webp({ quality: 82 }).toBuffer()
+    );
     // OG: trim the transparent framing margins, letterbox onto white at the
-    // real unfurl aspect ratio.
+    // real unfurl aspect ratio. Deliberately built from `master` directly
+    // (never grid-composited) — the letterbox trim depends on the master
+    // staying fully transparent outside its content.
     const og = master
       .clone()
       .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 1 })
@@ -505,6 +562,7 @@ export class PreviewImageService {
               raw: Buffer.isBuffer(message.raw) ? message.raw : Buffer.from(message.raw),
               width: message.width,
               height: message.height,
+              framing: message.framing,
             });
           } else pendingRequest.reject(new Error(message.message));
         }

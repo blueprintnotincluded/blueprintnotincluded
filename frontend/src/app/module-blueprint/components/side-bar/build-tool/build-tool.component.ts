@@ -138,9 +138,11 @@ export class ComponentSideBuildToolComponent
       : item.name;
   }
 
-  changeElement(_elementChangeInfo: ElementChangeInfo) {
-    this.toolService.buildTool.templateItemToBuild.reloadCamera = true;
-    //this.toolService.buildTool.templateItemToBuild.setElement(elementChangeInfo.newElement.id, elementChangeInfo.index);
+  changeElement(elementChangeInfo: ElementChangeInfo) {
+    this.toolService.buildTool.templateItemToBuild.setElement(
+      elementChangeInfo.newElement.id,
+      elementChangeInfo.index,
+    );
   }
 
   uiItemChanged() {
@@ -148,6 +150,17 @@ export class ComponentSideBuildToolComponent
     this.toolService.buildTool.changeItem(
       BlueprintHelpers.createInstance(this.currentItem.id)!,
     );
+  }
+
+  // Re-entering the build tool (pressing "B" again with nothing selected,
+  // switching tools and back, ...) must not throw away a brush the user has
+  // already configured — only a genuine building-type change (chooseItem)
+  // should rebuild from the catalogue default. Guards oniItemsLoaded()'s very
+  // first call too, where templateItemToBuild doesn't exist yet.
+  private ensureBuildItem() {
+    const current = this.toolService.buildTool.templateItemToBuild;
+    if (current != null && current.oniItem.id === this.currentItem?.id) return;
+    this.uiItemChanged();
   }
 
   onFocus() {
@@ -161,9 +174,11 @@ export class ComponentSideBuildToolComponent
 
   // IObsToolChanged
   toolChanged(toolType: ToolType) {
-    // If the build tool was just selected,
-    // We simulate a click to recreate the build tool template item
-    if (toolType == ToolType.build) this.uiItemChanged();
+    // If the build tool was just selected, make sure its brush matches
+    // currentItem — but don't reset one that's already showing the same item
+    // (see ensureBuildItem): pressing "B" to re-enter the tool must keep
+    // whatever element/temperature/material the user already dialed in.
+    if (toolType == ToolType.build) this.ensureBuildItem();
 
     // And we hide all the overlays
     if (this.itemPanels != null)

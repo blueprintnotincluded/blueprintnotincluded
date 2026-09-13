@@ -1335,6 +1335,53 @@ function roomTagsRecord(b: BBuildingDef2024, roomTagVocabulary: Set<string>): st
     .sort();
 }
 
+// prefabId -> overlay tint used as the conduit-content blob's outline colour
+// (BlueprintItemWire.drawPixi). OniExtract2024 does not export this tint (no field on
+// BBuildingDef2024), so it is recovered from the legacy converter's last output,
+// `git show aaa378b0^:assets/database/database.json` (deleted the day after 2024 rendering
+// went live, d69a160a..aaa378b0). Only prefabs with sceneLayer 3 (GasConduits) or 5
+// (LiquidConduits) actually draw a blob outline today; the rest are carried for parity with
+// the legacy table and in case a future consumer reads backColor for them. Prefabs the
+// legacy export genuinely shipped white (sensors, overflow/preferential-flow segments,
+// ribbon reader/writer, the two *HighWattage bridge variants) are intentionally omitted, not
+// an oversight — see the recovered table above vs. this one.
+// Prefabs with no legacy record (added after 2024-06-21) are assigned by family analogy and
+// flagged for manual in-game confirmation: HighPressure{Gas,Liquid}Conduit(Bridge) take
+// their non-high-pressure sibling's colour; WireRubber(Bridge) takes Wire's.
+export const BACK_COLOR_BY_PREFAB: { [prefabId: string]: number } = {
+  ContactConductivePipeBridge: 0xd3d5d7,
+  GasConduitBridge: 0xd3d5d7,
+  GasConduit: 0xd3d5d7,
+  GasConduitRadiant: 0xe6e678,
+  HEPBridgeTile: 0xd3d5d7,
+  InsulatedGasConduit: 0xe6b671,
+  InsulatedLiquidConduit: 0xe6b671,
+  LiquidConduitBridge: 0xd3d5d7,
+  LiquidConduit: 0xd3d5d7,
+  LiquidConduitRadiant: 0xe6e678,
+  LogicRibbonBridge: 0xd3d5d7,
+  LogicRibbon: 0xd3d5d7,
+  LogicWireBridge: 0xe3bee3,
+  LogicWire: 0xe3bee3,
+  SolidConduitBridge: 0x8f551c,
+  SolidConduit: 0x8f551c,
+  TravelTube: 0xd3d5d7,
+  TravelTubeWallBridge: 0xd3d5d7,
+  WireBridge: 0xb65d5a,
+  Wire: 0xb65d5a,
+  HighWattageWire: 0xb65d5a,
+  WireRefinedBridge: 0xb65d5a,
+  WireRefined: 0xb65d5a,
+  WireRefinedHighWattage: 0xb65d5a,
+  // No legacy record — family analogy, unverified in-game:
+  HighPressureGasConduitBridge: 0xd3d5d7,
+  HighPressureGasConduit: 0xd3d5d7,
+  HighPressureLiquidConduitBridge: 0xd3d5d7,
+  HighPressureLiquidConduit: 0xd3d5d7,
+  WireRubberBridge: 0xb65d5a,
+  WireRubber: 0xb65d5a,
+};
+
 function buildingRecord(
   b: BBuildingDef2024,
   unknownViewModes: Set<string>,
@@ -1358,7 +1405,7 @@ function buildingRecord(
     isBridge: false, // not present in 2024 export
     drawSolid: false,
     dragBuild: b.dragBuild,
-    backColor: 0xffffff,
+    backColor: BACK_COLOR_BY_PREFAB[b.name] ?? 0xffffff,
     sizeInCells: { x: b.widthInCells, y: b.heightInCells },
     sceneLayer: b.sceneLayer,
     objectLayer: b.objectLayer,

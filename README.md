@@ -40,10 +40,18 @@ after that. `dc logs -f api web` to watch them, `dc restart api` to bounce one.
 scripts, `git`, `gh`. The `app` container runs no servers, so nothing you do in
 there disturbs one.
 
+No checkout ships real WorkOS keys, so the devcontainer sets `AUTH_MODE=local`
+on the container: the login page offers a one-click "Sign in as…" picker over
+two dev users (an admin and an ordinary account), seeded automatically at
+boot — no setup, no console paste. `npm run seed:dev-blueprints` adds the
+rest of the social-graph fixture on demand. See `AUTH_MODE` in `CLAUDE.md` "Environment Configuration".
+
 To run the app straight on the host instead — Node 20.19.4 per `.nvmrc` —
 `./dev-setup.sh` starts just the database and mail from the production compose
 file, and `DB_URI` / `SMTP_HOST` in `.env` become `localhost` rather than the
-`database` / `mailhog` service names the sample ships.
+`database` / `mailhog` service names the sample ships. Uncomment
+`AUTH_MODE="local"` in `.env` too, if you want the same login picker on the
+host.
 
 ### Several checkouts side by side
 

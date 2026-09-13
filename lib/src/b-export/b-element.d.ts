@@ -1,4 +1,5 @@
 import { ElementState } from '../enums/element-state';
+import { Overlay } from '../enums/overlay';
 export declare const NEUTRONIUM_ELEMENT_ID = "Unobtanium";
 export declare const NEUTRONIUM_DISPLAY_COLOR = 921102;
 export declare class BuildableElement {
@@ -31,4 +32,8 @@ export declare class BuildableElement {
     static getElementsFromTag(tag: string): BuildableElement[];
     static getElementsFromTags(tags: string[]): BuildableElement[][];
 }
+export declare const OVERLAY_DIMMED_ALPHA = 0.3;
+export declare function elementOwnOverlay(element: BuildableElement): Overlay | null;
+export declare function elementItemOverlay(overlay: Overlay): Overlay;
+export declare function isElementOverlayPrimary(element: BuildableElement, overlay: Overlay): boolean;
 //# sourceMappingURL=b-element.d.ts.map
