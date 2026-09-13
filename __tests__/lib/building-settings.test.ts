@@ -400,11 +400,13 @@ describe('threshold sensors', function () {
         'LiquidConduitDiseaseSensor',
         'LiquidConduitTemperatureSensor',
         'LogicDiseaseSensor',
+        'LogicHEPSensor',
         'LogicLightSensor',
         'LogicPressureSensorGas',
         'LogicPressureSensorLiquid',
         'LogicRadiationSensor',
         'LogicTemperatureSensor',
+        'LogicWattageSensor',
         'SolidConduitDiseaseSensor',
         'SolidConduitTemperatureSensor',
       ].sort()
@@ -420,6 +422,34 @@ describe('threshold sensors', function () {
     expect(toStoredValue(descriptor, 1500)).to.equal(1.5);
     // The catalogue bound is stored-unit; 20 kg is the 20000 g the UI shows.
     expect(toDisplayValue(descriptor, descriptor.max!)).to.equal(20000);
+  });
+
+  // The wattage and radbolt sensors are the other shape: a real IThresholdSwitch
+  // carrier whose stored number is already what the side screen showed, so the
+  // entry exists for the label and bounds and must NOT introduce a conversion.
+  it('leaves wattage and radbolt thresholds unconverted', () => {
+    const watts = resolveSettingDescriptors('LogicWattageSensor', 'IThresholdSwitch').find(
+      d => d.field == 'Threshold'
+    )!;
+    expect(watts.labelKey).to.equal('Wattage');
+    expect(watts.unitSuffix).to.equal('W');
+    expect(toDisplayValue(watts, 1234)).to.equal(1234);
+    expect(toStoredValue(watts, 1234)).to.equal(1234);
+    // 1.5x a heavi-watt wire's 50 kW rating.
+    expect(watts.max).to.equal(75000);
+
+    const radbolts = resolveSettingDescriptors('LogicHEPSensor', 'IThresholdSwitch').find(
+      d => d.field == 'Threshold'
+    )!;
+    expect(radbolts.labelKey).to.equal('Radbolt');
+    expect(radbolts.unitSuffix).to.equal('radbolts');
+    expect(toDisplayValue(radbolts, 12)).to.equal(12);
+    expect(radbolts.max).to.equal(500);
+  });
+
+  it('suppresses the stowaway Switch on both of them too', () => {
+    expect(resolveSettingDescriptors('LogicWattageSensor', 'Switch')).to.deep.equal([]);
+    expect(resolveSettingDescriptors('LogicHEPSensor', 'Switch')).to.deep.equal([]);
   });
 
   it('converts temperature between stored Kelvin and displayed Celsius', () => {
@@ -476,6 +506,20 @@ describe('threshold sensors', function () {
     expect(formatBuildingDataEntry({ Key: 'Door', Value: {} }, 'LogicPressureSensorGas')).to.equal(
       null
     );
+  });
+
+  it('formats wattage and radbolt thresholds with their own suffix', () => {
+    const watts = formatBuildingDataEntry(
+      { Key: 'IThresholdSwitch', Value: { Threshold: 1500, ActivateAboveThreshold: true } },
+      'LogicWattageSensor'
+    )!;
+    expect(watts.find(r => r.field == 'Threshold')!.text).to.equal('1500 W');
+
+    const radbolts = formatBuildingDataEntry(
+      { Key: 'IThresholdSwitch', Value: { Threshold: 12, ActivateAboveThreshold: false } },
+      'LogicHEPSensor'
+    )!;
+    expect(radbolts.find(r => r.field == 'Threshold')!.text).to.equal('12 radbolts');
   });
 
   it('formats a threshold in the unit of the building that carries it', () => {
