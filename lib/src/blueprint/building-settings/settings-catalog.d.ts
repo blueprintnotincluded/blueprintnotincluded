@@ -36,4 +36,5 @@ export declare function redundantEchoField(prefabId: string, key: string, field:
     key: string;
     field: string;
 } | null;
+export declare function redundantEchoKeysFor(prefabId: string, key: string): string[];
 //# sourceMappingURL=settings-catalog.d.ts.map

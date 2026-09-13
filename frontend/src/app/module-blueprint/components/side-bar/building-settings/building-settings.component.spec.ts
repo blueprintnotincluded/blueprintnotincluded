@@ -506,7 +506,9 @@ describe("BuildingSettingsComponent", () => {
     const clear = fixture.nativeElement.querySelector(
       ".building-setting-clear",
     ) as HTMLButtonElement;
-    expect(clear.textContent.trim()).toBe("Clear");
+    // The button names what it clears, matching the "Pressure — (Not set)"
+    // row it replaces.
+    expect(clear.textContent.trim()).toBe("Clear Pressure");
     clear.click();
 
     expect(component.blueprintItem.removeBuildingSetting).toHaveBeenCalledWith(
@@ -655,11 +657,12 @@ describe("BuildingSettingsComponent", () => {
         Value: { Threshold: 7, ActivateAboveThreshold: false },
       },
     ]);
-    (
-      fixture.nativeElement.querySelector(
-        ".building-setting-clear",
-      ) as HTMLButtonElement
-    ).click();
+    fixture.detectChanges();
+    const clear = fixture.nativeElement.querySelector(
+      ".building-setting-clear",
+    ) as HTMLButtonElement;
+    expect(clear.textContent.trim()).toBe("Clear Critter count");
+    clear.click();
     expect(component.blueprintItem.buildingData).toEqual([
       { Key: "Switch", Value: { switchedOn: true } },
     ]);

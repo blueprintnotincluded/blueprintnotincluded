@@ -10,6 +10,7 @@ import {
   isKnownSettingsKey,
   OniItem,
   primarySettingsKey,
+  redundantEchoKeysFor,
   resolveSettingDescriptors,
   SETTINGS_CATALOG,
   THRESHOLD_SENSORS,
@@ -96,6 +97,26 @@ describe('building-settings catalogue', function () {
         label: 'Critter count',
       });
     });
+
+    it('names IThresholdSwitch as a pure echo of its own Key', () => {
+      expect(
+        redundantEchoKeysFor('LogicCritterCountSensor', 'LogicCritterCountSensor')
+      ).to.deep.equal(['IThresholdSwitch']);
+    });
+  });
+
+  // The panel drops these alongside the canonical Key on Clear, so a Key that
+  // is a building's real settings store must never appear here. Inferring the
+  // list from "the primary Key is not IThresholdSwitch" got this right only
+  // while the critter sensor was the single non-threshold carrier.
+  it('reports no echoes for a Key that is a real settings store', () => {
+    expect(redundantEchoKeysFor('LogicTemperatureSensor', 'IThresholdSwitch')).to.deep.equal(
+      []
+    );
+    expect(redundantEchoKeysFor('LogicSwitch', 'Switch')).to.deep.equal([]);
+    expect(
+      redundantEchoKeysFor('LogicCritterCountSensor', 'IThresholdSwitch')
+    ).to.deep.equal([]);
   });
 
   it('reports the primary settings key per prefab', () => {

@@ -114,8 +114,9 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
   ],
 
   LogicCritterCountSensor: [
-    // RangeMin 0 / RangeMax 64 from the decompiled LogicCritterCountSensor
-    // (soft, like every threshold sensor bound).
+    // RangeMin 0 / RangeMax 64 — read off the decompiled LogicCritterCountSensor
+    // and since confirmed against a sandbox game (soft, like every threshold
+    // sensor bound: the setter does not enforce it).
     { field: 'countThreshold', labelKey: 'Threshold', type: 'int', min: 0, max: 64 },
     { field: 'activateOnGreaterThan', ...ABOVE_BELOW },
     { field: 'countCritters', labelKey: 'Count critters', type: 'bool' },
@@ -257,11 +258,13 @@ export const CREATABLE_SETTINGS: Record<string, Record<string, Record<string, an
     },
   },
 
-  // All four values are the real defaults from the decompiled
+  // All four values are the real defaults, read off the decompiled
   // LogicCritterCountSensor `[Serialize]` field initializers
   // (countEggs/countCritters/activateOnGreaterThan default true; countThreshold
-  // is an int with no initializer, i.e. 0), so a synthesized Value matches a
-  // freshly-placed in-game sensor exactly.
+  // is an int with no initializer, i.e. 0) and then **confirmed in a sandbox
+  // game** on a freshly-placed sensor. That check is what qualifies this entry
+  // under the rule above — a synthesized Value matches a fresh in-game sensor
+  // exactly, rather than matching what the decompile implies it should.
   [CRITTER_COUNT_SENSOR_ID]: {
     [CRITTER_COUNT_SENSOR_ID]: {
       countThreshold: 0,
@@ -315,16 +318,41 @@ export function primarySettingsKey(
 // echoes two fields of its own Key. An edit to the own Key must be mirrored
 // onto an existing echo, or the mod's key-apply pass could overwrite the fresh
 // value from the stale echo (IThresholdSwitch.TryApplyData sets
-// countThreshold = (int)Threshold). Returns the echo field for a given own-Key
-// field, or null when there is nothing to mirror.
+// countThreshold = (int)Threshold).
+//
+// prefabId -> the owning Key -> its field -> the echoed {key, field}. One table
+// rather than a branch per accessor, so "which field mirrors where" and "which
+// Keys are pure echoes of this one" cannot drift apart when a second carrier
+// turns up.
+const REDUNDANT_ECHOES: Record<
+  string,
+  Record<string, Record<string, { key: string; field: string }>>
+> = {
+  [CRITTER_COUNT_SENSOR_ID]: {
+    [CRITTER_COUNT_SENSOR_ID]: {
+      countThreshold: { key: THRESHOLD_KEY, field: 'Threshold' },
+      activateOnGreaterThan: { key: THRESHOLD_KEY, field: 'ActivateAboveThreshold' },
+    },
+  },
+};
+
+// The echo field for a given own-Key field, or null when there is nothing to
+// mirror.
 export function redundantEchoField(
   prefabId: string,
   key: string,
   field: string
 ): { key: string; field: string } | null {
-  if (prefabId != CRITTER_COUNT_SENSOR_ID || key != CRITTER_COUNT_SENSOR_ID) return null;
-  if (field == 'countThreshold') return { key: THRESHOLD_KEY, field: 'Threshold' };
-  if (field == 'activateOnGreaterThan')
-    return { key: THRESHOLD_KEY, field: 'ActivateAboveThreshold' };
-  return null;
+  return REDUNDANT_ECHOES[prefabId]?.[key]?.[field] ?? null;
+}
+
+// Every Key that exists only to echo `key` on this prefab — i.e. every Key that
+// must be dropped alongside it, since clearing the canonical Key while leaving
+// an echo behind keeps the value pinned through the echo. Empty for a Key with
+// no echoes, including `IThresholdSwitch` on a real threshold sensor, where it
+// is the canonical Key rather than a copy of one.
+export function redundantEchoKeysFor(prefabId: string, key: string): string[] {
+  const fields = REDUNDANT_ECHOES[prefabId]?.[key];
+  if (fields == null) return [];
+  return [...new Set(Object.values(fields).map(echo => echo.key))];
 }
