@@ -274,7 +274,9 @@ edits.
   `displayCyclesMode`: false, a display-only toggle with no simulation effect even if wrong)
   plus `IThresholdSwitch` on every threshold sensor (generated from `THRESHOLD_SENSORS`)
   plus `LogicCritterCountSensor` on itself (`countThreshold` 0 / `activateOnGreaterThan`,
-  `countCritters`, `countEggs` all true — the decompiled `[Serialize]` field initializers).
+  `countCritters`, `countEggs` all true — read off the decompiled `[Serialize]` field
+  initializers, then **confirmed in a sandbox game**, which is what qualifies the key for
+  this list rather than the decompile alone; `RangeMax` 64 was confirmed the same way).
   Every other key, including `LogicCounter` (whose `resetCountAtMax`/`advancedMode` real
   defaults aren't confirmed), stays edit-only-when-the-file-already-has-it: synthesizing an
   incomplete or wrong default for a gameplay-affecting field would silently change build
@@ -368,7 +370,11 @@ the bare float a meaning; conversion is affine both ways
   edit to `countThreshold`/`activateOnGreaterThan` is mirrored onto an existing echo
   (`redundantEchoField`, applied in `BlueprintItem.setBuildingSetting`) so the mod's key-apply
   pass can't clobber the fresh value from a stale echo; **Clear** drops both the own key and
-  the `IThresholdSwitch` echo (`Switch` is kept, like every threshold sensor).
+  the `IThresholdSwitch` echo (`Switch` is kept, like every threshold sensor). Both accessors
+  read one `REDUNDANT_ECHOES` table — the panel asks `redundantEchoKeysFor(prefabId, key)`
+  which Keys to drop rather than inferring them from "the primary key isn't
+  `IThresholdSwitch`", which would discard a genuine independent entry on the first prefab
+  that carries both.
 - **Blurring an untouched input must not write.** The displayed value is rounded, so
   re-deriving a stored value from it would nudge a Thermo Sensor stored at 293.153 K to
   293.15 — a silent data change that also detaches `rawSource` for nothing.
