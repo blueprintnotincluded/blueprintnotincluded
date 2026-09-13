@@ -716,16 +716,17 @@
   opacity: 0.85;
 }
 
+/* No decorative grid here: the server-rendered preview now bakes a real grid
+ * at the blueprint's own cell pitch into its transparent regions (a fixed
+ * CSS pitch had no relationship to the render's actual scale — a 2x3
+ * building could read as 4x6). --bni-thumbbg stays the ground colour behind
+ * the (still-transparent) image, so each skin still tints the board. */
 .bni-card__thumb {
   display: block;
   position: relative;
   margin: 10px 10px 0;
   aspect-ratio: 16 / 10;
   background-color: var(--bni-thumbbg);
-  background-image:
-    linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
-  background-size: 32px 32px;
   border: 1px solid var(--bni-rule);
   outline: 1px solid rgba(0, 0, 0, 0.25);
   outline-offset: -2px;
@@ -1031,9 +1032,15 @@
   animation: bni-pulse 1.6s ease-in-out infinite;
 }
 
+/* The one place that keeps the old decorative fixed-pitch grid: there is no
+ * blueprint yet to derive a real one from, so this is honestly a
+ * placeholder, not a stand-in for the render. */
 .bni-skel .bni-card__thumb {
   background-color: var(--bni-inset);
-  background-image: none;
+  background-image:
+    linear-gradient(var(--bni-thumbgrid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bni-thumbgrid) 1px, transparent 1px);
+  background-size: 32px 32px;
   display: flex;
   align-items: center;
   justify-content: center;

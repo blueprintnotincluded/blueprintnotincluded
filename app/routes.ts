@@ -53,6 +53,7 @@ export class Routes {
       requestProperty: 'user', // This ensures the token is attached to req.user
     }).unless({
       path: [
+        '/api/auth/mode',
         '/api/auth/login',
         '/api/auth/register',
         '/api/auth/verify-email',
@@ -64,6 +65,7 @@ export class Routes {
     });
 
     // Auth routes (password + magic link)
+    app.route('/api/auth/mode').get(this.authController.mode);
     app.route('/api/auth/login').post(this.authController.login);
     app.route('/api/auth/register').post(this.authController.register);
     app.route('/api/auth/verify-email').post(this.authController.verifyEmail);

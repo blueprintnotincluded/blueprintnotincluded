@@ -190,6 +190,14 @@
   outline-offset: 1px;
 }
 
+.note-panel-visibility-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
 .note-panel-delete {
   margin-top: 12px;
   padding: 7px 10px;

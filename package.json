@@ -61,7 +61,6 @@
     "@workos-inc/node": "^8.11.1",
     "adm-zip": "^0.5.10",
     "canvas": "^3.2.3",
-    "crypto-js": "^4.2.0",
     "csharp-binary-stream": "^1.0.2",
     "dotenv": "^16.6.1",
     "ejs": "^3.1.9",
@@ -85,7 +84,6 @@
   "devDependencies": {
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "^4.3.20",
-    "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.0",
     "@types/fs-extra": "^11.0.1",
     "@types/jsdom": "^21.1.7",

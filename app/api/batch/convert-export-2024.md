@@ -268,6 +268,33 @@ Temperature, Decor, Light, Rooms→Room, Radiation/Disease/Crop→Unknown); `nul
 unrecognised name is counted in the import report (`unknown viewMode names: N`) and fails the
 import.
 
+## Conduit outline colour (`backColor`)
+
+`BBuildingDef2024` carries no overlay-tint field — OniExtract2024 does not export it — so
+every building's `backColor` was hardcoded to `0xffffff` from the start of the 2024 pipeline.
+The only live consumer is `BlueprintItemWire.drawPixi`: the conduit-content blob it draws for
+gas/liquid pipes (`sceneLayer` 3/5) fills its outline in the building's `backColor`, so every
+pipe drew a white outline regardless of plain/insulated/radiant — a regression from the
+legacy site, where plain pipes were grey, insulated tan, radiant yellow.
+
+`BACK_COLOR_BY_PREFAB` (next to `CONNECTION_TYPE_BY_NAME`) restores this by prefab id,
+recovered from the legacy converter's last output
+(`git show aaa378b0^:assets/database/database.json`, the day before that file was deleted).
+It covers every conduit/wire/logic-ribbon family, not just the two that draw a blob today,
+for parity with the legacy table. Prefabs the legacy export genuinely shipped white —
+sensors, overflow/preferential-flow segments, ribbon reader/writer, the two `*HighWattage`
+bridge variants — are intentionally left at the `0xffffff` default; this is what the legacy
+data itself recorded, not an oversight.
+
+Prefabs added after the legacy table was captured (`HighPressureGasConduit(Bridge)`,
+`HighPressureLiquidConduit(Bridge)`, `WireRubber(Bridge)`) have no legacy record; they were
+assigned their non-high-pressure/non-rubber sibling's colour by family analogy and are
+**unverified in-game** — flagged in a comment at the table's definition.
+
+`__tests__/asset-processing/database-validation.test.ts` asserts every building on a
+conduit-drawing `sceneLayer` (3 or 5) has a non-white `backColor`, and that the
+plain/insulated/radiant triplet for gas and liquid each get three distinct colours.
+
 ## Schema-vs-actual caveats
 
 `EXPORT_SCHEMA.md` (in the export) is idealized in places; the converter handles the real
@@ -359,6 +386,14 @@ Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas.
 - **`uiImageRect` rollout:** emit it for the remaining buildings whose art deviates
   from the footprint (145 have none today; the rest can omit it).
 - **`ui_image_facade/`:** drop it to shrink the handoff, or tell us what it's for.
+- **Overlay tint (`backColor`):** emit the building's overlay/outline tint so
+  `BACK_COLOR_BY_PREFAB` (see above) can be retired in favour of real per-import data instead
+  of a hand-recovered table.
+- **`conduitColor: 0`:** `Graphite` and `CrudeOil` ship `conduitColor: 0` (and also `color: 0`,
+  alongside `Naphtha`/`Aerogel`/`COMPOSITION`) straight through from `elements.json` — not a
+  converter mapping slip, since `conduitColor: e.conduitColor` is a direct pass-through. Both
+  elements render a solid-black inner blob in a pipe today. Left as-is pending an export-side
+  fix or a product decision on a fallback tint.
 - **Higher-res `ui_image`:** one test asserts each flat-icon PNG is < 5 MB — flag ahead of
   time if any icon will exceed that.
 - **Other unread JSONs:** trim if not coming, or confirm they're for future work.

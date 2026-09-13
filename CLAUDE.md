@@ -40,6 +40,8 @@ app container**; the host needs only a container runtime.
 - `... logs -f api web` / `... restart api` - Watch or bounce a server
 - Frontend: http://localhost:4200, Backend: http://localhost:3000
 - From inside, the database is `database:27017` and mail is `mailhog:1025` — service names, not localhost
+- The dev container runs in local auth mode: open the login page and pick a dev user, or log in
+  with the form using any `@bpni.local` email — the password is `dev_password`
 
 To run on the host instead (Node 20.19.4 per `.nvmrc`): `./dev-setup.sh` starts
 just the database and mail, and `DB_URI` / `SMTP_HOST` are already `localhost`
@@ -145,6 +147,10 @@ Copy `.env.sample` to `.env` and configure:
 
 - `DB_URI` - MongoDB connection string
 - `JWT_SECRET` - Secret key for JWT tokens
+- `AUTH_MODE` - `workos` (default) or `local`. Local mode seeds two dev users (`dev_you` admin,
+  `dev_creator_alpha`) at boot and lets `/api/auth/login` authenticate them directly with no WorkOS keys — the
+  devcontainer sets this on the container itself (`.devcontainer/docker-compose.yml`). Refused
+  outright when `ENV_NAME=production`. Details: `specs/local-auth-mode-plan.md`.
 - `ENV_NAME` - Environment identifier (`production` enables Mailjet; otherwise nodemailer/SMTP)
 - `SMTP_HOST`/`SMTP_PORT` - Mail server for dev/test (`mailhog:1025` in the dev container, `localhost:1025` on the host)
 - `MAILJET_API_KEY`/`MAILJET_SECRET_KEY`/`MAILJET_FROM_EMAIL` - Required in production for email
@@ -175,7 +181,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Framework**: Mocha with Chai — do not introduce Jest
 - **Maintenance**: When removing large dependency sets, regenerate package-lock.json with `rm package-lock.json && npm install` to prevent corruption
 - **Email in tests**: `emailService.ts` skips SMTP when `NODE_ENV=test` — no mail server needed
-- **Test database location**: `__tests__/hooks.ts` loads a gitignored `.env.test.local` before `.env.test`, and a `DB_URI` already in the environment beats both (CI sets it as a job var). `scripts/test-db-setup.sh` resolves `DB_URI` the same way, so it checks and starts the Mongo the tests will actually use
+- **Test database location**: `__tests__/hooks.ts` resolves `DB_URI` as gitignored `.env.test.local` first (it *overrides* the environment — the app container carries the dev `DB_URI`, and an inherited value once pointed the suite's cleanup at the dev database), then the environment (CI sets it as a job var and has no local file), then the committed `.env.test`. The hooks then refuse to start unless the database name ends in `_test`. `scripts/test-db-setup.sh` resolves `DB_URI` the same way, so it checks and starts the Mongo the tests will actually use
 
 **Frontend**: Vitest with jsdom (no real browser). Runner: `@angular/build:unit-test`. Coverage via `@vitest/coverage-v8`.
 

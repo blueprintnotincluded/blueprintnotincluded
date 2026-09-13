@@ -15,7 +15,13 @@ describe("RegisterPageComponent", () => {
   let mockRouter: any;
 
   beforeEach(async () => {
-    mockAuth = { registerWithPassword: vi.fn() };
+    mockAuth = {
+      registerWithPassword: vi.fn(),
+      saveToken: vi.fn(),
+      getAuthMode: vi
+        .fn()
+        .mockReturnValue(of({ mode: "workos", devUsers: [] })),
+    };
     mockRouter = { navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -102,6 +108,32 @@ describe("RegisterPageComponent", () => {
       component.submit();
       expect(component.errorMessage).toBeTruthy();
       expect(component.loading).toBe(false);
+    });
+
+    it("logs in directly when the response carries a token (local mode)", () => {
+      component.email = "a@b.com";
+      component.password = "pass";
+      component.username = "alice";
+      mockAuth.registerWithPassword.mockReturnValue(
+        of({ message: "Account created.", token: "jwt" }),
+      );
+      component.submit();
+      expect(mockAuth.saveToken).toHaveBeenCalledWith("jwt");
+      expect(mockRouter.navigate).toHaveBeenCalledWith(["/"]);
+      expect(component.loading).toBe(false);
+    });
+  });
+
+  describe("ngOnInit", () => {
+    it("picks up local mode from the auth-mode response", () => {
+      mockAuth.getAuthMode.mockReturnValue(of({ mode: "local", devUsers: [] }));
+      component.ngOnInit();
+      expect(component.authMode).toBe("local");
+    });
+
+    it("stays in workos mode by default", () => {
+      component.ngOnInit();
+      expect(component.authMode).toBe("workos");
     });
   });
 });

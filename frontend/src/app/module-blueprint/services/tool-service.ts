@@ -4,6 +4,7 @@ import { SelectTool } from "../common/tools/select-tool";
 import {
   BlueprintHelpers,
   BlueprintItem,
+  BniWorldNote,
   CameraService,
   Overlay,
   Vector2,
@@ -19,11 +20,20 @@ import { ScissorsTool } from "../common/tools/scissors-tool";
 import { PlanningTool } from "../common/tools/planning-tool";
 import { NotesTool } from "../common/tools/notes-tool";
 import { TerrainTool } from "../common/tools/terrain-tool";
+import { BlueprintService } from "./blueprint-service";
+import { WorldNoteService, findNoteAt } from "./world-note.service";
+
+// The mod's `BlueprintNoteData.NoteType.Element`.
+const ELEMENT_NOTE = 1;
 
 @Injectable({ providedIn: "root" })
 export class ToolService implements ITool, IChangeTool {
   private allTools: ITool[];
   private currentTool: ITool;
+  // The last tile the mouse hovered, tracked here (not per-tool) so a
+  // keyboard-only action like the "B" sample-under-cursor shortcut can read
+  // it regardless of which tool is currently active.
+  private lastHoverTile: Vector2 | null = null;
 
   // This is used by the menu to get the visible status of the tools
   public getTool(toolType: ToolType) {
@@ -42,6 +52,8 @@ export class ToolService implements ITool, IChangeTool {
     public planningTool: PlanningTool,
     public notesTool: NotesTool,
     public terrainTool: TerrainTool,
+    private blueprintService: BlueprintService,
+    private worldNoteService: WorldNoteService,
   ) {
     this.observers = [];
 
@@ -117,6 +129,7 @@ export class ToolService implements ITool, IChangeTool {
     this.currentTool.rightClick(tile);
   }
   hover(tile: Vector2) {
+    this.lastHoverTile = tile;
     this.currentTool.hover(tile);
   }
   drag(tileStart: Vector2, tileStop: Vector2) {
@@ -134,14 +147,74 @@ export class ToolService implements ITool, IChangeTool {
   }
 
   // Mirrors the game's "Copy Building": switch to the build tool, and if
-  // something is selected, load a copy of it as the item to build.
+  // something is selected, load a copy of it as the brush. With nothing
+  // selected — the common case, since entering the build tool deselects —
+  // this instead samples whatever is under the cursor: a building or element
+  // cell clones into the build tool exactly like a selection would, and an
+  // element world note switches to the notes tool with that note as the
+  // pending brush. A selected world note is checked before the hover tile,
+  // mirroring the selected-building rule.
   changeToBuildToolFromSelection() {
     const selected = this.selectTool.selectedItem;
-    const copy =
-      selected == null ? null : BlueprintHelpers.cloneBlueprintItem(selected);
+    if (selected != null) {
+      const copy = BlueprintHelpers.cloneBlueprintItem(selected);
+      this.changeTool(ToolType.build);
+      this.buildTool.changeItem(copy);
+      return;
+    }
+
+    const selectedNote = this.worldNoteService.selected;
+    if (selectedNote != null && selectedNote.type === ELEMENT_NOTE) {
+      this.sampleElementNoteIntoNotesTool(selectedNote);
+      return;
+    }
+
+    const hoverTile = this.lastHoverTile;
+    if (hoverTile != null) {
+      const item = this.frontmostBlueprintItemAt(hoverTile);
+      if (item != null) {
+        const copy = BlueprintHelpers.cloneBlueprintItem(item);
+        this.changeTool(ToolType.build);
+        this.buildTool.changeItem(copy);
+        return;
+      }
+
+      const note = findNoteAt(
+        this.blueprintService.blueprint.worldNotes,
+        hoverTile,
+      );
+      if (note != null && note.type === ELEMENT_NOTE) {
+        this.sampleElementNoteIntoNotesTool(note);
+        return;
+      }
+    }
 
     this.changeTool(ToolType.build);
-    if (copy != null) this.buildTool.changeItem(copy);
+  }
+
+  // The frontmost real blueprint item at a tile — same "highest depth wins"
+  // rule SelectTool.selectFromBox uses, so B samples whichever of a building
+  // and an element cell sharing a tile the current overlay would select.
+  private frontmostBlueprintItemAt(tile: Vector2): BlueprintItem | null {
+    const items = this.blueprintService.blueprint.getBlueprintItemsAt(tile);
+    if (items.length === 0) return null;
+    return items.reduce((front, item) =>
+      item.depth > front.depth ? item : front,
+    );
+  }
+
+  // Sets the pending note's fields before flipping the mode: NotesTool's mode
+  // setter seeds a default element only when none is set yet, so writing
+  // id/mass/temp first makes that seed a no-op and the sampled values stick.
+  private sampleElementNoteIntoNotesTool(note: BniWorldNote) {
+    this.notesTool.pendingElementNote = {
+      ...this.notesTool.pendingElementNote,
+      id: note.id,
+      mass: note.mass,
+      temp: note.temp,
+    };
+    this.notesTool.mode = "element";
+    this.changeTool(ToolType.notes);
   }
 
   // Tool-scoped shortcuts: tool switching is handled here, everything else is

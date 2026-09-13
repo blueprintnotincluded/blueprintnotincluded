@@ -1,7 +1,10 @@
 import { Component, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { MessageService } from "primeng/api";
-import { AuthenticationService } from "../../../services/authentification-service";
+import {
+  AuthenticationService,
+  DevUserInfo,
+} from "../../../services/authentification-service";
 
 @Component({
   selector: "app-login-page",
@@ -15,6 +18,10 @@ export class LoginPageComponent implements OnInit {
   loading = false;
   showLegacyHint = false;
   errorMessage = "";
+
+  authMode: "workos" | "local" = "workos";
+  devUsers: DevUserInfo[] = [];
+  private devPassword = "";
 
   constructor(
     private authService: AuthenticationService,
@@ -32,6 +39,42 @@ export class LoginPageComponent implements OnInit {
         detail: "Your password has been updated. Please log in.",
       });
     }
+
+    // Advisory only: the ordinary email/password form works regardless of
+    // whether this call succeeds, so a failure here is silently ignored.
+    this.authService.getAuthMode().subscribe({
+      next: (res) => {
+        this.authMode = res.mode;
+        this.devUsers = res.devUsers;
+        this.devPassword = res.devPassword ?? "";
+      },
+      error: () => {},
+    });
+  }
+
+  loginAsDevUser(devUser: DevUserInfo) {
+    if (this.loading) return;
+    this.loading = true;
+    this.showLegacyHint = false;
+    this.errorMessage = "";
+
+    this.authService
+      .loginWithPassword(devUser.email, this.devPassword)
+      .subscribe({
+        next: (result) => {
+          this.loading = false;
+          if (result.kind === "success") {
+            this.authService.saveToken(result.token);
+            this.router.navigate(["/"]);
+          } else {
+            this.errorMessage = "Could not sign in as this dev user.";
+          }
+        },
+        error: () => {
+          this.loading = false;
+          this.errorMessage = "Could not sign in as this dev user.";
+        },
+      });
   }
 
   submit() {

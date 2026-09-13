@@ -9,13 +9,18 @@
 //
 // Re-running is safe: it wipes the disposable @bpni.local fixture and recreates it.
 //
-// --- Logging in without WorkOS ---------------------------------------------------
-// The site authenticates through WorkOS (see agent/WORKOS_PLAN.md): a plain DB user
-// CANNOT log in through the browser, because /api/auth/login proxies to WorkOS and
-// DB-only accounts come back as `legacy_account`. There is no dev password bypass.
-// Instead this script MINTS a JWT signed with the same `JWT_SECRET` the real endpoint
-// uses, so it validates against the expressjwt middleware identically — no WorkOS
-// round-trip. Paste the printed snippet into the browser console on the site origin:
+// --- Logging in ---------------------------------------------------------------
+// The devcontainer runs AUTH_MODE=local by default (specs/local-auth-mode-plan.md):
+// open the login page and pick a dev user from the picker, or log in with the form
+// using any @bpni.local email and the shared DEV_PASSWORD — no WorkOS keys needed.
+// This script seeds the same users (via ../dev-users, the shared definitions) with
+// that password, so nothing further is required after `npm run seed:dev-blueprints`.
+//
+// The printed-token flow below still matters for an AUTH_MODE=workos checkout with
+// no real WorkOS keys configured: this script MINTS a JWT signed with the same
+// `JWT_SECRET` the real endpoint uses, so it validates against the expressjwt
+// middleware identically — no WorkOS round-trip. Paste the printed snippet into the
+// browser console on the site origin:
 //
 //   localStorage.setItem('blueprintnotincluded-token', '<jwt>'); location.reload();
 //
@@ -24,7 +29,7 @@
 // token stays valid no matter how many times the DB is reset — and it is the one
 // account the destructive cleanup never deletes. After ANY reset (a full `test`
 // db-setup, a manual drop, whatever), `npm run seed:dev-user` restores it in one
-// command with no WorkOS flow. Its token is admin and long-lived (30 days),
+// command with no WorkOS flow. Its minted token is admin and long-lived (30 days),
 // so a single paste gives you everything for a month of validation.
 
 import * as fs from 'fs';
@@ -48,6 +53,7 @@ import { BlueprintRatingModel } from '../models/blueprint-rating';
 import { FeedbackModel } from '../models/feedback';
 import { ensureCurrentVersion } from '../services/blueprint-version-service';
 import { sanitizeCommentBody } from '../services/comment-body';
+import { DEV_USERS as ALL_DEV_USERS, DEV_PASSWORD, DevUserSpec } from '../dev-users';
 
 dotenv.config();
 
@@ -58,53 +64,11 @@ const THUMBNAIL =
 
 type Role = 'admin' | undefined;
 
-interface DevUserSpec {
-  username: string;
-  email: string;
-  bio: string;
-  role?: Role;
-}
-
-// The durable validation identity. Its _id is HARDCODED (not random) so the minted
-// token keeps authenticating across DB resets, and cleanup never deletes this account.
-// Fixed ObjectId — arbitrary but stable. Do not change it, or old tokens break.
-const PROTECTED_USER = {
-  _id: new mongoose.Types.ObjectId('d0d0d0d0d0d0d0d0d0d0d0d0'),
-  username: 'dev_you',
-  email: 'dev_you@bpni.local',
-  bio: 'Durable dev validation account — survives DB resets.',
-  role: 'admin' as Role,
-};
+// `dev_you` is the durable validation identity — fixed _id, never deleted by
+// cleanupPrior. Everyone else is the disposable social-graph fixture.
+const PROTECTED_USER = ALL_DEV_USERS.find(u => u.username === 'dev_you')!;
+const DEV_USERS: DevUserSpec[] = ALL_DEV_USERS.filter(u => u.username !== 'dev_you');
 const PROTECTED_TOKEN_DAYS = 30;
-
-const DEV_USERS: DevUserSpec[] = [
-  {
-    username: 'dev_admin',
-    email: 'dev_admin@bpni.local',
-    bio: 'Platform admin — moderates comments and triages feedback.',
-    role: 'admin',
-  },
-  {
-    username: 'dev_creator_alpha',
-    email: 'dev_creator_alpha@bpni.local',
-    bio: 'Prolific builder. Posts a lot of single-purpose reference builds.',
-    },
-  {
-    username: 'dev_creator_beta',
-    email: 'dev_creator_beta@bpni.local',
-    bio: 'Automation enthusiast.',
-  },
-  {
-    username: 'dev_forker',
-    email: 'dev_forker@bpni.local',
-    bio: 'Forks and remixes other people\'s builds.',
-  },
-  {
-    username: 'dev_lurker',
-    email: 'dev_lurker@bpni.local',
-    bio: 'Mostly here to like and follow.',
-  },
-];
 
 // Placeholder blueprints keyed by real prefab IDs so the categorization algorithms
 // (deriveCategory / deriveRequiredDlcs / deriveModded) actually fire — requiredDlcs,
@@ -278,15 +242,17 @@ function daysAgo(n: number): Date {
 type UserDoc = InstanceType<typeof UserModel.model>;
 
 async function seedUser(spec: DevUserSpec): Promise<UserDoc> {
-  await UserModel.model.deleteOne({ email: spec.email });
-  // authProvider 'workos' with no password: these accounts are unreachable through
-  // the real login flow by design — the printed JWT is the only way in (see header).
+  await UserModel.model.deleteOne({ _id: spec._id });
+  // legacy + DEV_PASSWORD: reachable both through the local-auth-mode picker/form
+  // and via a minted JWT for an AUTH_MODE=workos checkout with no real keys (see header).
   const user = new UserModel.model({
+    _id: spec._id,
     username: spec.username,
     email: spec.email,
     bio: spec.bio,
-    authProvider: 'workos',
+    authProvider: 'legacy',
   });
+  user.setPassword(DEV_PASSWORD);
   await user.save();
   return user;
 }
@@ -301,12 +267,16 @@ async function ensureProtectedUser(): Promise<UserDoc> {
         username: PROTECTED_USER.username,
         email: PROTECTED_USER.email,
         bio: PROTECTED_USER.bio,
-        authProvider: 'workos',
+        authProvider: 'legacy',
+        localRole: PROTECTED_USER.localRole,
       },
     },
     { upsert: true },
   );
-  return (await UserModel.model.findById(PROTECTED_USER._id))!;
+  const user = (await UserModel.model.findById(PROTECTED_USER._id))!;
+  user.setPassword(DEV_PASSWORD);
+  await user.save();
+  return user;
 }
 
 // Mint a long-lived dev JWT directly (bypassing generateJwt's 7d/24h prod policy),
@@ -441,7 +411,7 @@ async function runUserOnly(): Promise<void> {
   await mongoose.connect(mongoUri);
   initModels();
   const user = await ensureProtectedUser();
-  const token = mintDevToken(user, { days: PROTECTED_TOKEN_DAYS, role: PROTECTED_USER.role });
+  const token = mintDevToken(user, { days: PROTECTED_TOKEN_DAYS, role: PROTECTED_USER.localRole });
 
   console.log(`\nProtected user restored: ${PROTECTED_USER.username} (admin, ${PROTECTED_TOKEN_DAYS}-day token, no WorkOS).`);
   printLogin(`${PROTECTED_USER.username} — your durable validation login`, token);
@@ -668,18 +638,20 @@ async function run() {
     console.log(`  ${r.name.padEnd(24)} category=${r.category.padEnd(10)} requiredDlcs=${dlcs.padEnd(15)} modded=${r.modded}`);
   }
 
-  console.log('\n=== Dev login — paste into the browser console on the site origin, then reload ===');
-  console.log('(No WorkOS/password login exists for these accounts — a minted token is the only way in.)');
+  console.log('\n=== Dev login ===');
+  console.log(`(In AUTH_MODE=local, just log in on the site with any @bpni.local email + "${DEV_PASSWORD}".`);
+  console.log(' The tokens below are for an AUTH_MODE=workos checkout with no real WorkOS keys —');
+  console.log(' paste into the browser console on the site origin, then reload.)');
 
   // The protected account first and highlighted — this is the durable one to use.
   printLogin(
     `${PROTECTED_USER.username}  ⟵ USE THIS (admin, ${PROTECTED_TOKEN_DAYS}-day token, survives resets; restore anytime via \`npm run seed:dev-user\`)`,
-    mintDevToken(protectedUser, { days: PROTECTED_TOKEN_DAYS, role: PROTECTED_USER.role }),
+    mintDevToken(protectedUser, { days: PROTECTED_TOKEN_DAYS, role: PROTECTED_USER.localRole }),
   );
 
   for (const spec of DEV_USERS) {
     const user = usersByName.get(spec.username)!;
-    printLogin(`${spec.username}${spec.role ? ` (${spec.role})` : ''}`, mintDevToken(user, { days: 7, role: spec.role }));
+    printLogin(`${spec.username}${spec.localRole ? ` (${spec.localRole})` : ''}`, mintDevToken(user, { days: 7, role: spec.localRole }));
   }
 
   await mongoose.disconnect();

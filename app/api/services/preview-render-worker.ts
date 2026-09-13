@@ -45,6 +45,8 @@ import {
   NOTE_ICON_TILE_FRACTION,
   noteBadgeColor,
   noteMarkerSprite,
+  drawTerrainFeature,
+  terrainIconUrl,
 } from '../../../lib';
 import { PixiNodeUtil } from '../pixi-node-util';
 import { startMemoryHeartbeat } from './memory-heartbeat';
@@ -174,6 +176,80 @@ async function getMarkerTexture(
   return texture;
 }
 
+// Terrain icon textures, decoded on first use and kept for the life of the
+// worker — one flat icon per feature prefab. Like markerTextures, these are
+// not ImageSource-registered ids, so ensureTextures cannot carry them.
+const terrainTextures = new Map<string, any>();
+
+async function getTerrainTexture(pixi: PixiNodeUtil, baseDir: string, url: string): Promise<any> {
+  let texture = terrainTextures.get(url);
+  if (texture === undefined) {
+    let baseTexture;
+    try {
+      baseTexture = await pixi.getImageFromCanvas(path.join(baseDir, url));
+    } catch {
+      console.warn(`preview-render-worker: terrain icon ${url} missing, using placeholder`);
+      baseTexture = pixi.getNewBaseRenderTexture({ width: 1, height: 1 });
+    }
+    // A whole-image Texture, not the BaseTexture — see getMarkerTexture.
+    texture = pixi.getNewTextureWhole(baseTexture);
+    terrainTextures.set(url, texture);
+  }
+  return texture;
+}
+
+// Terrain annotations (geysers, vents, volcanoes): the same footprint outline
+// and icon placement the editor overlay and the client-side export/thumbnail
+// snapshots draw (lib/src/drawing/terrain-markers.ts), with no selection
+// state — a one-shot render never has a selection. Drawn above buildings and
+// below world-note pins, so a note is never hidden behind a geyser's art.
+async function drawTerrainFeatures(
+  pixi: PixiNodeUtil,
+  baseDir: string,
+  blueprint: SharedBlueprint,
+  camera: CameraService
+): Promise<void> {
+  if (blueprint.terrainFeatures.length === 0) return;
+
+  const container = pixi.getNewContainer();
+  // Above blueprintItems (which top out at ZIndex.BuildingUse) but below the
+  // world-note pins container's 1e6.
+  container.zIndex = 5e5;
+  camera.container.addChild(container);
+
+  const graphics = pixi.getNewGraphics();
+  container.addChild(graphics);
+
+  const zoom = camera.currentZoom;
+  const offset = camera.cameraOffset;
+
+  for (const feature of blueprint.terrainFeatures) {
+    const known = TerrainFeature.getFeature(feature.id);
+    const width = known != null ? known.width : 1;
+    const height = known != null ? known.height : 1;
+
+    // Cell coords are bottom-left anchored and y-up; screen is y-down, so the
+    // top edge of the footprint is the anchor plus its height.
+    const left = (feature.x + offset.x) * zoom;
+    const top = (offset.y - feature.y - height + 1) * zoom;
+
+    const sprite = pixi.getSpriteFrom(
+      await getTerrainTexture(pixi, baseDir, terrainIconUrl(feature))
+    );
+    container.addChild(sprite);
+    drawTerrainFeature(
+      graphics,
+      sprite,
+      left,
+      top,
+      width * zoom,
+      height * zoom,
+      zoom,
+      known?.uiImageRect
+    );
+  }
+}
+
 // World-note pins, drawn on top of the buildings — the same markers the editor
 // canvas and the client-side export snapshots draw, so a blueprint's card
 // shows the annotations its author placed. Sizing and colour come from the
@@ -220,11 +296,20 @@ interface RenderTimings {
   extractMs: number;
 }
 
+// Pixel geometry of the render: the size of one cell, and where cell (0,0)'s
+// corner lands. Lets a consumer (the preview variant deriver) draw a grid at
+// the blueprint's real pitch instead of a decorative fixed-size one.
+export interface PreviewFraming {
+  tileSize: number;
+  offsetPx: { x: number; y: number };
+}
+
 interface MasterPixels {
   /** Non-premultiplied RGBA, size*size*4 bytes — sharp raw input format. */
   raw: Buffer;
   width: number;
   height: number;
+  framing: PreviewFraming;
   timings: RenderTimings;
 }
 
@@ -268,6 +353,7 @@ async function renderMaster(
     item.updateTileables(blueprint);
     item.drawPixi(exportCamera, pixi);
   });
+  await drawTerrainFeatures(pixi, assetBaseDir, blueprint, exportCamera);
   await drawWorldNotes(pixi, assetBaseDir, blueprint, exportCamera);
 
   const baseRenderTexture = pixi.getNewBaseRenderTexture({ width: size, height: size });
@@ -291,6 +377,13 @@ async function renderMaster(
     raw,
     width: size,
     height: size,
+    // Pixel position of cell (0,0)'s corner: screenX = (cellX + offset.x) *
+    // zoom, screenY = (offset.y - cellY) * zoom (BlueprintItem.drawPixi's own
+    // convention), each evaluated at cellX = cellY = 0.
+    framing: {
+      tileSize,
+      offsetPx: { x: cameraOffset.x * tileSize, y: cameraOffset.y * tileSize },
+    },
     timings: {
       importMs: texturesStart - importStart,
       texturesMs: rasterizeStart - texturesStart,
@@ -302,7 +395,8 @@ async function renderMaster(
 
 // Minimal blueprint exercising every texture path: a flat-icon building
 // (Battery), a tileable atlas-backed tile, a connectable (Wire, 16 bitmask
-// sprites) and a building with utility ports (LiquidPump). Rendered by
+// sprites), a building with utility ports (LiquidPump), and a terrain
+// annotation (Cool Steam Vent) to exercise drawTerrainFeatures. Rendered by
 // `--smoke` to validate the deployed image end-to-end.
 const SMOKE_FIXTURE: MdbBlueprint = {
   blueprintItems: [
@@ -313,6 +407,7 @@ const SMOKE_FIXTURE: MdbBlueprint = {
     { id: 'Wire', position: new Vector2(3, 1), connections: 1 },
     { id: 'LiquidPump', position: new Vector2(0, 3) },
   ],
+  terrainFeatures: [{ id: 'GeyserGeneric_steam', x: 5, y: 0 }],
 };
 
 // Render the fixture and exit 0/1. Run inside the built prod image (ideally
@@ -377,8 +472,13 @@ async function main() {
       let reply: object;
       let phases = '';
       try {
-        const { raw, width, height, timings } = await renderMaster(pixi, assetBaseDir, mdb, size);
-        reply = { type: 'rendered', requestId, raw, width, height, timings };
+        const { raw, width, height, framing, timings } = await renderMaster(
+          pixi,
+          assetBaseDir,
+          mdb,
+          size
+        );
+        reply = { type: 'rendered', requestId, raw, width, height, framing, timings };
         phases =
           ` import=${timings.importMs}ms textures=${timings.texturesMs}ms` +
           ` rasterize=${timings.rasterizeMs}ms extract=${timings.extractMs}ms`;

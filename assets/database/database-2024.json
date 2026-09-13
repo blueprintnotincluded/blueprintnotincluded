@@ -5153,7 +5153,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -11247,7 +11247,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -11317,7 +11317,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -11512,7 +11512,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 15132280,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -13747,7 +13747,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 2,
         "y": 1
@@ -15184,7 +15184,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 15119985,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -15235,7 +15235,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 15119985,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -16595,7 +16595,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -16665,7 +16665,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -16860,7 +16860,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 15132280,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -20328,7 +20328,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -20398,7 +20398,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -20899,7 +20899,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 14925539,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -20969,7 +20969,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 14925539,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -30649,7 +30649,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 9393436,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -30719,7 +30719,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 9393436,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -35002,7 +35002,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -35121,7 +35121,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -36368,7 +36368,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -36506,7 +36506,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -36557,7 +36557,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -36608,7 +36608,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -36746,7 +36746,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -36797,7 +36797,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -36848,7 +36848,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -36920,7 +36920,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 11951450,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -37974,7 +37974,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -38048,7 +38048,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 1,
         "y": 1
@@ -38103,7 +38103,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": false,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 3,
         "y": 1
@@ -38177,7 +38177,7 @@
       "isBridge": false,
       "drawSolid": false,
       "dragBuild": true,
-      "backColor": 16777215,
+      "backColor": 13882839,
       "sizeInCells": {
         "x": 1,
         "y": 1
