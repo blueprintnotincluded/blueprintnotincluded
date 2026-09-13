@@ -345,6 +345,37 @@ the capability: `items` (eggs/seeds/suits), `food`, `recipe`, `multiEntities` (s
 is read (English game strings → `strings.json`); the site is English-only, so the legacy
 per-locale `.po` files have been retired — non-English i18n would need translated sources.
 
+## Rendering model — how the site uses the converted data
+
+Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas.
+
+- **Types**: `lib/src/b-export/b-export-2024.ts` — raw 2024 export shapes (13 files).
+- **Import**: `convert-export-2024.ts` (`npm run import:2024`) → consolidated
+  `database-2024.json` written to both asset roots (committed; the `.zip` is a gitignored
+  build derivative); content-aware syncs `ui_image/` (1,241 flat PNGs) and
+  `connection_sprites/` into both asset roots.
+- **Render**: each building is one flat icon — `OniItem.flatIconId`, `DrawPart.flatIconId`,
+  no UV slice. `uiImageRect` (when present) places overhanging art relative to the
+  footprint; otherwise the icon is stretched to the footprint.
+- **Connectables** (31 prefabs): render `connection_sprites/{prefabId}/{bitmask}.png` per
+  4-bit neighbour mask (left=1, right=2, up=4, down=8). `OniItem.connectionSprites` is
+  derived from dir presence; `BlueprintItem` builds 16 tagged flat-icon draw-parts;
+  per-building `connectionScale` is measured from `15.png` at import time. The build/select
+  menu keeps the single canonical icon (`iconUrl`).
+- **Utility ports** (275/449 buildings): `BBuildingDef2024.utilities[]` carries each
+  input/output port as `{offset, type, isSecondary}`. The U59 export emits `type` as the
+  `ConnectionType` enum _name_ (string); the converter maps it to the int via
+  `CONNECTION_TYPE_BY_NAME`. Offsets are pre-rotation/y-up/footprint-relative and already
+  match the website's internal convention (no transform). `BlueprintItem.drawPixiUtility`
+  draws the markers per overlay; the 8 indicator sprites (`input`/`output`/`logicInput`…)
+  are registered from the export's own `ui_image/<name>.png` flats (copied into
+  `frontend/src/assets/images/` at import) — they no longer slice the legacy atlas pages.
+- **Loaders**: backend reads `database-2024.json` directly; frontend fetches
+  `database-2024.zip` (regenerated from the committed JSON by its `prebuild`/`prestart`).
+- **DLC data**: each building record now includes `dlcIds: string[]` (e.g. `['EXPANSION1_ID']`
+  for Spaced Out buildings). The converter (`import:2024`) populates this from the raw export's
+  `kPrefabID.requiredDlcIds`. Used by `BlueprintAnalyzer` to derive metadata.
+
 ## Open items to the export side
 
 - **Power-bridge `utilities[]`:** the wire bridges ship an empty `utilities[]` while every
