@@ -114,9 +114,20 @@ function germs(): ThresholdSensorSpec {
 
 // Keyed by the building's prefab id (BlueprintItem.id / OniItem.id).
 //
-// The seven base sensors' units and ranges are the ones confirmed against the
-// game assembly; the pipe/rail sensors measure the same quantity as their
+// The base sensors' units and ranges are the ones confirmed against the game
+// assembly; the pipe/rail sensors measure the same quantity as their
 // room-sensor twin and inherit its unit.
+//
+// LogicWattageSensor and LogicHEPSensor sat under "deliberately absent" on the
+// claim that neither was a confirmed carrier. Both are: the decompiled game
+// declares `class LogicWattageSensor : Switch, ISaveLoadable, IThresholdSwitch`
+// and the same for LogicHEPSensor, each backing `Threshold` with a real
+// serialized field (thresholdWattage / thresholdPayload) rather than aliasing
+// another key the way the critter sensor does. The radbolt half of that claim
+// confused the Radbolt *Sensor* with the Radbolt Generator and Battery —
+// HighEnergyParticleSpawner.particleThreshold and HEPBattery.particleThreshold
+// are genuinely different keys on genuinely different buildings, and remain
+// unhandled.
 //
 // Deliberately absent:
 //
@@ -133,10 +144,6 @@ function germs(): ThresholdSensorSpec {
 //    definitions rather than actual build-menu reachability. Pulled until
 //    someone confirms in a debug/sandbox build menu (which shows disabled
 //    content) whether they're placeable at all.
-//  - LogicWattageSensor and LogicHEPSensor. Neither is a confirmed
-//    IThresholdSwitch carrier, and radbolt thresholds demonstrably live on
-//    HighEnergyParticleSpawner.particleThreshold /
-//    HEPBattery.particleThreshold — different keys entirely.
 //  - Element sensors (LogicElementSensorGas and the conduit element sensors)
 //    have no threshold at all: their setting is a Filterable/SelectedTag
 //    element name.
@@ -195,6 +202,38 @@ export const THRESHOLD_SENSORS: Record<string, ThresholdSensorSpec> = {
     decimals: 0,
     defaultThreshold: 280,
     defaultActivateAbove: false,
+  },
+
+  // Wattage Sensor. Watts 1:1 — Sim200ms compares thresholdWattage straight
+  // against circuitManager.GetWattsUsedByCircuit(), so the stored number is
+  // already what the side screen reads. RangeMax is
+  // 1.5f * Wire.GetMaxWattageAsFloat(Max50000) = 1.5x a heavi-watt wire.
+  LogicWattageSensor: {
+    label: 'Wattage',
+    unitSuffix: 'W',
+    displayScale: 1,
+    displayOffset: 0,
+    storedMin: 0,
+    storedMax: 75000,
+    step: 1,
+    decimals: 0,
+    defaultThreshold: 1000,
+    defaultActivateAbove: true,
+  },
+
+  // Radbolt Sensor (Spaced Out). A plain count; RangeMax is the flat
+  // maxPayload = 500f.
+  LogicHEPSensor: {
+    label: 'Radbolt',
+    unitSuffix: 'radbolts',
+    displayScale: 1,
+    displayOffset: 0,
+    storedMin: 0,
+    storedMax: 500,
+    step: 1,
+    decimals: 0,
+    defaultThreshold: 10,
+    defaultActivateAbove: true,
   },
 };
 
