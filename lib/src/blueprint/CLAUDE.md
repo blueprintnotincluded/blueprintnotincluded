@@ -113,10 +113,13 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   `node frontend/scripts/build-database-zip.js` or use `npm start`.
 - **Unknown ids survive**: single-cell footprint, placeholder glyph, raw id shown in the panel.
 - **Known gap (shared with Planning Tool shapes)**: the durable server-side preview
-  (`app/api/services/preview-render-worker.ts`) draws `blueprintItems` and world notes, but
-  not terrain, so geysers do not appear on blueprint cards/details previews — only on the live
-  canvas and the client-side thumbnail/export snapshots. It also rejects a blueprint with zero
-  `blueprintItems`, so an annotation-only blueprint gets no stored preview.
+  (`app/api/services/preview-render-worker.ts`) now draws `blueprintItems`, terrain features
+  and world notes (z-order: buildings, then terrain, then notes on top), using the same
+  footprint/icon geometry as the editor overlay (`lib/src/drawing/terrain-markers.ts`) with no
+  selection state. Planning Tool shapes are still missing from this render — only the live
+  canvas and the client-side thumbnail/export snapshots draw those. The worker also still
+  rejects a blueprint with zero `blueprintItems` (even if it has terrain), so an
+  annotation-only blueprint gets no stored preview.
 
 ### World notes (annotations)
 
