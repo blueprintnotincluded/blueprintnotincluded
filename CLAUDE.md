@@ -203,7 +203,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 - **Framework**: Mocha with Chai — do not introduce Jest
 - **Maintenance**: When removing large dependency sets, regenerate package-lock.json with `rm package-lock.json && npm install` to prevent corruption
 - **Email in tests**: `emailService.ts` skips SMTP when `NODE_ENV=test` — no mail server needed
-- **Test database location**: `__tests__/hooks.ts` loads a gitignored `.env.test.local` before `.env.test`, and a `DB_URI` already in the environment beats both (CI sets it as a job var). `scripts/test-db-setup.sh` resolves `DB_URI` the same way, so it checks and starts the Mongo the tests will actually use
+- **Test database location**: `__tests__/hooks.ts` resolves `DB_URI` as gitignored `.env.test.local` first (it *overrides* the environment — the app container carries the dev `DB_URI`, and an inherited value once pointed the suite's cleanup at the dev database), then the environment (CI sets it as a job var and has no local file), then the committed `.env.test`. The hooks then refuse to start unless the database name ends in `_test`. `scripts/test-db-setup.sh` resolves `DB_URI` the same way, so it checks and starts the Mongo the tests will actually use
 
 **Frontend**: Vitest with jsdom (no real browser). Runner: `@angular/build:unit-test`. Coverage via `@vitest/coverage-v8`.
 
