@@ -1,6 +1,7 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { CameraService, Overlay, Vector2 } from '../../lib/index';
+import { CameraService, OniItem, Overlay, Vector2 } from '../../lib/index';
+import { loadGameDatabase } from '../helpers/roomFixtures';
 
 // Pure camera math — no PIXI needed: the constructor only stores the
 // container reference, and pinchZoom/updateZoom/changeZoom never touch it.
@@ -130,6 +131,26 @@ describe('CameraService.setOverlayForItem', function () {
     expect(camera.overlay).to.equal(Overlay.Automation);
   });
 
+  // The case this fix actually changes. A Building-layer device is opaque in
+  // Base as well as in its own viewMode overlay, so picking one from the build
+  // menu (or copying it) while in Base used to yank the view into Automation /
+  // Power / Gas / ... for no benefit — the item was already fully visible.
+  // 204 buildings in the database are shaped this way; the other cases in this
+  // block pass against the old unconditional `this.overlay = item.overlay` too.
+  it('stays in Base when picking a device that is already opaque there', function () {
+    const camera = makeCamera();
+    camera.overlay = Overlay.Base;
+    camera.setOverlayForItem(automationDevice);
+    expect(camera.overlay).to.equal(Overlay.Base);
+  });
+
+  it('stays in the Room overlay for a device opaque in Base', function () {
+    const camera = makeCamera();
+    camera.overlay = Overlay.Room;
+    camera.setOverlayForItem(automationDevice);
+    expect(camera.overlay).to.equal(Overlay.Room);
+  });
+
   it('leaves the Automation overlay when copying a plain building it would grey out', function () {
     const camera = makeCamera();
     camera.overlay = Overlay.Automation;
@@ -149,5 +170,60 @@ describe('CameraService.setOverlayForItem', function () {
     camera.overlay = Overlay.Room;
     camera.setOverlayForItem(plainBuilding); // opaque in Base -> Room counts as Base
     expect(camera.overlay).to.equal(Overlay.Room);
+  });
+
+  // The cases above are only as good as the fakes. Pin each shape to a real
+  // building from the shipped database, so a change to isOverlayPrimary (it
+  // already carries one objectLayer special case, for the U59 Heavi-Watt joint
+  // plates) can't silently leave this block testing a model of the code rather
+  // than the code.
+  it('models the real database: the three shapes exist and behave as faked', function () {
+    loadGameDatabase();
+    const shapeOf = (item: OniItem) => ({
+      primaryInBase: item.isOverlayPrimary(Overlay.Base),
+      primaryInOwn: item.isOverlayPrimary(item.overlay),
+      secondaryInOwn: item.isOverlaySecondary(item.overlay),
+    });
+
+    // Building-layer device (LogicSwitch, Battery, GasPump, ...): opaque in Base
+    // and in its own overlay — matches `automationDevice`.
+    for (const id of ['LogicSwitch', 'Battery', 'GasPump']) {
+      const item = OniItem.getOniItem(id);
+      expect(item.overlay, id).to.not.equal(Overlay.Base);
+      expect(shapeOf(item), id).to.deep.equal({
+        primaryInBase: true,
+        primaryInOwn: false,
+        secondaryInOwn: true,
+      });
+    }
+
+    // Wire / logic gate: primary in its own overlay only — matches
+    // `automationWire`, and stays the case the fix must not regress.
+    for (const id of ['LogicWire', 'LogicGateOR']) {
+      const item = OniItem.getOniItem(id);
+      expect(shapeOf(item), id).to.deep.equal({
+        primaryInBase: false,
+        primaryInOwn: true,
+        secondaryInOwn: true,
+      });
+      expect(item.isOverlaySecondary(Overlay.Base), id).to.equal(false);
+    }
+
+    // Plain building — matches `plainBuilding`.
+    const tile = OniItem.getOniItem('Tile');
+    expect(tile.overlay).to.equal(Overlay.Base);
+    expect(shapeOf(tile)).to.deep.equal({
+      primaryInBase: true,
+      primaryInOwn: true,
+      secondaryInOwn: true,
+    });
+
+    // The startup bootstrap depends on this: build-tool.component loads a Tile
+    // while the camera is still at Overlay.None, and that call is what leaves
+    // None. If the gate ever answered "stay", the editor would boot with no
+    // overlay at all.
+    expect(tile.isOverlayPrimary(Overlay.None) || tile.isOverlaySecondary(Overlay.None)).to.equal(
+      false
+    );
   });
 });
