@@ -307,10 +307,19 @@ the bare float a meaning; conversion is affine both ways
   and displayed in °C (the site is Celsius throughout). Liquid pressure, lux, germs and rads
   are 1:1.
 - **Coverage**: Atmo/Hydro/Thermo Sensor, the three pipe/rail thermo sensors, Germ Sensor +
-  three pipe/rail germ sensors, Light Sensor, Radiation Sensor. Deliberately **not**
-  `LogicWattageSensor` or `LogicHEPSensor`: neither is a confirmed carrier, and radbolt
-  thresholds live on `HighEnergyParticleSpawner`/`HEPBattery.particleThreshold` — different
-  keys entirely. Also **not** `PressureSwitchGas`/`PressureSwitchLiquid`/
+  three pipe/rail germ sensors, Light Sensor, Radiation Sensor, **Wattage Sensor** (`W`,
+  0–75000 — `RangeMax` is `1.5f * Wire.GetMaxWattageAsFloat(Max50000)`) and **Radbolt
+  Sensor** (`radbolts`, 0–500, Spaced Out). The last two were previously excluded as
+  "unconfirmed carriers", which was wrong on both counts: the decompiled game declares
+  `LogicWattageSensor : Switch, ISaveLoadable, IThresholdSwitch` and likewise for
+  `LogicHEPSensor`, each backing `Threshold` with a real serialized field
+  (`thresholdWattage` / `thresholdPayload`) rather than aliasing another key the way the
+  critter sensor does. The radbolt half of that claim confused the Radbolt *Sensor* with the
+  Radbolt Generator and Battery — `HighEnergyParticleSpawner.particleThreshold` and
+  `HEPBattery.particleThreshold` are different keys on different buildings, and stay
+  unhandled. Neither new entry converts (`displayScale: 1`); they exist for the label, the
+  suffix, the soft bounds and the `Switch` suppression. Also **not**
+  `PressureSwitchGas`/`PressureSwitchLiquid`/
   `TemperatureControlledSwitch` ("Atmo/Hydro/Thermo Switch") — an earlier version of this
   table included them on the strength of the 2024 export's full name/description/
   buildMenuItems data (filed under Power/Electrical), but neither ONI wiki has a page for any
