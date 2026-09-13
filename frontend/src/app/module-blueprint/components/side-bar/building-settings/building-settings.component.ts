@@ -5,6 +5,7 @@ import {
   creatableSettingsKeysFor,
   formatBuildingDataEntry,
   primarySettingsKey,
+  redundantEchoKeysFor,
   resolveSettingDescriptors,
   SettingFieldDescriptor,
   SettingFieldType,
@@ -12,8 +13,6 @@ import {
   toDisplayValue,
   toStoredValue,
 } from "../../../../../../../lib/index";
-
-const THRESHOLD_KEY = "IThresholdSwitch";
 
 interface EditableSettingRow {
   key: string;
@@ -136,6 +135,13 @@ export class BuildingSettingsComponent {
     return pk != null && !this.hasPrimary ? pk.label : null;
   }
 
+  // The quantity the canonical settings Key pins, whether or not it is
+  // currently stored. `primaryUnsetLabel` answers the same question only for
+  // the absent case; the Clear button needs it for the present one.
+  get primaryLabel(): string | null {
+    return this.primaryKey?.label ?? null;
+  }
+
   get canClearPrimary(): boolean {
     return this.primaryKey != null && this.hasPrimary;
   }
@@ -151,12 +157,14 @@ export class BuildingSettingsComponent {
     const pk = this.primaryKey;
     if (pk == null) return;
     let removed = this.blueprintItem.removeBuildingSetting(pk.key);
-    // The Critter Sensor's canonical Key is its own, but a copied sensor also
-    // carries a redundant IThresholdSwitch echo of the threshold — drop that
-    // too, or the threshold stays pinned through the echo.
-    if (pk.key != THRESHOLD_KEY)
-      removed =
-        this.blueprintItem.removeBuildingSetting(THRESHOLD_KEY) || removed;
+    // A copied Critter Sensor also carries a redundant IThresholdSwitch echo of
+    // the threshold — drop that too, or the value stays pinned through the echo.
+    // Which Keys those are is the catalogue's to know: inferring it here (any
+    // primary Key that isn't IThresholdSwitch must have an IThresholdSwitch
+    // echo) would discard a genuine, independent entry on the first prefab that
+    // carries both.
+    for (const echoKey of redundantEchoKeysFor(this.blueprintItem.id, pk.key))
+      removed = this.blueprintItem.removeBuildingSetting(echoKey) || removed;
     if (removed) this.commit();
   }
 
