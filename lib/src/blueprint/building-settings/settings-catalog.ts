@@ -351,8 +351,33 @@ export function redundantEchoField(
 // an echo behind keeps the value pinned through the echo. Empty for a Key with
 // no echoes, including `IThresholdSwitch` on a real threshold sensor, where it
 // is the canonical Key rather than a copy of one.
+//
+// A mirror target is only droppable when it is *nothing but* mirrors, so the
+// answer is not "every Key named in the table" — it is every Key whose whole
+// catalogued field set is accounted for there. Reading "receives a mirrored
+// field" as "is a pure copy" is the same over-inference the panel used to make
+// from `!= IThresholdSwitch`: the first partial mirror (one field echoed into a
+// Key that also carries its own) would take the Key's independent fields down
+// with it on Clear. Deriving the check from SETTINGS_CATALOG rather than
+// asserting it in a comment means a partial mirror simply isn't returned, and
+// an uncatalogued target — whose field set we cannot see, so cannot vouch for —
+// is likewise left alone.
 export function redundantEchoKeysFor(prefabId: string, key: string): string[] {
   const fields = REDUNDANT_ECHOES[prefabId]?.[key];
   if (fields == null) return [];
-  return [...new Set(Object.values(fields).map(echo => echo.key))];
+
+  const mirrored = new Map<string, Set<string>>();
+  for (const echo of Object.values(fields)) {
+    let seen = mirrored.get(echo.key);
+    if (seen == null) mirrored.set(echo.key, (seen = new Set<string>()));
+    seen.add(echo.field);
+  }
+
+  return [...mirrored]
+    .filter(([echoKey, echoedFields]) => {
+      const descriptors = SETTINGS_CATALOG[echoKey];
+      if (descriptors == null || descriptors.length == 0) return false;
+      return descriptors.every(descriptor => echoedFields.has(descriptor.field));
+    })
+    .map(([echoKey]) => echoKey);
 }

@@ -374,7 +374,12 @@ the bare float a meaning; conversion is affine both ways
   read one `REDUNDANT_ECHOES` table — the panel asks `redundantEchoKeysFor(prefabId, key)`
   which Keys to drop rather than inferring them from "the primary key isn't
   `IThresholdSwitch`", which would discard a genuine independent entry on the first prefab
-  that carries both.
+  that carries both. `redundantEchoKeysFor` returns a Key only when *every* field
+  `SETTINGS_CATALOG` lists for it is mirrored from the owning Key: a Key is dropped whole, so
+  "receives a mirrored field" is not enough to earn that — a partial mirror (one field echoed
+  into a Key that also carries its own) would take the independent fields with it. The check
+  is derived, not asserted in a comment, so a partial mirror added later is simply not
+  returned; an uncatalogued target, whose field set can't be seen, is likewise left alone.
 - **Blurring an untouched input must not write.** The displayed value is rounded, so
   re-deriving a stored value from it would nudge a Thermo Sensor stored at 293.153 K to
   293.15 — a silent data change that also detaches `rawSource` for nothing.
