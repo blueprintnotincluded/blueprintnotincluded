@@ -3,7 +3,10 @@
 // seed step. Only ever written by ensureDevUsers(), which db.ts calls at
 // boot in local mode — never reachable in production (see auth-mode.ts).
 //
-// seed-dev-blueprints.ts imports DEV_USERS too, so its social-graph fixture
+// Two rosters: BOOT_DEV_USERS is what ensureDevUsers() provisions at boot and
+// what the login picker offers — one admin and one ordinary user is all a dev
+// login needs. DEV_USERS is the full six-account social-graph fixture that
+// seed-dev-blueprints.ts creates on demand; it imports DEV_USERS so the fixture
 // still points at these same ids/usernames.
 import mongoose from 'mongoose';
 import { UserModel } from './models/user';
@@ -62,11 +65,16 @@ export const DEV_USERS: DevUserSpec[] = [
   },
 ];
 
+// The accounts that exist at boot. `dev_you` is the durable admin identity;
+// `dev_creator_alpha` is the ordinary user the plan's manual test logs in as.
+const BOOT_DEV_USERNAMES = ['dev_you', 'dev_creator_alpha'];
+export const BOOT_DEV_USERS: DevUserSpec[] = DEV_USERS.filter(u => BOOT_DEV_USERNAMES.includes(u.username));
+
 // Server startup does not wait on ensureDevUsers (it runs fire-and-forget
-// from db.ts, since PBKDF2-hashing six passwords takes real wall-clock time —
-// see the comment below), so there is a real window right after boot where
-// the server is already accepting requests but a dev user doesn't exist yet.
-// login() checks this instead of returning a misleading invalid_credentials.
+// from db.ts), so there is a short window right after boot — a couple of
+// hundred milliseconds of PBKDF2 — where the server is already accepting
+// requests but a dev user doesn't exist yet. login() checks this instead of
+// returning a misleading invalid_credentials.
 let provisioningInFlight = false;
 
 export function isDevUserProvisioningInFlight(): boolean {
@@ -85,7 +93,7 @@ export async function ensureDevUsers(): Promise<void> {
 }
 
 async function ensureDevUsersUnguarded(): Promise<void> {
-  for (const spec of DEV_USERS) {
+  for (const spec of BOOT_DEV_USERS) {
     const setFields: Record<string, unknown> = {
       username: spec.username,
       email: spec.email,
@@ -104,12 +112,10 @@ async function ensureDevUsersUnguarded(): Promise<void> {
       new: true,
       setDefaultsOnInsert: true,
     });
-    // PBKDF2 costs real wall-clock time by design (~seconds/user on this
-    // hardware) — that cost is identical whether hashing to store or hashing
-    // to verify, so there is no cheaper way to make this idempotent. Runs
-    // once at boot (fire-and-forget from db.ts), never blocking the server.
+    // Re-hashing on every boot keeps this idempotent regardless of DB state;
+    // verifying would cost the same PBKDF2 call, so there is nothing cheaper.
     user!.setPassword(DEV_PASSWORD);
     await user!.save();
   }
-  console.log(`[auth] dev users ensured (${DEV_USERS.length})`);
+  console.log(`[auth] dev users ensured (${BOOT_DEV_USERS.length})`);
 }

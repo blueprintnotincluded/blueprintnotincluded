@@ -169,8 +169,8 @@ Copy `.env.sample` to `.env` and configure:
 
 - `DB_URI` - MongoDB connection string
 - `JWT_SECRET` - Secret key for JWT tokens
-- `AUTH_MODE` - `workos` (default) or `local`. Local mode seeds a fixed roster of dev users at
-  boot and lets `/api/auth/login` authenticate them directly with no WorkOS keys — the
+- `AUTH_MODE` - `workos` (default) or `local`. Local mode seeds two dev users (`dev_you` admin,
+  `dev_creator_alpha`) at boot and lets `/api/auth/login` authenticate them directly with no WorkOS keys — the
   devcontainer sets this on the container itself (`.devcontainer/docker-compose.yml`). Refused
   outright when `ENV_NAME=production`. Details: `specs/local-auth-mode-plan.md`.
 - `ENV_NAME` - Environment identifier (`production` enables Mailjet; otherwise nodemailer/SMTP)

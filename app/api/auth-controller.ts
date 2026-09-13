@@ -4,7 +4,7 @@ import { WorkOSService } from './services/workos-service';
 import { apiError } from './utils/apiError';
 import { AvatarService } from './services/avatar-service';
 import { authMode } from './auth-mode';
-import { DEV_USERS, DEV_PASSWORD, isDevUserProvisioningInFlight } from './dev-users';
+import { BOOT_DEV_USERS, DEV_PASSWORD, isDevUserProvisioningInFlight } from './dev-users';
 
 /**
  * Find a unique username by appending incrementing counters.
@@ -123,7 +123,7 @@ export class AuthController {
     if (currentMode === 'local') {
       res.json({
         mode: currentMode,
-        devUsers: DEV_USERS.map(u => ({ username: u.username, email: u.email, role: u.localRole ?? null })),
+        devUsers: BOOT_DEV_USERS.map(u => ({ username: u.username, email: u.email, role: u.localRole ?? null })),
         devPassword: DEV_PASSWORD,
       });
       return;
@@ -151,11 +151,11 @@ export class AuthController {
     }
 
     if (authMode() === 'local') {
-      // Dev users are seeded fire-and-forget right after boot (~20s of real
-      // PBKDF2 hashing — see dev-users.ts) rather than blocking the server
-      // from listening. A login attempt that lands in that window would
-      // otherwise see a misleading invalid_credentials for an account that
-      // simply doesn't exist yet.
+      // Dev users are seeded fire-and-forget right after boot (see
+      // dev-users.ts) rather than blocking the server from listening. A
+      // login attempt that lands in that short window would otherwise see a
+      // misleading invalid_credentials for an account that simply doesn't
+      // exist yet.
       if (isDevUserProvisioningInFlight()) {
         res.status(503).json({ error: 'local_auth_provisioning' });
         return;

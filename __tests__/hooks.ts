@@ -12,6 +12,11 @@ import mongoose from 'mongoose';
 dotenv.config({ path: path.resolve(__dirname, '../.env.test.local') });
 dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
 process.env.NODE_ENV = 'test';
+// The suite's baseline is the default (workos) auth mode; specs that need
+// local mode set AUTH_MODE themselves and restore it. The devcontainer sets
+// AUTH_MODE=local on the container, so an inherited value has to be cleared
+// here or every WorkOS-mode spec silently runs in local mode and 501s.
+delete process.env.AUTH_MODE;
 
 // Importing the app here (before any test file) starts the mongoose connection
 // as early as possible and registers db.ts's `connected` listener, which is
