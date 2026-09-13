@@ -1,15 +1,14 @@
 #!/bin/bash
 # Make sure the MongoDB the tests will use is reachable, starting it when it
-# is not. The tests read DB_URI from the environment, then .env.test.local,
-# then .env.test (see __tests__/hooks.ts) — resolve it the same way here so
-# this script checks the server the tests will actually connect to.
+# is not. The tests read DB_URI from .env.test.local first, then the
+# environment, then .env.test (see __tests__/hooks.ts) — resolve it the same
+# way here so this script checks the server the tests will actually connect to.
 set -e
 
-uri="${DB_URI:-}"
-for f in .env.test.local .env.test; do
-  [ -n "$uri" ] && break
-  [ -f "$f" ] && uri=$(sed -n 's/^DB_URI=//p' "$f" | head -1 | tr -d '"'"'")
-done
+read_env_file() { [ -f "$1" ] && sed -n 's/^DB_URI=//p' "$1" | head -1 | tr -d '"'"'"; }
+uri=$(read_env_file .env.test.local || true)
+[ -n "$uri" ] || uri="${DB_URI:-}"
+[ -n "$uri" ] || uri=$(read_env_file .env.test || true)
 # mongodb://[user:pass@]host[:port]/db → host and port
 hostport=${uri#*://}; hostport=${hostport##*@}; hostport=${hostport%%/*}
 host=${hostport%%:*}; port=${hostport##*:}
