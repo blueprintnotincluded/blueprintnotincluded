@@ -10,6 +10,7 @@ import {
   isKnownSettingsKey,
   OniItem,
   primarySettingsKey,
+  redundantEchoField,
   redundantEchoKeysFor,
   resolveSettingDescriptors,
   SETTINGS_CATALOG,
@@ -117,6 +118,28 @@ describe('building-settings catalogue', function () {
     expect(
       redundantEchoKeysFor('LogicCritterCountSensor', 'IThresholdSwitch')
     ).to.deep.equal([]);
+  });
+
+  // The panel drops a named Key *whole*, so the promise is "this Key is nothing
+  // but mirrors of the owning one" — not "this Key receives a mirror". Should a
+  // future prefab echo one field into a Key that also carries its own, that Key
+  // must fall out of the answer rather than take its independent fields down
+  // with it on Clear. Checked over the real table so a partial mirror added
+  // later fails here.
+  it('only names an echo Key whose every catalogued field mirrors the owning Key', () => {
+    for (const [prefabId, ownKey] of [
+      ['LogicCritterCountSensor', 'LogicCritterCountSensor'],
+    ] as const) {
+      for (const echoKey of redundantEchoKeysFor(prefabId, ownKey)) {
+        const mirrored = SETTINGS_CATALOG[ownKey]
+          .map(descriptor => redundantEchoField(prefabId, ownKey, descriptor.field))
+          .filter(echo => echo != null && echo.key == echoKey)
+          .map(echo => echo!.field);
+        expect(SETTINGS_CATALOG[echoKey].map(descriptor => descriptor.field)).to.have.members(
+          mirrored
+        );
+      }
+    }
   });
 
   it('reports the primary settings key per prefab', () => {
