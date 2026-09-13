@@ -126,11 +126,13 @@ export class CameraService {
   }
 
   setOverlayForItem(item: OniItem) {
-    // Copy-building ("B") and selection call this to reveal the picked item. If
-    // the overlay we're already in renders it opaque — its own viewMode overlay,
-    // or Base for a plain building — stay put; only switch when the current
-    // overlay would grey it out. Without this, copying/selecting a plain tile
-    // while in the Automation overlay flips the whole view to Base.
+    // The build menu, copy-building ("B") and selection all call this to reveal
+    // the picked item. Switch only when the overlay we're in would grey it out;
+    // if it already renders opaque here, stay put.
+    // The case this covers: a Building-layer device is opaque in Base as well as
+    // in its own viewMode overlay, so picking a Gas Pump / Battery / LogicSwitch
+    // from the build menu while in Base pulled the view into Gas / Power /
+    // Automation. 204 buildings in the shipped database are shaped that way.
     // Mirror BlueprintItem.cameraChanged's Room->Base collapse.
     const current = this.overlay_ === Overlay.Room ? Overlay.Base : this.overlay_;
     if (item.isOverlayPrimary(current) || item.isOverlaySecondary(current)) return;
