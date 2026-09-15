@@ -243,11 +243,31 @@ export class BuildTool implements ITool {
 
   // Tool interface :
   switchFrom() {
-    this.templateItemToBuild.destroy();
+    // Hide the brush rather than destroying it. draw() only runs while the
+    // build tool is the current tool, so an inactive brush costs nothing to
+    // keep, and keeping it is what lets ensureBuildItem hand the same
+    // configured item back on re-entry -- the element/temperature you dialled
+    // in survives a trip through the Select tool, which is what aa0bb8d1 was
+    // after. Destroying it here left a corpse in this field (a destroyed
+    // BlueprintItem keeps containerCreated = true and a destroyed PIXI
+    // container), and ensureBuildItem's id check then kept the corpse and drew
+    // it, throwing inside the PIXI ticker and killing every later frame.
+    // changeItem still destroys the outgoing brush on a real item change.
+    //
+    // Hiding has to be explicit: setInvisible() moves the item, but that move
+    // only reaches the PIXI container on the next drawPixi, and draw() stops
+    // being called the moment the tool changes -- so the last drawn frame would
+    // stay parked on the canvas as a ghost brush.
+    this.templateItemToBuild?.setInvisible();
+    this.templateItemToBuild?.setDrawnVisible(false);
   }
 
   switchTo() {
-    // required by type
+    // Undo switchFrom's hiding. A brush rebuilt by ensureBuildItem draws into a
+    // fresh container and does not need this, but one that survived the round
+    // trip is still hidden. It stays parked off-screen until the first hover
+    // moves it, exactly as a rebuilt brush does.
+    this.templateItemToBuild?.setDrawnVisible(true);
   }
 
   mouseOut() {
@@ -447,6 +467,14 @@ export class BuildTool implements ITool {
     //if (this.canBuild()) this.templateItemToBuild.drawPart.tint = DrawHelpers.whiteColor;
     //else this.templateItemToBuild.drawPart.tint = 0xD40000;
 
+    // Backstop. switchFrom() no longer destroys the brush, but changeItem()
+    // still destroys the outgoing one, and a destroyed BlueprintItem reports
+    // containerCreated = true while its PIXI container's transform is null --
+    // drawing one throws on `container.x =`. That throw happens inside the PIXI
+    // ticker, where it kills every later frame too and the editor stops
+    // repainting entirely. A skipped frame is much the cheaper failure.
+    if (this.templateItemToBuild == null || this.templateItemToBuild.destroyed)
+      return;
     this.templateItemToBuild.drawPixi(camera, drawPixi);
     // TODO correct red and alpha when building outside of overlay
   }

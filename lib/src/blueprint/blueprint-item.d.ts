@@ -72,6 +72,7 @@ export declare class BlueprintItem {
     private updateTileableParts;
     updateTileables(blueprint: Blueprint): void;
     setInvisible(): void;
+    setDrawnVisible(visible: boolean): void;
     isOpaque: boolean;
     visualizationTint: number;
     cameraChanged(camera: CameraService): void;
