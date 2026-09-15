@@ -447,6 +447,14 @@ export class BuildTool implements ITool {
     //if (this.canBuild()) this.templateItemToBuild.drawPart.tint = DrawHelpers.whiteColor;
     //else this.templateItemToBuild.drawPart.tint = 0xD40000;
 
+    // switchFrom() destroys the brush but leaves it in the field, and a
+    // destroyed BlueprintItem still reports containerCreated = true while its
+    // PIXI container's transform is null -- drawing one throws on `container.x =`.
+    // This runs inside the PIXI ticker, where the first throw kills every later
+    // frame too, so the editor stops repainting entirely. A skipped frame is the
+    // cheap failure; ensureBuildItem rebuilds the brush on re-entry.
+    if (this.templateItemToBuild == null || this.templateItemToBuild.destroyed)
+      return;
     this.templateItemToBuild.drawPixi(camera, drawPixi);
     // TODO correct red and alpha when building outside of overlay
   }

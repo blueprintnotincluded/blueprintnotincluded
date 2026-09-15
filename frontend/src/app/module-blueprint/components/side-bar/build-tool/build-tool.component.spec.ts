@@ -291,6 +291,29 @@ describe("ComponentSideBuildToolComponent", () => {
       spy.mockRestore();
     });
 
+    // The regression this guards: BuildTool.switchFrom() destroys the brush but
+    // leaves it in the field, so on re-entry the id still matched and the
+    // destroyed item was kept -- then drawn, killing the PIXI ticker. Repro was
+    // Automation overlay -> element brush -> Select tool -> B.
+    it("rebuilds when the matching template item has been destroyed", () => {
+      const instance = { id: "Element" } as any;
+      const spy = vi
+        .spyOn(BlueprintHelpers, "createInstance")
+        .mockReturnValue(instance);
+      buildTool.templateItemToBuild.oniItem = {
+        id: "Element",
+        isElement: true,
+      };
+      buildTool.templateItemToBuild.destroyed = true;
+      component.currentItem = { id: "Element" } as any;
+
+      component.toolChanged(ToolType.build);
+
+      expect(spy).toHaveBeenCalledWith("Element");
+      expect(buildTool.changeItem).toHaveBeenCalledWith(instance);
+      spy.mockRestore();
+    });
+
     it("rebuilds when there is no template item yet", () => {
       const instance = { id: "Tile" } as any;
       const spy = vi
