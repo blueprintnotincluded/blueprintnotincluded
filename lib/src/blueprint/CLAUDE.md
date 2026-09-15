@@ -397,7 +397,36 @@ the bare float a meaning; conversion is affine both ways
   600s cycle (the catalogue treats them as a 0–1 fraction shown as "% of cycle"), and that
   `IActivationRangeTarget.ActivateValue` is normalised 0–1 on batteries (the catalogue shows
   it raw). Both need an in-game check, not a guess between secondhand sources.
-- **Element sensors are a separate feature** — they have no threshold; their setting is a
-  `Filterable`/`SelectedTag` element *name* string (not the integer hash `selected_elements`
-  uses). `cell-element-picker` already filters by Gas/Liquid/Solid and emits a
-  `BuildableElement`, so it is the natural control when that ships.
+### Element sensors and filters (Filterable)
+
+Seven prefabs have no threshold at all. Their setting is the mod's `Filterable` key, whose
+single field `SelectedTag` is an element **id string** (`"Oxygen"`) — not the integer hash
+`selected_elements` uses, which is the mistake to avoid when reading a stored blueprint.
+
+`FILTERABLE_BUILDINGS` (settings-catalog.ts) maps each prefab to a fixed phase:
+
+| prefab | phase | |
+|---|---|---|
+| `LogicElementSensorGas`, `GasConduitElementSensor` | Gas | sensors detect |
+| `LogicElementSensorLiquid`, `LiquidConduitElementSensor` | Liquid | |
+| `SolidConduitElementSensor` | Solid | |
+| `GasFilter`, `LiquidFilter` | Gas / Liquid | filters divert |
+
+The phase is **not a user choice** — it comes from the game's own
+`Filterable.filterElementState` and is fixed per prefab. `resolveSettingDescriptors` copies
+it onto the `SelectedTag` descriptor as `elementForceTag`, which the panel hands to
+`app-cell-element-picker`'s `forceTag` (reused inside a `p-popover`, the same pattern as
+`pipe-content`). `type: 'element'` is a catalogue field type; `format-setting.ts` keeps the
+raw id and lets the frontend resolve a display name via `BuildableElement.getElementById`,
+a non-throwing lookup.
+
+Two things worth knowing before touching this:
+
+- **`NONE_TAG` is `"Void"`, and that is the game's own "nothing selected" default** — so
+  creating the key changes nothing until the user picks an element. The panel renders it as
+  "None" rather than the raw `Void`, which is otherwise a real element name and reads as a
+  deliberate choice. **Clear** removes the whole key, which is a different state again:
+  the blueprint says nothing about the setting.
+- **The 5 sensors extend `Switch` and the 2 filters do not.** The sensors' stowaway
+  `switchedOn` is suppressed by `suppressesStowawaySwitch` alongside the threshold sensors
+  and the critter sensor; for the filters that check is a harmless no-op.
