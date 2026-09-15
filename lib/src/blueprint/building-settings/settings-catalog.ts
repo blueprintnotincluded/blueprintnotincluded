@@ -12,7 +12,7 @@ import { THRESHOLD_SENSORS, thresholdSensorSpec } from './threshold-sensors';
 // durations. 'bit': a 0-3 ribbon bit index. '%': a plain percentage, reserved.
 export type SettingUnit = 's' | 'cycleFraction' | 'bit' | '%';
 
-export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum';
+export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum' | 'element';
 
 export interface SettingFieldDescriptor {
   // Property name inside the component's `Value` object.
@@ -49,6 +49,11 @@ export interface SettingFieldDescriptor {
   // an on/off switch — rendered as a pair of labelled options instead of a
   // checkbox, and formatted with these words instead of On/Off.
   booleanLabels?: { whenTrue: string; whenFalse: string };
+  // type: 'element' only. The `forceTag` passed to app-cell-element-picker
+  // (`Gas`/`Liquid`/`Solid`) — filled in per prefab by resolveSettingDescriptors
+  // from FILTERABLE_BUILDINGS, since one `Filterable` catalogue entry serves
+  // buildings of every phase.
+  elementForceTag?: string;
 }
 
 // The above/below choice every threshold sensor carries. It is a direction,
@@ -62,6 +67,7 @@ const ABOVE_BELOW: Pick<SettingFieldDescriptor, 'labelKey' | 'type' | 'booleanLa
 };
 
 const THRESHOLD_KEY = 'IThresholdSwitch';
+const FILTERABLE_KEY = 'Filterable';
 
 // The Critter Sensor. Handled like a threshold sensor (its own Key is the
 // single canonical settings key; the stowaway Switch and a redundant
@@ -69,6 +75,41 @@ const THRESHOLD_KEY = 'IThresholdSwitch';
 // because it needs no unit conversion and its IThresholdSwitch is suppressed
 // rather than rewritten. See threshold-sensors.ts.
 export const CRITTER_COUNT_SENSOR_ID = 'LogicCritterCountSensor';
+
+// Buildings whose one editable setting is the mod's `Filterable` key — a single
+// element chosen from a picker. The 5 element sensors detect the chosen element;
+// the 2 filters divert it. Value maps 1:1 to the picker's `forceTag`
+// (Gas/Liquid/Solid), which is fixed per prefab in the game's own config
+// (Filterable.filterElementState), not a user choice. The stored SelectedTag is
+// an element id string ("Oxygen"); NONE_TAG ("Void") is "nothing selected".
+export const NONE_TAG = 'Void';
+export const FILTERABLE_BUILDINGS: Record<string, string> = {
+  LogicElementSensorGas: 'Gas',
+  LogicElementSensorLiquid: 'Liquid',
+  GasConduitElementSensor: 'Gas',
+  LiquidConduitElementSensor: 'Liquid',
+  SolidConduitElementSensor: 'Solid',
+  GasFilter: 'Gas',
+  LiquidFilter: 'Liquid',
+};
+
+export function filterableBuildingForceTag(prefabId: string): string | undefined {
+  return Object.prototype.hasOwnProperty.call(FILTERABLE_BUILDINGS, prefabId)
+    ? FILTERABLE_BUILDINGS[prefabId]
+    : undefined;
+}
+
+// Sensors extend `Switch`, so a copied one carries a stowaway `switchedOn`
+// holding its sampled output — never a setting. True for every threshold
+// sensor, the critter sensor, and the element sensors (the 2 filters have no
+// Switch, so this is a harmless no-op for them).
+function suppressesStowawaySwitch(prefabId: string): boolean {
+  return (
+    thresholdSensorSpec(prefabId) != null ||
+    prefabId == CRITTER_COUNT_SENSOR_ID ||
+    filterableBuildingForceTag(prefabId) != null
+  );
+}
 
 // Keyed by the component `Key` (nameof the ONI component class — the mod's
 // own registry, API_Methods.cs RegisterVanillaBuildings()).
@@ -122,6 +163,10 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
     { field: 'countCritters', labelKey: 'Count critters', type: 'bool' },
     { field: 'countEggs', labelKey: 'Count eggs', type: 'bool' },
   ],
+
+  // Element sensors and Gas/Liquid Filter. One element id string; the picker's
+  // phase filter is set per prefab by resolveSettingDescriptors (elementForceTag).
+  Filterable: [{ field: 'SelectedTag', labelKey: 'Element', type: 'element' }],
 
   LogicAlarm: [
     { field: 'notificationName', labelKey: 'Name', type: 'string', max: 200 },
@@ -178,12 +223,14 @@ export function toStoredValue(descriptor: SettingFieldDescriptor, display: numbe
 //  - `IThresholdSwitch` on a threshold sensor: the bare unitless `Threshold`
 //    float becomes the quantity that building actually measures, with the
 //    conversion and soft bounds from THRESHOLD_SENSORS.
-//  - `Switch` on a threshold sensor: nothing. Sensors extend Switch, so the
-//    mod's Switch handler matches them and a copied sensor carries a stowaway
-//    `switchedOn` holding its sampled *output* at copy time, which the game
-//    overwrites within ~1.8s. It round-trips, but it is not a setting and must
-//    not be offered as one. The manual LogicSwitch is not a threshold sensor,
-//    so it keeps its editable row.
+//  - `Switch` on any sensor (threshold, critter, element): nothing. Sensors
+//    extend Switch, so the mod's Switch handler matches them and a copied
+//    sensor carries a stowaway `switchedOn` holding its sampled *output* at
+//    copy time, which the game overwrites within ~1.8s. It round-trips, but it
+//    is not a setting and must not be offered as one. The manual LogicSwitch is
+//    not a sensor, so it keeps its editable row. (suppressesStowawaySwitch)
+//  - `Filterable` on an element sensor or Gas/Liquid Filter: the picker's phase
+//    filter (Gas/Liquid/Solid) is filled in from the prefab.
 export function resolveSettingDescriptors(
   prefabId: string,
   key: string
@@ -191,18 +238,28 @@ export function resolveSettingDescriptors(
   const base = SETTINGS_CATALOG[key];
   if (base == null) return [];
 
-  // Critter Sensor: its own Key is authoritative. `Switch` is the sampled
-  // output (stowaway); `IThresholdSwitch` is a pure echo — in the game source
-  // LogicCritterCountSensor.Threshold is `get => countThreshold`. Both
-  // round-trip but neither is a setting to show.
+  if (key == 'Switch' && suppressesStowawaySwitch(prefabId)) return [];
+
+  // Critter Sensor: its own Key is authoritative. `IThresholdSwitch` is a pure
+  // echo — in the game source LogicCritterCountSensor.Threshold is
+  // `get => countThreshold`. It round-trips but is not a setting to show.
   if (prefabId == CRITTER_COUNT_SENSOR_ID) {
-    return key == 'Switch' || key == THRESHOLD_KEY ? [] : base;
+    return key == THRESHOLD_KEY ? [] : base;
+  }
+
+  // Element sensors / Gas-Liquid Filter: fill the `Filterable` picker's phase
+  // filter from the prefab.
+  const forceTag = filterableBuildingForceTag(prefabId);
+  if (forceTag != null) {
+    if (key != FILTERABLE_KEY) return base;
+    return base.map(descriptor =>
+      descriptor.field == 'SelectedTag' ? { ...descriptor, elementForceTag: forceTag } : descriptor
+    );
   }
 
   const spec = thresholdSensorSpec(prefabId);
   if (spec == null) return base;
 
-  if (key == 'Switch') return [];
   if (key != THRESHOLD_KEY) return base;
 
   return base.map(descriptor => {
@@ -286,6 +343,15 @@ for (const [prefabId, spec] of Object.entries(THRESHOLD_SENSORS)) {
   };
 }
 
+for (const prefabId of Object.keys(FILTERABLE_BUILDINGS)) {
+  // Every element sensor / filter gets `Filterable` as a creatable key. The
+  // one field, SelectedTag, defaults to NONE_TAG ('Void') — the game's own
+  // default, so creating the key on an editor-placed building changes nothing
+  // until the user picks an element.
+  const forPrefab = (CREATABLE_SETTINGS[prefabId] ??= {});
+  forPrefab[FILTERABLE_KEY] = { SelectedTag: NONE_TAG };
+}
+
 // The Keys creatable from scratch on a specific building prefab id.
 export function creatableSettingsKeysFor(prefabId: string): string[] {
   const forPrefab = CREATABLE_SETTINGS[prefabId];
@@ -303,13 +369,15 @@ export function getCreatableSettingDefaults(
 // treats as pinned-vs-not: when it is absent the mod leaves the built building
 // on the game's own defaults, which is a real state distinct from any stored
 // value. Threshold sensors -> `IThresholdSwitch` (labelled by the measured
-// quantity); the Critter Sensor -> its own Key. Anything else -> null (every
-// present Key is just an editable row).
+// quantity); the Critter Sensor -> its own Key; element sensors / filters ->
+// `Filterable`. Anything else -> null (every present Key is just an editable row).
 export function primarySettingsKey(
   prefabId: string
 ): { key: string; label: string } | null {
   if (prefabId == CRITTER_COUNT_SENSOR_ID)
     return { key: CRITTER_COUNT_SENSOR_ID, label: 'Critter count' };
+  if (filterableBuildingForceTag(prefabId) != null)
+    return { key: FILTERABLE_KEY, label: 'Element' };
   const spec = thresholdSensorSpec(prefabId);
   return spec != null ? { key: THRESHOLD_KEY, label: spec.label } : null;
 }

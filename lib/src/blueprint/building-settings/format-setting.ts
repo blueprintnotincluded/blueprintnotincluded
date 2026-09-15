@@ -1,6 +1,7 @@
 import { BniBuildingData } from '../../io/bni/bni-building';
 import {
   isKnownSettingsKey,
+  NONE_TAG,
   resolveSettingDescriptors,
   SETTINGS_CATALOG,
   SettingFieldDescriptor,
@@ -44,6 +45,10 @@ function formatFieldValue(
       return raw ? 'On' : 'Off';
     case 'string':
       return raw == null || raw === '' ? '—' : String(raw);
+    case 'element':
+      // The raw element id ("Oxygen"). The frontend resolves the pretty
+      // display name; lib keeps no BuildableElement dependency here.
+      return raw == null || raw === '' || raw === NONE_TAG ? 'None' : String(raw);
     case 'enum':
       return descriptor.enumLabels?.[raw] ?? String(raw);
     case 'int':

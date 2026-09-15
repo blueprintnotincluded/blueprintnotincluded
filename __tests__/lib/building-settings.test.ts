@@ -4,6 +4,7 @@ import {
   Blueprint,
   BlueprintHelpers,
   BniBuildingData,
+  BuildableElement,
   creatableSettingsKeysFor,
   formatBuildingDataEntry,
   getCreatableSettingDefaults,
@@ -40,12 +41,13 @@ describe('building-settings catalogue', function () {
       'IActivationRangeTarget',
       'BuildingEnabledButton',
       'Automatable',
+      'Filterable',
     ];
     for (const key of expectedKeys) expect(isKnownSettingsKey(key)).to.equal(true);
   });
 
   it('does not know keys outside the curated set', () => {
-    for (const key of ['Door', 'Valve', 'PixelPack', 'AccessControl', 'Filterable'])
+    for (const key of ['Door', 'Valve', 'PixelPack', 'AccessControl', 'TreeFilterable'])
       expect(isKnownSettingsKey(key)).to.equal(false);
   });
 
@@ -148,6 +150,44 @@ describe('building-settings catalogue', function () {
       label: 'Temperature',
     });
     expect(primarySettingsKey('LogicSwitch')).to.equal(null);
+  });
+
+  describe('element sensors and filters (Filterable)', () => {
+    it('suppresses the stowaway Switch and fills the picker phase per prefab', () => {
+      expect(resolveSettingDescriptors('LogicElementSensorGas', 'Switch')).to.deep.equal([]);
+
+      const gas = resolveSettingDescriptors('LogicElementSensorGas', 'Filterable');
+      expect(gas).to.have.length(1);
+      expect(gas[0]).to.include({ field: 'SelectedTag', type: 'element', elementForceTag: 'Gas' });
+
+      expect(
+        resolveSettingDescriptors('SolidConduitElementSensor', 'Filterable')[0].elementForceTag
+      ).to.equal('Solid');
+      expect(
+        resolveSettingDescriptors('GasFilter', 'Filterable')[0].elementForceTag
+      ).to.equal('Gas');
+    });
+
+    it('leaves Filterable on a non-filterable building as the plain catalogue entry', () => {
+      expect(resolveSettingDescriptors('LogicSwitch', 'Filterable')).to.equal(
+        SETTINGS_CATALOG.Filterable
+      );
+      expect(resolveSettingDescriptors('LogicSwitch', 'Filterable')[0].elementForceTag).to.equal(
+        undefined
+      );
+    });
+
+    it('is the primary settings key, for both sensors and filters', () => {
+      for (const prefab of ['LogicElementSensorLiquid', 'LiquidFilter'])
+        expect(primarySettingsKey(prefab)).to.deep.equal({ key: 'Filterable', label: 'Element' });
+    });
+
+    it('is creatable from scratch with SelectedTag Void', () => {
+      expect(creatableSettingsKeysFor('GasConduitElementSensor')).to.deep.equal(['Filterable']);
+      expect(
+        getCreatableSettingDefaults('GasConduitElementSensor', 'Filterable')
+      ).to.deep.equal({ SelectedTag: 'Void' });
+    });
   });
 });
 
@@ -268,6 +308,20 @@ describe('formatBuildingDataEntry', function () {
       },
     })!;
     expect(rows20.find(r => r.field == 'countThreshold')!.text).to.equal('20');
+  });
+
+  it('formats a Filterable element as its raw id, and Void as None', () => {
+    const oxygen = formatBuildingDataEntry(
+      { Key: 'Filterable', Value: { SelectedTag: 'Oxygen' } },
+      'LogicElementSensorGas'
+    )!;
+    expect(oxygen).to.deep.equal([{ field: 'SelectedTag', label: 'Element', text: 'Oxygen' }]);
+
+    const none = formatBuildingDataEntry(
+      { Key: 'Filterable', Value: { SelectedTag: 'Void' } },
+      'LogicElementSensorGas'
+    )!;
+    expect(none[0].text).to.equal('None');
   });
 });
 
@@ -748,5 +802,40 @@ describe('critter sensor buildingData round-trip', function () {
       countCritters: true,
       countEggs: true,
     });
+  });
+});
+
+describe('element sensor buildingData round-trip', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  it('round-trips a picked element through Filterable.SelectedTag', () => {
+    const item = BlueprintHelpers.createInstance('LogicElementSensorGas')!;
+    item.setBuildingSetting('Filterable', 'SelectedTag', 'Oxygen');
+    expect(item.buildingData!.find(e => e.Key == 'Filterable')!.Value).to.deep.equal({
+      SelectedTag: 'Oxygen',
+    });
+
+    const blueprint = new Blueprint();
+    blueprint.blueprintItems = [item];
+    const building = blueprint.toBniBlueprint('x').buildings![0];
+    expect(building.buildingData).to.deep.include({
+      Key: 'Filterable',
+      Value: { SelectedTag: 'Oxygen' },
+    });
+  });
+
+  it('creates Filterable from scratch with SelectedTag Void', () => {
+    const item = BlueprintHelpers.createInstance('SolidConduitElementSensor')!;
+    expect(item.addBuildingSetting('Filterable')).to.equal(true);
+    expect(item.buildingData!.find(e => e.Key == 'Filterable')!.Value).to.deep.equal({
+      SelectedTag: 'Void',
+    });
+  });
+
+  it('BuildableElement.getElementById resolves a stored SelectedTag without throwing', () => {
+    expect(BuildableElement.getElementById('Oxygen')?.id).to.equal('Oxygen');
+    expect(BuildableElement.getElementById('NotAnElement')).to.equal(undefined);
   });
 });

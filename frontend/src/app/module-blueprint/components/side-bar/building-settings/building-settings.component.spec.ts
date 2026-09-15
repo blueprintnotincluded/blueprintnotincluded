@@ -5,6 +5,7 @@ import { CommonModule } from "@angular/common";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import {
   BlueprintItem,
+  BuildableElement,
   getCreatableSettingDefaults,
   redundantEchoField,
 } from "../../../../../../../lib/index";
@@ -663,6 +664,97 @@ describe("BuildingSettingsComponent", () => {
     ) as HTMLButtonElement;
     expect(clear.textContent.trim()).toBe("Clear Critter count");
     clear.click();
+    expect(component.blueprintItem.buildingData).toEqual([
+      { Key: "Switch", Value: { switchedOn: true } },
+    ]);
+  });
+
+  it("shows an element sensor one Element row, no stowaway Switch", () => {
+    setItem("LogicElementSensorGas", [
+      { Key: "Switch", Value: { switchedOn: true } },
+      { Key: "Filterable", Value: { SelectedTag: "Oxygen" } },
+    ]);
+
+    expect(component.rows.map((r: any) => `${r.key}.${r.field}`)).toEqual([
+      "Filterable.SelectedTag",
+    ]);
+    expect(component.rows[0].type).toBe("element");
+    expect(component.rows[0].elementForceTag).toBe("Gas");
+    expect(
+      fixture.nativeElement.querySelectorAll('input[type="checkbox"]').length,
+    ).toBe(0);
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-element"),
+    ).not.toBeNull();
+    expect(component.canClearPrimary).toBe(true);
+  });
+
+  it("commits a picked element as Filterable.SelectedTag; None maps to Void", () => {
+    setItem("LogicElementSensorGas", [
+      { Key: "Filterable", Value: { SelectedTag: "Oxygen" } },
+    ]);
+    component.elementPickerRow = component.rows[0];
+
+    component.onElementPicked({ id: "Hydrogen" } as any);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "Filterable",
+      "SelectedTag",
+      "Hydrogen",
+    );
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+
+    component.elementPickerRow = component.rows[0];
+    component.onElementPicked({ id: "None" } as any);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "Filterable",
+      "SelectedTag",
+      "Void",
+    );
+  });
+
+  it("labels a Void selection 'None' even though 'Void' is a real element id", () => {
+    // The game ships an element whose id is "Void"; elementLabel must treat the
+    // NONE_TAG sentinel as "nothing selected" before it resolves an element.
+    const spy = vi
+      .spyOn(BuildableElement, "getElementById")
+      .mockReturnValue({ name: '<link="VOID">Void</link>' } as any);
+    setItem("GasFilter", [
+      { Key: "Filterable", Value: { SelectedTag: "Void" } },
+    ]);
+
+    expect(component.rows[0].element).toBeUndefined();
+    expect(component.elementLabel(component.rows[0])).toBe("None");
+    spy.mockRestore();
+  });
+
+  it("sets and clears an element sensor's Filterable key", () => {
+    setItem("LogicElementSensorGas", [
+      { Key: "Switch", Value: { switchedOn: true } },
+    ]);
+    expect(component.primaryUnsetLabel).toBe("Element");
+
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-set",
+      ) as HTMLButtonElement
+    ).click();
+    expect(component.blueprintItem.addBuildingSetting).toHaveBeenCalledWith(
+      "Filterable",
+    );
+    expect(
+      component.blueprintItem.buildingData!.find((e) => e.Key == "Filterable")!
+        .Value,
+    ).toEqual({ SelectedTag: "Void" });
+
+    setItem("LogicElementSensorGas", [
+      { Key: "Switch", Value: { switchedOn: true } },
+      { Key: "Filterable", Value: { SelectedTag: "Oxygen" } },
+    ]);
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-clear",
+      ) as HTMLButtonElement
+    ).click();
     expect(component.blueprintItem.buildingData).toEqual([
       { Key: "Switch", Value: { switchedOn: true } },
     ]);

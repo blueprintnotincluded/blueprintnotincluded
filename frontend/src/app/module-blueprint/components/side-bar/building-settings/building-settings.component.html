@@ -105,8 +105,31 @@
           onFieldInput(row, textInput.value, textInput); textInput.blur()
         "
       />
+
+      <button
+        *ngIf="row.type === 'element'"
+        type="button"
+        class="building-setting-element"
+        (click)="openElementPicker(row, $event)"
+      >
+        <app-element-icon
+          *ngIf="row.element"
+          [element]="row.element"
+          [width]="'20px'"
+          [height]="'20px'"
+        ></app-element-icon>
+        <span>{{ elementLabel(row) }}</span>
+      </button>
     </span>
   </div>
+
+  <p-popover #elementPanel [appendTo]="'body'">
+    <app-cell-element-picker
+      *ngIf="elementPickerRow"
+      [forceTag]="elementPickerRow.elementForceTag"
+      (selectElementCell)="onElementPicked($event)"
+    ></app-cell-element-picker>
+  </p-popover>
 
   <div
     class="building-setting-row building-setting-row-end"

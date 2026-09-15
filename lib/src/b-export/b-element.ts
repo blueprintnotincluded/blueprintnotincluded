@@ -118,6 +118,14 @@ export class BuildableElement {
     throw new Error('BuildableElement.getElement : Element not found');
   }
 
+  // Non-throwing lookup by element id. Returns undefined for an unknown id (a
+  // Filterable.SelectedTag from a newer game version, an empty catalogue in a
+  // unit test) rather than failing the caller.
+  public static getElementById(id: string): BuildableElement | undefined {
+    if (BuildableElement.elements == null) return undefined;
+    return BuildableElement.elements.find(element => element.id == id);
+  }
+
   // Resolve a Klei tag hash (BlueprintsV2 selected_elements / element-note id)
   // to an element. Returns undefined for unknown hashes — callers keep the
   // default material rather than failing the import.
