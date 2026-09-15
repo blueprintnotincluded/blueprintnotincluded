@@ -774,6 +774,14 @@ export class BlueprintItem {
   containerCreated: boolean = false;
   reloadCamera: boolean = true;
   public drawPixi(camera: CameraService, pixiUtil: PixiUtil) {
+    // Never draw a destroyed item. Without this, destroy() clearing the
+    // container would make the next draw silently build a fresh one and
+    // resurrect an item that is supposed to be gone -- and before destroy()
+    // cleared it, the same draw threw on the dead container instead. Callers
+    // are expected to drop their references; this is the safety net for the
+    // ones that don't.
+    if (this.destroyed) return;
+
     this.drawPixiUtility(camera, pixiUtil);
 
     if (this.reloadCamera) {
@@ -944,6 +952,17 @@ export class BlueprintItem {
 
     // And the utility sprites
     if (this.utilitySprites != null) for (let s of this.utilitySprites) if (s != null) s.destroy();
+
+    // Drop the PIXI references rather than leaving destroyed objects reachable.
+    // A destroyed PIXI container has a null transform, so a later `container.x =`
+    // throws -- and drawPixi runs inside the PIXI ticker, where one throw kills
+    // every subsequent frame and the editor stops repainting altogether. Leaving
+    // containerCreated = true made a destroyed item look fully initialised to
+    // every drawing path; clearing both means the only thing that distinguishes
+    // it is the `destroyed` flag drawPixi now checks.
+    this.container = null;
+    this.containerCreated = false;
+    this.utilitySprites = [];
 
     this.destroyed = true;
   }
