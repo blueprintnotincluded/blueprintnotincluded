@@ -613,6 +613,19 @@ export class BlueprintItem {
     this.position = new Vector2(-99999, -99999);
   }
 
+  // Show or hide what this item has already drawn, without destroying it.
+  // setInvisible() only moves the item, and that new position reaches the
+  // container on the next drawPixi -- no use to a caller that is about to stop
+  // drawing it, which would leave the last frame's sprites parked on screen.
+  // The utility sprites live on the camera's container rather than this item's,
+  // so they need hiding separately; drawPixiUtility re-applies its own
+  // per-overlay visibility on the next frame that draws.
+  setDrawnVisible(visible: boolean) {
+    if (this.container != null) this.container.visible = visible;
+    if (this.utilitySprites != null)
+      for (const sprite of this.utilitySprites) if (sprite != null) sprite.visible = visible;
+  }
+
   // This is used by the selection tool to prioritize opaque buildings during selection
   // TODO probably not used anymore, could delete
   isOpaque: boolean = false;

@@ -68,6 +68,27 @@ describe('BlueprintItem lifecycle after destroy', function () {
     expect(container.calls.destroyed).to.equal(1);
   });
 
+  it('setDrawnVisible toggles the container and the utility sprites', function () {
+    const item = makeItem();
+    const container: any = { visible: true, destroy() {} };
+    const spriteA: any = { visible: true, destroy() {} };
+    item.container = container;
+    item.utilitySprites = [spriteA, null];
+
+    item.setDrawnVisible(false);
+    expect(container.visible).to.equal(false);
+    expect(spriteA.visible).to.equal(false);
+
+    item.setDrawnVisible(true);
+    expect(container.visible).to.equal(true);
+    expect(spriteA.visible).to.equal(true);
+  });
+
+  it('setDrawnVisible does not throw when nothing has been drawn', function () {
+    const item = makeItem();
+    expect(() => item.setDrawnVisible(false)).to.not.throw();
+  });
+
   // The safety net. Without it, clearing the container above would make the
   // next draw build a fresh one and resurrect an item that is meant to be gone.
   it('never draws once destroyed, and does not resurrect its container', function () {
