@@ -78,6 +78,11 @@ export class BlueprintItemWire extends BlueprintItem {
   }
 
   public drawPixi(camera: CameraService, pixiUtil: PixiUtil) {
+    // BlueprintItem.drawPixi returns early for a destroyed item, but the pipe
+    // circles below draw through pixiUtil rather than this.container, so they
+    // would still paint. Bail here too.
+    if (this.destroyed) return;
+
     super.drawPixi(camera, pixiUtil);
 
     if (
