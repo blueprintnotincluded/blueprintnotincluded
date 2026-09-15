@@ -131,10 +131,14 @@ export class CameraService {
     // a missing viewMode to Overlay.Base (convert-export-2024.ts overlayFromViewMode),
     // and OniItem.getRealOverlay collapses the overlays this site does not render
     // into Base as well, so `item.overlay === Overlay.Base` is that test here.
-    // The Overlay.None exception is the editor bootstrap: the camera starts at
-    // Overlay.None, where nothing is primary or secondary so every item renders at
-    // 0.3 alpha on its bare zIndex, and build-tool.component's oniItemsLoaded()
-    // seeding a Tile is the only thing that leaves it.
+    // The Overlay.None guard covers a camera that has not been given an overlay
+    // yet: nothing is primary or secondary there, so BlueprintItem.cameraChanged
+    // renders every item at 0.3 alpha on its bare zIndex. In the editor that
+    // state never reaches this method -- component-canvas sets Overlay.Base on
+    // init, well before the database resolves and build-tool.component's
+    // oniItemsLoaded() seeds a Tile, so the boot Tile is itself gated -- but the
+    // constructor's default is None and nothing enforces that ordering, so the
+    // method still has to handle it rather than assume it away.
     if (this.overlay_ !== Overlay.None && item.overlay === Overlay.Base) return;
     this.overlay = item.overlay;
   }

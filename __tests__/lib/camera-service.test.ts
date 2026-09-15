@@ -170,9 +170,11 @@ describe('CameraService.setOverlayForItem', function () {
 
   // Overlay.None is not a neutral state: nothing is primary or secondary there,
   // so BlueprintItem.cameraChanged renders the whole blueprint at 0.3 alpha on
-  // bare zIndex. build-tool.component's oniItemsLoaded() seeding a Tile is the
-  // only thing that leaves it, and a Tile declares no overlay -- so a gate
-  // without the None exception would boot the editor with no overlay at all.
+  // bare zIndex, and a Tile declares no overlay. The editor does not depend on
+  // this -- component-canvas sets Overlay.Base on init, so the camera has left
+  // None before oniItemsLoaded() seeds its Tile -- but the constructor's default
+  // is None and nothing enforces that ordering, so the method must not strand a
+  // camera there.
   it('leaves the initial None overlay even for an item that declares none', function () {
     const camera = makeCamera();
     expect(camera.overlay).to.equal(Overlay.None);
