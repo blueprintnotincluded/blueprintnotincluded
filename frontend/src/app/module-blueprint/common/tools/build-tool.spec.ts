@@ -177,6 +177,17 @@ describe("BuildTool", () => {
       tool.switchFrom();
       expect(templateItem.destroy).toHaveBeenCalled();
     });
+
+    // Deliberately NOT cleared: hover/updateBuildCandidateResult, leftClick and
+    // mouseDown all read this field unguarded, so nulling it here trades the
+    // draw crash for a `Cannot read properties of null (reading
+    // 'buildCandidateResult')`. The destroyed brush stays put and the two
+    // readers that can see it in that state -- draw() and ensureBuildItem() --
+    // check `destroyed` instead.
+    it("leaves the destroyed brush in place rather than nulling the field", () => {
+      tool.switchFrom();
+      expect(tool.templateItemToBuild).toBe(templateItem);
+    });
   });
 
   describe("switchTo", () => {
@@ -345,6 +356,24 @@ describe("BuildTool", () => {
         mockCamera,
         mockDrawPixi,
       );
+    });
+
+    // The regression: switching away destroyed the brush but left it in the
+    // field, and draw() then ran on it every frame. Inside the PIXI ticker the
+    // first throw kills every later frame too, so the editor stops repainting
+    // entirely -- no build preview, and no overlay change visible either.
+    it("does not draw the brush after switchFrom destroyed it", () => {
+      templateItem.destroy.mockImplementation(() => {
+        templateItem.destroyed = true;
+      });
+      tool.switchFrom();
+      expect(() => tool.draw({} as any, {} as any)).not.toThrow();
+      expect(templateItem.drawPixi).not.toHaveBeenCalled();
+    });
+
+    it("does not draw when there is no brush at all", () => {
+      tool.templateItemToBuild = null as any;
+      expect(() => tool.draw({} as any, {} as any)).not.toThrow();
     });
   });
 
