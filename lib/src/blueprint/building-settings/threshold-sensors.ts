@@ -132,18 +132,36 @@ function germs(): ThresholdSensorSpec {
 // Deliberately absent:
 //
 //  - PressureSwitchGas, PressureSwitchLiquid, TemperatureControlledSwitch
-//    ("Atmo/Hydro/Thermo Switch"). The 2024 export carries full names,
-//    descriptions and a buildMenuItems entry for all three (filed under
-//    Power/Electrical, not Automation), which is what led an earlier version
-//    of this table to include them. But neither wiki (wiki.gg or Fandom) has
-//    a page for any of them, web search for "Thermo Switch" returns Thermo
-//    *Sensor* results instead, and a live playthrough did not find them in
-//    the Electrical build menu. That combination looks like pre-Automation-
-//    Update legacy data (simple threshold switches, superseded by Sensor +
-//    Logic Gate) that the export tool still dumps because it reads prefab
-//    definitions rather than actual build-menu reachability. Pulled until
-//    someone confirms in a debug/sandbox build menu (which shows disabled
-//    content) whether they're placeable at all.
+//    ("Atmo/Hydro/Thermo Switch"). Confirmed deprecated in the game, so no
+//    blueprint built from a real colony can contain one. All three Configs set
+//
+//        buildingDef.Deprecated = true;
+//
+//    and BuildingDef gates menu visibility on exactly that:
+//
+//        return !this.Deprecated && (!this.DebugOnly || Game.Instance.DebugOnlyBuildingsAllowed);
+//
+//    Note the asymmetry, because an earlier version of this note asked for the
+//    wrong test: it suggested confirming in a debug/sandbox build menu "which
+//    shows disabled content". That would never have worked. Debug mode reveals
+//    DebugOnly buildings; Deprecated ones are excluded unconditionally, in
+//    every mode. The wiki gap and the missing menu entry were correct evidence
+//    after all -- they are pre-Automation-Update simple threshold switches,
+//    superseded by Sensor + Logic Gate.
+//
+//    They do still carry a real IThresholdSwitch: `PressureSwitch :
+//    CircuitSwitch, ISaveLoadable, IThresholdSwitch` with [Serialize] float
+//    threshold, and the same for TemperatureControlledSwitch with
+//    thresholdTemperature. So if they are ever restored to this table the units
+//    are known -- kg stored / g shown for gas (rangeMax 2), kg for liquid
+//    (rangeMax 2000), Kelvin stored / Celsius shown (maxTemp 573.15) -- but
+//    they should not be, while the buildings are unreachable in game.
+//
+//    Separately: this site's build menu *does* offer all three, because
+//    buildMenuItems carries an Electrical entry for each and the 2024 export
+//    emits no deprecated flag for the converter to filter on. The same is true
+//    of LogicMemory, RoleStation and SteamTurbine (the pre-SteamTurbine2 one).
+//    That is an import-pipeline gap, not a settings one.
 //  - Element sensors (LogicElementSensorGas and the conduit element sensors)
 //    have no threshold at all: their setting is a Filterable/SelectedTag
 //    element name.
