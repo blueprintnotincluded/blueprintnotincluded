@@ -126,6 +126,16 @@ export class CameraService {
   }
 
   setOverlayForItem(item: OniItem) {
+    // ONI's InterfaceTool.OnActivateTool switches the overlay only when the
+    // BuildingDef sets one -- `viewMode != OverlayModes.None.ID`. Our importer maps
+    // a missing viewMode to Overlay.Base (convert-export-2024.ts overlayFromViewMode),
+    // and OniItem.getRealOverlay collapses the overlays this site does not render
+    // into Base as well, so `item.overlay === Overlay.Base` is that test here.
+    // The Overlay.None exception is the editor bootstrap: the camera starts at
+    // Overlay.None, where nothing is primary or secondary so every item renders at
+    // 0.3 alpha on its bare zIndex, and build-tool.component's oniItemsLoaded()
+    // seeding a Tile is the only thing that leaves it.
+    if (this.overlay_ !== Overlay.None && item.overlay === Overlay.Base) return;
     this.overlay = item.overlay;
   }
 
