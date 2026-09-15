@@ -159,18 +159,7 @@ export class ComponentSideBuildToolComponent
   // first call too, where templateItemToBuild doesn't exist yet.
   private ensureBuildItem() {
     const current = this.toolService.buildTool.templateItemToBuild;
-    // A brush the tool switched away from has been destroyed by
-    // BuildTool.switchFrom(), which leaves it in the field rather than clearing
-    // it. Keeping one because its id still matches hands the render loop a
-    // destroyed PIXI container and kills every subsequent frame, so a destroyed
-    // brush has to rebuild even when nothing about the item changed -- there is
-    // no dialled-in element/temperature left to preserve in a corpse anyway.
-    if (
-      current != null &&
-      !current.destroyed &&
-      current.oniItem.id === this.currentItem?.id
-    )
-      return;
+    if (current != null && current.oniItem.id === this.currentItem?.id) return;
     this.uiItemChanged();
   }
 

@@ -243,7 +243,17 @@ export class BuildTool implements ITool {
 
   // Tool interface :
   switchFrom() {
-    this.templateItemToBuild.destroy();
+    // Hide the brush rather than destroying it. draw() only runs while the
+    // build tool is the current tool, so an inactive brush costs nothing to
+    // keep, and keeping it is what lets ensureBuildItem hand the same
+    // configured item back on re-entry -- the element/temperature you dialled
+    // in survives a trip through the Select tool, which is what aa0bb8d1 was
+    // after. Destroying it here left a corpse in this field (a destroyed
+    // BlueprintItem keeps containerCreated = true and a destroyed PIXI
+    // container), and ensureBuildItem's id check then kept the corpse and drew
+    // it, throwing inside the PIXI ticker and killing every later frame.
+    // changeItem still destroys the outgoing brush on a real item change.
+    this.templateItemToBuild?.setInvisible();
   }
 
   switchTo() {
@@ -447,12 +457,12 @@ export class BuildTool implements ITool {
     //if (this.canBuild()) this.templateItemToBuild.drawPart.tint = DrawHelpers.whiteColor;
     //else this.templateItemToBuild.drawPart.tint = 0xD40000;
 
-    // switchFrom() destroys the brush but leaves it in the field, and a
-    // destroyed BlueprintItem still reports containerCreated = true while its
-    // PIXI container's transform is null -- drawing one throws on `container.x =`.
-    // This runs inside the PIXI ticker, where the first throw kills every later
-    // frame too, so the editor stops repainting entirely. A skipped frame is the
-    // cheap failure; ensureBuildItem rebuilds the brush on re-entry.
+    // Backstop. switchFrom() no longer destroys the brush, but changeItem()
+    // still destroys the outgoing one, and a destroyed BlueprintItem reports
+    // containerCreated = true while its PIXI container's transform is null --
+    // drawing one throws on `container.x =`. That throw happens inside the PIXI
+    // ticker, where it kills every later frame too and the editor stops
+    // repainting entirely. A skipped frame is much the cheaper failure.
     if (this.templateItemToBuild == null || this.templateItemToBuild.destroyed)
       return;
     this.templateItemToBuild.drawPixi(camera, drawPixi);

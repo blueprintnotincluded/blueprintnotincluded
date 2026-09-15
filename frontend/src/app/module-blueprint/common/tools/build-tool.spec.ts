@@ -173,20 +173,25 @@ describe("BuildTool", () => {
   });
 
   describe("switchFrom", () => {
-    it("destroys the template item", () => {
+    it("hides the template item", () => {
       tool.switchFrom();
-      expect(templateItem.destroy).toHaveBeenCalled();
+      expect(templateItem.setInvisible).toHaveBeenCalled();
     });
 
-    // Deliberately NOT cleared: hover/updateBuildCandidateResult, leftClick and
-    // mouseDown all read this field unguarded, so nulling it here trades the
-    // draw crash for a `Cannot read properties of null (reading
-    // 'buildCandidateResult')`. The destroyed brush stays put and the two
-    // readers that can see it in that state -- draw() and ensureBuildItem() --
-    // check `destroyed` instead.
-    it("leaves the destroyed brush in place rather than nulling the field", () => {
+    // The crash: destroying here left the corpse in this field, and
+    // ensureBuildItem's id check then kept it and drew it. Keeping the item
+    // alive is also what lets a configured brush survive a trip through
+    // another tool, which is what aa0bb8d1 wanted and never delivered for
+    // this path.
+    it("does not destroy the brush, so a configured one survives the switch", () => {
       tool.switchFrom();
+      expect(templateItem.destroy).not.toHaveBeenCalled();
       expect(tool.templateItemToBuild).toBe(templateItem);
+    });
+
+    it("does not throw when there is no brush yet", () => {
+      tool.templateItemToBuild = null as any;
+      expect(() => tool.switchFrom()).not.toThrow();
     });
   });
 
@@ -358,17 +363,15 @@ describe("BuildTool", () => {
       );
     });
 
-    // The regression: switching away destroyed the brush but left it in the
-    // field, and draw() then ran on it every frame. Inside the PIXI ticker the
-    // first throw kills every later frame too, so the editor stops repainting
-    // entirely -- no build preview, and no overlay change visible either.
-    it("does not draw the brush after switchFrom destroyed it", () => {
-      templateItem.destroy.mockImplementation(() => {
-        templateItem.destroyed = true;
-      });
-      tool.switchFrom();
+    // Backstop for the regression: a destroyed BlueprintItem still reports
+    // containerCreated = true while its PIXI container's transform is null, so
+    // drawing one throws -- inside the PIXI ticker, where the first throw kills
+    // every later frame and the editor stops repainting entirely. switchFrom no
+    // longer produces one, but changeItem still destroys the outgoing brush.
+    it("does not draw a destroyed brush", () => {
+      tool.templateItemToBuild = makeTemplateItem({ destroyed: true }) as any;
       expect(() => tool.draw({} as any, {} as any)).not.toThrow();
-      expect(templateItem.drawPixi).not.toHaveBeenCalled();
+      expect(tool.templateItemToBuild.drawPixi).not.toHaveBeenCalled();
     });
 
     it("does not draw when there is no brush at all", () => {
