@@ -29,6 +29,7 @@ const makeTemplateItem = (overrides: any = {}) => ({
   alpha: 0,
   destroy: vi.fn(),
   setInvisible: vi.fn(),
+  setDrawnVisible: vi.fn(),
   cleanUp: vi.fn(),
   prepareBoundingBox: vi.fn(),
   updateTileables: vi.fn(),
@@ -178,6 +179,15 @@ describe("BuildTool", () => {
       expect(templateItem.setInvisible).toHaveBeenCalled();
     });
 
+    // setInvisible only moves the item; the move reaches the PIXI container on
+    // the next drawPixi, which never comes once the tool stops drawing it.
+    // Without this the last drawn frame stays parked on the canvas as a ghost
+    // brush, which is what destroying used to take care of.
+    it("hides what the brush has already drawn", () => {
+      tool.switchFrom();
+      expect(templateItem.setDrawnVisible).toHaveBeenCalledWith(false);
+    });
+
     // The crash: destroying here left the corpse in this field, and
     // ensureBuildItem's id check then kept it and drew it. Keeping the item
     // alive is also what lets a configured brush survive a trip through
@@ -196,7 +206,18 @@ describe("BuildTool", () => {
   });
 
   describe("switchTo", () => {
-    it("is a no-op that does not throw", () => {
+    it("does not throw", () => {
+      expect(() => tool.switchTo()).not.toThrow();
+    });
+
+    it("shows a brush that switchFrom hid", () => {
+      tool.switchFrom();
+      tool.switchTo();
+      expect(templateItem.setDrawnVisible).toHaveBeenLastCalledWith(true);
+    });
+
+    it("does not throw when there is no brush", () => {
+      tool.templateItemToBuild = null as any;
       expect(() => tool.switchTo()).not.toThrow();
     });
   });

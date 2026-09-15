@@ -253,11 +253,21 @@ export class BuildTool implements ITool {
     // container), and ensureBuildItem's id check then kept the corpse and drew
     // it, throwing inside the PIXI ticker and killing every later frame.
     // changeItem still destroys the outgoing brush on a real item change.
+    //
+    // Hiding has to be explicit: setInvisible() moves the item, but that move
+    // only reaches the PIXI container on the next drawPixi, and draw() stops
+    // being called the moment the tool changes -- so the last drawn frame would
+    // stay parked on the canvas as a ghost brush.
     this.templateItemToBuild?.setInvisible();
+    this.templateItemToBuild?.setDrawnVisible(false);
   }
 
   switchTo() {
-    // required by type
+    // Undo switchFrom's hiding. A brush rebuilt by ensureBuildItem draws into a
+    // fresh container and does not need this, but one that survived the round
+    // trip is still hidden. It stays parked off-screen until the first hover
+    // moves it, exactly as a rebuilt brush does.
+    this.templateItemToBuild?.setDrawnVisible(true);
   }
 
   mouseOut() {
