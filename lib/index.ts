@@ -74,3 +74,4 @@ export * from './src/blueprint/blueprint-item';
 export * from './src/blueprint/blueprint-item-element';
 export * from './src/blueprint/blueprint-item-tile';
 export * from './src/blueprint/blueprint-item-wire';
+export * from './src/blueprint/replace-element';
