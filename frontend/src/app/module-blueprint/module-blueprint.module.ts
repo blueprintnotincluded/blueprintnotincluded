@@ -69,6 +69,7 @@ import { ForkButtonComponent } from "./components/fork-button/fork-button.compon
 import { BlueprintCardComponent } from "./components/blueprint-card/blueprint-card.component";
 import { VersionHistoryDialogComponent } from "./components/dialogs/version-history-dialog/version-history-dialog.component";
 import { BuildableElementPickerComponent } from "./components/side-bar/buildable-element-picker/buildable-element-picker.component";
+import { ReplaceElementComponent } from "./components/side-bar/replace-element/replace-element.component";
 import { ElementReport } from "./common/tools/element-report";
 import { ElementReportToolComponent } from "./components/side-bar/element-report-tool/element-report-tool.component";
 import { UiScreenContainerComponent } from "./components/side-bar/ui-screens/ui-screen-container/ui-screen-container.component";
@@ -139,6 +140,7 @@ import { TerrainToolComponent } from "./components/side-bar/terrain-tool/terrain
     BlueprintCardComponent,
     VersionHistoryDialogComponent,
     BuildableElementPickerComponent,
+    ReplaceElementComponent,
     ElementReportToolComponent,
     UiScreenContainerComponent,
     BuildingSettingsComponent,

@@ -430,3 +430,22 @@ Two things worth knowing before touching this:
 - **The 5 sensors extend `Switch` and the 2 filters do not.** The sensors' stowaway
   `switchedOn` is suppressed by `suppressesStowawaySwitch` alongside the threshold sensors
   and the critter sensor; for the filters that check is a harmless no-op.
+
+### Replace every X with Y (material swap)
+
+`replace-element.ts` is the pure half of the Select Tool's "Replace [X] with [Y]" strip: it
+lists the elements a selection is made of, the elements those X slots can be switched to
+(each with a skip count), plans the swap and applies it. Decisions baked in, per #14:
+
+- **Material only.** A building never changes type; a slot changes element only when it
+  currently holds X *and* that building's `buildableElementsArray[slot]` admits Y. Buildings
+  holding X that cannot take Y anywhere are `skipped`, never partially rewritten to something
+  else. Element annotations (`OniItem.isElement`) are not built of anything and are ignored.
+- **`buildingData` is untouched.** It is the building's configuration, not its material.
+- **One undo step.** The lib writes slots and nothing else; `SelectTool.replaceElement`
+  wraps the call in `pauseChangeEvents()` / `resumeChangeEvents(true)` so a selection
+  spanning many groups yields one `blueprintChanged` and one snapshot. The per-group picker
+  in `item-collection-info` deliberately stays one step per group.
+- **Selection-scoped by design.** There is no whole-blueprint replace: "select every X" in
+  the Element Report is the entry point, so the affected buildings are always outlined on the
+  canvas before Apply.

@@ -5,8 +5,7 @@
     <span
       class="ui-fieldset-legend-text ui-fieldset-false-link"
       (click)="elementsVisualization()"
-      i18n
-      >Elements</span
+      >{{ legend }}</span
     >
   </legend>
   <div class="ui-fieldset-content-wrapper">
@@ -48,7 +47,7 @@
               <div
                 class="ui-clickable-icon element-button"
                 (click)="chooseElement(buildableElement, indexElement)"
-                [pTooltip]="buildableElement.name"
+                [pTooltip]="tooltipFor(buildableElement)"
                 tooltipPosition="bottom"
                 tooltipEvent="both"
                 life="5000"
