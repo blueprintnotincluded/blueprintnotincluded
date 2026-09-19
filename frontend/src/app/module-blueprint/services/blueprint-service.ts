@@ -268,6 +268,7 @@ export class BlueprintService implements IObsBlueprintChange {
     this.rating = 0;
     this.nbRatings = 0;
     this.metadata = {};
+    this.requiredDlcs = null;
     this.clearRawSource();
   }
 
@@ -442,6 +443,7 @@ export class BlueprintService implements IObsBlueprintChange {
               description: response.description ?? null,
               modded: response.modded ?? null,
             };
+            this.requiredDlcs = response.requiredDlcs ?? [];
             blueprint.importFromMdb(response.data);
             // Serialize the opened content through the same serializer the
             // editor uses, so the Download menu can tell "unedited since
@@ -859,6 +861,14 @@ export class BlueprintService implements IObsBlueprintChange {
       "category" | "subcategory" | "description" | "modded"
     >
   > = {};
+
+  // The server-derived `requiredDlcs` of the blueprint last opened from the
+  // site, as the editor-open response reported it. null for anything that did
+  // not come through that response — a new blueprint, a file or share-string
+  // import — so a stale value from a previous open can never describe the
+  // current content. Read by the editor's hidden-pack notice; never written
+  // back anywhere.
+  requiredDlcs: string[] | null = null;
 
   saveBlueprint(overwrite: boolean, publish?: boolean | null) {
     const saveBlueprint = this.blueprint.toMdbBlueprint();

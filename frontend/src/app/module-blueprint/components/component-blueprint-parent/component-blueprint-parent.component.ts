@@ -27,6 +27,7 @@ import {
   TerrainFeature,
   SpriteModifier,
   Vector2,
+  dlcLabel,
 } from "../../../../../../lib/index";
 import { ToolType } from "../../common/tools/tool";
 import { AuthenticationService } from "../../services/authentification-service";
@@ -42,6 +43,7 @@ import {
   ShortcutActionId,
 } from "../../keybindings/shortcut-actions";
 import { ToolService } from "../../services/tool-service";
+import { UserService } from "../../services/user-service";
 import { ComponentCanvasComponent } from "../component-canvas/component-canvas.component";
 import {
   BrowseData,
@@ -135,6 +137,7 @@ export class ComponentBlueprintParentComponent
     private http: HttpClient,
     public gameStringService: GameStringService,
     private shortcutService: KeyboardShortcutService,
+    private userService: UserService,
   ) {}
 
   private shortcutSubscriptions: (() => void)[] = [];
@@ -475,6 +478,37 @@ export class ComponentBlueprintParentComponent
         summary: $localize`This blueprint uses mods`,
         detail: modTitles.join(", "),
       });
+
+    this.noticeHiddenDlcs(this.blueprintService.requiredDlcs);
+  }
+
+  // #14 option (c): the site never knows which packs a user owns, so the only
+  // honest signal is the packs they chose to hide on Discover. A blueprint
+  // that needs one of those gets a notice, nothing more — it still opens and
+  // edits normally. Read-only on the preference: it is written only by real
+  // interaction on Discover (lib/src/blueprint/CLAUDE.md), never from here.
+  // Skipped outright for a logged-out visitor (no preference to read) and for
+  // a base-game or non-server blueprint (nothing to compare).
+  noticeHiddenDlcs(requiredDlcs: string[] | null) {
+    if (!requiredDlcs?.length || !this.authService.isLoggedIn()) return;
+    const openedId = this.blueprintService.id;
+    this.userService.getDlcPreferences().subscribe({
+      next: (prefs) => {
+        // The user may have opened something else while the request was out
+        if (this.blueprintService.id !== openedId) return;
+        const hidden = requiredDlcs.filter((id) =>
+          prefs.excludedDlcs.includes(id),
+        );
+        if (hidden.length === 0) return;
+        this.messageService.add({
+          severity: "warn",
+          summary: $localize`:editor.hiddenDlc.summary:Needs a DLC you hide`,
+          detail: $localize`:editor.hiddenDlc.detail:This blueprint requires ${hidden.map(dlcLabel).join(", ")}, which you chose to hide on Discover.`,
+          sticky: true,
+        });
+      },
+      error: () => {},
+    });
   }
 
   saveBlueprint() {
