@@ -20,7 +20,16 @@
         >
         </app-element-icon>
         <div class="left"></div>
-        <div>{{ currentItem.name }}</div>
+        <div>
+          <div>{{ currentItem.name }}</div>
+          <div class="build-dlc-chips" *ngIf="dlcLabels(currentItem).length">
+            <span
+              class="bni-chip bni-chip--dlc build-dlc-chip"
+              *ngFor="let label of dlcLabels(currentItem)"
+              >{{ label }}</span
+            >
+          </div>
+        </div>
         <div class="right"></div>
       </div>
     </div>
@@ -114,6 +123,12 @@
           life="5000"
         >
           <img src="{{ item.iconUrl }}" height="40px" />
+          <span
+            *ngIf="dlcLabels(item).length"
+            class="build-dlc-badge"
+            i18n="DLC badge on a build-menu icon|buildTool.dlcBadge"
+            >DLC</span
+          >
         </div>
       </div>
     </p-popover>

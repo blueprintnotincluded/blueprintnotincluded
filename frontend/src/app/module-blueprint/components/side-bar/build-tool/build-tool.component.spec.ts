@@ -182,6 +182,50 @@ describe("ComponentSideBuildToolComponent", () => {
         } as OniItem),
       ).toBe("Filtered Gas Pump — from Smart Pumps (mod)");
     });
+
+    it("names the required pack for a DLC building", () => {
+      expect(
+        component.itemTooltip({
+          name: "Rocket Platform",
+          dlcIds: ["EXPANSION1_ID"],
+        } as OniItem),
+      ).toBe("Rocket Platform — requires Spaced Out!");
+    });
+
+    it("lists every pack when a building needs more than one", () => {
+      expect(
+        component.itemTooltip({
+          name: "Bionic Rocket Thing",
+          dlcIds: ["EXPANSION1_ID", "DLC3_ID"],
+        } as OniItem),
+      ).toBe(
+        "Bionic Rocket Thing — requires Spaced Out!, The Bionic Booster Pack",
+      );
+    });
+
+    it("keeps the mod suffix ahead of the DLC suffix", () => {
+      expect(
+        component.itemTooltip({
+          name: "Thing",
+          mod: "1",
+          modTitle: "Mod",
+          dlcIds: ["DLC2_ID"],
+        } as OniItem),
+      ).toBe("Thing — from Mod (mod) — requires The Frosty Planet Pack");
+    });
+  });
+
+  describe("dlcLabels", () => {
+    it("is empty for a base-game building, so no marker renders", () => {
+      expect(component.dlcLabels({ dlcIds: [] } as any)).toEqual([]);
+      expect(component.dlcLabels({} as any)).toEqual([]);
+    });
+
+    it("maps raw Klei ids to pack names, falling back to the raw id", () => {
+      expect(
+        component.dlcLabels({ dlcIds: ["DLC5_ID", "DLC9_ID"] } as any),
+      ).toEqual(["The Aquatic Planet Pack", "DLC9_ID"]);
+    });
   });
 
   describe("changeElement", () => {
