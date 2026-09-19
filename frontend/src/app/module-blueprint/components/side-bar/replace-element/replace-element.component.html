@@ -1,0 +1,40 @@
+<div *ngIf="show" class="replace-strip">
+  <div class="replace-pickers">
+    <app-buildable-element-picker
+      class="replace-picker"
+      i18n-legend
+      legend="Replace"
+      [currentElement]="fromElement"
+      [buildableElementsArray]="fromChoices"
+      [nbElements]="[]"
+      [isGasLiquid]="false"
+      (changeElement)="changeFrom($event)"
+    >
+    </app-buildable-element-picker>
+    <app-buildable-element-picker
+      class="replace-picker"
+      i18n-legend
+      legend="with"
+      [currentElement]="toElement"
+      [buildableElementsArray]="toChoices"
+      [nbElements]="[]"
+      [isGasLiquid]="false"
+      [tooltipFor]="tooltipForCandidate"
+      (changeElement)="changeTo($event)"
+    >
+    </app-buildable-element-picker>
+  </div>
+  <button
+    pButton
+    type="button"
+    class="ui-button replace-apply"
+    icon="pi pi-sync"
+    i18n-label
+    label="Apply"
+    [disabled]="!canApply"
+    (click)="apply()"
+    i18n-pTooltip
+    pTooltip="Replace this material on every selected building that can take the new one"
+    tooltipEvent="both"
+  ></button>
+</div>

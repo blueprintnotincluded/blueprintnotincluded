@@ -74,19 +74,6 @@ user exclusion preference, and `gameVersion` deleted from lib/schema/UI (migrati
   analyzer would union placed elements' ids into `requiredDlcs`, and the save-path derivation
   would need no schema change. Do not work around it in the converter (there is nothing to read).
 
-Open to-dos from #14 (the public list lives in the issue comment of 2026-09-19), in order:
-
-1. **DLC marker in the build menu** — a `DLC` corner badge on each DLC building's icon in the
-   category grid, the pack name in the tooltip, and a pack chip under the current item's name.
-   Base-game rows unchanged. (`build-tool.component`, labels via lib `dlcLabel`.)
-2. **Warn when opening a blueprint that needs a hidden pack** — the site never knows what a user
-   owns; the signal is `dlcPreferences.excludedDlcs`. Non-blocking editor notice when the opened
-   blueprint's `requiredDlcs` intersects it; nothing for logged-out users or an empty preference;
-   never writes the preference from this path.
-3. **Replace every X with Y** (upgrade-planner idea) — design note first in `spec/`, covering
-   material-only vs. building swap, where the control lives, one undo step, and what happens to
-   `buildingData`. No code until the note is approved.
-
 ## Ratings follow-ups
 
 Star ratings v2 shipped (per-user 1–5 ratings, `blueprintratings`, denormalized

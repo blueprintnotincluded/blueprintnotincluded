@@ -117,6 +117,132 @@ describe("SelectTool", () => {
     });
   });
 
+  describe("selectionElement", () => {
+    const element = { id: "Cobaltite" } as any;
+
+    it("remembers the element a selectEveryElement selection was gathered by", () => {
+      const oniItem = makeOniItem("Wire");
+      mockBlueprintService.blueprint.blueprintItems = [
+        { ...makeBlueprintItem(oniItem), buildableElements: [element] },
+      ];
+      tool.selectEveryElement(element);
+      expect(tool.selectionElement).toBe(element);
+    });
+
+    it("is cleared when the selection is cleared or rebuilt another way", () => {
+      tool.selectionElement = element;
+      tool.deselectAll();
+      expect(tool.selectionElement).toBeNull();
+
+      tool.selectionElement = element;
+      tool.selectAll(makeOniItem("Wire") as any);
+      expect(tool.selectionElement).toBeNull();
+    });
+  });
+
+  describe("selectedItems getter", () => {
+    it("flattens every group's items in group order", () => {
+      const a = makeBlueprintItem(makeOniItem("a"));
+      const b = makeBlueprintItem(makeOniItem("b"));
+      const c = makeBlueprintItem(makeOniItem("c"));
+      tool.sameItemCollections = [
+        makeMockCollection(false, [a, b]),
+        makeMockCollection(false, [c]),
+      ] as any;
+      expect(tool.selectedItems).toEqual([a, b, c]);
+    });
+  });
+
+  // "Replace every X with Y" over the whole selection.
+  describe("replaceElement()", () => {
+    const cobalt = { id: "Cobaltite", name: "Cobalt Ore" } as any;
+    const copper = { id: "Cuprite", name: "Copper Ore" } as any;
+    const sandstone = { id: "SandStone", name: "Sandstone" } as any;
+    let wireType: any;
+    let pipeType: any;
+    let wire: any;
+    let pipe: any;
+    let stonePipe: any;
+
+    const realItem = (oniItem: any, element: any) => {
+      const item: any = {
+        ...makeBlueprintItem(oniItem),
+        buildableElements: [element],
+      };
+      item.setElement = vi.fn((id: string, index: number) => {
+        item.buildableElements[index] = [cobalt, copper, sandstone].find(
+          (e) => e.id == id,
+        );
+      });
+      return item;
+    };
+
+    beforeEach(() => {
+      wireType = {
+        ...makeOniItem("Wire"),
+        buildableElementsArray: [[cobalt, copper]],
+      };
+      pipeType = {
+        ...makeOniItem("LiquidConduit"),
+        buildableElementsArray: [[cobalt, copper, sandstone]],
+      };
+      wire = realItem(wireType, cobalt);
+      pipe = realItem(pipeType, cobalt);
+      stonePipe = realItem(pipeType, sandstone);
+      mockBlueprintService.blueprint.blueprintItems = [wire, pipe, stonePipe];
+      tool.selectAll(wireType);
+      tool.addToCollection(pipe);
+      tool.addToCollection(stonePipe);
+    });
+
+    it("swaps X for Y across every group inside one paused change batch", () => {
+      const blueprint = mockBlueprintService.blueprint;
+      const order: string[] = [];
+      blueprint.pauseChangeEvents.mockImplementation(() => order.push("pause"));
+      wire.setElement.mockImplementation(() => order.push("write"));
+      pipe.setElement.mockImplementation(() => order.push("write"));
+      blueprint.resumeChangeEvents.mockImplementation(() =>
+        order.push("resume"),
+      );
+
+      const plan = tool.replaceElement(cobalt, copper);
+
+      expect(plan.changes.map((c) => c.item)).toEqual([wire, pipe]);
+      expect(plan.skipped).toEqual([]);
+      expect(order).toEqual(["pause", "write", "write", "resume"]);
+      expect(blueprint.resumeChangeEvents).toHaveBeenCalledWith(true);
+      expect(stonePipe.setElement).not.toHaveBeenCalled();
+    });
+
+    it("re-collects the same items so group counts follow the new materials", () => {
+      const collections = tool.sameItemCollections;
+      expect(collections[1].nbElements[0]).toBe(2); // cobalt + sandstone pipes
+
+      tool.replaceElement(cobalt, sandstone);
+
+      expect(tool.sameItemCollections).not.toBe(collections);
+      expect(tool.selectedItems).toEqual([wire, pipe, stonePipe]);
+      // Wire cannot be made of Sandstone: untouched, so its group still reads cobalt.
+      expect(tool.sameItemCollections[0].items[0].buildableElements[0]).toBe(
+        cobalt,
+      );
+      expect(tool.sameItemCollections[1].nbElements[0]).toBe(1);
+    });
+
+    it("keeps the active group and the seed element, and notifies observers", () => {
+      const obs = { selectionChanged: vi.fn() };
+      tool.subscribeSelectionChanged(obs);
+      tool.currentMultipleSelectionIndex = 1;
+      tool.selectionElement = cobalt;
+
+      tool.replaceElement(cobalt, copper);
+
+      expect(tool.currentMultipleSelectionIndex).toBe(1);
+      expect(tool.selectionElement).toBe(cobalt);
+      expect(obs.selectionChanged).toHaveBeenCalled();
+    });
+  });
+
   // The canvas reads this to keep the building selection and the terrain
   // annotation selection mutually exclusive, so that "Delete" is never
   // ambiguous about which of the two it means.

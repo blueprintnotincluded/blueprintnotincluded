@@ -1,0 +1,24 @@
+.replace-strip {
+  display: flex;
+  flex-flow: row;
+  align-items: flex-end;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.replace-pickers {
+  display: flex;
+  flex-flow: row;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.replace-picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.replace-apply {
+  margin-bottom: 8px;
+}

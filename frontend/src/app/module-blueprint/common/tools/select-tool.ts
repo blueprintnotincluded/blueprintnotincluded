@@ -6,6 +6,9 @@ import {
   OniItem,
   Vector2,
   BuildableElement,
+  ReplaceElementPlan,
+  applyElementReplacement,
+  planElementReplacement,
 } from "../../../../../../lib/index";
 import { Injectable } from "@angular/core";
 import { ITool, ToolType } from "./tool";
@@ -26,6 +29,11 @@ export class SelectTool implements ITool {
   public sameItemCollections!: SameItemCollection[];
 
   public observersSelectionChanged: IObsSelectionChanged[] = [];
+
+  // The element the current selection was gathered by (the Element Report's
+  // "select every building made of X"), so the Replace strip can preselect
+  // it as X. Null for any other way of selecting; cleared with the selection.
+  public selectionElement: BuildableElement | null = null;
 
   parent!: ToolService;
 
@@ -164,6 +172,7 @@ export class SelectTool implements ITool {
 
   selectEveryElement(buildableElement: BuildableElement) {
     this.deselectAll();
+    this.selectionElement = buildableElement;
 
     for (const blueprintItem of this.blueprintService.blueprint.blueprintItems)
       if (blueprintItem.buildableElements.indexOf(buildableElement) != -1)
@@ -204,8 +213,49 @@ export class SelectTool implements ITool {
         itemCollection.selected = false;
       });
     this.sameItemCollections = [];
+    this.selectionElement = null;
 
     this.emitSelectionChanged();
+  }
+
+  // Every selected item, across groups.
+  get selectedItems(): BlueprintItem[] {
+    const items: BlueprintItem[] = [];
+    if (this.sameItemCollections != null)
+      for (const itemCollection of this.sameItemCollections)
+        for (const item of itemCollection.items) items.push(item);
+    return items;
+  }
+
+  // "Replace every X with Y" over the whole selection, as one undo step:
+  // change events are paused around the slot writes so exactly one
+  // blueprintChanged fires whatever the number of groups (the per-group
+  // element picker in item-collection-info stays one step per group). The
+  // same items are then re-collected so group counts and nbElements reflect
+  // the new materials; the Element Report refreshes through its own
+  // blueprintChanged observer.
+  replaceElement(
+    from: BuildableElement,
+    to: BuildableElement,
+  ): ReplaceElementPlan {
+    const items = this.selectedItems;
+    const selectedIndex = this.currentMultipleSelectionIndex;
+    const selectionElement = this.selectionElement;
+
+    const blueprint = this.blueprintService.blueprint;
+    blueprint.pauseChangeEvents();
+    const plan = applyElementReplacement(
+      planElementReplacement(items, from, to),
+    );
+    blueprint.resumeChangeEvents(true);
+
+    this.deselectAll();
+    for (const item of items) this.addToCollection(item);
+    this.selectionElement = selectionElement;
+    this.currentMultipleSelectionIndex = selectedIndex;
+
+    this.emitSelectionChanged();
+    return plan;
   }
 
   buildingsDestroy(itemCollection: SameItemCollection) {
