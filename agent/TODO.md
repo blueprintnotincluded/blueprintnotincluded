@@ -63,8 +63,29 @@ user exclusion preference, and `gameVersion` deleted from lib/schema/UI (migrati
 `20260726015329`). Prod backfill ran 2026-07-25. Design history:
 `spec/archive/dlc-requirements-plan.md`.
 
-- **Step 5 — element-level DLC provenance** is blocked upstream: `elements.json` carries no
-  DLC field; needs an export-side request.
+- **Step 5 — element-level DLC provenance** is blocked upstream, in OniExtract2024 (not in
+  this repo). `elements.json` carries no DLC field, so provenance stops at buildings: a base-game
+  building built from a DLC-only material (a Cobalt pipe, Spaced Out! ore) reads as base game.
+  Needed from the export: each `elementTable` entry gets a `requiredDlcIds: string[]` in the
+  same shape `building.json` already gives `kPrefabID.requiredDlcIds` (raw ids such as
+  `EXPANSION1_ID`, `[]` for base game), sourced from the game's `Element.dlcId` /
+  `Element.requiredDlcIds` (the `dlcId` field in the game's `elements.yaml`). With that field
+  present the converter would copy it through `normalizeDlcIds` like the building path, the
+  analyzer would union placed elements' ids into `requiredDlcs`, and the save-path derivation
+  would need no schema change. Do not work around it in the converter (there is nothing to read).
+
+Open to-dos from #14 (the public list lives in the issue comment of 2026-09-19), in order:
+
+1. **DLC marker in the build menu** — a `DLC` corner badge on each DLC building's icon in the
+   category grid, the pack name in the tooltip, and a pack chip under the current item's name.
+   Base-game rows unchanged. (`build-tool.component`, labels via lib `dlcLabel`.)
+2. **Warn when opening a blueprint that needs a hidden pack** — the site never knows what a user
+   owns; the signal is `dlcPreferences.excludedDlcs`. Non-blocking editor notice when the opened
+   blueprint's `requiredDlcs` intersects it; nothing for logged-out users or an empty preference;
+   never writes the preference from this path.
+3. **Replace every X with Y** (upgrade-planner idea) — design note first in `spec/`, covering
+   material-only vs. building swap, where the control lives, one undo step, and what happens to
+   `buildingData`. No code until the note is approved.
 
 ## Ratings follow-ups
 

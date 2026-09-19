@@ -23,6 +23,38 @@
 .element-button {
   height: 50px;
   padding: 5px;
+  position: relative;
+}
+
+/* DLC marker on a build-menu icon. A corner tag rather than a tint so the
+   sprite itself stays recognisable at 40px; the pack name is in the tooltip.
+   Base-game icons render nothing here. */
+.build-dlc-badge {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  padding: 1px 3px;
+  border-radius: 2px;
+  background: var(--bni-chip, rgba(0, 0, 0, 0.6));
+  color: var(--bni-ink, #fff);
+  border: 1px solid var(--bni-rule-hi, rgba(255, 255, 255, 0.4));
+  pointer-events: none;
+}
+
+.build-dlc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.build-dlc-chip {
+  font-size: 10px;
+  padding: 0 5px;
 }
 
 .left {
