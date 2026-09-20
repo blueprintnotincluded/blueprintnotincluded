@@ -392,11 +392,32 @@ the bare float a meaning; conversion is affine both ways
 - **Blurring an untouched input must not write.** The displayed value is rounded, so
   re-deriving a stored value from it would nudge a Thermo Sensor stored at 293.153 K to
   293.15 — a silent data change that also detaches `rawSource` for nothing.
-- **Two known unit discrepancies, flagged not fixed**: a buildingData reference compiled from
-  the game assembly says `LogicTimeOfDaySensor.startTime`/`duration` are *seconds* into a
-  600s cycle (the catalogue treats them as a 0–1 fraction shown as "% of cycle"), and that
-  `IActivationRangeTarget.ActivateValue` is normalised 0–1 on batteries (the catalogue shows
-  it raw). Both need an in-game check, not a guess between secondhand sources.
+- **Two unit conventions, now verified in game** (issue #238). A buildingData reference
+  compiled from the game assembly claimed `LogicTimeOfDaySensor.startTime`/`duration` were
+  *seconds* into a 600s cycle, and that `IActivationRangeTarget.ActivateValue` was normalised
+  0–1 on batteries. Both claims are wrong; the catalogue was right on both. Settings were
+  configured on the side screen, copied with the BlueprintsV2 mod and read back from the
+  exported `buildingData` — deliberately non-round values, so a fraction and a seconds
+  reading could not be confused:
+
+  | set in game | stored | so the unit is |
+  |---|---|---|
+  | time sensor start 30%, duration 15% | `0.2966114`, `0.151766792` | 0–1 fraction (seconds would be 180 / 90) |
+  | Smart Battery high 80, low 20 | `ActivateValue: 80`, `DeactivateValue: 20` | raw 0–100 |
+  | Liquid Reservoir high 80, low 20 | same | raw 0–100 |
+  | Gas Reservoir high 80, low 20 | same | raw 0–100 |
+
+  The check did turn up a **naming** inversion. `IActivationRangeTarget`'s field names are
+  backwards relative to the side screen: `ActivateValue` holds the **high** threshold and
+  `DeactivateValue` the **low** one, so the catalogue's old "Activate value" label named 80
+  as the value that switches the building on. Both rows are now labelled high/low, flat
+  rather than per-carrier, because all three carriers a copy can produce say high/low.
+  (`HEPStorageThreshold` in the RotatableRadboltStorage mod makes the same inversion, which
+  is a hint the interface itself reads that way rather than these three buildings being odd.)
+
+  Those three are the whole carrier list, not a sample: the Smart Storage Bin stores
+  `IUserControlledCapacity` instead, and the Radbolt Chamber its own `HEPBattery`
+  `particleThreshold` — neither in the catalogue, both preserved opaquely.
 ### Element sensors and filters (Filterable)
 
 Seven prefabs have no threshold at all. Their setting is the mod's `Filterable` key, whose
