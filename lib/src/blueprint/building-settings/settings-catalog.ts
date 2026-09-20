@@ -83,6 +83,15 @@ export const CRITTER_COUNT_SENSOR_ID = 'LogicCritterCountSensor';
 // (Filterable.filterElementState), not a user choice. The stored SelectedTag is
 // an element id string ("Oxygen"); NONE_TAG ("Void") is "nothing selected".
 export const NONE_TAG = 'Void';
+//
+// The list is every `Filterable` carrier the game declares that also exists in
+// database-2024.json, taken from the Configs rather than guessed from names:
+// each one's phase is the `filterElementState` its own Config assigns. The
+// decompile has eleven Configs assigning it, plus `DevPump`, which extends
+// Filterable and assigns `filterElementState = this.elementState` on spawn.
+// `elementSensorFilterableCarriers` in the spec walks the shipped database
+// against this table so a future import cannot quietly add a carrier we then
+// render with the wrong element pool.
 export const FILTERABLE_BUILDINGS: Record<string, string> = {
   LogicElementSensorGas: 'Gas',
   LogicElementSensorLiquid: 'Liquid',
@@ -91,6 +100,27 @@ export const FILTERABLE_BUILDINGS: Record<string, string> = {
   SolidConduitElementSensor: 'Solid',
   GasFilter: 'Gas',
   LiquidFilter: 'Liquid',
+
+  // Missed when this table first shipped (#244). Without an entry a building
+  // still shows an Element row -- the catalogue has the `Filterable` key -- but
+  // the picker falls back to the default Gas/Liquid pool and there is no Set
+  // button, because the creatable-key registration below only walks this table.
+  // A Solid Filter was therefore unsettable and offered the wrong elements.
+  SolidFilter: 'Solid',
+  RocketInteriorGasOutput: 'Gas',
+  RocketInteriorLiquidOutput: 'Liquid',
+  RocketInteriorSolidOutput: 'Solid',
+
+  // DevPump{Gas,Liquid,Solid}. Debug buildings, and included deliberately:
+  // `DebugOnly` is not `Deprecated` -- the game reveals these in a debug build
+  // menu rather than hiding them everywhere (BuildingDef: `!Deprecated &&
+  // (!DebugOnly || Game.Instance.DebugOnlyBuildingsAllowed)`) -- and this site's
+  // build menu offers them unconditionally, so a blueprint here can already
+  // contain one. They carry a real phase: DevPump.OnSpawn assigns
+  // `filterElementState = this.elementState`, which each Config sets.
+  DevPumpGas: 'Gas',
+  DevPumpLiquid: 'Liquid',
+  DevPumpSolid: 'Solid',
 };
 
 export function filterableBuildingForceTag(prefabId: string): string | undefined {

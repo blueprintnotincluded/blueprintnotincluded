@@ -6,6 +6,7 @@ import {
   BniBuildingData,
   BuildableElement,
   creatableSettingsKeysFor,
+  FILTERABLE_BUILDINGS,
   formatBuildingDataEntry,
   getCreatableSettingDefaults,
   isKnownSettingsKey,
@@ -187,6 +188,58 @@ describe('building-settings catalogue', function () {
       expect(
         getCreatableSettingDefaults('GasConduitElementSensor', 'Filterable')
       ).to.deep.equal({ SelectedTag: 'Void' });
+    });
+
+    // The table first shipped with 7 of these and the game declares more, which
+    // is not a failure any of the specs above could see: a missing prefab still
+    // renders an Element row (the catalogue has the key), it just falls back to
+    // the default element pool and loses its Set button, because the creatable
+    // registration only walks FILTERABLE_BUILDINGS. So assert the whole set
+    // against the shipped database rather than spot-checking members.
+    //
+    // Carriers are every Config in the decompile that assigns
+    // `Filterable.filterElementState`, plus the three DevPumps, which get theirs
+    // from DevPump.OnSpawn. The phase on each line is that Config's own value.
+    const FILTERABLE_CARRIERS: Record<string, string> = {
+      LogicElementSensorGas: 'Gas',
+      LogicElementSensorLiquid: 'Liquid',
+      GasConduitElementSensor: 'Gas',
+      LiquidConduitElementSensor: 'Liquid',
+      SolidConduitElementSensor: 'Solid',
+      GasFilter: 'Gas',
+      LiquidFilter: 'Liquid',
+      SolidFilter: 'Solid',
+      RocketInteriorGasOutput: 'Gas',
+      RocketInteriorLiquidOutput: 'Liquid',
+      RocketInteriorSolidOutput: 'Solid',
+      DevPumpGas: 'Gas',
+      DevPumpLiquid: 'Liquid',
+      DevPumpSolid: 'Solid',
+    };
+
+    it('covers every Filterable carrier the shipped database actually contains', () => {
+      loadGameDatabase();
+      const known = new Set(OniItem.oniItems.map(item => item.id));
+
+      // Only assert on carriers the database ships; one absent upstream is not
+      // this table's problem, and hardcoding it would rot on the next import.
+      const shipped = Object.keys(FILTERABLE_CARRIERS).filter(id => known.has(id));
+      expect(shipped.length, 'database should ship these carriers').to.be.greaterThan(10);
+
+      for (const prefabId of shipped) {
+        const descriptors = resolveSettingDescriptors(prefabId, 'Filterable');
+        expect(descriptors[0].elementForceTag, prefabId).to.equal(FILTERABLE_CARRIERS[prefabId]);
+        expect(creatableSettingsKeysFor(prefabId), prefabId).to.deep.equal(['Filterable']);
+      }
+    });
+
+    // The other direction: nothing in the table that the database does not ship,
+    // which would be a typo nobody notices because the entry simply never fires.
+    it('names only prefabs that exist in database-2024.json', () => {
+      loadGameDatabase();
+      const known = new Set(OniItem.oniItems.map(item => item.id));
+      for (const prefabId of Object.keys(FILTERABLE_BUILDINGS))
+        expect(known.has(prefabId), prefabId).to.equal(true);
     });
   });
 });
