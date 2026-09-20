@@ -31,6 +31,7 @@ export interface BBuildingDef2024 {
     isKAnimTile: boolean;
     isUtility: boolean;
     dragBuild: boolean;
+    deprecated?: boolean;
     buildLocationRule: number;
     permittedRotations: number;
     sceneLayer: number;

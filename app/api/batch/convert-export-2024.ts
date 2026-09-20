@@ -674,6 +674,8 @@ export function convertExport2024(opts: ConvertOptions): void {
 
   // --- Build menu items: dict-of-pairs -> flat array ---
   const buildMenuItems: { category: number; buildingId: string }[] = [];
+  const deprecatedPrefabs = new Set(buildings.filter(b => b.deprecated).map(b => b.prefabId));
+  const deprecatedMenuBuildings: string[] = [];
   for (const [categoryName, pairs] of Object.entries(
     buildingFile.buildingAndSubcategoryDataPairs
   )) {
@@ -684,6 +686,15 @@ export function convertExport2024(opts: ConvertOptions): void {
     }
     for (const pair of pairs) {
       if (!buildingPrefabs.has(pair.Key)) missingMenuBuildings.push(pair.Key);
+      // Deprecated buildings stay in `buildings` -- a blueprint that already contains one
+      // must still load, render and be deletable -- but they must not be offered here.
+      // buildingAndSubcategoryDataPairs is plan order, and plan order is not menu
+      // reachability: the game filters separately on BuildingDef.Deprecated, so several of
+      // these hold a PLANORDER position they can never be built from.
+      if (deprecatedPrefabs.has(pair.Key)) {
+        deprecatedMenuBuildings.push(pair.Key);
+        continue;
+      }
       buildMenuItems.push({ category: categoryId, buildingId: pair.Key });
     }
   }
@@ -769,6 +780,11 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  uiSprites (flat)   :', uiSprites.length);
   console.log('  buildMenuCategories:', buildMenuCategories.length);
   console.log('  buildMenuItems     :', buildMenuItems.length);
+  console.log(
+    '  deprecated hidden  :',
+    deprecatedMenuBuildings.length,
+    deprecatedMenuBuildings.length > 0 ? `(${deprecatedMenuBuildings.join(', ')})` : ''
+  );
   console.log('  terrainFeatures    :', terrainFeatures.length);
   console.log('  ui_image PNGs      :', uiImageFiles.size);
   console.log('  english strings    :', Object.keys(englishStrings).length);
@@ -1405,6 +1421,7 @@ function buildingRecord(
     isBridge: false, // not present in 2024 export
     drawSolid: false,
     dragBuild: b.dragBuild,
+    deprecated: b.deprecated === true,
     backColor: BACK_COLOR_BY_PREFAB[b.name] ?? 0xffffff,
     sizeInCells: { x: b.widthInCells, y: b.heightInCells },
     sceneLayer: b.sceneLayer,

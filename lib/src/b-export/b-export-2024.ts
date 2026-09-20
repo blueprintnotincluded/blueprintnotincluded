@@ -61,6 +61,11 @@ export interface BBuildingDef2024 {
   isKAnimTile: boolean;
   isUtility: boolean;
   dragBuild: boolean;
+  // BuildingDef.Deprecated: legacy content the game keeps loadable but never offers in the
+  // build menu, in any mode. Optional because exports taken before OniExtract2024#5 do not
+  // carry it; absent means "not deprecated", which is the safe reading -- it leaves the
+  // menu exactly as it is today rather than hiding something wrongly.
+  deprecated?: boolean;
 
   buildLocationRule: number;
   permittedRotations: number;

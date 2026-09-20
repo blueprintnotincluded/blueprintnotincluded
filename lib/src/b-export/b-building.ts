@@ -41,6 +41,13 @@ export class BBuilding {
   sprites: BSpriteGroup = new BSpriteGroup('default');
 
   dragBuild: boolean = false;
+
+  // Legacy content the game never offers in its build menu (BuildingDef.Deprecated).
+  // Kept on the building rather than dropped at import: a blueprint saved before this
+  // landed can already contain one, and it still has to load, render and be deletable.
+  // What it must not do is appear in the build menu -- see buildMenuItems in
+  // convert-export-2024.ts.
+  deprecated: boolean = false;
   objectLayer: number = 0;
   permittedRotations: PermittedRotations = PermittedRotations.Unrotatable;
   buildLocationRule: BuildLocationRule = BuildLocationRule.Anywhere;
