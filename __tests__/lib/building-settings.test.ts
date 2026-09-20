@@ -241,6 +241,32 @@ describe('formatBuildingDataEntry', function () {
     expect(rows.find(r => r.field == 'duration')!.text).to.equal('0.1% of cycle');
   });
 
+  // Issue #238, verified in game on all three carriers. The stored value is the
+  // side screen's own number (0-100), and the field names are inverted against
+  // it: ActivateValue is the HIGH threshold. Both halves are asserted here
+  // because the old catalogue got the second one backwards while looking right.
+  it('labels IActivationRangeTarget high/low and shows the stored percent as-is', () => {
+    const rows = formatBuildingDataEntry({
+      Key: 'IActivationRangeTarget',
+      Value: { ActivateValue: 80, DeactivateValue: 20 },
+    })!;
+    expect(rows).to.deep.equal([
+      { field: 'ActivateValue', label: 'High threshold', text: '80%' },
+      { field: 'DeactivateValue', label: 'Low threshold', text: '20%' },
+    ]);
+  });
+
+  it('does not rescale IActivationRangeTarget, whose stored value is already 0-100', () => {
+    for (const field of ['ActivateValue', 'DeactivateValue']) {
+      const descriptor = SETTINGS_CATALOG.IActivationRangeTarget.find(d => d.field == field)!;
+      // `unit: '%'` would have put it through displayScaleOf's x100; unitSuffix
+      // is display-only, which is why the descriptor uses that instead.
+      expect(descriptor.unit).to.equal(undefined);
+      expect(toDisplayValue(descriptor, 80)).to.equal(80);
+      expect(toStoredValue(descriptor, 80)).to.equal(80);
+    }
+  });
+
   it('renders selectedBit with the bit unit', () => {
     const rows = formatBuildingDataEntry({
       Key: 'LogicRibbonReader',

@@ -129,6 +129,11 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
     { field: 'displayCyclesMode', labelKey: 'Display in cycles', type: 'bool' },
   ],
 
+  // Verified in game (issue #238): both fields are a 0-1 fraction of the cycle,
+  // not seconds into it as a secondhand buildingData reference claimed. Set to
+  // 30% / 15% on the side screen, a copy exports startTime 0.2966114 and
+  // duration 0.151766792; seconds would have stored 180 and 90. The percentage
+  // display below is therefore correct as it stands.
   LogicTimeOfDaySensor: [
     { field: 'startTime', labelKey: 'Start time', type: 'float', unit: 'cycleFraction', min: 0, max: 1 },
     { field: 'duration', labelKey: 'Duration', type: 'float', unit: 'cycleFraction', min: 0, max: 1 },
@@ -186,9 +191,38 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
     { field: 'Threshold', labelKey: 'Threshold', type: 'float' },
   ],
 
+  // Verified in game (issue #238) on all three carriers a copy can produce --
+  // Smart Battery, Liquid Reservoir, Gas Reservoir. Each stores the side
+  // screen's own numbers raw, 0-100, NOT normalised 0-1 as a secondhand
+  // buildingData reference claimed: set high 80 / low 20, all three export
+  // `ActivateValue: 80, DeactivateValue: 20`.
+  //
+  // The component's field names are inverted relative to what the player sees.
+  // `ActivateValue` holds the HIGH threshold and `DeactivateValue` the LOW one,
+  // so the catalogue's original "Activate value" label named 80 as the value
+  // that turns the building on -- the opposite of what it does. The game's own
+  // side screens say high/low on every carrier, so these are flat labels rather
+  // than a per-prefab override through resolveSettingDescriptors.
+  //
+  // unitSuffix, not `unit: '%'`: the stored value is already 0-100, and `unit`
+  // would put it through displayScaleOf's x100.
   IActivationRangeTarget: [
-    { field: 'ActivateValue', labelKey: 'Activate value', type: 'float' },
-    { field: 'DeactivateValue', labelKey: 'Deactivate value', type: 'float' },
+    {
+      field: 'ActivateValue',
+      labelKey: 'High threshold',
+      type: 'float',
+      unitSuffix: '%',
+      min: 0,
+      max: 100,
+    },
+    {
+      field: 'DeactivateValue',
+      labelKey: 'Low threshold',
+      type: 'float',
+      unitSuffix: '%',
+      min: 0,
+      max: 100,
+    },
   ],
 
   BuildingEnabledButton: [{ field: 'IsEnabled', labelKey: 'Enabled', type: 'bool' }],

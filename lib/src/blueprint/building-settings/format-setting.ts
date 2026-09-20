@@ -59,7 +59,11 @@ function formatFieldValue(
       // unit switch below stays for the symbolic units that predate it.
       if (descriptor.unitSuffix != null) {
         const display = formatNumber(toDisplayValue(descriptor, raw), descriptor.decimals ?? 2);
-        return descriptor.unitSuffix === '' ? display : `${display} ${descriptor.unitSuffix}`;
+        if (descriptor.unitSuffix === '') return display;
+        // Unit words get a space ('80 g', '20 °C'); '%' binds tight, matching
+        // both the game's side screens and the `unit` cases below.
+        const separator = descriptor.unitSuffix === '%' ? '' : ' ';
+        return `${display}${separator}${descriptor.unitSuffix}`;
       }
       switch (descriptor.unit) {
         case 's':
