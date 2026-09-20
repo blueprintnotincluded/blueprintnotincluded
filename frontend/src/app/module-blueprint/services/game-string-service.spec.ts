@@ -60,6 +60,50 @@ describe("GameStringService", () => {
     });
   });
 
+  describe("getStrOr", () => {
+    it("prefers the game string when the key resolves", async () => {
+      const service = setup();
+      httpMock.expectOne(STRINGS_FILE).flush({ GREETING: "Hi" });
+      expect(await service.getStrOr("GREETING", "fallback")).toBe("Hi");
+    });
+
+    // The modded-building case. strings.json comes from Klei's po_string.json, which no
+    // mod writes into, so every modded prefab misses its key. Without a fallback the
+    // caller assigned `undefined` over a perfectly good catalogue name.
+    it("falls back to the catalogue name when the key is missing", async () => {
+      const service = setup();
+      httpMock.expectOne(STRINGS_FILE).flush({ KNOWN: "Hi" });
+      expect(await service.getStrOr("ABSENT", "SolidSplitter Mk.II")).toBe(
+        "SolidSplitter Mk.II",
+      );
+    });
+
+    // Catalogue names keep their Klei rich-text wrappers, so an unstripped fallback
+    // would put the raw markup on screen.
+    it("strips markup from the fallback", async () => {
+      const service = setup();
+      httpMock.expectOne(STRINGS_FILE).flush({});
+      expect(
+        await service.getStrOr(
+          "STRINGS.BUILDINGS.PREFABS.MJSPLITTERMKIISOLID.NAME",
+          '<link="MJSPLITTERMKIISOLID">SolidSplitter Mk.II</link>',
+        ),
+      ).toBe("SolidSplitter Mk.II");
+    });
+
+    it("falls back when the key resolves to an empty string", async () => {
+      const service = setup();
+      httpMock.expectOne(STRINGS_FILE).flush({ EMPTY: "" });
+      expect(await service.getStrOr("EMPTY", "Drain")).toBe("Drain");
+    });
+
+    it("never returns undefined for a missing key", async () => {
+      const service = setup();
+      httpMock.expectOne(STRINGS_FILE).flush({});
+      expect(await service.getStrOr("ABSENT", "Vacuum Pump")).toBeDefined();
+    });
+  });
+
   describe("markup stripping", () => {
     async function strip(rawValue: string): Promise<string> {
       const service = setup();
