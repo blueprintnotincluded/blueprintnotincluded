@@ -300,6 +300,240 @@ describe('Blueprint preview images', function () {
     });
   });
 
+  // ─── OOM containment ───────────────────────────────────────────────────────
+  //
+  // A render that exhausts the worker's heap aborts the process. Nothing used
+  // to record that, so every later request for the same preview forked another
+  // worker to die the same way — a demand-driven crash loop that starved one
+  // shared vCPU until /api/health stopped answering. These cover the two
+  // defences: remember the failure, and refuse the renders that cannot fit.
+
+  describe('failed-render containment', function () {
+    let cacheDir: string;
+
+    beforeEach(function () {
+      cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-oom-'));
+    });
+
+    afterEach(function () {
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
+    const mdbWith = (itemCount: number) => ({
+      blueprintItems: Array.from({ length: itemCount }, () => ({ id: 'Generator' })),
+    });
+
+    it('does not re-render a blueprint whose render already failed', async function () {
+      let renders = 0;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => {
+          renders++;
+          throw new Error('worker exited (code=null, signal=SIGABRT)');
+        },
+      });
+      const modifiedAt = new Date();
+      const loadMdb = async () => mdbWith(10);
+
+      expect(await service.getVariant(blueprintId, modifiedAt, 'card.webp', loadMdb)).to.equal(
+        null
+      );
+      expect(renders).to.equal(1);
+
+      // The whole point: repeats short-circuit to the legacy-thumbnail
+      // fallback instead of forking a worker to crash again.
+      for (const variant of ['card.webp', 'hero.webp', 'og.png'] as const) {
+        expect(await service.getVariant(blueprintId, modifiedAt, variant, loadMdb)).to.equal(null);
+      }
+      expect(renders).to.equal(1);
+      expect(service.failedRenderCount).to.equal(1);
+    });
+
+    it('short-circuits without even loading the blueprint again', async function () {
+      let loads = 0;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => {
+          throw new Error('worker exploded');
+        },
+      });
+      const modifiedAt = new Date();
+      const loadMdb = async () => {
+        loads++;
+        return mdbWith(10);
+      };
+
+      await service.getVariant(blueprintId, modifiedAt, 'card.webp', loadMdb);
+      await service.getVariant(blueprintId, modifiedAt, 'card.webp', loadMdb);
+      await service.getVariant(blueprintId, modifiedAt, 'card.webp', loadMdb);
+      expect(loads).to.equal(1);
+    });
+
+    it('retries once the blueprint is edited (a new modifiedAt clears the entry)', async function () {
+      let renders = 0;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => {
+          renders++;
+          throw new Error('worker exploded');
+        },
+      });
+      const loadMdb = async () => mdbWith(10);
+
+      await service.getVariant(blueprintId, new Date(1000), 'card.webp', loadMdb);
+      await service.getVariant(blueprintId, new Date(1000), 'card.webp', loadMdb);
+      expect(renders).to.equal(1);
+
+      // Edited: it may well render now, so it earns a fresh attempt.
+      await service.getVariant(blueprintId, new Date(2000), 'card.webp', loadMdb);
+      expect(renders).to.equal(2);
+      // ...and the new failure replaces the old entry rather than adding one.
+      expect(service.failedRenderCount).to.equal(1);
+
+      await service.getVariant(blueprintId, new Date(2000), 'card.webp', loadMdb);
+      expect(renders).to.equal(2);
+    });
+
+    it('treats a blueprint with no modifiedAt as its own cache key', async function () {
+      let renders = 0;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => {
+          renders++;
+          throw new Error('worker exploded');
+        },
+      });
+      const loadMdb = async () => mdbWith(10);
+
+      await service.getVariant(blueprintId, null, 'card.webp', loadMdb);
+      await service.getVariant(blueprintId, null, 'card.webp', loadMdb);
+      expect(renders).to.equal(1);
+    });
+
+    it('does not blacklist a blueprint that was merely shed by a full queue', async function () {
+      // A shed render says the server was busy, not that this blueprint is
+      // unrenderable — caching it would be a self-inflicted outage.
+      const fakeMaster = await sharp({
+        create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+      let releaseFirst!: () => void;
+      const firstStarted = new Promise<void>(resolve => {
+        releaseFirst = resolve;
+      });
+      let renderStarted = false;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderQueueMax: 1,
+        renderMasterFn: async () => {
+          renderStarted = true;
+          await firstStarted;
+          return fakeMaster;
+        },
+      });
+      const loadMdb = async () => mdbWith(10);
+      const shedId = new Types.ObjectId().toString();
+
+      const first = service.getVariant(new Types.ObjectId().toString(), null, 'card.webp', loadMdb);
+      await waitFor(() => renderStarted);
+      expect(await service.getVariant(shedId, null, 'card.webp', loadMdb)).to.equal(null);
+      releaseFirst();
+      await first;
+
+      expect(service.failedRenderCount).to.equal(0);
+      // Proves it: the shed blueprint renders on the next request.
+      expect(await service.getVariant(shedId, null, 'card.webp', loadMdb)).to.not.equal(null);
+    });
+
+    it('refuses to render a blueprint over the item-count guard', async function () {
+      let renders = 0;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        maxRenderItems: 100,
+        renderMasterFn: async () => {
+          renders++;
+          throw new Error('should never be reached');
+        },
+      });
+
+      const result = await service.getVariant(blueprintId, new Date(), 'card.webp', async () =>
+        mdbWith(101)
+      );
+      expect(result).to.equal(null);
+      // Refused pre-flight: no worker was asked to render it at all.
+      expect(renders).to.equal(0);
+      expect(service.failedRenderCount).to.equal(1);
+    });
+
+    it('renders a blueprint at exactly the guard threshold', async function () {
+      const fakeMaster = await sharp({
+        create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        maxRenderItems: 100,
+        renderMasterFn: async () => fakeMaster,
+      });
+
+      const result = await service.getVariant(blueprintId, new Date(), 'card.webp', async () =>
+        mdbWith(100)
+      );
+      expect(result).to.not.equal(null);
+      expect(service.failedRenderCount).to.equal(0);
+    });
+
+    it('passes the blueprint id and item count to the renderer so a crash names itself', async function () {
+      const fakeMaster = await sharp({
+        create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+      let seen: { blueprintId: string; itemCount: number } | undefined;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async (_mdb, context) => {
+          seen = context;
+          return fakeMaster;
+        },
+      });
+
+      await service.getVariant(blueprintId, new Date(), 'card.webp', async () => mdbWith(42));
+      expect(seen).to.deep.equal({ blueprintId, itemCount: 42 });
+    });
+
+    it('prerender also respects the negative cache', async function () {
+      let renders = 0;
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => {
+          renders++;
+          throw new Error('worker exploded');
+        },
+      });
+      const modifiedAt = new Date();
+      const loadMdb = async () => mdbWith(10);
+
+      await service.getVariant(blueprintId, modifiedAt, 'card.webp', loadMdb);
+      expect(renders).to.equal(1);
+
+      service.prerender(blueprintId, modifiedAt, loadMdb);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(renders).to.equal(1);
+    });
+  });
+
   // ─── Render on write (spec/social/preview-images-perf-2.md Phase 2) ─────────
 
   describe('render on write', function () {
