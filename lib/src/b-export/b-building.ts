@@ -48,6 +48,11 @@ export class BBuilding {
   // What it must not do is appear in the build menu -- see buildMenuItems in
   // convert-export-2024.ts.
   deprecated: boolean = false;
+
+  // Development-only content (BuildingDef.DebugOnly), kept for the same reason as
+  // `deprecated`: hidden from the build menu, but still loadable so a blueprint that
+  // already contains one renders and can be deleted.
+  debugOnly: boolean = false;
   objectLayer: number = 0;
   permittedRotations: PermittedRotations = PermittedRotations.Unrotatable;
   buildLocationRule: BuildLocationRule = BuildLocationRule.Anywhere;

@@ -33,6 +33,7 @@ export declare class BBuilding {
     sprites: BSpriteGroup;
     dragBuild: boolean;
     deprecated: boolean;
+    debugOnly: boolean;
     objectLayer: number;
     permittedRotations: PermittedRotations;
     buildLocationRule: BuildLocationRule;
