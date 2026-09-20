@@ -10,7 +10,7 @@
 // serialization: 'advanced' so Buffers cross the channel natively, no base64).
 // The master crosses as raw RGBA pixels: no PNG encode here, no PNG decode in
 // the parent — sharp ingests the raw buffer directly.
-//   parent -> worker: { type: 'render', requestId, mdb, size }
+//   parent -> worker: { type: 'render', requestId, mdb, size, blueprintId, itemCount }
 //   worker -> parent: { type: 'ready' }
 //                     { type: 'rendered', requestId, raw: Buffer, width, height, timings }
 //                     { type: 'error', requestId, message }
@@ -19,6 +19,7 @@
 // exits 0/1 — run inside the deploy image to validate native deps + assets.
 import * as fs from 'fs';
 import * as path from 'path';
+import * as v8 from 'v8';
 
 import {
   Blueprint as SharedBlueprint,
@@ -90,9 +91,12 @@ function initSharedLib() {
   TerrainFeature.load(json.terrainFeatures as BTerrainFeature[]);
 }
 
+function rssMb(): number {
+  return Math.round(process.memoryUsage().rss / (1024 * 1024));
+}
+
 function logRss(label: string) {
-  const rssMb = Math.round(process.memoryUsage().rss / (1024 * 1024));
-  console.log(`preview-render-worker: ${label} rss=${rssMb}MB`);
+  console.log(`preview-render-worker: ${label} rss=${rssMb()}MB`);
 }
 
 // Every image id a render of this blueprint can request. Static walk of the
@@ -294,6 +298,13 @@ interface RenderTimings {
   texturesMs: number;
   rasterizeMs: number;
   extractMs: number;
+  /**
+   * Highest RSS seen across the render's phase boundaries. Sampled there
+   * rather than on a timer because the rasterize loop is synchronous — a
+   * timer never gets a turn, so it would report the idle figure and call it
+   * a peak.
+   */
+  peakRssMb: number;
 }
 
 // Pixel geometry of the render: the size of one cell, and where cell (0,0)'s
@@ -322,15 +333,22 @@ async function renderMaster(
   mdb: MdbBlueprint,
   size: number
 ): Promise<MasterPixels> {
+  let peakRssMb = rssMb();
+  const sampleRss = () => {
+    peakRssMb = Math.max(peakRssMb, rssMb());
+  };
+
   const importStart = Date.now();
   const blueprint = new SharedBlueprint();
   blueprint.importFromMdb(mdb);
   if (blueprint.blueprintItems.length === 0) throw new Error('empty blueprint');
 
   const texturesStart = Date.now();
+  sampleRss();
   await ensureTextures(pixi, assetBaseDir, collectImageIds(blueprint));
 
   const rasterizeStart = Date.now();
+  sampleRss();
   const [topLeft, bottomRight] = blueprint.getBoundingBox();
   const totalTileSize = new Vector2(bottomRight.x - topLeft.x + 3, bottomRight.y - topLeft.y + 3);
   const maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
@@ -365,8 +383,10 @@ async function renderMaster(
   // in the parent) was pure overhead — the master is consumed once and thrown
   // away.
   const extractStart = Date.now();
+  sampleRss();
   const pixels: Uint8ClampedArray = pixi.pixiApp.renderer.plugins.extract.pixels(renderTexture);
   const raw = Buffer.from(pixels.buffer, pixels.byteOffset, pixels.byteLength);
+  sampleRss();
 
   exportCamera.container.destroy({ children: true });
   baseRenderTexture.destroy();
@@ -389,6 +409,7 @@ async function renderMaster(
       texturesMs: rasterizeStart - texturesStart,
       rasterizeMs: extractStart - rasterizeStart,
       extractMs: Date.now() - extractStart,
+      peakRssMb,
     },
   };
 }
@@ -438,7 +459,11 @@ async function main() {
   // Resolved (and logged) up front — including under --smoke, so the deploy
   // image check in CI shows the cap the production container will run with.
   const { maxRssMb, detail } = resolveMaxRssMb();
-  console.log(`preview-render-worker: ${detail}`);
+  // heap_size_limit is what --max-old-space-size actually produced. Logged
+  // because the ceiling is the difference between a render that finishes and
+  // one that aborts the process, and until now it was only inferable.
+  const heapLimitMb = Math.round(v8.getHeapStatistics().heap_size_limit / (1024 * 1024));
+  console.log(`preview-render-worker: ${detail}, v8 heap limit ${heapLimitMb}MB`);
 
   initSharedLib();
   const pixi = new PixiNodeUtil({ forceCanvas: true, preserveDrawingBuffer: true });
@@ -466,7 +491,13 @@ async function main() {
 
   process.on('message', async (message: any) => {
     if (!message || message.type !== 'render') return;
-    const { requestId, mdb, size } = message;
+    const { requestId, mdb, size, blueprintId, itemCount } = message;
+    // Announced *before* the render, because a render that exhausts the heap
+    // aborts the process and never gets to log anything afterwards. Without
+    // this line a crash is anonymous and the id has to be reconstructed from
+    // Mongo — which is exactly how this bug had to be investigated.
+    const label = `${blueprintId ?? 'unknown'} (${itemCount ?? '?'} items)`;
+    console.log(`preview-render-worker: rendering ${label} request ${requestId} rss=${rssMb()}MB`);
     rendersInFlight++;
     try {
       let reply: object;
@@ -481,22 +512,21 @@ async function main() {
         reply = { type: 'rendered', requestId, raw, width, height, framing, timings };
         phases =
           ` import=${timings.importMs}ms textures=${timings.texturesMs}ms` +
-          ` rasterize=${timings.rasterizeMs}ms extract=${timings.extractMs}ms`;
+          ` rasterize=${timings.rasterizeMs}ms extract=${timings.extractMs}ms` +
+          ` peakRss=${timings.peakRssMb}MB`;
       } catch (e) {
         reply = { type: 'error', requestId, message: e instanceof Error ? e.message : String(e) };
       }
       // Wait for the IPC channel to flush the reply: process.exit in the
       // recycle check below would otherwise drop a still-queued message.
       await new Promise<void>(resolve => process.send!(reply, () => resolve()));
-      logRss(`handled request ${requestId}${phases}`);
+      logRss(`handled request ${requestId} ${label}${phases}`);
     } finally {
       rendersInFlight--;
     }
-    const rssMb = process.memoryUsage().rss / (1024 * 1024);
-    if (rendersInFlight === 0 && rssMb > maxRssMb) {
-      console.log(
-        `preview-render-worker: rss ${Math.round(rssMb)}MB over ${maxRssMb}MB cap, recycling`
-      );
+    const currentRssMb = rssMb();
+    if (rendersInFlight === 0 && currentRssMb > maxRssMb) {
+      console.log(`preview-render-worker: rss ${currentRssMb}MB over ${maxRssMb}MB cap, recycling`);
       process.exit(0);
     }
   });
