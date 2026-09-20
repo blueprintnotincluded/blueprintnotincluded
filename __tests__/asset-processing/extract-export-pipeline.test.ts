@@ -44,7 +44,10 @@ describe('Extract Export Pipeline Tests', () => {
       expect(db.buildings.length).to.equal(487);
       expect(db.elements.length).to.equal(212);
       expect(db.buildMenuCategories.length).to.equal(15);
-      expect(db.buildMenuItems.length).to.equal(402);
+      // 379, not the 402 plan-order entries: 23 of them are deprecated or debug-only
+      // and the game never offers them either. They stay in `buildings` so saved
+      // blueprints still load — only the menu drops them.
+      expect(db.buildMenuItems.length).to.equal(379);
     });
 
     it('should have overlay info sprites in uiSprites', () => {
