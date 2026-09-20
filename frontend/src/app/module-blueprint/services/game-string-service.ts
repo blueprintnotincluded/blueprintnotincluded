@@ -47,4 +47,20 @@ export class GameStringService {
   async getStr(msgctxt: string) {
     return (await this.stringData)[msgctxt];
   }
+
+  // The display name for an id, falling back to the catalogue's own name when the game
+  // has no string for it. Modded content is the reason this exists: strings.json is
+  // flattened from Klei's po_string.json, which no mod writes into, so every modded
+  // prefab misses its STRINGS.*.NAME key.
+  //
+  // The fallback goes through stripMarkup because catalogue names keep their Klei
+  // rich-text wrappers — the converter leaves buildings and elements wrapped precisely
+  // because this service was meant to resolve and strip them. A fallback that skipped
+  // it would render `<link="X">Name</link>` on screen instead.
+  async getStrOr(msgctxt: string, fallback: string): Promise<string> {
+    const value = (await this.stringData)[msgctxt];
+    if (value) return value;
+    console.warn("Missing game string, using the catalogue name", msgctxt);
+    return stripMarkup(fallback);
+  }
 }

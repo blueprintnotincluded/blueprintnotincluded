@@ -270,24 +270,20 @@ export class ComponentBlueprintParentComponent
 
                 const elements: BuildableElement[] = json.elements;
                 for (const e of elements) {
-                  const localizedName = await this.gameStringService.getStr(
+                  e.name = await this.gameStringService.getStrOr(
                     `STRINGS.ELEMENTS.${e.id.toUpperCase()}.NAME`,
+                    e.name,
                   );
-                  if (!localizedName)
-                    console.warn(`Missing element translation`, e);
-                  e.name = localizedName || e.name;
                 }
                 BuildableElement.load(elements);
 
                 const buildMenuCategories: BuildMenuCategory[] =
                   json.buildMenuCategories;
                 for (const bm of buildMenuCategories) {
-                  const localizedName = await this.gameStringService.getStr(
+                  bm.categoryShowName = await this.gameStringService.getStrOr(
                     `STRINGS.UI.BUILDCATEGORIES.${bm.categoryName.toUpperCase()}.NAME`,
+                    bm.categoryName,
                   );
-                  if (!localizedName)
-                    console.warn(`Missing buildMenuCategory translation`, bm);
-                  bm.categoryShowName = localizedName || bm.categoryName;
                 }
                 BuildMenuCategory.load(buildMenuCategories);
 
@@ -302,12 +298,15 @@ export class ComponentBlueprintParentComponent
 
                 const buildings: BBuilding[] = json.buildings;
                 for (const b of buildings) {
-                  const localizedName = await this.gameStringService.getStr(
+                  // Falls back to the catalogue name, which the element and category
+                  // loops above already did and this one did not: an unresolved key
+                  // wrote `undefined` straight over a name the database was carrying
+                  // correctly. Every modded building hits that path, since no mod
+                  // writes into Klei's po_string.json.
+                  b.name = await this.gameStringService.getStrOr(
                     `STRINGS.BUILDINGS.PREFABS.${b.prefabId.toUpperCase()}.NAME`,
+                    b.name,
                   );
-                  if (!localizedName)
-                    console.warn(`Missing building translation`, b);
-                  b.name = localizedName;
                 }
                 OniItem.load(buildings);
 
