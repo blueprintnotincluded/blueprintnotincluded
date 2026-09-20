@@ -155,11 +155,36 @@ describe("ReplaceElementComponent", () => {
     expect(messageService.add).not.toHaveBeenCalled();
   });
 
+  it("calls out buildings where another X slot could not take Y", () => {
+    const sensor = item(
+      { name: "Gas Germ Sensor", isElement: false, buildableElementsArray: [] },
+      cobalt,
+      cobalt,
+    );
+    const text = ReplaceElementComponent.describe({
+      from: cobalt,
+      to: copper,
+      changes: [
+        { item: sensor, slots: [0], blocked: [1] },
+        { item: sensor, slots: [0], blocked: [1] },
+        { item: item(wireType, cobalt), slots: [0], blocked: [] },
+      ] as any,
+      skipped: [],
+    });
+    expect(text).toBe(
+      "Replaced Cobalt Ore with Copper Ore on 3 buildings (2 only partly: Gas Germ Sensor cannot be made of Copper Ore in every slot)",
+    );
+  });
+
   it("pluralises and lists each skipped building type once", () => {
     const text = ReplaceElementComponent.describe({
       from: cobalt,
       to: copper,
-      changes: [{}, {}, {}] as any,
+      changes: [
+        { item: item(wireType, cobalt), slots: [0], blocked: [] },
+        { item: item(wireType, cobalt), slots: [0], blocked: [] },
+        { item: item(wireType, cobalt), slots: [0], blocked: [] },
+      ] as any,
       skipped: [
         item(trapType, plastic),
         item(wireType, cobalt),

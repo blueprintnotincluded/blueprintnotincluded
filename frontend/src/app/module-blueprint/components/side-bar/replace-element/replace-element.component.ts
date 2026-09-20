@@ -127,19 +127,31 @@ export class ReplaceElementComponent
   }
 
   // "Replaced Cobalt with Copper on 41 buildings (3 skipped: Plastic Ladder
-  // cannot be made of Copper)".
+  // cannot be made of Copper)". A multi-slot building whose other X slot
+  // could not take Y counts as changed but is called out as partial.
   static describe(plan: ReplaceElementPlan): string {
     const changed = plan.changes.length;
     let text = $localize`Replaced ${plan.from.name}:from: with ${plan.to.name}:to: on ${changed}:count: building${
       changed == 1 ? "" : "s"
     }`;
+    const partial = plan.changes.filter((change) => change.blocked.length > 0);
+    if (partial.length > 0) {
+      const names = ReplaceElementComponent.typeNames(
+        partial.map((change) => change.item),
+      );
+      text += $localize` (${partial.length}:count: only partly: ${names}:buildings: cannot be made of ${plan.to.name}:to: in every slot)`;
+    }
     if (plan.skipped.length > 0) {
-      const names: string[] = [];
-      for (const item of plan.skipped)
-        if (names.indexOf(item.oniItem.name) == -1)
-          names.push(item.oniItem.name);
-      text += $localize` (${plan.skipped.length}:count: skipped: ${names.join(", ")}:buildings: cannot be made of ${plan.to.name}:to:)`;
+      const names = ReplaceElementComponent.typeNames(plan.skipped);
+      text += $localize` (${plan.skipped.length}:count: skipped: ${names}:buildings: cannot be made of ${plan.to.name}:to:)`;
     }
     return text;
+  }
+
+  private static typeNames(items: BlueprintItem[]): string {
+    const names: string[] = [];
+    for (const item of items)
+      if (names.indexOf(item.oniItem.name) == -1) names.push(item.oniItem.name);
+    return names.join(", ");
   }
 }
