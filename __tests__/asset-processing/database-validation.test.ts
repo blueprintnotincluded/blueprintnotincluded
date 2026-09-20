@@ -19,31 +19,47 @@ describe('Database Asset Validation', () => {
   const readDatabase = () => JSON.parse(fs.readFileSync(databaseJsonPath, 'utf8'));
   const uiImagePath = path.join(__dirname, '../../assets/ui_image');
 
-  // BuildingDef.Deprecated: legacy content the game keeps loadable but never offers in its
-  // build menu. The export gained the flag in OniExtract2024#5; until an export taken after
-  // that is imported, every building converts with `deprecated: false` and these assertions
-  // hold vacuously. They are the regression guard for afterwards -- the failure they exist
-  // to catch is a future import quietly putting unbuildable buildings back in the menu.
-  describe('Deprecated buildings', () => {
-    it('never offers a deprecated building in the build menu', () => {
-      const database = readDatabase();
-      const deprecated = new Set(
-        (database.buildings as any[]).filter(b => b.deprecated === true).map(b => b.prefabId)
+  // The game hides a building from its build menu when either flag applies:
+  //   !Deprecated && (!DebugOnly || Game.Instance.DebugOnlyBuildingsAllowed)
+  // Deprecated is legacy content, unreachable in every mode; DebugOnly is the "Dev *"
+  // buildings, reachable only with debug mode on. The export gained both flags in
+  // OniExtract2024#5; until an export taken after that is imported, every building converts
+  // with both false and these assertions hold vacuously. They are the regression guard for
+  // afterwards -- the failure they exist to catch is a future import quietly putting
+  // unbuildable buildings back in the menu.
+  describe('Unbuildable buildings', () => {
+    const unbuildable = (db: any) =>
+      new Set(
+        (db.buildings as any[])
+          .filter(b => b.deprecated === true || b.debugOnly === true)
+          .map(b => b.prefabId)
       );
+
+    it('never offers a deprecated or debug-only building in the build menu', () => {
+      const database = readDatabase();
+      const hidden = unbuildable(database);
       const offered = (database.buildMenuItems as any[])
         .map(m => m.buildingId)
-        .filter(id => deprecated.has(id));
-      expect(offered, `deprecated buildings offered in the build menu: ${offered.join(', ')}`).to
+        .filter(id => hidden.has(id));
+      expect(offered, `unbuildable buildings offered in the build menu: ${offered.join(', ')}`).to
         .be.empty;
     });
 
-    it('keeps deprecated buildings in `buildings`, so saved blueprints still load', () => {
+    it('keeps them in `buildings`, so saved blueprints still load', () => {
       const database = readDatabase();
       const ids = new Set((database.buildings as any[]).map(b => b.prefabId));
       // Whatever is flagged must still be present as a building; dropping it from the
       // catalogue entirely would break every blueprint that already contains one.
-      for (const b of (database.buildings as any[]).filter(x => x.deprecated === true))
-        expect(ids.has(b.prefabId), b.prefabId).to.equal(true);
+      for (const prefabId of unbuildable(database))
+        expect(ids.has(prefabId), prefabId).to.equal(true);
+    });
+
+    it('keeps the two flags distinct, since they are different claims', () => {
+      const database = readDatabase();
+      for (const b of database.buildings as any[]) {
+        if ('deprecated' in b) expect(b.deprecated, b.prefabId).to.be.a('boolean');
+        if ('debugOnly' in b) expect(b.debugOnly, b.prefabId).to.be.a('boolean');
+      }
     });
   });
 

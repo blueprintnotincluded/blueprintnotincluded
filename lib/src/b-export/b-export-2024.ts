@@ -66,6 +66,11 @@ export interface BBuildingDef2024 {
   // carry it; absent means "not deprecated", which is the safe reading -- it leaves the
   // menu exactly as it is today rather than hiding something wrongly.
   deprecated?: boolean;
+  // BuildingDef.DebugOnly: development-only content (the "Dev *" buildings), offered in the
+  // game's build menu only when it runs in debug mode. Optional for the same reason as
+  // `deprecated`, and separate from it because the two are different claims -- a DebugOnly
+  // building is reachable in a debug menu, a deprecated one never is.
+  debugOnly?: boolean;
 
   buildLocationRule: number;
   permittedRotations: number;

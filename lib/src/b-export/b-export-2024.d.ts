@@ -32,6 +32,7 @@ export interface BBuildingDef2024 {
     isUtility: boolean;
     dragBuild: boolean;
     deprecated?: boolean;
+    debugOnly?: boolean;
     buildLocationRule: number;
     permittedRotations: number;
     sceneLayer: number;

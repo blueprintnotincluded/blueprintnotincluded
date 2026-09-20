@@ -674,8 +674,15 @@ export function convertExport2024(opts: ConvertOptions): void {
 
   // --- Build menu items: dict-of-pairs -> flat array ---
   const buildMenuItems: { category: number; buildingId: string }[] = [];
-  const deprecatedPrefabs = new Set(buildings.filter(b => b.deprecated).map(b => b.prefabId));
-  const deprecatedMenuBuildings: string[] = [];
+  // Both halves of the game's own menu gate:
+  //   !Deprecated && (!DebugOnly || Game.Instance.DebugOnlyBuildingsAllowed)
+  // Deprecated content is unreachable in every mode; DebugOnly content is reachable only
+  // with debug mode on. Neither belongs in a build menu aimed at players, and they are kept
+  // as separate flags on the building so a consumer can tell them apart later.
+  const hiddenPrefabs = new Set(
+    buildings.filter(b => b.deprecated || b.debugOnly).map(b => b.prefabId)
+  );
+  const hiddenMenuBuildings: string[] = [];
   for (const [categoryName, pairs] of Object.entries(
     buildingFile.buildingAndSubcategoryDataPairs
   )) {
@@ -691,8 +698,8 @@ export function convertExport2024(opts: ConvertOptions): void {
       // buildingAndSubcategoryDataPairs is plan order, and plan order is not menu
       // reachability: the game filters separately on BuildingDef.Deprecated, so several of
       // these hold a PLANORDER position they can never be built from.
-      if (deprecatedPrefabs.has(pair.Key)) {
-        deprecatedMenuBuildings.push(pair.Key);
+      if (hiddenPrefabs.has(pair.Key)) {
+        hiddenMenuBuildings.push(pair.Key);
         continue;
       }
       buildMenuItems.push({ category: categoryId, buildingId: pair.Key });
@@ -781,9 +788,9 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log('  buildMenuCategories:', buildMenuCategories.length);
   console.log('  buildMenuItems     :', buildMenuItems.length);
   console.log(
-    '  deprecated hidden  :',
-    deprecatedMenuBuildings.length,
-    deprecatedMenuBuildings.length > 0 ? `(${deprecatedMenuBuildings.join(', ')})` : ''
+    '  unbuildable hidden :',
+    hiddenMenuBuildings.length,
+    hiddenMenuBuildings.length > 0 ? `(${hiddenMenuBuildings.join(', ')})` : ''
   );
   console.log('  terrainFeatures    :', terrainFeatures.length);
   console.log('  ui_image PNGs      :', uiImageFiles.size);
@@ -1422,6 +1429,7 @@ function buildingRecord(
     drawSolid: false,
     dragBuild: b.dragBuild,
     deprecated: b.deprecated === true,
+    debugOnly: b.debugOnly === true,
     backColor: BACK_COLOR_BY_PREFAB[b.name] ?? 0xffffff,
     sizeInCells: { x: b.widthInCells, y: b.heightInCells },
     sceneLayer: b.sceneLayer,
