@@ -20,6 +20,7 @@ import mongoose from 'mongoose';
 import sharp from 'sharp';
 import { PreviewImageModel } from '../models/preview-image';
 import { buildPreviewGridSvg, PreviewFraming } from './preview-grid';
+import { resolveMaxOldSpaceMb } from './render-memory';
 
 export type PreviewVariant = 'card.webp' | 'hero.webp' | 'og.png';
 
@@ -44,6 +45,66 @@ export const PREVIEW_RENDER_VERSION = 2;
 const RENDER_TIMEOUT_MS = 30_000;
 const WORKER_START_TIMEOUT_MS = 60_000;
 
+// Pre-flight size guard. A render's cost scales with the item count, and past
+// a point no heap ceiling saves it: the worker aborts mid-render, nothing
+// records that it failed, and every later request for that preview forks
+// another worker to die the same way. On one shared vCPU that is enough to
+// starve the event loop and take /api/health down with it.
+//
+// Measured on the real worker (32GB box, `--max-old-space-size=256` — the
+// ceiling a 512MB instance actually runs with), rendering subsamples of
+// 68d6f75bec49e13d5b08791d at the 1200px master size:
+//
+//   items   cold worker           warm worker (5th render)
+//   1,000   ok    (peak 251MB)    ok
+//   2,000   ok    (peak 279MB)    ok
+//   4,000   ok    (peak 393MB)    ok  (peak 446MB)
+//   5,000   ok    (peak 437MB)    SIGABRT
+//   5,500   ok    (peak 444MB)    —
+//   6,000   SIGABRT               —
+//   8,612   SIGABRT               —   (the production crash)
+//
+// A warm worker is the production condition — textures accumulate across
+// renders (ImageSource caches per image id), so the cold numbers are the
+// optimistic case and the real ceiling sits a step below them. 4,000 is the
+// largest size that survived the warm sequence, and is still ~2.5x the top of
+// the typical corpus (250-1,600 items). Over the threshold we serve the
+// legacy save-time thumbnail, which is what a failed render falls back to
+// anyway — the difference is that we no longer pay a worker's life to learn it.
+const DEFAULT_MAX_RENDER_ITEMS = 4000;
+
+// Bounds the negative cache. Failures are rare (three blueprints in 30 days),
+// so this is only here so a pathological run cannot grow the map without
+// limit — same reasoning as MAX_DEDUPE_ENTRIES in blueprint-counter-service.
+const MAX_FAILED_RENDER_ENTRIES = 10_000;
+
+/** The blueprint is too large to render — serve the legacy thumbnail. */
+export class PreviewRenderTooLargeError extends Error {}
+
+/**
+ * This blueprint already failed to render at this modifiedAt; we short-circuit
+ * rather than fork a worker to fail again. Not logged by callers — the give-up
+ * was logged once, when it was recorded.
+ */
+export class PreviewRenderSkippedError extends Error {}
+
+/**
+ * Shed because the render queue was full. Deliberately *not* a reason to
+ * blacklist a blueprint: it says the server was busy, nothing about whether
+ * this blueprint can be rendered.
+ */
+export class PreviewQueueFullError extends Error {}
+
+/** Negative-cache key half: a blueprint with no modifiedAt still needs a slot. */
+function modifiedAtKey(modifiedAt: Date | null | undefined): number {
+  return modifiedAt == null ? -1 : modifiedAt.getTime();
+}
+
+function countBlueprintItems(mdb: unknown): number {
+  const items = (mdb as { blueprintItems?: unknown } | null)?.blueprintItems;
+  return Array.isArray(items) ? items.length : 0;
+}
+
 export interface PreviewRenderResult {
   buffer: Buffer;
   contentType: string;
@@ -61,7 +122,16 @@ export interface RawMaster {
 /** A master render: raw pixels from the worker, or an encoded image (tests). */
 export type MasterImage = Buffer | RawMaster;
 
-type RenderMasterFn = (mdb: unknown) => Promise<MasterImage>;
+/**
+ * Identifies the render to the worker so a crash is self-identifying in the
+ * logs. Optional so the plain `mdb => master` test doubles still typecheck.
+ */
+export interface RenderContext {
+  blueprintId: string;
+  itemCount: number;
+}
+
+type RenderMasterFn = (mdb: unknown, context?: RenderContext) => Promise<MasterImage>;
 
 interface PendingRequest {
   resolve: (master: RawMaster) => void;
@@ -86,6 +156,9 @@ export class PreviewImageService {
   private pending = new Map<number, PendingRequest>();
   private idleTimer: NodeJS.Timeout | null = null;
   private inFlight = new Map<string, Promise<void>>();
+  // blueprintId -> the modifiedAt whose render failed. Bounded and
+  // insertion-ordered, so the oldest entry is the cheap eviction at the cap.
+  private failedRenders = new Map<string, number>();
   private renderQueueTail: Promise<unknown> = Promise.resolve();
   private renderQueueDepth = 0;
 
@@ -93,6 +166,7 @@ export class PreviewImageService {
   private readonly idleShutdownMs: number;
   private readonly renderMasterFn: RenderMasterFn;
   private readonly renderQueueMax: number;
+  private readonly maxRenderItems: number;
   private readonly disabled: boolean;
 
   constructor(options?: {
@@ -100,6 +174,7 @@ export class PreviewImageService {
     renderMasterFn?: RenderMasterFn;
     idleShutdownMs?: number;
     renderQueueMax?: number;
+    maxRenderItems?: number;
     disabled?: boolean;
   }) {
     this.cacheDir =
@@ -111,10 +186,16 @@ export class PreviewImageService {
     // the cold-start path. The RSS recycle remains the memory backstop.
     this.idleShutdownMs =
       options?.idleShutdownMs ?? Number(process.env.PREVIEW_WORKER_IDLE_MS ?? 0);
-    this.renderMasterFn = options?.renderMasterFn ?? (mdb => this.renderMasterInWorker(mdb));
+    this.renderMasterFn =
+      options?.renderMasterFn ?? ((mdb, context) => this.renderMasterInWorker(mdb, context));
     const queueMaxRaw =
       options?.renderQueueMax ?? Number(process.env.PREVIEW_RENDER_QUEUE_MAX ?? 8);
     this.renderQueueMax = Number.isFinite(queueMaxRaw) && queueMaxRaw > 0 ? queueMaxRaw : 8;
+    const maxItemsRaw =
+      options?.maxRenderItems ??
+      Number(process.env.PREVIEW_MAX_RENDER_ITEMS ?? DEFAULT_MAX_RENDER_ITEMS);
+    this.maxRenderItems =
+      Number.isFinite(maxItemsRaw) && maxItemsRaw > 0 ? maxItemsRaw : DEFAULT_MAX_RENDER_ITEMS;
     // Default off in tests (no canvas/PIXI in CI) and behind an env kill switch.
     this.disabled =
       options?.disabled ??
@@ -164,8 +245,13 @@ export class PreviewImageService {
     try {
       await this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
     } catch (e) {
+      // Both of these were already described, once, by recordFailedRender:
+      // a skip is the negative cache doing its job, and a size refusal says
+      // everything in one line. Re-logging them with a stack per request is
+      // exactly the noise this change exists to remove.
       // console.log: the test harness fails any test touching console.error
-      console.log(`Preview render failed for ${blueprintId}:`, e);
+      if (!(e instanceof PreviewRenderSkippedError) && !(e instanceof PreviewRenderTooLargeError))
+        console.log(`Preview render failed for ${blueprintId}:`, e);
       return null;
     }
 
@@ -319,7 +405,10 @@ export class PreviewImageService {
       // without rendering — nothing to do.
       if (await this.allFreshInMongo(blueprintId, modifiedAt)) return;
       await this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
-    })().catch(e => console.log(`preview prerender failed for ${blueprintId}:`, e));
+    })().catch(e => {
+      if (!(e instanceof PreviewRenderSkippedError))
+        console.log(`preview prerender failed for ${blueprintId}:`, e);
+    });
   }
 
   /**
@@ -335,19 +424,73 @@ export class PreviewImageService {
     return this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
   }
 
+  /**
+   * The negative cache: the single change that turns "site down" into "three
+   * blueprints show their old thumbnail".
+   *
+   * A render that aborts the worker used to leave no trace, so every later
+   * request for that preview forked another worker to die the same way — a
+   * demand-driven crash loop that starves one shared vCPU. Remembering the
+   * failure against the blueprint's modifiedAt short-circuits those repeats to
+   * the legacy-thumbnail fallback. A new modifiedAt (the blueprint was edited,
+   * so it may well render now) clears the entry and earns a fresh attempt.
+   *
+   * Deliberately no TTL: the entry is cleared by an edit or by a process
+   * restart, and a timer would just reinstate the retry storm on a schedule.
+   */
   private renderSingleFlight(
     blueprintId: string,
     modifiedAt: Date | null | undefined,
     loadMdb: () => Promise<unknown | null>
   ): Promise<void> {
+    const failedAt = this.failedRenders.get(blueprintId);
+    if (failedAt != null) {
+      if (failedAt === modifiedAtKey(modifiedAt)) {
+        return Promise.reject(
+          new PreviewRenderSkippedError(`preview render previously failed for ${blueprintId}`)
+        );
+      }
+      // Edited since it failed — this is a different blueprint now.
+      this.failedRenders.delete(blueprintId);
+    }
+
     let render = this.inFlight.get(blueprintId);
     if (!render) {
-      render = this.renderAllVariants(blueprintId, modifiedAt, loadMdb).finally(() =>
-        this.inFlight.delete(blueprintId)
-      );
+      render = this.renderAllVariants(blueprintId, modifiedAt, loadMdb)
+        .catch(e => {
+          this.recordFailedRender(blueprintId, modifiedAt, e);
+          throw e;
+        })
+        .finally(() => this.inFlight.delete(blueprintId));
       this.inFlight.set(blueprintId, render);
     }
     return render;
+  }
+
+  /** Remember a failure, evicting the oldest entry at the cap. Logs once. */
+  private recordFailedRender(
+    blueprintId: string,
+    modifiedAt: Date | null | undefined,
+    error: unknown
+  ) {
+    // A shed render says the server was busy, not that this blueprint is
+    // unrenderable — blacklisting it would be a self-inflicted outage.
+    if (error instanceof PreviewQueueFullError) return;
+
+    if (this.failedRenders.size >= MAX_FAILED_RENDER_ENTRIES) {
+      this.failedRenders.delete(this.failedRenders.keys().next().value as string);
+    }
+    this.failedRenders.set(blueprintId, modifiedAtKey(modifiedAt));
+    console.log(
+      `preview render giving up on ${blueprintId} (modifiedAt=${modifiedAt?.toISOString() ?? 'null'}):` +
+        ` ${error instanceof Error ? error.message : String(error)}` +
+        ` — serving the legacy thumbnail until it is edited`
+    );
+  }
+
+  /** Test/diagnostic hook: how many blueprints are currently blacklisted. */
+  public get failedRenderCount(): number {
+    return this.failedRenders.size;
   }
 
   /**
@@ -359,11 +502,12 @@ export class PreviewImageService {
    * legacy thumbnail) instead of holding requests for minutes.
    */
   private enqueueMasterRender(
-    mdb: unknown
+    mdb: unknown,
+    context: RenderContext
   ): Promise<{ master: MasterImage; queueWaitMs: number; masterMs: number; cold: boolean }> {
     if (this.renderQueueDepth >= this.renderQueueMax) {
       return Promise.reject(
-        new Error(`preview render queue full (${this.renderQueueDepth} waiting)`)
+        new PreviewQueueFullError(`preview render queue full (${this.renderQueueDepth} waiting)`)
       );
     }
     this.renderQueueDepth++;
@@ -371,7 +515,7 @@ export class PreviewImageService {
     const render = this.renderQueueTail.then(async () => {
       const startedAt = Date.now();
       const cold = this.worker == null;
-      const master = await this.renderMasterFn(mdb);
+      const master = await this.renderMasterFn(mdb, context);
       return {
         master,
         queueWaitMs: startedAt - enqueuedAt,
@@ -415,12 +559,23 @@ export class PreviewImageService {
     if (mdb == null) throw new Error('blueprint has no data');
     const loadMdbMs = Date.now() - totalStart;
 
+    // Pre-flight: refuse before forking anything. Above the threshold the
+    // worker does not fail, it *dies* — see DEFAULT_MAX_RENDER_ITEMS. The
+    // throw is recorded by the negative cache, so this costs one blueprint
+    // load once, not one per request.
+    const itemCount = countBlueprintItems(mdb);
+    if (itemCount > this.maxRenderItems) {
+      throw new PreviewRenderTooLargeError(
+        `blueprint too large to render (${itemCount} items > ${this.maxRenderItems})`
+      );
+    }
+
     const {
       master: masterImage,
       queueWaitMs,
       masterMs,
       cold,
-    } = await this.enqueueMasterRender(mdb);
+    } = await this.enqueueMasterRender(mdb, { blueprintId, itemCount });
     const derivativesStart = Date.now();
 
     const dir = path.join(this.cacheDir, blueprintId);
@@ -494,7 +649,8 @@ export class PreviewImageService {
     // Phase timings (spec/social/preview-images-perf.md Phase 0). The worker
     // logs its own sub-phases (import/textures/rasterize/encode) per request.
     console.log(
-      `preview render ${blueprintId}: loadMdb=${loadMdbMs}ms queueWait=${queueWaitMs}ms` +
+      `preview render ${blueprintId} (${itemCount} items): loadMdb=${loadMdbMs}ms` +
+        ` queueWait=${queueWaitMs}ms` +
         ` master=${masterMs}ms${cold ? ' (cold)' : ''}` +
         ` derivatives=${mongoStart - derivativesStart}ms` +
         ` mongo=${Date.now() - mongoStart}ms total=${Date.now() - totalStart}ms` +
@@ -504,7 +660,7 @@ export class PreviewImageService {
 
   // --- worker process management ---
 
-  private renderMasterInWorker(mdb: unknown): Promise<RawMaster> {
+  private renderMasterInWorker(mdb: unknown, context?: RenderContext): Promise<RawMaster> {
     return this.ensureWorker().then(
       () =>
         new Promise<RawMaster>((resolve, reject) => {
@@ -518,7 +674,17 @@ export class PreviewImageService {
             reject(new Error('preview render timed out'));
           }, RENDER_TIMEOUT_MS);
           this.pending.set(requestId, { resolve, reject, timer });
-          this.worker!.send({ type: 'render', requestId, mdb, size: MASTER_SIZE });
+          // blueprintId/itemCount are for the worker's logs only: a render
+          // that aborts the process has to name itself, or the id is
+          // recoverable only by working backwards from Mongo.
+          this.worker!.send({
+            type: 'render',
+            requestId,
+            mdb,
+            size: MASTER_SIZE,
+            blueprintId: context?.blueprintId,
+            itemCount: context?.itemCount,
+          });
           this.scheduleIdleShutdown();
         })
     );
@@ -529,8 +695,16 @@ export class PreviewImageService {
 
     const workerModule = path.join(__dirname, 'preview-render-worker');
     const isTs = __filename.endsWith('.ts');
+    // Choose the worker's heap ceiling rather than inheriting whatever V8
+    // derives from os.totalmem(). Same number the instance was already
+    // getting by accident, but now it is a decision, it is logged, and it
+    // does not move when the instance is resized or Node is upgraded.
+    const { maxOldSpaceMb } = resolveMaxOldSpaceMb();
     const worker = fork(workerModule + (isTs ? '.ts' : '.js'), [], {
-      execArgv: isTs ? ['-r', 'ts-node/register/transpile-only'] : [],
+      execArgv: [
+        ...(isTs ? ['-r', 'ts-node/register/transpile-only'] : []),
+        `--max-old-space-size=${maxOldSpaceMb}`,
+      ],
       env: { ...process.env, TS_NODE_TRANSPILE_ONLY: '1' },
       stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
       // Structured clone instead of JSON: the rendered master crosses the
