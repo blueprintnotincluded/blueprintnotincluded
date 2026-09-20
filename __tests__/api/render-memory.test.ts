@@ -7,6 +7,8 @@ import path from 'path';
 import {
   readCgroupMemoryLimitMb,
   resolveMaxRssMb,
+  resolveMaxOldSpaceMb,
+  DEFAULT_MAX_OLD_SPACE_MB,
   PARENT_HEADROOM_MB,
   MIN_RSS_CAP_MB,
   MAX_RSS_CAP_MB,
@@ -14,13 +16,21 @@ import {
 
 describe('resolveMaxRssMb', () => {
   it('uses a valid PREVIEW_WORKER_MAX_RSS_MB verbatim', () => {
-    const { maxRssMb, detail } = resolveMaxRssMb({ env: '250', cgroupLimitMb: 512, totalMemMb: 512 });
+    const { maxRssMb, detail } = resolveMaxRssMb({
+      env: '250',
+      cgroupLimitMb: 512,
+      totalMemMb: 512,
+    });
     expect(maxRssMb).to.equal(250);
     expect(detail).to.contain('PREVIEW_WORKER_MAX_RSS_MB');
   });
 
   it('ignores an invalid env value and derives instead', () => {
-    const { maxRssMb, detail } = resolveMaxRssMb({ env: 'lots', cgroupLimitMb: 512, totalMemMb: 512 });
+    const { maxRssMb, detail } = resolveMaxRssMb({
+      env: 'lots',
+      cgroupLimitMb: 512,
+      totalMemMb: 512,
+    });
     expect(maxRssMb).to.equal(512 - PARENT_HEADROOM_MB);
     expect(detail).to.contain('ignored invalid');
   });
@@ -80,5 +90,27 @@ describe('readCgroupMemoryLimitMb', () => {
     expect(readCgroupMemoryLimitMb(['/nonexistent/memory.max', tempFile('1073741824')])).to.equal(
       1024
     );
+  });
+});
+
+describe('resolveMaxOldSpaceMb', () => {
+  it('defaults to the pinned ceiling rather than whatever V8 derives from os.totalmem()', () => {
+    const { maxOldSpaceMb, detail } = resolveMaxOldSpaceMb({ env: undefined });
+    expect(maxOldSpaceMb).to.equal(DEFAULT_MAX_OLD_SPACE_MB);
+    expect(detail).to.contain('default');
+  });
+
+  it('uses a valid PREVIEW_WORKER_MAX_OLD_SPACE_MB verbatim', () => {
+    const { maxOldSpaceMb, detail } = resolveMaxOldSpaceMb({ env: '512' });
+    expect(maxOldSpaceMb).to.equal(512);
+    expect(detail).to.contain('PREVIEW_WORKER_MAX_OLD_SPACE_MB');
+  });
+
+  it('falls back to the default on a garbage override, and says so', () => {
+    for (const env of ['nonsense', '0', '-64']) {
+      const { maxOldSpaceMb, detail } = resolveMaxOldSpaceMb({ env });
+      expect(maxOldSpaceMb).to.equal(DEFAULT_MAX_OLD_SPACE_MB);
+      expect(detail).to.contain('ignored invalid');
+    }
   });
 });

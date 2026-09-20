@@ -24,6 +24,21 @@ export const PARENT_HEADROOM_MB = 320;
 export const MIN_RSS_CAP_MB = 128;
 export const MAX_RSS_CAP_MB = 384;
 
+// V8 old-space ceiling for the worker, passed as --max-old-space-size when the
+// parent forks it. Until this was set explicitly the worker inherited whatever
+// V8 derives from os.totalmem() — on a 512MB instance that works out to ~256MB,
+// a number nobody chose and that silently moves with the instance size or a
+// Node upgrade. 256MB is that same value, pinned: it is what production has
+// effectively been running, and the item-count ladder below was measured
+// against it.
+//
+// This ceiling is the *backstop*, not the budget control. A heap cap cannot
+// keep a render inside the container — it only decides how a doomed render
+// dies (a fast, contained SIGABRT of the worker rather than the parent being
+// dragged down). PREVIEW_MAX_RENDER_ITEMS in preview-image-service.ts is what
+// actually keeps renders inside the envelope.
+export const DEFAULT_MAX_OLD_SPACE_MB = 256;
+
 const CGROUP_LIMIT_PATHS = [
   '/sys/fs/cgroup/memory.max', // v2
   '/sys/fs/cgroup/memory/memory.limit_in_bytes', // v1
@@ -79,5 +94,39 @@ export function resolveMaxRssMb(opts?: {
     detail:
       `rss cap ${Math.round(maxRssMb)}MB` +
       ` (memory limit ${Math.round(limitMb)}MB via ${source}${invalidEnvNote})`,
+  };
+}
+
+export interface ResolvedHeapCap {
+  maxOldSpaceMb: number;
+  /** Human-readable derivation, logged once at worker startup. */
+  detail: string;
+}
+
+/**
+ * The worker's V8 old-space ceiling. Overridable with
+ * PREVIEW_WORKER_MAX_OLD_SPACE_MB for an instance-size change, so the flag
+ * does not need a deploy to move.
+ */
+export function resolveMaxOldSpaceMb(opts?: { env?: string }): ResolvedHeapCap {
+  const env = opts && 'env' in opts ? opts.env : process.env.PREVIEW_WORKER_MAX_OLD_SPACE_MB;
+  if (env != null) {
+    const fromEnv = Number(env);
+    if (Number.isFinite(fromEnv) && fromEnv > 0) {
+      return {
+        maxOldSpaceMb: fromEnv,
+        detail: `heap cap ${fromEnv}MB (PREVIEW_WORKER_MAX_OLD_SPACE_MB)`,
+      };
+    }
+    return {
+      maxOldSpaceMb: DEFAULT_MAX_OLD_SPACE_MB,
+      detail:
+        `heap cap ${DEFAULT_MAX_OLD_SPACE_MB}MB (default;` +
+        ` ignored invalid PREVIEW_WORKER_MAX_OLD_SPACE_MB "${env}")`,
+    };
+  }
+  return {
+    maxOldSpaceMb: DEFAULT_MAX_OLD_SPACE_MB,
+    detail: `heap cap ${DEFAULT_MAX_OLD_SPACE_MB}MB (default)`,
   };
 }
