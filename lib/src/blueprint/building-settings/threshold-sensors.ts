@@ -132,18 +132,34 @@ function germs(): ThresholdSensorSpec {
 // Deliberately absent:
 //
 //  - PressureSwitchGas, PressureSwitchLiquid, TemperatureControlledSwitch
-//    ("Atmo/Hydro/Thermo Switch"). The 2024 export carries full names,
-//    descriptions and a buildMenuItems entry for all three (filed under
-//    Power/Electrical, not Automation), which is what led an earlier version
-//    of this table to include them. But neither wiki (wiki.gg or Fandom) has
-//    a page for any of them, web search for "Thermo Switch" returns Thermo
-//    *Sensor* results instead, and a live playthrough did not find them in
-//    the Electrical build menu. That combination looks like pre-Automation-
-//    Update legacy data (simple threshold switches, superseded by Sensor +
-//    Logic Gate) that the export tool still dumps because it reads prefab
-//    definitions rather than actual build-menu reachability. Pulled until
-//    someone confirms in a debug/sandbox build menu (which shows disabled
-//    content) whether they're placeable at all.
+//    ("Atmo/Hydro/Thermo Switch"). Confirmed deprecated in the game, so no
+//    blueprint built from a real colony can contain one. All three Configs set
+//
+//        buildingDef.Deprecated = true;
+//
+//    and BuildingDef gates menu visibility on exactly that:
+//
+//        return !this.Deprecated && (!this.DebugOnly || Game.Instance.DebugOnlyBuildingsAllowed);
+//
+//    Note the asymmetry, because an earlier version of this note asked for the
+//    wrong test: it suggested confirming in a debug/sandbox build menu "which
+//    shows disabled content". That would never have worked. Debug mode reveals
+//    DebugOnly buildings; Deprecated ones are excluded unconditionally, in
+//    every mode. The wiki gap and the missing menu entry were correct evidence
+//    after all -- they are pre-Automation-Update simple threshold switches,
+//    superseded by Sensor + Logic Gate.
+//
+//    A PLANORDER position is not menu reachability, which is the trap here:
+//    TUNING/BUILDINGS.cs lists all three under Power > switches, right after
+//    SwitchConfig.ID, and they are still unbuildable.
+//
+//    They do carry a real IThresholdSwitch: `PressureSwitch : CircuitSwitch,
+//    ISaveLoadable, IThresholdSwitch` with [Serialize] float threshold, and the
+//    same for TemperatureControlledSwitch with thresholdTemperature. So if they
+//    are ever restored the units are known -- kg stored / g shown for gas
+//    (rangeMax 2), kg for liquid (rangeMax 2000), Kelvin stored / Celsius shown
+//    (maxTemp 573.15) -- but they should not be while the buildings are
+//    unreachable in game.
 //  - Element sensors (LogicElementSensorGas/Liquid, the conduit element
 //    sensors) and Gas/Liquid Filter have no threshold at all: their setting is
 //    the mod's `Filterable` key (one element id string). Handled via

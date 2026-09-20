@@ -19,6 +19,34 @@ describe('Database Asset Validation', () => {
   const readDatabase = () => JSON.parse(fs.readFileSync(databaseJsonPath, 'utf8'));
   const uiImagePath = path.join(__dirname, '../../assets/ui_image');
 
+  // BuildingDef.Deprecated: legacy content the game keeps loadable but never offers in its
+  // build menu. The export gained the flag in OniExtract2024#5; until an export taken after
+  // that is imported, every building converts with `deprecated: false` and these assertions
+  // hold vacuously. They are the regression guard for afterwards -- the failure they exist
+  // to catch is a future import quietly putting unbuildable buildings back in the menu.
+  describe('Deprecated buildings', () => {
+    it('never offers a deprecated building in the build menu', () => {
+      const database = readDatabase();
+      const deprecated = new Set(
+        (database.buildings as any[]).filter(b => b.deprecated === true).map(b => b.prefabId)
+      );
+      const offered = (database.buildMenuItems as any[])
+        .map(m => m.buildingId)
+        .filter(id => deprecated.has(id));
+      expect(offered, `deprecated buildings offered in the build menu: ${offered.join(', ')}`).to
+        .be.empty;
+    });
+
+    it('keeps deprecated buildings in `buildings`, so saved blueprints still load', () => {
+      const database = readDatabase();
+      const ids = new Set((database.buildings as any[]).map(b => b.prefabId));
+      // Whatever is flagged must still be present as a building; dropping it from the
+      // catalogue entirely would break every blueprint that already contains one.
+      for (const b of (database.buildings as any[]).filter(x => x.deprecated === true))
+        expect(ids.has(b.prefabId), b.prefabId).to.equal(true);
+    });
+  });
+
   describe('Core Database Files', () => {
     it('should have valid database structure', () => {
       expect(fs.existsSync(databaseJsonPath), 'database-2024.json should exist').to.be.true;

@@ -32,6 +32,7 @@ export declare class BBuilding {
     uiScreens: BUiScreen[];
     sprites: BSpriteGroup;
     dragBuild: boolean;
+    deprecated: boolean;
     objectLayer: number;
     permittedRotations: PermittedRotations;
     buildLocationRule: BuildLocationRule;
