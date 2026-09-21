@@ -727,6 +727,112 @@ describe("BuildingSettingsComponent", () => {
     spy.mockRestore();
   });
 
+  it("renders an accepted-materials filter as one chip per tag", () => {
+    // Cuprite resolves to an element (Copper Ore); HatchEgg does not -- the
+    // site has no model for critter/seed tags, and a storage filter carries
+    // them routinely, so the raw name must still be shown.
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet:
+            '[{"Name":"Cuprite","IsValid":true},{"Name":"HatchEgg","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+
+    const row = component.rows.find((r: any) => r.type === "tagSet")!;
+    expect(row.tags!.map((t: any) => t.name)).toEqual(["Cuprite", "HatchEgg"]);
+    expect(component.tagLabel(row.tags![1])).toBe("HatchEgg");
+    expect(
+      fixture.nativeElement.querySelectorAll(".building-setting-tag").length,
+    ).toBe(2);
+  });
+
+  it("adds a picked material, writing the whole set back as a string", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet: '[{"Name":"Cuprite","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+    component.elementPickerRow = component.rows.find(
+      (r: any) => r.type === "tagSet",
+    );
+
+    component.onTagPicked({ id: "Ice" } as any);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "TreeFilterable",
+      "acceptedTagSet",
+      '[{"Name":"Cuprite","IsValid":true},{"Name":"Ice","IsValid":true}]',
+    );
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+  });
+
+  it("ignores a duplicate pick and the None pseudo-element", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet: '[{"Name":"Cuprite","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+    component.elementPickerRow = component.rows.find(
+      (r: any) => r.type === "tagSet",
+    );
+
+    component.onTagPicked({ id: "Cuprite" } as any);
+    component.onTagPicked({ id: "None" } as any);
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+  });
+
+  it("removes a tag through its chip button, including an unresolvable one", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet:
+            '[{"Name":"Cuprite","IsValid":true},{"Name":"HatchEgg","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+
+    const buttons = fixture.nativeElement.querySelectorAll(
+      ".building-setting-tag-remove",
+    );
+    (buttons[1] as HTMLButtonElement).click();
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "TreeFilterable",
+      "acceptedTagSet",
+      '[{"Name":"Cuprite","IsValid":true}]',
+    );
+  });
+
+  it("renders an empty filter without error, and offers no Set button", () => {
+    setItem("StorageLockerSmart", [
+      {
+        Key: "TreeFilterable",
+        Value: { acceptedTagSet: [], onlyFetchMarkedItems: false },
+      },
+    ]);
+
+    const row = component.rows.find((r: any) => r.type === "tagSet")!;
+    expect(row.tags).toEqual([]);
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-tag-empty"),
+    ).not.toBeNull();
+    // Not creatable from scratch: an empty accepted set is gameplay-affecting
+    // and nothing establishes what the game reads it as.
+    expect(component.primaryUnsetLabel).toBeNull();
+  });
+
   it("sets and clears an element sensor's Filterable key", () => {
     setItem("LogicElementSensorGas", [
       { Key: "Switch", Value: { switchedOn: true } },

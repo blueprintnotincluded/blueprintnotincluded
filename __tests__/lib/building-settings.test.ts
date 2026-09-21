@@ -1,11 +1,15 @@
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   Blueprint,
   BlueprintHelpers,
   BniBuildingData,
   BuildableElement,
   creatableSettingsKeysFor,
+  decodeTagSet,
+  encodeTagSet,
   FILTERABLE_BUILDINGS,
   formatBuildingDataEntry,
   getCreatableSettingDefaults,
@@ -43,12 +47,13 @@ describe('building-settings catalogue', function () {
       'BuildingEnabledButton',
       'Automatable',
       'Filterable',
+      'TreeFilterable',
     ];
     for (const key of expectedKeys) expect(isKnownSettingsKey(key)).to.equal(true);
   });
 
   it('does not know keys outside the curated set', () => {
-    for (const key of ['Door', 'Valve', 'PixelPack', 'AccessControl', 'TreeFilterable'])
+    for (const key of ['Door', 'Valve', 'PixelPack', 'AccessControl', 'FlatTagFilterable'])
       expect(isKnownSettingsKey(key)).to.equal(false);
   });
 
@@ -916,5 +921,124 @@ describe('element sensor buildingData round-trip', function () {
   it('BuildableElement.getElementById resolves a stored SelectedTag without throwing', () => {
     expect(BuildableElement.getElementById('Oxygen')?.id).to.equal('Oxygen');
     expect(BuildableElement.getElementById('NotAnElement')).to.equal(undefined);
+  });
+});
+
+// `acceptedTagSet` is stored serialized and two shapes exist in the wild: the
+// JSON string the mod writes and reads, and the decoded array a current build
+// produces. The mod reads the string only -- `t1.Value<string>()` returns null
+// for an array and the filter is lost on apply -- so we read either and always
+// write the string. These specs are that constraint, expressed as tests.
+describe('TreeFilterable accepted-materials filter', function () {
+  it('decodes the JSON-string shape the mod writes', () => {
+    const raw = '[{"Name":"Cuprite","IsValid":true},{"Name":"Ice","IsValid":true}]';
+    expect(decodeTagSet(raw)).to.deep.equal([
+      { Name: 'Cuprite', IsValid: true },
+      { Name: 'Ice', IsValid: true },
+    ]);
+  });
+
+  it('decodes the already-decoded array shape too', () => {
+    expect(decodeTagSet([{ Name: 'Cuprite', IsValid: true }])).to.deep.equal([
+      { Name: 'Cuprite', IsValid: true },
+    ]);
+  });
+
+  it('decodes the real stored filter in the sample export fixture', () => {
+    const fixture = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '../fixtures/bpv2-example-meta.blueprint'), 'utf8')
+    );
+    const entry = fixture.buildings
+      .flatMap((b: any) => b.buildingData ?? [])
+      .find((e: BniBuildingData) => e.Key == 'TreeFilterable' && e.Value?.acceptedTagSet);
+    // The fixture predates the decoded shape, so this is the string form, and
+    // it carries critter/seed tags rather than elements -- the case that stops
+    // this being an element list.
+    expect(typeof entry.Value.acceptedTagSet).to.equal('string');
+    const names = decodeTagSet(entry.Value.acceptedTagSet).map(t => t.Name);
+    expect(names).to.include('HatchEgg');
+    expect(names.every(n => BuildableElement.getElementById(n) == null)).to.equal(true);
+  });
+
+  it('never throws on a malformed or absent value', () => {
+    for (const raw of ['', 'not json', '{}', null, undefined, 42, [1, 2]])
+      expect(decodeTagSet(raw)).to.deep.equal([]);
+  });
+
+  it('drops duplicates, as the HashSet<Tag> on the mod side would', () => {
+    const tags = decodeTagSet('[{"Name":"Ice"},{"Name":"Ice"},{"Name":"Cuprite"}]');
+    expect(tags.map(t => t.Name)).to.deep.equal(['Ice', 'Cuprite']);
+  });
+
+  it('always encodes to the string shape the mod can read', () => {
+    const encoded = encodeTagSet([{ Name: 'Cuprite', IsValid: true }]);
+    expect(encoded).to.be.a('string');
+    expect(JSON.parse(encoded)).to.deep.equal([{ Name: 'Cuprite', IsValid: true }]);
+  });
+
+  it('re-encodes a decoded-array value as a string, without losing it', () => {
+    expect(encodeTagSet(decodeTagSet([{ Name: 'Cuprite', IsValid: true }]))).to.equal(
+      '[{"Name":"Cuprite","IsValid":true}]'
+    );
+  });
+
+  it('formats the filter as its tag names', () => {
+    const rows = formatBuildingDataEntry({
+      Key: 'TreeFilterable',
+      Value: {
+        acceptedTagSet: '[{"Name":"Cuprite","IsValid":true},{"Name":"Ice","IsValid":true}]',
+        onlyFetchMarkedItems: false,
+      },
+    })!;
+    expect(rows.find(r => r.field == 'acceptedTagSet')!.text).to.equal('Cuprite, Ice');
+    expect(rows.find(r => r.field == 'onlyFetchMarkedItems')!.text).to.equal('Off');
+  });
+
+  it('formats an empty filter as None', () => {
+    const rows = formatBuildingDataEntry({
+      Key: 'TreeFilterable',
+      Value: { acceptedTagSet: '[]', onlyFetchMarkedItems: false },
+    })!;
+    expect(rows.find(r => r.field == 'acceptedTagSet')!.text).to.equal('None');
+  });
+});
+
+describe('TreeFilterable round-trip', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  it('exports an edited filter as the string shape, with the other field untouched', () => {
+    const item = BlueprintHelpers.createInstance('SolidConduitInbox')!;
+    item.buildingData = [
+      {
+        Key: 'TreeFilterable',
+        Value: { acceptedTagSet: [{ Name: 'Cuprite', IsValid: true }], onlyFetchMarkedItems: true },
+      },
+    ];
+    item.setBuildingSetting(
+      'TreeFilterable',
+      'acceptedTagSet',
+      encodeTagSet([
+        { Name: 'Cuprite', IsValid: true },
+        { Name: 'Copper', IsValid: true },
+      ])
+    );
+
+    const blueprint = new Blueprint();
+    blueprint.blueprintItems = [item];
+    const building = blueprint.toBniBlueprint('x').buildings![0];
+    const value = building.buildingData!.find(e => e.Key == 'TreeFilterable')!.Value;
+
+    expect(value.acceptedTagSet).to.equal(
+      '[{"Name":"Cuprite","IsValid":true},{"Name":"Copper","IsValid":true}]'
+    );
+    // setBuildingSetting replaces one field and keeps the rest verbatim, which
+    // matters here because the mod applies the two fields independently.
+    expect(value.onlyFetchMarkedItems).to.equal(true);
+  });
+
+  it('is not creatable from scratch', () => {
+    expect(creatableSettingsKeysFor('SolidConduitInbox')).to.not.include('TreeFilterable');
   });
 });

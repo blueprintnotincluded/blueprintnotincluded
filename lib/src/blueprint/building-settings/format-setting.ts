@@ -1,5 +1,6 @@
 import { BniBuildingData } from '../../io/bni/bni-building';
 import {
+  decodeTagSet,
   isKnownSettingsKey,
   NONE_TAG,
   resolveSettingDescriptors,
@@ -45,6 +46,13 @@ function formatFieldValue(
       return raw ? 'On' : 'Off';
     case 'string':
       return raw == null || raw === '' ? '—' : String(raw);
+    case 'tagSet': {
+      // Raw tag names, like 'element' above: resolving an id to a display name
+      // is the frontend's job, and most of these are not elements at all (a
+      // storage bin filter carries critter and seed tags).
+      const tags = decodeTagSet(raw);
+      return tags.length === 0 ? 'None' : tags.map(tag => tag.Name).join(', ');
+    }
     case 'element':
       // The raw element id ("Oxygen"). The frontend resolves the pretty
       // display name; lib keeps no BuildableElement dependency here.

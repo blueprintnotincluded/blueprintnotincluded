@@ -12,7 +12,14 @@ import { THRESHOLD_SENSORS, thresholdSensorSpec } from './threshold-sensors';
 // durations. 'bit': a 0-3 ribbon bit index. '%': a plain percentage, reserved.
 export type SettingUnit = 's' | 'cycleFraction' | 'bit' | '%';
 
-export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum' | 'element';
+export type SettingFieldType =
+  | 'bool'
+  | 'float'
+  | 'int'
+  | 'string'
+  | 'enum'
+  | 'element'
+  | 'tagSet';
 
 export interface SettingFieldDescriptor {
   // Property name inside the component's `Value` object.
@@ -203,6 +210,21 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
   // phase filter is set per prefab by resolveSettingDescriptors (elementForceTag).
   Filterable: [{ field: 'SelectedTag', labelKey: 'Element', type: 'element' }],
 
+  // The accepted-materials filter, carried by the Conveyor Loader, the Smart
+  // Storage Bin and every other storage building the mod can copy. Unlike
+  // `Filterable` (one element) this is a *set*, and it is stored serialized —
+  // see decodeTagSet/encodeTagSet.
+  //
+  // The mod applies these two fields independently (two separate null checks in
+  // DataTransfer_TreeFilterable), so unlike almost every other key a Value
+  // missing one of them still applies the other. That makes it the second
+  // exception to the "TryApplyData bails on the whole Value" rule, alongside
+  // LogicAlarm.
+  TreeFilterable: [
+    { field: 'acceptedTagSet', labelKey: 'Accepted materials', type: 'tagSet' },
+    { field: 'onlyFetchMarkedItems', labelKey: 'Only fetch marked items', type: 'bool' },
+  ],
+
   LogicAlarm: [
     { field: 'notificationName', labelKey: 'Name', type: 'string', max: 200 },
     { field: 'notificationTooltip', labelKey: 'Tooltip', type: 'string', max: 400 },
@@ -259,6 +281,58 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
 
   Automatable: [{ field: 'automationOnly', labelKey: 'Automation only', type: 'bool' }],
 };
+
+// A Klei tag as the mod serializes it. `IsValid` is a get-only property on the
+// C# side, so only `Name` survives the trip back into a Tag — we write `true`
+// because that is what the game itself emits, not because it is read.
+export interface SettingTag {
+  Name: string;
+  IsValid: boolean;
+}
+
+// `acceptedTagSet` is stored *serialized*, and two shapes exist in the wild:
+//
+//   "acceptedTagSet": "[{\"Name\":\"HatchEgg\",\"IsValid\":true}]"   a JSON string
+//   "acceptedTagSet":  [{ "Name": "Cuprite", "IsValid": true }]      a real array
+//
+// The mod writes the first (`JsonConvert.SerializeObject(tags)`) and reads it
+// back with `t1.Value<string>()`, which returns null when handed an array — so
+// a file carrying the decoded shape loses its filter silently on apply. Files
+// of both shapes exist, so we read either and always write the string.
+//
+// Never throws: a malformed value reads as an empty set rather than breaking
+// the settings panel, matching how formatBuildingDataEntry treats a field whose
+// shape it does not recognize.
+export function decodeTagSet(raw: unknown): SettingTag[] {
+  let parsed: unknown = raw;
+  if (typeof raw == 'string') {
+    if (raw.trim() === '') return [];
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(parsed)) return [];
+
+  const names: string[] = [];
+  for (const entry of parsed) {
+    const name =
+      typeof entry == 'string'
+        ? entry
+        : entry != null && typeof (entry as SettingTag).Name == 'string'
+          ? (entry as SettingTag).Name
+          : null;
+    // A set, as the name says: the mod parses it into a HashSet<Tag>, so a
+    // duplicate would silently collapse there anyway.
+    if (name != null && name !== '' && !names.includes(name)) names.push(name);
+  }
+  return names.map(Name => ({ Name, IsValid: true }));
+}
+
+export function encodeTagSet(tags: readonly SettingTag[]): string {
+  return JSON.stringify(tags.map(tag => ({ Name: tag.Name, IsValid: true })));
+}
 
 export function isKnownSettingsKey(key: string): boolean {
   return Object.prototype.hasOwnProperty.call(SETTINGS_CATALOG, key);

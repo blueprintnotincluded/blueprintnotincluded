@@ -1,5 +1,5 @@
 export type SettingUnit = 's' | 'cycleFraction' | 'bit' | '%';
-export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum' | 'element';
+export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum' | 'element' | 'tagSet';
 export interface SettingFieldDescriptor {
     field: string;
     labelKey: string;
@@ -25,6 +25,12 @@ export declare const NONE_TAG = "Void";
 export declare const FILTERABLE_BUILDINGS: Record<string, string>;
 export declare function filterableBuildingForceTag(prefabId: string): string | undefined;
 export declare const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]>;
+export interface SettingTag {
+    Name: string;
+    IsValid: boolean;
+}
+export declare function decodeTagSet(raw: unknown): SettingTag[];
+export declare function encodeTagSet(tags: readonly SettingTag[]): string;
 export declare function isKnownSettingsKey(key: string): boolean;
 export declare function toDisplayValue(descriptor: SettingFieldDescriptor, stored: number): number;
 export declare function toStoredValue(descriptor: SettingFieldDescriptor, display: number): number;

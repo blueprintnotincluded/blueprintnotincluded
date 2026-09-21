@@ -246,7 +246,7 @@ edits.
   hand-authored table (`SETTINGS_CATALOG`) of the automation-relevant keys (`Switch`,
   `LogicTimerSensor`, `LogicTimeOfDaySensor`, `LogicCounter`, `LogicGateBuffer`/`Filter`,
   `LogicRibbonReader`/`Writer`, `LogicCritterCountSensor`, `LogicAlarm`, `IThresholdSwitch`,
-  `IActivationRangeTarget`, `BuildingEnabledButton`, `Automatable`) with per-field type/unit/
+  `IActivationRangeTarget`, `BuildingEnabledButton`, `Automatable`, `TreeFilterable`) with per-field type/unit/
   bounds — cross-checked against the mod's real `DataTransferHelpers.cs`/`API_Methods.cs`
   source (available locally as an additional working directory), not just the import spec's
   summary table. Every other key (`Door`, `Valve`, filters, `AccessControl`, `PixelPack`,
@@ -265,8 +265,8 @@ edits.
   `BlueprintItem.setBuildingSetting(key, field, value)` replaces one field on an
   already-present key, keeping every other field verbatim — required because the mod's
   `TryApplyData` bails on the **whole** Value object if even one expected field is missing
-  (confirmed against real mod source; the one exception found is `LogicAlarm`, which applies
-  each field independently). `addBuildingSetting(key)` constructs a complete Value object from
+  (confirmed against real mod source; two exceptions are known — `LogicAlarm` and
+  `TreeFilterable`, which each apply their fields independently). `addBuildingSetting(key)` constructs a complete Value object from
   scratch using hand-verified defaults.
 - **Creatable-from-scratch is deliberately narrow** — `CREATABLE_SETTINGS` in
   `settings-catalog.ts` holds `LogicTimerSensor` (`onDuration`/`offDuration`:
@@ -294,6 +294,33 @@ edits.
   `trackBy: trackByRow` keyed on `Key:field`; a regression spec (re-queries the DOM after a
   simulated mid-edit change-detection tick rather than reusing a captured node reference)
   fails without the fix and passes with it.
+
+### Accepted-materials filters (TreeFilterable)
+
+The Conveyor Loader, Smart Storage Bin and every other copyable storage building carry
+`TreeFilterable` — a *set* of accepted materials, where `Filterable` is a single element.
+Two fields: `acceptedTagSet` and `onlyFetchMarkedItems`.
+
+- **The value is serialized, and two shapes exist in the wild.** The mod writes
+  `acceptedTagSet` as a JSON **string** (`JsonConvert.SerializeObject(tags)`) and reads it
+  back with `t1.Value<string>()`; a current build was observed writing the *decoded* array
+  instead. `Value<string>()` returns null when handed an array, so a file carrying the
+  decoded shape loses its filter silently on apply. `decodeTagSet` therefore accepts either
+  and `encodeTagSet` always emits the string — the only form the mod is guaranteed to read.
+  Both live in `settings-catalog.ts` and are the single place that knows the wire format.
+- **A tag is `{ Name, IsValid }`, not a hash** — unlike `selected_elements`, which stores
+  the integer SimHash. `IsValid` is get-only on the C# side, so only `Name` survives the
+  trip back into a `Tag`; we emit `true` because that is what the game writes.
+- **The tags are not all elements.** A storage bin filter carries critter and seed tags
+  (`HatchEgg`, `BasicSingleHarvestPlantSeed`) for which the site has no model at all — no
+  tag table, no display names. The editor resolves what `BuildableElement.getElementById`
+  resolves and renders the rest by raw name: preserved and removable, never addable, since
+  adding is restricted to the element picker's vocabulary.
+- **Not creatable from scratch.** An empty `acceptedTagSet` is gameplay-affecting and
+  nothing establishes whether the game reads it as "accept nothing" or "unset", so the key
+  stays edit-only-when-present and has no `primarySettingsKey` entry.
+- The mod omits the key entirely when `copySettingsEnabled` is false, so "key absent" is
+  not distinguishable from "empty filter".
 
 ### Threshold sensors (IThresholdSwitch)
 

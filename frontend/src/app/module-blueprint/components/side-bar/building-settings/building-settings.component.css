@@ -41,6 +41,55 @@
   border-color: var(--p-primary-color);
 }
 
+/* An accepted-materials filter: a wrapping set of chips plus an Add button.
+   It is the one control here that is a list rather than a single value, so it
+   is allowed to run onto several lines inside the row. */
+.building-setting-tagset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.building-setting-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 2px 1px 5px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+}
+.building-setting-tag-label {
+  font-size: smaller;
+}
+.building-setting-tag-remove {
+  border: none;
+  background: none;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 3px;
+}
+.building-setting-tag-remove:hover {
+  color: var(--p-primary-color);
+}
+.building-setting-tag-empty {
+  color: var(--p-text-muted-color);
+  font-size: smaller;
+}
+.building-setting-tag-add {
+  padding: 2px 6px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+  color: inherit;
+  cursor: pointer;
+  font-size: smaller;
+}
+.building-setting-tag-add:hover {
+  border-color: var(--p-primary-color);
+}
+
 .building-setting-unit,
 .building-setting-hint {
   color: var(--p-text-muted-color);

@@ -120,6 +120,37 @@
         ></app-element-icon>
         <span>{{ elementLabel(row) }}</span>
       </button>
+
+      <span class="building-setting-tagset" *ngIf="row.type === 'tagSet'">
+        <span class="building-setting-tag" *ngFor="let tag of row.tags">
+          <app-element-icon
+            *ngIf="tag.element"
+            [element]="tag.element"
+            [width]="'16px'"
+            [height]="'16px'"
+          ></app-element-icon>
+          <span class="building-setting-tag-label">{{ tagLabel(tag) }}</span>
+          <button
+            type="button"
+            class="building-setting-tag-remove"
+            [attr.aria-label]="'Remove ' + tagLabel(tag)"
+            (click)="removeTag(row, tag.name)"
+          >
+            &#215;
+          </button>
+        </span>
+        <span class="building-setting-tag-empty" *ngIf="!row.tags?.length" i18n>
+          Nothing selected
+        </span>
+        <button
+          type="button"
+          class="building-setting-tag-add"
+          (click)="openElementPicker(row, $event)"
+          i18n
+        >
+          Add
+        </button>
+      </span>
     </span>
   </div>
 
@@ -127,7 +158,11 @@
     <app-cell-element-picker
       *ngIf="elementPickerRow"
       [forceTag]="elementPickerRow.elementForceTag"
-      (selectElementCell)="onElementPicked($event)"
+      (selectElementCell)="
+        elementPickerRow.type === 'tagSet'
+          ? onTagPicked($event)
+          : onElementPicked($event)
+      "
     ></app-cell-element-picker>
   </p-popover>
 
