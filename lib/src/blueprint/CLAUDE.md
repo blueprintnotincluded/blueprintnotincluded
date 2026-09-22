@@ -301,6 +301,13 @@ The Conveyor Loader, Smart Storage Bin and every other copyable storage building
 `TreeFilterable` — a *set* of accepted materials, where `Filterable` is a single element.
 Two fields: `acceptedTagSet` and `onlyFetchMarkedItems`.
 
+Both are labelled with the game's own words rather than their field names, taken from the
+shipped strings: `TREEFILTERABLESIDESCREEN.TITLE` is **Element Filter**, and
+`.ONLYALLOWTRANSPORTITEMSBUTTON` is **Sweep Only** ("Only store objects marked Sweep in this
+container"). The second matters — "only fetch marked items" reads like a fetch-priority
+setting, when what it actually does is restrict the container to hand-swept items. Same
+class of mismatch as the activation range's inverted names in #238/#251.
+
 - **The value is serialized, and two shapes exist in the wild.** The mod writes
   `acceptedTagSet` as a JSON **string** (`JsonConvert.SerializeObject(tags)`) and reads it
   back with `t1.Value<string>()`; a current build was observed writing the *decoded* array

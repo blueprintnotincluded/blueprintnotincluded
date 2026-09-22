@@ -835,7 +835,7 @@ describe("BuildingSettingsComponent", () => {
     setItem("SolidConduitInbox", [
       { Key: "BuildingEnabledButton", Value: { IsEnabled: true } },
     ]);
-    expect(component.primaryUnsetLabel).toBe("Accepted materials");
+    expect(component.primaryUnsetLabel).toBe("Element Filter");
 
     (
       fixture.nativeElement.querySelector(

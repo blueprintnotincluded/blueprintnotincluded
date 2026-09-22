@@ -230,9 +230,16 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
   // missing one of them still applies the other. That makes it the second
   // exception to the "TryApplyData bails on the whole Value" rule, alongside
   // LogicAlarm.
+  //
+  // Both labels are the game's own words, taken from the shipped strings rather
+  // than from the C# field names -- the mistake #251 fixed for the activation
+  // range. `TREEFILTERABLESIDESCREEN.TITLE` is "Element Filter", and
+  // `.ONLYALLOWTRANSPORTITEMSBUTTON` is "Sweep Only" ("Only store objects
+  // marked Sweep in this container"), which is a very different thing from the
+  // "only fetch marked items" its field name suggests.
   TreeFilterable: [
-    { field: 'acceptedTagSet', labelKey: 'Accepted materials', type: 'tagSet' },
-    { field: 'onlyFetchMarkedItems', labelKey: 'Only fetch marked items', type: 'bool' },
+    { field: 'acceptedTagSet', labelKey: 'Element Filter', type: 'tagSet' },
+    { field: 'onlyFetchMarkedItems', labelKey: 'Sweep Only', type: 'bool' },
   ],
 
   LogicAlarm: [
@@ -541,7 +548,7 @@ export function primarySettingsKey(
   if (filterableBuildingForceTag(prefabId) != null)
     return { key: FILTERABLE_KEY, label: 'Element' };
   if (TREE_FILTERABLE_BUILDINGS.includes(prefabId))
-    return { key: TREE_FILTERABLE_KEY, label: 'Accepted materials' };
+    return { key: TREE_FILTERABLE_KEY, label: 'Element Filter' };
   const spec = thresholdSensorSpec(prefabId);
   return spec != null ? { key: THRESHOLD_KEY, label: spec.label } : null;
 }
