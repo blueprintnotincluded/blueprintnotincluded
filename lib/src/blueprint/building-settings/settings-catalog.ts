@@ -75,6 +75,16 @@ const ABOVE_BELOW: Pick<SettingFieldDescriptor, 'labelKey' | 'type' | 'booleanLa
 
 const THRESHOLD_KEY = 'IThresholdSwitch';
 const FILTERABLE_KEY = 'Filterable';
+const TREE_FILTERABLE_KEY = 'TreeFilterable';
+
+// Buildings whose accepted-materials filter we can create from scratch. Kept
+// narrow on purpose: the *default* is verified (see below), but whether a given
+// prefab carries a TreeFilterable component at all is a per-building fact, and
+// writing the key onto a building without one would render an editable row for
+// a setting the mod then ignores. Extend it as captures confirm more carriers;
+// an imported blueprint's filter is editable on ANY carrier already, since that
+// path needs the key to be present rather than created.
+export const TREE_FILTERABLE_BUILDINGS: string[] = ['SolidConduitInbox', 'StorageLockerSmart'];
 
 // The Critter Sensor. Handled like a threshold sensor (its own Key is the
 // single canonical settings key; the stowaway Switch and a redundant
@@ -481,6 +491,20 @@ for (const [prefabId, spec] of Object.entries(THRESHOLD_SENSORS)) {
   };
 }
 
+// Confirmed in game rather than guessed, which is what CREATABLE_SETTINGS
+// policy requires: a freshly built Conveyor Loader and Smart Storage Bin each
+// store `{"acceptedTagSet": [], "onlyFetchMarkedItems": false}`, and a loader
+// whose filter panel was opened and closed without a selection stores exactly
+// the same. So an empty set is the game's own default and creating the key
+// changes nothing until the user picks a material.
+//
+// We write `'[]'` where the game wrote `[]` because encodeTagSet always emits
+// the string shape -- the one the mod can read back. See decodeTagSet.
+for (const prefabId of TREE_FILTERABLE_BUILDINGS) {
+  const forPrefab = (CREATABLE_SETTINGS[prefabId] ??= {});
+  forPrefab[TREE_FILTERABLE_KEY] = { acceptedTagSet: '[]', onlyFetchMarkedItems: false };
+}
+
 for (const prefabId of Object.keys(FILTERABLE_BUILDINGS)) {
   // Every element sensor / filter gets `Filterable` as a creatable key. The
   // one field, SelectedTag, defaults to NONE_TAG ('Void') — the game's own
@@ -516,6 +540,8 @@ export function primarySettingsKey(
     return { key: CRITTER_COUNT_SENSOR_ID, label: 'Critter count' };
   if (filterableBuildingForceTag(prefabId) != null)
     return { key: FILTERABLE_KEY, label: 'Element' };
+  if (TREE_FILTERABLE_BUILDINGS.includes(prefabId))
+    return { key: TREE_FILTERABLE_KEY, label: 'Accepted materials' };
   const spec = thresholdSensorSpec(prefabId);
   return spec != null ? { key: THRESHOLD_KEY, label: spec.label } : null;
 }

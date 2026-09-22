@@ -1038,7 +1038,37 @@ describe('TreeFilterable round-trip', function () {
     expect(value.onlyFetchMarkedItems).to.equal(true);
   });
 
-  it('is not creatable from scratch', () => {
-    expect(creatableSettingsKeysFor('SolidConduitInbox')).to.not.include('TreeFilterable');
+  // Confirmed in game: a freshly built Conveyor Loader and Smart Storage Bin
+  // both store an empty acceptedTagSet, and so does a loader whose filter panel
+  // was opened without a selection. So the empty default is the game's own and
+  // creating the key changes nothing -- which is what lets it onto this list.
+  it('creates the key with the empty default the game itself writes', () => {
+    for (const prefabId of ['SolidConduitInbox', 'StorageLockerSmart']) {
+      expect(creatableSettingsKeysFor(prefabId)).to.include('TreeFilterable');
+      expect(getCreatableSettingDefaults(prefabId, 'TreeFilterable')).to.deep.equal({
+        acceptedTagSet: '[]',
+        onlyFetchMarkedItems: false,
+      });
+      // The stored default round-trips to an empty set, not to a broken one.
+      expect(decodeTagSet('[]')).to.deep.equal([]);
+      expect(primarySettingsKey(prefabId)).to.deep.equal({
+        key: 'TreeFilterable',
+        label: 'Accepted materials',
+      });
+    }
+  });
+
+  it('adds the key to an editor-placed loader with the game default', () => {
+    const item = BlueprintHelpers.createInstance('SolidConduitInbox')!;
+    expect(item.addBuildingSetting('TreeFilterable')).to.equal(true);
+    expect(item.buildingData!.find(e => e.Key == 'TreeFilterable')!.Value).to.deep.equal({
+      acceptedTagSet: '[]',
+      onlyFetchMarkedItems: false,
+    });
+  });
+
+  it('leaves a non-carrier alone', () => {
+    expect(creatableSettingsKeysFor('GasPump')).to.not.include('TreeFilterable');
+    expect(primarySettingsKey('GasPump')).to.equal(null);
   });
 });

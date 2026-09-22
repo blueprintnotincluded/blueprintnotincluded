@@ -316,9 +316,16 @@ Two fields: `acceptedTagSet` and `onlyFetchMarkedItems`.
   tag table, no display names. The editor resolves what `BuildableElement.getElementById`
   resolves and renders the rest by raw name: preserved and removable, never addable, since
   adding is restricted to the element picker's vocabulary.
-- **Not creatable from scratch.** An empty `acceptedTagSet` is gameplay-affecting and
-  nothing establishes whether the game reads it as "accept nothing" or "unset", so the key
-  stays edit-only-when-present and has no `primarySettingsKey` entry.
+- **Creatable, on a verified default.** A freshly built Conveyor Loader and Smart Storage
+  Bin each store `{"acceptedTagSet": [], "onlyFetchMarkedItems": false}`, and so does a
+  loader whose filter panel was opened and closed without a selection — confirmed by
+  copying all three out of a game. So the empty set is the game's own default and creating
+  the key changes nothing until a material is picked, which is what qualifies it for
+  `CREATABLE_SETTINGS`. `TREE_FILTERABLE_BUILDINGS` holds the prefabs that get the Set
+  button; it is deliberately short, because whether a prefab carries the component at all
+  is a per-building fact and writing the key onto one without it would show an editable row
+  the mod ignores. An imported blueprint's filter is editable on **any** carrier regardless,
+  since that path needs the key present rather than created.
 - The mod omits the key entirely when `copySettingsEnabled` is false, so "key absent" is
   not distinguishable from "empty filter".
 

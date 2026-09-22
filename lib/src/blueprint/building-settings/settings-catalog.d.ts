@@ -20,6 +20,7 @@ export interface SettingFieldDescriptor {
     };
     elementForceTag?: string;
 }
+export declare const TREE_FILTERABLE_BUILDINGS: string[];
 export declare const CRITTER_COUNT_SENSOR_ID = "LogicCritterCountSensor";
 export declare const NONE_TAG = "Void";
 export declare const FILTERABLE_BUILDINGS: Record<string, string>;

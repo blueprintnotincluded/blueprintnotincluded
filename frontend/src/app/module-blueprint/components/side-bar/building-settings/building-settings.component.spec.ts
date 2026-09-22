@@ -828,9 +828,29 @@ describe("BuildingSettingsComponent", () => {
     expect(
       fixture.nativeElement.querySelector(".building-setting-tag-empty"),
     ).not.toBeNull();
-    // Not creatable from scratch: an empty accepted set is gameplay-affecting
-    // and nothing establishes what the game reads it as.
-    expect(component.primaryUnsetLabel).toBeNull();
+    expect(component.canClearPrimary).toBe(true);
+  });
+
+  it("offers Set on a placed loader that has no filter yet", () => {
+    setItem("SolidConduitInbox", [
+      { Key: "BuildingEnabledButton", Value: { IsEnabled: true } },
+    ]);
+    expect(component.primaryUnsetLabel).toBe("Accepted materials");
+
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-set",
+      ) as HTMLButtonElement
+    ).click();
+    expect(component.blueprintItem.addBuildingSetting).toHaveBeenCalledWith(
+      "TreeFilterable",
+    );
+    // The empty default the game itself writes on a fresh build.
+    expect(
+      component.blueprintItem.buildingData!.find(
+        (e) => e.Key == "TreeFilterable",
+      )!.Value,
+    ).toEqual({ acceptedTagSet: "[]", onlyFetchMarkedItems: false });
   });
 
   it("sets and clears an element sensor's Filterable key", () => {
