@@ -92,6 +92,22 @@ describe("CellElementPickerComponent solid tag", () => {
     expect(ids).not.toContain("Oxygen");
     expect(ids).not.toContain("Water");
   });
+  // PrimeNG 20's Checkbox has no `label` input, so the labels these carried
+  // through the v20 upgrade rendered nothing and left three bare boxes.
+  it("labels each phase checkbox", () => {
+    fixture.detectChanges();
+    const labels = [
+      ...fixture.nativeElement.querySelectorAll(".tag-filter-option label"),
+    ].map((l: any) => ({
+      text: l.textContent.trim(),
+      htmlFor: l.getAttribute("for"),
+    }));
+    expect(labels).toEqual([
+      { text: "Gas", htmlFor: "Gas" },
+      { text: "Liquid", htmlFor: "Liquid" },
+      { text: "Solid", htmlFor: "Solid" },
+    ]);
+  });
 });
 
 // The element-note picker's state filter (spec/element-notes.md §8.1): a
@@ -164,6 +180,35 @@ describe("CellElementPickerComponent state filter", () => {
       "Oxygen",
       "Water",
     ]);
+  });
+
+  // A storage filter is overwhelmingly solids, so it opens on Solid rather than
+  // making the user find the segment first. Opening on a state is not the same
+  // as locking to one -- the other segments stay reachable, which forceTag
+  // would not allow.
+  it("opens on initialState, with the other states still reachable", () => {
+    const opened = TestBed.createComponent(CellElementPickerComponent);
+    opened.componentInstance.states = [
+      ElementState.Solid,
+      ElementState.Liquid,
+      ElementState.Gas,
+    ];
+    opened.componentInstance.initialState = ElementState.Solid;
+    opened.detectChanges();
+
+    expect(opened.componentInstance.selectedState).to.equal(ElementState.Solid);
+    expect(
+      opened.componentInstance.elements.map((e: any) => e.id),
+    ).to.deep.equal(["Granite"]);
+
+    opened.componentInstance.selectState(ElementState.Liquid);
+    expect(
+      opened.componentInstance.elements.map((e: any) => e.id),
+    ).to.deep.equal(["Water"]);
+  });
+
+  it("still opens on All when no initialState is given", () => {
+    expect(component.selectedState).to.equal(null);
   });
 
   it("does not affect the tag-based checkbox path for existing callers", () => {

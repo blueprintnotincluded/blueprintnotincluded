@@ -4,6 +4,7 @@ import { BlueprintService } from "src/app/module-blueprint/services/blueprint-se
 import {
   BlueprintItem,
   BuildableElement,
+  ElementState,
   creatableSettingsKeysFor,
   decodeTagSet,
   encodeTagSet,
@@ -468,6 +469,17 @@ export class BuildingSettingsComponent {
     );
     this.commit();
   }
+
+  // A storage filter is overwhelmingly about solids -- a Conveyor Loader carries
+  // nothing else -- but bottled liquids and canistered gases are storable items
+  // too, so the picker opens ON Solid rather than being locked to it. Locking
+  // (forceTag) would make a legitimate filter entry unreachable.
+  readonly tagPickerStates: ElementState[] = [
+    ElementState.Solid,
+    ElementState.Liquid,
+    ElementState.Gas,
+  ];
+  readonly tagPickerInitialState = ElementState.Solid;
 
   private commit() {
     this.blueprintService.blueprint.emitBlueprintChanged();

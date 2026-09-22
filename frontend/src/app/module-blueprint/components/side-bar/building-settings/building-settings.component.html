@@ -158,6 +158,12 @@
     <app-cell-element-picker
       *ngIf="elementPickerRow"
       [forceTag]="elementPickerRow.elementForceTag"
+      [states]="
+        elementPickerRow.type === 'tagSet' ? tagPickerStates : undefined
+      "
+      [initialState]="
+        elementPickerRow.type === 'tagSet' ? tagPickerInitialState : undefined
+      "
       (selectElementCell)="
         elementPickerRow.type === 'tagSet'
           ? onTagPicked($event)
