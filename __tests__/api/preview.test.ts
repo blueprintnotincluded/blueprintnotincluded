@@ -451,6 +451,62 @@ describe('Blueprint preview images', function () {
       expect(await service.getVariant(shedId, null, 'card.webp', loadMdb)).to.not.equal(null);
     });
 
+    it('does not blacklist a blueprint when loading its data failed', async function () {
+      // The negative cache has no TTL, so an entry written for a transient
+      // Mongo hiccup would hide a perfectly renderable preview until someone
+      // edited the blueprint or the process restarted.
+      let loads = 0;
+      const fakeMaster = await sharp({
+        create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        renderMasterFn: async () => fakeMaster,
+      });
+      const modifiedAt = new Date();
+      const loadMdb = async () => {
+        loads++;
+        if (loads === 1) throw new Error('connection timed out');
+        return mdbWith(10);
+      };
+
+      expect(await service.getVariant(blueprintId, modifiedAt, 'card.webp', loadMdb)).to.equal(
+        null
+      );
+      expect(service.failedRenderCount).to.equal(0);
+
+      // Retryable: the very next request renders normally.
+      expect(await service.getVariant(blueprintId, modifiedAt, 'card.webp', loadMdb)).to.not.equal(
+        null
+      );
+      expect(loads).to.equal(2);
+    });
+
+    it('does not blacklist a blueprint when writing the variants failed', async function () {
+      // A full or read-only cache dir is infrastructure: caching it would
+      // blacklist the whole corpus, one request at a time.
+      const fakeMaster = await sharp({
+        create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+      const service = new PreviewImageService({
+        // A path under a regular file can never be created.
+        cacheDir: path.join(cacheDir, 'not-a-dir'),
+        disabled: false,
+        renderMasterFn: async () => fakeMaster,
+      });
+      fs.writeFileSync(path.join(cacheDir, 'not-a-dir'), 'x');
+
+      expect(
+        await service.getVariant(blueprintId, new Date(), 'card.webp', async () => mdbWith(10))
+      ).to.equal(null);
+      expect(service.failedRenderCount).to.equal(0);
+    });
+
     it('refuses to render a blueprint over the item-count guard', async function () {
       let renders = 0;
       const service = new PreviewImageService({
