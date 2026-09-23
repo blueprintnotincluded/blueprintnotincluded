@@ -111,8 +111,15 @@ export interface ResolvedHeapCap {
 export function resolveMaxOldSpaceMb(opts?: { env?: string }): ResolvedHeapCap {
   const env = opts && 'env' in opts ? opts.env : process.env.PREVIEW_WORKER_MAX_OLD_SPACE_MB;
   if (env != null) {
+    // Positive safe integer only. This value is interpolated into
+    // --max-old-space-size, and V8 parses that flag as a size_t: a fractional
+    // "256.5" is rejected outright ("illegal value for flag ... of type
+    // size_t") and the worker never starts, so every render fails. Safe-integer
+    // rather than plain-integer because anything past 2^53 stringifies in
+    // exponent form ("1e+21"), which V8 rejects the same way. Number() is kept,
+    // so a well-formed "1e3" still resolves to 1000 and passes.
     const fromEnv = Number(env);
-    if (Number.isFinite(fromEnv) && fromEnv > 0) {
+    if (Number.isSafeInteger(fromEnv) && fromEnv > 0) {
       return {
         maxOldSpaceMb: fromEnv,
         detail: `heap cap ${fromEnv}MB (PREVIEW_WORKER_MAX_OLD_SPACE_MB)`,

@@ -95,6 +95,22 @@ export class PreviewRenderSkippedError extends Error {}
  */
 export class PreviewQueueFullError extends Error {}
 
+/**
+ * The master render itself failed: the worker exited, the render timed out, or
+ * it replied with an error. This is the *only* runtime failure the negative
+ * cache is for — it is attributable to this blueprint, and it is the one that
+ * costs a forked process to discover.
+ *
+ * ES2020 lib, so `cause` is declared here rather than inherited from Error.
+ */
+export class PreviewMasterRenderError extends Error {
+  public readonly cause: unknown;
+  constructor(cause: unknown) {
+    super(cause instanceof Error ? cause.message : String(cause));
+    this.cause = cause;
+  }
+}
+
 /** Negative-cache key half: a blueprint with no modifiedAt still needs a slot. */
 function modifiedAtKey(modifiedAt: Date | null | undefined): number {
   return modifiedAt == null ? -1 : modifiedAt.getTime();
@@ -473,9 +489,22 @@ export class PreviewImageService {
     modifiedAt: Date | null | undefined,
     error: unknown
   ) {
-    // A shed render says the server was busy, not that this blueprint is
-    // unrenderable — blacklisting it would be a self-inflicted outage.
-    if (error instanceof PreviewQueueFullError) return;
+    // Allowlist, not a denylist: this cache has no TTL, so an entry written
+    // for the wrong reason hides a preview until the blueprint is edited or
+    // the process restarts. Only two failures earn one — the blueprint is
+    // too large to attempt, or the master render itself failed.
+    //
+    // Everything else is infrastructure and must stay retryable: a loadMdb
+    // error (a transient Mongo hiccup would otherwise blacklist a perfectly
+    // renderable blueprint), a cache-dir write failure (a full disk would
+    // blacklist the whole corpus, one request at a time), a sharp failure
+    // deriving the variants, and a queue shed, which says the server was busy
+    // and nothing at all about this blueprint.
+    if (
+      !(error instanceof PreviewRenderTooLargeError) &&
+      !(error instanceof PreviewMasterRenderError)
+    )
+      return;
 
     if (this.failedRenders.size >= MAX_FAILED_RENDER_ENTRIES) {
       this.failedRenders.delete(this.failedRenders.keys().next().value as string);
@@ -515,7 +544,11 @@ export class PreviewImageService {
     const render = this.renderQueueTail.then(async () => {
       const startedAt = Date.now();
       const cold = this.worker == null;
-      const master = await this.renderMasterFn(mdb, context);
+      // Tagged so recordFailedRender can tell a render that actually failed
+      // from a Mongo/disk hiccup somewhere else in renderAllVariants.
+      const master = await this.renderMasterFn(mdb, context).catch(e => {
+        throw e instanceof PreviewMasterRenderError ? e : new PreviewMasterRenderError(e);
+      });
       return {
         master,
         queueWaitMs: startedAt - enqueuedAt,
