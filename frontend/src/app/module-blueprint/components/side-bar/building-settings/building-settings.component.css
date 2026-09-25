@@ -6,6 +6,13 @@
   padding: 2px 0;
 }
 
+/* Every other control is one line tall, so centring reads right. The tag set
+   is a stack, and centring puts its label halfway down the chips instead of
+   beside the first one. */
+.building-setting-row:has(.building-setting-tagset) {
+  align-items: flex-start;
+}
+
 .building-setting-label {
   color: var(--p-text-muted-color);
 }

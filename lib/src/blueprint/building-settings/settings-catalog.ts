@@ -236,14 +236,19 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
   // exception to the "TryApplyData bails on the whole Value" rule, alongside
   // LogicAlarm.
   //
-  // Both labels are the game's own words, taken from the shipped strings rather
-  // than from the C# field names -- the mistake #251 fixed for the activation
-  // range. `TREEFILTERABLESIDESCREEN.TITLE` is "Element Filter", and
+  // Both labels come from the game's shipped strings rather than the C# field
+  // names -- the mistake #251 fixed for the activation range.
   // `.ONLYALLOWTRANSPORTITEMSBUTTON` is "Sweep Only" ("Only store objects
-  // marked Sweep in this container"), which is a very different thing from the
-  // "only fetch marked items" its field name suggests.
+  // marked Sweep in this container"), a very different thing from the "only
+  // fetch marked items" its field name suggests.
+  //
+  // The tag set is shortened from the game's "Element Filter"
+  // (TREEFILTERABLESIDESCREEN.TITLE) to just "Filter": the row sits inside a
+  // panel that already has an Elements section for the building's construction
+  // material, and two things called Element next to each other read as related
+  // when they are not.
   TreeFilterable: [
-    { field: 'acceptedTagSet', labelKey: 'Element Filter', type: 'tagSet' },
+    { field: 'acceptedTagSet', labelKey: 'Filter', type: 'tagSet' },
     { field: 'onlyFetchMarkedItems', labelKey: 'Sweep Only', type: 'bool' },
   ],
 
@@ -560,7 +565,7 @@ export function primarySettingsKey(
   if (filterableBuildingForceTag(prefabId) != null)
     return { key: FILTERABLE_KEY, label: 'Element' };
   if (TREE_FILTERABLE_BUILDINGS.includes(prefabId))
-    return { key: TREE_FILTERABLE_KEY, label: 'Element Filter' };
+    return { key: TREE_FILTERABLE_KEY, label: 'Filter' };
   const spec = thresholdSensorSpec(prefabId);
   return spec != null ? { key: THRESHOLD_KEY, label: spec.label } : null;
 }

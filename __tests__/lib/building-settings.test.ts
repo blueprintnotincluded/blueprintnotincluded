@@ -1053,7 +1053,7 @@ describe('TreeFilterable round-trip', function () {
       expect(decodeTagSet('[]')).to.deep.equal([]);
       expect(primarySettingsKey(prefabId)).to.deep.equal({
         key: 'TreeFilterable',
-        label: 'Element Filter',
+        label: 'Filter',
       });
     }
   });
