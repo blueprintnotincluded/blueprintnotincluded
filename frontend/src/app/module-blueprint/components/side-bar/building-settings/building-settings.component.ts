@@ -321,6 +321,14 @@ export class BuildingSettingsComponent {
   // up for). Without a stable trackBy, *ngFor's default identity diffing
   // treats every row as removed-and-re-added on each cycle and tears down
   // the <input> DOM nodes mid-edit, discarding whatever the user just typed.
+  // Same reason as trackByRow: `rows` rebuilds its ResolvedTag objects on every
+  // change-detection pass, so without this Angular tears down each chip and its
+  // remove button even when the filter has not changed -- and a remove button
+  // that had focus loses it mid-keyboard-navigation.
+  trackByTag(_index: number, tag: ResolvedTag): string {
+    return tag.name;
+  }
+
   trackByRow(_index: number, row: EditableSettingRow): string {
     return `${row.key}:${row.field}`;
   }

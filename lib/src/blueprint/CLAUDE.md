@@ -319,6 +319,11 @@ called Element sitting next to each other read as related when they are not.
   decoded shape loses its filter silently on apply. `decodeTagSet` therefore accepts either
   and `encodeTagSet` always emits the string — the only form the mod is guaranteed to read.
   Both live in `settings-catalog.ts` and are the single place that knows the wire format.
+  The conversion is applied at the **export boundary** (`toBniBuilding`), not only when the
+  panel writes: `setBuildingSetting` replaces one field, so an imported array would otherwise
+  survive untouched when the user edits nothing, or edits only `onlyFetchMarkedItems`. The
+  MDB path stays a byte-faithful clone, so re-saving does not move a blueprint's fingerprint
+  or detach `rawSource`.
 - **A tag is `{ Name, IsValid }`, not a hash** — unlike `selected_elements`, which stores
   the integer SimHash. `IsValid` is get-only on the C# side, so only `Name` survives the
   trip back into a `Tag`; we emit `true` because that is what the game writes.

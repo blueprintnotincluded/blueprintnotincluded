@@ -8,7 +8,12 @@ import { OniItem } from '../oni-item';
 import { DrawPart } from '../drawing/draw-part';
 import { OniBuilding } from '../io/oni/oni-building';
 import { BniBuilding, BniBuildingData } from '../io/bni/bni-building';
-import { getCreatableSettingDefaults, redundantEchoField } from './building-settings/settings-catalog';
+import {
+  decodeTagSet,
+  encodeTagSet,
+  getCreatableSettingDefaults,
+  redundantEchoField,
+} from './building-settings/settings-catalog';
 import { MdbBuilding } from '../io/mdb/mdb-building';
 import { SpriteTag } from '../enums/sprite-tag';
 import { CameraService } from '../drawing/camera-service';
@@ -18,6 +23,30 @@ import { Visualization } from '../enums/visualization';
 import { ConnectionHelper } from '../utility-connection';
 import { SpriteInfo } from '../drawing/sprite-info';
 import { PixiUtil, stableSortChildren } from '../drawing/pixi-util';
+
+// `TreeFilterable.acceptedTagSet` is stored serialized and two shapes exist in
+// the wild: the JSON string the mod writes and reads, and a decoded array some
+// builds produce. The mod reads it with `t1.Value<string>()`, which returns null
+// for an array, so exporting the decoded shape loses the filter silently.
+//
+// Editing the filter through the panel already writes the string, but an
+// imported array survives untouched when the user edits nothing, or edits only
+// the sibling `onlyFetchMarkedItems` -- setBuildingSetting replaces one field
+// and keeps the rest verbatim. So the normalization belongs at the export
+// boundary, where it covers every path out.
+//
+// Export only: the MDB path (`toMdbBuilding`) stays a byte-faithful clone, so
+// re-saving a blueprint does not move its fingerprint or detach `rawSource`.
+function normalizeBuildingDataForExport(buildingData: BniBuildingData[]): BniBuildingData[] {
+  const copy = structuredClone(buildingData);
+  for (const entry of copy) {
+    if (entry?.Key !== 'TreeFilterable') continue;
+    const raw = entry.Value?.acceptedTagSet;
+    if (raw == null || typeof raw === 'string') continue;
+    entry.Value.acceptedTagSet = encodeTagSet(decodeTagSet(raw));
+  }
+  return copy;
+}
 
 export class BlueprintItem {
   static defaultRotation = 0;
@@ -509,7 +538,7 @@ export class BlueprintItem {
     };
 
     if (this.buildingData != null && this.buildingData.length > 0)
-      returnValue.buildingData = structuredClone(this.buildingData);
+      returnValue.buildingData = normalizeBuildingDataForExport(this.buildingData);
 
     return returnValue;
   }

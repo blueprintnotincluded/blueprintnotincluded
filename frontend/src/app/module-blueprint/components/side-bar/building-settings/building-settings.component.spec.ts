@@ -750,6 +750,38 @@ describe("BuildingSettingsComponent", () => {
     ).toBe(2);
   });
 
+  // `rows` rebuilds its ResolvedTag objects on every change-detection pass, so
+  // without a trackBy Angular tears down each chip and its remove button even
+  // when the filter has not changed -- and a remove button holding focus loses
+  // it mid-keyboard-navigation. Same failure as the trackByRow regression above.
+  it("keeps chip nodes across a change-detection cycle (trackBy regression)", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet:
+            '[{"Name":"Cuprite","IsValid":true},{"Name":"HatchEgg","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+
+    const before = fixture.nativeElement.querySelector(
+      ".building-setting-tag-remove",
+    ) as HTMLButtonElement;
+    before.focus();
+    // An incidental app-wide tick, of the kind a keystroke elsewhere produces.
+    fixture.detectChanges();
+    // Re-query: a rebuilt node leaves `before` detached, which would mask the
+    // bug from an assertion on the stale reference.
+    const after = fixture.nativeElement.querySelector(
+      ".building-setting-tag-remove",
+    ) as HTMLButtonElement;
+
+    expect(after).toBe(before);
+    expect(fixture.nativeElement.contains(document.activeElement)).toBe(true);
+  });
+
   it("adds a picked material, writing the whole set back as a string", () => {
     setItem("SolidConduitInbox", [
       {

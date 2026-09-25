@@ -1042,6 +1042,74 @@ describe('TreeFilterable round-trip', function () {
   // both store an empty acceptedTagSet, and so does a loader whose filter panel
   // was opened without a selection. So the empty default is the game's own and
   // creating the key changes nothing -- which is what lets it onto this list.
+  // A file can arrive carrying the decoded array shape, and setBuildingSetting
+  // replaces one field at a time -- so an untouched filter, or an edit to only
+  // the sibling boolean, would otherwise export an array the mod reads as null.
+  // Normalizing at the export boundary is what covers those paths.
+  it('exports an untouched array-shaped filter as a string', () => {
+    const item = BlueprintHelpers.createInstance('SolidConduitInbox')!;
+    item.buildingData = [
+      {
+        Key: 'TreeFilterable',
+        Value: {
+          acceptedTagSet: [{ Name: 'Cuprite', IsValid: true }],
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ];
+
+    const blueprint = new Blueprint();
+    blueprint.blueprintItems = [item];
+    const value = blueprint
+      .toBniBlueprint('x')
+      .buildings![0].buildingData!.find(e => e.Key == 'TreeFilterable')!.Value;
+
+    expect(value.acceptedTagSet).to.equal('[{"Name":"Cuprite","IsValid":true}]');
+  });
+
+  it('exports it as a string when only the sibling boolean was edited', () => {
+    const item = BlueprintHelpers.createInstance('StorageLockerSmart')!;
+    item.buildingData = [
+      {
+        Key: 'TreeFilterable',
+        Value: {
+          acceptedTagSet: [{ Name: 'SandStone', IsValid: true }],
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ];
+    item.setBuildingSetting('TreeFilterable', 'onlyFetchMarkedItems', true);
+
+    const blueprint = new Blueprint();
+    blueprint.blueprintItems = [item];
+    const value = blueprint
+      .toBniBlueprint('x')
+      .buildings![0].buildingData!.find(e => e.Key == 'TreeFilterable')!.Value;
+
+    expect(value.acceptedTagSet).to.equal('[{"Name":"SandStone","IsValid":true}]');
+    expect(value.onlyFetchMarkedItems).to.equal(true);
+  });
+
+  it('leaves the stored item untouched, so re-saving does not move its fingerprint', () => {
+    const item = BlueprintHelpers.createInstance('SolidConduitInbox')!;
+    item.buildingData = [
+      {
+        Key: 'TreeFilterable',
+        Value: {
+          acceptedTagSet: [{ Name: 'Cuprite', IsValid: true }],
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ];
+    const blueprint = new Blueprint();
+    blueprint.blueprintItems = [item];
+    blueprint.toBniBlueprint('x');
+
+    expect(item.buildingData![0].Value.acceptedTagSet).to.deep.equal([
+      { Name: 'Cuprite', IsValid: true },
+    ]);
+  });
+
   it('creates the key with the empty default the game itself writes', () => {
     for (const prefabId of ['SolidConduitInbox', 'StorageLockerSmart']) {
       expect(creatableSettingsKeysFor(prefabId)).to.include('TreeFilterable');

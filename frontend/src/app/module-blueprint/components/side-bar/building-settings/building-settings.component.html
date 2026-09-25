@@ -122,7 +122,10 @@
       </button>
 
       <span class="building-setting-tagset" *ngIf="row.type === 'tagSet'">
-        <span class="building-setting-tag" *ngFor="let tag of row.tags">
+        <span
+          class="building-setting-tag"
+          *ngFor="let tag of row.tags; trackBy: trackByTag"
+        >
           <app-element-icon
             *ngIf="tag.element"
             [element]="tag.element"
