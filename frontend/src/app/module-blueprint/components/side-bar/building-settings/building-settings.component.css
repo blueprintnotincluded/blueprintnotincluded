@@ -41,14 +41,19 @@
   border-color: var(--p-primary-color);
 }
 
-/* An accepted-materials filter: a wrapping set of chips plus an Add button.
-   It is the one control here that is a list rather than a single value, so it
-   is allowed to run onto several lines inside the row. */
+/* An accepted-materials filter: a stack of chips with Add on its own line
+   beneath them. It is the one control here that is a list rather than a single
+   value, so it runs down the row instead of across it -- Add sitting after the
+   last chip reads as another chip, and moves every time the list changes. */
 .building-setting-tagset {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.building-setting-tagset .building-setting-tag-add {
+  align-self: flex-start;
+  margin-top: 2px;
 }
 .building-setting-tag {
   display: inline-flex;

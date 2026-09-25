@@ -182,33 +182,26 @@ describe("CellElementPickerComponent state filter", () => {
     ]);
   });
 
-  // A storage filter is overwhelmingly solids, so it opens on Solid rather than
-  // making the user find the segment first. Opening on a state is not the same
-  // as locking to one -- the other segments stay reachable, which forceTag
-  // would not allow.
-  it("opens on initialState, with the other states still reachable", () => {
-    const opened = TestBed.createComponent(CellElementPickerComponent);
-    opened.componentInstance.states = [
-      ElementState.Solid,
-      ElementState.Liquid,
-      ElementState.Gas,
-    ];
-    opened.componentInstance.initialState = ElementState.Solid;
-    opened.detectChanges();
+  // Solids only, confirmed by round trip: a bin exported with Water in its
+  // filter came back from the game without it. A one-state pool is a lock, so
+  // it renders no segmented filter -- All and Solids would do the same thing.
+  it("renders no segmented filter for a single-state pool", () => {
+    const locked = TestBed.createComponent(CellElementPickerComponent);
+    locked.componentInstance.states = [ElementState.Solid];
+    locked.detectChanges();
 
-    expect(opened.componentInstance.selectedState).to.equal(ElementState.Solid);
+    expect(locked.componentInstance.showStateSegments).to.equal(false);
+    expect(locked.nativeElement.querySelector(".state-filter")).to.equal(null);
     expect(
-      opened.componentInstance.elements.map((e: any) => e.id),
+      locked.componentInstance.elements.map((e: any) => e.id),
     ).to.deep.equal(["Granite"]);
-
-    opened.componentInstance.selectState(ElementState.Liquid);
-    expect(
-      opened.componentInstance.elements.map((e: any) => e.id),
-    ).to.deep.equal(["Water"]);
   });
 
-  it("still opens on All when no initialState is given", () => {
-    expect(component.selectedState).to.equal(null);
+  it("still renders the segmented filter for a multi-state pool", () => {
+    expect(component.showStateSegments).to.equal(true);
+    expect(fixture.nativeElement.querySelector(".state-filter")).to.not.equal(
+      null,
+    );
   });
 
   it("does not affect the tag-based checkbox path for existing callers", () => {

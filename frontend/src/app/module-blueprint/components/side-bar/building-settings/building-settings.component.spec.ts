@@ -853,6 +853,26 @@ describe("BuildingSettingsComponent", () => {
     ).toEqual({ acceptedTagSet: "[]", onlyFetchMarkedItems: false });
   });
 
+  // The checkbox is the game's "Allow Manual Use", which is ticked when the
+  // stored automationOnly is false. Both directions are asserted because an
+  // inversion applied on display but not on commit looks right until you click.
+  it("shows Allow Manual Use inverted, and writes the negation back", () => {
+    setItem("SolidConduitInbox", [
+      { Key: "Automatable", Value: { automationOnly: true } },
+    ]);
+
+    const row = component.rows.find((r: any) => r.key === "Automatable")!;
+    expect(row.label).toBe("Allow Manual Use");
+    expect(row.displayValue).toBe(false);
+
+    component.onFieldInput(row, true);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "Automatable",
+      "automationOnly",
+      false,
+    );
+  });
+
   it("sets and clears an element sensor's Filterable key", () => {
     setItem("LogicElementSensorGas", [
       { Key: "Switch", Value: { switchedOn: true } },

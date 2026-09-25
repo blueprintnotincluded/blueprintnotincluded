@@ -1072,3 +1072,28 @@ describe('TreeFilterable round-trip', function () {
     expect(primarySettingsKey('GasPump')).to.equal(null);
   });
 });
+
+// The game's side screen (AUTOMATABLE_SIDE_SCREEN.ALLOWMANUALBUTTON) says
+// "Allow Manual Use", and it is ticked when the stored automationOnly is
+// FALSE. Showing the raw field would have the player read every value
+// backwards -- the same class of mismatch as #238's activation range.
+describe('Automatable is shown as the game shows it', function () {
+  it('labels the row Allow Manual Use and negates the stored value', () => {
+    const descriptor = SETTINGS_CATALOG.Automatable[0];
+    expect(descriptor.labelKey).to.equal('Allow Manual Use');
+    expect(descriptor.invert).to.equal(true);
+
+    expect(
+      formatBuildingDataEntry({ Key: 'Automatable', Value: { automationOnly: true } })![0].text
+    ).to.equal('Off');
+    expect(
+      formatBuildingDataEntry({ Key: 'Automatable', Value: { automationOnly: false } })![0].text
+    ).to.equal('On');
+  });
+
+  it('leaves every other boolean alone', () => {
+    expect(
+      formatBuildingDataEntry({ Key: 'Switch', Value: { switchedOn: true } })![0].text
+    ).to.equal('On');
+  });
+});

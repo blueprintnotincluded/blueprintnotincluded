@@ -56,6 +56,11 @@ export interface SettingFieldDescriptor {
   // an on/off switch — rendered as a pair of labelled options instead of a
   // checkbox, and formatted with these words instead of On/Off.
   booleanLabels?: { whenTrue: string; whenFalse: string };
+  // type: 'bool' only. The stored field means the opposite of the checkbox the
+  // player saw, so display and edit both negate it. `Automatable.automationOnly`
+  // is the case: the game's side screen offers "Allow Manual Use", which is on
+  // exactly when automationOnly is false.
+  invert?: boolean;
   // type: 'element' only. The `forceTag` passed to app-cell-element-picker
   // (`Gas`/`Liquid`/`Solid`) — filled in per prefab by resolveSettingDescriptors
   // from FILTERABLE_BUILDINGS, since one `Filterable` catalogue entry serves
@@ -296,7 +301,14 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
 
   BuildingEnabledButton: [{ field: 'IsEnabled', labelKey: 'Enabled', type: 'bool' }],
 
-  Automatable: [{ field: 'automationOnly', labelKey: 'Automation only', type: 'bool' }],
+  // The game's side screen (AUTOMATABLE_SIDE_SCREEN.ALLOWMANUALBUTTON) says
+  // "Allow Manual Use" -- "Allow Duplicants to manually manage these storage
+  // materials" -- and it is ticked when the stored automationOnly is FALSE. So
+  // the row is both renamed and negated; showing the raw field would have the
+  // player read every value backwards.
+  Automatable: [
+    { field: 'automationOnly', labelKey: 'Allow Manual Use', type: 'bool', invert: true },
+  ],
 };
 
 // A Klei tag as the mod serializes it. `IsValid` is a get-only property on the

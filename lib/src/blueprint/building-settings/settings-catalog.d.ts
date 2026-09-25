@@ -18,6 +18,7 @@ export interface SettingFieldDescriptor {
         whenTrue: string;
         whenFalse: string;
     };
+    invert?: boolean;
     elementForceTag?: string;
 }
 export declare const TREE_FILTERABLE_BUILDINGS: string[];

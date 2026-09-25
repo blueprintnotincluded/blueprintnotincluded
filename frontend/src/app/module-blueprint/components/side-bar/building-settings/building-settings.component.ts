@@ -256,7 +256,9 @@ export class BuildingSettingsComponent {
           displayValue:
             typeof raw == "number"
               ? roundTo(toDisplayValue(descriptor, raw), decimals)
-              : raw,
+              : descriptor.type == "bool" && descriptor.invert
+                ? !raw
+                : raw,
           displayMin,
           displayMax:
             descriptor.max != null
@@ -337,8 +339,10 @@ export class BuildingSettingsComponent {
       value = Boolean(rawInput);
       // Re-picking the option already in force is not an edit; without this a
       // click on the selected half of an above/below toggle would push an
-      // undo step that changes nothing.
+      // undo step that changes nothing. Compared in DISPLAY space, which for
+      // an inverted row is the negation of what gets stored.
       if (value === row.displayValue) return;
+      if (row.descriptor.invert) value = !value;
     } else if (row.type == "int" || row.type == "float") {
       // An emptied field is not an edit to zero — and Number("") is 0, so it
       // has to be caught before the parse. Same for a stray paste that does
@@ -470,16 +474,12 @@ export class BuildingSettingsComponent {
     this.commit();
   }
 
-  // A storage filter is overwhelmingly about solids -- a Conveyor Loader carries
-  // nothing else -- but bottled liquids and canistered gases are storable items
-  // too, so the picker opens ON Solid rather than being locked to it. Locking
-  // (forceTag) would make a legitimate filter entry unreachable.
-  readonly tagPickerStates: ElementState[] = [
-    ElementState.Solid,
-    ElementState.Liquid,
-    ElementState.Gas,
-  ];
-  readonly tagPickerInitialState = ElementState.Solid;
+  // Solids only, confirmed by round trip: a Smart Storage Bin exported with
+  // Water in its filter came back from the game with Water gone and Sandstone
+  // intact. Conveyor rails carry solid chunks and storage bins take no bottled
+  // liquids or gas canisters, so any other phase is an entry the game discards
+  // without saying so. A one-state pool renders no segmented filter.
+  readonly tagPickerStates: ElementState[] = [ElementState.Solid];
 
   private commit() {
     this.blueprintService.blueprint.emitBlueprintChanged();

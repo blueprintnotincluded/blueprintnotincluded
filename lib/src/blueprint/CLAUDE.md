@@ -318,6 +318,12 @@ class of mismatch as the activation range's inverted names in #238/#251.
 - **A tag is `{ Name, IsValid }`, not a hash** — unlike `selected_elements`, which stores
   the integer SimHash. `IsValid` is get-only on the C# side, so only `Name` survives the
   trip back into a `Tag`; we emit `true` because that is what the game writes.
+- **Solids only, confirmed by round trip.** A Smart Storage Bin exported with Water in its
+  filter came back from the game with Water gone and Sandstone intact — the game discards a
+  tag the building cannot hold, silently. Conveyor rails carry solid chunks and storage bins
+  take no bottled liquids or gas canisters, so the picker gets a one-state pool
+  (`[ElementState.Solid]`), and `cell-element-picker` renders no segmented filter for a
+  single-state pool because All and Solids would do the same thing.
 - **The tags are not all elements.** A storage bin filter carries critter and seed tags
   (`HatchEgg`, `BasicSingleHarvestPlantSeed`) for which the site has no model at all — no
   tag table, no display names. The editor resolves what `BuildableElement.getElementById`
@@ -335,6 +341,16 @@ class of mismatch as the activation range's inverted names in #238/#251.
   since that path needs the key present rather than created.
 - The mod omits the key entirely when `copySettingsEnabled` is false, so "key absent" is
   not distinguishable from "empty filter".
+
+### Automatable is shown inverted
+
+`Automatable.automationOnly` is rendered as **Allow Manual Use**, negated. The game's side
+screen (`AUTOMATABLE_SIDE_SCREEN.ALLOWMANUALBUTTON`, "Allow Duplicants to manually manage
+these storage materials") is ticked exactly when the stored field is **false**, so showing
+the raw field would have the player read every value backwards — the same class of mismatch
+as the activation range's inverted names in #238. `invert: true` on a `bool` descriptor
+negates it in the formatter and in both directions of the panel's edit path; the no-op guard
+compares in display space, so the negation happens once, on write.
 
 ### Threshold sensors (IThresholdSwitch)
 

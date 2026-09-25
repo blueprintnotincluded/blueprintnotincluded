@@ -43,7 +43,7 @@ function formatFieldValue(
     case 'bool':
       if (descriptor.booleanLabels != null)
         return raw ? descriptor.booleanLabels.whenTrue : descriptor.booleanLabels.whenFalse;
-      return raw ? 'On' : 'Off';
+      return (descriptor.invert ? !raw : raw) ? 'On' : 'Off';
     case 'string':
       return raw == null || raw === '' ? '—' : String(raw);
     case 'tagSet': {

@@ -31,11 +31,13 @@ export class CellElementPickerComponent implements OnInit {
     return this.states != undefined;
   }
   selectedState: ElementState | null = null;
-  // Which of `states` the segmented filter starts on. Absent means All, which
-  // is what every caller got before this existed. A caller whose setting is
-  // overwhelmingly one phase (a storage filter: solids) can open on that phase
-  // without locking the others away, the way `forceTag` would.
-  @Input() initialState?: ElementState;
+  // A one-state pool is a lock, not a choice, so it renders no segmented
+  // filter — an All/Solids pair where both do the same thing is noise. The
+  // storage filter uses this: conveyor rails and storage bins take solids
+  // only, so offering the other phases would offer entries the game rejects.
+  get showStateSegments(): boolean {
+    return this.isStateFiltered && this.states!.length > 1;
+  }
 
   constructor() {
     this.filterNameSubject.subscribe((_value: string) => {
@@ -44,8 +46,6 @@ export class CellElementPickerComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (this.initialState != undefined && this.isStateFiltered)
-      this.selectedState = this.initialState;
     this.filterElements();
   }
 
