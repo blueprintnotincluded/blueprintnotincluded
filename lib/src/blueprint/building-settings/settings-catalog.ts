@@ -12,7 +12,14 @@ import { THRESHOLD_SENSORS, thresholdSensorSpec } from './threshold-sensors';
 // durations. 'bit': a 0-3 ribbon bit index. '%': a plain percentage, reserved.
 export type SettingUnit = 's' | 'cycleFraction' | 'bit' | '%';
 
-export type SettingFieldType = 'bool' | 'float' | 'int' | 'string' | 'enum' | 'element';
+export type SettingFieldType =
+  | 'bool'
+  | 'float'
+  | 'int'
+  | 'string'
+  | 'enum'
+  | 'element'
+  | 'tagSet';
 
 export interface SettingFieldDescriptor {
   // Property name inside the component's `Value` object.
@@ -49,6 +56,11 @@ export interface SettingFieldDescriptor {
   // an on/off switch — rendered as a pair of labelled options instead of a
   // checkbox, and formatted with these words instead of On/Off.
   booleanLabels?: { whenTrue: string; whenFalse: string };
+  // type: 'bool' only. The stored field means the opposite of the checkbox the
+  // player saw, so display and edit both negate it. `Automatable.automationOnly`
+  // is the case: the game's side screen offers "Allow Manual Use", which is on
+  // exactly when automationOnly is false.
+  invert?: boolean;
   // type: 'element' only. The `forceTag` passed to app-cell-element-picker
   // (`Gas`/`Liquid`/`Solid`) — filled in per prefab by resolveSettingDescriptors
   // from FILTERABLE_BUILDINGS, since one `Filterable` catalogue entry serves
@@ -68,6 +80,16 @@ const ABOVE_BELOW: Pick<SettingFieldDescriptor, 'labelKey' | 'type' | 'booleanLa
 
 const THRESHOLD_KEY = 'IThresholdSwitch';
 const FILTERABLE_KEY = 'Filterable';
+const TREE_FILTERABLE_KEY = 'TreeFilterable';
+
+// Buildings whose accepted-materials filter we can create from scratch. Kept
+// narrow on purpose: the *default* is verified (see below), but whether a given
+// prefab carries a TreeFilterable component at all is a per-building fact, and
+// writing the key onto a building without one would render an editable row for
+// a setting the mod then ignores. Extend it as captures confirm more carriers;
+// an imported blueprint's filter is editable on ANY carrier already, since that
+// path needs the key to be present rather than created.
+export const TREE_FILTERABLE_BUILDINGS: string[] = ['SolidConduitInbox', 'StorageLockerSmart'];
 
 // The Critter Sensor. Handled like a threshold sensor (its own Key is the
 // single canonical settings key; the stowaway Switch and a redundant
@@ -203,6 +225,33 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
   // phase filter is set per prefab by resolveSettingDescriptors (elementForceTag).
   Filterable: [{ field: 'SelectedTag', labelKey: 'Element', type: 'element' }],
 
+  // The accepted-materials filter, carried by the Conveyor Loader, the Smart
+  // Storage Bin and every other storage building the mod can copy. Unlike
+  // `Filterable` (one element) this is a *set*, and it is stored serialized —
+  // see decodeTagSet/encodeTagSet.
+  //
+  // The mod applies these two fields independently (two separate null checks in
+  // DataTransfer_TreeFilterable), so unlike almost every other key a Value
+  // missing one of them still applies the other. That makes it the second
+  // exception to the "TryApplyData bails on the whole Value" rule, alongside
+  // LogicAlarm.
+  //
+  // Both labels come from the game's shipped strings rather than the C# field
+  // names -- the mistake #251 fixed for the activation range.
+  // `.ONLYALLOWTRANSPORTITEMSBUTTON` is "Sweep Only" ("Only store objects
+  // marked Sweep in this container"), a very different thing from the "only
+  // fetch marked items" its field name suggests.
+  //
+  // The tag set is shortened from the game's "Element Filter"
+  // (TREEFILTERABLESIDESCREEN.TITLE) to just "Filter": the row sits inside a
+  // panel that already has an Elements section for the building's construction
+  // material, and two things called Element next to each other read as related
+  // when they are not.
+  TreeFilterable: [
+    { field: 'acceptedTagSet', labelKey: 'Filter', type: 'tagSet' },
+    { field: 'onlyFetchMarkedItems', labelKey: 'Sweep Only', type: 'bool' },
+  ],
+
   LogicAlarm: [
     { field: 'notificationName', labelKey: 'Name', type: 'string', max: 200 },
     { field: 'notificationTooltip', labelKey: 'Tooltip', type: 'string', max: 400 },
@@ -257,8 +306,67 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
 
   BuildingEnabledButton: [{ field: 'IsEnabled', labelKey: 'Enabled', type: 'bool' }],
 
-  Automatable: [{ field: 'automationOnly', labelKey: 'Automation only', type: 'bool' }],
+  // The game's side screen (AUTOMATABLE_SIDE_SCREEN.ALLOWMANUALBUTTON) says
+  // "Allow Manual Use" -- "Allow Duplicants to manually manage these storage
+  // materials" -- and it is ticked when the stored automationOnly is FALSE. So
+  // the row is both renamed and negated; showing the raw field would have the
+  // player read every value backwards.
+  Automatable: [
+    { field: 'automationOnly', labelKey: 'Allow Manual Use', type: 'bool', invert: true },
+  ],
 };
+
+// A Klei tag as the mod serializes it. `IsValid` is a get-only property on the
+// C# side, so only `Name` survives the trip back into a Tag — we write `true`
+// because that is what the game itself emits, not because it is read.
+export interface SettingTag {
+  Name: string;
+  IsValid: boolean;
+}
+
+// `acceptedTagSet` is stored *serialized*, and two shapes exist in the wild:
+//
+//   "acceptedTagSet": "[{\"Name\":\"HatchEgg\",\"IsValid\":true}]"   a JSON string
+//   "acceptedTagSet":  [{ "Name": "Cuprite", "IsValid": true }]      a real array
+//
+// The mod writes the first (`JsonConvert.SerializeObject(tags)`) and reads it
+// back with `t1.Value<string>()`, which returns null when handed an array — so
+// a file carrying the decoded shape loses its filter silently on apply. Files
+// of both shapes exist, so we read either and always write the string.
+//
+// Never throws: a malformed value reads as an empty set rather than breaking
+// the settings panel, matching how formatBuildingDataEntry treats a field whose
+// shape it does not recognize.
+export function decodeTagSet(raw: unknown): SettingTag[] {
+  let parsed: unknown = raw;
+  if (typeof raw == 'string') {
+    if (raw.trim() === '') return [];
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(parsed)) return [];
+
+  const names: string[] = [];
+  for (const entry of parsed) {
+    const name =
+      typeof entry == 'string'
+        ? entry
+        : entry != null && typeof (entry as SettingTag).Name == 'string'
+          ? (entry as SettingTag).Name
+          : null;
+    // A set, as the name says: the mod parses it into a HashSet<Tag>, so a
+    // duplicate would silently collapse there anyway.
+    if (name != null && name !== '' && !names.includes(name)) names.push(name);
+  }
+  return names.map(Name => ({ Name, IsValid: true }));
+}
+
+export function encodeTagSet(tags: readonly SettingTag[]): string {
+  return JSON.stringify(tags.map(tag => ({ Name: tag.Name, IsValid: true })));
+}
 
 export function isKnownSettingsKey(key: string): boolean {
   return Object.prototype.hasOwnProperty.call(SETTINGS_CATALOG, key);
@@ -407,6 +515,20 @@ for (const [prefabId, spec] of Object.entries(THRESHOLD_SENSORS)) {
   };
 }
 
+// Confirmed in game rather than guessed, which is what CREATABLE_SETTINGS
+// policy requires: a freshly built Conveyor Loader and Smart Storage Bin each
+// store `{"acceptedTagSet": [], "onlyFetchMarkedItems": false}`, and a loader
+// whose filter panel was opened and closed without a selection stores exactly
+// the same. So an empty set is the game's own default and creating the key
+// changes nothing until the user picks a material.
+//
+// We write `'[]'` where the game wrote `[]` because encodeTagSet always emits
+// the string shape -- the one the mod can read back. See decodeTagSet.
+for (const prefabId of TREE_FILTERABLE_BUILDINGS) {
+  const forPrefab = (CREATABLE_SETTINGS[prefabId] ??= {});
+  forPrefab[TREE_FILTERABLE_KEY] = { acceptedTagSet: '[]', onlyFetchMarkedItems: false };
+}
+
 for (const prefabId of Object.keys(FILTERABLE_BUILDINGS)) {
   // Every element sensor / filter gets `Filterable` as a creatable key. The
   // one field, SelectedTag, defaults to NONE_TAG ('Void') — the game's own
@@ -442,6 +564,8 @@ export function primarySettingsKey(
     return { key: CRITTER_COUNT_SENSOR_ID, label: 'Critter count' };
   if (filterableBuildingForceTag(prefabId) != null)
     return { key: FILTERABLE_KEY, label: 'Element' };
+  if (TREE_FILTERABLE_BUILDINGS.includes(prefabId))
+    return { key: TREE_FILTERABLE_KEY, label: 'Filter' };
   const spec = thresholdSensorSpec(prefabId);
   return spec != null ? { key: THRESHOLD_KEY, label: spec.label } : null;
 }

@@ -727,6 +727,184 @@ describe("BuildingSettingsComponent", () => {
     spy.mockRestore();
   });
 
+  it("renders an accepted-materials filter as one chip per tag", () => {
+    // Cuprite resolves to an element (Copper Ore); HatchEgg does not -- the
+    // site has no model for critter/seed tags, and a storage filter carries
+    // them routinely, so the raw name must still be shown.
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet:
+            '[{"Name":"Cuprite","IsValid":true},{"Name":"HatchEgg","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+
+    const row = component.rows.find((r: any) => r.type === "tagSet")!;
+    expect(row.tags!.map((t: any) => t.name)).toEqual(["Cuprite", "HatchEgg"]);
+    expect(component.tagLabel(row.tags![1])).toBe("HatchEgg");
+    expect(
+      fixture.nativeElement.querySelectorAll(".building-setting-tag").length,
+    ).toBe(2);
+  });
+
+  // `rows` rebuilds its ResolvedTag objects on every change-detection pass, so
+  // without a trackBy Angular tears down each chip and its remove button even
+  // when the filter has not changed -- and a remove button holding focus loses
+  // it mid-keyboard-navigation. Same failure as the trackByRow regression above.
+  it("keeps chip nodes across a change-detection cycle (trackBy regression)", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet:
+            '[{"Name":"Cuprite","IsValid":true},{"Name":"HatchEgg","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+
+    const before = fixture.nativeElement.querySelector(
+      ".building-setting-tag-remove",
+    ) as HTMLButtonElement;
+    before.focus();
+    // An incidental app-wide tick, of the kind a keystroke elsewhere produces.
+    fixture.detectChanges();
+    // Re-query: a rebuilt node leaves `before` detached, which would mask the
+    // bug from an assertion on the stale reference.
+    const after = fixture.nativeElement.querySelector(
+      ".building-setting-tag-remove",
+    ) as HTMLButtonElement;
+
+    expect(after).toBe(before);
+    expect(fixture.nativeElement.contains(document.activeElement)).toBe(true);
+  });
+
+  it("adds a picked material, writing the whole set back as a string", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet: '[{"Name":"Cuprite","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+    component.elementPickerRow = component.rows.find(
+      (r: any) => r.type === "tagSet",
+    );
+
+    component.onTagPicked({ id: "Ice" } as any);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "TreeFilterable",
+      "acceptedTagSet",
+      '[{"Name":"Cuprite","IsValid":true},{"Name":"Ice","IsValid":true}]',
+    );
+    expect(emitBlueprintChanged).toHaveBeenCalled();
+  });
+
+  it("ignores a duplicate pick and the None pseudo-element", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet: '[{"Name":"Cuprite","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+    component.elementPickerRow = component.rows.find(
+      (r: any) => r.type === "tagSet",
+    );
+
+    component.onTagPicked({ id: "Cuprite" } as any);
+    component.onTagPicked({ id: "None" } as any);
+    expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+  });
+
+  it("removes a tag through its chip button, including an unresolvable one", () => {
+    setItem("SolidConduitInbox", [
+      {
+        Key: "TreeFilterable",
+        Value: {
+          acceptedTagSet:
+            '[{"Name":"Cuprite","IsValid":true},{"Name":"HatchEgg","IsValid":true}]',
+          onlyFetchMarkedItems: false,
+        },
+      },
+    ]);
+
+    const buttons = fixture.nativeElement.querySelectorAll(
+      ".building-setting-tag-remove",
+    );
+    (buttons[1] as HTMLButtonElement).click();
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "TreeFilterable",
+      "acceptedTagSet",
+      '[{"Name":"Cuprite","IsValid":true}]',
+    );
+  });
+
+  it("renders an empty filter without error, and offers no Set button", () => {
+    setItem("StorageLockerSmart", [
+      {
+        Key: "TreeFilterable",
+        Value: { acceptedTagSet: [], onlyFetchMarkedItems: false },
+      },
+    ]);
+
+    const row = component.rows.find((r: any) => r.type === "tagSet")!;
+    expect(row.tags).toEqual([]);
+    expect(
+      fixture.nativeElement.querySelector(".building-setting-tag-empty"),
+    ).not.toBeNull();
+    expect(component.canClearPrimary).toBe(true);
+  });
+
+  it("offers Set on a placed loader that has no filter yet", () => {
+    setItem("SolidConduitInbox", [
+      { Key: "BuildingEnabledButton", Value: { IsEnabled: true } },
+    ]);
+    expect(component.primaryUnsetLabel).toBe("Filter");
+
+    (
+      fixture.nativeElement.querySelector(
+        ".building-setting-set",
+      ) as HTMLButtonElement
+    ).click();
+    expect(component.blueprintItem.addBuildingSetting).toHaveBeenCalledWith(
+      "TreeFilterable",
+    );
+    // The empty default the game itself writes on a fresh build.
+    expect(
+      component.blueprintItem.buildingData!.find(
+        (e) => e.Key == "TreeFilterable",
+      )!.Value,
+    ).toEqual({ acceptedTagSet: "[]", onlyFetchMarkedItems: false });
+  });
+
+  // The checkbox is the game's "Allow Manual Use", which is ticked when the
+  // stored automationOnly is false. Both directions are asserted because an
+  // inversion applied on display but not on commit looks right until you click.
+  it("shows Allow Manual Use inverted, and writes the negation back", () => {
+    setItem("SolidConduitInbox", [
+      { Key: "Automatable", Value: { automationOnly: true } },
+    ]);
+
+    const row = component.rows.find((r: any) => r.key === "Automatable")!;
+    expect(row.label).toBe("Allow Manual Use");
+    expect(row.displayValue).toBe(false);
+
+    component.onFieldInput(row, true);
+    expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+      "Automatable",
+      "automationOnly",
+      false,
+    );
+  });
+
   it("sets and clears an element sensor's Filterable key", () => {
     setItem("LogicElementSensorGas", [
       { Key: "Switch", Value: { switchedOn: true } },

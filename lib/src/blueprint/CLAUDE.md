@@ -246,7 +246,7 @@ edits.
   hand-authored table (`SETTINGS_CATALOG`) of the automation-relevant keys (`Switch`,
   `LogicTimerSensor`, `LogicTimeOfDaySensor`, `LogicCounter`, `LogicGateBuffer`/`Filter`,
   `LogicRibbonReader`/`Writer`, `LogicCritterCountSensor`, `LogicAlarm`, `IThresholdSwitch`,
-  `IActivationRangeTarget`, `BuildingEnabledButton`, `Automatable`) with per-field type/unit/
+  `IActivationRangeTarget`, `BuildingEnabledButton`, `Automatable`, `TreeFilterable`) with per-field type/unit/
   bounds — cross-checked against the mod's real `DataTransferHelpers.cs`/`API_Methods.cs`
   source (available locally as an additional working directory), not just the import spec's
   summary table. Every other key (`Door`, `Valve`, filters, `AccessControl`, `PixelPack`,
@@ -265,8 +265,8 @@ edits.
   `BlueprintItem.setBuildingSetting(key, field, value)` replaces one field on an
   already-present key, keeping every other field verbatim — required because the mod's
   `TryApplyData` bails on the **whole** Value object if even one expected field is missing
-  (confirmed against real mod source; the one exception found is `LogicAlarm`, which applies
-  each field independently). `addBuildingSetting(key)` constructs a complete Value object from
+  (confirmed against real mod source; two exceptions are known — `LogicAlarm` and
+  `TreeFilterable`, which each apply their fields independently). `addBuildingSetting(key)` constructs a complete Value object from
   scratch using hand-verified defaults.
 - **Creatable-from-scratch is deliberately narrow** — `CREATABLE_SETTINGS` in
   `settings-catalog.ts` holds `LogicTimerSensor` (`onDuration`/`offDuration`:
@@ -294,6 +294,72 @@ edits.
   `trackBy: trackByRow` keyed on `Key:field`; a regression spec (re-queries the DOM after a
   simulated mid-edit change-detection tick rather than reusing a captured node reference)
   fails without the fix and passes with it.
+
+### Accepted-materials filters (TreeFilterable)
+
+The Conveyor Loader, Smart Storage Bin and every other copyable storage building carry
+`TreeFilterable` — a *set* of accepted materials, where `Filterable` is a single element.
+Two fields: `acceptedTagSet` and `onlyFetchMarkedItems`.
+
+Both are labelled from the game's shipped strings rather than their field names:
+`.ONLYALLOWTRANSPORTITEMSBUTTON` is **Sweep Only** ("Only store objects marked Sweep in this
+container"). That one matters — "only fetch marked items" reads like a fetch-priority
+setting, when what it actually does is restrict the container to hand-swept items. Same
+class of mismatch as the activation range's inverted names in #238/#251.
+
+The tag set is the one deliberate departure: the game titles that side screen **Element
+Filter** (`TREEFILTERABLESIDESCREEN.TITLE`), and the row says just **Filter**. The panel
+already has an Elements section for the building's construction material, and two things
+called Element sitting next to each other read as related when they are not.
+
+- **The value is serialized, and two shapes exist in the wild.** The mod writes
+  `acceptedTagSet` as a JSON **string** (`JsonConvert.SerializeObject(tags)`) and reads it
+  back with `t1.Value<string>()`; a current build was observed writing the *decoded* array
+  instead. `Value<string>()` returns null when handed an array, so a file carrying the
+  decoded shape loses its filter silently on apply. `decodeTagSet` therefore accepts either
+  and `encodeTagSet` always emits the string — the only form the mod is guaranteed to read.
+  Both live in `settings-catalog.ts` and are the single place that knows the wire format.
+  The conversion is applied at the **export boundary** (`toBniBuilding`), not only when the
+  panel writes: `setBuildingSetting` replaces one field, so an imported array would otherwise
+  survive untouched when the user edits nothing, or edits only `onlyFetchMarkedItems`. The
+  MDB path stays a byte-faithful clone, so re-saving does not move a blueprint's fingerprint
+  or detach `rawSource`.
+- **A tag is `{ Name, IsValid }`, not a hash** — unlike `selected_elements`, which stores
+  the integer SimHash. `IsValid` is get-only on the C# side, so only `Name` survives the
+  trip back into a `Tag`; we emit `true` because that is what the game writes.
+- **Solids only, confirmed by round trip.** A Smart Storage Bin exported with Water in its
+  filter came back from the game with Water gone and Sandstone intact — the game discards a
+  tag the building cannot hold, silently. Conveyor rails carry solid chunks and storage bins
+  take no bottled liquids or gas canisters, so the picker gets a one-state pool
+  (`[ElementState.Solid]`), and `cell-element-picker` renders no segmented filter for a
+  single-state pool because All and Solids would do the same thing.
+- **The tags are not all elements.** A storage bin filter carries critter and seed tags
+  (`HatchEgg`, `BasicSingleHarvestPlantSeed`) for which the site has no model at all — no
+  tag table, no display names. The editor resolves what `BuildableElement.getElementById`
+  resolves and renders the rest by raw name: preserved and removable, never addable, since
+  adding is restricted to the element picker's vocabulary.
+- **Creatable, on a verified default.** A freshly built Conveyor Loader and Smart Storage
+  Bin each store `{"acceptedTagSet": [], "onlyFetchMarkedItems": false}`, and so does a
+  loader whose filter panel was opened and closed without a selection — confirmed by
+  copying all three out of a game. So the empty set is the game's own default and creating
+  the key changes nothing until a material is picked, which is what qualifies it for
+  `CREATABLE_SETTINGS`. `TREE_FILTERABLE_BUILDINGS` holds the prefabs that get the Set
+  button; it is deliberately short, because whether a prefab carries the component at all
+  is a per-building fact and writing the key onto one without it would show an editable row
+  the mod ignores. An imported blueprint's filter is editable on **any** carrier regardless,
+  since that path needs the key present rather than created.
+- The mod omits the key entirely when `copySettingsEnabled` is false, so "key absent" is
+  not distinguishable from "empty filter".
+
+### Automatable is shown inverted
+
+`Automatable.automationOnly` is rendered as **Allow Manual Use**, negated. The game's side
+screen (`AUTOMATABLE_SIDE_SCREEN.ALLOWMANUALBUTTON`, "Allow Duplicants to manually manage
+these storage materials") is ticked exactly when the stored field is **false**, so showing
+the raw field would have the player read every value backwards — the same class of mismatch
+as the activation range's inverted names in #238. `invert: true` on a `bool` descriptor
+negates it in the formatter and in both directions of the panel's edit path; the no-op guard
+compares in display space, so the negation happens once, on write.
 
 ### Threshold sensors (IThresholdSwitch)
 

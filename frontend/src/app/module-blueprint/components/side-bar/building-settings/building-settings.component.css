@@ -6,6 +6,13 @@
   padding: 2px 0;
 }
 
+/* Every other control is one line tall, so centring reads right. The tag set
+   is a stack, and centring puts its label halfway down the chips instead of
+   beside the first one. */
+.building-setting-row:has(.building-setting-tagset) {
+  align-items: flex-start;
+}
+
 .building-setting-label {
   color: var(--p-text-muted-color);
 }
@@ -38,6 +45,60 @@
   cursor: pointer;
 }
 .building-setting-element:hover {
+  border-color: var(--p-primary-color);
+}
+
+/* An accepted-materials filter: a stack of chips with Add on its own line
+   beneath them. It is the one control here that is a list rather than a single
+   value, so it runs down the row instead of across it -- Add sitting after the
+   last chip reads as another chip, and moves every time the list changes. */
+.building-setting-tagset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.building-setting-tagset .building-setting-tag-add {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+.building-setting-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 2px 1px 5px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+}
+.building-setting-tag-label {
+  font-size: smaller;
+}
+.building-setting-tag-remove {
+  border: none;
+  background: none;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 3px;
+}
+.building-setting-tag-remove:hover {
+  color: var(--p-primary-color);
+}
+.building-setting-tag-empty {
+  color: var(--p-text-muted-color);
+  font-size: smaller;
+}
+.building-setting-tag-add {
+  padding: 2px 6px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+  color: inherit;
+  cursor: pointer;
+  font-size: smaller;
+}
+.building-setting-tag-add:hover {
   border-color: var(--p-primary-color);
 }
 
