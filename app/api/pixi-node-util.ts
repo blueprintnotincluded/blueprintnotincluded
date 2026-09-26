@@ -1,4 +1,4 @@
-const { loadImage } = require('canvas');
+const { loadImage, createCanvas } = require('canvas');
 const PIXI = require('../pixi-shim');
 require('../pixi-shim/lib/pixi-shim-node.js');
 
@@ -81,11 +81,38 @@ export class PixiNodeUtil implements PixiUtil {
     }
   }
 
-  async getImageFromCanvas(path: string) {
-    let image = await loadImage(path);
-    let ressource = new NodeCanvasResource(image);
-    let bt = new PIXI.BaseTexture(ressource);
-    return bt;
+  /**
+   * Decode an image into a BaseTexture, optionally capping its longest side.
+   *
+   * The cap exists because the building art is authored at print resolution --
+   * assets/ui_image is 1,369 icons totalling ~419MB of RGBA at native size, up
+   * to 1524x1263 -- while a preview draws a building into a few tens of
+   * pixels. The full-size bitmap is still decoded here, since libpng gives no
+   * way to scale while decoding, but it is transient: only the downscaled
+   * canvas is retained.
+   *
+   * Only safe for textures drawn whole. An atlas must never be capped: its
+   * sprites are addressed by pixel rectangles (SpriteInfo.uvMin/uvSize), which
+   * scaling silently invalidates.
+   */
+  async getImageFromCanvas(path: string, maxDimension?: number) {
+    const image = await loadImage(path);
+    let source: any = image;
+    const nativeMax = Math.max(image.width, image.height);
+    if (maxDimension != null && nativeMax > maxDimension) {
+      const scale = maxDimension / nativeMax;
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = createCanvas(width, height);
+      const context = canvas.getContext('2d');
+      // The icons are alpha-cut art on transparency; without this the
+      // downscale fringes every edge against the uninitialised backdrop.
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.drawImage(image, 0, 0, width, height);
+      source = canvas;
+    }
+    return new PIXI.BaseTexture(new NodeCanvasResource(source));
   }
 
   async getImageWhite(path: string) {

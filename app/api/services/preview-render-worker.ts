@@ -103,12 +103,25 @@ function logRss(label: string) {
 // texture consumers (DrawPart.prepareSprite, SpriteInfo.getTexture,
 // drawPixiUtility) so only these files are decoded — preloading the full
 // registered set costs ~400MB RSS and OOM-kills small prod instances.
-function collectImageIds(blueprint: SharedBlueprint): Set<string> {
+interface CollectedImages {
+  /** Every image id this render can request. */
+  ids: Set<string>;
+  /**
+   * The subset drawn as whole images, which are the only ones safe to scale.
+   * Atlas images are addressed by pixel rectangles (SpriteInfo.uvMin/uvSize)
+   * that scaling would silently invalidate, so they decode at native size.
+   */
+  flatIconIds: Set<string>;
+}
+
+function collectImageIds(blueprint: SharedBlueprint): CollectedImages {
   const imageIds = new Set<string>();
+  const flatIconIds = new Set<string>();
   for (const item of blueprint.blueprintItems) {
     for (const part of item.drawParts) {
       if (part.flatIconId) {
         imageIds.add(part.flatIconId);
+        flatIconIds.add(part.flatIconId);
       } else if (part.spriteModifier) {
         const spriteInfo = SpriteInfo.getSpriteInfo(part.spriteModifier.spriteInfoName);
         if (spriteInfo?.imageId) imageIds.add(spriteInfo.imageId);
@@ -121,8 +134,48 @@ function collectImageIds(blueprint: SharedBlueprint): Set<string> {
       if (spriteInfo?.imageId) imageIds.add(spriteInfo.imageId);
     }
   }
-  return imageIds;
+  return { ids: imageIds, flatIconIds };
 }
+
+// Off with PREVIEW_ICON_DOWNSCALE=0, which restores native-resolution decodes.
+const ICON_DOWNSCALE = process.env.PREVIEW_ICON_DOWNSCALE !== '0';
+
+/**
+ * The resolution every flat building icon is held at.
+ *
+ * One number, applied on first load, rather than a per-render cap derived
+ * from the blueprint's zoom. A per-render cap is tempting -- a large base
+ * only needs ~45px icons -- but it only ever ratchets upward, and this worker
+ * is long-lived and renders blueprints of every size. One zoomed-in blueprint
+ * pulls its icons to the ceiling and they stay there, so the steady state of
+ * a per-render cap *is* this, reached a few renders later and with a
+ * re-decode path, a resident-resolution map and a texture-replacement rule to
+ * maintain. Measured, the two are within 4% of each other on a warm worker
+ * once the cache has seen a mix of sizes.
+ *
+ * 256 is what MIN_FRAME_CELLS licenses: with the cell pitch capped at
+ * masterSize / 6 = 200px, a 256px icon is never upscaled. Without that floor
+ * a lone 1x1 building draws a cell at 400px and 256 would be a visible 1.56x
+ * upscale.
+ *
+ * The whole 1,369-icon catalogue at this size is ~109MB, against ~419MB at
+ * native -- and that total is the real bound, since a long-lived worker
+ * eventually sees most of it.
+ */
+const ICON_MAX_PX = Number(process.env.PREVIEW_ICON_MAX_CAP ?? 256) || 256;
+
+/**
+ * Fewest cells a preview ever frames, which is what bounds the cell pitch:
+ * masterSize / MIN_FRAME_CELLS is the largest a cell can be drawn.
+ *
+ * Zoom was derived from the blueprint's extent with no upper bound, so a small
+ * blueprint was magnified past what its art holds -- the icons carry ~201px
+ * per cell at the median, and a 3-cell frame asks for 400. A single-battery
+ * blueprint rendered at 377x624 from a 250x415 source, blurrier than the PNG
+ * on disk. The space the floor leaves is filled by the cell grid already
+ * composited into the transparent regions.
+ */
+const MIN_FRAME_CELLS = Number(process.env.PREVIEW_MIN_FRAME_CELLS ?? 6) || 6;
 
 // Decode the given textures if they are not already resident. Missing or
 // unregistered files get a 1x1 transparent placeholder instead of failing the
@@ -132,14 +185,16 @@ function collectImageIds(blueprint: SharedBlueprint): Set<string> {
 async function ensureTextures(
   pixi: PixiNodeUtil,
   baseDir: string,
-  imageIds: Iterable<string>
+  collected: CollectedImages
 ): Promise<number> {
   let missing = 0;
-  for (const key of imageIds) {
+  for (const key of collected.ids) {
     if (ImageSource.isTextureLoaded(key)) continue;
     try {
       const imageUrl = ImageSource.getUrl(key)!;
-      const baseTexture = await pixi.getImageFromCanvas(path.join(baseDir, imageUrl));
+      // Flat icons are capped; atlases decode whole (see CollectedImages).
+      const cap = ICON_DOWNSCALE && collected.flatIconIds.has(key) ? ICON_MAX_PX : undefined;
+      const baseTexture = await pixi.getImageFromCanvas(path.join(baseDir, imageUrl), cap);
       ImageSource.setBaseTexture(key, baseTexture);
     } catch {
       missing++;
@@ -351,13 +406,16 @@ async function renderMaster(
   sampleRss();
   const [topLeft, bottomRight] = blueprint.getBoundingBox();
   const totalTileSize = new Vector2(bottomRight.x - topLeft.x + 3, bottomRight.y - topLeft.y + 3);
-  const maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
+  // Never fewer cells than MIN_FRAME_CELLS, which is the same thing as never
+  // drawing a cell larger than size / MIN_FRAME_CELLS.
+  const maxTotalSize = Math.max(MIN_FRAME_CELLS, totalTileSize.x, totalTileSize.y);
   const tileSize = size / maxTotalSize;
+  // Centre the content in the (square) frame. Generalises the previous pair of
+  // axis comparisons: when the frame is exactly the longer extent this is the
+  // same offset, and it also handles a frame widened by the floor.
   const cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
-  if (totalTileSize.x > totalTileSize.y)
-    cameraOffset.y += totalTileSize.x / 2 - totalTileSize.y / 2;
-  if (totalTileSize.y > totalTileSize.x)
-    cameraOffset.x += totalTileSize.y / 2 - totalTileSize.x / 2;
+  cameraOffset.x += (maxTotalSize - totalTileSize.x) / 2;
+  cameraOffset.y += (maxTotalSize - totalTileSize.y) / 2;
 
   const exportCamera = new CameraService(pixi.getNewContainer());
   exportCamera.setHardZoom(tileSize);
