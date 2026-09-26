@@ -92,6 +92,22 @@ describe("CellElementPickerComponent solid tag", () => {
     expect(ids).not.toContain("Oxygen");
     expect(ids).not.toContain("Water");
   });
+  // PrimeNG 20's Checkbox has no `label` input, so the labels these carried
+  // through the v20 upgrade rendered nothing and left three bare boxes.
+  it("labels each phase checkbox", () => {
+    fixture.detectChanges();
+    const labels = [
+      ...fixture.nativeElement.querySelectorAll(".tag-filter-option label"),
+    ].map((l: any) => ({
+      text: l.textContent.trim(),
+      htmlFor: l.getAttribute("for"),
+    }));
+    expect(labels).toEqual([
+      { text: "Gas", htmlFor: "Gas" },
+      { text: "Liquid", htmlFor: "Liquid" },
+      { text: "Solid", htmlFor: "Solid" },
+    ]);
+  });
 });
 
 // The element-note picker's state filter (spec/element-notes.md §8.1): a
@@ -164,6 +180,28 @@ describe("CellElementPickerComponent state filter", () => {
       "Oxygen",
       "Water",
     ]);
+  });
+
+  // Solids only, confirmed by round trip: a bin exported with Water in its
+  // filter came back from the game without it. A one-state pool is a lock, so
+  // it renders no segmented filter -- All and Solids would do the same thing.
+  it("renders no segmented filter for a single-state pool", () => {
+    const locked = TestBed.createComponent(CellElementPickerComponent);
+    locked.componentInstance.states = [ElementState.Solid];
+    locked.detectChanges();
+
+    expect(locked.componentInstance.showStateSegments).to.equal(false);
+    expect(locked.nativeElement.querySelector(".state-filter")).to.equal(null);
+    expect(
+      locked.componentInstance.elements.map((e: any) => e.id),
+    ).to.deep.equal(["Granite"]);
+  });
+
+  it("still renders the segmented filter for a multi-state pool", () => {
+    expect(component.showStateSegments).to.equal(true);
+    expect(fixture.nativeElement.querySelector(".state-filter")).to.not.equal(
+      null,
+    );
   });
 
   it("does not affect the tag-based checkbox path for existing callers", () => {

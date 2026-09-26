@@ -4,9 +4,13 @@ import { BlueprintService } from "src/app/module-blueprint/services/blueprint-se
 import {
   BlueprintItem,
   BuildableElement,
+  ElementState,
   creatableSettingsKeysFor,
+  decodeTagSet,
+  encodeTagSet,
   formatBuildingDataEntry,
   NONE_TAG,
+  SettingTag,
   primarySettingsKey,
   redundantEchoKeysFor,
   resolveSettingDescriptors,
@@ -47,10 +51,20 @@ interface EditableSettingRow {
   // the resolved element for the current value (undefined = none / unknown id).
   elementForceTag?: string;
   element?: BuildableElement;
+  // type: 'tagSet' only. The decoded tag list, each paired with the element it
+  // resolves to. Most storage filters carry tags that are not elements at all
+  // (critter and seed tags), so `element` is routinely undefined and the raw
+  // name is what gets rendered.
+  tags?: ResolvedTag[];
   displayValue: any;
   displayMin?: number;
   displayMax?: number;
   cycleHint: string | null;
+}
+
+interface ResolvedTag {
+  name: string;
+  element?: BuildableElement;
 }
 
 interface CreatableSetting {
@@ -107,7 +121,9 @@ export class BuildingSettingsComponent {
   @Input() blueprintItem!: BlueprintItem;
 
   // One shared element picker popover — a building carries `Filterable` at most
-  // once, so there is never more than one element row on screen.
+  // once, so there is never more than one element row on screen. The tag-set
+  // picker shares it: `TreeFilterable` is likewise carried at most once, and
+  // the two never appear on the same building.
   @ViewChild("elementPanel", { static: false }) elementPanel?: Popover;
   elementPickerRow?: EditableSettingRow;
 
@@ -230,10 +246,19 @@ export class BuildingSettingsComponent {
             raw !== NONE_TAG
               ? BuildableElement.getElementById(raw)
               : undefined,
+          tags:
+            descriptor.type == "tagSet"
+              ? decodeTagSet(raw).map((tag) => ({
+                  name: tag.Name,
+                  element: BuildableElement.getElementById(tag.Name),
+                }))
+              : undefined,
           displayValue:
             typeof raw == "number"
               ? roundTo(toDisplayValue(descriptor, raw), decimals)
-              : raw,
+              : descriptor.type == "bool" && descriptor.invert
+                ? !raw
+                : raw,
           displayMin,
           displayMax:
             descriptor.max != null
@@ -296,6 +321,14 @@ export class BuildingSettingsComponent {
   // up for). Without a stable trackBy, *ngFor's default identity diffing
   // treats every row as removed-and-re-added on each cycle and tears down
   // the <input> DOM nodes mid-edit, discarding whatever the user just typed.
+  // Same reason as trackByRow: `rows` rebuilds its ResolvedTag objects on every
+  // change-detection pass, so without this Angular tears down each chip and its
+  // remove button even when the filter has not changed -- and a remove button
+  // that had focus loses it mid-keyboard-navigation.
+  trackByTag(_index: number, tag: ResolvedTag): string {
+    return tag.name;
+  }
+
   trackByRow(_index: number, row: EditableSettingRow): string {
     return `${row.key}:${row.field}`;
   }
@@ -314,8 +347,10 @@ export class BuildingSettingsComponent {
       value = Boolean(rawInput);
       // Re-picking the option already in force is not an edit; without this a
       // click on the selected half of an above/below toggle would push an
-      // undo step that changes nothing.
+      // undo step that changes nothing. Compared in DISPLAY space, which for
+      // an inverted row is the negation of what gets stored.
       if (value === row.displayValue) return;
+      if (row.descriptor.invert) value = !value;
     } else if (row.type == "int" || row.type == "float") {
       // An emptied field is not an edit to zero — and Number("") is 0, so it
       // has to be caught before the parse. Same for a stray paste that does
@@ -407,6 +442,52 @@ export class BuildingSettingsComponent {
     this.blueprintItem.setBuildingSetting(row.key, row.field, value);
     this.commit();
   }
+
+  // A tag that resolves to an element shows its game name; one that does not
+  // (a critter or seed tag, which the site has no model for) shows the raw id
+  // rather than being hidden, so nothing in the stored filter is invisible.
+  tagLabel(tag: ResolvedTag): string {
+    return tag.element != null ? stripNoteMarkup(tag.element.name) : tag.name;
+  }
+
+  // Adding is restricted to the element picker's vocabulary, so the editor can
+  // never invent a tag it cannot name. Removal works on anything, including the
+  // non-element tags a storage bin filter carries.
+  onTagPicked(element: BuildableElement) {
+    this.elementPanel?.hide?.();
+    const row = this.elementPickerRow;
+    if (row == null || row.tags == null) return;
+    if (element.id === "None") return;
+    if (row.tags.some((tag) => tag.name === element.id)) return;
+    this.writeTags(row, [...row.tags.map((tag) => tag.name), element.id]);
+  }
+
+  removeTag(row: EditableSettingRow, name: string) {
+    if (row.tags == null) return;
+    const remaining = row.tags
+      .map((tag) => tag.name)
+      .filter((tagName) => tagName !== name);
+    if (remaining.length === row.tags.length) return;
+    this.writeTags(row, remaining);
+  }
+
+  private writeTags(row: EditableSettingRow, names: string[]) {
+    this.blueprintItem.setBuildingSetting(
+      row.key,
+      row.field,
+      encodeTagSet(
+        names.map((Name) => ({ Name, IsValid: true }) as SettingTag),
+      ),
+    );
+    this.commit();
+  }
+
+  // Solids only, confirmed by round trip: a Smart Storage Bin exported with
+  // Water in its filter came back from the game with Water gone and Sandstone
+  // intact. Conveyor rails carry solid chunks and storage bins take no bottled
+  // liquids or gas canisters, so any other phase is an entry the game discards
+  // without saying so. A one-state pool renders no segmented filter.
+  readonly tagPickerStates: ElementState[] = [ElementState.Solid];
 
   private commit() {
     this.blueprintService.blueprint.emitBlueprintChanged();

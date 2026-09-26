@@ -11,45 +11,48 @@
   />
 </div>
 
-<div *ngIf="!isForcedTag && !isStateFiltered">
-  <p-checkbox
-    name="groupTag"
-    (onChange)="tagChanged($event)"
-    value="Gas"
-    i18n-label
-    label="Gas"
-    [(ngModel)]="selectedTags"
-    inputId="Gas"
-  ></p-checkbox>
-  <span class="second-checkbox"
-    ><p-checkbox
+<!-- PrimeNG 20's Checkbox has no `label` input (only ariaLabel/ariaLabelledBy),
+     so the `label="Gas"` these carried through the v20 upgrade rendered nothing
+     and left three bare boxes. The labels are real <label for> elements now,
+     which also restores click-the-word-to-toggle. -->
+<div class="tag-filter" *ngIf="!isForcedTag && !isStateFiltered">
+  <span class="tag-filter-option">
+    <p-checkbox
+      name="groupTag"
+      (onChange)="tagChanged($event)"
+      value="Gas"
+      [(ngModel)]="selectedTags"
+      inputId="Gas"
+    ></p-checkbox>
+    <label for="Gas" i18n>Gas</label>
+  </span>
+  <span class="tag-filter-option">
+    <p-checkbox
       name="groupTag"
       (onChange)="tagChanged($event)"
       value="Liquid"
-      i18n-label
-      label="Liquid"
       [(ngModel)]="selectedTags"
       inputId="Liquid"
-    ></p-checkbox
-  ></span>
+    ></p-checkbox>
+    <label for="Liquid" i18n>Liquid</label>
+  </span>
   <!-- Off by default: solids are normally drawn as tile buildings, and this
        list exists for gas/liquid annotations. Ticking it reaches the natural
        terrain materials — Neutronium above all, the indestructible row every
        geyser sits on. -->
-  <span class="second-checkbox"
-    ><p-checkbox
+  <span class="tag-filter-option">
+    <p-checkbox
       name="groupTag"
       (onChange)="tagChanged($event)"
       value="Solid"
-      i18n-label
-      label="Solid"
       [(ngModel)]="selectedTags"
       inputId="Solid"
-    ></p-checkbox
-  ></span>
+    ></p-checkbox>
+    <label for="Solid" i18n>Solid</label>
+  </span>
 </div>
 
-<div class="state-filter" *ngIf="isStateFiltered">
+<div class="state-filter" *ngIf="showStateSegments">
   <button
     type="button"
     class="state-filter-button"

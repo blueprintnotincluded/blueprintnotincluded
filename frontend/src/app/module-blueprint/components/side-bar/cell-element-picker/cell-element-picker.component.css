@@ -37,8 +37,23 @@
   margin-left: 10px;
 }
 
-.second-checkbox {
-  margin-left: 10px;
+/* The three phase checkboxes sit on one row with their labels. The gap belongs
+   between the options; the label hugs its own box. */
+.tag-filter {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.tag-filter-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tag-filter-option label {
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .state-filter {
