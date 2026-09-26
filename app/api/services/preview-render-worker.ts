@@ -99,6 +99,44 @@ function logRss(label: string) {
   console.log(`preview-render-worker: ${label} rss=${rssMb()}MB`);
 }
 
+const MB = 1024 * 1024;
+
+/**
+ * One memory reading, split by where the bytes live. RSS alone cannot
+ * attribute a render's cost; heapUsed vs external can — the JS object graph
+ * and the decoded canvas bitmaps scale with different things.
+ */
+function memSample(): MemSample {
+  const m = process.memoryUsage();
+  return {
+    rss: Math.round(m.rss / MB),
+    heap: Math.round(v8.getHeapStatistics().used_heap_size / MB),
+    external: Math.round(m.external / MB),
+    arrayBuffers: Math.round(m.arrayBuffers / MB),
+  };
+}
+
+// Diagnostic only, off unless PREVIEW_WORKER_HEAP_SNAPSHOT_DIR is set: a
+// snapshot is hundreds of MB and stops the world to write. Set it to attribute
+// a render's heap to constructors (which is the scene graph, which is the
+// imported blueprint, which is textures); leave it unset everywhere else.
+const HEAP_SNAPSHOT_DIR = process.env.PREVIEW_WORKER_HEAP_SNAPSHOT_DIR;
+
+async function writeHeapSnapshot(phase: string, label: string): Promise<void> {
+  if (!HEAP_SNAPSHOT_DIR) return;
+  try {
+    await fs.promises.mkdir(HEAP_SNAPSHOT_DIR, { recursive: true });
+    const safeLabel = label.replace(/[^\w.-]+/g, '_').slice(0, 80);
+    const file = path.join(HEAP_SNAPSHOT_DIR, `${safeLabel}-${phase}.heapsnapshot`);
+    // Synchronous and blocking by design: the point is to capture the heap at
+    // this exact phase boundary, not whatever it drifts to afterwards.
+    v8.writeHeapSnapshot(file);
+    console.log(`preview-render-worker: wrote heap snapshot ${file} (heap ${memSample().heap}MB)`);
+  } catch (e) {
+    console.warn(`preview-render-worker: heap snapshot at ${phase} failed:`, e);
+  }
+}
+
 // Every image id a render of this blueprint can request. Static walk of the
 // texture consumers (DrawPart.prepareSprite, SpriteInfo.getTexture,
 // drawPixiUtility) so only these files are decoded — preloading the full
@@ -305,6 +343,45 @@ interface RenderTimings {
    * a peak.
    */
   peakRssMb: number;
+  /**
+   * Memory at each phase boundary, split by where it actually lives.
+   *
+   * RSS is what the container kills on, but it folds the V8 heap, native
+   * allocations and allocator slack into one number, so it cannot say what
+   * got big. The ladder that set PREVIEW_MAX_RENDER_ITEMS was RSS-only, so
+   * the per-item cost it implies is an upper bound on nothing in particular.
+   * Splitting rss / heapUsed / external per phase is what distinguishes the
+   * JS-side scene graph (heapUsed, scales with item count) from decoded
+   * canvas bitmaps (external, scales with distinct prefabs) — two different
+   * problems with two different fixes.
+   */
+  mem: MemPhases;
+}
+
+/** One memory reading, in MB. */
+interface MemSample {
+  rss: number;
+  /** Live V8 heap: the JS object graph (BlueprintItems, PIXI display objects). */
+  heap: number;
+  /** Native memory V8 knows about — decoded canvas bitmaps land here. */
+  external: number;
+  arrayBuffers: number;
+}
+
+/** Memory at each render phase boundary. */
+interface MemPhases {
+  /** Entering the render: resident textures + shared lib, nothing per-render. */
+  start: MemSample;
+  /** After importFromMdb: adds the BlueprintItem/DrawPart graph. */
+  afterImport: MemSample;
+  /** After ensureTextures: adds this blueprint's decoded textures. */
+  afterTextures: MemSample;
+  /** After drawPixi over every item: adds the PIXI scene graph. */
+  afterRasterize: MemSample;
+  /** After extract: adds the RGBA master. */
+  afterExtract: MemSample;
+  /** After destroy(): what the render failed to hand back. */
+  afterRelease: MemSample;
 }
 
 // Pixel geometry of the render: the size of one cell, and where cell (0,0)'s
@@ -331,11 +408,25 @@ async function renderMaster(
   pixi: PixiNodeUtil,
   assetBaseDir: string,
   mdb: MdbBlueprint,
-  size: number
+  size: number,
+  // Names the heap snapshots this render writes, when they are enabled at all.
+  label = 'render'
 ): Promise<MasterPixels> {
-  let peakRssMb = rssMb();
+  const start = memSample();
+  let peakRssMb = start.rss;
   const sampleRss = () => {
     peakRssMb = Math.max(peakRssMb, rssMb());
+  };
+  // Phase-boundary readings. Every entry is overwritten below; seeded from
+  // `start` so a render that throws mid-phase still yields a well-formed
+  // object rather than zeroes that read as real measurements.
+  const mem: MemPhases = {
+    start,
+    afterImport: start,
+    afterTextures: start,
+    afterRasterize: start,
+    afterExtract: start,
+    afterRelease: start,
   };
 
   const importStart = Date.now();
@@ -345,10 +436,16 @@ async function renderMaster(
 
   const texturesStart = Date.now();
   sampleRss();
+  mem.afterImport = memSample();
   await ensureTextures(pixi, assetBaseDir, collectImageIds(blueprint));
 
   const rasterizeStart = Date.now();
   sampleRss();
+  mem.afterTextures = memSample();
+  // Baseline snapshot: everything the render needs *before* a single PIXI
+  // display object exists. Differencing it against the rasterize snapshot is
+  // what attributes the scene graph, rather than inferring it from RSS.
+  await writeHeapSnapshot('textures', label);
   const [topLeft, bottomRight] = blueprint.getBoundingBox();
   const totalTileSize = new Vector2(bottomRight.x - topLeft.x + 3, bottomRight.y - topLeft.y + 3);
   const maxTotalSize = Math.max(totalTileSize.x, totalTileSize.y);
@@ -384,14 +481,26 @@ async function renderMaster(
   // away.
   const extractStart = Date.now();
   sampleRss();
+  mem.afterRasterize = memSample();
+  // Peak snapshot: the scene graph is fully built and nothing has been
+  // released yet. afterRasterize - afterTextures is the scene graph's live
+  // cost; this snapshot says which constructors it went to.
+  await writeHeapSnapshot('rasterize', label);
   const pixels: Uint8ClampedArray = pixi.pixiApp.renderer.plugins.extract.pixels(renderTexture);
   const raw = Buffer.from(pixels.buffer, pixels.byteOffset, pixels.byteLength);
   sampleRss();
+  mem.afterExtract = memSample();
 
   exportCamera.container.destroy({ children: true });
   baseRenderTexture.destroy();
   renderTexture.destroy();
+  // NOTE: global.gc is undefined unless the process was started with
+  // --expose-gc, which the parent's fork() does not pass — so this has always
+  // been a silent no-op. Left as-is here; whether to pass the flag is a
+  // separate decision (it costs a full GC pause per render, and it targets
+  // the cross-render texture drift rather than this render's peak).
   global.gc && global.gc();
+  mem.afterRelease = memSample();
 
   return {
     raw,
@@ -410,6 +519,7 @@ async function renderMaster(
       rasterizeMs: extractStart - rasterizeStart,
       extractMs: Date.now() - extractStart,
       peakRssMb,
+      mem,
     },
   };
 }
@@ -507,13 +617,27 @@ async function main() {
           pixi,
           assetBaseDir,
           mdb,
-          size
+          size,
+          `${blueprintId ?? 'unknown'}-${itemCount ?? 0}items`
         );
         reply = { type: 'rendered', requestId, raw, width, height, framing, timings };
+        const m = timings.mem;
+        // Deltas, not absolutes: the absolute figures are dominated by the
+        // resident baseline, which says nothing about this render. Each phase
+        // reports rss/heap/external so a growth can be attributed to the JS
+        // object graph or to native bitmaps rather than guessed at.
+        const delta = (to: MemSample, from: MemSample) =>
+          `${to.rss - from.rss}/${to.heap - from.heap}/${to.external - from.external}`;
         phases =
           ` import=${timings.importMs}ms textures=${timings.texturesMs}ms` +
           ` rasterize=${timings.rasterizeMs}ms extract=${timings.extractMs}ms` +
-          ` peakRss=${timings.peakRssMb}MB`;
+          ` peakRss=${timings.peakRssMb}MB` +
+          ` mem[rss/heap/external]MB(start=${m.start.rss}/${m.start.heap}/${m.start.external}` +
+          ` +import=${delta(m.afterImport, m.start)}` +
+          ` +tex=${delta(m.afterTextures, m.afterImport)}` +
+          ` +raster=${delta(m.afterRasterize, m.afterTextures)}` +
+          ` +extract=${delta(m.afterExtract, m.afterRasterize)}` +
+          ` released=${delta(m.afterExtract, m.afterRelease)})`;
       } catch (e) {
         reply = { type: 'error', requestId, message: e instanceof Error ? e.message : String(e) };
       }
