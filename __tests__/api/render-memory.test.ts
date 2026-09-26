@@ -14,10 +14,6 @@ import {
   MAX_RSS_CAP_MB,
 } from '../../app/api/services/render-memory';
 
-// Measured idle RSS of the real render worker (see MIN_RSS_CAP_MB). The cap
-// must stay above this or the recycle fires after every render.
-const WORKER_IDLE_RSS_MB = 211;
-
 describe('resolveMaxRssMb', () => {
   it('uses a valid PREVIEW_WORKER_MAX_RSS_MB verbatim', () => {
     const { maxRssMb, detail } = resolveMaxRssMb({
@@ -35,41 +31,25 @@ describe('resolveMaxRssMb', () => {
       cgroupLimitMb: 512,
       totalMemMb: 512,
     });
-    // 512 - 320 is 192, which the floor lifts to 256 (see MIN_RSS_CAP_MB).
-    expect(maxRssMb).to.equal(MIN_RSS_CAP_MB);
+    expect(maxRssMb).to.equal(512 - PARENT_HEADROOM_MB);
     expect(detail).to.contain('ignored invalid');
   });
 
-  it('never lands under the worker idle footprint on a 512MB container (cgroup signal)', () => {
-    // Bare 512 - 320 is 192MB, below the ~211MB the worker occupies at idle.
-    // A cap under that floor is an unconditional recycle, not a cap.
+  it('derives 192MB on a 512MB container (cgroup signal)', () => {
     const { maxRssMb, detail } = resolveMaxRssMb({ cgroupLimitMb: 512, totalMemMb: 32768 });
-    expect(maxRssMb).to.equal(MIN_RSS_CAP_MB);
-    expect(maxRssMb).to.be.greaterThan(WORKER_IDLE_RSS_MB);
+    expect(maxRssMb).to.equal(192);
     expect(detail).to.contain('via cgroup');
   });
 
   it('falls back to os.totalmem when the cgroup reports no limit (DO gVisor)', () => {
     const { maxRssMb, detail } = resolveMaxRssMb({ cgroupLimitMb: null, totalMemMb: 512 });
-    expect(maxRssMb).to.equal(MIN_RSS_CAP_MB);
-    expect(maxRssMb).to.be.greaterThan(WORKER_IDLE_RSS_MB);
+    expect(maxRssMb).to.equal(192);
     expect(detail).to.contain('via os.totalmem');
   });
 
   it('takes the smaller of the two signals', () => {
-    // Values chosen to land between the floor and the ceiling, so the min()
-    // is what the assertion actually exercises.
-    expect(resolveMaxRssMb({ cgroupLimitMb: 700, totalMemMb: 1024 }).maxRssMb).to.equal(380);
-    expect(resolveMaxRssMb({ cgroupLimitMb: 1024, totalMemMb: 700 }).maxRssMb).to.equal(380);
-  });
-
-  it('documents why the floor exists: raw headroom subtraction undershoots on 512MB', () => {
-    // Not a behaviour assertion so much as a regression guard on the reasoning.
-    // If PARENT_HEADROOM_MB is ever retuned so that a 512MB instance derives a
-    // cap above the worker's idle footprint on its own, MIN_RSS_CAP_MB has
-    // stopped carrying this case and the comment on it should be revisited.
-    expect(512 - PARENT_HEADROOM_MB).to.be.lessThan(WORKER_IDLE_RSS_MB);
-    expect(MIN_RSS_CAP_MB).to.be.greaterThan(WORKER_IDLE_RSS_MB);
+    expect(resolveMaxRssMb({ cgroupLimitMb: 512, totalMemMb: 1024 }).maxRssMb).to.equal(192);
+    expect(resolveMaxRssMb({ cgroupLimitMb: 1024, totalMemMb: 512 }).maxRssMb).to.equal(192);
   });
 
   it('caps at the 384MB ceiling on large hosts', () => {

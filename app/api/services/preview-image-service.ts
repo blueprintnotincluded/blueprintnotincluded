@@ -201,12 +201,18 @@ export class PreviewImageService {
     //
     // This used to default to 0 -- keep the worker resident, because "a warm
     // worker is what keeps renders off the cold-start path". That reasoning did
-    // not survive measurement: on a 512MB instance the RSS recycle cap resolved
-    // to 192MB while the worker's idle RSS is ~211MB, so it exited after every
+    // not survive measurement: on a 512MB instance the RSS recycle cap resolves
+    // to 192MB while the worker's idle RSS is ~211MB, so it exits after every
     // single render anyway. The residency bought no warmth, and it cost ~211MB
     // held permanently -- 41% of the container, against a ~190MB API parent,
     // which is why a 512MB box sat at ~78% of its memory alert threshold before
     // serving a single request.
+    //
+    // Raising the cap above that floor to actually keep the worker warm was
+    // tried and rejected: it lets the worker survive one more render before
+    // recycling, which measured as peak RSS 232MB -> 297MB. With a ~190MB
+    // parent that is 82% -> 95% of a 512MB instance, to save a fork. See the
+    // boot warning in preview-render-worker.ts, which reports the condition.
     //
     // Renders are the rare path: variants are cached on disk (L1) and in Mongo
     // (L2), so the overwhelming majority of preview requests never fork
@@ -834,7 +840,11 @@ export class PreviewImageService {
     if (this.idleShutdownMs <= 0) return;
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => {
-      if (this.pending.size === 0) this.stopWorker();
+      // Both signals matter: `pending` is what the worker is rendering right
+      // now, `renderQueueDepth` is what is waiting its turn behind it. Killing
+      // the worker while the queue is non-empty would make the next queued
+      // render re-fork and pay a cold start for no reason.
+      if (this.pending.size === 0 && this.renderQueueDepth === 0) this.stopWorker();
       else this.scheduleIdleShutdown();
     }, this.idleShutdownMs);
     this.idleTimer.unref();
