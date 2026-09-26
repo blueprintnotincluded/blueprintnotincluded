@@ -533,6 +533,18 @@ async function main() {
 
   process.send!({ type: 'ready' });
   logRss('ready');
+  // Self-diagnosing: a cap at or under the idle footprint makes the recycle
+  // below fire after every render regardless of accumulation, which is a fork
+  // per render and a useless signal. This is exactly what a 512MB instance did
+  // for months; say so in the logs rather than leaving it to be inferred.
+  const idleRssMb = rssMb();
+  if (idleRssMb >= maxRssMb) {
+    console.warn(
+      `preview-render-worker: idle rss ${idleRssMb}MB already at/over the ${maxRssMb}MB` +
+        ` recycle cap — the worker will exit after every render. Raise` +
+        ` PREVIEW_WORKER_MAX_RSS_MB or lower PARENT_HEADROOM_MB.`
+    );
+  }
   startMemoryHeartbeat('preview-render-worker');
 }
 

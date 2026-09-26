@@ -21,7 +21,21 @@ import * as fs from 'fs';
 import * as os from 'os';
 
 export const PARENT_HEADROOM_MB = 320;
-export const MIN_RSS_CAP_MB = 128;
+// The floor exists because a cap below the worker's own *idle* RSS is not a
+// cap, it is an unconditional recycle. Measured idle footprint is ~211MB
+// (bare node ~105MB, +112MB for the shared lib + pixi-shim + canvas, +6MB for
+// the database registries, +6MB for the PIXI app), and on a 512MB instance
+// 512 - 320 headroom used to resolve to 192MB -- under that floor. The worker
+// therefore crossed its cap the moment it booted and exited after *every*
+// render, so the parent re-forked every time: a fork per render, and a recycle
+// signal that said nothing about whether textures were actually accumulating.
+// 256MB clears the observed floor, so a recycle once again means accumulation.
+//
+// This only makes the cap coherent; it does not make a 512MB box comfortable.
+// What actually reclaims the memory there is the idle shutdown in
+// preview-image-service.ts, which drops the whole ~211MB when nothing is
+// rendering.
+export const MIN_RSS_CAP_MB = 256;
 export const MAX_RSS_CAP_MB = 384;
 
 // V8 old-space ceiling for the worker, passed as --max-old-space-size when the

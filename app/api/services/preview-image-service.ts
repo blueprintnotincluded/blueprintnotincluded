@@ -197,11 +197,23 @@ export class PreviewImageService {
       options?.cacheDir ??
       process.env.PREVIEW_CACHE_DIR ??
       path.resolve(__dirname, '../../../preview-cache');
-    // 0 disables idle shutdown (the default): the server idles most of the
-    // time and a resident warm worker (~200-380MB) is what keeps renders off
-    // the cold-start path. The RSS recycle remains the memory backstop.
+    // Shut the worker down after 5 minutes of quiet (0 disables).
+    //
+    // This used to default to 0 -- keep the worker resident, because "a warm
+    // worker is what keeps renders off the cold-start path". That reasoning did
+    // not survive measurement: on a 512MB instance the RSS recycle cap resolved
+    // to 192MB while the worker's idle RSS is ~211MB, so it exited after every
+    // single render anyway. The residency bought no warmth, and it cost ~211MB
+    // held permanently -- 41% of the container, against a ~190MB API parent,
+    // which is why a 512MB box sat at ~78% of its memory alert threshold before
+    // serving a single request.
+    //
+    // Renders are the rare path: variants are cached on disk (L1) and in Mongo
+    // (L2), so the overwhelming majority of preview requests never fork
+    // anything. Paying a cold start on the first miss after a quiet spell is a
+    // far better trade than holding a fifth of a gigabyte to avoid it.
     this.idleShutdownMs =
-      options?.idleShutdownMs ?? Number(process.env.PREVIEW_WORKER_IDLE_MS ?? 0);
+      options?.idleShutdownMs ?? Number(process.env.PREVIEW_WORKER_IDLE_MS ?? 5 * 60_000);
     this.renderMasterFn =
       options?.renderMasterFn ?? ((mdb, context) => this.renderMasterInWorker(mdb, context));
     const queueMaxRaw =
