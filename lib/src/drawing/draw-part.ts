@@ -63,9 +63,10 @@ export class DrawPart {
   public prepareSprite(container: any /*PIXI.Container*/, oniItem: OniItem, pixiUtil: PixiUtil) {
     if (!this.isReady) {
       if (this.flatIconId) {
-        const baseTex = ImageSource.getBaseTexture(this.flatIconId, pixiUtil);
-        if (baseTex != null) {
-          const texture = pixiUtil.getNewTextureWhole(baseTex);
+        // Shared, not one per draw part: a Texture listens to its BaseTexture,
+        // so a fresh one per part is retained for the life of the process.
+        const texture = ImageSource.getWholeTexture(this.flatIconId, pixiUtil);
+        if (texture != null) {
           this.sprite = pixiUtil.getSpriteFrom(texture);
 
           const w = oniItem.size.x || 1;
