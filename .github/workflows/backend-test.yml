@@ -84,3 +84,31 @@ jobs:
 
       - name: Run backend tests
         run: npm run test
+
+  # The only CI that forks the real render worker is publish.yml, which runs
+  # after merge. The unit tests mock the renderer by design, so a crash that
+  # only happens in the real canvas + PIXI stack on Node 20 (a shim global,
+  # say) would otherwise reach master first. Same heap cap as production.
+  render-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.19.4'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Build shared library
+        run: npm run build:lib
+
+      - name: Render the smoke fixture in the real worker
+        run: >-
+          node --max-old-space-size=256 -r ts-node/register/transpile-only
+          app/api/services/preview-render-worker.ts --smoke
