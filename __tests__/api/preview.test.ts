@@ -590,6 +590,69 @@ describe('Blueprint preview images', function () {
     });
   });
 
+  // ─── Idle worker lifecycle ─────────────────────────────────────────────────
+  //
+  // The worker idles down after PREVIEW_WORKER_IDLE_MS so a low-traffic
+  // instance is not holding its ~211MB footprint for nothing. It must not idle
+  // down while there is still work for it, or the next queued render re-forks
+  // and pays a cold start for no reason.
+
+  describe('idle worker lifecycle', function () {
+    let cacheDir: string;
+
+    beforeEach(function () {
+      cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-idle-'));
+    });
+
+    afterEach(function () {
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
+    it('holds the worker while renders are queued, and releases it once they drain', async function () {
+      // Drives the idle timer directly: scheduleIdleShutdown only runs on the
+      // real-worker path, which unit tests deliberately never fork.
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        idleShutdownMs: 20,
+      }) as unknown as {
+        renderQueueDepth: number;
+        stopWorker: () => void;
+        scheduleIdleShutdown: () => void;
+      };
+      let stops = 0;
+      service.stopWorker = () => {
+        stops++;
+      };
+
+      // A render is waiting its turn behind the active one.
+      service.renderQueueDepth = 1;
+      service.scheduleIdleShutdown();
+      await new Promise(resolve => setTimeout(resolve, 80));
+      expect(stops).to.equal(0);
+
+      // Queue drained — the next check releases it.
+      service.renderQueueDepth = 0;
+      await waitFor(() => stops > 0, 1000);
+      expect(stops).to.be.greaterThan(0);
+    });
+
+    it('does not arm an idle shutdown when the feature is disabled with 0', async function () {
+      const service = new PreviewImageService({
+        cacheDir,
+        disabled: false,
+        idleShutdownMs: 0,
+      }) as unknown as { stopWorker: () => void; scheduleIdleShutdown: () => void };
+      let stops = 0;
+      service.stopWorker = () => {
+        stops++;
+      };
+      service.scheduleIdleShutdown();
+      await new Promise(resolve => setTimeout(resolve, 60));
+      expect(stops).to.equal(0);
+    });
+  });
+
   // ─── Render on write (spec/social/preview-images-perf-2.md Phase 2) ─────────
 
   describe('render on write', function () {
