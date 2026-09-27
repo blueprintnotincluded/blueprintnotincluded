@@ -45,33 +45,30 @@ export const PREVIEW_RENDER_VERSION = 2;
 const RENDER_TIMEOUT_MS = 30_000;
 const WORKER_START_TIMEOUT_MS = 60_000;
 
-// Pre-flight size guard. A render's cost scales with the item count, and past
-// a point no heap ceiling saves it: the worker aborts mid-render, nothing
-// records that it failed, and every later request for that preview forks
-// another worker to die the same way. On one shared vCPU that is enough to
-// starve the event loop and take /api/health down with it.
+// Pre-flight size guard. Past some size a render does not fail, the worker
+// dies: nothing records the failure, and every later request for that preview
+// forks another worker to die the same way. On one shared vCPU that is enough
+// to starve the event loop and take /api/health down with it.
 //
-// Measured on the real worker (32GB box, `--max-old-space-size=256` — the
-// ceiling a 512MB instance actually runs with), rendering subsamples of
-// 68d6f75bec49e13d5b08791d at the 1200px master size:
+// The threshold used to be 4,000, fitted to a single-pass renderer whose heap
+// grew with the item count (8,612 items aborted it). Since the rasterizer draws
+// in depth-ordered batches, item count barely moves memory. Measured on the
+// real worker (dev box, Node 20, `--max-old-space-size=256` — the ceiling a
+// 512MB instance runs with), cold worker, 1200px master:
 //
-//   items   cold worker           warm worker (5th render)
-//   1,000   ok    (peak 251MB)    ok
-//   2,000   ok    (peak 279MB)    ok
-//   4,000   ok    (peak 393MB)    ok  (peak 446MB)
-//   5,000   ok    (peak 437MB)    SIGABRT
-//   5,500   ok    (peak 444MB)    —
-//   6,000   SIGABRT               —
-//   8,612   SIGABRT               —   (the production crash)
+//   items             import   peak worker RSS
+//   8,612 (real)      0.2s     338MB
+//   12,000 (tiled)    0.3s     356MB
+//   16,000 (tiled)    0.5s     367MB
 //
-// A warm worker is the production condition — textures accumulate across
-// renders (ImageSource caches per image id), so the cold numbers are the
-// optimistic case and the real ceiling sits a step below them. 4,000 is the
-// largest size that survived the warm sequence, and is still ~2.5x the top of
-// the typical corpus (250-1,600 items). Over the threshold we serve the
-// legacy save-time thumbnail, which is what a failed render falls back to
-// anyway — the difference is that we no longer pay a worker's life to learn it.
-const DEFAULT_MAX_RENDER_ITEMS = 4000;
+// What bound large blueprints after that was time — importFromMdb was O(n^2),
+// 17s at 8,612 items and 70s at 16,000 against the 30s RENDER_TIMEOUT_MS —
+// and it is now linear. 10,000 covers the largest blueprint ever stored
+// (8,612) with margin. Resident memory is driven by distinct buildings, not
+// item count (see getImageFromCanvas in pixi-node-util).
+// Over the threshold we serve the legacy save-time thumbnail, which is what a
+// failed render falls back to anyway.
+const DEFAULT_MAX_RENDER_ITEMS = 10_000;
 
 // Bounds the negative cache. Failures are rare (three blueprints in 30 days),
 // so this is only here so a pathological run cannot grow the map without
@@ -94,6 +91,9 @@ export class PreviewRenderSkippedError extends Error {}
  * this blueprint can be rendered.
  */
 export class PreviewQueueFullError extends Error {}
+
+/** Rendering is switched off (PREVIEW_RENDER_DISABLED=1, or under tests). */
+export class PreviewRenderDisabledError extends Error {}
 
 /**
  * The master render itself failed: the worker exited, the render timed out, or
@@ -455,6 +455,12 @@ export class PreviewImageService {
     modifiedAt: Date | null | undefined,
     loadMdb: () => Promise<unknown | null>
   ): Promise<void> {
+    // The read path and prerender check the kill switch themselves; this is
+    // the batch entry point, and it must not fork a worker behind it.
+    if (this.disabled)
+      return Promise.reject(
+        new PreviewRenderDisabledError('preview rendering is disabled (PREVIEW_RENDER_DISABLED)')
+      );
     return this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
   }
 

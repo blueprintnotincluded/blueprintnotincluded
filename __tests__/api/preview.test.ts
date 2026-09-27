@@ -16,6 +16,7 @@ import { BlueprintVersionModel } from '../../app/api/models/blueprint-version';
 import { PreviewImageModel } from '../../app/api/models/preview-image';
 import {
   PreviewImageService,
+  PreviewRenderDisabledError,
   PREVIEW_RENDER_VERSION,
   PREVIEW_VARIANTS,
 } from '../../app/api/services/preview-image-service';
@@ -548,6 +549,47 @@ describe('Blueprint preview images', function () {
       expect(service.failedRenderCount).to.equal(0);
     });
 
+    // The shipped default, not an override: the largest blueprint ever stored
+    // is 8,612 items, and the batched renderer + linear import render it well
+    // inside the heap cap and the render timeout.
+    it('defaults the guard to 10,000 items when nothing overrides it', async function () {
+      const saved = process.env.PREVIEW_MAX_RENDER_ITEMS;
+      delete process.env.PREVIEW_MAX_RENDER_ITEMS;
+      try {
+        const fakeMaster = await sharp({
+          create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+        })
+          .png()
+          .toBuffer();
+        let renders = 0;
+        const service = new PreviewImageService({
+          cacheDir,
+          disabled: false,
+          renderMasterFn: async () => {
+            renders++;
+            return fakeMaster;
+          },
+        });
+
+        expect(
+          await service.getVariant(blueprintId, new Date(), 'card.webp', async () =>
+            mdbWith(10_000)
+          )
+        ).to.not.equal(null);
+        expect(renders).to.equal(1);
+
+        const tooLarge = new Types.ObjectId().toString();
+        expect(
+          await service.getVariant(tooLarge, new Date(), 'card.webp', async () => mdbWith(10_001))
+        ).to.equal(null);
+        expect(renders).to.equal(1);
+        expect(service.failedRenderCount).to.equal(1);
+      } finally {
+        if (saved === undefined) delete process.env.PREVIEW_MAX_RENDER_ITEMS;
+        else process.env.PREVIEW_MAX_RENDER_ITEMS = saved;
+      }
+    });
+
     it('passes the blueprint id and item count to the renderer so a crash names itself', async function () {
       const fakeMaster = await sharp({
         create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
@@ -859,6 +901,21 @@ describe('Blueprint preview images', function () {
 
     afterEach(function () {
       fs.rmSync(cacheDir, { recursive: true, force: true });
+    });
+
+    // The backfill script calls renderAndStore directly, which skips the
+    // read path's disabled check — the kill switch must hold here too.
+    it('renderAndStore refuses when rendering is disabled', async function () {
+      const service = makeService({ disabled: true });
+      let error: unknown;
+      try {
+        await service.renderAndStore(blueprintId, new Date(), async () => ({ items: [] }));
+      } catch (e) {
+        error = e;
+      }
+      expect(error).to.be.instanceOf(PreviewRenderDisabledError);
+      expect(renderCount).to.equal(0);
+      expect(await PreviewImageModel.model.countDocuments({ blueprintId })).to.equal(0);
     });
 
     it('renders write durable rows alongside the disk cache', async function () {
