@@ -189,7 +189,16 @@ const RASTER_CHUNK_SIZE = (() => {
   // Not `Number(...) || 100`: 0 is the documented single-pass escape hatch and
   // would be swallowed by the falsy check along with NaN.
   const configured = Number(process.env.PREVIEW_RASTER_CHUNK ?? 100);
-  return Number.isFinite(configured) && configured >= 0 ? configured : 100;
+  if (!Number.isFinite(configured) || configured < 0) return 100;
+  if (configured === 0) return 0;
+  // The batch loop steps `offset` by this value while slice/fill truncate
+  // their indices, so a fraction desynchronizes the two: 0.5 runs the loop
+  // twice per item with every other batch empty (still building a container
+  // and rendering it), and 1e-9 runs it until the render times out. Nothing
+  // between 0 and 1 is a batch size anyone means, so it takes the default
+  // rather than being clamped to 1.
+  const whole = Math.floor(configured);
+  return whole >= 1 ? whole : 100;
 })();
 
 // Decode the given textures if they are not already resident. Missing or
