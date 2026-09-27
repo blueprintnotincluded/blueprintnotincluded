@@ -70,7 +70,6 @@
     "isbot": "^5.2.0",
     "jimp": "^1.6.0",
     "jsdom": "^26.1.0",
-    "jsdom-global": "^3.0.2",
     "jsonwebtoken": "^9.0.3",
     "migrate-mongo": "^14.0.7",
     "mongoose": "^8.18.1",
