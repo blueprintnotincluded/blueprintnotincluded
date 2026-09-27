@@ -550,10 +550,10 @@ describe('Blueprint preview images', function () {
       expect(service.failedRenderCount).to.equal(0);
     });
 
-    // The shipped default, not an override: the largest blueprint ever stored
-    // is 8,612 items, and the batched renderer + linear import render it well
-    // inside the heap cap and the render timeout.
-    it('defaults the guard to 10,000 items when nothing overrides it', async function () {
+    // The shipped default, not an override: the largest stored blueprint is
+    // 12,743 items, and the batched renderer + linear import render 16,000
+    // well inside the heap cap and the render timeout.
+    it('defaults the guard to 16,000 items when nothing overrides it', async function () {
       const saved = process.env.PREVIEW_MAX_RENDER_ITEMS;
       delete process.env.PREVIEW_MAX_RENDER_ITEMS;
       try {
@@ -574,14 +574,14 @@ describe('Blueprint preview images', function () {
 
         expect(
           await service.getVariant(blueprintId, new Date(), 'card.webp', async () =>
-            mdbWith(10_000)
+            mdbWith(16_000)
           )
         ).to.not.equal(null);
         expect(renders).to.equal(1);
 
         const tooLarge = new Types.ObjectId().toString();
         expect(
-          await service.getVariant(tooLarge, new Date(), 'card.webp', async () => mdbWith(10_001))
+          await service.getVariant(tooLarge, new Date(), 'card.webp', async () => mdbWith(16_001))
         ).to.equal(null);
         expect(renders).to.equal(1);
         expect(service.failedRenderCount).to.equal(1);
