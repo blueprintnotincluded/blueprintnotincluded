@@ -1,11 +1,5 @@
 import { expect } from 'chai';
-import {
-  Blueprint,
-  BlueprintHelpers,
-  BlueprintItemTile,
-  MdbBlueprint,
-  Vector2,
-} from '../../lib';
+import { Blueprint, BlueprintHelpers, BlueprintItemTile, MdbBlueprint, Vector2 } from '../../lib';
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
 // Regression coverage for a real prod crash: a legacy blueprint referencing a
@@ -83,10 +77,7 @@ describe('Blueprint import: Planning Tool shapes', function () {
   it('includes planning-only cells in the camera bounds', () => {
     const blueprint = new Blueprint();
     blueprint.planningToolShapes = plans;
-    expect(blueprint.getBoundingBox()).to.deep.equal([
-      new Vector2(0, 0),
-      new Vector2(2, 1),
-    ]);
+    expect(blueprint.getBoundingBox()).to.deep.equal([new Vector2(0, 0), new Vector2(2, 1)]);
   });
 });
 
