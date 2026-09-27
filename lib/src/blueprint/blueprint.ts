@@ -184,6 +184,21 @@ export class Blueprint {
     this.terrainFeatures = (mdbBlueprint.terrainFeatures ?? []).map(feature => ({ ...feature }));
     this.foreignMetadata = { ...(mdbBlueprint.foreignMetadata ?? {}) };
 
+    // One change event for the whole import, not one per item: every emit
+    // re-runs updateTileables over every item added so far, which made this
+    // O(n^2) -- 16s of an 8,612-item preview render. The observers' itemAdded
+    // callbacks are all no-ops, and the single emit at the end leaves every
+    // item's tileable state exactly as the last per-item emit used to.
+    const wasPaused = this.pauseChangeEvents_;
+    this.pauseChangeEvents();
+    try {
+      this.importMdbItems(mdbBlueprint);
+    } finally {
+      if (!wasPaused) this.resumeChangeEvents(true);
+    }
+  }
+
+  private importMdbItems(mdbBlueprint: MdbBlueprint) {
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       // Legacy website annotations, stored as pseudo-buildings before world
       // notes existed. Converted on read and never written back, so a stored

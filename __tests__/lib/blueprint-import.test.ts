@@ -1,5 +1,11 @@
 import { expect } from 'chai';
-import { Blueprint, BlueprintHelpers, MdbBlueprint, Vector2 } from '../../lib';
+import {
+  Blueprint,
+  BlueprintHelpers,
+  BlueprintItemTile,
+  MdbBlueprint,
+  Vector2,
+} from '../../lib';
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
 // Regression coverage for a real prod crash: a legacy blueprint referencing a
@@ -81,5 +87,82 @@ describe('Blueprint import: Planning Tool shapes', function () {
       new Vector2(0, 0),
       new Vector2(2, 1),
     ]);
+  });
+});
+
+// importFromMdb used to emit a change event per added item, and every emit
+// re-ran updateTileables over all items so far -- O(n^2), 16s of an
+// 8,612-item preview render. It now emits once for the whole import.
+describe('Blueprint import: one change event per import', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  // A two-row block of tiles: each tile's connection mask (which edge art it
+  // draws) comes from updateTileables, so a skipped pass leaves visible seams.
+  function tilesMdb(width: number): MdbBlueprint {
+    const blueprintItems: MdbBlueprint['blueprintItems'] = [];
+    for (let x = 0; x < width; x++)
+      for (let y = 0; y < 2; y++) blueprintItems.push({ id: 'Tile', position: { x, y } } as any);
+    return { blueprintItems };
+  }
+
+  const connections = (blueprint: Blueprint) =>
+    blueprint.blueprintItems.map(item => (item as BlueprintItemTile).tileConnections);
+
+  it('fires blueprintChanged once, not once per item', () => {
+    const blueprint = new Blueprint();
+    let changed = 0;
+    let added = 0;
+    blueprint.subscribeBlueprintChanged({
+      itemDestroyed() {},
+      itemAdded() {
+        added++;
+      },
+      blueprintChanged() {
+        changed++;
+      },
+    });
+
+    blueprint.importFromMdb(tilesMdb(50));
+
+    expect(blueprint.blueprintItems).to.have.length(100);
+    expect(changed).to.equal(1);
+    expect(added).to.equal(0);
+  });
+
+  it('leaves every tile connected as a fresh updateTileables pass would', () => {
+    const blueprint = new Blueprint();
+    blueprint.importFromMdb(tilesMdb(20));
+
+    const afterImport = connections(blueprint);
+    for (const item of blueprint.blueprintItems) item.updateTileables(blueprint);
+    expect(afterImport).to.deep.equal(connections(blueprint));
+
+    // And the pass actually ran: away from the ends, every tile joins left,
+    // right and its vertical neighbour (1 + 2 + 4 or 8).
+    const inner = blueprint.blueprintItems.filter(
+      item => item.position.x > 0 && item.position.x < 19
+    ) as BlueprintItemTile[];
+    expect(inner.map(tile => tile.tileConnections & 3)).to.deep.equal(inner.map(() => 3));
+    expect(inner.every(tile => (tile.tileConnections & 12) !== 0)).to.equal(true);
+  });
+
+  it('keeps change events paused when the caller had already paused them', () => {
+    const blueprint = new Blueprint();
+    let changed = 0;
+    blueprint.subscribeBlueprintChanged({
+      itemDestroyed() {},
+      itemAdded() {},
+      blueprintChanged() {
+        changed++;
+      },
+    });
+
+    blueprint.pauseChangeEvents();
+    blueprint.importFromMdb(tilesMdb(5));
+    expect(changed).to.equal(0);
+    blueprint.resumeChangeEvents(true);
+    expect(changed).to.equal(1);
   });
 });
