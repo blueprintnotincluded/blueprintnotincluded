@@ -11,23 +11,22 @@ window.CanvasRenderingContext2D = CanvasRenderingContext2D;
 // overrides its getContext to cache one context per option set, which is what
 // PIXI expects of a DOM canvas.
 HTMLCanvasElement.prototype.getContext = function (type = '2d', contextOptions = {}) {
+  // No WebGL here: the renderer is constructed with forceCanvas, so a request
+  // for one is a caller that has not been told. Returning null is what a
+  // browser does for an unsupported context type, and what PIXI's own support
+  // probe expects to see. Returned before touching any state, so a probe can
+  // never cost this canvas its cached 2D context (and that context's drawing
+  // state) by recording different options.
+  if (type !== '2d') return null;
+
   const stringified = JSON.stringify(contextOptions);
-  const ref = type === '2d' ? '_context2d' : 'gl';
-
-  if (!this[ref] || this._contextOptions !== stringified) {
+  if (!this._context2d || this._contextOptions !== stringified) {
     this._contextOptions = stringified;
-
-    // No WebGL here: the renderer is constructed with forceCanvas, so a
-    // request for one is a caller that has not been told. Returning null is
-    // what a browser does for an unsupported context type, and what PIXI's
-    // own support probe expects to see.
-    if (type !== '2d') return null;
-
-    this[ref] = new CanvasRenderingContext2D(this, contextOptions);
-    this[ref].canvas = this;
+    this._context2d = new CanvasRenderingContext2D(this, contextOptions);
+    this._context2d.canvas = this;
   }
 
-  this.context = this[ref];
+  this.context = this._context2d;
 
   return this.context;
 };
