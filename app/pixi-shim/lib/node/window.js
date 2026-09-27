@@ -105,8 +105,8 @@ if (!global.window) {
     document,
     // node/polyfill.js fills in anything left undefined here. navigator is set
     // rather than left out on purpose: polyfill's fallback also assigns
-    // `global.navigator`, which is a getter-only global on Node 20+ and would
-    // throw.
+    // `global.navigator`, which is a getter-only global on Node 21+ and would
+    // throw. Node 20 has no navigator global at all; see global.window below.
     navigator: { userAgent: 'node.js' },
     innerWidth: Number(process.env.WINDOW_WIDTH) || 1024,
     innerHeight: Number(process.env.WINDOW_HEIGHT) || 768,
@@ -124,6 +124,9 @@ if (!global.window) {
   window.parent = window;
 
   global.window = window;
+  // Node 20 has no built-in navigator; Node 21+ does, as a getter-only global
+  // that assignment would throw on under 'use strict'. Set it only when absent.
+  if (typeof globalThis.navigator === 'undefined') globalThis.navigator = window.navigator;
   global.document = document;
   global.self = window;
 
