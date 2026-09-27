@@ -10,7 +10,8 @@
 // serialization: 'advanced' so Buffers cross the channel natively, no base64).
 // The master crosses as raw RGBA pixels: no PNG encode here, no PNG decode in
 // the parent — sharp ingests the raw buffer directly.
-//   parent -> worker: { type: 'render', requestId, mdb, size, blueprintId, itemCount }
+//   parent -> worker: { type: 'render', requestId, mdb, size, blueprintId, itemCount,
+//                       distinctPrefabs }
 //   worker -> parent: { type: 'ready' }
 //                     { type: 'rendered', requestId, raw: Buffer, width, height, timings }
 //                     { type: 'error', requestId, message }
@@ -653,12 +654,14 @@ async function main() {
 
   process.on('message', async (message: any) => {
     if (!message || message.type !== 'render') return;
-    const { requestId, mdb, size, blueprintId, itemCount } = message;
+    const { requestId, mdb, size, blueprintId, itemCount, distinctPrefabs } = message;
     // Announced *before* the render, because a render that exhausts the heap
     // aborts the process and never gets to log anything afterwards. Without
     // this line a crash is anonymous and the id has to be reconstructed from
     // Mongo — which is exactly how this bug had to be investigated.
-    const label = `${blueprintId ?? 'unknown'} (${itemCount ?? '?'} items)`;
+    const label =
+      `${blueprintId ?? 'unknown'}` +
+      ` (${itemCount ?? '?'} items, ${distinctPrefabs ?? '?'} prefabs)`;
     console.log(`preview-render-worker: rendering ${label} request ${requestId} rss=${rssMb()}MB`);
     rendersInFlight++;
     try {

@@ -18,6 +18,7 @@ import {
   PreviewImageService,
   PreviewRenderDisabledError,
   PREVIEW_RENDER_VERSION,
+  RenderContext,
   PREVIEW_VARIANTS,
 } from '../../app/api/services/preview-image-service';
 import { Types } from 'mongoose';
@@ -590,13 +591,13 @@ describe('Blueprint preview images', function () {
       }
     });
 
-    it('passes the blueprint id and item count to the renderer so a crash names itself', async function () {
+    it('passes the blueprint id, item count and distinct prefabs to the renderer so a crash names itself', async function () {
       const fakeMaster = await sharp({
         create: { width: 8, height: 8, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
       })
         .png()
         .toBuffer();
-      let seen: { blueprintId: string; itemCount: number } | undefined;
+      let seen: RenderContext | undefined;
       const service = new PreviewImageService({
         cacheDir,
         disabled: false,
@@ -606,8 +607,13 @@ describe('Blueprint preview images', function () {
         },
       });
 
-      await service.getVariant(blueprintId, new Date(), 'card.webp', async () => mdbWith(42));
-      expect(seen).to.deep.equal({ blueprintId, itemCount: 42 });
+      // 42 items over 3 distinct prefabs: diversity, not item count, is what
+      // drives the worker's resident memory, so the logs carry both.
+      const ids = ['Generator', 'Tile', 'Wire'];
+      await service.getVariant(blueprintId, new Date(), 'card.webp', async () => ({
+        blueprintItems: Array.from({ length: 42 }, (_, i) => ({ id: ids[i % 3] })),
+      }));
+      expect(seen).to.deep.equal({ blueprintId, itemCount: 42, distinctPrefabs: 3 });
     });
 
     it('prerender also respects the negative cache', async function () {

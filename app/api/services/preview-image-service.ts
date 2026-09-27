@@ -116,9 +116,17 @@ function modifiedAtKey(modifiedAt: Date | null | undefined): number {
   return modifiedAt == null ? -1 : modifiedAt.getTime();
 }
 
-function countBlueprintItems(mdb: unknown): number {
+// Item count bounds the V8 heap; distinct prefabs (a proxy for distinct icons
+// decoded) bounds resident memory. Both go into every render log line: the
+// two container kills in September were drafts whose logs showed only the
+// former, and each took a forensic session to explain with the latter.
+function summarizeBlueprintItems(mdb: unknown): { itemCount: number; distinctPrefabs: number } {
   const items = (mdb as { blueprintItems?: unknown } | null)?.blueprintItems;
-  return Array.isArray(items) ? items.length : 0;
+  if (!Array.isArray(items)) return { itemCount: 0, distinctPrefabs: 0 };
+  return {
+    itemCount: items.length,
+    distinctPrefabs: new Set(items.map(item => (item as { id?: unknown } | null)?.id)).size,
+  };
 }
 
 export interface PreviewRenderResult {
@@ -145,6 +153,7 @@ export type MasterImage = Buffer | RawMaster;
 export interface RenderContext {
   blueprintId: string;
   itemCount: number;
+  distinctPrefabs: number;
 }
 
 type RenderMasterFn = (mdb: unknown, context?: RenderContext) => Promise<MasterImage>;
@@ -620,7 +629,7 @@ export class PreviewImageService {
     // worker does not fail, it *dies* — see DEFAULT_MAX_RENDER_ITEMS. The
     // throw is recorded by the negative cache, so this costs one blueprint
     // load once, not one per request.
-    const itemCount = countBlueprintItems(mdb);
+    const { itemCount, distinctPrefabs } = summarizeBlueprintItems(mdb);
     if (itemCount > this.maxRenderItems) {
       throw new PreviewRenderTooLargeError(
         `blueprint too large to render (${itemCount} items > ${this.maxRenderItems})`
@@ -632,7 +641,7 @@ export class PreviewImageService {
       queueWaitMs,
       masterMs,
       cold,
-    } = await this.enqueueMasterRender(mdb, { blueprintId, itemCount });
+    } = await this.enqueueMasterRender(mdb, { blueprintId, itemCount, distinctPrefabs });
     const derivativesStart = Date.now();
 
     const dir = path.join(this.cacheDir, blueprintId);
@@ -706,7 +715,7 @@ export class PreviewImageService {
     // Phase timings (spec/social/preview-images-perf.md Phase 0). The worker
     // logs its own sub-phases (import/textures/rasterize/encode) per request.
     console.log(
-      `preview render ${blueprintId} (${itemCount} items): loadMdb=${loadMdbMs}ms` +
+      `preview render ${blueprintId} (${itemCount} items, ${distinctPrefabs} prefabs): loadMdb=${loadMdbMs}ms` +
         ` queueWait=${queueWaitMs}ms` +
         ` master=${masterMs}ms${cold ? ' (cold)' : ''}` +
         ` derivatives=${mongoStart - derivativesStart}ms` +
@@ -731,7 +740,7 @@ export class PreviewImageService {
             reject(new Error('preview render timed out'));
           }, RENDER_TIMEOUT_MS);
           this.pending.set(requestId, { resolve, reject, timer });
-          // blueprintId/itemCount are for the worker's logs only: a render
+          // blueprintId and the counts are for the worker's logs only: a render
           // that aborts the process has to name itself, or the id is
           // recoverable only by working backwards from Mongo.
           this.worker!.send({
@@ -741,6 +750,7 @@ export class PreviewImageService {
             size: MASTER_SIZE,
             blueprintId: context?.blueprintId,
             itemCount: context?.itemCount,
+            distinctPrefabs: context?.distinctPrefabs,
           });
           this.scheduleIdleShutdown();
         })
