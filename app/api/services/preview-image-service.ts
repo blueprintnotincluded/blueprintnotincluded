@@ -56,19 +56,24 @@ const WORKER_START_TIMEOUT_MS = 60_000;
 // real worker (dev box, Node 20, `--max-old-space-size=256` — the ceiling a
 // 512MB instance runs with), cold worker, 1200px master:
 //
-//   items             import   peak worker RSS
-//   8,612 (real)      0.2s     338MB
-//   12,000 (tiled)    0.3s     356MB
-//   16,000 (tiled)    0.5s     367MB
+//   items                        import   total    peak worker RSS
+//   8,612  (real, 117 prefabs)   0.1s     1.8s     239MB
+//   11,108 (real, 121 prefabs)   0.1s     1.9s     249MB
+//   12,743 (real, 157 prefabs)   0.1s     2.1s     272MB
+//   16,000 (tiled, 117 prefabs)  0.2s     2.1s     283MB
 //
-// What bound large blueprints after that was time — importFromMdb was O(n^2),
-// 17s at 8,612 items and 70s at 16,000 against the 30s RENDER_TIMEOUT_MS —
-// and it is now linear. 10,000 covers the largest blueprint ever stored
-// (8,612) with margin. Resident memory is driven by distinct buildings, not
-// item count (see getImageFromCanvas in pixi-node-util).
-// Over the threshold we serve the legacy save-time thumbnail, which is what a
-// failed render falls back to anyway.
-const DEFAULT_MAX_RENDER_ITEMS = 10_000;
+// The dev box overstates prod: the same worker idles at ~163MB here and
+// 141MB on staging. What bound large blueprints was time —
+// importFromMdb was O(n^2), 70s at 16,000 items against the 30s
+// RENDER_TIMEOUT_MS — and it is now linear.
+//
+// 16,000 is the largest size measured, and covers every stored blueprint: a
+// full backfill found the biggest at 12,743 items (the 10,000 this replaced
+// refused that one, a draft copy of it, and one at 11,108). Resident memory is
+// driven by distinct buildings, not item count (see getImageFromCanvas in
+// pixi-node-util). Over the threshold we serve the legacy save-time thumbnail,
+// which is what a failed render falls back to anyway.
+const DEFAULT_MAX_RENDER_ITEMS = 16_000;
 
 // Bounds the negative cache. Failures are rare (three blueprints in 30 days),
 // so this is only here so a pathological run cannot grow the map without
