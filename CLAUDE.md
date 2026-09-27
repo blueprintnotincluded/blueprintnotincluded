@@ -237,7 +237,7 @@ head -20 agent/TODO.md
 
 ### Key Constraints
 
-- Canvas 3.x requires Node 20 — do not upgrade to Node 22
+- Node is pinned to 20.19.4 (`.nvmrc`, volta, CI; the deploy image is `node:20-slim`); moving to a newer major is issue #263. canvas itself is not what holds it: 3.2.3 declares `node: ^18.12.0 || >= 20.9.0` and ships N-API prebuilds that load on 20, 22 and 24
 - All test infrastructure is Mocha + Chai — do not introduce Jest
 - Rate limiting is handled by Cloudflare — do not add express-rate-limit
 

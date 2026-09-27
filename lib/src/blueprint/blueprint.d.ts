@@ -23,6 +23,7 @@ export declare class Blueprint {
     importFromBni(bniBlueprint: BniBlueprint): void;
     private importTerrainMetadata;
     importFromMdb(mdbBlueprint: MdbBlueprint): void;
+    private importMdbItems;
     importFromBinary(template: ArrayBuffer): void;
     destroyAndCopyItems(source: Blueprint, emitChanges?: boolean): void;
     prepareOverlayInfo(_currentOverlay: Overlay): void;

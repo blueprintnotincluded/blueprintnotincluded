@@ -45,33 +45,30 @@ export const PREVIEW_RENDER_VERSION = 2;
 const RENDER_TIMEOUT_MS = 30_000;
 const WORKER_START_TIMEOUT_MS = 60_000;
 
-// Pre-flight size guard. A render's cost scales with the item count, and past
-// a point no heap ceiling saves it: the worker aborts mid-render, nothing
-// records that it failed, and every later request for that preview forks
-// another worker to die the same way. On one shared vCPU that is enough to
-// starve the event loop and take /api/health down with it.
+// Pre-flight size guard. Past some size a render does not fail, the worker
+// dies: nothing records the failure, and every later request for that preview
+// forks another worker to die the same way. On one shared vCPU that is enough
+// to starve the event loop and take /api/health down with it.
 //
-// Measured on the real worker (32GB box, `--max-old-space-size=256` — the
-// ceiling a 512MB instance actually runs with), rendering subsamples of
-// 68d6f75bec49e13d5b08791d at the 1200px master size:
+// The threshold used to be 4,000, fitted to a single-pass renderer whose heap
+// grew with the item count (8,612 items aborted it). Since the rasterizer draws
+// in depth-ordered batches, item count barely moves memory. Measured on the
+// real worker (dev box, Node 20, `--max-old-space-size=256` — the ceiling a
+// 512MB instance runs with), cold worker, 1200px master:
 //
-//   items   cold worker           warm worker (5th render)
-//   1,000   ok    (peak 251MB)    ok
-//   2,000   ok    (peak 279MB)    ok
-//   4,000   ok    (peak 393MB)    ok  (peak 446MB)
-//   5,000   ok    (peak 437MB)    SIGABRT
-//   5,500   ok    (peak 444MB)    —
-//   6,000   SIGABRT               —
-//   8,612   SIGABRT               —   (the production crash)
+//   items             import   peak worker RSS
+//   8,612 (real)      0.2s     338MB
+//   12,000 (tiled)    0.3s     356MB
+//   16,000 (tiled)    0.5s     367MB
 //
-// A warm worker is the production condition — textures accumulate across
-// renders (ImageSource caches per image id), so the cold numbers are the
-// optimistic case and the real ceiling sits a step below them. 4,000 is the
-// largest size that survived the warm sequence, and is still ~2.5x the top of
-// the typical corpus (250-1,600 items). Over the threshold we serve the
-// legacy save-time thumbnail, which is what a failed render falls back to
-// anyway — the difference is that we no longer pay a worker's life to learn it.
-const DEFAULT_MAX_RENDER_ITEMS = 4000;
+// What bound large blueprints after that was time — importFromMdb was O(n^2),
+// 17s at 8,612 items and 70s at 16,000 against the 30s RENDER_TIMEOUT_MS —
+// and it is now linear. 10,000 covers the largest blueprint ever stored
+// (8,612) with margin. Resident memory is driven by distinct buildings, not
+// item count (see getImageFromCanvas in pixi-node-util).
+// Over the threshold we serve the legacy save-time thumbnail, which is what a
+// failed render falls back to anyway.
+const DEFAULT_MAX_RENDER_ITEMS = 10_000;
 
 // Bounds the negative cache. Failures are rare (three blueprints in 30 days),
 // so this is only here so a pathological run cannot grow the map without
@@ -95,6 +92,9 @@ export class PreviewRenderSkippedError extends Error {}
  */
 export class PreviewQueueFullError extends Error {}
 
+/** Rendering is switched off (PREVIEW_RENDER_DISABLED=1, or under tests). */
+export class PreviewRenderDisabledError extends Error {}
+
 /**
  * The master render itself failed: the worker exited, the render timed out, or
  * it replied with an error. This is the *only* runtime failure the negative
@@ -116,9 +116,17 @@ function modifiedAtKey(modifiedAt: Date | null | undefined): number {
   return modifiedAt == null ? -1 : modifiedAt.getTime();
 }
 
-function countBlueprintItems(mdb: unknown): number {
+// Item count bounds the V8 heap; distinct prefabs (a proxy for distinct icons
+// decoded) bounds resident memory. Both go into every render log line: the
+// two container kills in September were drafts whose logs showed only the
+// former, and each took a forensic session to explain with the latter.
+function summarizeBlueprintItems(mdb: unknown): { itemCount: number; distinctPrefabs: number } {
   const items = (mdb as { blueprintItems?: unknown } | null)?.blueprintItems;
-  return Array.isArray(items) ? items.length : 0;
+  if (!Array.isArray(items)) return { itemCount: 0, distinctPrefabs: 0 };
+  return {
+    itemCount: items.length,
+    distinctPrefabs: new Set(items.map(item => (item as { id?: unknown } | null)?.id)).size,
+  };
 }
 
 export interface PreviewRenderResult {
@@ -145,6 +153,7 @@ export type MasterImage = Buffer | RawMaster;
 export interface RenderContext {
   blueprintId: string;
   itemCount: number;
+  distinctPrefabs: number;
 }
 
 type RenderMasterFn = (mdb: unknown, context?: RenderContext) => Promise<MasterImage>;
@@ -455,6 +464,12 @@ export class PreviewImageService {
     modifiedAt: Date | null | undefined,
     loadMdb: () => Promise<unknown | null>
   ): Promise<void> {
+    // The read path and prerender check the kill switch themselves; this is
+    // the batch entry point, and it must not fork a worker behind it.
+    if (this.disabled)
+      return Promise.reject(
+        new PreviewRenderDisabledError('preview rendering is disabled (PREVIEW_RENDER_DISABLED)')
+      );
     return this.renderSingleFlight(blueprintId, modifiedAt, loadMdb);
   }
 
@@ -614,7 +629,7 @@ export class PreviewImageService {
     // worker does not fail, it *dies* — see DEFAULT_MAX_RENDER_ITEMS. The
     // throw is recorded by the negative cache, so this costs one blueprint
     // load once, not one per request.
-    const itemCount = countBlueprintItems(mdb);
+    const { itemCount, distinctPrefabs } = summarizeBlueprintItems(mdb);
     if (itemCount > this.maxRenderItems) {
       throw new PreviewRenderTooLargeError(
         `blueprint too large to render (${itemCount} items > ${this.maxRenderItems})`
@@ -626,7 +641,7 @@ export class PreviewImageService {
       queueWaitMs,
       masterMs,
       cold,
-    } = await this.enqueueMasterRender(mdb, { blueprintId, itemCount });
+    } = await this.enqueueMasterRender(mdb, { blueprintId, itemCount, distinctPrefabs });
     const derivativesStart = Date.now();
 
     const dir = path.join(this.cacheDir, blueprintId);
@@ -700,7 +715,7 @@ export class PreviewImageService {
     // Phase timings (spec/social/preview-images-perf.md Phase 0). The worker
     // logs its own sub-phases (import/textures/rasterize/encode) per request.
     console.log(
-      `preview render ${blueprintId} (${itemCount} items): loadMdb=${loadMdbMs}ms` +
+      `preview render ${blueprintId} (${itemCount} items, ${distinctPrefabs} prefabs): loadMdb=${loadMdbMs}ms` +
         ` queueWait=${queueWaitMs}ms` +
         ` master=${masterMs}ms${cold ? ' (cold)' : ''}` +
         ` derivatives=${mongoStart - derivativesStart}ms` +
@@ -725,7 +740,7 @@ export class PreviewImageService {
             reject(new Error('preview render timed out'));
           }, RENDER_TIMEOUT_MS);
           this.pending.set(requestId, { resolve, reject, timer });
-          // blueprintId/itemCount are for the worker's logs only: a render
+          // blueprintId and the counts are for the worker's logs only: a render
           // that aborts the process has to name itself, or the id is
           // recoverable only by working backwards from Mongo.
           this.worker!.send({
@@ -735,6 +750,7 @@ export class PreviewImageService {
             size: MASTER_SIZE,
             blueprintId: context?.blueprintId,
             itemCount: context?.itemCount,
+            distinctPrefabs: context?.distinctPrefabs,
           });
           this.scheduleIdleShutdown();
         })
