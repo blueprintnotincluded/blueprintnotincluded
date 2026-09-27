@@ -20,6 +20,23 @@ class NodeCanvasResource extends resources.BaseImageResource {
   }
 }
 
+/**
+ * Free a node-canvas Image's decoded bitmap now instead of whenever V8 gets
+ * round to collecting the wrapper. Assigning `src` makes node-canvas drop the
+ * current surface first (Image::SetSource -> clearData); an empty buffer then
+ * fails to load, so the Image is left empty, which is the point. The onerror
+ * handler keeps that expected failure from throwing.
+ *
+ * Without this the textures phase is where a render peaks: the native-size
+ * decode of every distinct icon stayed resident until a GC that the phase
+ * never triggered. 1,730 items over 400 distinct buildings peaked the worker
+ * at ~570MB -- past the 512MB container -- and at ~295MB with it.
+ */
+function releaseImage(image: any) {
+  image.onerror = () => {};
+  image.src = Buffer.alloc(0);
+}
+
 export class PixiNodeUtil implements PixiUtil {
   pixiApp: PIXI.Application;
   pixiGraphicsBack: PIXI.Graphics;
@@ -88,8 +105,8 @@ export class PixiNodeUtil implements PixiUtil {
    * assets/ui_image is 1,369 icons totalling ~419MB of RGBA at native size, up
    * to 1524x1263 -- while a preview draws a building into a few tens of
    * pixels. The full-size bitmap is still decoded here, since libpng gives no
-   * way to scale while decoding, but it is transient: only the downscaled
-   * canvas is retained.
+   * way to scale while decoding, but it is freed as soon as the downscale is
+   * drawn (see releaseImage): only the downscaled canvas is retained.
    *
    * Only safe for textures drawn whole. An atlas must never be capped: its
    * sprites are addressed by pixel rectangles (SpriteInfo.uvMin/uvSize), which
@@ -110,6 +127,7 @@ export class PixiNodeUtil implements PixiUtil {
       context.imageSmoothingEnabled = true;
       context.imageSmoothingQuality = 'high';
       context.drawImage(image, 0, 0, width, height);
+      releaseImage(image);
       source = canvas;
     }
     return new PIXI.BaseTexture(new NodeCanvasResource(source));
