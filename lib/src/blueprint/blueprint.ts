@@ -186,19 +186,28 @@ export class Blueprint {
 
     // One change event for the whole import, not one per item: every emit
     // re-runs updateTileables over every item added so far, which made this
-    // O(n^2) -- 16s of an 8,612-item preview render. The observers' itemAdded
-    // callbacks are all no-ops, and the single emit at the end leaves every
-    // item's tileable state exactly as the last per-item emit used to.
+    // O(n^2) -- 16s of an 8,612-item preview render. Observers still hear
+    // about every item: the itemAdded callbacks are buffered while paused and
+    // delivered after the load, then one blueprintChanged runs the tileables
+    // pass over the full set, leaving every item exactly as the last per-item
+    // emit used to. A caller that had already paused events hears nothing,
+    // as before.
     const wasPaused = this.pauseChangeEvents_;
+    const added: BlueprintItem[] = [];
     this.pauseChangeEvents();
     try {
-      this.importMdbItems(mdbBlueprint);
+      this.importMdbItems(mdbBlueprint, added);
     } finally {
-      if (!wasPaused) this.resumeChangeEvents(true);
+      if (!wasPaused) {
+        this.pauseChangeEvents_ = false;
+        for (const item of added)
+          this.observersBlueprintChanged.map(observer => observer.itemAdded(item));
+        this.emitBlueprintChanged();
+      }
     }
   }
 
-  private importMdbItems(mdbBlueprint: MdbBlueprint) {
+  private importMdbItems(mdbBlueprint: MdbBlueprint, added: BlueprintItem[]) {
     for (let originalTemplateItem of mdbBlueprint.blueprintItems) {
       // Legacy website annotations, stored as pseudo-buildings before world
       // notes existed. Converted on read and never written back, so a stored
@@ -221,6 +230,7 @@ export class Blueprint {
 
       newTemplateItem.importMdbBuilding(originalTemplateItem);
       this.addBlueprintItem(newTemplateItem);
+      added.push(newTemplateItem);
     }
   }
 

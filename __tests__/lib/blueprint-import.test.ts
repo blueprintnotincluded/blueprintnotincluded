@@ -101,10 +101,11 @@ describe('Blueprint import: one change event per import', function () {
   const connections = (blueprint: Blueprint) =>
     blueprint.blueprintItems.map(item => (item as BlueprintItemTile).tileConnections);
 
-  it('fires blueprintChanged once, not once per item', () => {
+  it('fires blueprintChanged once, after every itemAdded', () => {
     const blueprint = new Blueprint();
     let changed = 0;
     let added = 0;
+    let addedBeforeChange = -1;
     blueprint.subscribeBlueprintChanged({
       itemDestroyed() {},
       itemAdded() {
@@ -112,6 +113,7 @@ describe('Blueprint import: one change event per import', function () {
       },
       blueprintChanged() {
         changed++;
+        addedBeforeChange = added;
       },
     });
 
@@ -119,7 +121,8 @@ describe('Blueprint import: one change event per import', function () {
 
     expect(blueprint.blueprintItems).to.have.length(100);
     expect(changed).to.equal(1);
-    expect(added).to.equal(0);
+    expect(added).to.equal(100);
+    expect(addedBeforeChange).to.equal(100);
   });
 
   it('leaves every tile connected as a fresh updateTileables pass would', () => {
@@ -142,9 +145,12 @@ describe('Blueprint import: one change event per import', function () {
   it('keeps change events paused when the caller had already paused them', () => {
     const blueprint = new Blueprint();
     let changed = 0;
+    let added = 0;
     blueprint.subscribeBlueprintChanged({
       itemDestroyed() {},
-      itemAdded() {},
+      itemAdded() {
+        added++;
+      },
       blueprintChanged() {
         changed++;
       },
@@ -153,6 +159,7 @@ describe('Blueprint import: one change event per import', function () {
     blueprint.pauseChangeEvents();
     blueprint.importFromMdb(tilesMdb(5));
     expect(changed).to.equal(0);
+    expect(added).to.equal(0);
     blueprint.resumeChangeEvents(true);
     expect(changed).to.equal(1);
   });
