@@ -790,6 +790,12 @@ export class PreviewImageService {
               framing: message.framing,
             });
           } else pendingRequest.reject(new Error(message.message));
+          // Restart the idle clock from the render's *completion*, not its
+          // dispatch: the timer armed at send time has been counting down
+          // through the render itself, so a long render would otherwise be
+          // followed by a shutdown almost immediately, and "5 minutes of
+          // quiet" would mean 5 minutes minus however long the render took.
+          this.scheduleIdleShutdown();
         }
       });
 
