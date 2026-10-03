@@ -249,8 +249,9 @@ edits.
   `IActivationRangeTarget`, `BuildingEnabledButton`, `Automatable`, `TreeFilterable`) with per-field type/unit/
   bounds — cross-checked against the mod's real `DataTransferHelpers.cs`/`API_Methods.cs`
   source (available locally as an additional working directory), not just the import spec's
-  summary table. Every other key (`Door`, `Valve`, filters, `AccessControl`, `PixelPack`,
-  skins, ...) is preserved opaquely and never rendered as anything but a count.
+  summary table. Six more keys whose bounds depend on the building are covered under
+  "Range-carrying settings" below. Every other key (`AccessControl`, `PixelPack`,
+  `StorageTile`, skins, ...) is preserved opaquely and never rendered as anything but a count.
   `format-setting.ts` formats known fields for display (durations show seconds plus a cycle
   count once ≥600s; `LogicTimeOfDaySensor` fractions show as % of cycle, matching the game's
   own side screen).
@@ -294,6 +295,52 @@ edits.
   `trackBy: trackByRow` keyed on `Key:field`; a regression spec (re-queries the DOM after a
   simulated mid-edit change-detection tick rather than reusing a captured node reference)
   fails without the fix and passes with it.
+
+### Range-carrying settings (Prioritizable, Door, Valve, LimitValve, capacity, name)
+
+Six more `buildingData` Keys are catalogued: `Prioritizable`, `Door`, `Valve`, `LimitValve`,
+`IUserControlledCapacity` and `UserNameable`. What sets them apart from the automation keys
+is that a bare stored number means nothing without the building: `Valve.DesiredFlow` is just
+a float until the prefab says its valve tops out at 10 kg/s.
+
+- **Ranges come from the game export.** OniExtract2024 ships, per prefab, which of these the
+  completed building accepts and the bounds: `prioritizable`, `userNameable`, `door`,
+  `valve.maxFlow`, `limitValve.maxLimitKg`, `userControlledCapacity {minCapacity, maxCapacity,
+  wholeValues, units, source}`. The converter stores them under one `settings` key
+  (`BBuilding.settings` / `OniItem.settings`), and `resolveSettingDescriptors` fills them
+  into the descriptor (`withBuildingRange`). With no database loaded, or on a prefab the
+  export records nothing for, the catalogue's unbounded entry applies.
+- **Shapes are read off a real mod export** (`__tests__/fixtures/bpv2-example-meta.blueprint`),
+  with one exception: that file has no meter valve, so `LimitValve.Limit` is taken from the
+  gap doc's reading of the mod source and is **unverified against a capture**.
+- **`Prioritizable` is serialized twice.** `masterPrioritySetting` is a JSON *string* of
+  `{"priority_class":0,"priority_value":9}`. A descriptor with `jsonProperty` reads and
+  writes one property of such a string (`readSettingField` / `writeSettingField`), keeping the
+  rest verbatim; writing back the stored value reproduces the mod's own bytes. The row is
+  offered only while `priority_class` is 0 (`jsonGuard`): the other classes reuse
+  `priority_value` with another meaning (the yellow-alert top priority stores value 1), so a
+  1–9 row there would misreport it. Such an entry is counted in the panel's "other stored
+  settings (preserved)" line instead — `otherKeys` now includes a catalogued Key whose stored
+  Value yields no row although the building would normally get one.
+  In a blueprint the Key is the **build** priority and can sit on any building, so it is not
+  gated on the export's `prioritizable` flag.
+- **`Door.requestedState`** is the game's `Door.ControlState` (0 Auto, 1 Open, 2 Locked),
+  rendered as a `<select>` — the first `type: 'enum'` row the panel draws. A door the export
+  marks `allowAutoControl: false` (the Bunker Door) is not offered Auto; the stored value is
+  always among the choices regardless, so the control can never show a state the model does
+  not hold. Only 0 is confirmed by the fixture; 1 and 2 are from the enum's declared order.
+- **`Valve.DesiredFlow`** is stored in kg/s and shown in g/s (`displayScale: 1000`), as the
+  game's Flow Control screen shows it: 4.832 in the fixture is 4832 g/s.
+- **`IUserControlledCapacity.UserMaxCapacity`** takes its unit from the export's `units`
+  (`kg`, `Critters`, `Radbolts`) and becomes an `int` when `wholeValues`. The importer fails
+  on a unit it has never seen rather than letting one render as a bare number.
+- **`UserNameable.savedName`** has no length bound on purpose: the string bound doubles as a
+  truncation on commit, and an untouched default name still carries its `<link>` markup.
+- **None is creatable from scratch.** Their in-game defaults are unverified, which is the
+  bar `CREATABLE_SETTINGS` sets, so each is editable only where the file already carries it.
+- **`StorageTile` is not catalogued.** The mod writes that Key, but its Value shape is in
+  neither the fixture nor the gap doc. The Storage Tile's capacity is still editable through
+  the `IUserControlledCapacity` Key it also carries, bounded by `StorageTile.Def`.
 
 ### Disabled buildings (tempDisabled)
 

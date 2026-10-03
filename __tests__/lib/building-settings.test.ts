@@ -24,6 +24,8 @@ import {
   thresholdSensorSpec,
   toDisplayValue,
   toStoredValue,
+  readSettingField,
+  writeSettingField,
 } from '../../lib/index';
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
@@ -53,7 +55,16 @@ describe('building-settings catalogue', function () {
   });
 
   it('does not know keys outside the curated set', () => {
-    for (const key of ['Door', 'Valve', 'PixelPack', 'AccessControl', 'FlatTagFilterable'])
+    // StorageTile is deliberately in this list: the mod writes that Key (its
+    // Preconfigure covers the Storage Tile), but its Value shape has not been
+    // read off the mod source or a capture, so it stays opaque.
+    for (const key of [
+      'PixelPack',
+      'AccessControl',
+      'FlatTagFilterable',
+      'HEPBattery',
+      'StorageTile',
+    ])
       expect(isKnownSettingsKey(key)).to.equal(false);
   });
 
@@ -251,7 +262,7 @@ describe('building-settings catalogue', function () {
 
 describe('formatBuildingDataEntry', function () {
   it('returns null for a Key outside the curated catalogue', () => {
-    const entry: BniBuildingData = { Key: 'Door', Value: { requestedState: 1 } };
+    const entry: BniBuildingData = { Key: 'PixelPack', Value: { colorSettings: [] } };
     expect(formatBuildingDataEntry(entry)).to.equal(null);
   });
 
@@ -685,9 +696,9 @@ describe('threshold sensors', function () {
   it('still counts a suppressed Switch as known, not as an unknown stored setting', () => {
     const entry: BniBuildingData = { Key: 'Switch', Value: { switchedOn: true } };
     expect(formatBuildingDataEntry(entry, 'LogicPressureSensorGas')).to.deep.equal([]);
-    expect(formatBuildingDataEntry({ Key: 'Door', Value: {} }, 'LogicPressureSensorGas')).to.equal(
-      null
-    );
+    expect(
+      formatBuildingDataEntry({ Key: 'PixelPack', Value: {} }, 'LogicPressureSensorGas')
+    ).to.equal(null);
   });
 
   it('formats wattage and radbolt thresholds with their own suffix', () => {
@@ -1080,5 +1091,281 @@ describe('Automatable is shown as the game shows it', function () {
     expect(
       formatBuildingDataEntry({ Key: 'Switch', Value: { switchedOn: true } })![0].text
     ).to.equal('On');
+  });
+});
+
+// The seven Keys the Blueprints Included gap doc asked for, less StorageTile (see
+// the catalogue test above). Their Value shapes are read off the repo's real mod
+// export (bpv2-example-meta.blueprint) -- except LimitValve.Limit, which the
+// fixture does not contain and comes from the doc's reading of the mod source --
+// and their ranges from the game export (OniItem.settings).
+describe('range-carrying settings (Prioritizable, Door, Valve, LimitValve, capacity, name)', function () {
+  let fixture: any;
+  const dataOf = (buildingdef: string, key: string): BniBuildingData =>
+    fixture.buildings
+      .filter((b: any) => b.buildingdef == buildingdef)
+      .flatMap((b: any) => b.buildingData ?? [])
+      .find((entry: BniBuildingData) => entry.Key == key);
+  const descriptor = (prefabId: string, key: string) => resolveSettingDescriptors(prefabId, key)[0];
+
+  before(function () {
+    loadGameDatabase();
+    fixture = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '../fixtures/bpv2-example-meta.blueprint'), 'utf8')
+    );
+  });
+
+  it('knows all six keys', () => {
+    for (const key of [
+      'Prioritizable',
+      'Door',
+      'Valve',
+      'LimitValve',
+      'IUserControlledCapacity',
+      'UserNameable',
+    ])
+      expect(isKnownSettingsKey(key), key).to.equal(true);
+  });
+
+  it('carries the export ranges onto the building', () => {
+    expect(OniItem.getOniItem('LiquidValve').settings!.valve).to.deep.equal({
+      conduitType: 'Liquid',
+      maxFlow: 10,
+    });
+    expect(OniItem.getOniItem('GasValve').settings!.valve!.maxFlow).to.equal(1);
+    expect(OniItem.getOniItem('SolidLimitValve').settings!.limitValve).to.deep.equal({
+      conduitType: 'Solid',
+      maxLimitKg: 500,
+      displayUnitsInsteadOfMass: true,
+    });
+    expect(OniItem.getOniItem('StorageTile').settings!.userControlledCapacity).to.deep.include({
+      maxCapacity: 1000,
+      units: 'kg',
+      source: 'StorageTile.Def',
+    });
+    expect(OniItem.getOniItem('BunkerDoor').settings!.door!.allowAutoControl).to.equal(false);
+    expect(OniItem.getOniItem('StorageLocker').settings!.prioritizable).to.equal(true);
+    expect(OniItem.getOniItem('StorageLocker').settings!.userNameable).to.equal(true);
+    // A wire accepts none of them.
+    expect(OniItem.getOniItem('Wire').settings).to.equal(undefined);
+  });
+
+  describe('Prioritizable', () => {
+    it('reads the priority out of the serialized setting in the real export', () => {
+      const entry = dataOf('LiquidBottler', 'Prioritizable');
+      expect(entry.Value.masterPrioritySetting).to.be.a('string');
+      expect(readSettingField(descriptor('LiquidBottler', 'Prioritizable'), entry.Value)).to.equal(9);
+      expect(formatBuildingDataEntry(entry, 'LiquidBottler')).to.deep.equal([
+        { field: 'masterPrioritySetting', label: 'Priority', text: '9' },
+      ]);
+    });
+
+    it('bounds the priority 1-9', () => {
+      const d = descriptor('LiquidBottler', 'Prioritizable');
+      expect([d.type, d.min, d.max]).to.deep.equal(['int', 1, 9]);
+    });
+
+    it('rewrites only the priority, keeping the class and the serialized form', () => {
+      const entry = dataOf('LiquidBottler', 'Prioritizable');
+      const written = writeSettingField(
+        descriptor('LiquidBottler', 'Prioritizable'),
+        entry.Value,
+        3
+      );
+      expect(written).to.equal('{"priority_class":0,"priority_value":3}');
+    });
+
+    it('writing back the stored value reproduces the mod\'s own bytes', () => {
+      const entry = dataOf('LiquidBottler', 'Prioritizable');
+      expect(
+        writeSettingField(descriptor('LiquidBottler', 'Prioritizable'), entry.Value, 9)
+      ).to.equal(entry.Value.masterPrioritySetting);
+    });
+
+    it('shows nothing for a priority outside the basic class, and still calls the key known', () => {
+      const emergency: BniBuildingData = {
+        Key: 'Prioritizable',
+        Value: { masterPrioritySetting: '{"priority_class":3,"priority_value":1}' },
+      };
+      expect(readSettingField(descriptor('Tile', 'Prioritizable'), emergency.Value)).to.equal(
+        undefined
+      );
+      expect(formatBuildingDataEntry(emergency, 'Tile')).to.deep.equal([]);
+    });
+
+    it('shows nothing, and does not throw, for a malformed serialized setting', () => {
+      for (const masterPrioritySetting of ['', 'not json', '[1,2]', 'null', 42, null])
+        expect(
+          formatBuildingDataEntry(
+            { Key: 'Prioritizable', Value: { masterPrioritySetting } },
+            'Tile'
+          )
+        ).to.deep.equal([]);
+    });
+
+    it('applies to any building, since in a blueprint it is the build priority', () => {
+      expect(resolveSettingDescriptors('Wire', 'Prioritizable')).to.have.length(1);
+    });
+
+    it('full loop: an edited priority reaches the exported file, class intact', () => {
+      const blueprint = new Blueprint();
+      blueprint.importFromBni(fixture);
+      const bottler = blueprint.blueprintItems.find(
+        item => item.id == 'LiquidBottler' && item.buildingData?.some(e => e.Key == 'Prioritizable')
+      )!;
+      const d = descriptor('LiquidBottler', 'Prioritizable');
+      const stored = bottler.buildingData!.find(e => e.Key == 'Prioritizable')!.Value;
+      bottler.setBuildingSetting('Prioritizable', d.field, writeSettingField(d, stored, 2));
+
+      const exported = blueprint
+        .toBniBlueprint('edited')
+        .buildings.flatMap(b => b.buildingData ?? [])
+        .find(e => e.Key == 'Prioritizable')!;
+      expect(exported.Value).to.deep.equal({
+        masterPrioritySetting: '{"priority_class":0,"priority_value":2}',
+      });
+    });
+  });
+
+  describe('Door', () => {
+    it('names the three states of the real export\'s airlock', () => {
+      const entry = dataOf('PressureDoor', 'Door');
+      expect(entry.Value).to.deep.equal({ requestedState: 0 });
+      expect(formatBuildingDataEntry(entry, 'PressureDoor')).to.deep.equal([
+        { field: 'requestedState', label: 'Door', text: 'Auto' },
+      ]);
+      expect(descriptor('PressureDoor', 'Door').enumLabels).to.deep.equal({
+        0: 'Auto',
+        1: 'Open',
+        2: 'Locked',
+      });
+    });
+
+    it('does not offer Auto on a door the game cannot automate', () => {
+      expect(descriptor('BunkerDoor', 'Door').enumLabels).to.deep.equal({ 1: 'Open', 2: 'Locked' });
+      // ...without disturbing the shared catalogue entry.
+      expect(SETTINGS_CATALOG.Door[0].enumLabels).to.have.property('0', 'Auto');
+    });
+
+    it('formats a state it has no word for as the raw number', () => {
+      expect(
+        formatBuildingDataEntry({ Key: 'Door', Value: { requestedState: 7 } }, 'PressureDoor')
+      ).to.deep.equal([{ field: 'requestedState', label: 'Door', text: '7' }]);
+    });
+  });
+
+  describe('Valve', () => {
+    it('shows the real export\'s flow in grams per second', () => {
+      const entry = dataOf('LiquidValve', 'Valve');
+      expect(entry.Value).to.deep.equal({ DesiredFlow: 4.832 });
+      expect(formatBuildingDataEntry(entry, 'LiquidValve')).to.deep.equal([
+        { field: 'DesiredFlow', label: 'Flow rate', text: '4832 g/s' },
+      ]);
+    });
+
+    it('takes its maximum from the prefab: 10 kg/s liquid, 1 kg/s gas', () => {
+      const liquid = descriptor('LiquidValve', 'Valve');
+      expect(liquid.max).to.equal(10);
+      expect(toDisplayValue(liquid, liquid.max!)).to.equal(10000);
+      const gas = descriptor('GasValve', 'Valve');
+      expect(toDisplayValue(gas, gas.max!)).to.equal(1000);
+    });
+
+    it('round-trips display and stored values', () => {
+      const d = descriptor('LiquidValve', 'Valve');
+      expect(toStoredValue(d, 2500)).to.equal(2.5);
+      expect(toDisplayValue(d, 2.5)).to.equal(2500);
+    });
+
+    it('stays unbounded above on a building the export records no valve for', () => {
+      expect(descriptor('Tile', 'Valve').max).to.equal(undefined);
+    });
+  });
+
+  describe('LimitValve', () => {
+    it('is a mass on the gas and liquid meter valves', () => {
+      for (const prefabId of ['GasLimitValve', 'LiquidLimitValve']) {
+        const d = descriptor(prefabId, 'LimitValve');
+        expect([d.type, d.max, d.unitSuffix], prefabId).to.deep.equal(['float', 500, 'kg']);
+      }
+      expect(
+        formatBuildingDataEntry({ Key: 'LimitValve', Value: { Limit: 120.5 } }, 'LiquidLimitValve')
+      ).to.deep.equal([{ field: 'Limit', label: 'Limit', text: '120.5 kg' }]);
+    });
+
+    it('is a whole unit count on the conveyor meter', () => {
+      const d = descriptor('SolidLimitValve', 'LimitValve');
+      expect([d.type, d.max, d.unitSuffix]).to.deep.equal(['int', 500, 'units']);
+    });
+  });
+
+  describe('IUserControlledCapacity', () => {
+    it('shows the real export\'s bottler capacity in kg, bounded by the prefab', () => {
+      const entry = dataOf('LiquidBottler', 'IUserControlledCapacity');
+      expect(entry.Value).to.deep.equal({ UserMaxCapacity: 200 });
+      expect(formatBuildingDataEntry(entry, 'LiquidBottler')).to.deep.equal([
+        { field: 'UserMaxCapacity', label: 'Max capacity', text: '200 kg' },
+      ]);
+      const d = descriptor('LiquidBottler', 'IUserControlledCapacity');
+      expect([d.min, d.max, d.type]).to.deep.equal([0, 200, 'float']);
+    });
+
+    it('counts whole critters on a critter drop-off', () => {
+      const d = descriptor('CritterDropOff', 'IUserControlledCapacity');
+      expect([d.type, d.max, d.unitSuffix]).to.deep.equal(['int', 40, 'critters']);
+    });
+
+    it('counts radbolts on the radbolt engine', () => {
+      const d = descriptor('HEPEngine', 'IUserControlledCapacity');
+      expect([d.max, d.unitSuffix]).to.deep.equal([4000, 'radbolts']);
+    });
+
+    it('bounds the storage tile by StorageTile.Def', () => {
+      const d = descriptor('StorageTile', 'IUserControlledCapacity');
+      expect([d.min, d.max, d.unitSuffix]).to.deep.equal([0, 1000, 'kg']);
+    });
+
+    it('gives every building with a recorded capacity a suffix the panel can render', () => {
+      for (const item of OniItem.oniItems.filter(i => i.settings?.userControlledCapacity != null)) {
+        const d = descriptor(item.id, 'IUserControlledCapacity');
+        expect(['kg', 'critters', 'radbolts'], item.id).to.include(d.unitSuffix);
+        expect(d.max, item.id).to.be.greaterThan(0);
+      }
+    });
+  });
+
+  describe('UserNameable', () => {
+    it('shows the stored name verbatim, markup included', () => {
+      const entry = dataOf('StorageLocker', 'UserNameable');
+      expect(formatBuildingDataEntry(entry, 'StorageLocker')).to.deep.equal([
+        { field: 'savedName', label: 'Name', text: entry.Value.savedName },
+      ]);
+    });
+
+    it('carries no length bound, so an untouched name can never be truncated', () => {
+      expect(descriptor('StorageLocker', 'UserNameable').max).to.equal(undefined);
+    });
+  });
+
+  it('none of the six is creatable from scratch: their in-game defaults are unverified', () => {
+    for (const prefabId of ['LiquidValve', 'PressureDoor', 'StorageLocker', 'LiquidBottler'])
+      for (const key of creatableSettingsKeysFor(prefabId))
+        expect(
+          ['Prioritizable', 'Door', 'Valve', 'LimitValve', 'IUserControlledCapacity', 'UserNameable'],
+          `${prefabId} ${key}`
+        ).to.not.include(key);
+  });
+
+  it('round-trips every one of them through the site untouched', () => {
+    const source = new Blueprint();
+    source.importFromBni(fixture);
+    const reimported = new Blueprint();
+    reimported.importFromMdb(source.toMdbBlueprint());
+    const keys = ['Prioritizable', 'Door', 'Valve', 'IUserControlledCapacity', 'UserNameable'];
+    const pick = (buildings: any[]) =>
+      buildings.flatMap(b => (b.buildingData ?? []).filter((e: any) => keys.includes(e.Key)));
+    expect(pick(reimported.toBniBlueprint('roundtrip').buildings)).to.deep.equal(
+      pick(fixture.buildings)
+    );
   });
 });

@@ -101,6 +101,31 @@ export class BBuilding {
   attachPoints?: BuildingAttachPoint[];
   // Present exactly on rocket modules.
   rocketModule?: RocketModuleInfo;
+
+  // Which user settings the completed building accepts, with their ranges. Absent
+  // when it accepts none of the ones below.
+  settings?: BuildingSettingsInfo;
+}
+
+// Static facts about what a prefab's side screen offers -- NOT the values a
+// blueprint stores (those are `buildingData`). They give the settings catalogue the
+// bounds and units for a bare number: `Valve.DesiredFlow` is just a float until the
+// building says its valve tops out at 10 kg/s.
+export interface BuildingSettingsInfo {
+  prioritizable?: true;
+  userNameable?: true;
+  door?: { doorType: string; hasComplexUserControls: boolean; allowAutoControl: boolean };
+  // kg/s.
+  valve?: { conduitType: string; maxFlow: number };
+  limitValve?: { conduitType: string; maxLimitKg: number; displayUnitsInsteadOfMass: boolean };
+  userControlledCapacity?: {
+    minCapacity: number;
+    maxCapacity: number;
+    wholeValues: boolean;
+    // "kg", "Critters" or "Radbolts".
+    units: string;
+    source: string;
+  };
 }
 
 export interface BuildingAttachPoint {

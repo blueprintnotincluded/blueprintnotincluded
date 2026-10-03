@@ -633,6 +633,7 @@ export function convertExport2024(opts: ConvertOptions): void {
   // --- Validation accumulators ---
   const unknownViewModes = new Set<string>();
   const unknownConnectionTypes = new Set<string>();
+  const unknownCapacityUnits = new Set<string>();
   const missingIcons: string[] = [];
   const missingUiSpriteInfo: string[] = [];
   const missingMenuBuildings: string[] = [];
@@ -675,7 +676,8 @@ export function convertExport2024(opts: ConvertOptions): void {
         connectionScale,
         unknownConnectionTypes,
         roomTagVocabulary,
-        pinnedIconFiles.has(iconKey + '.png') ? PINNED_ICONS[iconKey].rect : b.uiImageRect
+        pinnedIconFiles.has(iconKey + '.png') ? PINNED_ICONS[iconKey].rect : b.uiImageRect,
+        unknownCapacityUnits
       )
     );
 
@@ -1128,6 +1130,22 @@ export function convertExport2024(opts: ConvertOptions): void {
     roomDoorsMissing.length ? '(' + roomDoorsMissing.join(', ') + ')' : ''
   );
   console.log(
+    '  buildings with settings ranges     :',
+    buildings.filter((b) => b.settings).length,
+    '/',
+    buildings.length,
+    '(' +
+      ['prioritizable', 'userNameable', 'door', 'valve', 'limitValve', 'userControlledCapacity']
+        .map((key) => `${key} ${buildings.filter((b) => b.settings?.[key]).length}`)
+        .join(', ') +
+      ')'
+  );
+  console.log(
+    '  unknown capacity units             :',
+    unknownCapacityUnits.size,
+    unknownCapacityUnits.size ? '(' + [...unknownCapacityUnits].join(', ') + ')' : ''
+  );
+  console.log(
     '  rocket modules                     :',
     rocketModulePrefabs.size,
     `(menu roster ${rocketModuleMenu.length}, added to the rocketry tab; ` +
@@ -1197,6 +1215,7 @@ export function convertExport2024(opts: ConvertOptions): void {
     missingTerrainNames.length +
     missingTerrainRects.length +
     rectAspectMismatches.length +
+    unknownCapacityUnits.size +
     rocketMenuNotModules.length +
     rocketModulesNotInMenu.length +
     rocketTopMismatches.length +
@@ -1635,6 +1654,46 @@ function attachmentRecord(b: BBuildingDef2024): any {
   return record;
 }
 
+// Units the export uses for IUserControlledCapacity. The settings catalogue turns
+// each into a suffix, so one it has never seen must fail the import rather than
+// render as a bare number.
+export const KNOWN_CAPACITY_UNITS = ['kg', 'Critters', 'Radbolts'];
+
+// Which user settings the completed building accepts, and their ranges. Passed
+// through as exported, under one `settings` key so the building record does not grow
+// six top-level optionals; omitted entirely when the building has none.
+function settingsRecord(b: BBuildingDef2024, unknownCapacityUnits: Set<string>): any {
+  const settings: any = {};
+  if (b.prioritizable) settings.prioritizable = true;
+  if (b.userNameable) settings.userNameable = true;
+  if (b.door)
+    settings.door = {
+      doorType: b.door.doorType,
+      hasComplexUserControls: b.door.hasComplexUserControls === true,
+      allowAutoControl: b.door.allowAutoControl === true,
+    };
+  if (b.valve) settings.valve = { conduitType: b.valve.conduitType, maxFlow: b.valve.maxFlow };
+  if (b.limitValve)
+    settings.limitValve = {
+      conduitType: b.limitValve.conduitType,
+      maxLimitKg: b.limitValve.maxLimitKg,
+      displayUnitsInsteadOfMass: b.limitValve.displayUnitsInsteadOfMass === true,
+    };
+  if (b.userControlledCapacity) {
+    const capacity = b.userControlledCapacity;
+    if (KNOWN_CAPACITY_UNITS.indexOf(capacity.units) === -1)
+      unknownCapacityUnits.add(`${b.name}: ${capacity.units}`);
+    settings.userControlledCapacity = {
+      minCapacity: capacity.minCapacity,
+      maxCapacity: capacity.maxCapacity,
+      wholeValues: capacity.wholeValues === true,
+      units: capacity.units,
+      source: capacity.source,
+    };
+  }
+  return Object.keys(settings).length ? { settings } : {};
+}
+
 function buildingRecord(
   b: BBuildingDef2024,
   unknownViewModes: Set<string>,
@@ -1643,7 +1702,8 @@ function buildingRecord(
   unknownConnectionTypes: Set<string>,
   roomTagVocabulary: Set<string>,
   // The export's own rect, or the pinned one when the icon is pinned (PINNED_ICONS).
-  uiImageRect: UiImageRect | undefined
+  uiImageRect: UiImageRect | undefined,
+  unknownCapacityUnits: Set<string>
 ): any {
   return {
     DefaultAnimState: b.defaultAnimState,
@@ -1685,6 +1745,7 @@ function buildingRecord(
     utilities: utilitiesRecord(b, unknownConnectionTypes),
     ...(b.areasOfEffect?.length ? { areasOfEffect: b.areasOfEffect } : {}),
     ...attachmentRecord(b),
+    ...settingsRecord(b, unknownCapacityUnits),
     uiScreens: [],
     sprites: { groupName: 'all sprites', spriteNames: [] }, // flat icon: no atlas sprites
     materialCategory: b.materialCategory ?? [],

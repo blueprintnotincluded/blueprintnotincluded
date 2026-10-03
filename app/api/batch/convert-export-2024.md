@@ -331,6 +331,27 @@ The import checks that the two halves of the export agree and fails otherwise:
 `rocketModuleMenu` (root, the game's module-screen order) lists exactly the `isRocketModule`
 buildings, and a module offers a `Rocket` hardpoint exactly when it is not `TopOnly`.
 
+## Settings ranges
+
+Which user settings a completed building accepts, and their bounds (OniExtract2024 #9). All
+omit-when-absent in the export; the converter gathers them under one `settings` key on the
+building record, omitted when the building has none (194 of 488 carry it):
+
+| `settings.*` | Buildings | Notes |
+|---|---|---|
+| `prioritizable: true` | 168 | The completed building keeps a player-set priority. A blueprint can carry `Prioritizable` for any building regardless: there it is the build priority. |
+| `userNameable: true` | 11 | |
+| `door {doorType, hasComplexUserControls, allowAutoControl}` | 11 | |
+| `valve {conduitType, maxFlow}` | `GasValve` (1 kg/s), `LiquidValve` (10 kg/s) | Not on the shutoffs. |
+| `limitValve {conduitType, maxLimitKg, displayUnitsInsteadOfMass}` | 3 | 500 each; the solid one counts units. |
+| `userControlledCapacity {minCapacity, maxCapacity, wholeValues, units, source}` | 32 | `units` is `kg` (26), `Critters` (5) or `Radbolts` (1). |
+
+These are static facts about the prefab, not the values a blueprint stores (those live in
+`buildings[].buildingData`). The settings catalogue reads them to bound and label a stored
+value — see "Range-carrying settings" in `lib/src/blueprint/CLAUDE.md`. The import fails on a
+capacity `units` value outside `KNOWN_CAPACITY_UNITS`, because the catalogue turns each unit
+into a suffix and an unknown one would render as a bare number.
+
 ## `viewMode` mapping
 
 `building.json` `viewMode` is the game-native overlay **name** (e.g. `"Power"`,

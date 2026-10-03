@@ -3,6 +3,7 @@ import {
   decodeTagSet,
   isKnownSettingsKey,
   NONE_TAG,
+  readSettingField,
   resolveSettingDescriptors,
   SETTINGS_CATALOG,
   SettingFieldDescriptor,
@@ -108,12 +109,15 @@ export function formatBuildingDataEntry(
   const rows: FormattedSettingRow[] = [];
   for (const descriptor of descriptors) {
     if (descriptor.hidden) continue;
-    if (!(descriptor.field in value)) continue;
+    // undefined covers both a missing field and a serialized one this descriptor
+    // has nothing to show for (malformed, or guarded out) -- see readSettingField.
+    const raw = readSettingField(descriptor, value);
+    if (raw === undefined) continue;
     try {
       rows.push({
         field: descriptor.field,
         label: descriptor.labelKey,
-        text: formatFieldValue(descriptor, value[descriptor.field], value),
+        text: formatFieldValue(descriptor, raw, value),
       });
     } catch {
       // Unrecognized shape for this field — skip it rather than fail the

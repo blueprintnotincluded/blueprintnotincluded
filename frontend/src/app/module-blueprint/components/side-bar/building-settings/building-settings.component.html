@@ -93,6 +93,21 @@
         </span>
       </ng-container>
 
+      <select
+        *ngIf="row.type === 'enum'"
+        class="building-setting-select"
+        [attr.aria-label]="row.label"
+        (change)="onFieldInput(row, $any($event.target).value)"
+      >
+        <option
+          *ngFor="let option of row.options; trackBy: trackByOption"
+          [value]="option.value"
+          [selected]="option.value === row.displayValue"
+        >
+          {{ option.label }}
+        </option>
+      </select>
+
       <input
         *ngIf="row.type === 'string'"
         #textInput

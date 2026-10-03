@@ -1,4 +1,6 @@
 import { THRESHOLD_SENSORS, thresholdSensorSpec } from './threshold-sensors';
+import { OniItem } from '../../oni-item';
+import { BuildingSettingsInfo } from '../../b-export/b-building';
 
 // Curated catalogue of the BlueprintsV2 `buildingData` component keys we
 // know how to display (and, from phase 3, edit) — spec/building-settings-plan.md
@@ -61,6 +63,16 @@ export interface SettingFieldDescriptor {
   // is the case: the game's side screen offers "Allow Manual Use", which is on
   // exactly when automationOnly is false.
   invert?: boolean;
+  // The stored field is a JSON *string* of an object rather than the value itself
+  // (`Prioritizable.masterPrioritySetting` is
+  // "{\"priority_class\":0,\"priority_value\":9}"), and this descriptor reads and
+  // writes ONE property of it. Every other property is kept verbatim on write. Go
+  // through readSettingField/writeSettingField rather than indexing the Value.
+  jsonProperty?: string;
+  // jsonProperty only. The row is offered only while another property of the same
+  // serialized object holds this value; otherwise the entry is preserved and not
+  // shown, exactly like a field the Value lacks.
+  jsonGuard?: { property: string; equals: number | string | boolean };
   // type: 'element' only. The `forceTag` passed to app-cell-element-picker
   // (`Gas`/`Liquid`/`Solid`) — filled in per prefab by resolveSettingDescriptors
   // from FILTERABLE_BUILDINGS, since one `Filterable` catalogue entry serves
@@ -78,7 +90,30 @@ const ABOVE_BELOW: Pick<SettingFieldDescriptor, 'labelKey' | 'type' | 'booleanLa
   booleanLabels: { whenTrue: 'Above', whenFalse: 'Below' },
 };
 
+// Door.ControlState, the game's own enum order: Auto, Opened, Locked. The words
+// are the three states the door side screen offers
+// (UI.UISIDESCREENS.DOOR_TOGGLE_SIDE_SCREEN.AUTO / .OPEN / .CLOSE -- "Door is
+// locked"). The real mod export in __tests__/fixtures stores 0 on its Mechanized
+// Airlock.
+export const DOOR_STATE_AUTO = 0;
+const DOOR_STATE_LABELS: Record<number, string> = {
+  [DOOR_STATE_AUTO]: 'Auto',
+  1: 'Open',
+  2: 'Locked',
+};
+
+// PriorityScreen.PriorityClass.basic -- the ordinary 1-9 scale. The other classes
+// (urgent, personal needs, the yellow-alert "top priority", involuntary) reuse
+// priority_value with a different meaning, so the 1-9 row is offered for this one
+// alone.
+const PRIORITY_CLASS_BASIC = 0;
+
 const THRESHOLD_KEY = 'IThresholdSwitch';
+const PRIORITIZABLE_KEY = 'Prioritizable';
+const DOOR_KEY = 'Door';
+const VALVE_KEY = 'Valve';
+const LIMIT_VALVE_KEY = 'LimitValve';
+const USER_CAPACITY_KEY = 'IUserControlledCapacity';
 const FILTERABLE_KEY = 'Filterable';
 const TREE_FILTERABLE_KEY = 'TreeFilterable';
 
@@ -306,6 +341,64 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
 
   BuildingEnabledButton: [{ field: 'IsEnabled', labelKey: 'Enabled', type: 'bool' }],
 
+  // --- Keys whose bounds and units depend on the building. The entries below are
+  // the unbounded fallback; resolveSettingDescriptors fills in the range the export
+  // records for the prefab (OniItem.settings). ---
+
+  // The build priority. Stored serialized, like TreeFilterable's tag set but an
+  // object: masterPrioritySetting is "{\"priority_class\":0,\"priority_value\":9}".
+  // Offered on the basic class only (see PRIORITY_CLASS_BASIC). 1-9 is the game's
+  // own scale (UI.PRIORITYSCREEN.BASIC: "1: Least Urgent / 9: Most Urgent").
+  [PRIORITIZABLE_KEY]: [
+    {
+      field: 'masterPrioritySetting',
+      jsonProperty: 'priority_value',
+      jsonGuard: { property: 'priority_class', equals: PRIORITY_CLASS_BASIC },
+      labelKey: 'Priority',
+      type: 'int',
+      min: 1,
+      max: 9,
+    },
+  ],
+
+  [DOOR_KEY]: [
+    { field: 'requestedState', labelKey: 'Door', type: 'enum', enumLabels: DOOR_STATE_LABELS },
+  ],
+
+  // Stored in kg/s, shown in g/s as the game's Flow Control screen shows it: a
+  // Liquid Valve set to 4832 g/s exports DesiredFlow 4.832. The max comes from the
+  // prefab (Gas Valve 1 kg/s, Liquid Valve 10 kg/s).
+  [VALVE_KEY]: [
+    {
+      field: 'DesiredFlow',
+      labelKey: 'Flow rate',
+      type: 'float',
+      unitSuffix: 'g/s',
+      displayScale: 1000,
+      decimals: 1,
+      step: 10,
+      min: 0,
+    },
+  ],
+
+  // The Meter Valves. kg on the gas and liquid ones, a unit count on the Conveyor
+  // Meter (displayUnitsInsteadOfMass); the max is the prefab's maxLimitKg.
+  [LIMIT_VALVE_KEY]: [
+    { field: 'Limit', labelKey: 'Limit', type: 'float', unitSuffix: 'kg', min: 0 },
+  ],
+
+  // The storage cap ("Storage Capacity Control", "Max:"). kg, critters or radbolts
+  // depending on the building, which also sets the range and whether it is a whole
+  // number. Carried by the Storage Tile too: its range comes from StorageTile.Def.
+  [USER_CAPACITY_KEY]: [
+    { field: 'UserMaxCapacity', labelKey: 'Max capacity', type: 'float', unitSuffix: 'kg', min: 0 },
+  ],
+
+  // The player-given name. No length bound: the string bound doubles as a
+  // truncation on commit, and an untouched default name ("<link=...>Storage
+  // Bin</link>", markup and all) must survive a blur unchanged.
+  UserNameable: [{ field: 'savedName', labelKey: 'Name', type: 'string' }],
+
   // The game's side screen (AUTOMATABLE_SIDE_SCREEN.ALLOWMANUALBUTTON) says
   // "Allow Manual Use" -- "Allow Duplicants to manually manage these storage
   // materials" -- and it is ticked when the stored automationOnly is FALSE. So
@@ -364,6 +457,130 @@ export function encodeTagSet(tags: readonly SettingTag[]): string {
   return JSON.stringify(tags.map(tag => ({ Name: tag.Name, IsValid: true })));
 }
 
+// The object a jsonProperty descriptor's field serializes, or null when the stored
+// string is absent or not an object. Never throws.
+function parseSerializedObject(raw: unknown): Record<string, any> | null {
+  if (typeof raw != 'string' || raw.trim() === '') return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed != null && typeof parsed == 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+// The value a descriptor shows, read out of a buildingData `Value` object.
+// `undefined` means "nothing to show for this descriptor": the field is missing,
+// or -- for a jsonProperty descriptor -- the serialized object is malformed, lacks
+// the property, or fails its guard. Callers treat undefined like a missing field:
+// the entry is preserved and the row is not rendered.
+export function readSettingField(
+  descriptor: SettingFieldDescriptor,
+  value: Record<string, any> | null | undefined
+): any {
+  if (value == null || typeof value != 'object' || !(descriptor.field in value)) return undefined;
+  const raw = value[descriptor.field];
+  if (descriptor.jsonProperty == null) return raw;
+
+  const serialized = parseSerializedObject(raw);
+  if (serialized == null || !(descriptor.jsonProperty in serialized)) return undefined;
+  if (
+    descriptor.jsonGuard != null &&
+    serialized[descriptor.jsonGuard.property] !== descriptor.jsonGuard.equals
+  )
+    return undefined;
+  return serialized[descriptor.jsonProperty];
+}
+
+// What to store in `Value[descriptor.field]` so that the descriptor reads back
+// `next`. For an ordinary descriptor that is `next` itself; for a jsonProperty one
+// it is the serialized object with that one property replaced and every other
+// property (and their order) kept. Compact JSON, as Newtonsoft writes it.
+export function writeSettingField(
+  descriptor: SettingFieldDescriptor,
+  value: Record<string, any> | null | undefined,
+  next: any
+): any {
+  if (descriptor.jsonProperty == null) return next;
+  const serialized = parseSerializedObject(value?.[descriptor.field]) ?? {};
+  serialized[descriptor.jsonProperty] = next;
+  return JSON.stringify(serialized);
+}
+
+const CAPACITY_UNIT_SUFFIX: Record<string, string> = {
+  kg: 'kg',
+  Critters: 'critters',
+  Radbolts: 'radbolts',
+};
+
+// The static settings facts the export records for a prefab, or undefined when the
+// game database is not loaded or does not know the prefab (a unit test, a modded
+// building). Every caller falls back to the unbounded catalogue entry.
+function buildingSettingsInfo(prefabId: string): BuildingSettingsInfo | undefined {
+  return OniItem.oniItemsMap?.get(prefabId)?.settings;
+}
+
+// Fills in the range and unit a building gives one of the range-carrying Keys.
+// Bounds stay in STORED units, like every other catalogue bound.
+function withBuildingRange(
+  prefabId: string,
+  key: string,
+  base: SettingFieldDescriptor[]
+): SettingFieldDescriptor[] {
+  const info = buildingSettingsInfo(prefabId);
+  if (info == null) return base;
+
+  if (key == VALVE_KEY && info.valve != null) {
+    const max = info.valve.maxFlow;
+    return base.map(d => (d.field == 'DesiredFlow' ? { ...d, max } : d));
+  }
+
+  if (key == LIMIT_VALVE_KEY && info.limitValve != null) {
+    const { maxLimitKg, displayUnitsInsteadOfMass } = info.limitValve;
+    return base.map(d =>
+      d.field == 'Limit'
+        ? {
+            ...d,
+            max: maxLimitKg,
+            unitSuffix: displayUnitsInsteadOfMass ? 'units' : 'kg',
+            ...(displayUnitsInsteadOfMass ? { type: 'int' as const } : {}),
+          }
+        : d
+    );
+  }
+
+  if (key == USER_CAPACITY_KEY && info.userControlledCapacity != null) {
+    const capacity = info.userControlledCapacity;
+    return base.map(d =>
+      d.field == 'UserMaxCapacity'
+        ? {
+            ...d,
+            min: capacity.minCapacity,
+            max: capacity.maxCapacity,
+            type: capacity.wholeValues ? ('int' as const) : ('float' as const),
+            // A unit the importer has never seen fails the import, so the raw
+            // name here is a fallback that should not be reachable.
+            unitSuffix: CAPACITY_UNIT_SUFFIX[capacity.units] ?? capacity.units,
+          }
+        : d
+    );
+  }
+
+  // A door that cannot be automated (the Bunker Door) is not offered Auto. A
+  // stored Auto is still shown: the panel adds the current value to the choices.
+  if (key == DOOR_KEY && info.door != null && !info.door.allowAutoControl)
+    return base.map(d => {
+      if (d.field != 'requestedState' || d.enumLabels == null) return d;
+      const enumLabels = { ...d.enumLabels };
+      delete enumLabels[DOOR_STATE_AUTO];
+      return { ...d, enumLabels };
+    });
+
+  return base;
+}
+
+const RANGED_KEYS = [VALVE_KEY, LIMIT_VALVE_KEY, USER_CAPACITY_KEY, DOOR_KEY];
+
 export function isKnownSettingsKey(key: string): boolean {
   return Object.prototype.hasOwnProperty.call(SETTINGS_CATALOG, key);
 }
@@ -399,14 +616,23 @@ export function toStoredValue(descriptor: SettingFieldDescriptor, display: numbe
 //    not a sensor, so it keeps its editable row. (suppressesStowawaySwitch)
 //  - `Filterable` on an element sensor or Gas/Liquid Filter: the picker's phase
 //    filter (Gas/Liquid/Solid) is filled in from the prefab.
+//  - `Valve`, `LimitValve`, `IUserControlledCapacity`, `Door`: the bounds, unit and
+//    choices the export records for the prefab (withBuildingRange).
 export function resolveSettingDescriptors(
   prefabId: string,
   key: string
 ): SettingFieldDescriptor[] {
-  const base = SETTINGS_CATALOG[key];
-  if (base == null) return [];
+  const catalogued = SETTINGS_CATALOG[key];
+  if (catalogued == null) return [];
 
   if (key == 'Switch' && suppressesStowawaySwitch(prefabId)) return [];
+
+  // Valve / LimitValve / IUserControlledCapacity / Door: the range, unit and
+  // choices the export records for this prefab. Independent of the sensor
+  // branches below, which only ever rewrite their own Keys.
+  const base = RANGED_KEYS.includes(key)
+    ? withBuildingRange(prefabId, key, catalogued)
+    : catalogued;
 
   // Critter Sensor: its own Key is authoritative. `IThresholdSwitch` is a pure
   // echo — in the game source LogicCritterCountSensor.Threshold is

@@ -145,6 +145,30 @@ export interface BBuildingDef2024 {
   // Engines only. `maxHeight` is the tallest stack (in cells) the engine can lift.
   rocketEngineCluster?: { maxHeight: number } | null;
 
+  // --- Settings the completed building accepts, and their ranges (OniExtract2024#9).
+  // All omit-when-absent. These are static facts about the prefab; the values a
+  // blueprint stores live in `buildings[].buildingData`. ---
+  // The completed building keeps a player-set priority (storage, fabricators, doors).
+  // Absent on wires, pipes, tiles. A blueprint can carry `Prioritizable` for ANY
+  // building regardless: there it is the build priority.
+  prioritizable?: true;
+  userNameable?: true;
+  door?: { doorType: string; hasComplexUserControls: boolean; allowAutoControl: boolean };
+  // kg/s. On GasValve (1) and LiquidValve (10); not on the shutoffs.
+  valve?: { conduitType: string; maxFlow: number };
+  // The solid one counts units rather than kg (displayUnitsInsteadOfMass).
+  limitValve?: { conduitType: string; maxLimitKg: number; displayUnitsInsteadOfMass: boolean };
+  // `units` is "kg", "Critters" or "Radbolts". Every kg-based max equals
+  // storage.capacityKg. `source` names the component the range was read from
+  // (StorageTile's comes from StorageTile.Def).
+  userControlledCapacity?: {
+    minCapacity: number;
+    maxCapacity: number;
+    wholeValues: boolean;
+    units: string;
+    source: string;
+  };
+
   // Steam workshop id of the mod that registered this building; absent ⇒ vanilla
   // (never emitted as null). Stable key for grouping/filtering/tagging.
   mod?: string;

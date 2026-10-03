@@ -7,7 +7,7 @@ import { SpriteModifierGroup } from './drawing/sprite-modifier-group';
 import { PermittedRotations } from './enums/permitted-rotations';
 import { ZIndex } from './enums/z-index';
 import { Overlay } from './enums/overlay';
-import { BBuilding, BuildingAttachPoint, RocketModuleInfo } from './b-export/b-building';
+import { BBuilding, BuildingAttachPoint, BuildingSettingsInfo, RocketModuleInfo } from './b-export/b-building';
 import { BuildMenuCategory } from './b-export/b-build-order';
 import { BuildLocationRule } from './enums/build-location-rule';
 import { AreaOfEffect } from './area-of-effect';
@@ -26,6 +26,7 @@ export declare class OniItem {
     attachablePosition: Vector2;
     attachPoints: BuildingAttachPoint[];
     rocketModule?: RocketModuleInfo;
+    settings?: BuildingSettingsInfo;
     get isRocketModule(): boolean;
     get rocketAttachPoint(): BuildingAttachPoint | undefined;
     imageId: string;

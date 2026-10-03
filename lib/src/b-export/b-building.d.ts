@@ -58,6 +58,32 @@ export declare class BBuilding {
     };
     attachPoints?: BuildingAttachPoint[];
     rocketModule?: RocketModuleInfo;
+    settings?: BuildingSettingsInfo;
+}
+export interface BuildingSettingsInfo {
+    prioritizable?: true;
+    userNameable?: true;
+    door?: {
+        doorType: string;
+        hasComplexUserControls: boolean;
+        allowAutoControl: boolean;
+    };
+    valve?: {
+        conduitType: string;
+        maxFlow: number;
+    };
+    limitValve?: {
+        conduitType: string;
+        maxLimitKg: number;
+        displayUnitsInsteadOfMass: boolean;
+    };
+    userControlledCapacity?: {
+        minCapacity: number;
+        maxCapacity: number;
+        wholeValues: boolean;
+        units: string;
+        source: string;
+    };
 }
 export interface BuildingAttachPoint {
     offset: {
