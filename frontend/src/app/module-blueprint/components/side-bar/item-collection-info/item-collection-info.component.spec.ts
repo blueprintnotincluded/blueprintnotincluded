@@ -222,6 +222,62 @@ describe("ItemCollectionInfoComponent", () => {
     });
   });
 
+  describe("tempDisabled", () => {
+    function checkbox(): HTMLInputElement | null {
+      return fixture.nativeElement.querySelector(".temp-disabled-checkbox");
+    }
+
+    it("is unchecked when no item is disabled", () => {
+      expect(component.allTempDisabled).toBe(false);
+      expect(checkbox()!.checked).toBe(false);
+      expect(checkbox()!.indeterminate).toBe(false);
+    });
+
+    it("shows a mixed collection as indeterminate", () => {
+      const fix = TestBed.createComponent(ItemCollectionInfoComponent);
+      fix.componentInstance.itemCollection = makeCollection({
+        items: [
+          { buildableElements: [{ hasTag: () => false }], tempDisabled: true },
+          { buildableElements: [{ hasTag: () => false }], tempDisabled: false },
+        ] as any,
+      });
+      fix.detectChanges();
+      const box = fix.nativeElement.querySelector(".temp-disabled-checkbox");
+      expect(box.checked).toBe(false);
+      expect(box.indeterminate).toBe(true);
+    });
+
+    it("disables every item in the collection as one change", () => {
+      const items = [{ tempDisabled: false }, { tempDisabled: true }];
+      component.itemCollection = makeCollection({ items: items as any });
+
+      component.setTempDisabled(true);
+
+      expect(items.map((item) => item.tempDisabled)).toEqual([true, true]);
+      expect(blueprintChanged).toHaveBeenCalledTimes(1);
+    });
+
+    it("pushes no undo step when nothing would change", () => {
+      const items = [{ tempDisabled: true }, { tempDisabled: true }];
+      component.itemCollection = makeCollection({ items: items as any });
+
+      component.setTempDisabled(true);
+
+      expect(blueprintChanged).not.toHaveBeenCalled();
+    });
+
+    it("is not offered for element cells, which never reach the mod's buildings", () => {
+      const fix = TestBed.createComponent(ItemCollectionInfoComponent);
+      const collection = makeCollection();
+      (collection.oniItem as any).isElement = true;
+      fix.componentInstance.itemCollection = collection;
+      fix.detectChanges();
+      expect(
+        fix.nativeElement.querySelector(".temp-disabled-checkbox"),
+      ).toBeNull();
+    });
+  });
+
   describe("changeTemperature", () => {
     it("sets the temperature on every item and updates the warning", () => {
       const items = [{ temperature: 0 }, { temperature: 0 }];

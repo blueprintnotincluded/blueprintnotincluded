@@ -39,6 +39,24 @@
   >
   </app-temperature-picker>
 
+  <!-- BlueprintsV2 `tempDisabled`: kept in the blueprint, skipped on placement. Not offered
+       for element cells, which are annotations and never reach the mod's `buildings`. -->
+  <label
+    class="temp-disabled"
+    *ngIf="!itemCollection.oniItem.isElement"
+    i18n-title
+    title="A disabled building stays in the blueprint, but the Blueprints mod skips it when the blueprint is placed."
+  >
+    <input
+      type="checkbox"
+      class="temp-disabled-checkbox"
+      [checked]="allTempDisabled"
+      [indeterminate]="someTempDisabled && !allTempDisabled"
+      (change)="setTempDisabled($any($event.target).checked)"
+    />
+    <span i18n>Disabled (skipped when placed in game)</span>
+  </label>
+
   <app-ui-screen-container
     *ngIf="itemCollection.items.length === 1"
     [blueprintItem]="itemCollection.items[0]"

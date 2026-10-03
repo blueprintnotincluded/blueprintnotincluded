@@ -40,3 +40,16 @@
   width: 100%;
   margin-bottom: 5px;
 }
+
+.temp-disabled {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.temp-disabled-checkbox {
+  margin: 0;
+}

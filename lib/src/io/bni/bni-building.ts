@@ -17,4 +17,9 @@ export class BniBuilding {
   // each resolves to BuildableElement.tag (§2.3).
   selected_elements: number[] = [];
   buildingData?: BniBuildingData[];
+  // The mod's per-building "temporarily disabled" switch: the building stays in
+  // the file but is skipped when the blueprint is placed, and left out of the
+  // mod's building counts. Written only when set — the mod omits the key for an
+  // enabled building, and so do we.
+  tempDisabled?: boolean;
 }

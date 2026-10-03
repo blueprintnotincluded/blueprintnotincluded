@@ -295,6 +295,29 @@ edits.
   simulated mid-edit change-detection tick rather than reusing a captured node reference)
   fails without the fix and passes with it.
 
+### Disabled buildings (tempDisabled)
+
+The mod's per-building `tempDisabled` flag: the building stays in the file but is skipped when
+the blueprint is placed, and left out of the mod's own building counts. Written as
+`tempDisabled: true` only when set — the mod omits the key for an enabled building.
+
+- **Round-trip** — `BniBuilding.tempDisabled`, `BlueprintItem.tempDisabled`,
+  `MdbBuilding.tempDisabled`, carried through import/export/clone/undo. Omitted when false at
+  both boundaries, so a blueprint with nothing disabled keeps its exact MDB shape and
+  fingerprint (the same reasoning as `buildingData` and `worldNotes`), and only a literal
+  `true` reads as disabled. Before this the site dropped the key, so a round-trip silently
+  re-enabled every building the author had switched off.
+- **Render** — `BlueprintItem.cameraChanged` draws a disabled building darkened *and*
+  see-through (`tempDisabledTint` / `tempDisabledAlpha`), multiplied onto whatever the overlay
+  decided. Both on purpose: overlay dimming is alpha alone, so the tint is what distinguishes
+  "switched off" from "not part of this overlay". The server preview shares the code path, so
+  previews show it too.
+- **Edit** — one checkbox in `item-collection-info`, applied to the whole same-item collection
+  as a single `blueprintChanged` (one undo step); a mixed collection shows indeterminate. Not
+  offered for element cells, which never reach the mod's `buildings`.
+- **Not done** — the material-cost and element-report totals still count a disabled building.
+  The mod excludes them from its counts; the site reports what the blueprint contains.
+
 ### Accepted-materials filters (TreeFilterable)
 
 The Conveyor Loader, Smart Storage Bin and every other copyable storage building carry

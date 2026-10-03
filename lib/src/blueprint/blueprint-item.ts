@@ -60,6 +60,25 @@ export class BlueprintItem {
   // own defaults on load), preserved verbatim for anything read from a file.
   public buildingData?: BniBuildingData[];
 
+  // BlueprintsV2 `tempDisabled`: the building is kept in the blueprint but the mod
+  // skips it on placement (and leaves it out of its building counts). Carried
+  // through every hop so a round-trip through the site never silently re-enables
+  // a building its author switched off. Drawn dimmed -- see cameraChanged.
+  private tempDisabled_: boolean = false;
+  get tempDisabled() {
+    return this.tempDisabled_;
+  }
+  set tempDisabled(value: boolean) {
+    if (value != this.tempDisabled_) this.reloadCamera = true;
+    this.tempDisabled_ = value;
+  }
+  // How a disabled building is drawn: darkened and see-through, on top of
+  // whatever the active overlay already decided. Both, because the overlay's own
+  // dimming is alpha alone -- the tint is what tells "switched off" apart from
+  // "not part of this overlay".
+  static readonly tempDisabledAlpha = 0.55;
+  static readonly tempDisabledTint = 0x8a8f99;
+
   // Creates a Key from scratch using its hand-checked catalogue defaults
   // (settings-catalog.ts CREATABLE_SETTINGS). No-op if the Key is already
   // present. Returns whether an entry now exists (already-present counts).
@@ -279,6 +298,10 @@ export class BlueprintItem {
 
     this.changeOrientation(building.orientation);
 
+    // Strictly `true`: the mod writes the key only when set, so anything else
+    // (absent, false, a stray non-boolean) reads as enabled.
+    this.tempDisabled = building.tempDisabled === true;
+
     // Deep-copied: undo snapshots and the live item must never share
     // references into the same Value objects.
     this.buildingData =
@@ -325,6 +348,8 @@ export class BlueprintItem {
       original.buildingData != null && original.buildingData.length > 0
         ? structuredClone(original.buildingData)
         : undefined;
+
+    this.tempDisabled = original.tempDisabled === true;
 
     // TODO default temperature
     if (original.temperature == undefined) this.temperature = BlueprintItem.defaultTemperature;
@@ -496,6 +521,8 @@ export class BlueprintItem {
 
     if (this.orientation != Orientation.Neutral) returnValue.orientation = this.orientation;
 
+    if (this.tempDisabled) returnValue.tempDisabled = true;
+
     return returnValue;
   }
 
@@ -510,6 +537,9 @@ export class BlueprintItem {
 
     if (this.buildingData != null && this.buildingData.length > 0)
       returnValue.buildingData = structuredClone(this.buildingData);
+
+    // Omitted when false, exactly as the mod's own writer does.
+    if (this.tempDisabled) returnValue.tempDisabled = true;
 
     return returnValue;
   }
@@ -657,11 +687,13 @@ export class BlueprintItem {
 
     if (this.isBuildCandidate) this.depth = 199;
 
+    if (this.tempDisabled) this.alpha *= BlueprintItem.tempDisabledAlpha;
+
     this.visualizationTint = -1;
     for (let drawPart of this.drawParts) {
       drawPart.prepareVisibilityBasedOnDisplay(camera.display);
 
-      drawPart.tint = 0xffffff;
+      drawPart.tint = this.tempDisabled ? BlueprintItem.tempDisabledTint : 0xffffff;
       drawPart.alpha = 1;
 
       drawPart.makeInvisibileIfHasTag(SpriteTag.white);

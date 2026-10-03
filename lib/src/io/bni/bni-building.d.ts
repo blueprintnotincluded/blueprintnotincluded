@@ -11,5 +11,6 @@ export declare class BniBuilding {
     flags: number;
     selected_elements: number[];
     buildingData?: BniBuildingData[];
+    tempDisabled?: boolean;
 }
 //# sourceMappingURL=bni-building.d.ts.map
