@@ -126,8 +126,9 @@ function germs(): ThresholdSensorSpec {
 // another key the way the critter sensor does. The radbolt half of that claim
 // confused the Radbolt *Sensor* with the Radbolt Generator and Battery —
 // HighEnergyParticleSpawner.particleThreshold and HEPBattery.particleThreshold
-// are genuinely different keys on genuinely different buildings, and remain
-// unhandled.
+// are genuinely different keys on genuinely different buildings. Neither is an
+// IThresholdSwitch, so they are catalogued under their own Keys in
+// settings-catalog.ts rather than here.
 //
 // Deliberately absent:
 //

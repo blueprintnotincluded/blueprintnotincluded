@@ -55,15 +55,16 @@ describe('building-settings catalogue', function () {
   });
 
   it('does not know keys outside the curated set', () => {
-    // StorageTile is deliberately in this list: the mod writes that Key (its
-    // Preconfigure covers the Storage Tile), but its Value shape has not been
-    // read off the mod source or a capture, so it stays opaque.
+    // HighEnergyParticleRedirector is a real mod Key (the Radbolt Reflector's
+    // direction) with no catalogue entry. ISingleSliderControl is the game-side
+    // interface behind the radbolt sliders, which the mod never registers, so
+    // it is not a Key at all.
     for (const key of [
       'PixelPack',
       'AccessControl',
       'FlatTagFilterable',
-      'HEPBattery',
-      'StorageTile',
+      'HighEnergyParticleRedirector',
+      'ISingleSliderControl',
     ])
       expect(isKnownSettingsKey(key)).to.equal(false);
   });
@@ -1094,11 +1095,12 @@ describe('Automatable is shown as the game shows it', function () {
   });
 });
 
-// The seven Keys the Blueprints Included gap doc asked for, less StorageTile (see
-// the catalogue test above). Their Value shapes are read off the repo's real mod
-// export (bpv2-example-meta.blueprint) -- except LimitValve.Limit, which the
-// fixture does not contain and comes from the doc's reading of the mod source --
-// and their ranges from the game export (OniItem.settings).
+// Six of the seven Keys the Blueprints Included gap doc asked for; the seventh,
+// StorageTile, has its own block below. Their Value shapes are read off the
+// repo's real mod export (bpv2-example-meta.blueprint) -- except LimitValve.Limit,
+// which the fixture does not contain and is read off the mod source
+// (DataTransfer_LimitValve: `{ Limit }`, a float) -- and their ranges from the
+// game export (OniItem.settings).
 describe('range-carrying settings (Prioritizable, Door, Valve, LimitValve, capacity, name)', function () {
   let fixture: any;
   const dataOf = (buildingdef: string, key: string): BniBuildingData =>
@@ -1390,5 +1392,219 @@ describe('range-carrying settings (Prioritizable, Door, Valve, LimitValve, capac
     expect(pick(reimported.toBniBlueprint('roundtrip').buildings)).to.deep.equal(
       pick(fixture.buildings)
     );
+  });
+});
+
+// Issues #254 and #268: the Storage Tile's own Key and the two radbolt sliders.
+//
+// Shapes come from the BlueprintsV2 source, not a capture: DataTransferHelpers.cs
+// at Sgt-Imalas/Sgt_Imalas-Oni-Mods@12fed6b6 (the last public copy, before the
+// mod moved to a private submodule in 1e1c757b):
+//
+//   DataTransfer_StorageTile                 { TargetTag: string, UserMaxCapacity: float }
+//   DataTransfer_HEPBattery                  { particleThreshold: float }
+//   DataTransfer_HighEnergyParticleSpawner   { Direction: int, particleThreshold: float }
+//
+// The values below are the non-round ones the capture checklist asks for, so the
+// in-game copy can replace this inline blueprint field for field.
+describe('Storage Tile and radbolt threshold settings (#254, #268)', function () {
+  const building = (buildingdef: string, x: number, buildingData: BniBuildingData[]) => ({
+    offset: { x, y: 0 },
+    buildingdef,
+    selected_elements: [],
+    buildingData,
+  });
+  const sourceShaped = () => ({
+    friendlyname: 'storage and radbolts',
+    buildings: [
+      building('StorageTile', 0, [
+        { Key: 'StorageTile', Value: { TargetTag: 'Cuprite', UserMaxCapacity: 734.5 } },
+      ]),
+      building('HEPBattery', 2, [{ Key: 'HEPBattery', Value: { particleThreshold: 47 } }]),
+      building('HighEnergyParticleSpawner', 6, [
+        { Key: 'HighEnergyParticleSpawner', Value: { Direction: 2, particleThreshold: 83 } },
+      ]),
+    ],
+    digcommands: [],
+  });
+  const settingOf = (buildings: any[], key: string) =>
+    buildings.flatMap(b => b.buildingData ?? []).find((e: BniBuildingData) => e.Key == key);
+  const descriptor = (prefabId: string, key: string, field: string) =>
+    resolveSettingDescriptors(prefabId, key).find(d => d.field == field)!;
+
+  before(function () {
+    loadGameDatabase();
+  });
+
+  it('knows all three Keys', () => {
+    for (const key of ['StorageTile', 'HEPBattery', 'HighEnergyParticleSpawner'])
+      expect(isKnownSettingsKey(key), key).to.equal(true);
+  });
+
+  describe('StorageTile', () => {
+    it('shows the item the tile holds and its capacity', () => {
+      expect(
+        formatBuildingDataEntry(settingOf(sourceShaped().buildings, 'StorageTile'), 'StorageTile')
+      ).to.deep.equal([
+        { field: 'TargetTag', label: 'Filter', text: 'Cuprite' },
+        { field: 'UserMaxCapacity', label: 'Max capacity', text: '734.5 kg' },
+      ]);
+    });
+
+    it('picks the item from solids, and shows an unset or empty tag as None', () => {
+      expect(descriptor('StorageTile', 'StorageTile', 'TargetTag')).to.deep.include({
+        type: 'element',
+        elementForceTag: 'Solid',
+      });
+      for (const TargetTag of ['Void', '', null])
+        expect(
+          formatBuildingDataEntry(
+            { Key: 'StorageTile', Value: { TargetTag, UserMaxCapacity: 1000 } },
+            'StorageTile'
+          )![0].text,
+          String(TargetTag)
+        ).to.equal('None');
+    });
+
+    // The tile can hold things the site has no element for; the raw tag is
+    // shown rather than hidden.
+    it('shows a tag it cannot resolve by its raw name', () => {
+      expect(
+        formatBuildingDataEntry(
+          { Key: 'StorageTile', Value: { TargetTag: 'BasicFabric', UserMaxCapacity: 1000 } },
+          'StorageTile'
+        )![0].text
+      ).to.equal('BasicFabric');
+    });
+
+    it('bounds the capacity by StorageTile.Def, in stored kilograms', () => {
+      const d = descriptor('StorageTile', 'StorageTile', 'UserMaxCapacity');
+      expect([d.min, d.max, d.type, d.unitSuffix, d.unit]).to.deep.equal([
+        0,
+        1000,
+        'float',
+        'kg',
+        undefined,
+      ]);
+      expect(toDisplayValue(d, 734.5)).to.equal(734.5);
+      // ...without disturbing the shared catalogue entry.
+      expect(SETTINGS_CATALOG.StorageTile[1].max).to.equal(undefined);
+    });
+
+    it('is unbounded above where the export records no capacity', () => {
+      expect(descriptor('Tile', 'StorageTile', 'UserMaxCapacity').max).to.equal(undefined);
+    });
+  });
+
+  describe('HEPBattery and HighEnergyParticleSpawner', () => {
+    it('show the radbolt threshold as stored, in radbolts', () => {
+      const buildings = sourceShaped().buildings;
+      expect(
+        formatBuildingDataEntry(settingOf(buildings, 'HEPBattery'), 'HEPBattery')
+      ).to.deep.equal([
+        { field: 'particleThreshold', label: 'Radbolt threshold', text: '47 radbolts' },
+      ]);
+      // Direction is in the Value but not the catalogue: no row for it.
+      expect(
+        formatBuildingDataEntry(
+          settingOf(buildings, 'HighEnergyParticleSpawner'),
+          'HighEnergyParticleSpawner'
+        )
+      ).to.deep.equal([
+        { field: 'particleThreshold', label: 'Radbolt threshold', text: '83 radbolts' },
+      ]);
+    });
+
+    // The #251 trap: a `unit` would put an already-display number through a scale.
+    it('store display units: a suffix, no unit, no scale', () => {
+      for (const key of ['HEPBattery', 'HighEnergyParticleSpawner']) {
+        const d = descriptor(key, key, 'particleThreshold');
+        expect([d.unit, d.displayScale, d.unitSuffix, d.min, d.max], key).to.deep.equal([
+          undefined,
+          undefined,
+          'radbolts',
+          0,
+          undefined,
+        ]);
+        expect(toDisplayValue(d, 47), key).to.equal(47);
+        expect(toStoredValue(d, 47), key).to.equal(47);
+      }
+    });
+
+    // Both handlers return `new()` for a building whose state machine has not
+    // started. A known Key with nothing in it renders nothing.
+    it('render no row for the empty Value a building that has not started exports', () => {
+      for (const key of ['HEPBattery', 'StorageTile'])
+        expect(formatBuildingDataEntry({ Key: key, Value: {} }, key), key).to.deep.equal([]);
+    });
+  });
+
+  it('none of them is creatable from scratch', () => {
+    for (const prefabId of ['StorageTile', 'HEPBattery', 'HighEnergyParticleSpawner'])
+      expect(creatableSettingsKeysFor(prefabId), prefabId).to.deep.equal([]);
+  });
+
+  it('round-trips every one of them through the site untouched', () => {
+    const file = sourceShaped();
+    const source = new Blueprint();
+    source.importFromBni(file as any);
+    const reimported = new Blueprint();
+    reimported.importFromMdb(source.toMdbBlueprint());
+    const exported = reimported.toBniBlueprint('roundtrip').buildings;
+    for (const key of ['StorageTile', 'HEPBattery', 'HighEnergyParticleSpawner'])
+      expect(settingOf(exported, key), key).to.deep.equal(settingOf(file.buildings, key));
+  });
+
+  // Each handler returns on its FIRST missing field -- StorageTile's before it
+  // reads the capacity, the generator's before it reads the threshold -- so an
+  // edit that dropped a sibling field would export a Value the game ignores.
+  it('full loop: edits reach the exported file with every sibling field intact', () => {
+    const blueprint = new Blueprint();
+    blueprint.importFromBni(sourceShaped() as any);
+    const item = (id: string) => blueprint.blueprintItems.find(i => i.id == id)!;
+
+    item('StorageTile').setBuildingSetting('StorageTile', 'TargetTag', 'Sandstone');
+    item('StorageTile').setBuildingSetting('StorageTile', 'UserMaxCapacity', 512.25);
+    item('HEPBattery').setBuildingSetting('HEPBattery', 'particleThreshold', 61);
+    item('HighEnergyParticleSpawner').setBuildingSetting(
+      'HighEnergyParticleSpawner',
+      'particleThreshold',
+      150
+    );
+
+    const reimported = new Blueprint();
+    reimported.importFromMdb(blueprint.toMdbBlueprint());
+    const exported = reimported.toBniBlueprint('edited').buildings;
+    expect(settingOf(exported, 'StorageTile').Value).to.deep.equal({
+      TargetTag: 'Sandstone',
+      UserMaxCapacity: 512.25,
+    });
+    expect(settingOf(exported, 'HEPBattery').Value).to.deep.equal({ particleThreshold: 61 });
+    expect(settingOf(exported, 'HighEnergyParticleSpawner').Value).to.deep.equal({
+      Direction: 2,
+      particleThreshold: 150,
+    });
+  });
+});
+
+// #254 item 1, which shipped with the range-carrying settings: the Smart Storage
+// Bin's capacity slider. 1234 is the value observed on one in the #251 capture
+// (that file is not in the repo); the bounds are the game export's.
+describe('Smart Storage Bin capacity (#254)', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  it('shows and bounds the capacity a Smart Storage Bin stores', () => {
+    const entry: BniBuildingData = {
+      Key: 'IUserControlledCapacity',
+      Value: { UserMaxCapacity: 1234 },
+    };
+    expect(formatBuildingDataEntry(entry, 'StorageLockerSmart')).to.deep.equal([
+      { field: 'UserMaxCapacity', label: 'Max capacity', text: '1234 kg' },
+    ]);
+    const d = resolveSettingDescriptors('StorageLockerSmart', 'IUserControlledCapacity')[0];
+    expect([d.min, d.max, d.unit]).to.deep.equal([0, 20000, undefined]);
+    expect(toStoredValue(d, 1234)).to.equal(1234);
   });
 });

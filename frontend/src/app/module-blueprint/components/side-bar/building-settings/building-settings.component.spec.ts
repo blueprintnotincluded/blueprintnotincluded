@@ -1341,4 +1341,145 @@ describe("BuildingSettingsComponent", () => {
       );
     });
   });
+
+  // Issues #254 and #268. Shapes from the mod source (DataTransferHelpers.cs);
+  // bounds from the export are covered in the lib suite.
+  describe("Storage Tile and radbolt thresholds", () => {
+    const storageTile = (TargetTag: unknown, UserMaxCapacity = 734.5) =>
+      setItem("StorageTile", [
+        { Key: "StorageTile", Value: { TargetTag, UserMaxCapacity } },
+      ]);
+
+    it("shows a Storage Tile's item and capacity, and nothing as preserved", () => {
+      const spy = vi
+        .spyOn(BuildableElement, "getElementById")
+        .mockReturnValue({ id: "Cuprite", name: "Copper Ore" } as any);
+      storageTile("Cuprite");
+
+      expect(component.rows.map((r: any) => `${r.label}:${r.type}`)).toEqual([
+        "Filter:element",
+        "Max capacity:float",
+      ]);
+      expect(component.rows[0].elementForceTag).toBe("Solid");
+      expect(component.elementLabel(component.rows[0])).toBe("Copper Ore");
+      const input = fixture.nativeElement.querySelector(
+        "input[type=number]",
+      ) as HTMLInputElement;
+      expect(input.value).toBe("734.5");
+      expect(component.otherKeys).toEqual([]);
+      expect(fixture.nativeElement.textContent).not.toContain(
+        "other stored setting",
+      );
+      spy.mockRestore();
+    });
+
+    it("labels an unset tile None and a tag it cannot resolve by name", () => {
+      storageTile("Void");
+      expect(component.elementLabel(component.rows[0])).toBe("None");
+
+      storageTile("BasicFabric");
+      expect(component.rows[0].element).toBeUndefined();
+      expect(component.elementLabel(component.rows[0])).toBe("BasicFabric");
+    });
+
+    it("commits a picked item to TargetTag, keeping the capacity beside it", () => {
+      storageTile("Cuprite");
+      component.elementPickerRow = component.rows[0];
+
+      component.onElementPicked({ id: "Sandstone" } as any);
+
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "StorageTile",
+        "TargetTag",
+        "Sandstone",
+      );
+      expect(component.blueprintItem.buildingData).toEqual([
+        {
+          Key: "StorageTile",
+          Value: { TargetTag: "Sandstone", UserMaxCapacity: 734.5 },
+        },
+      ]);
+      expect(emitBlueprintChanged).toHaveBeenCalledTimes(1);
+    });
+
+    it("edits a Storage Tile's capacity", () => {
+      storageTile("Cuprite");
+      const capacity = component.rows.find(
+        (r: any) => r.field === "UserMaxCapacity",
+      )!;
+
+      component.onFieldInput(capacity, "734.5");
+      expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+
+      component.onFieldInput(capacity, "512.25");
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "StorageTile",
+        "UserMaxCapacity",
+        512.25,
+      );
+    });
+
+    it("edits a Radbolt Chamber's threshold in radbolts", () => {
+      setItem("HEPBattery", [
+        { Key: "HEPBattery", Value: { particleThreshold: 47 } },
+      ]);
+
+      const row = component.rows[0];
+      expect([row.label, row.unitSuffix]).toEqual([
+        "Radbolt threshold",
+        "radbolts",
+      ]);
+      expect(fixture.nativeElement.textContent).toContain("radbolts");
+
+      component.onFieldInput(row, "61");
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "HEPBattery",
+        "particleThreshold",
+        61,
+      );
+    });
+
+    it("edits a Radbolt Generator's threshold, keeps Direction, and offers no row for it", () => {
+      setItem("HighEnergyParticleSpawner", [
+        {
+          Key: "HighEnergyParticleSpawner",
+          Value: { Direction: 2, particleThreshold: 83 },
+        },
+      ]);
+
+      expect(component.rows.map((r: any) => r.field)).toEqual([
+        "particleThreshold",
+      ]);
+      component.onFieldInput(component.rows[0], "150");
+      expect(component.blueprintItem.buildingData).toEqual([
+        {
+          Key: "HighEnergyParticleSpawner",
+          Value: { Direction: 2, particleThreshold: 150 },
+        },
+      ]);
+    });
+
+    it("pulls a negative threshold up to zero", () => {
+      setItem("HEPBattery", [
+        { Key: "HEPBattery", Value: { particleThreshold: 47 } },
+      ]);
+
+      component.onFieldInput(component.rows[0], "-5");
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "HEPBattery",
+        "particleThreshold",
+        0,
+      );
+    });
+
+    // Both handlers write `{}` for a building whose state machine had not
+    // started. There is nothing in it to call preserved.
+    it("neither shows nor counts the empty Value a building that had not started exports", () => {
+      setItem("HEPBattery", [{ Key: "HEPBattery", Value: {} }]);
+
+      expect(component.rows).toEqual([]);
+      expect(component.otherKeys).toEqual([]);
+      expect(fixture.nativeElement.querySelector("fieldset")).toBeNull();
+    });
+  });
 });

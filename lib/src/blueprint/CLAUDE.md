@@ -250,8 +250,10 @@ edits.
   bounds — cross-checked against the mod's real `DataTransferHelpers.cs`/`API_Methods.cs`
   source (available locally as an additional working directory), not just the import spec's
   summary table. Six more keys whose bounds depend on the building are covered under
-  "Range-carrying settings" below. Every other key (`AccessControl`, `PixelPack`,
-  `StorageTile`, skins, ...) is preserved opaquely and never rendered as anything but a count.
+  "Range-carrying settings" below, and `StorageTile`, `HEPBattery` and
+  `HighEnergyParticleSpawner` under "Storage Tile and radbolt thresholds". Every other key
+  (`AccessControl`, `PixelPack`, `FlatTagFilterable`, skins, ...) is preserved opaquely and
+  never rendered as anything but a count.
   `format-setting.ts` formats known fields for display (durations show seconds plus a cycle
   count once ≥600s; `LogicTimeOfDaySensor` fractions show as % of cycle, matching the game's
   own side screen).
@@ -384,8 +386,9 @@ a float until the prefab says its valve tops out at 10 kg/s.
   into the descriptor (`withBuildingRange`). With no database loaded, or on a prefab the
   export records nothing for, the catalogue's unbounded entry applies.
 - **Shapes are read off a real mod export** (`__tests__/fixtures/bpv2-example-meta.blueprint`),
-  with one exception: that file has no meter valve, so `LimitValve.Limit` is taken from the
-  gap doc's reading of the mod source and is **unverified against a capture**.
+  with one exception: that file has no meter valve, so `LimitValve.Limit` is read off the mod
+  source (`DataTransfer_LimitValve` writes `{ Limit }`, a float) and has **not been seen in a
+  capture**.
 - **`Prioritizable` is serialized twice.** `masterPrioritySetting` is a JSON *string* of
   `{"priority_class":0,"priority_value":9}`. A descriptor with `jsonProperty` reads and
   writes one property of such a string (`readSettingField` / `writeSettingField`), keeping the
@@ -413,15 +416,14 @@ a float until the prefab says its valve tops out at 10 kg/s.
   truncation on commit, and an untouched default name still carries its `<link>` markup.
 - **None is creatable from scratch.** Their in-game defaults are unverified, which is the
   bar `CREATABLE_SETTINGS` sets, so each is editable only where the file already carries it.
-- **`StorageTile` is not catalogued.** The mod writes that Key, but its Value shape is in
-  neither the fixture nor the gap doc. The Storage Tile's capacity is still editable through
-  the `IUserControlledCapacity` Key it also carries, bounded by `StorageTile.Def`.
 
 ### Disabled buildings (tempDisabled)
 
 The mod's per-building `tempDisabled` flag: the building stays in the file but is skipped when
 the blueprint is placed, and left out of the mod's own building counts. Written as
-`tempDisabled: true` only when set — the mod omits the key for an enabled building.
+`tempDisabled: true` only when set — the mod omits the key for an enabled building. Spelling
+and type are from the mod source (`BuildingConfig.cs` writes it only when true and reads it
+only when the token is a boolean); no fixture contains one yet.
 
 - **Round-trip** — `BniBuilding.tempDisabled`, `BlueprintItem.tempDisabled`,
   `MdbBuilding.tempDisabled`, carried through import/export/clone/undo. Omitted when false at
@@ -524,8 +526,8 @@ the bare float a meaning; conversion is affine both ways
   (`thresholdWattage` / `thresholdPayload`) rather than aliasing another key the way the
   critter sensor does. The radbolt half of that claim confused the Radbolt *Sensor* with the
   Radbolt Generator and Battery — `HighEnergyParticleSpawner.particleThreshold` and
-  `HEPBattery.particleThreshold` are different keys on different buildings, and stay
-  unhandled. Neither new entry converts (`displayScale: 1`); they exist for the label, the
+  `HEPBattery.particleThreshold` are different keys on different buildings, catalogued under
+  their own Keys (see "Storage Tile and radbolt thresholds"). Neither new entry converts (`displayScale: 1`); they exist for the label, the
   suffix, the soft bounds and the `Switch` suppression. Also **not**
   `PressureSwitchGas`/`PressureSwitchLiquid`/
   `TemperatureControlledSwitch` ("Atmo/Hydro/Thermo Switch") — an earlier version of this
@@ -623,7 +625,45 @@ the bare float a meaning; conversion is affine both ways
 
   Those three are the whole carrier list, not a sample: the Smart Storage Bin stores
   `IUserControlledCapacity` instead, and the Radbolt Chamber its own `HEPBattery`
-  `particleThreshold` — neither in the catalogue, both preserved opaquely.
+  `particleThreshold` — both now catalogued (range-carrying settings; Storage Tile and radbolt
+  thresholds).
+
+### Storage Tile and radbolt thresholds (StorageTile, HEPBattery, HighEnergyParticleSpawner)
+
+Issues #254 and #268. Three Keys that round-tripped but only ever showed as "other stored
+settings". Shapes are read off the **mod source**, not a capture: `DataTransferHelpers.cs` at
+`Sgt-Imalas/Sgt_Imalas-Oni-Mods@12fed6b6`, the last public copy before BlueprintsV2 moved to a
+private submodule (`1e1c757b`).
+
+| Key | Value | building | rows |
+|---|---|---|---|
+| `StorageTile` | `{ TargetTag: string, UserMaxCapacity: float }` | Storage Tile | Filter, Max capacity |
+| `HEPBattery` | `{ particleThreshold: float }` | Radbolt Chamber | Radbolt threshold |
+| `HighEnergyParticleSpawner` | `{ Direction: int, particleThreshold: float }` | Radbolt Generator | Radbolt threshold |
+
+- **The radbolt settings are two Keys.** The mod registers a handler under each class name;
+  `ISingleSliderControl`, the game-side interface both sliders implement, is never registered
+  and never appears in a file.
+- **Display units, no conversion.** The handlers copy the component's float as is, so each row
+  uses `unitSuffix` with no `unit` and no scale — the #251 trap. No `max` on the radbolt
+  thresholds: the sliders' ranges are per-building Config values the export does not carry.
+- **The Storage Tile's capacity is under its own Key**, bounded by the export's
+  `StorageTile.Def` (0–1000 kg) through the same `withBuildingRange` branch as
+  `IUserControlledCapacity`. Its capacity lives on the tile's state machine instance, which the
+  `IUserControlledCapacity` handler (`TryGetComponent`) does not reach. The repo's real export has
+  16 Storage Tiles carrying neither Key, so whether a current copy stores both is open.
+- **`TargetTag` is a tag name**, read back with `TagManager.Create`, the same form as
+  `Filterable.SelectedTag`; edited through the Solid element picker (the tile holds "selected
+  non-edible solids"), shown by raw name when it is not an element. "None" writes `NONE_TAG`
+  (`Void`) — what an *unset* tile stores has not been seen.
+- **Every field must survive an edit.** Each handler returns on its first missing field —
+  `StorageTile` before it reads the capacity, the generator before it reads the threshold — so
+  `setBuildingSetting` replacing one field and keeping the rest is load-bearing. `Direction`
+  (an `EightDirection` int whose value order is unverified) is deliberately uncatalogued and
+  rides along.
+- **`{}` is nothing.** Both `StorageTile` and `HEPBattery` write an empty Value for a building
+  whose state machine had not started; the panel neither shows it nor counts it as preserved.
+- **None is creatable from scratch** — no in-game defaults have been read.
 ### Element sensors and filters (Filterable)
 
 Seven prefabs have no threshold at all. Their setting is the mod's `Filterable` key, whose
