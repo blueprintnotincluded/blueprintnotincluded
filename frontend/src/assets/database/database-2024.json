@@ -41177,6 +41177,55 @@
     },
     {
       "DefaultAnimState": "off",
+      "name": "<link=\"NATURALTILE\">Natural Tile</link>",
+      "prefabId": "NaturalTile",
+      "kanimPrefix": "NaturalTile_",
+      "textureName": "NaturalTile",
+      "uiImage": "NaturalTile",
+      "isTile": false,
+      "isFoundation": false,
+      "isUtility": false,
+      "isBridge": false,
+      "drawSolid": false,
+      "dragBuild": false,
+      "deprecated": false,
+      "debugOnly": false,
+      "backColor": 16777215,
+      "sizeInCells": {
+        "x": 1,
+        "y": 1
+      },
+      "sceneLayer": 19,
+      "objectLayer": 1,
+      "permittedRotations": 0,
+      "viewMode": 0,
+      "tileableLeftRight": false,
+      "tileableTopBottom": false,
+      "connectionSprites": false,
+      "connectionScale": {
+        "x": 1,
+        "y": 1
+      },
+      "dlcIds": [],
+      "roomTags": [],
+      "mod": "1840755803",
+      "modTitle": "Buildable Natural Tile",
+      "buildLocationRule": 0,
+      "utilities": [],
+      "uiScreens": [],
+      "sprites": {
+        "groupName": "all sprites",
+        "spriteNames": []
+      },
+      "materialCategory": [
+        "Solid"
+      ],
+      "materialMass": [
+        50
+      ]
+    },
+    {
+      "DefaultAnimState": "off",
       "name": "<link=\"PETERHANFILTEREDGASPUMP\">Filtered Gas Pump</link>",
       "prefabId": "PeterHan_FilteredGasPump",
       "kanimPrefix": "PeterHan_FilteredGasPump_",
@@ -41862,7 +41911,7 @@
         "x": 1,
         "y": 1
       },
-      "sceneLayer": 30,
+      "sceneLayer": 12,
       "objectLayer": 1,
       "permittedRotations": 2,
       "viewMode": 2,
@@ -41878,8 +41927,8 @@
       "mod": "3113986230",
       "modTitle": "Wall Pumps",
       "uiImageRect": {
-        "x": -0.075,
-        "y": -0.015,
+        "x": -0.065,
+        "y": -0.055,
         "w": 1.12,
         "h": 1.1
       },
@@ -41934,7 +41983,7 @@
         "x": 1,
         "y": 1
       },
-      "sceneLayer": 30,
+      "sceneLayer": 12,
       "objectLayer": 1,
       "permittedRotations": 2,
       "viewMode": 3,
@@ -42008,7 +42057,7 @@
         "x": 1,
         "y": 1
       },
-      "sceneLayer": 30,
+      "sceneLayer": 12,
       "objectLayer": 1,
       "permittedRotations": 2,
       "viewMode": 3,
@@ -42024,8 +42073,8 @@
       "mod": "3113986230",
       "modTitle": "Wall Pumps",
       "uiImageRect": {
-        "x": -0.075,
-        "y": -0.015,
+        "x": -0.065,
+        "y": -0.055,
         "w": 1.12,
         "h": 1.1
       },
@@ -42080,7 +42129,7 @@
         "x": 1,
         "y": 1
       },
-      "sceneLayer": 30,
+      "sceneLayer": 12,
       "objectLayer": 1,
       "permittedRotations": 2,
       "viewMode": 2,
@@ -42096,8 +42145,8 @@
       "mod": "3113986230",
       "modTitle": "Wall Pumps",
       "uiImageRect": {
-        "x": -0.075,
-        "y": -0.015,
+        "x": -0.065,
+        "y": -0.055,
         "w": 1.12,
         "h": 1.1
       },
@@ -42197,7 +42246,7 @@
         "x": 1,
         "y": 1
       },
-      "sceneLayer": 30,
+      "sceneLayer": 12,
       "objectLayer": 1,
       "permittedRotations": 2,
       "viewMode": 3,
@@ -52791,6 +52840,28 @@
       }
     },
     {
+      "name": "NaturalTile",
+      "textureName": "NaturalTile",
+      "isIcon": true,
+      "isInputOutput": false,
+      "uvMin": {
+        "x": 0,
+        "y": 0
+      },
+      "uvSize": {
+        "x": 107,
+        "y": 101
+      },
+      "realSize": {
+        "x": 107,
+        "y": 101
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
       "name": "PeterHan_FilteredGasPump",
       "textureName": "PeterHan_FilteredGasPump",
       "isIcon": true,
@@ -54052,6 +54123,10 @@
     {
       "category": -2955855,
       "buildingId": "TravelTubeWallBridge"
+    },
+    {
+      "category": -2955855,
+      "buildingId": "NaturalTile"
     },
     {
       "category": -1528777920,
@@ -60485,6 +60560,13 @@
       "buildings": [
         "PAirlockDoor",
         "PAirlockDoorInsulated"
+      ]
+    },
+    {
+      "id": "1840755803",
+      "title": "Buildable Natural Tile",
+      "buildings": [
+        "NaturalTile"
       ]
     },
     {
