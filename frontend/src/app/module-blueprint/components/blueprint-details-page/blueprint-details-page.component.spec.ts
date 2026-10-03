@@ -519,14 +519,14 @@ describe("BlueprintDetailsPageComponent", () => {
       fixture.detectChanges();
     });
 
-    it("copies the share string under the authored name and confirms", async () => {
+    it("copies the share string and confirms", async () => {
       component.copyShareString();
       expect(component.copyWorking).toBe(true);
       await settled();
 
       expect(
         blueprintService.copySavedBlueprintShareString,
-      ).toHaveBeenCalledWith(component.details!.id, component.details!.name);
+      ).toHaveBeenCalledWith(component.details!.id);
       expect(messageService.add).toHaveBeenCalledWith(
         expect.objectContaining({ severity: "success" }),
       );

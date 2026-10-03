@@ -894,55 +894,79 @@ describe("BlueprintService", () => {
       expect(saveSpy).toHaveBeenCalledWith("SHARE-STRING", "My Blueprint.txt");
     });
 
-    it("falls back to generating the file when the raw fetch fails", () => {
+    it("falls back to the server-generated file when the raw fetch fails", () => {
       const saveSpy = vi
         .spyOn(BlueprintService, "saveTextFile")
         .mockImplementation(() => {});
-      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.get.mockImplementation((url: string) => {
+        if (url.endsWith("/raw")) return throwError(() => new Error("404"));
+        if (url.startsWith("/api/getblueprintmod/")) return of("SERVER-FILE");
+        return of({ hasRawSource: true, rawSourceFormat: "bpv2-json" });
+      });
+
+      service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
+
+      expect(saveSpy).toHaveBeenCalledWith(
+        "SERVER-FILE",
+        "My Blueprint.blueprint",
+      );
+      // The mod endpoint records the download server-side — no beacon
+      expect(mockHttp.post).not.toHaveBeenCalled();
+    });
+
+    // The details page never loads the game database, so a file generated
+    // there has every building skipped as unknown: it downloaded with an
+    // empty `buildings` array. The stored data here has a building on
+    // purpose — an empty fixture is what let that through.
+    it("saves the server-generated file, never one built from the parsed data", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+      const serverFile = JSON.stringify({
+        friendlyname: "My Blueprint",
+        buildings: [{ buildingdef: "Tile", offset: { x: 0, y: 0 } }],
+        digcommands: [],
+      });
       mockHttp.get.mockImplementation((url: string) =>
-        url.endsWith("/raw")
-          ? throwError(() => new Error("404"))
+        url.startsWith("/api/getblueprintmod/")
+          ? of(serverFile)
           : of({
-              hasRawSource: true,
-              rawSourceFormat: "bpv2-json",
-              data: { blueprintItems: [] },
+              hasRawSource: false,
+              data: {
+                blueprintItems: [{ id: "Tile", position: { x: 0, y: 0 } }],
+              },
             }),
       );
 
       service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
 
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprintmod/bp1", {
+        responseType: "text",
+      });
+      expect(saveSpy).toHaveBeenCalledTimes(1);
       expect(saveSpy).toHaveBeenCalledWith(
-        expect.stringContaining("friendlyname"),
+        serverFile,
         "My Blueprint.blueprint",
       );
-      expect(mockHttp.post).toHaveBeenCalledWith(
-        "/api/blueprints/bp1/downloads",
-        {},
-        expect.anything(),
-      );
+      expect(mockHttp.post).not.toHaveBeenCalled();
     });
 
-    it("generates the file from parsed data when no raw is stored", () => {
-      const saveSpy = vi
-        .spyOn(BlueprintService, "saveTextFile")
-        .mockImplementation(() => {});
-      mockHttp.post.mockReturnValue(of({}));
-      mockHttp.get.mockReturnValue(
-        of({ hasRawSource: false, data: { blueprintItems: [] } }),
+    it("sends the token to the server-generated download so an owner's draft resolves", () => {
+      vi.spyOn(BlueprintService, "saveTextFile").mockImplementation(() => {});
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      mockAuth.getToken.mockReturnValue("TOKEN");
+      mockHttp.get.mockImplementation((url: string) =>
+        url.startsWith("/api/getblueprintmod/")
+          ? of("SERVER-FILE")
+          : of({ hasRawSource: false }),
       );
 
       service.downloadBlueprintFile("bp1", "My Blueprint").subscribe();
 
-      expect(saveSpy).toHaveBeenCalledWith(
-        expect.stringContaining("friendlyname"),
-        "My Blueprint.blueprint",
-      );
-      // Client-side generation reports the download via the beacon
-      expect(mockHttp.post).toHaveBeenCalledWith(
-        "/api/blueprints/bp1/downloads",
-        {},
-        expect.anything(),
-      );
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprintmod/bp1", {
+        headers: { Authorization: "Bearer TOKEN" },
+        responseType: "text",
+      });
     });
   });
 
@@ -1170,7 +1194,7 @@ describe("BlueprintService", () => {
           : of({ hasRawSource: true, rawSourceFormat: "bpv2-sharestring" }),
       );
 
-      await service.copySavedBlueprintShareString("bp1", "Renamed On Site");
+      await service.copySavedBlueprintShareString("bp1");
 
       expect(writeText).toHaveBeenCalledWith("STORED-SHARE-STRING");
       // The raw endpoint records the download server-side -- no beacon
@@ -1188,7 +1212,7 @@ describe("BlueprintService", () => {
           : of({ hasRawSource: true, rawSourceFormat: "bpv2-json" }),
       );
 
-      await service.copySavedBlueprintShareString("bp1", "Site name");
+      await service.copySavedBlueprintShareString("bp1");
 
       const written = writeText.mock.calls[0][0];
       expect(await decodeBniShareString(written)).toBe(rawFile);
@@ -1196,81 +1220,71 @@ describe("BlueprintService", () => {
       expect(mockHttp.post).not.toHaveBeenCalled();
     });
 
-    it("generates from the stored data when there is no raw copy, and counts the download", async () => {
+    // Same trap as downloadBlueprintFile: the details page has no game
+    // database, so a string built there from the stored data holds no
+    // buildings. The stored data has one on purpose.
+    it("encodes the server-generated file when there is no raw copy, never one built from the parsed data", async () => {
       setClipboard(vi.fn(async () => {}));
-      mockHttp.post.mockReturnValue(of({}));
-      mockHttp.get.mockReturnValue(
-        of({ hasRawSource: false, data: { blueprintItems: [] } }),
-      );
-
-      await service.copySavedBlueprintShareString("bp1", "Generated");
-
-      expect(mockHttp.get).toHaveBeenCalledTimes(1);
-      const written = writeText.mock.calls[0][0];
-      expect(JSON.parse(await decodeBniShareString(written)).friendlyname).toBe(
-        "Generated",
-      );
-      expect(mockHttp.post).toHaveBeenCalledWith(
-        "/api/blueprints/bp1/downloads",
-        {},
-        expect.anything(),
-      );
-    });
-
-    it("carries the stored description into a generated string as userdesc", async () => {
-      setClipboard(vi.fn(async () => {}));
-      mockHttp.post.mockReturnValue(of({}));
-      mockHttp.get.mockReturnValue(
-        of({
-          hasRawSource: false,
-          description: "Feeds four generators.",
-          data: { blueprintItems: [] },
-        }),
-      );
-
-      await service.copySavedBlueprintShareString("bp1", "Described");
-
-      const written = writeText.mock.calls[0][0];
-      expect(JSON.parse(await decodeBniShareString(written)).userdesc).toBe(
-        "Feeds four generators.",
-      );
-    });
-
-    it("falls back to a generated string when the raw copy has vanished", async () => {
-      setClipboard(vi.fn(async () => {}));
-      mockHttp.post.mockReturnValue(of({}));
+      const serverFile = JSON.stringify({
+        friendlyname: "Stored name",
+        buildings: [{ buildingdef: "Tile", offset: { x: 0, y: 0 } }],
+        digcommands: [],
+      });
       mockHttp.get.mockImplementation((url: string) =>
-        url.endsWith("/raw")
-          ? throwError(() => new Error("404"))
+        url.startsWith("/api/getblueprintmod/")
+          ? of(serverFile)
           : of({
-              hasRawSource: true,
-              rawSourceFormat: "bpv2-json",
-              data: { blueprintItems: [] },
+              hasRawSource: false,
+              data: {
+                blueprintItems: [{ id: "Tile", position: { x: 0, y: 0 } }],
+              },
             }),
       );
 
-      await service.copySavedBlueprintShareString("bp1", "Fallback");
+      await service.copySavedBlueprintShareString("bp1");
+
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprintmod/bp1", {
+        responseType: "text",
+      });
+      const written = writeText.mock.calls[0][0];
+      expect(await decodeBniShareString(written)).toBe(serverFile);
+      // The mod endpoint records the download server-side -- no beacon
+      expect(mockHttp.post).not.toHaveBeenCalled();
+    });
+
+    it("falls back to the server-generated file when the raw copy has vanished", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.get.mockImplementation((url: string) => {
+        if (url.endsWith("/raw")) return throwError(() => new Error("404"));
+        if (url.startsWith("/api/getblueprintmod/")) return of("SERVER-FILE");
+        return of({ hasRawSource: true, rawSourceFormat: "bpv2-json" });
+      });
+
+      await service.copySavedBlueprintShareString("bp1");
 
       const written = writeText.mock.calls[0][0];
-      expect(JSON.parse(await decodeBniShareString(written)).friendlyname).toBe(
-        "Fallback",
-      );
-      expect(mockHttp.post).toHaveBeenCalled();
+      expect(await decodeBniShareString(written)).toBe("SERVER-FILE");
+      expect(mockHttp.post).not.toHaveBeenCalled();
     });
 
     it("sends the auth token so an owner can copy their own draft", async () => {
       setClipboard(vi.fn(async () => {}));
       mockAuth.isLoggedIn.mockReturnValue(true);
       mockAuth.getToken.mockReturnValue("tok");
-      mockHttp.post.mockReturnValue(of({}));
-      mockHttp.get.mockReturnValue(
-        of({ hasRawSource: false, data: { blueprintItems: [] } }),
+      mockHttp.get.mockImplementation((url: string) =>
+        url.startsWith("/api/getblueprintmod/")
+          ? of("SERVER-FILE")
+          : of({ hasRawSource: false }),
       );
 
-      await service.copySavedBlueprintShareString("bp1", "Draft");
+      await service.copySavedBlueprintShareString("bp1");
 
       expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprint/bp1", {
         headers: { Authorization: "Bearer tok" },
+      });
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprintmod/bp1", {
+        headers: { Authorization: "Bearer tok" },
+        responseType: "text",
       });
     });
 
@@ -1278,7 +1292,7 @@ describe("BlueprintService", () => {
       setClipboard(undefined);
 
       await expect(
-        service.copySavedBlueprintShareString("bp1", "T"),
+        service.copySavedBlueprintShareString("bp1"),
       ).rejects.toThrow();
       expect(mockHttp.get).not.toHaveBeenCalled();
     });
@@ -1288,7 +1302,7 @@ describe("BlueprintService", () => {
       mockHttp.get.mockReturnValue(throwError(() => new Error("403")));
 
       await expect(
-        service.copySavedBlueprintShareString("bp1", "T"),
+        service.copySavedBlueprintShareString("bp1"),
       ).rejects.toThrow();
       expect(writeText).not.toHaveBeenCalled();
       expect(mockHttp.post).not.toHaveBeenCalled();

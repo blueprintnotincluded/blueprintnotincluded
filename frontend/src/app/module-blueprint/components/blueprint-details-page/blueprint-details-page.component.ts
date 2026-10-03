@@ -358,7 +358,7 @@ export class BlueprintDetailsPageComponent implements OnInit {
     if (this.details == null || this.copyWorking) return;
     this.copyWorking = true;
     this.blueprintService
-      .copySavedBlueprintShareString(this.details.id, this.details.name)
+      .copySavedBlueprintShareString(this.details.id)
       .then(() => {
         this.messageService.add({
           severity: "success",
