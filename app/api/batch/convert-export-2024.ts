@@ -46,6 +46,7 @@ import {
   BEntitiesFile2024,
 } from '../../../lib';
 import { Overlay } from '../../../lib/src/enums/overlay';
+import { PermittedRotations } from '../../../lib/src/enums/permitted-rotations';
 import { ElementState } from '../../../lib/src/enums/element-state';
 import {
   ROOM_BOUNDARY_DOORS,
@@ -788,6 +789,30 @@ export function convertExport2024(opts: ConvertOptions): void {
     }
   }
 
+  // --- Rocket modules: the roster and the flag must agree. ---
+  // `rocketModuleMenu` is the game's module-screen order and `isRocketModule` is the
+  // per-building flag; they are written by different parts of the exporter, so a
+  // module in one and not the other is an export bug worth failing on -- it would
+  // leave a module either unplaceable in the editor or missing its stacking data.
+  const rocketModuleMenu = buildingFile.rocketModuleMenu ?? [];
+  const rocketModulePrefabs = new Set(
+    buildingFile.bBuildingDefList.filter((b) => b.isRocketModule).map((b) => b.name)
+  );
+  const rocketMenuNotModules = rocketModuleMenu.filter((id) => !rocketModulePrefabs.has(id));
+  const rocketModulesNotInMenu = [...rocketModulePrefabs].filter(
+    (id) => rocketModuleMenu.indexOf(id) === -1
+  );
+  // A module that cannot be stacked on and is not declared TopOnly (or the reverse)
+  // means the hardpoint data and the build conditions disagree about the stack's top.
+  const rocketTopMismatches = buildingFile.bBuildingDefList
+    .filter((b) => b.isRocketModule)
+    .filter((b) => {
+      const offersHardpoint = (b.attachPoints ?? []).some((p) => p.tag === 'Rocket');
+      const topOnly = (b.moduleBuildConditions ?? []).indexOf('TopOnly') !== -1;
+      return offersHardpoint === topOnly;
+    })
+    .map((b) => b.name);
+
   // Overlay sprites: element tiles + info indicators. These are not from the game export —
   // they are handcrafted additions that `OniItem.load()` requires for the element-tile and
   // info-indicator overlays. The corresponding PNGs live in assets/images/ (not ui_image/).
@@ -1083,6 +1108,26 @@ export function convertExport2024(opts: ConvertOptions): void {
     roomDoorsMissing.length,
     roomDoorsMissing.length ? '(' + roomDoorsMissing.join(', ') + ')' : ''
   );
+  console.log(
+    '  rocket modules                     :',
+    rocketModulePrefabs.size,
+    `(menu roster ${rocketModuleMenu.length}; permittedRotations overridden to FlipH)`
+  );
+  console.log(
+    '  rocket menu ids that are not modules:',
+    rocketMenuNotModules.length,
+    rocketMenuNotModules.length ? '(' + rocketMenuNotModules.join(', ') + ')' : ''
+  );
+  console.log(
+    '  rocket modules missing from the menu:',
+    rocketModulesNotInMenu.length,
+    rocketModulesNotInMenu.length ? '(' + rocketModulesNotInMenu.join(', ') + ')' : ''
+  );
+  console.log(
+    '  rocket hardpoint/TopOnly mismatches :',
+    rocketTopMismatches.length,
+    rocketTopMismatches.length ? '(' + rocketTopMismatches.join(', ') + ')' : ''
+  );
   console.log('  connectable buildings (sprite dirs):', connectablePrefabsSeen.size);
   const connectableDirsNoBuilding = [...connectablePrefabs].filter(
     (p) => !connectablePrefabsSeen.has(p)
@@ -1132,6 +1177,9 @@ export function convertExport2024(opts: ConvertOptions): void {
     missingTerrainNames.length +
     missingTerrainRects.length +
     rectAspectMismatches.length +
+    rocketMenuNotModules.length +
+    rocketModulesNotInMenu.length +
+    rocketTopMismatches.length +
     pinnedIconsMissingPng.length +
     pinnedIconsNotInExport.length +
     pinnedIconsExportChanged.length +
@@ -1521,6 +1569,49 @@ export const BACK_COLOR_BY_PREFAB: { [prefabId: string]: number } = {
   WireRubber: 0xb65d5a,
 };
 
+// Rocket modules flip, and only flip. The game exports every module as
+// PermittedRotations.Unrotatable (0) -- true to its own placement flow, where a module
+// is picked from the rocket-platform screen and never rotated by hand. The Blueprints
+// mod places them from a blueprint instead and lets them mirror: its RocketModuleVisual
+// returns PermittedRotations.FlipH from GetAllowedRotations(), and a module in a
+// .blueprint carries orientation 0 or FlipH (5). So this is a manual override in the
+// family of BACK_COLOR_BY_PREFAB: the export's value is right for the game and wrong for
+// what a blueprint can hold. With it the editor's rotate action cycles
+// Neutral -> FlipH on a module, exactly as the mod does, and a flipped module imported
+// from a file is one the editor could have produced.
+const ROCKET_MODULE_PERMITTED_ROTATIONS = PermittedRotations.FlipH;
+
+// The attachment model, as the site stores it: which hardpoint tag a building sits on,
+// which hardpoints it offers, and -- for rocket modules -- the numbers a stack is
+// judged by. Offsets pass through untransformed: they are from the building's origin
+// cell (bottom row, column floor((width-1)/2)), which is exactly BlueprintItem.position.
+function attachmentRecord(b: BBuildingDef2024): any {
+  const record: any = {};
+  if (b.attachableTo) {
+    record.attachableTo = b.attachableTo;
+    record.attachablePosition = {
+      x: b.attachablePosition?.x ?? 0,
+      y: b.attachablePosition?.y ?? 0,
+    };
+  }
+  if (b.attachPoints?.length)
+    record.attachPoints = b.attachPoints.map((point) => ({
+      offset: { x: point.offset.x, y: point.offset.y },
+      tag: point.tag,
+    }));
+  if (b.isRocketModule)
+    record.rocketModule = {
+      burden: b.rocketModulePerformance?.burden ?? 0,
+      enginePower: b.rocketModulePerformance?.enginePower ?? 0,
+      fuelKilogramPerDistance: b.rocketModulePerformance?.fuelKilogramPerDistance ?? 0,
+      buildConditions: [...(b.moduleBuildConditions ?? [])],
+      ...(b.rocketEngineCluster?.maxHeight != null
+        ? { engineMaxHeight: b.rocketEngineCluster.maxHeight }
+        : {}),
+    };
+  return record;
+}
+
 function buildingRecord(
   b: BBuildingDef2024,
   unknownViewModes: Set<string>,
@@ -1552,7 +1643,9 @@ function buildingRecord(
     sizeInCells: { x: b.widthInCells, y: b.heightInCells },
     sceneLayer: b.sceneLayer,
     objectLayer: b.objectLayer,
-    permittedRotations: b.permittedRotations,
+    permittedRotations: b.isRocketModule
+      ? ROCKET_MODULE_PERMITTED_ROTATIONS
+      : b.permittedRotations,
     viewMode: overlayFromViewMode(b.viewMode, unknownViewModes),
     tileableLeftRight: false,
     tileableTopBottom: false,
@@ -1568,6 +1661,7 @@ function buildingRecord(
     buildLocationRule: b.buildLocationRule,
     utilities: utilitiesRecord(b, unknownConnectionTypes),
     ...(b.areasOfEffect?.length ? { areasOfEffect: b.areasOfEffect } : {}),
+    ...attachmentRecord(b),
     uiScreens: [],
     sprites: { groupName: 'all sprites', spriteNames: [] }, // flat icon: no atlas sprites
     materialCategory: b.materialCategory ?? [],

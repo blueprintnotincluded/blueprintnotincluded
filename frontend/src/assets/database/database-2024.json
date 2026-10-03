@@ -1046,7 +1046,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -1064,6 +1064,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 3,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2033,7 +2058,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -2060,6 +2085,31 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 2,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2266,7 +2316,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -2284,6 +2334,34 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 7,
+        "enginePower": 31,
+        "fuelKilogramPerDistance": 0.115384616,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 35
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2675,7 +2753,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -2702,6 +2780,34 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 3,
+        "enginePower": 23,
+        "fuelKilogramPerDistance": 0.027777778,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 10
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -5729,6 +5835,11 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11386,7 +11497,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -11404,6 +11515,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 4,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11438,7 +11574,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -11456,6 +11592,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 3
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 2,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -14113,7 +14274,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -14156,6 +14317,34 @@
           "emitType": "Constant"
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 5,
+        "enginePower": 34,
+        "fuelKilogramPerDistance": 0.333333343,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 20
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -14190,7 +14379,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -14208,6 +14397,33 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 6,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "NoFreeRocketInterior",
+          "LimitOneCommandModule"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -14242,7 +14458,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -14260,6 +14476,25 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "rocketModule": {
+        "burden": 3,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "NoFreeRocketInterior",
+          "LimitOneCommandModule",
+          "TopOnly"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -15096,7 +15331,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -15114,6 +15349,34 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 7,
+        "enginePower": 55,
+        "fuelKilogramPerDistance": 0.09375,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 35
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -15952,7 +16215,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -15970,6 +16233,34 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 6,
+        "enginePower": 48,
+        "fuelKilogramPerDistance": 0.15,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 35
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16004,7 +16295,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -16031,6 +16322,34 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 5,
+        "enginePower": 31,
+        "fuelKilogramPerDistance": 0.075,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 20
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16146,6 +16465,20 @@
       ],
       "buildLocationRule": 13,
       "utilities": [],
+      "attachableTo": "LadderBed",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "LadderBed"
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16552,6 +16885,15 @@
           "isSecondary": false
         }
       ],
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "Rocket"
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16794,7 +17136,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -16812,6 +17154,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 5,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16846,7 +17213,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -16864,6 +17231,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 3
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 3,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -17925,7 +18317,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -17952,6 +18344,31 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 5,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24819,6 +25236,15 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "MonumentMiddle"
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24876,6 +25302,20 @@
       },
       "buildLocationRule": 12,
       "utilities": [],
+      "attachableTo": "MonumentMiddle",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "MonumentTop"
+        }
+      ],
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24935,6 +25375,11 @@
       },
       "buildLocationRule": 12,
       "utilities": [],
+      "attachableTo": "MonumentTop",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25141,7 +25586,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -25159,6 +25604,23 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "rocketModule": {
+        "burden": 2,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "TopOnly"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25195,7 +25657,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -25213,6 +25675,23 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "rocketModule": {
+        "burden": 2,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "TopOnly"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25710,6 +26189,11 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "OilWell",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25744,7 +26228,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -25762,6 +26246,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 4,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25977,7 +26486,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -25995,6 +26504,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 5,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26029,7 +26563,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -26056,6 +26590,31 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 5,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26966,7 +27525,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -26984,6 +27543,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 3
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 4,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -28477,6 +29061,11 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "ReefGenerator",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -28934,7 +29523,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -28952,6 +29541,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 3,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29058,7 +29672,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -29077,6 +29691,32 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 4
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 4,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneRoboPilotModule"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -30382,7 +31022,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -30400,6 +31040,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 3,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -30436,7 +31101,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -30454,6 +31119,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 3
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 4,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -30893,7 +31583,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -30911,6 +31601,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 2
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 2,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31257,7 +31972,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -31284,6 +31999,31 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 1,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31318,7 +32058,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -31336,6 +32076,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 6,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31370,7 +32135,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -31388,6 +32153,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 3
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 4,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -33152,7 +33942,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -33170,6 +33960,31 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 1,
+        "enginePower": 0,
+        "fuelKilogramPerDistance": 0,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit"
+        ]
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -33448,7 +34263,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -33475,6 +34290,34 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 15,
+        "enginePower": 27,
+        "fuelKilogramPerDistance": 0.025,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 25
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -33944,7 +34787,7 @@
       },
       "sceneLayer": 19,
       "objectLayer": 1,
-      "permittedRotations": 0,
+      "permittedRotations": 3,
       "viewMode": 0,
       "tileableLeftRight": false,
       "tileableTopBottom": false,
@@ -33962,6 +34805,34 @@
       ],
       "buildLocationRule": 0,
       "utilities": [],
+      "attachableTo": "Rocket",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "attachPoints": [
+        {
+          "offset": {
+            "x": 0,
+            "y": 3
+          },
+          "tag": "Rocket"
+        }
+      ],
+      "rocketModule": {
+        "burden": 1,
+        "enginePower": 16,
+        "fuelKilogramPerDistance": 0.125,
+        "buildConditions": [
+          "ResearchCompleted",
+          "MaterialsAvailable",
+          "PlaceSpaceAvailable",
+          "RocketHeightLimit",
+          "LimitOneEngine",
+          "EngineOnBottom"
+        ],
+        "engineMaxHeight": 16
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -36489,6 +37360,11 @@
           "isSecondary": false
         }
       ],
+      "attachableTo": "UnderwaterVentDrill",
+      "attachablePosition": {
+        "x": 0,
+        "y": 0
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",

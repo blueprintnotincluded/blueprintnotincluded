@@ -57,6 +57,29 @@ export interface BBuildingDef2024 {
     passiveElementConsumers?: unknown[];
     storage?: unknown;
     battery?: unknown;
+    showInBuildMenu?: boolean;
+    isRocketModule?: true;
+    attachableTo?: string;
+    attachablePosition?: {
+        x: number;
+        y: number;
+    };
+    attachPoints?: {
+        offset: {
+            x: number;
+            y: number;
+        };
+        tag: string;
+    }[];
+    moduleBuildConditions?: string[];
+    rocketModulePerformance?: {
+        burden: number;
+        enginePower: number;
+        fuelKilogramPerDistance: number;
+    };
+    rocketEngineCluster?: {
+        maxHeight: number;
+    } | null;
     mod?: string;
     modTitle?: string;
     offlineMerged?: true;
@@ -92,6 +115,7 @@ export interface BBuildingFile2024 extends BExport2024Meta {
         buildings: string[];
     }[];
     modMergeInfo?: unknown;
+    rocketModuleMenu?: string[];
 }
 export interface BElement2024 {
     name: string;
