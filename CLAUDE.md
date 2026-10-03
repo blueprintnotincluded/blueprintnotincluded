@@ -106,6 +106,12 @@ run the single repeatable step:
   when the pixels are visually identical. The blur is what distinguishes real redraws from
   sub-pixel re-rasterization jitter even on densely-textured sprites. Re-importing the same
   export is a near no-op.
+- **Manual overrides live in the converter, not in a hand revert.** `PINNED_ICONS` keeps the
+  site's own PNG (`assets/manual/ui_image/<prefabId>.png`) and `uiImageRect` for a prefab whose
+  export art is wrong (today: `FairGasWallPump`); the import fails when the export's art for a
+  pinned prefab changes, so the pin is re-judged. Rocket modules get `permittedRotations`
+  overridden to `FlipH` and are appended to the rocketry build-menu tab from the export's
+  `rocketModuleMenu`. Details: `app/api/batch/convert-export-2024.md`.
 - `ui_image_facade/` is intentionally skipped (unused by the app); one-line flip in
   `app/api/batch/convert-export-2024.ts` to enable.
 - After import: restart `npm run dev` (backend reads `database-2024.json` at startup) and
