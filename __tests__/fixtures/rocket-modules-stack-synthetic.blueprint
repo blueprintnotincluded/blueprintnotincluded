@@ -1,0 +1,28 @@
+{
+  "blueprintVersion": 3,
+  "friendlyname": "Rocket modules stack (synthetic)",
+  "buildings": [
+    {
+      "offset": {
+        "x": 1,
+        "y": 0
+      },
+      "buildingdef": "ArtifactCargoBay",
+      "selected_elements": [
+        -1725038055
+      ]
+    },
+    {
+      "offset": {
+        "x": 1,
+        "y": 1
+      },
+      "buildingdef": "ArtifactCargoBay",
+      "orientation": 5,
+      "selected_elements": [
+        -1725038055
+      ]
+    }
+  ],
+  "digcommands": []
+}

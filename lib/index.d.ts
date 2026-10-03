@@ -50,6 +50,7 @@ export * from './src/blueprint/blueprint-metadata';
 export * from './src/blueprint/blueprint-name';
 export * from './src/blueprint/content-locale';
 export * from './src/blueprint/blueprint-analyzer';
+export * from './src/blueprint/rocket-stack';
 export * from './src/blueprint/dlc';
 export * from './src/blueprint/terrain-metadata';
 export * from './src/blueprint/note-conversion';

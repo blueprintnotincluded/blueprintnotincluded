@@ -289,6 +289,39 @@ the old approach of slicing the legacy packed-atlas pages (`hat_role_building1`,
 `1bed_1toilet_locked`, `action_follow_cam`, `all_artifacts_locked`, `Animal_friends_locked`);
 nothing references those pages anymore.
 
+## Rocket modules and attachment
+
+A rocket in a `.blueprint` is ordinary `buildings[]` entries with no rocket-specific key; the
+Blueprints mod recomputes the stacking from the game's `BuildingDef`s at placement time. The
+export (OniExtract2024 #9) ships the same facts, and the converter carries them onto the
+building record, all omit-when-absent:
+
+| Export field | Database field | Notes |
+|---|---|---|
+| `attachableTo` | `attachableTo` | Hardpoint tag the building must sit on. `"Rocket"` on the 32 modules and `CrewCapsule`; also `OilWell`, `MonumentMiddle`/`MonumentTop`, `LadderBed`, `ReefGenerator`, `UnderwaterVentDrill` — carried, not modelled. |
+| `attachablePosition` | `attachablePosition` | Emitted with `attachableTo`. (0,0) on every vanilla module. |
+| `attachPoints[{offset, tag}]` | `attachPoints` | Hardpoints offered. Modules: one `Rocket` point at `(0, heightInCells)`; the three `TopOnly` modules have none. `LaunchPad`: `(0,2)`, derived exporter-side from `LaunchPad.baseModulePosition` (the pad has no real `BuildingAttachPoint`). |
+| `isRocketModule`, `rocketModulePerformance`, `moduleBuildConditions`, `rocketEngineCluster.maxHeight` | `rocketModule {burden, enginePower, fuelKilogramPerDistance, buildConditions[], engineMaxHeight?}` | Present exactly on the 32 modules. `engineMaxHeight` on the 8 engines. |
+
+Offsets are from the building's **origin cell** (bottom row, column `floor((width-1)/2)`) —
+which is exactly `BlueprintItem.position`, so they pass through with no transform. Gate rocket
+logic on `rocketModule`, never on `attachableTo` (seven non-module buildings have one) and
+never on `showInBuildMenu: false` (76 buildings, only 32 of them modules).
+
+**`permittedRotations` override.** The export gives every module `permittedRotations: 0`
+(Unrotatable), which is the game's own value: a module is picked on the rocket-platform screen
+and never rotated by hand. The mod places modules from a blueprint and lets them mirror — its
+`RocketModuleVisual.GetAllowedRotations()` returns `FlipH`, and a module in a file carries
+orientation `0` or `FlipH` (5). So the converter writes `PermittedRotations.FlipH` (3) for
+every `isRocketModule` building (`ROCKET_MODULE_PERMITTED_ROTATIONS`), a manual override in
+the family of `BACK_COLOR_BY_PREFAB` and `PINNED_ICONS`: right for the game, wrong for what a
+blueprint can hold. The editor's rotate action then cycles Neutral → FlipH on a module, as the
+mod does.
+
+The import checks that the two halves of the export agree and fails otherwise:
+`rocketModuleMenu` (root, the game's module-screen order) lists exactly the `isRocketModule`
+buildings, and a module offers a `Rocket` hardpoint exactly when it is not `TopOnly`.
+
 ## `viewMode` mapping
 
 `building.json` `viewMode` is the game-native overlay **name** (e.g. `"Power"`,

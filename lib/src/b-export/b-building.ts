@@ -90,6 +90,39 @@ export class BBuilding {
   // Steam workshop id of the source mod; undefined ⇒ vanilla building.
   mod?: string;
   modTitle?: string;
+
+  // --- Attachment (see BBuildingDef2024). All absent on an ordinary building. ---
+  // Hardpoint tag this building must sit on: "Rocket" for rocket modules. Other tags
+  // (OilWell, MonumentMiddle, ...) are carried but nothing models them yet.
+  attachableTo?: string;
+  // The cell that has to land on the hardpoint, as an offset from the origin cell.
+  attachablePosition?: { x: number; y: number };
+  // Hardpoints this building offers to others, as offsets from its origin cell.
+  attachPoints?: BuildingAttachPoint[];
+  // Present exactly on rocket modules.
+  rocketModule?: RocketModuleInfo;
+}
+
+export interface BuildingAttachPoint {
+  offset: { x: number; y: number };
+  tag: string;
+}
+
+// The hardpoint tag rocket modules attach to, and the one a LaunchPad offers.
+export const ROCKET_ATTACH_TAG = 'Rocket';
+
+export interface RocketModuleInfo {
+  // Mass-like load the module adds to the rocket; speed is Σ enginePower / Σ burden.
+  burden: number;
+  // Non-zero on engines only.
+  enginePower: number;
+  fuelKilogramPerDistance: number;
+  // The game's own SelectModuleCondition names, verbatim. The stack-shape ones the
+  // analyzer understands: TopOnly, EngineOnBottom, LimitOneEngine,
+  // LimitOneCommandModule, LimitOneRoboPilotModule, RocketHeightLimit.
+  buildConditions: string[];
+  // Engines only: the tallest stack, in cells, this engine can lift.
+  engineMaxHeight?: number;
 }
 
 // All sprites for a building

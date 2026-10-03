@@ -113,6 +113,38 @@ export interface BBuildingDef2024 {
   storage?: unknown;
   battery?: unknown;
 
+  // BuildingDef.ShowInBuildMenu. Always emitted since OniExtract2024#9. False on the 32
+  // rocket modules (the game places those from the rocket-platform screen, not the plan
+  // menu) and on ~44 POI / Gravitas / rocket-interior props, so false does NOT mean
+  // "module" -- gate rocket logic on `isRocketModule`.
+  showInBuildMenu?: boolean;
+
+  // --- Rocketry (OniExtract2024#9). All omit-when-absent. ---
+  // The complete building carries a RocketModule component.
+  isRocketModule?: true;
+  // AttachableBuilding: the hardpoint tag this building must sit on ("Rocket" for the
+  // modules and CrewCapsule; "OilWell", "MonumentMiddle", ... for the non-rocket ones).
+  attachableTo?: string;
+  // Offset of the attaching cell from the building's origin cell. (0,0) on every
+  // vanilla module.
+  attachablePosition?: { x: number; y: number };
+  // BuildingAttachPoint hardpoints this building offers, each an offset from the
+  // ORIGIN cell (bottom row, column floor((width-1)/2)) -- not the bottom-left corner.
+  // Modules: one `Rocket` point at (0, heightInCells); the three TopOnly modules have
+  // none. LaunchPad's (0,2) is derived exporter-side from LaunchPad.baseModulePosition:
+  // the pad has no real BuildingAttachPoint component.
+  attachPoints?: { offset: { x: number; y: number }; tag: string }[];
+  // SelectModuleCondition names, e.g. TopOnly, EngineOnBottom, LimitOneEngine,
+  // LimitOneCommandModule, RocketHeightLimit.
+  moduleBuildConditions?: string[];
+  rocketModulePerformance?: {
+    burden: number;
+    enginePower: number;
+    fuelKilogramPerDistance: number;
+  };
+  // Engines only. `maxHeight` is the tallest stack (in cells) the engine can lift.
+  rocketEngineCluster?: { maxHeight: number } | null;
+
   // Steam workshop id of the mod that registered this building; absent ⇒ vanilla
   // (never emitted as null). Stable key for grouping/filtering/tagging.
   mod?: string;
@@ -160,6 +192,10 @@ export interface BBuildingFile2024 extends BExport2024Meta {
   mods?: { id: string; title: string; buildings: string[] }[];
   // Present only when the offline fallback merge ran (never in current exports).
   modMergeInfo?: unknown;
+  // The rocket modules, in the order the game's own module-selection screen lists
+  // them. This is the modules' build menu: PLANORDER (buildingAndSubcategoryDataPairs)
+  // never contains them.
+  rocketModuleMenu?: string[];
 }
 
 // ---------------------------------------------------------------------------

@@ -7,7 +7,12 @@ import { SpriteModifierGroup } from './drawing/sprite-modifier-group';
 import { PermittedRotations } from './enums/permitted-rotations';
 import { ZIndex } from './enums/z-index';
 import { Overlay } from './enums/overlay';
-import { BBuilding } from './b-export/b-building';
+import {
+  BBuilding,
+  BuildingAttachPoint,
+  RocketModuleInfo,
+  ROCKET_ATTACH_TAG,
+} from './b-export/b-building';
 import { StringHelpers } from './string-helpers';
 import { SpriteModifier } from './drawing/sprite-modifier';
 import { BuildMenuItem, BuildMenuCategory } from './b-export/b-build-order';
@@ -35,6 +40,22 @@ export class OniItem {
   modTitle?: string;
   get isModded(): boolean {
     return this.mod != null;
+  }
+
+  // Attachment model (see BBuilding). A rocket is a stack: each module's origin cell
+  // sits on the `Rocket` hardpoint of the module (or LaunchPad) beneath it.
+  attachableTo?: string;
+  attachablePosition: Vector2 = new Vector2();
+  attachPoints: BuildingAttachPoint[] = [];
+  rocketModule?: RocketModuleInfo;
+  get isRocketModule(): boolean {
+    return this.rocketModule != null;
+  }
+  // The offset (from the origin cell, unrotated) of the hardpoint this building
+  // offers to a rocket module, or undefined when nothing can stack on it -- a
+  // nosecone, or anything that is not part of a rocket.
+  get rocketAttachPoint(): BuildingAttachPoint | undefined {
+    return this.attachPoints.find(point => point.tag == ROCKET_ATTACH_TAG);
   }
 
   // imageId here is used for some stuff (generating white background textures)
@@ -138,6 +159,18 @@ export class OniItem {
     this.isTile = original.isTile;
     this.isFoundation = original.isFoundation ?? false;
     this.areasOfEffect = dedupeAreasOfEffect(original.areasOfEffect);
+
+    this.attachableTo = original.attachableTo;
+    this.attachablePosition = original.attachablePosition
+      ? new Vector2(original.attachablePosition.x, original.attachablePosition.y)
+      : new Vector2();
+    this.attachPoints = (original.attachPoints ?? []).map(point => ({
+      offset: { x: point.offset.x, y: point.offset.y },
+      tag: point.tag,
+    }));
+    this.rocketModule = original.rocketModule
+      ? { ...original.rocketModule, buildConditions: [...original.rocketModule.buildConditions] }
+      : undefined;
 
     this.spriteModifierId = original.kanimPrefix;
     if (original.uiImage) {
@@ -297,6 +330,8 @@ export class OniItem {
     if (this.size == null) this.size = new Vector2();
     if (this.utilityConnections == null) this.utilityConnections = [];
     if (this.areasOfEffect == null) this.areasOfEffect = [];
+    if (this.attachPoints == null) this.attachPoints = [];
+    if (this.attachablePosition == null) this.attachablePosition = new Vector2();
     if (this.zIndex == null) this.zIndex = ZIndex.Building;
     if (this.permittedRotations == null) this.permittedRotations = PermittedRotations.Unrotatable;
     if (this.backColor == null) this.backColor = 0x000000;

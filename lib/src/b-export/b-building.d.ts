@@ -51,6 +51,28 @@ export declare class BBuilding {
     };
     mod?: string;
     modTitle?: string;
+    attachableTo?: string;
+    attachablePosition?: {
+        x: number;
+        y: number;
+    };
+    attachPoints?: BuildingAttachPoint[];
+    rocketModule?: RocketModuleInfo;
+}
+export interface BuildingAttachPoint {
+    offset: {
+        x: number;
+        y: number;
+    };
+    tag: string;
+}
+export declare const ROCKET_ATTACH_TAG = "Rocket";
+export interface RocketModuleInfo {
+    burden: number;
+    enginePower: number;
+    fuelKilogramPerDistance: number;
+    buildConditions: string[];
+    engineMaxHeight?: number;
 }
 export declare class BSpriteGroup {
     groupName: string;
