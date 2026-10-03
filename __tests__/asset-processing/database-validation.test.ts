@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PINNED_ICONS } from '../../app/api/batch/convert-export-2024';
 import {
   BuildableElement,
   BSpriteInfo,
@@ -101,11 +102,11 @@ describe('Database Asset Validation', () => {
       database = readDatabase();
     });
 
-    it('should have 487 buildings and 212 elements', () => {
-      // 463 vanilla + 24 modded (6 Steam Workshop mods) — see
+    it('should have 488 buildings and 212 elements', () => {
+      // 463 vanilla + 25 modded (7 Steam Workshop mods) — see
       // spec/WEBSITE_MOD_IMPORT.md. Import defensively: this count varies
       // with whatever mods were enabled at export time.
-      expect(database.buildings.length).to.equal(487);
+      expect(database.buildings.length).to.equal(488);
       expect(database.elements.length).to.equal(212);
     });
 
@@ -407,6 +408,35 @@ describe('Database Asset Validation', () => {
       expect(checked.length, 'rects to check').to.be.greaterThan(300);
       expect(malformed, `malformed uiImageRect: ${malformed.join(', ')}`).to.be.empty;
       expect(mismatched, `rect/PNG aspect mismatch: ${mismatched.join(', ')}`).to.be.empty;
+    });
+
+    // A pinned icon (PINNED_ICONS in convert-export-2024.ts) is the site's own PNG and
+    // rect, kept in place of the export's. The converter applies the pin on every
+    // import; this is the guard for the other way it can be lost -- someone copying
+    // the export's ui_image/ over the asset roots by hand, or resolving a conflict in
+    // the database towards the export's rect.
+    it('should serve every pinned icon from its pinned PNG, with its pinned rect', () => {
+      const database = readDatabase();
+      const pinnedDir = path.join(__dirname, '../../assets/manual/ui_image');
+      const frontendUiImagePath = path.join(__dirname, '../../frontend/src/assets/ui_image');
+      expect(Object.keys(PINNED_ICONS), 'pinned icons').to.include('FairGasWallPump');
+
+      for (const [prefabId, pin] of Object.entries(PINNED_ICONS)) {
+        const pinned = fs.readFileSync(path.join(pinnedDir, `${prefabId}.png`));
+        for (const root of [uiImagePath, frontendUiImagePath])
+          expect(
+            fs.readFileSync(path.join(root, `${prefabId}.png`)).equals(pinned),
+            `${prefabId}.png in ${root} should be the pinned PNG`
+          ).to.be.true;
+
+        const building = database.buildings.find((b: any) => b.prefabId === prefabId);
+        expect(building, `${prefabId} in buildings`).to.exist;
+        expect(building.uiImageRect, `${prefabId} uiImageRect`).to.deep.equal(pin.rect);
+
+        const png = pngSize(path.join(pinnedDir, `${prefabId}.png`))!;
+        const sprite = database.uiSprites.find((s: any) => s.name === prefabId);
+        expect(sprite.uvSize, `${prefabId} uiSprite size`).to.deep.equal({ x: png.w, y: png.h });
+      }
     });
 
     it('should give every terrain feature a usable placement rect', () => {

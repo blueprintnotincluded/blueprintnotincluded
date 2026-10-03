@@ -4,7 +4,7 @@ Reference for `convert-export-2024.ts` (`npm run import:2024`). Covers what a ga
 export must provide, what the converter produces, and the contract the export side
 must honour so re-exports don't silently break rendering.
 
-Game version baseline: **U59-744825-SCRPAN** (Spaced Out DLC), export dated 2026-07-30.
+Game version baseline: **U59-744825-SCRPAN** (all DLC), export dated 2026-10-03.
 
 ## Pipeline
 
@@ -60,8 +60,9 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 | `connection_sprites/<prefabId>/<0..15>.png` | the 16 tiling states for connectables |
 | `ui_image_facade/` | nothing today (not copied) |
 
-Current output (487 buildings): 212 elements, 402 build-menu items, 15 categories,
-512 uiSprites (487 building icons + 17 injected element/info overlays + 8 utility-port
+Current output (488 buildings): 212 elements, 380 build-menu items (403 plan-order entries
+less the 23 deprecated/debug-only ones), 15 categories,
+513 uiSprites (488 building icons + 17 injected element/info overlays + 8 utility-port
 indicators registered from the export's `ui_image/` PNGs), 33 connectables, 322 buildings
 with utility ports.
 
@@ -90,8 +91,8 @@ ratio (see below). What breaks rendering is changing **framing**, not pixel coun
    prefab tag, e.g. `FabricatedWood.png` — **not** the display name). Verified 1241/1241
    match by key.
 2. **`uiImageRect`** (per building, cells, footprint-relative): required for any icon whose
-   art overhangs its footprint; see next section. Currently emitted for 342/487 buildings
-   and all 31 terrain features; the other 145 buildings fall back to stretch-to-footprint.
+   art overhangs its footprint; see next section. Currently emitted for 342/488 buildings
+   and all 31 terrain features; the other 146 buildings fall back to stretch-to-footprint.
    **Every rect must match its own PNG's pixel aspect** — the import fails otherwise.
 3. **Connection sprites:** all 16 of `0–15` present, bitmask `left=1/right=2/up=4/down=8`.
 4. **Connectable signal:** the `connection_sprites/<prefabId>/` directory exists
@@ -147,7 +148,7 @@ This is the same information the 2020/2023 atlas carried as `pivot` + `realSize`
 converter passes it through and the renderer draws into the rect (unit-tested in
 `__tests__/lib/draw-part-placement.test.ts`); buildings without it keep the old behaviour
 so nothing regresses mid-rollout. The import log prints
-`buildings with uiImageRect placement: N / 487`.
+`buildings with uiImageRect placement: N / 488`.
 
 ### Two delivery paths
 
@@ -185,6 +186,37 @@ Logged as `uiImageRect aspect mismatches: N / M`; a non-zero N fails the import.
 tolerance absorbs the exporter's rounding to 3 decimals. `__tests__/asset-processing/
 database-validation.test.ts` asserts the same invariant over the *committed* database, so a
 bad import cannot be merged even if someone ignores the exit code.
+
+### Pinned icons — the site's own PNG and rect, kept over the export's
+
+`PINNED_ICONS` (top of the converter) lists prefabs whose flat icon the site keeps in place
+of whatever the export ships. It is a manual override in the same family as
+`BACK_COLOR_BY_PREFAB`: the export is wrong for the prefab in a way the importer cannot
+derive its way out of, so the correction is recorded in the converter and re-applied on every
+import instead of being hand-reverted afterwards.
+
+| Prefab | Why | Pinned | Export ships |
+|---|---|---|---|
+| `FairGasWallPump` (Wall Pumps mod, workshop 3113986230) | The mod's current art has a stray fragment above and right of the pump; the exporter measures opaque bounds, so the fragment stretches both the render and the rect. Identical in both 2026-10-03 exports. | 224×220 px, rect 1.12×1.1 cells (the 2026-07-30 render) | 325×400 px, rect 1.625×2.0 cells |
+
+How a pin works:
+
+- The pinned PNG is committed at `assets/manual/ui_image/<prefabId>.png`. The `ui_image/`
+  sync mirrors **that file** into both asset roots in place of the export's.
+- The pinned `rect` replaces the export's `uiImageRect` on the building. Image and rect are
+  pinned together because a rect is a claim about one specific image (the aspect invariant
+  above) — pinning either alone draws the icon at the wrong size and offset. The uiSprite
+  size and the aspect check both read the pinned PNG, so they describe what ships.
+- `exportSize` records the export PNG the pin was judged against. When the export ships
+  different art for the prefab, the import reports
+  `pinned icons whose export art moved: 1 (...)` and exits non-zero: look at the new render,
+  then either delete the pin (upstream fixed it) or record the new size (still wrong). A pin
+  whose PNG is missing, or whose prefab has left the export, fails the import the same way.
+
+The import log prints `pinned icons : N (...)`. `database-validation.test.ts` asserts that
+both served PNGs are byte-identical to the pinned one and that the committed database carries
+the pinned rect and sprite size — the guard against a pin being lost by a hand copy of
+`ui_image/` rather than by an import.
 
 ### Terrain features
 
@@ -384,7 +416,7 @@ Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas.
   whose offsets we can't derive) so the converter's `SYNTHESIZED_BRIDGE_PORTS` workaround can
   be removed.
 - **`uiImageRect` rollout:** emit it for the remaining buildings whose art deviates
-  from the footprint (145 have none today; the rest can omit it).
+  from the footprint (146 have none today; the rest can omit it).
 - **`ui_image_facade/`:** drop it to shrink the handoff, or tell us what it's for.
 - **Overlay tint (`backColor`):** emit the building's overlay/outline tint so
   `BACK_COLOR_BY_PREFAB` (see above) can be retired in favour of real per-import data instead

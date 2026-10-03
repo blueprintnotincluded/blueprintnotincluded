@@ -38,16 +38,16 @@ describe('Extract Export Pipeline Tests', () => {
     });
 
     it('should have correct record counts', () => {
-      // 463 vanilla + 24 modded (6 Steam Workshop mods) — see
+      // 463 vanilla + 25 modded (7 Steam Workshop mods) — see
       // spec/WEBSITE_MOD_IMPORT.md. Import defensively: these counts vary
       // with whatever mods were enabled at export time.
-      expect(db.buildings.length).to.equal(487);
+      expect(db.buildings.length).to.equal(488);
       expect(db.elements.length).to.equal(212);
       expect(db.buildMenuCategories.length).to.equal(15);
-      // 379, not the 402 plan-order entries: 23 of them are deprecated or debug-only
+      // 380, not the 403 plan-order entries: 23 of them are deprecated or debug-only
       // and the game never offers them either. They stay in `buildings` so saved
       // blueprints still load — only the menu drops them.
-      expect(db.buildMenuItems.length).to.equal(379);
+      expect(db.buildMenuItems.length).to.equal(380);
     });
 
     it('should have overlay info sprites in uiSprites', () => {

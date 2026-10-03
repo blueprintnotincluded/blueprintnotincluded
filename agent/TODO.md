@@ -48,7 +48,7 @@ Open items:
 
 - **Rename `import:2024`** to a version-neutral name — "2024" leaked everywhere from the
   milestone. Keep an alias for one cycle (`convert:2024` already aliases it).
-- **`uiImageRect` rollout (export side):** 342/487 buildings carry it; the rest fall back to
+- **`uiImageRect` rollout (export side):** 342/488 buildings carry it; the rest fall back to
   stretch-to-footprint. Emit it for the deviating buildings.
 - **Unread export JSONs (7 of 13):** `items`, `food`, `recipe`, `multiEntities`, `tags`,
   `attribute`, `db` — future capabilities (critters/recipes/etc.), nothing wired yet.

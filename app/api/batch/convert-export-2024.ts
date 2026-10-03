@@ -112,6 +112,44 @@ function rectAspectMismatch(
   return Math.abs(rect.w / rect.h - pngAspect) / pngAspect;
 }
 
+// ---------------------------------------------------------------------------
+// Pinned flat icons: buildings whose `ui_image` PNG and `uiImageRect` the site keeps
+// in place of the export's. A manual override in the same family as
+// BACK_COLOR_BY_PREFAB below (and, before the 2024 pipeline,
+// assets/manual-buildMenuRename.json): the export is wrong for this prefab
+// in a way the importer cannot derive its way out of, so the correction is recorded
+// here rather than hand-reverted after each import.
+//
+// The pinned PNG is committed at assets/manual/ui_image/<prefabId>.png and is what
+// lands in both served asset roots; `rect` is the placement that belongs to it. A pin
+// replaces the image and the rect together because a rect is a claim about one
+// specific image (see the aspect invariant below) -- pinning either alone would draw
+// the icon at the wrong size and offset.
+//
+// `exportSize` is the size of the export PNG the pin was judged against. It makes the
+// pin self-auditing: when the export ships different art for the prefab, the import
+// reports it and exits non-zero, so someone looks at the new render and either drops
+// the pin (upstream fixed it) or records the new size (still wrong). A pin never
+// silently outlives the defect it was written for.
+//
+//   FairGasWallPump (Wall Pumps mod, workshop 3113986230): the mod's current art has a
+//   stray fragment above and to the right of the pump. The exporter measures the opaque
+//   bounds, so the fragment stretches the render to 325x400 px and the rect to
+//   1.625x2.0 cells for a 1x1 building. Identical in both 2026-10-03 exports, so it is
+//   in the mod's art, not a one-off capture. The pinned copy is the clean 2026-07-30
+//   render (224x220, rect 1.12x1.1). Its three sibling Wall Pumps buildings are fine.
+// ---------------------------------------------------------------------------
+interface PinnedIcon {
+  rect: UiImageRect;
+  exportSize: { x: number; y: number };
+}
+export const PINNED_ICONS: { [prefabId: string]: PinnedIcon } = {
+  FairGasWallPump: {
+    rect: { x: -0.075, y: -0.015, w: 1.12, h: 1.1 },
+    exportSize: { x: 325, y: 400 },
+  },
+};
+
 function overlayFromViewMode(viewMode: string | null, unknown: Set<string>): Overlay {
   if (viewMode == null || viewMode === '') return Overlay.Base; // no special overlay
   const mapped = VIEW_MODE_TO_OVERLAY[viewMode];
@@ -325,7 +363,15 @@ interface MirrorStats {
 // @types/node): write a file only when missing or its bytes differ, and delete
 // anything in dest no longer present in src. Unchanged files keep their mtime, so
 // re-imports don't churn the asset tree and mtime stays a reliable "changed" signal.
-function mirrorDir(src: string, dest: string, stats: MirrorStats): void {
+//
+// `overrides` maps a top-level file name to the file to mirror in its place (pinned
+// icons, see PINNED_ICONS). It is not passed down: sub-directories mirror as-is.
+function mirrorDir(
+  src: string,
+  dest: string,
+  stats: MirrorStats,
+  overrides?: Map<string, string>
+): void {
   fs.mkdirSync(dest, { recursive: true });
   const srcEntries = fs.readdirSync(src, { withFileTypes: true });
   const srcNames = new Set(srcEntries.map((e) => e.name));
@@ -338,7 +384,7 @@ function mirrorDir(src: string, dest: string, stats: MirrorStats): void {
   }
 
   for (const entry of srcEntries) {
-    const srcPath = path.join(src, entry.name);
+    const srcPath = overrides?.get(entry.name) ?? path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
       // Clear a same-named file before descending (type changed src->dest).
@@ -365,14 +411,19 @@ function mirrorDir(src: string, dest: string, stats: MirrorStats): void {
 }
 
 // Mirror an export sub-folder into each served asset root. No-op if src is absent.
-function syncAssetDir(src: string, targets: string[], label: string): void {
+function syncAssetDir(
+  src: string,
+  targets: string[],
+  label: string,
+  overrides?: Map<string, string>
+): void {
   if (!fs.existsSync(src)) {
     console.log('--- skipped', label, '(not in export) ---');
     return;
   }
   for (const target of targets) {
     const stats: MirrorStats = { copied: 0, skipped: 0, preserved: 0, removed: 0 };
-    mirrorDir(src, target, stats);
+    mirrorDir(src, target, stats, overrides);
     console.log(
       '--- synced',
       label,
@@ -543,6 +594,36 @@ export function convertExport2024(opts: ConvertOptions): void {
     ? readJson<Record<string, UiImageRect>>(rectsFile)
     : {};
 
+  // Pinned icons (see PINNED_ICONS). The pinned PNGs sit beside the other hand-kept
+  // assets, resolved from --out like every other asset root.
+  const pinnedIconDir = path.join(path.dirname(opts.out), '../manual/ui_image');
+  const pinnedIconFiles = new Map<string, string>(); // '<prefabId>.png' -> pinned file
+  const pinnedIconsMissingPng: string[] = [];
+  const pinnedIconsNotInExport: string[] = [];
+  const pinnedIconsExportChanged: string[] = [];
+  for (const [prefabId, pin] of Object.entries(PINNED_ICONS)) {
+    const pinnedFile = path.join(pinnedIconDir, prefabId + '.png');
+    if (!fs.existsSync(pinnedFile)) {
+      pinnedIconsMissingPng.push(prefabId);
+      continue;
+    }
+    const exportSize = readPngSize(path.join(uiImageDir, prefabId + '.png'));
+    if (exportSize == null) {
+      pinnedIconsNotInExport.push(prefabId);
+      continue;
+    }
+    if (exportSize.x !== pin.exportSize.x || exportSize.y !== pin.exportSize.y)
+      pinnedIconsExportChanged.push(
+        `${prefabId} (was ${pin.exportSize.x}x${pin.exportSize.y}, now ${exportSize.x}x${exportSize.y})`
+      );
+    pinnedIconFiles.set(prefabId + '.png', pinnedFile);
+  }
+  // The PNG a prefab's icon is actually served from: its pin when it has one, the
+  // export's otherwise. Everything that measures an icon goes through this, so the
+  // sprite size and the aspect check describe the image that ships.
+  const iconFile = (id: string): string =>
+    pinnedIconFiles.get(id + '.png') ?? path.join(uiImageDir, id + '.png');
+
   const uiSpriteInfos = uiSpriteFile.uiSpriteInfos;
 
   const { prefabs: connectablePrefabs, incomplete: incompleteConnectionDirs } =
@@ -592,11 +673,12 @@ export function convertExport2024(opts: ConvertOptions): void {
         connectable,
         connectionScale,
         unknownConnectionTypes,
-        roomTagVocabulary
+        roomTagVocabulary,
+        pinnedIconFiles.has(iconKey + '.png') ? PINNED_ICONS[iconKey].rect : b.uiImageRect
       )
     );
 
-    const size = readPngSize(path.join(uiImageDir, iconKey + '.png')) ?? { x: 0, y: 0 };
+    const size = readPngSize(iconFile(iconKey)) ?? { x: 0, y: 0 };
     uiSprites.push({
       name: iconKey,
       textureName: iconKey,
@@ -802,7 +884,37 @@ export function convertExport2024(opts: ConvertOptions): void {
     mods.length,
     'mods'
   );
+  console.log(
+    '  pinned icons       :',
+    pinnedIconFiles.size,
+    pinnedIconFiles.size
+      ? '(' + [...pinnedIconFiles.keys()].map((f) => f.replace(/\.png$/, '')).join(', ') + ')'
+      : ''
+  );
   console.log('--- validation ---');
+  console.log(
+    '  pinned icons missing their PNG     :',
+    pinnedIconsMissingPng.length,
+    pinnedIconsMissingPng.length
+      ? `(expected in ${path.normalize(pinnedIconDir)}: ${pinnedIconsMissingPng.join(', ')})`
+      : ''
+  );
+  console.log(
+    '  pinned icons not in this export    :',
+    pinnedIconsNotInExport.length,
+    pinnedIconsNotInExport.length
+      ? '(drop the pin: ' + pinnedIconsNotInExport.join(', ') + ')'
+      : ''
+  );
+  console.log(
+    '  pinned icons whose export art moved:',
+    pinnedIconsExportChanged.length,
+    pinnedIconsExportChanged.length
+      ? '(re-check, then drop the pin or record the new size: ' +
+          pinnedIconsExportChanged.join(', ') +
+          ')'
+      : ''
+  );
   console.log('  po_string.json present             :', hasPoStrings);
   console.log(
     '  ui_image_rects.json present        :',
@@ -919,7 +1031,7 @@ export function convertExport2024(opts: ConvertOptions): void {
       .map((f) => ({ id: f.id, rect: f.uiImageRect! })),
   ];
   for (const { id, rect } of rectsChecked) {
-    const off = rectAspectMismatch(rect, readPngSize(path.join(uiImageDir, id + '.png')));
+    const off = rectAspectMismatch(rect, readPngSize(iconFile(id)));
     if (off != null && off >= UI_IMAGE_RECT_ASPECT_TOLERANCE)
       rectAspectMismatches.push({ id, off });
   }
@@ -1020,6 +1132,9 @@ export function convertExport2024(opts: ConvertOptions): void {
     missingTerrainNames.length +
     missingTerrainRects.length +
     rectAspectMismatches.length +
+    pinnedIconsMissingPng.length +
+    pinnedIconsNotInExport.length +
+    pinnedIconsExportChanged.length +
     (hasUiImageRects ? 0 : 1) +
     (hasPoStrings ? 0 : 1);
   if (problems > 0) {
@@ -1081,7 +1196,8 @@ export function convertExport2024(opts: ConvertOptions): void {
       path.join(assetDir, '../ui_image'),
       path.join(assetDir, '../../frontend/src/assets/ui_image'),
     ],
-    'ui_image'
+    'ui_image',
+    pinnedIconFiles
   );
   syncAssetDir(
     connectionDir,
@@ -1411,7 +1527,9 @@ function buildingRecord(
   connectable: boolean,
   connectionScale: { x: number; y: number },
   unknownConnectionTypes: Set<string>,
-  roomTagVocabulary: Set<string>
+  roomTagVocabulary: Set<string>,
+  // The export's own rect, or the pinned one when the icon is pinned (PINNED_ICONS).
+  uiImageRect: UiImageRect | undefined
 ): any {
   return {
     DefaultAnimState: b.defaultAnimState,
@@ -1446,7 +1564,7 @@ function buildingRecord(
     ...(b.offlineMerged ? { offlineMerged: true } : {}),
     // Optional flat-icon placement (cells, footprint-relative). Passed through from the
     // export when present; absent ⇒ renderer stretches the icon to the footprint (legacy).
-    ...(b.uiImageRect ? { uiImageRect: b.uiImageRect } : {}),
+    ...(uiImageRect ? { uiImageRect } : {}),
     buildLocationRule: b.buildLocationRule,
     utilities: utilitiesRecord(b, unknownConnectionTypes),
     ...(b.areasOfEffect?.length ? { areasOfEffect: b.areasOfEffect } : {}),
