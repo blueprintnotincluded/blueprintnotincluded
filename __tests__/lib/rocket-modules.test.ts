@@ -18,6 +18,10 @@ import {
   BuildMenuCategory,
   BuildMenuItem,
   BlueprintItem,
+  analyzeRocketStacks,
+  rocketStackParts,
+  rocketStackWarnings,
+  RocketStackPart,
 } from '../../lib';
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
@@ -364,6 +368,238 @@ describe('Rocket modules', function () {
       expect(xy(snapRocketModulePosition(engine, new Vector2(20, 7), [pad, engine]))).to.deep.equal(
         [20, 7]
       );
+    });
+  });
+  // Phase 3. The mod refuses these placements in game; the site says so beforehand.
+  describe('stack validation', function () {
+    function placed(id: string, x: number, y: number): BlueprintItem {
+      const item = BlueprintHelpers.createInstance(id)!;
+      item.position = new Vector2(x, y);
+      item.cleanUp();
+      item.prepareBoundingBox();
+      return item;
+    }
+    // Stacks `ids` bottom-up on a hardpoint starting at (x, y), each on the one below.
+    function stack(x: number, y: number, ids: string[]): BlueprintItem[] {
+      const items: BlueprintItem[] = [];
+      let cursor = y;
+      for (const id of ids) {
+        items.push(placed(id, x, cursor));
+        cursor += OniItem.getOniItem(id).size.y;
+      }
+      return items;
+    }
+    const kinds = (items: BlueprintItem[]) => rocketStackWarnings(items).map(w => w.kind);
+
+    it('finds nothing wrong with a complete rocket on a platform', () => {
+      const rocket = [
+        placed('LaunchPad', 20, 0),
+        ...stack(20, 2, [
+          'KeroseneEngineCluster',
+          'LiquidFuelTankCluster',
+          'OxidizerTankCluster',
+          'HabitatModuleMedium',
+          'NoseconeBasic',
+        ]),
+      ];
+      expect(rocketStackWarnings(rocket)).to.deep.equal([]);
+    });
+
+    it('finds nothing wrong with the same rocket flipped module by module', () => {
+      const rocket = [
+        placed('LaunchPad', 20, 0),
+        ...stack(20, 2, ['KeroseneEngineCluster', 'LiquidFuelTankCluster', 'NoseconeBasic']),
+      ];
+      for (const item of rocket.slice(1)) item.changeOrientation(Orientation.FlipH);
+      expect(rocketStackWarnings(rocket)).to.deep.equal([]);
+    });
+
+    it('accepts a stack with no platform: it is pasted onto one that already exists', () => {
+      expect(
+        rocketStackWarnings(stack(20, 2, ['CO2Engine', 'HabitatModuleSmall']))
+      ).to.deep.equal([]);
+    });
+
+    it('accepts the synthetic two-module fixture', () => {
+      const blueprint = new Blueprint();
+      blueprint.importFromBni(fixture);
+      expect(rocketStackWarnings(blueprint.blueprintItems)).to.deep.equal([]);
+    });
+
+    it('ignores a blueprint with no rocket in it', () => {
+      expect(rocketStackWarnings([placed('Tile', 0, 0), placed('LaunchPad', 10, 0)])).to.deep.equal(
+        []
+      );
+      expect(rocketStackParts([placed('Tile', 0, 0)])).to.deep.equal([]);
+    });
+
+    it('reports a module one cell off the platform, and how far to move it', () => {
+      const pad = placed('LaunchPad', 20, 0);
+      expect(rocketStackWarnings([pad, placed('KeroseneEngineCluster', 21, 2)])).to.deep.equal([
+        {
+          kind: 'misaligned',
+          module: { prefabId: 'KeroseneEngineCluster', x: 21, y: 2 },
+          hardpointOwner: { prefabId: 'LaunchPad', x: 20, y: 0 },
+          offset: { x: -1, y: 0 },
+        },
+      ]);
+      // One row too high.
+      expect(
+        rocketStackWarnings([pad, placed('KeroseneEngineCluster', 20, 3)])[0]
+      ).to.deep.include({ kind: 'misaligned', offset: { x: 0, y: -1 } });
+    });
+
+    it('reports a module that misses the module below it', () => {
+      const items = [
+        placed('LaunchPad', 20, 0),
+        placed('KeroseneEngineCluster', 20, 2),
+        placed('LiquidFuelTankCluster', 22, 7), // hardpoint is at (20,7)
+      ];
+      expect(rocketStackWarnings(items)).to.deep.equal([
+        {
+          kind: 'misaligned',
+          module: { prefabId: 'LiquidFuelTankCluster', x: 22, y: 7 },
+          hardpointOwner: { prefabId: 'KeroseneEngineCluster', x: 20, y: 2 },
+          offset: { x: -2, y: 0 },
+        },
+      ]);
+    });
+
+    it('does not call a stack misaligned for standing clear of another one', () => {
+      const items = [
+        placed('LaunchPad', 20, 0),
+        placed('CO2Engine', 40, 2),
+        placed('CO2Engine', 20, 6),
+      ];
+      expect(rocketStackWarnings(items)).to.deep.equal([]);
+    });
+
+    it('does not point a stray module at a hardpoint that is already taken', () => {
+      const items = [
+        placed('LaunchPad', 20, 0),
+        placed('KeroseneEngineCluster', 20, 2),
+        placed('CO2Engine', 26, 2), // beside the engine, not on the pad
+      ];
+      // The pad's hardpoint is taken by the petroleum engine; the engine's own
+      // hardpoint (20,7) is five rows up. Nothing nearby to have missed.
+      expect(rocketStackWarnings(items)).to.deep.equal([]);
+    });
+
+    it('reports a module stacked on a nosecone', () => {
+      const items = stack(20, 2, ['CO2Engine', 'NoseconeBasic', 'SolidCargoBaySmall']);
+      expect(rocketStackWarnings(items)).to.deep.equal([
+        {
+          kind: 'onTopOnly',
+          module: { prefabId: 'SolidCargoBaySmall', x: 20, y: 6 },
+          below: { prefabId: 'NoseconeBasic', x: 20, y: 4 },
+        },
+      ]);
+    });
+
+    it('reports an engine that is not the bottom module', () => {
+      const items = [
+        placed('LaunchPad', 20, 0),
+        ...stack(20, 2, ['SolidCargoBaySmall', 'CO2Engine']),
+      ];
+      expect(rocketStackWarnings(items)).to.deep.equal([
+        {
+          kind: 'engineNotOnBottom',
+          module: { prefabId: 'CO2Engine', x: 20, y: 5 },
+          below: { prefabId: 'SolidCargoBaySmall', x: 20, y: 2 },
+        },
+      ]);
+    });
+
+    it('reports two engines in one rocket, as both a limit and a misplaced engine', () => {
+      expect(kinds(stack(20, 2, ['CO2Engine', 'SugarEngine']))).to.have.members([
+        'engineNotOnBottom',
+        'multipleEngines',
+      ]);
+    });
+
+    it('reports two command modules in one rocket', () => {
+      const items = stack(20, 2, ['CO2Engine', 'HabitatModuleMedium', 'HabitatModuleSmall']);
+      const warnings = rocketStackWarnings(items);
+      expect(warnings).to.have.length(1);
+      expect(warnings[0]).to.deep.equal({
+        kind: 'multipleCommandModules',
+        modules: [
+          { prefabId: 'HabitatModuleMedium', x: 20, y: 4 },
+          { prefabId: 'HabitatModuleSmall', x: 20, y: 8 },
+        ],
+      });
+    });
+
+    it('reports two robo-pilots in one rocket', () => {
+      expect(kinds(stack(20, 2, ['CO2Engine', 'RoboPilotModule', 'RoboPilotModule']))).to.deep.equal(
+        ['multipleRoboPilots']
+      );
+    });
+
+    it('does not count modules across two separate rockets', () => {
+      const items = [
+        ...stack(20, 2, ['CO2Engine', 'HabitatModuleSmall']),
+        ...stack(40, 2, ['SugarEngine', 'HabitatModuleSmall']),
+      ];
+      expect(rocketStackWarnings(items)).to.deep.equal([]);
+    });
+
+    it('reports a stack taller than its engine can lift', () => {
+      // CO2 engine: 2 tall, lifts 10. 2 + 5 + 5 = 12.
+      const items = stack(20, 2, ['CO2Engine', 'LiquidCargoBayCluster', 'GasCargoBayCluster']);
+      expect(rocketStackWarnings(items)).to.deep.equal([
+        {
+          kind: 'tooTall',
+          engine: { prefabId: 'CO2Engine', x: 20, y: 2 },
+          height: 12,
+          maxHeight: 10,
+        },
+      ]);
+    });
+
+    it('accepts a stack exactly at its engine\'s limit', () => {
+      // 2 + 5 + 3 = 10.
+      expect(
+        rocketStackWarnings(stack(20, 2, ['CO2Engine', 'LiquidCargoBayCluster', 'ScoutModule']))
+      ).to.deep.equal([]);
+    });
+
+    it('does not judge the height of a stack with no engine', () => {
+      const items = stack(20, 2, [
+        'LiquidCargoBayCluster',
+        'GasCargoBayCluster',
+        'CargoBayCluster',
+        'LiquidFuelTankCluster',
+        'OxidizerTankCluster',
+        'ScannerModule',
+        'LiquidCargoBayCluster',
+        'GasCargoBayCluster',
+      ]);
+      expect(rocketStackWarnings(items)).to.deep.equal([]);
+    });
+
+    it('judges plain records, with no game database behind them', () => {
+      const part = (overrides: Partial<RocketStackPart>): RocketStackPart => ({
+        prefabId: 'Module',
+        x: 0,
+        y: 0,
+        width: 3,
+        height: 2,
+        isModule: true,
+        attachCell: { x: 0, y: 0 },
+        hardpointCell: { x: 0, y: 2 },
+        buildConditions: [],
+        ...overrides,
+      });
+      expect(analyzeRocketStacks([])).to.deep.equal([]);
+      expect(
+        analyzeRocketStacks([
+          part({ prefabId: 'Engine', buildConditions: ['EngineOnBottom'], engineMaxHeight: 3 }),
+          part({ prefabId: 'Cargo', y: 2, attachCell: { x: 0, y: 2 }, hardpointCell: { x: 0, y: 4 } }),
+        ])
+      ).to.deep.equal([
+        { kind: 'tooTall', engine: { prefabId: 'Engine', x: 0, y: 0 }, height: 4, maxHeight: 3 },
+      ]);
     });
   });
 });

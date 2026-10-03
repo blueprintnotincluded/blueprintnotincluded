@@ -2,6 +2,7 @@ import { Vector2 } from '../vector2';
 import { DrawHelpers } from '../drawing/draw-helpers';
 import { ROCKET_ATTACH_TAG } from '../b-export/b-building';
 import { BlueprintItem } from './blueprint-item';
+import { analyzeRocketStacks, RocketStackPart, RocketStackWarning } from './blueprint-analyzer';
 
 // Rocket stacking geometry.
 //
@@ -112,4 +113,37 @@ export function snapRocketModulePosition(
     }
   }
   return best;
+}
+
+// The plain records analyzeRocketStacks judges: every rocket module, plus anything
+// else that offers a rocket hardpoint (the Rocket Platform). Element cells and
+// ordinary buildings are left out -- they are no part of a stack.
+export function rocketStackParts(items: BlueprintItem[]): RocketStackPart[] {
+  const parts: RocketStackPart[] = [];
+  for (const item of items) {
+    const isModule = attachesToRocket(item);
+    const hardpoint = rocketHardpointCell(item);
+    if (!isModule && hardpoint == null) continue;
+
+    const attach = isModule ? rocketAttachCell(item) : null;
+    parts.push({
+      prefabId: item.id,
+      x: item.position.x,
+      y: item.position.y,
+      width: item.oniItem.size.x,
+      height: item.oniItem.size.y,
+      isModule,
+      attachCell: attach == null ? null : { x: attach.x, y: attach.y },
+      hardpointCell: hardpoint == null ? null : { x: hardpoint.x, y: hardpoint.y },
+      buildConditions: item.oniItem.rocketModule?.buildConditions ?? [],
+      engineMaxHeight: item.oniItem.rocketModule?.engineMaxHeight,
+    });
+  }
+  return parts;
+}
+
+// What the game would refuse about the rocket stacks in a blueprint. Warnings, not
+// blockers -- see analyzeRocketStacks.
+export function rocketStackWarnings(items: BlueprintItem[]): RocketStackWarning[] {
+  return analyzeRocketStacks(rocketStackParts(items));
 }
