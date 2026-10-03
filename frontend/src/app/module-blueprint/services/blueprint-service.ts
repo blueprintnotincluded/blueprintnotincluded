@@ -3,7 +3,7 @@ import { Location } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "./authentification-service";
 import { ContentLocaleService } from "./content-locale.service";
-import { firstValueFrom, of } from "rxjs";
+import { firstValueFrom } from "rxjs";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
 import {
   decodeBniShareString,
@@ -465,39 +465,46 @@ export class BlueprintService implements IObsBlueprintChange {
   // without disturbing the editor's currently-open blueprint state — used by
   // the details page, which never opens the blueprint into the editor.
   // When the server holds the verbatim uploaded file it is served byte-exact
-  // (spec/blueprintsv2-import-spec.md §8); otherwise the file is generated
-  // from the parsed data as before.
+  // (spec/blueprintsv2-import-spec.md §8); otherwise the server generates it.
+  //
+  // Never generated here: only the editor loads the game database, so a
+  // Blueprint built on the details page resolves no building id, skips every
+  // building as unknown and exports an empty `buildings` array — a file that
+  // downloads fine and holds nothing but its notes.
   downloadBlueprintFile(id: string, friendlyName: string) {
+    const auth = this.authService.isLoggedIn()
+      ? {
+          headers: {
+            Authorization: `Bearer ${this.authService.getToken()}`,
+          },
+        }
+      : {};
+
     return this.http
       .get<BlueprintResponse>(
         // No `lang=`: this fetch produces a file, not a display surface, and
         // the filename comes from the caller's authored name either way.
         `/api/getblueprint/${id}`,
-        this.authService.isLoggedIn()
-          ? {
-              headers: {
-                Authorization: `Bearer ${this.authService.getToken()}`,
-              },
-            }
-          : {},
+        auth,
       )
       .pipe(
         switchMap((response: BlueprintResponse) => {
-          const generate = () => {
-            const blueprint = new Blueprint();
-            blueprint.importFromMdb(response.data);
-            const bniBlueprint = blueprint.toBniBlueprint(
-              friendlyName,
-              response.description,
-            );
-
-            BlueprintService.saveTextFile(
-              JSON.stringify(bniBlueprint),
-              sanitize(friendlyName) + ".blueprint",
-            );
-
-            this.trackDownload(id);
-          };
+          // The endpoint the in-game mod fetches by id. It honours the token
+          // (an owner's draft) and records the download server-side.
+          const generate = () =>
+            this.http
+              .get(`/api/getblueprintmod/${id}`, {
+                ...auth,
+                responseType: "text",
+              })
+              .pipe(
+                tap((file: string) => {
+                  BlueprintService.saveTextFile(
+                    file,
+                    sanitize(friendlyName) + ".blueprint",
+                  );
+                }),
+              );
 
           if (response.hasRawSource)
             return this.http
@@ -516,14 +523,10 @@ export class BlueprintService implements IObsBlueprintChange {
                 }),
                 // The raw copy may have vanished (e.g. concurrent edit) —
                 // still deliver a generated file rather than failing
-                catchError(() => {
-                  generate();
-                  return of(response);
-                }),
+                catchError(() => generate()),
               );
 
-          generate();
-          return of(response);
+          return generate();
         }),
       );
   }
@@ -631,39 +634,29 @@ export class BlueprintService implements IObsBlueprintChange {
   // this very session; here the reader is taking a copy of a stored blueprint as
   // its author uploaded it, and the cost of a raw copy is only that a blueprint
   // renamed on the site pastes into the game under its original in-game name.
-  async copySavedBlueprintShareString(id: string, friendlyName: string) {
+  //
+  // The generated export comes from the server, like the file download.
+  async copySavedBlueprintShareString(id: string) {
     const clipboard = navigator.clipboard;
     if (!clipboard) throw new Error("Clipboard API unavailable");
 
-    let generated = false;
-    const text = this.savedBlueprintShareString(id, friendlyName).then(
-      (result) => {
-        generated = result.generated;
-        return result.text;
-      },
+    await BlueprintService.writeClipboardText(
+      clipboard,
+      this.savedBlueprintShareString(id),
     );
-    await BlueprintService.writeClipboardText(clipboard, text);
-
-    // The raw endpoint records its own download server-side; a generated copy
-    // is credited here, once it has actually reached the clipboard.
-    if (generated) this.trackDownload(id);
+    // Both endpoints behind the string record the download server-side
   }
 
-  private async savedBlueprintShareString(
-    id: string,
-    friendlyName: string,
-  ): Promise<{ text: string; generated: boolean }> {
+  private async savedBlueprintShareString(id: string): Promise<string> {
+    const auth = this.authService.isLoggedIn()
+      ? {
+          headers: {
+            Authorization: `Bearer ${this.authService.getToken()}`,
+          },
+        }
+      : {};
     const response = await firstValueFrom(
-      this.http.get<BlueprintResponse>(
-        `/api/getblueprint/${id}`,
-        this.authService.isLoggedIn()
-          ? {
-              headers: {
-                Authorization: `Bearer ${this.authService.getToken()}`,
-              },
-            }
-          : {},
-      ),
+      this.http.get<BlueprintResponse>(`/api/getblueprint/${id}`, auth),
     );
 
     if (response.hasRawSource) {
@@ -671,29 +664,25 @@ export class BlueprintService implements IObsBlueprintChange {
         const raw = await firstValueFrom(
           this.http.get(`/api/blueprints/${id}/raw`, { responseType: "text" }),
         );
-        return {
-          text:
-            response.rawSourceFormat === "bpv2-sharestring"
-              ? raw
-              : await encodeBniShareString(raw),
-          generated: false,
-        };
+        return response.rawSourceFormat === "bpv2-sharestring"
+          ? raw
+          : await encodeBniShareString(raw);
       } catch {
         // The raw copy may have vanished (e.g. concurrent edit) -- still
         // deliver a generated string rather than failing the copy.
       }
     }
 
-    const blueprint = new Blueprint();
-    blueprint.importFromMdb(response.data);
-    return {
-      text: await encodeBniShareString(
-        JSON.stringify(
-          blueprint.toBniBlueprint(friendlyName, response.description),
-        ),
+    // Server-generated, for the reason downloadBlueprintFile gives: built
+    // here, without the game database, it would hold no buildings.
+    return encodeBniShareString(
+      await firstValueFrom(
+        this.http.get(`/api/getblueprintmod/${id}`, {
+          ...auth,
+          responseType: "text",
+        }),
       ),
-      generated: true,
-    };
+    );
   }
 
   // Safari only honours a clipboard write that *starts* inside the user
