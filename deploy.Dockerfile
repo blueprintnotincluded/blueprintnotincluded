@@ -1,4 +1,4 @@
-FROM --platform=amd64 node:20-alpine as extract
+FROM --platform=amd64 node:24-alpine as extract
 
 WORKDIR /bpni
 
@@ -42,7 +42,7 @@ RUN npm run build:admin -- --output-path=../build/app/public/admin/
 
 # Debian (glibc) base: node-canvas ships no musl prebuilds, and building it from
 # source on alpine needs the full cairo toolchain. The glibc prebuild is static.
-FROM --platform=amd64 node:20-slim as serve-prod
+FROM --platform=amd64 node:24-slim as serve-prod
 WORKDIR /bpni
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
