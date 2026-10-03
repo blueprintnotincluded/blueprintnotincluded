@@ -342,6 +342,28 @@ no "this is a stack" marker — the Blueprints mod recomputes stacking from the 
 - **Fixture caveat** — `rocket-modules-stack-synthetic.blueprint` is built from the export's
   real `attachPoints`, not captured from a game.
 
+### Dig commands and userdesc on export
+
+Two things a generated export used to lose. An unedited import was never affected — its raw
+upload is served byte-exact — so this is about blueprints edited or authored on the site.
+
+- **Dig commands** — `Blueprint.digCommands` / `MdbBlueprint.digCommands` carry the file's
+  `digcommands` (`{x, y}` cells) through import, undo, clone and save, and `toBniBlueprint`
+  writes them back; before, every generated export said `digcommands: []`. The Planning Tool
+  mod's shapes are mirrored into `digcommands` too (one per shape cell), so on import a dig
+  that sits on a shape cell is left to the shape: it is regenerated from `planningToolShapes`
+  on export, and deleting the shape takes its dig with it. Export order is the file's own
+  digs, then shape cells not already present. Omitted from the MDB shape when empty, so
+  stored fingerprints are unchanged. They are re-origined by `bpv2-sanitize` with everything
+  else. **Not drawn or editable yet**: an imported blueprint's digs ride along unseen, which
+  also means they stay behind if its buildings are deleted.
+- **`userdesc`** — `toBniBlueprint(friendlyname, userdesc?)`. The site keeps a description
+  beside the blueprint data rather than in it, so the caller passes it: the editor's
+  `metadata.description`, the details page's and the mod endpoint's stored `description`.
+  Written only when non-blank (the mod omits empty keys), verbatim, and it bumps
+  `blueprintVersion` to 3 like every other v3 key. An imported `userdesc` already prefilled
+  that description, so this closes the loop.
+
 ### Range-carrying settings (Prioritizable, Door, Valve, LimitValve, capacity, name)
 
 Six more `buildingData` Keys are catalogued: `Prioritizable`, `Door`, `Valve`, `LimitValve`,

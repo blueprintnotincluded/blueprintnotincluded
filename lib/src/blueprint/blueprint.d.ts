@@ -1,7 +1,7 @@
 import { BlueprintItem } from './blueprint-item';
 import { Vector2 } from '../vector2';
 import { OniTemplate } from '../io/oni/oni-template';
-import { BniBlueprint, BniPlanShape, BniWorldNote } from '../io/bni/bni-blueprint';
+import { BniBlueprint, BniDigCommand, BniPlanShape, BniWorldNote } from '../io/bni/bni-blueprint';
 import { MdbBlueprint } from '../io/mdb/mdb-blueprint';
 import { Overlay } from '../enums/overlay';
 import { UtilityConnectionTracker } from '../utility-connection';
@@ -14,6 +14,7 @@ export declare class Blueprint {
     bniMetadata: BniBlueprint | null;
     worldNotes: BniWorldNote[];
     planningToolShapes: BniPlanShape[];
+    digCommands: BniDigCommand[];
     terrainFeatures: BniTerrainFeature[];
     foreignMetadata: Record<string, string>;
     utilities: UtilityConnectionTracker[][];
@@ -21,6 +22,7 @@ export declare class Blueprint {
     constructor();
     importFromOni(oniBlueprint: OniTemplate): void;
     importFromBni(bniBlueprint: BniBlueprint): void;
+    private static realDigCommands;
     private importTerrainMetadata;
     importFromMdb(mdbBlueprint: MdbBlueprint): void;
     private importMdbItems;
@@ -42,7 +44,7 @@ export declare class Blueprint {
     private emitItemAdded;
     emitBlueprintChanged(): void;
     toMdbBlueprint(): MdbBlueprint;
-    toBniBlueprint(friendlyname: string): BniBlueprint;
+    toBniBlueprint(friendlyname: string, userdesc?: string | null): BniBlueprint;
     clone(): Blueprint;
     getBoundingBox(): Vector2[];
     sortChildren(): void;

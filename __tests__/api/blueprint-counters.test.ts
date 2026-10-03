@@ -195,6 +195,24 @@ describe('Blueprint view/download counters', function () {
       expect((await counts(blueprintId)).downloads).to.equal(1);
     });
 
+    // The mod's blueprint list shows `userdesc` under the name; the site's
+    // description is where an imported one went, so it goes back out the same way.
+    it('hands the ONI mod the site description as userdesc, and omits it when there is none', async function () {
+      await BlueprintModel.model.updateOne(
+        { _id: blueprintId },
+        { $set: { data: { blueprintItems: [] }, description: 'Feeds four generators.' } }
+      );
+      const described = await TestSetup.request().get(`/api/getblueprintmod/${blueprintId}`);
+      expect(described.status).to.equal(200);
+      expect(described.body.userdesc).to.equal('Feeds four generators.');
+      expect(described.body.blueprintVersion).to.equal(3);
+
+      await BlueprintModel.model.updateOne({ _id: blueprintId }, { $set: { description: null } });
+      const plain = await TestSetup.request().get(`/api/getblueprintmod/${blueprintId}`);
+      expect(plain.status).to.equal(200);
+      expect(plain.body).to.not.have.property('userdesc');
+    });
+
     it('does not count the owner downloading their own blueprint', async function () {
       await TestSetup.request()
         .post(`/api/blueprints/${blueprintId}/downloads`)

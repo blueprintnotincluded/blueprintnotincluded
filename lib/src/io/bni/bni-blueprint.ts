@@ -29,6 +29,12 @@ export interface BniPlanShape {
   color: number;
 }
 
+// One cell the blueprint marks for digging, in the same space as `buildings`.
+export interface BniDigCommand {
+  x: number;
+  y: number;
+}
+
 export class BniBlueprint {
   friendlyname: string = '';
   buildings: BniBuilding[] = [];

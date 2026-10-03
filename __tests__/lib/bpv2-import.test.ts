@@ -398,6 +398,138 @@ describe('BlueprintsV2 import', function () {
     });
   });
 
+  // The sample export marks 129 cells for digging. The site used to write
+  // `digcommands: []` on every generated export, so those were lost on any edit.
+  describe('dig commands', function () {
+    it('carries the file\'s dig commands through to a generated export, in order', () => {
+      expect(fixture.digcommands).to.have.length(129);
+      const source = new Blueprint();
+      source.importFromBni(fixture);
+      expect(source.digCommands).to.deep.equal(fixture.digcommands);
+
+      const reimported = new Blueprint();
+      reimported.importFromMdb(source.toMdbBlueprint());
+      expect(reimported.toBniBlueprint('roundtrip').digcommands).to.deep.equal(fixture.digcommands);
+    });
+
+    it('survives clone() and destroyAndCopyItems, as an undo snapshot and a load do', () => {
+      const source = new Blueprint();
+      source.importFromBni(fixture);
+      expect(source.clone().digCommands).to.deep.equal(fixture.digcommands);
+
+      const rendered = new Blueprint();
+      rendered.destroyAndCopyItems(source, false);
+      expect(rendered.digCommands).to.deep.equal(fixture.digcommands);
+      expect(rendered.digCommands).to.not.equal(source.digCommands);
+    });
+
+    it('omits digCommands from the stored model when there are none', () => {
+      const empty = new Blueprint();
+      empty.importFromBni({ friendlyname: '', buildings: [], digcommands: [] });
+      expect(JSON.stringify(empty.toMdbBlueprint())).to.equal(
+        JSON.stringify({ blueprintItems: [] })
+      );
+      expect(empty.toBniBlueprint('none').digcommands).to.deep.equal([]);
+    });
+
+    it('drops malformed entries and repeated cells rather than failing the import', () => {
+      const source = new Blueprint();
+      source.importFromBni({
+        friendlyname: 'messy',
+        buildings: [],
+        digcommands: [{ x: 1, y: 2 }, null, { x: 'a', y: 0 }, { x: 1, y: 2 }, { y: 3 }, { x: 4, y: 5 }],
+      });
+      expect(source.digCommands).to.deep.equal([
+        { x: 1, y: 2 },
+        { x: 4, y: 5 },
+      ]);
+    });
+
+    it('leaves a Planning Tool shape\'s cell to the shape, so deleting the shape removes its dig', () => {
+      const source = new Blueprint();
+      source.importFromBni({
+        friendlyname: 'planned',
+        buildings: [],
+        blueprintVersion: 3,
+        planningtoolmod_shapecollection: [{ x: 5, y: 5, shape: 0, color: 0 }],
+        digcommands: [
+          { x: 1, y: 1 },
+          { x: 5, y: 5 },
+        ],
+      });
+      expect(source.digCommands).to.deep.equal([{ x: 1, y: 1 }]);
+      // Exported: the real dig first, then one per shape cell.
+      expect(source.toBniBlueprint('planned').digcommands).to.deep.equal([
+        { x: 1, y: 1 },
+        { x: 5, y: 5 },
+      ]);
+
+      source.planningToolShapes = [];
+      expect(source.toBniBlueprint('unplanned').digcommands).to.deep.equal([{ x: 1, y: 1 }]);
+    });
+
+    it('does not write a shape cell twice when a real dig already covers it', () => {
+      const source = new Blueprint();
+      source.digCommands = [{ x: 5, y: 5 }];
+      source.planningToolShapes = [{ x: 5, y: 5, shape: 0, color: 0 }];
+      expect(source.toBniBlueprint('overlap').digcommands).to.deep.equal([{ x: 5, y: 5 }]);
+    });
+
+    it('re-origins dig commands with the buildings on a sanitized export', () => {
+      const source = new Blueprint();
+      source.importFromBni({
+        friendlyname: 'negative',
+        buildings: [],
+        digcommands: [
+          { x: -2, y: -3 },
+          { x: 0, y: 0 },
+        ],
+      });
+      expect(source.toBniBlueprint('negative').digcommands).to.deep.equal([
+        { x: 0, y: 0 },
+        { x: 2, y: 3 },
+      ]);
+      // The model itself is untouched by the export's shift.
+      expect(source.digCommands[0]).to.deep.equal({ x: -2, y: -3 });
+    });
+  });
+
+  // `userdesc` is what the mod's blueprint list shows under the name. The site
+  // imported it into its own description and then dropped it on export.
+  describe('userdesc on export', function () {
+    it('writes the description the caller passes, and marks the file v3', () => {
+      const blueprint = new Blueprint();
+      blueprint.importFromBni({ friendlyname: '', buildings: [], digcommands: [] });
+      const bni = blueprint.toBniBlueprint('Described', 'Feeds four generators.');
+      expect(bni.userdesc).to.equal('Feeds four generators.');
+      expect(bni.blueprintVersion).to.equal(3);
+    });
+
+    it('omits the key, and the version bump, when there is no description', () => {
+      const blueprint = new Blueprint();
+      blueprint.importFromBni({ friendlyname: '', buildings: [], digcommands: [] });
+      for (const userdesc of [undefined, null, '', '   ']) {
+        const bni = blueprint.toBniBlueprint('Plain', userdesc);
+        expect(bni, JSON.stringify(userdesc)).to.not.have.property('userdesc');
+        expect(bni.blueprintVersion, JSON.stringify(userdesc)).to.equal(undefined);
+      }
+    });
+
+    it('writes the description verbatim: it is the author\'s text', () => {
+      const blueprint = new Blueprint();
+      const text = '  Línea uno\nline two — 説明  ';
+      expect(blueprint.toBniBlueprint('Unicode', text).userdesc).to.equal(text);
+    });
+
+    it('puts the sample export\'s own description back on a round trip', () => {
+      const source = new Blueprint();
+      source.importFromBni(fixture);
+      expect(source.toBniBlueprint(fixture.friendlyname, fixture.userdesc).userdesc).to.equal(
+        fixture.userdesc
+      );
+    });
+  });
+
   describe('share-string transport (P2, §1.2)', function () {
     // Build a share-string exactly the way the mod does: 4-byte little-endian
     // uncompressed length + gzip, base64'd. Proves our decoder against the
