@@ -43,7 +43,7 @@ app container**; the host needs only a container runtime.
 - The dev container runs in local auth mode: open the login page and pick a dev user, or log in
   with the form using any `@bpni.local` email — the password is `dev_password`
 
-To run on the host instead (Node 20.19.4 per `.nvmrc`): `./dev-setup.sh` starts
+To run on the host instead (Node 24.21.0 per `.nvmrc`): `./dev-setup.sh` starts
 just the database and mail, and `DB_URI` / `SMTP_HOST` are already `localhost`
 in `.env.sample`. The *test* database is separate: the suite reads
 `.env.test.local` before the committed `.env.test`, so a checkout on a
@@ -193,7 +193,7 @@ Uses MongoDB 8.0.23 locally and in CI (prod upgrade from 7.0.34 pending) with Mo
 
 ## Current Status
 
-Node.js 20.19.4 (via volta). See `agent/SESSION_NOTES.md` for the latest dated status
+Node.js 24.21.0 (via volta). See `agent/SESSION_NOTES.md` for the latest dated status
 snapshot (stack versions, test counts, prod activation state) and `agent/TODO.md` for the
 roadmap — both go stale fast, so this file doesn't duplicate them.
 
@@ -223,7 +223,7 @@ Check these files in `agent/` directory for current status:
 
 ```bash
 # Environment verification
-node --version        # Should be 20.19.4
+node --version        # Should be 24.21.0
 npm run test         # Full backend suite (sets up the test DB first)
                      # Use test:only to skip DB setup - but a stale test DB
                      # makes API specs 404, so re-run `npm run test` before
@@ -237,7 +237,7 @@ head -20 agent/TODO.md
 
 ### Key Constraints
 
-- Node is pinned to 20.19.4 (`.nvmrc`, volta, CI; the deploy image is `node:20-slim`); moving to a newer major is issue #263. canvas itself is not what holds it: 3.2.3 declares `node: ^18.12.0 || >= 20.9.0` and ships N-API prebuilds that load on 20, 22 and 24
+- Node is pinned to 24.21.0 (`.nvmrc`, volta, CI; the deploy image is `node:24-slim`). canvas 3.2.3 declares `node: ^18.12.0 || >= 20.9.0` and ships N-API prebuilds that load on 20, 22 and 24; alpine stages never build it (`npm ci --ignore-scripts`), and the glibc `serve-prod` stage rebuilds it and fails the build early if the binding cannot load
 - All test infrastructure is Mocha + Chai — do not introduce Jest
 - Rate limiting is handled by Cloudflare — do not add express-rate-limit
 

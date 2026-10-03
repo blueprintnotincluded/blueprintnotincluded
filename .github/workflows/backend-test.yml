@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20.19.4'
+          node-version: '24.21.0'
           cache: 'npm'
 
       - name: Install backend dependencies
@@ -59,7 +59,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20.19.4'
+          node-version: '24.21.0'
           cache: 'npm'
 
       - name: Install backend dependencies
@@ -87,8 +87,8 @@ jobs:
 
   # The only CI that forks the real render worker is publish.yml, which runs
   # after merge. The unit tests mock the renderer by design, so a crash that
-  # only happens in the real canvas + PIXI stack on Node 20 (a shim global,
-  # say) would otherwise reach master first. Same heap cap as production.
+  # only happens in the real canvas + PIXI stack on the pinned Node (a shim
+  # global, say) would otherwise reach master first. Same heap cap as production.
   render-smoke:
     runs-on: ubuntu-latest
 
@@ -99,7 +99,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20.19.4'
+          node-version: '24.21.0'
           cache: 'npm'
 
       - name: Install backend dependencies

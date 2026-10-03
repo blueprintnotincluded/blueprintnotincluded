@@ -88,7 +88,7 @@
     "@types/jsdom": "^21.1.7",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.43",
+    "@types/node": "^24.10.1",
     "@types/nodemailer": "^6.4.17",
     "@types/request-ip": "0.0.34",
     "@types/sinon": "^22.0.0",
@@ -105,10 +105,10 @@
     "typescript": "^5.9.2"
   },
   "engines": {
-    "node": "^20.19",
-    "npm": "^10.0"
+    "node": "^24.21",
+    "npm": "^11.0"
   },
   "volta": {
-    "node": "20.19.4"
+    "node": "24.21.0"
   }
 }
