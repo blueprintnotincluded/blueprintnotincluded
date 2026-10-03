@@ -276,6 +276,70 @@ describe("BuildTool", () => {
     });
   });
 
+  // A rocket module is pulled onto a free hardpoint near the cursor
+  // (lib snapRocketModulePosition). Hover, click and mouse-down must all agree,
+  // or the click would build somewhere other than where the ghost was shown.
+  describe("rocket module snapping", () => {
+    const moduleItem = () =>
+      makeTemplateItem({
+        oniItem: makeOniItem({
+          isRocketModule: true,
+          attachableTo: "Rocket",
+          attachablePosition: new Vector2(0, 0),
+          size: new Vector2(3, 2),
+        }),
+      });
+    // A launch pad at (10,0): its hardpoint is two cells above its origin.
+    const pad = () => ({
+      position: new Vector2(10, 0),
+      rotation: 0,
+      scale: new Vector2(1, 1),
+      oniItem: {
+        isRocketModule: false,
+        rocketAttachPoint: { offset: { x: 0, y: 2 }, tag: "Rocket" },
+      },
+    });
+
+    beforeEach(() => {
+      mockBlueprint.blueprintItems = [pad()];
+      templateItem = moduleItem();
+      tool.templateItemToBuild = templateItem;
+    });
+
+    it("snaps the hovering module onto the hardpoint beside the cursor", () => {
+      tool.hover(new Vector2(11, 3));
+      expect(tool.templateItemToBuild.position.x).toBe(10);
+      expect(tool.templateItemToBuild.position.y).toBe(2);
+    });
+
+    it("builds at the snapped position on click and on mouse-down", () => {
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockReturnValue(
+        makeTemplateItem() as any,
+      );
+
+      tool.leftClick(new Vector2(11, 3));
+      expect(tool.templateItemToBuild.position.x).toBe(10);
+      expect(tool.templateItemToBuild.position.y).toBe(2);
+
+      tool.mouseDown(new Vector2(9, 2));
+      expect(tool.templateItemToBuild.position.x).toBe(10);
+      expect(tool.templateItemToBuild.position.y).toBe(2);
+    });
+
+    it("leaves the module under the cursor away from any hardpoint", () => {
+      tool.hover(new Vector2(30, 30));
+      expect(tool.templateItemToBuild.position.x).toBe(30);
+      expect(tool.templateItemToBuild.position.y).toBe(30);
+    });
+
+    it("never moves an ordinary building", () => {
+      tool.templateItemToBuild = makeTemplateItem();
+      tool.hover(new Vector2(11, 3));
+      expect(tool.templateItemToBuild.position.x).toBe(11);
+      expect(tool.templateItemToBuild.position.y).toBe(3);
+    });
+  });
+
   describe("build", () => {
     it("skips when canBuild is false", () => {
       templateItem.buildCandidateResult.canBuild = false;

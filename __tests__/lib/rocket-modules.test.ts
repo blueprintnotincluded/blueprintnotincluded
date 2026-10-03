@@ -14,6 +14,10 @@ import {
   positionForAttachCell,
   rocketAttachCell,
   rocketHardpointCell,
+  snapRocketModulePosition,
+  BuildMenuCategory,
+  BuildMenuItem,
+  BlueprintItem,
 } from '../../lib';
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
@@ -230,6 +234,136 @@ describe('Rocket modules', function () {
       const engine = BlueprintHelpers.createInstance('KeroseneEngineCluster')!;
       const position = positionForAttachCell(engine, hardpoint);
       expect([position.x, position.y]).to.deep.equal([20, 7]);
+    });
+  });
+  // PLANORDER never lists a module, so the converter adds them to the rocketry tab
+  // from the export's rocketModuleMenu. Without that a module can be imported but
+  // never placed.
+  describe('build menu', function () {
+    let rocketryItems: string[];
+
+    before(function () {
+      const rocketry = BuildMenuCategory.buildMenuCategories.find(
+        c => c.categoryName == 'rocketry'
+      )!;
+      rocketryItems = BuildMenuItem.buildMenuItems
+        .filter(item => item.category == rocketry.category)
+        .map(item => item.buildingId);
+    });
+
+    it('offers every module under rocketry, exactly once', () => {
+      const modules = OniItem.oniItems.filter(item => item.isRocketModule).map(item => item.id);
+      for (const id of modules)
+        expect(rocketryItems.filter(item => item == id), id).to.have.length(1);
+    });
+
+    it('keeps the plan-menu rocketry buildings ahead of the modules', () => {
+      const firstModule = rocketryItems.findIndex(id => OniItem.getOniItem(id).isRocketModule);
+      expect(rocketryItems.slice(0, firstModule)).to.include.members(['LaunchPad', 'Gantry']);
+      expect(
+        rocketryItems.slice(firstModule).every(id => OniItem.getOniItem(id).isRocketModule)
+      ).to.equal(true);
+    });
+
+    it('lists modules in the game module-screen order: engines first', () => {
+      const modules = rocketryItems.filter(id => OniItem.getOniItem(id).isRocketModule);
+      expect(modules.slice(0, 3)).to.deep.equal(['CO2Engine', 'SugarEngine', 'SteamEngineCluster']);
+      const lastEngine = modules.reduce(
+        (last, id, index) =>
+          OniItem.getOniItem(id).rocketModule!.engineMaxHeight != null ? index : last,
+        -1
+      );
+      expect(lastEngine).to.equal(7);
+    });
+
+    it('puts no module in any other tab', () => {
+      const elsewhere = BuildMenuItem.buildMenuItems.filter(
+        item => OniItem.getOniItem(item.buildingId).isRocketModule
+      );
+      expect(elsewhere).to.have.length(32);
+    });
+  });
+
+  describe('snapping a module onto a hardpoint', function () {
+    function placed(id: string, x: number, y: number): BlueprintItem {
+      const item = BlueprintHelpers.createInstance(id)!;
+      item.position = new Vector2(x, y);
+      item.cleanUp();
+      item.prepareBoundingBox();
+      return item;
+    }
+    const xy = (v: Vector2 | null) => (v == null ? null : [v.x, v.y]);
+
+    it('pulls a module onto the launch pad from anywhere inside the spot it would occupy', () => {
+      const pad = placed('LaunchPad', 20, 5);
+      const engine = BlueprintHelpers.createInstance('KeroseneEngineCluster')!; // 7x5
+      // Dead on, the far corners of the footprint, and one cell outside it.
+      expect(xy(snapRocketModulePosition(engine, new Vector2(20, 7), [pad]))).to.deep.equal([20, 7]);
+      expect(xy(snapRocketModulePosition(engine, new Vector2(17, 7), [pad]))).to.deep.equal([20, 7]);
+      expect(xy(snapRocketModulePosition(engine, new Vector2(23, 11), [pad]))).to.deep.equal([20, 7]);
+      expect(xy(snapRocketModulePosition(engine, new Vector2(24, 12), [pad]))).to.deep.equal([20, 7]);
+      expect(xy(snapRocketModulePosition(engine, new Vector2(20, 6), [pad]))).to.deep.equal([20, 7]);
+    });
+
+    it('leaves the module under the cursor when it is clear of every hardpoint', () => {
+      const pad = placed('LaunchPad', 20, 5);
+      const engine = BlueprintHelpers.createInstance('KeroseneEngineCluster')!;
+      expect(snapRocketModulePosition(engine, new Vector2(25, 7), [pad])).to.equal(null);
+      expect(snapRocketModulePosition(engine, new Vector2(20, 13), [pad])).to.equal(null);
+      expect(snapRocketModulePosition(engine, new Vector2(20, 5), [pad])).to.equal(null);
+      expect(snapRocketModulePosition(engine, new Vector2(20, 7), [])).to.equal(null);
+    });
+
+    it('stacks on the top of the stack, not on a hardpoint that is already taken', () => {
+      const pad = placed('LaunchPad', 20, 5);
+      const engine = placed('KeroseneEngineCluster', 20, 7); // hardpoint at (20,12)
+      const tank = BlueprintHelpers.createInstance('LiquidFuelTankCluster')!; // 5x5
+      // Hovering low in the stack, inside the engine: the pad's hardpoint is taken,
+      // so there is nothing to snap to down there.
+      expect(snapRocketModulePosition(tank, new Vector2(20, 7), [pad, engine])).to.equal(null);
+      // Hovering where the tank would go.
+      expect(xy(snapRocketModulePosition(tank, new Vector2(21, 13), [pad, engine]))).to.deep.equal([
+        20,
+        12,
+      ]);
+    });
+
+    it('picks the nearer of two stacks', () => {
+      const left = placed('LaunchPad', 10, 0);
+      const right = placed('LaunchPad', 18, 0);
+      const engine = BlueprintHelpers.createInstance('CO2Engine')!; // 3x2
+      expect(xy(snapRocketModulePosition(engine, new Vector2(11, 2), [left, right]))).to.deep.equal([
+        10,
+        2,
+      ]);
+      expect(xy(snapRocketModulePosition(engine, new Vector2(17, 2), [left, right]))).to.deep.equal([
+        18,
+        2,
+      ]);
+    });
+
+    it('never snaps onto a nosecone, which offers no hardpoint', () => {
+      const nose = placed('NoseconeBasic', 20, 12);
+      const cargo = BlueprintHelpers.createInstance('ArtifactCargoBay')!;
+      expect(snapRocketModulePosition(cargo, new Vector2(20, 14), [nose])).to.equal(null);
+    });
+
+    it('does nothing for a building that is not a rocket module', () => {
+      const pad = placed('LaunchPad', 20, 5);
+      const tile = BlueprintHelpers.createInstance('Tile')!;
+      expect(snapRocketModulePosition(tile, new Vector2(20, 7), [pad])).to.equal(null);
+      // CrewCapsule attaches to "Rocket" in the base game but is not a module.
+      const capsule = BlueprintHelpers.createInstance('CrewCapsule')!;
+      expect(snapRocketModulePosition(capsule, new Vector2(20, 7), [pad])).to.equal(null);
+    });
+
+    it('ignores the brush itself when it is in the list', () => {
+      const pad = placed('LaunchPad', 20, 5);
+      const engine = placed('KeroseneEngineCluster', 20, 7);
+      // The engine already sits on the pad: asked about itself, the pad is still free.
+      expect(xy(snapRocketModulePosition(engine, new Vector2(20, 7), [pad, engine]))).to.deep.equal(
+        [20, 7]
+      );
     });
   });
 });

@@ -56379,6 +56379,134 @@
     {
       "category": 865822131,
       "buildingId": "HEPBridgeTile"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "CO2Engine"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "SugarEngine"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "SteamEngineCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "KeroseneEngineClusterSmall"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "KeroseneEngineCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "BiodieselEngineCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "HEPEngine"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "HydrogenEngineCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "HabitatModuleSmall"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "HabitatModuleMedium"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "RoboPilotModule"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "NoseconeBasic"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "NoseconeHarvest"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "OrbitalCargoModule"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "ScoutModule"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "PioneerModule"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "LiquidFuelTankCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "SmallOxidizerTank"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "OxidizerTankCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "OxidizerTankLiquidCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "SolidCargoBaySmall"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "LiquidCargoBaySmall"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "GasCargoBaySmall"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "CargoBayCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "LiquidCargoBayCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "GasCargoBayCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "ResearchClusterModule"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "SpecialCargoBayCluster"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "BatteryModule"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "SolarPanelModule"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "ArtifactCargoBay"
+    },
+    {
+      "category": 104161307,
+      "buildingId": "ScannerModule"
     }
   ],
   "elements": [

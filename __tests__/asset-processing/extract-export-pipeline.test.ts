@@ -44,10 +44,12 @@ describe('Extract Export Pipeline Tests', () => {
       expect(db.buildings.length).to.equal(488);
       expect(db.elements.length).to.equal(212);
       expect(db.buildMenuCategories.length).to.equal(15);
-      // 380, not the 403 plan-order entries: 23 of them are deprecated or debug-only
+      // 380 of the 403 plan-order entries: 23 of them are deprecated or debug-only
       // and the game never offers them either. They stay in `buildings` so saved
-      // blueprints still load — only the menu drops them.
-      expect(db.buildMenuItems.length).to.equal(380);
+      // blueprints still load — only the menu drops them. Plus the 32 rocket
+      // modules, which PLANORDER never lists (the game offers them on the
+      // rocket-platform screen) and the converter adds from rocketModuleMenu.
+      expect(db.buildMenuItems.length).to.equal(380 + 32);
     });
 
     it('should have overlay info sprites in uiSprites', () => {
