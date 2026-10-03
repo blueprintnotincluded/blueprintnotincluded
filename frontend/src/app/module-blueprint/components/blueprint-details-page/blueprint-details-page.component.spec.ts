@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { HttpErrorResponse } from "@angular/common/http";
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { By } from "@angular/platform-browser";
 import { Location } from "@angular/common";
@@ -544,6 +545,33 @@ describe("BlueprintDetailsPageComponent", () => {
         expect.objectContaining({ severity: "error" }),
       );
       expect(component.copyWorking).toBe(false);
+    });
+
+    it("does not blame the clipboard when the blueprint itself could not be fetched", async () => {
+      blueprintService.copySavedBlueprintShareString.mockRejectedValue(
+        new HttpErrorResponse({ status: 404 }),
+      );
+
+      component.copyShareString();
+      await settled();
+
+      const toast = messageService.add.mock.calls.at(-1)![0];
+      expect(toast.severity).toBe("error");
+      expect(toast.detail).toContain("could not be loaded");
+      expect(toast.detail).not.toContain("clipboard");
+    });
+
+    it("says it was the clipboard when it was the clipboard", async () => {
+      blueprintService.copySavedBlueprintShareString.mockRejectedValue(
+        new DOMException("denied", "NotAllowedError"),
+      );
+
+      component.copyShareString();
+      await settled();
+
+      expect(messageService.add.mock.calls.at(-1)![0].detail).toContain(
+        "clipboard",
+      );
     });
 
     it("ignores a second click while the first copy is in flight", () => {

@@ -496,13 +496,29 @@ export function readSettingField(
 // `next`. For an ordinary descriptor that is `next` itself; for a jsonProperty one
 // it is the serialized object with that one property replaced and every other
 // property (and their order) kept. Compact JSON, as Newtonsoft writes it.
+//
+// Holds to the reader's contract: a serialized field that readSettingField has
+// nothing to show for is not writable either, and this throws rather than guess.
+// Writing through a failed guard would overwrite a value that means something
+// else (a top-priority entry's priority_value), and rebuilding a malformed string
+// from `{}` would hand the game a priority with no class. The panel never gets
+// here -- it only offers rows that read back -- so this is for a direct caller,
+// the same way setBuildingSetting throws on a Key it cannot create.
 export function writeSettingField(
   descriptor: SettingFieldDescriptor,
   value: Record<string, any> | null | undefined,
   next: any
 ): any {
   if (descriptor.jsonProperty == null) return next;
-  const serialized = parseSerializedObject(value?.[descriptor.field]) ?? {};
+  const serialized = parseSerializedObject(value?.[descriptor.field]);
+  if (
+    serialized == null ||
+    (descriptor.jsonGuard != null &&
+      serialized[descriptor.jsonGuard.property] !== descriptor.jsonGuard.equals)
+  )
+    throw new Error(
+      `writeSettingField: '${descriptor.field}.${descriptor.jsonProperty}' is not writable on this stored value`
+    );
   serialized[descriptor.jsonProperty] = next;
   return JSON.stringify(serialized);
 }
