@@ -28,7 +28,9 @@ import {
   SpriteModifier,
   Vector2,
   dlcLabel,
+  rocketStackWarnings,
 } from "../../../../../../lib/index";
+import { describeRocketStackWarnings } from "../../utils/rocket-stack-messages";
 import { ToolType } from "../../common/tools/tool";
 import { AuthenticationService } from "../../services/authentification-service";
 import {
@@ -479,6 +481,29 @@ export class ComponentBlueprintParentComponent
       });
 
     this.noticeHiddenDlcs(this.blueprintService.requiredDlcs);
+    this.noticeRocketStacks(true);
+  }
+
+  // Rocket stacks the game will not build as drawn: a module off its hardpoint,
+  // something stacked on a nosecone, two engines, a stack taller than its engine
+  // lifts (lib analyzeRocketStacks). The Blueprints mod refuses those placements
+  // in game, so the user hears it here first -- on opening a blueprint and again
+  // whenever they take a copy out to the game. A notice and nothing more: it
+  // never blocks a save, a download or a copy, and a blueprint with no rocket
+  // in it never sees one.
+  noticeRocketStacks(sticky: boolean) {
+    const warnings = rocketStackWarnings(
+      this.blueprintService.blueprint.blueprintItems,
+    );
+    if (warnings.length === 0) return;
+    this.messageService.add({
+      severity: "warn",
+      summary: $localize`:editor.rocketStack.summary:Rocket will not build as drawn`,
+      detail: describeRocketStackWarnings(warnings),
+      sticky,
+      // An export notice is not sticky, but it is longer than a glance.
+      life: 12000,
+    });
   }
 
   // #14 option (c): the site never knows which packs a user owns, so the only
@@ -544,6 +569,7 @@ export class ComponentBlueprintParentComponent
       // Serves the byte-exact imported file when the blueprint is an
       // unedited import; otherwise generates from the parsed model
       this.blueprintService.exportBlueprintFile(friendlyname);
+      this.noticeRocketStacks(false);
     }
   }
 
@@ -572,6 +598,7 @@ export class ComponentBlueprintParentComponent
           summary: $localize`Blueprint copied`,
           detail: $localize`Paste it into the game with the BlueprintsV2 mod`,
         });
+        this.noticeRocketStacks(false);
       })
       .catch(() => {
         this.messageService.add({

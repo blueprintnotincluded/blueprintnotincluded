@@ -186,3 +186,139 @@ describe("ComponentBlueprintParentComponent.noticeHiddenDlcs", () => {
     expect(messageService.add).not.toHaveBeenCalled();
   });
 });
+
+// The rocket notice, tested the same way as the hidden-pack one: stubs all
+// round, component never initialised. The modules are structural stand-ins that
+// satisfy lib's rocketStackWarnings -- the analysis itself is covered in the lib
+// suite against the real game database.
+describe("ComponentBlueprintParentComponent.noticeRocketStacks", () => {
+  let component: ComponentBlueprintParentComponent;
+  let messageService: { add: ReturnType<typeof vi.fn> };
+  let blueprintService: any;
+
+  const engine = (id: string, y: number) => ({
+    id,
+    position: { x: 0, y },
+    rotation: 0,
+    scale: { x: 1, y: 1 },
+    oniItem: {
+      isRocketModule: true,
+      attachableTo: "Rocket",
+      attachablePosition: { x: 0, y: 0 },
+      rocketAttachPoint: { offset: { x: 0, y: 2 }, tag: "Rocket" },
+      size: { x: 3, y: 2 },
+      rocketModule: {
+        buildConditions: ["LimitOneEngine", "EngineOnBottom"],
+        engineMaxHeight: 10,
+      },
+    },
+  });
+
+  beforeEach(async () => {
+    messageService = { add: vi.fn() };
+    blueprintService = {
+      id: "bp-1",
+      name: "Rocket",
+      requiredDlcs: null,
+      blueprint: { blueprintItems: [] },
+      exportBlueprintFile: vi.fn(),
+      copyBlueprintShareString: vi.fn().mockResolvedValue(undefined),
+      unsubscribeBlueprintChanged: vi.fn(),
+      unsubscribeImportError: vi.fn(),
+    };
+
+    await TestBed.configureTestingModule({
+      declarations: [ComponentBlueprintParentComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: ActivatedRoute, useValue: { params: of({}), url: of([]) } },
+        {
+          provide: AuthenticationService,
+          useValue: { isLoggedIn: vi.fn().mockReturnValue(false) },
+        },
+        { provide: BlueprintService, useValue: blueprintService },
+        { provide: ToolService, useValue: {} },
+        { provide: HttpClient, useValue: {} },
+        { provide: GameStringService, useValue: {} },
+        { provide: KeyboardShortcutService, useValue: {} },
+        { provide: UserService, useValue: {} },
+      ],
+    })
+      .overrideComponent(ComponentBlueprintParentComponent, {
+        set: {
+          providers: [{ provide: MessageService, useValue: messageService }],
+        },
+      })
+      .compileComponents();
+
+    component = TestBed.createComponent(
+      ComponentBlueprintParentComponent,
+    ).componentInstance;
+  });
+
+  const rocketToasts = () =>
+    messageService.add.mock.calls
+      .map((call) => call[0])
+      .filter((toast) => toast.summary == "Rocket will not build as drawn");
+
+  it("says nothing about a blueprint with no rocket in it", () => {
+    component.noticeRocketStacks(true);
+    expect(messageService.add).not.toHaveBeenCalled();
+  });
+
+  it("says nothing about a sound stack", () => {
+    blueprintService.blueprint.blueprintItems = [engine("CO2Engine", 0)];
+    component.noticeRocketStacks(true);
+    expect(messageService.add).not.toHaveBeenCalled();
+  });
+
+  it("warns, naming the problem, when a stack would be refused in game", () => {
+    blueprintService.blueprint.blueprintItems = [
+      engine("CO2Engine", 0),
+      engine("SugarEngine", 2),
+    ];
+
+    component.noticeRocketStacks(true);
+
+    expect(messageService.add).toHaveBeenCalledTimes(1);
+    const toast = messageService.add.mock.calls[0][0];
+    expect(toast.severity).toBe("warn");
+    expect(toast.sticky).toBe(true);
+    expect(toast.detail).toContain("SugarEngine");
+    expect(toast.detail).toContain("bottom module");
+    expect(toast.detail).toContain("2 engines");
+  });
+
+  it("warns on a file export without getting in its way", () => {
+    blueprintService.blueprint.blueprintItems = [
+      engine("CO2Engine", 0),
+      engine("SugarEngine", 2),
+    ];
+
+    component.exportBlueprint();
+
+    expect(blueprintService.exportBlueprintFile).toHaveBeenCalledWith("Rocket");
+    expect(rocketToasts()).toHaveLength(1);
+    expect(rocketToasts()[0].sticky).toBe(false);
+  });
+
+  it("warns after a share-string copy, alongside the confirmation", async () => {
+    blueprintService.blueprint.blueprintItems = [
+      engine("CO2Engine", 0),
+      engine("SugarEngine", 2),
+    ];
+
+    component.copyBlueprintText();
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(blueprintService.copyBlueprintShareString).toHaveBeenCalled();
+    expect(rocketToasts()).toHaveLength(1);
+  });
+
+  it("exports a sound rocket with no rocket notice at all", () => {
+    blueprintService.blueprint.blueprintItems = [engine("CO2Engine", 0)];
+    component.exportBlueprint();
+    expect(blueprintService.exportBlueprintFile).toHaveBeenCalled();
+    expect(rocketToasts()).toHaveLength(0);
+  });
+});

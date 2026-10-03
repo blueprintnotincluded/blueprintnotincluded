@@ -323,3 +323,184 @@ export function deriveCategory(prefabIds: string[], lookup: CategoryLookup): Cat
 
   return bestScore >= MIN_CATEGORY_SCORE ? best : null;
 }
+
+// --- Rocket stack validation --------------------------------------------
+//
+// A rocket in a blueprint is a stack of ordinary buildings; nothing in the file
+// says so, and nothing stops the editor (or a hand-edited file) from holding a stack
+// the game will not build. The Blueprints mod refuses the bad placements in game.
+// These checks say so beforehand, as warnings and never as blockers: the blueprint
+// still saves and exports exactly as it is.
+//
+// Pure, like the rest of this module: the geometry is resolved by the caller
+// (rocketStackParts in rocket-stack.ts) into the plain records below.
+
+export interface RocketStackPart {
+  prefabId: string;
+  // The origin cell.
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  // True for a rocket module; false for anything else that offers a rocket
+  // hardpoint (the Rocket Platform).
+  isModule: boolean;
+  // The cell this part has to sit on a hardpoint with. null for a non-module.
+  attachCell: { x: number; y: number } | null;
+  // The rocket hardpoint this part offers. null when nothing can be stacked on it.
+  hardpointCell: { x: number; y: number } | null;
+  // The game's SelectModuleCondition names for a module; [] otherwise.
+  buildConditions: string[];
+  // Engines only.
+  engineMaxHeight?: number;
+}
+
+export interface RocketStackPartRef {
+  prefabId: string;
+  x: number;
+  y: number;
+}
+
+export type RocketStackWarning =
+  // Sits right beside a free hardpoint without being on it. `offset` is how far the
+  // module would have to move to land on it.
+  | {
+      kind: 'misaligned';
+      module: RocketStackPartRef;
+      hardpointOwner: RocketStackPartRef;
+      offset: { x: number; y: number };
+    }
+  // Stacked on a module nothing can be stacked on (a nosecone, the Solo Spacefarer
+  // Nosecone): the game's TopOnly condition.
+  | { kind: 'onTopOnly'; module: RocketStackPartRef; below: RocketStackPartRef }
+  // An engine with a module beneath it: EngineOnBottom.
+  | { kind: 'engineNotOnBottom'; module: RocketStackPartRef; below: RocketStackPartRef }
+  // More than one of a part a rocket may have only one of: LimitOneEngine,
+  // LimitOneCommandModule, LimitOneRoboPilotModule.
+  | {
+      kind: 'multipleEngines' | 'multipleCommandModules' | 'multipleRoboPilots';
+      modules: RocketStackPartRef[];
+    }
+  // Taller than its engine can lift: RocketHeightLimit.
+  | { kind: 'tooTall'; engine: RocketStackPartRef; height: number; maxHeight: number };
+
+const CONDITION_ENGINE_ON_BOTTOM = 'EngineOnBottom';
+const LIMIT_ONE_CONDITIONS: {
+  condition: string;
+  kind: 'multipleEngines' | 'multipleCommandModules' | 'multipleRoboPilots';
+}[] = [
+  { condition: 'LimitOneEngine', kind: 'multipleEngines' },
+  { condition: 'LimitOneCommandModule', kind: 'multipleCommandModules' },
+  { condition: 'LimitOneRoboPilotModule', kind: 'multipleRoboPilots' },
+];
+
+const cellKey = (cell: { x: number; y: number }) => cell.x + ',' + cell.y;
+const refOf = (part: RocketStackPart): RocketStackPartRef => ({
+  prefabId: part.prefabId,
+  x: part.x,
+  y: part.y,
+});
+
+export function analyzeRocketStacks(parts: RocketStackPart[]): RocketStackWarning[] {
+  const warnings: RocketStackWarning[] = [];
+  const modules = parts.filter(part => part.isModule && part.attachCell != null);
+  if (modules.length === 0) return warnings;
+
+  // Who offers each hardpoint, and what sits on it.
+  const ownerByHardpoint = new Map<string, RocketStackPart>();
+  for (const part of parts)
+    if (part.hardpointCell != null) ownerByHardpoint.set(cellKey(part.hardpointCell), part);
+
+  const parentOf = new Map<RocketStackPart, RocketStackPart>();
+  const childrenOf = new Map<RocketStackPart, RocketStackPart[]>();
+  for (const module of modules) {
+    const parent = ownerByHardpoint.get(cellKey(module.attachCell!));
+    if (parent == null || parent === module) continue;
+    parentOf.set(module, parent);
+    childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), module]);
+  }
+
+  // Where a hardpoint WOULD be on a part that has none: directly above its origin,
+  // one part-height up, which is where every vanilla module's is.
+  const topOnlyByCell = new Map<string, RocketStackPart>();
+  for (const part of modules)
+    if (part.hardpointCell == null)
+      topOnlyByCell.set(cellKey({ x: part.x, y: part.y + part.height }), part);
+
+  for (const module of modules) {
+    const parent = parentOf.get(module);
+
+    if (parent != null) {
+      if (parent.isModule && module.buildConditions.includes(CONDITION_ENGINE_ON_BOTTOM))
+        warnings.push({ kind: 'engineNotOnBottom', module: refOf(module), below: refOf(parent) });
+      continue;
+    }
+
+    // No hardpoint under it. That alone is not a fault: a stack with no Rocket
+    // Platform in the blueprint is pasted onto one that already exists. What IS a
+    // fault is sitting on something that cannot carry it, or just missing a
+    // hardpoint that is right there.
+    const topOnly = topOnlyByCell.get(cellKey(module.attachCell!));
+    if (topOnly != null && topOnly !== module) {
+      warnings.push({ kind: 'onTopOnly', module: refOf(module), below: refOf(topOnly) });
+      continue;
+    }
+
+    let nearest: { owner: RocketStackPart; offset: { x: number; y: number } } | null = null;
+    for (const owner of parts) {
+      if (owner === module || owner.hardpointCell == null) continue;
+      if ((childrenOf.get(owner) ?? []).length > 0) continue; // taken
+      const offset = {
+        x: owner.hardpointCell.x - module.attachCell!.x,
+        y: owner.hardpointCell.y - module.attachCell!.y,
+      };
+      // Beside it: at most a row off, and the two footprints share a column.
+      if (Math.abs(offset.y) > 1) continue;
+      if (Math.abs(offset.x) > Math.floor(module.width / 2) + Math.floor(owner.width / 2)) continue;
+      const distance = Math.abs(offset.x) + Math.abs(offset.y);
+      if (nearest == null || distance < Math.abs(nearest.offset.x) + Math.abs(nearest.offset.y))
+        nearest = { owner, offset };
+    }
+    if (nearest != null)
+      warnings.push({
+        kind: 'misaligned',
+        module: refOf(module),
+        hardpointOwner: refOf(nearest.owner),
+        offset: nearest.offset,
+      });
+  }
+
+  // Each stack: a module with no module beneath it, and everything attached above.
+  for (const base of modules) {
+    const parent = parentOf.get(base);
+    if (parent != null && parent.isModule) continue;
+
+    const stack: RocketStackPart[] = [];
+    const queue = [base];
+    const seen = new Set<RocketStackPart>();
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (seen.has(current)) continue;
+      seen.add(current);
+      stack.push(current);
+      queue.push(...(childrenOf.get(current) ?? []));
+    }
+
+    for (const { condition, kind } of LIMIT_ONE_CONDITIONS) {
+      const limited = stack.filter(part => part.buildConditions.includes(condition));
+      if (limited.length > 1) warnings.push({ kind, modules: limited.map(refOf) });
+    }
+
+    // Judged only when the stack has exactly one engine: with none there is no
+    // limit to read, and with several the stack is already reported above.
+    const engines = stack.filter(part => part.engineMaxHeight != null);
+    if (engines.length === 1) {
+      const height = stack.reduce((total, part) => total + part.height, 0);
+      const maxHeight = engines[0].engineMaxHeight!;
+      if (height > maxHeight)
+        warnings.push({ kind: 'tooTall', engine: refOf(engines[0]), height, maxHeight });
+    }
+  }
+
+  return warnings;
+}

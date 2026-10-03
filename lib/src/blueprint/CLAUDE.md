@@ -296,6 +296,52 @@ edits.
   simulated mid-edit change-detection tick rather than reusing a captured node reference)
   fails without the fix and passes with it.
 
+### Rocket modules
+
+A rocket in a `.blueprint` is ordinary `buildings[]` entries: prefab id, origin-cell offset,
+orientation `0` or `FlipH` (5), material hashes. There is no rocket key, no hardpoint data and
+no "this is a stack" marker — the Blueprints mod recomputes stacking from the game's
+`BuildingDef`s at placement time. The site does the same from the same facts, as exported
+(converter side: "Rocket modules and attachment" in `app/api/batch/convert-export-2024.md`).
+
+- **The model** — `OniItem.attachPoints` (hardpoints offered), `attachableTo` /
+  `attachablePosition` (the hardpoint tag a building sits on, and with which cell), and
+  `rocketModule` (burden, engine power, the game's build-condition names, `engineMaxHeight`
+  on engines), present exactly on the 32 modules. Module B is stacked on A when B's attach
+  cell is A's `Rocket` hardpoint cell: `(0, heightInCells)` above the origin on a module,
+  `(0, 2)` on the 7×2 Rocket Platform, absent on the three `TopOnly` modules. Offsets are
+  from the **origin cell**, which is `BlueprintItem.position`, so nothing is transformed.
+  Gate on `isRocketModule`: `CrewCapsule` also attaches to `Rocket` and is not a module, and
+  six other buildings attach to non-rocket tags that nothing models.
+- **Geometry** — `rocket-stack.ts`: `rocketHardpointCell`, `rocketAttachCell`,
+  `positionForAttachCell`. World cells, orientation-aware (every vanilla offset has `x = 0`
+  and every module is odd-width around its origin, so a flip changes nothing in practice).
+- **Flip only** — the converter overrides `permittedRotations` to `FlipH` for modules; the
+  game exports `Unrotatable`, the mod lets them mirror.
+- **Build menu** — the converter appends the export's `rocketModuleMenu` to the rocketry tab.
+  `PLANORDER` never lists a module.
+- **Snapping** — `snapRocketModulePosition`, used by `BuildTool.placeAt` for hover, click and
+  mouse-down alike so a click builds where the ghost was. A module is pulled onto a *free*
+  hardpoint when the cursor is inside the footprint it would occupy there, give or take one
+  cell; otherwise it goes under the cursor. The mod only validates, but in game that refusal
+  is visible while aiming — the editor has no such feedback, and a module one cell off looks
+  placed and is not buildable. Free placement stays possible because a stack with no platform
+  in the blueprint is legitimate: it is pasted onto one that already exists.
+- **Validation** — `analyzeRocketStacks` in `blueprint-analyzer.ts`, pure over plain records
+  (`rocketStackParts` adapts `BlueprintItem`s). It reports what the mod would refuse:
+  `misaligned` (a module beside a free hardpoint but not on it, with the correction),
+  `onTopOnly` (stacked on a nosecone), `engineNotOnBottom`, `multipleEngines` /
+  `multipleCommandModules` / `multipleRoboPilots`, and `tooTall` (stack height over the
+  engine's `maxHeight`, judged only with exactly one engine). A module with nothing under it
+  is **not** a warning on its own, for the same pasted-onto-a-platform reason. Speed and mass
+  budget (`Σ enginePower / Σ burden`) are carried in the data and not yet reported.
+- **Surfacing** — a warn toast from `ComponentBlueprintParentComponent.noticeRocketStacks`:
+  sticky when a blueprint is opened (beside the unrecognized-buildings and hidden-DLC
+  notices), and again, not sticky, after a file export or share-string copy. Never a blocker.
+  Wording lives in `frontend/.../utils/rocket-stack-messages.ts`.
+- **Fixture caveat** — `rocket-modules-stack-synthetic.blueprint` is built from the export's
+  real `attachPoints`, not captured from a game.
+
 ### Range-carrying settings (Prioritizable, Door, Valve, LimitValve, capacity, name)
 
 Six more `buildingData` Keys are catalogued: `Prioritizable`, `Door`, `Valve`, `LimitValve`,
