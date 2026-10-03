@@ -8,6 +8,7 @@ import {
   Vector2,
   BuildLocationRule,
   ConnectionHelper,
+  snapRocketModulePosition,
 } from "../../../../../../lib/index";
 import { Injectable, ApplicationRef } from "@angular/core";
 import { ITool, IChangeTool, ToolType } from "./tool";
@@ -270,13 +271,28 @@ export class BuildTool implements ITool {
     this.templateItemToBuild?.setDrawnVisible(true);
   }
 
+  // Put the brush on a tile. A rocket module is pulled onto a free hardpoint
+  // when the cursor is on or beside the spot it would occupy there (see
+  // snapRocketModulePosition); everything else goes exactly where the cursor is.
+  // Every path that positions the brush from a cursor tile goes through here, so
+  // the click builds at the position the hover showed.
+  private placeAt(tile: Vector2) {
+    this.templateItemToBuild.position =
+      snapRocketModulePosition(
+        this.templateItemToBuild,
+        tile,
+        this.blueprintService.blueprint.blueprintItems,
+      ) ?? tile;
+  }
+
   mouseOut() {
     if (this.templateItemToBuild != null)
       this.templateItemToBuild.setInvisible();
   }
 
   leftClick(tile: Vector2) {
-    this.templateItemToBuild.position = tile;
+    this.placeAt(tile);
+    this.templateItemToBuild.prepareBoundingBox();
     this.build();
   }
 
@@ -285,7 +301,7 @@ export class BuildTool implements ITool {
   }
 
   hover(tile: Vector2) {
-    this.templateItemToBuild.position = Vector2.clone(tile)!;
+    this.placeAt(Vector2.clone(tile)!);
     this.templateItemToBuild.prepareBoundingBox();
     this.templateItemToBuild.sortChildren();
     this.updateBuildCandidateResult();
@@ -303,7 +319,8 @@ export class BuildTool implements ITool {
   }
 
   mouseDown(tile: Vector2) {
-    this.templateItemToBuild.position = tile;
+    this.placeAt(tile);
+    this.templateItemToBuild.prepareBoundingBox();
     this.build();
   }
 

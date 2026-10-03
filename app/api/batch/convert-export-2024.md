@@ -60,8 +60,8 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 | `connection_sprites/<prefabId>/<0..15>.png` | the 16 tiling states for connectables |
 | `ui_image_facade/` | nothing today (not copied) |
 
-Current output (488 buildings): 212 elements, 380 build-menu items (403 plan-order entries
-less the 23 deprecated/debug-only ones), 15 categories,
+Current output (488 buildings): 212 elements, 412 build-menu items (403 plan-order entries
+less the 23 deprecated/debug-only ones, plus the 32 rocket modules), 15 categories,
 513 uiSprites (488 building icons + 17 injected element/info overlays + 8 utility-port
 indicators registered from the export's `ui_image/` PNGs), 33 connectables, 322 buildings
 with utility ports.
@@ -317,6 +317,15 @@ every `isRocketModule` building (`ROCKET_MODULE_PERMITTED_ROTATIONS`), a manual 
 the family of `BACK_COLOR_BY_PREFAB` and `PINNED_ICONS`: right for the game, wrong for what a
 blueprint can hold. The editor's rotate action then cycles Neutral → FlipH on a module, as the
 mod does.
+
+**Build menu.** `TUNING.BUILDINGS.PLANORDER` (`buildingAndSubcategoryDataPairs`) never lists a
+module — the game offers them on the rocket-platform screen — so the plan-order menu alone
+leaves modules importable but unplaceable. The converter appends the export's root
+`rocketModuleMenu[]` to `buildMenuItems` under the `rocketry` category (id `104161307`), after
+that tab's plan-order entries and in the module screen's own order (engines, crew modules,
+nosecones, then tanks and cargo). They are deliberately not filtered on
+`showInBuildMenu: false`: every module has it, because that flag describes the plan menu this
+list supplements. The deprecated/debug-only filter still applies.
 
 The import checks that the two halves of the export agree and fails otherwise:
 `rocketModuleMenu` (root, the game's module-screen order) lists exactly the `isRocketModule`

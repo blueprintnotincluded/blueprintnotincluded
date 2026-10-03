@@ -813,6 +813,25 @@ export function convertExport2024(opts: ConvertOptions): void {
     })
     .map((b) => b.name);
 
+  // The modules' build menu. PLANORDER never lists them (the game offers them on the
+  // rocket-platform screen instead), so without this a module can be imported but
+  // never placed. They go under the game's own rocketry tab, after its PLANORDER
+  // entries, in the module screen's order: engines, crew, nosecones, then tanks and
+  // cargo. Deliberately NOT filtered on showInBuildMenu -- every module has it false,
+  // because that flag is about the plan menu this list exists to supplement.
+  const rocketryCategoryId = categoryNameToId.get(ROCKETRY_CATEGORY_NAME);
+  if (rocketModuleMenu.length > 0 && rocketryCategoryId === undefined)
+    missingCategories.push(ROCKETRY_CATEGORY_NAME);
+  if (rocketryCategoryId !== undefined)
+    for (const id of rocketModuleMenu) {
+      if (!rocketModulePrefabs.has(id)) continue; // reported above
+      if (hiddenPrefabs.has(id)) {
+        hiddenMenuBuildings.push(id);
+        continue;
+      }
+      buildMenuItems.push({ category: rocketryCategoryId, buildingId: id });
+    }
+
   // Overlay sprites: element tiles + info indicators. These are not from the game export —
   // they are handcrafted additions that `OniItem.load()` requires for the element-tile and
   // info-indicator overlays. The corresponding PNGs live in assets/images/ (not ui_image/).
@@ -1111,7 +1130,8 @@ export function convertExport2024(opts: ConvertOptions): void {
   console.log(
     '  rocket modules                     :',
     rocketModulePrefabs.size,
-    `(menu roster ${rocketModuleMenu.length}; permittedRotations overridden to FlipH)`
+    `(menu roster ${rocketModuleMenu.length}, added to the rocketry tab; ` +
+      'permittedRotations overridden to FlipH)'
   );
   console.log(
     '  rocket menu ids that are not modules:',
@@ -1580,6 +1600,9 @@ export const BACK_COLOR_BY_PREFAB: { [prefabId: string]: number } = {
 // Neutral -> FlipH on a module, exactly as the mod does, and a flipped module imported
 // from a file is one the editor could have produced.
 const ROCKET_MODULE_PERMITTED_ROTATIONS = PermittedRotations.FlipH;
+
+// buildMenuCategories.categoryName of the tab the rocket modules are listed under.
+const ROCKETRY_CATEGORY_NAME = 'rocketry';
 
 // The attachment model, as the site stores it: which hardpoint tag a building sits on,
 // which hardpoints it offers, and -- for rocket modules -- the numbers a stack is

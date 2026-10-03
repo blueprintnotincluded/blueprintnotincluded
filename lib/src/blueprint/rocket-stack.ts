@@ -56,3 +56,60 @@ export function positionForAttachCell(item: BlueprintItem, cell: Vector2): Vecto
   const offset = orientedOffset(item, item.oniItem.attachablePosition);
   return new Vector2(cell.x - offset.x, cell.y - offset.y);
 }
+
+// How far outside the footprint a module would occupy the cursor may be and still
+// snap onto a hardpoint. One cell: enough that aiming at the seam between two
+// modules lands, small enough that a module can still be set down beside a stack.
+const SNAP_MARGIN = 1;
+
+// Where a rocket module being placed should go so that it sits on a hardpoint near
+// the cursor, or null to leave it under the cursor.
+//
+// The mod itself does not snap; it only refuses a module that is not on a
+// hardpoint. In game that refusal is visible as you move the cursor. The editor has
+// no such feedback, so it does the friendlier equivalent and pulls the module onto
+// the stack: a module that is one cell off looks placed and is not buildable.
+//
+// A hardpoint is a candidate when it is free (no module already sits on it) and the
+// cursor is inside the footprint the module would occupy there, give or take
+// SNAP_MARGIN. Among candidates the nearest origin wins. Away from every hardpoint
+// this returns null and the module goes where the cursor is -- a stack with no pad
+// in the blueprint is legitimate (it is pasted onto a pad that already exists).
+export function snapRocketModulePosition(
+  item: BlueprintItem,
+  cursor: Vector2,
+  placedItems: BlueprintItem[]
+): Vector2 | null {
+  if (!attachesToRocket(item)) return null;
+
+  const taken = new Set<string>();
+  for (const other of placedItems)
+    if (other !== item && attachesToRocket(other)) {
+      const cell = rocketAttachCell(other);
+      taken.add(cell.x + ',' + cell.y);
+    }
+
+  const halfWidth = Math.floor(item.oniItem.size.x / 2);
+  const height = item.oniItem.size.y;
+
+  let best: Vector2 | null = null;
+  let bestDistance = Infinity;
+  for (const other of placedItems) {
+    if (other === item) continue;
+    const hardpoint = rocketHardpointCell(other);
+    if (hardpoint == null || taken.has(hardpoint.x + ',' + hardpoint.y)) continue;
+
+    const origin = positionForAttachCell(item, hardpoint);
+    const dx = cursor.x - origin.x;
+    const dy = cursor.y - origin.y;
+    if (Math.abs(dx) > halfWidth + SNAP_MARGIN) continue;
+    if (dy < -SNAP_MARGIN || dy > height - 1 + SNAP_MARGIN) continue;
+
+    const distance = Math.abs(dx) + Math.abs(dy);
+    if (distance < bestDistance) {
+      best = origin;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
