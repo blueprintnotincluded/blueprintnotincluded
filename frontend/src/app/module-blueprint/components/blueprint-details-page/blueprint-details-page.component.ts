@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { Location } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
 import { ActivatedRoute, Router } from "@angular/router";
 import { EMPTY, Observable } from "rxjs";
 import { catchError, finalize, switchMap, tap } from "rxjs/operators";
@@ -365,11 +366,17 @@ export class BlueprintDetailsPageComponent implements OnInit {
           detail: $localize`:shareStringCopiedDetail:Paste it into the game with the Blueprints mod (Ctrl+V)`,
         });
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        // The copy fetches the blueprint before it writes the clipboard, so a
+        // failure is not always the browser's doing. Blaming clipboard
+        // permissions for a 404 would send the reader to fix the wrong thing.
         this.messageService.add({
           severity: "error",
           summary: $localize`:shareStringCopyError:Could not copy blueprint`,
-          detail: $localize`:shareStringCopyErrorDetail:Your browser did not allow writing to the clipboard`,
+          detail:
+            error instanceof HttpErrorResponse
+              ? $localize`:shareStringCopyFetchErrorDetail:The blueprint could not be loaded. Try again in a moment.`
+              : $localize`:shareStringCopyErrorDetail:Your browser did not allow writing to the clipboard`,
         });
       })
       .finally(() => (this.copyWorking = false));

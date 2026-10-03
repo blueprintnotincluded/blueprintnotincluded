@@ -1,6 +1,6 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { BlueprintItem } from '../../lib/index';
+import { BlueprintItem, Overlay, Vector2 } from '../../lib/index';
 import { loadGameDatabase } from '../helpers/roomFixtures';
 
 // A destroyed BlueprintItem used to stay indistinguishable from a live one:
@@ -107,5 +107,63 @@ describe('BlueprintItem lifecycle after destroy', function () {
     expect(() => item.drawPixi(camera, pixiUtil)).to.not.throw();
     expect(item.container).to.equal(null);
     expect(item.containerCreated).to.equal(false);
+  });
+});
+
+// A disabled building (BlueprintsV2 `tempDisabled`) is dimmed through its
+// container's alpha -- but its port markers are drawn on the camera's container,
+// which that alpha never reaches. They used to stay fully opaque over a building
+// drawn as switched off.
+describe('BlueprintItem port markers on a disabled building', function () {
+  const fakeSprite = () => ({
+    visible: false,
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    alpha: 1,
+    texture: { baseTexture: { valid: true } },
+  });
+
+  // A Liquid Pump has a liquid output, shown in the Liquid overlay. Sprites are
+  // seeded so the draw skips texture creation, which needs a real PIXI.
+  const drawPorts = (item: BlueprintItem, overlay: Overlay) => {
+    item.utilitySprites = item.oniItem.utilityConnections.map(() => fakeSprite());
+    const camera = { overlay, cameraOffset: new Vector2(0, 0), currentZoom: 32 };
+    (item as any).drawPixiUtility(camera, {});
+    return item.utilitySprites.filter((sprite: any) => sprite.visible);
+  };
+
+  const makePump = () => {
+    loadGameDatabase();
+    const item = new BlueprintItem('LiquidPump');
+    item.cleanUp();
+    return item;
+  };
+
+  it('dims the markers with the building', function () {
+    const item = makePump();
+    item.tempDisabled = true;
+    const shown = drawPorts(item, Overlay.Liquid);
+    expect(shown.length, 'markers in the liquid overlay').to.be.greaterThan(0);
+    for (const sprite of shown) expect(sprite.alpha).to.equal(BlueprintItem.tempDisabledAlpha);
+  });
+
+  it('leaves an enabled building\'s markers opaque', function () {
+    const shown = drawPorts(makePump(), Overlay.Liquid);
+    expect(shown.length).to.be.greaterThan(0);
+    for (const sprite of shown) expect(sprite.alpha).to.equal(1);
+  });
+
+  it('restores them when the building is re-enabled, on markers that already exist', function () {
+    const item = makePump();
+    item.tempDisabled = true;
+    const sprites = item.oniItem.utilityConnections.map(() => fakeSprite());
+    const camera = { overlay: Overlay.Liquid, cameraOffset: new Vector2(0, 0), currentZoom: 32 };
+    item.utilitySprites = sprites;
+    (item as any).drawPixiUtility(camera, {});
+    item.tempDisabled = false;
+    (item as any).drawPixiUtility(camera, {});
+    for (const sprite of sprites.filter(s => s.visible)) expect(sprite.alpha).to.equal(1);
   });
 });

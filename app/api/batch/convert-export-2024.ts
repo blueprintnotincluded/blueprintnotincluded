@@ -44,6 +44,7 @@ import {
   BPoStringFile2024,
   BGeyserFile2024,
   BEntitiesFile2024,
+  ROCKET_ATTACH_TAG,
 } from '../../../lib';
 import { Overlay } from '../../../lib/src/enums/overlay';
 import { PermittedRotations } from '../../../lib/src/enums/permitted-rotations';
@@ -809,7 +810,7 @@ export function convertExport2024(opts: ConvertOptions): void {
   const rocketTopMismatches = buildingFile.bBuildingDefList
     .filter((b) => b.isRocketModule)
     .filter((b) => {
-      const offersHardpoint = (b.attachPoints ?? []).some((p) => p.tag === 'Rocket');
+      const offersHardpoint = (b.attachPoints ?? []).some((p) => p.tag === ROCKET_ATTACH_TAG);
       const topOnly = (b.moduleBuildConditions ?? []).indexOf('TopOnly') !== -1;
       return offersHardpoint === topOnly;
     })

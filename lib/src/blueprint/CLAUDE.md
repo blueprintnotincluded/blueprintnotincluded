@@ -389,7 +389,9 @@ a float until the prefab says its valve tops out at 10 kg/s.
 - **`Prioritizable` is serialized twice.** `masterPrioritySetting` is a JSON *string* of
   `{"priority_class":0,"priority_value":9}`. A descriptor with `jsonProperty` reads and
   writes one property of such a string (`readSettingField` / `writeSettingField`), keeping the
-  rest verbatim; writing back the stored value reproduces the mod's own bytes. The row is
+  rest verbatim; writing back the stored value reproduces the mod's own bytes. The writer
+  holds to the reader's contract and throws on a value the reader would not show (malformed,
+  or guarded out), rather than overwrite something that means something else. The row is
   offered only while `priority_class` is 0 (`jsonGuard`): the other classes reuse
   `priority_value` with another meaning (the yellow-alert top priority stores value 1), so a
   1–9 row there would misreport it. Such an entry is counted in the panel's "other stored
@@ -431,7 +433,8 @@ the blueprint is placed, and left out of the mod's own building counts. Written 
   see-through (`tempDisabledTint` / `tempDisabledAlpha`), multiplied onto whatever the overlay
   decided. Both on purpose: overlay dimming is alpha alone, so the tint is what distinguishes
   "switched off" from "not part of this overlay". The server preview shares the code path, so
-  previews show it too.
+  previews show it too. The port markers are dimmed separately in `drawPixiUtility`: they
+  live on the camera's container, which the item container's alpha never reaches.
 - **Edit** — one checkbox in `item-collection-info`, applied to the whole same-item collection
   as a single `blueprintChanged` (one undo step); a mixed collection shows indeterminate. Not
   offered for element cells, which never reach the mod's `buildings`.

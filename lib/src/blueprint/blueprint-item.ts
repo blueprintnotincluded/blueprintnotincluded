@@ -934,6 +934,13 @@ export class BlueprintItem {
         this.utilitySprites[connexionIndex].y = drawPos.y;
         this.utilitySprites[connexionIndex].width = drawSize.x;
         this.utilitySprites[connexionIndex].height = drawSize.y;
+        // The port markers live on the camera's container, not this item's, so
+        // the container alpha a disabled building gets in cameraChanged never
+        // reaches them. Set every frame, like the position: toggling the flag
+        // has to take effect on markers that already exist.
+        this.utilitySprites[connexionIndex].alpha = this.tempDisabled
+          ? BlueprintItem.tempDisabledAlpha
+          : 1;
 
         if (!this.utilitySprites[connexionIndex].texture.baseTexture.valid) {
           /* TODO Add colored squares event if the images have not yet loaded

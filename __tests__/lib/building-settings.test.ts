@@ -1182,6 +1182,29 @@ describe('range-carrying settings (Prioritizable, Door, Valve, LimitValve, capac
       ).to.equal(entry.Value.masterPrioritySetting);
     });
 
+    // The writer holds to the reader's contract: what does not read back is not
+    // writable. Otherwise a direct caller could overwrite a top-priority entry's
+    // value, or rebuild a malformed string into a priority with no class.
+    it('refuses to write a priority it would not show', () => {
+      const d = descriptor('Tile', 'Prioritizable');
+      const emergency = { masterPrioritySetting: '{"priority_class":3,"priority_value":1}' };
+      expect(() => writeSettingField(d, emergency, 5)).to.throw(/not writable/);
+      for (const masterPrioritySetting of ['', 'not json', '[1,2]', 'null', 42, null, undefined])
+        expect(
+          () => writeSettingField(d, { masterPrioritySetting }, 5),
+          JSON.stringify(masterPrioritySetting)
+        ).to.throw(/not writable/);
+      expect(() => writeSettingField(d, undefined, 5)).to.throw(/not writable/);
+      // ...and leaves what it was handed untouched.
+      expect(emergency.masterPrioritySetting).to.equal('{"priority_class":3,"priority_value":1}');
+    });
+
+    it('writes an ordinary field through unchanged, whatever the stored value', () => {
+      const d = descriptor('LiquidValve', 'Valve');
+      expect(writeSettingField(d, undefined, 2.5)).to.equal(2.5);
+      expect(writeSettingField(d, { DesiredFlow: 'garbage' }, 2.5)).to.equal(2.5);
+    });
+
     it('shows nothing for a priority outside the basic class, and still calls the key known', () => {
       const emergency: BniBuildingData = {
         Key: 'Prioritizable',
