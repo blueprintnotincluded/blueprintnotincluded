@@ -3,7 +3,7 @@ import { Location } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { AuthenticationService } from "./authentification-service";
 import { ContentLocaleService } from "./content-locale.service";
-import { of } from "rxjs";
+import { firstValueFrom, of } from "rxjs";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
 import {
   decodeBniShareString,
@@ -606,6 +606,84 @@ export class BlueprintService implements IObsBlueprintChange {
 
     // Same accounting as a file download — both are the user taking a copy.
     if (exportedBlueprintId != null) this.trackDownload(exportedBlueprintId);
+  }
+
+  // Details page "Copy for game": the share-string for a saved blueprint, without
+  // opening it in the editor. With Ctrl+V paste in the Blueprints mod this is the
+  // shortest path from the site into a running game.
+  //
+  // Serves the stored raw upload when the server has one -- a share-string verbatim,
+  // a .blueprint file as the share-string encoding of its exact text -- and a
+  // generated export otherwise, the same preference downloadBlueprintFile applies
+  // to the file. The raw copy is worth preferring: it still holds everything the
+  // parsed model drops, most of all buildings from mods the site does not know.
+  //
+  // That is the opposite call from copyBlueprintShareString above, deliberately.
+  // The editor always generates because its blueprint may have been renamed in
+  // this very session; here the reader is taking a copy of a stored blueprint as
+  // its author uploaded it, and the cost of a raw copy is only that a blueprint
+  // renamed on the site pastes into the game under its original in-game name.
+  async copySavedBlueprintShareString(id: string, friendlyName: string) {
+    const clipboard = navigator.clipboard;
+    if (!clipboard) throw new Error("Clipboard API unavailable");
+
+    let generated = false;
+    const text = this.savedBlueprintShareString(id, friendlyName).then(
+      (result) => {
+        generated = result.generated;
+        return result.text;
+      },
+    );
+    await BlueprintService.writeClipboardText(clipboard, text);
+
+    // The raw endpoint records its own download server-side; a generated copy
+    // is credited here, once it has actually reached the clipboard.
+    if (generated) this.trackDownload(id);
+  }
+
+  private async savedBlueprintShareString(
+    id: string,
+    friendlyName: string,
+  ): Promise<{ text: string; generated: boolean }> {
+    const response = await firstValueFrom(
+      this.http.get<BlueprintResponse>(
+        `/api/getblueprint/${id}`,
+        this.authService.isLoggedIn()
+          ? {
+              headers: {
+                Authorization: `Bearer ${this.authService.getToken()}`,
+              },
+            }
+          : {},
+      ),
+    );
+
+    if (response.hasRawSource) {
+      try {
+        const raw = await firstValueFrom(
+          this.http.get(`/api/blueprints/${id}/raw`, { responseType: "text" }),
+        );
+        return {
+          text:
+            response.rawSourceFormat === "bpv2-sharestring"
+              ? raw
+              : await encodeBniShareString(raw),
+          generated: false,
+        };
+      } catch {
+        // The raw copy may have vanished (e.g. concurrent edit) -- still
+        // deliver a generated string rather than failing the copy.
+      }
+    }
+
+    const blueprint = new Blueprint();
+    blueprint.importFromMdb(response.data);
+    return {
+      text: await encodeBniShareString(
+        JSON.stringify(blueprint.toBniBlueprint(friendlyName)),
+      ),
+      generated: true,
+    };
   }
 
   // Safari only honours a clipboard write that *starts* inside the user

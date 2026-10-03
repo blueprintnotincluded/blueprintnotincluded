@@ -61,6 +61,7 @@ describe("BlueprintDetailsPageComponent", () => {
       getBlueprintDetails: vi.fn().mockReturnValue(of(makeDetails())),
       getRelatedBlueprints: vi.fn().mockReturnValue(of({ blueprints: [] })),
       downloadBlueprintFile: vi.fn().mockReturnValue(of(undefined)),
+      copySavedBlueprintShareString: vi.fn().mockResolvedValue(undefined),
       setPublished: vi.fn().mockReturnValue(of({ isPublished: true })),
       deleteBlueprint: vi.fn().mockReturnValue(of({ deleteBlueprint: "OK" })),
     };
@@ -506,6 +507,58 @@ describe("BlueprintDetailsPageComponent", () => {
         "bp1",
         "Cozinha estrategia em choque",
       );
+    });
+  });
+
+  describe("copy for game", () => {
+    // Past the .then/.catch/.finally chain, which whenStable() does not wait for.
+    const settled = () => new Promise((resolve) => setTimeout(resolve));
+
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it("copies the share string under the authored name and confirms", async () => {
+      component.copyShareString();
+      expect(component.copyWorking).toBe(true);
+      await settled();
+
+      expect(
+        blueprintService.copySavedBlueprintShareString,
+      ).toHaveBeenCalledWith(component.details!.id, component.details!.name);
+      expect(messageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: "success" }),
+      );
+      expect(component.copyWorking).toBe(false);
+    });
+
+    it("reports a clipboard failure instead of failing silently", async () => {
+      blueprintService.copySavedBlueprintShareString.mockRejectedValue(
+        new Error("denied"),
+      );
+
+      component.copyShareString();
+      await settled();
+
+      expect(messageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ severity: "error" }),
+      );
+      expect(component.copyWorking).toBe(false);
+    });
+
+    it("ignores a second click while the first copy is in flight", () => {
+      component.copyShareString();
+      component.copyShareString();
+
+      expect(
+        blueprintService.copySavedBlueprintShareString,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it("offers the button beside Download", () => {
+      expect(
+        fixture.nativeElement.querySelector(".details-copy-share-string"),
+      ).not.toBeNull();
     });
   });
 
