@@ -12,6 +12,7 @@ import {
   NONE_TAG,
   SettingTag,
   primarySettingsKey,
+  readSettingField,
   redundantEchoKeysFor,
   resolveSettingDescriptors,
   SettingFieldDescriptor,
@@ -20,6 +21,7 @@ import {
   stripNoteMarkup,
   toDisplayValue,
   toStoredValue,
+  writeSettingField,
 } from "../../../../../../../lib/index";
 
 interface EditableSettingRow {
@@ -56,10 +58,35 @@ interface EditableSettingRow {
   // (critter and seed tags), so `element` is routinely undefined and the raw
   // name is what gets rendered.
   tags?: ResolvedTag[];
+  // type: 'enum' only. The choices offered, in stored-value order. Always
+  // includes the value currently stored, even one the catalogue has no label
+  // for or that this building is not normally offered (a Bunker Door stored on
+  // Auto), so the control can never show a state the model does not hold.
+  options?: EnumOption[];
   displayValue: any;
   displayMin?: number;
   displayMax?: number;
   cycleHint: string | null;
+}
+
+interface EnumOption {
+  value: number;
+  label: string;
+}
+
+function enumOptions(
+  descriptor: SettingFieldDescriptor,
+  current: unknown,
+): EnumOption[] {
+  const options = Object.entries(descriptor.enumLabels ?? {}).map(
+    ([value, label]) => ({ value: Number(value), label }),
+  );
+  if (
+    typeof current == "number" &&
+    !options.some((option) => option.value === current)
+  )
+    options.push({ value: current, label: String(current) });
+  return options.sort((a, b) => a.value - b.value);
 }
 
 interface ResolvedTag {
@@ -215,10 +242,12 @@ export class BuildingSettingsComponent {
         // is incomplete/malformed (or from a newer mod version) — skip it
         // rather than rendering an editable row backed by nothing, which
         // would crash setBuildingSetting the moment the user touched it.
-        if (!(descriptor.field in value)) continue;
+        // readSettingField also returns undefined for a serialized field it
+        // has nothing to show for (a priority outside the basic class).
+        const raw = readSettingField(descriptor, value);
+        if (raw === undefined) continue;
         const decimals =
           descriptor.decimals ?? (descriptor.type == "int" ? 0 : 2);
-        const raw = value[descriptor.field];
         const step = descriptor.step ?? (descriptor.type == "int" ? 1 : 0.1);
         // Bounds are stored-unit in the catalogue, so they go through the
         // same conversion as the value they constrain.
@@ -253,12 +282,18 @@ export class BuildingSettingsComponent {
                   element: BuildableElement.getElementById(tag.Name),
                 }))
               : undefined,
+          options:
+            descriptor.type == "enum"
+              ? enumOptions(descriptor, raw)
+              : undefined,
           displayValue:
-            typeof raw == "number"
-              ? roundTo(toDisplayValue(descriptor, raw), decimals)
-              : descriptor.type == "bool" && descriptor.invert
-                ? !raw
-                : raw,
+            descriptor.type == "enum"
+              ? raw
+              : typeof raw == "number"
+                ? roundTo(toDisplayValue(descriptor, raw), decimals)
+                : descriptor.type == "bool" && descriptor.invert
+                  ? !raw
+                  : raw,
           displayMin,
           displayMax:
             descriptor.max != null
@@ -276,12 +311,28 @@ export class BuildingSettingsComponent {
     return rows;
   }
 
+  // Stored Keys the panel shows no row for: everything outside the catalogue,
+  // plus a catalogued Key whose stored Value yields nothing to show although
+  // this building would normally get a row for it (a newer or malformed shape,
+  // or a priority outside the basic class). Counting the second kind keeps it
+  // visible as "preserved" rather than silently absent. A Key that resolves to
+  // no descriptors at all on this building (a sensor's stowaway Switch) is
+  // deliberately neither, and nor is a Key with no Value object at all: there
+  // is nothing stored there to call preserved.
   get otherKeys(): string[] {
     return (this.blueprintItem.buildingData ?? [])
-      .filter(
-        (entry) =>
-          formatBuildingDataEntry(entry, this.blueprintItem.id) == null,
-      )
+      .filter((entry) => {
+        const formatted = formatBuildingDataEntry(entry, this.blueprintItem.id);
+        if (formatted == null) return true;
+        return (
+          formatted.length == 0 &&
+          entry.Value != null &&
+          typeof entry.Value === "object" &&
+          resolveSettingDescriptors(this.blueprintItem.id, entry.Key).some(
+            (descriptor) => !descriptor.hidden,
+          )
+        );
+      })
       .map((entry) => entry.Key);
   }
 
@@ -398,6 +449,10 @@ export class BuildingSettingsComponent {
       if (num === row.displayValue) return;
       value = toStoredValue(row.descriptor, num);
       if (row.type == "int") value = Math.round(value);
+    } else if (row.type == "enum") {
+      // A <select> hands back its option's value as text.
+      value = Number(rawInput);
+      if (Number.isNaN(value) || value === row.displayValue) return;
     } else if (row.type == "string") {
       value = String(rawInput);
       // The template's [attr.maxlength] stops interactive typing, but not a
@@ -408,8 +463,23 @@ export class BuildingSettingsComponent {
       if (value === row.displayValue) return;
     }
 
-    this.blueprintItem.setBuildingSetting(row.key, row.field, value);
+    this.blueprintItem.setBuildingSetting(
+      row.key,
+      row.field,
+      // A serialized field (Prioritizable) is rewritten whole, with only the
+      // edited property replaced; every other descriptor stores `value` as is.
+      writeSettingField(row.descriptor, this.storedValue(row.key), value),
+    );
     this.commit();
+  }
+
+  private storedValue(key: string): Record<string, any> | undefined {
+    return this.blueprintItem.buildingData?.find((entry) => entry.Key == key)
+      ?.Value;
+  }
+
+  trackByOption(_index: number, option: EnumOption): number {
+    return option.value;
   }
 
   private reconcile(el: HTMLInputElement | undefined, value: unknown) {

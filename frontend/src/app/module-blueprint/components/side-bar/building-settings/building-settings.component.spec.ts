@@ -121,11 +121,11 @@ describe("BuildingSettingsComponent", () => {
   });
 
   it("renders a preserved-count line for a key outside the curated catalogue", () => {
-    setItem("Door", [{ Key: "Door", Value: { requestedState: 1 } }]);
+    setItem("PixelPack", [{ Key: "PixelPack", Value: { colorSettings: [] } }]);
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain("1 other stored setting");
-    expect(text).not.toContain("requestedState");
+    expect(text).not.toContain("colorSettings");
   });
 
   it("mixes known rows and an other-settings count in the same panel", () => {
@@ -1175,5 +1175,170 @@ describe("BuildingSettingsComponent", () => {
 
     expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
     expect(numberInput().value).toBe("500");
+  });
+  // Prioritizable, Door, Valve, capacity, name. No game database in this spec,
+  // so the rows are the catalogue's unbounded fallback; the per-building ranges
+  // are covered in the lib suite against the real database.
+  describe("range-carrying settings", () => {
+    const priority = (cls: number, value: number) =>
+      JSON.stringify({ priority_class: cls, priority_value: value });
+
+    it("shows a build priority as an editable 1-9 number", () => {
+      setItem("StorageLocker", [
+        {
+          Key: "Prioritizable",
+          Value: { masterPrioritySetting: priority(0, 9) },
+        },
+      ]);
+
+      const input = fixture.nativeElement.querySelector(
+        "input[type=number]",
+      ) as HTMLInputElement;
+      expect(fixture.nativeElement.textContent).toContain("Priority");
+      expect(input.value).toBe("9");
+      expect(input.getAttribute("min")).toBe("1");
+      expect(input.getAttribute("max")).toBe("9");
+    });
+
+    it("writes an edited priority back into the serialized setting, class intact", () => {
+      setItem("StorageLocker", [
+        {
+          Key: "Prioritizable",
+          Value: { masterPrioritySetting: priority(0, 9) },
+        },
+      ]);
+      const row = component.rows[0];
+
+      component.onFieldInput(row, "3");
+
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "Prioritizable",
+        "masterPrioritySetting",
+        '{"priority_class":0,"priority_value":3}',
+      );
+      expect(emitBlueprintChanged).toHaveBeenCalledTimes(1);
+    });
+
+    it("pulls an out-of-range priority to the nearest bound", () => {
+      setItem("StorageLocker", [
+        {
+          Key: "Prioritizable",
+          Value: { masterPrioritySetting: priority(0, 5) },
+        },
+      ]);
+
+      component.onFieldInput(component.rows[0], "42");
+
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "Prioritizable",
+        "masterPrioritySetting",
+        '{"priority_class":0,"priority_value":9}',
+      );
+    });
+
+    it("keeps a non-basic priority as a preserved setting rather than a misleading 1-9 row", () => {
+      setItem("StorageLocker", [
+        {
+          Key: "Prioritizable",
+          Value: { masterPrioritySetting: priority(3, 1) },
+        },
+      ]);
+
+      expect(component.rows).toEqual([]);
+      expect(component.otherKeys).toEqual(["Prioritizable"]);
+      expect(fixture.nativeElement.textContent).toContain(
+        "1 other stored setting",
+      );
+    });
+
+    it("offers a door's states as a select showing the stored one", () => {
+      setItem("PressureDoor", [{ Key: "Door", Value: { requestedState: 2 } }]);
+
+      const select = fixture.nativeElement.querySelector(
+        "select.building-setting-select",
+      ) as HTMLSelectElement;
+      const options = Array.from(select.options);
+      expect(options.map((o) => o.textContent!.trim())).toEqual([
+        "Auto",
+        "Open",
+        "Locked",
+      ]);
+      expect(options.find((o) => o.selected)!.textContent!.trim()).toBe(
+        "Locked",
+      );
+    });
+
+    it("commits a newly picked door state as a number, and nothing for the same state", () => {
+      setItem("PressureDoor", [{ Key: "Door", Value: { requestedState: 0 } }]);
+
+      component.onFieldInput(component.rows[0], "0");
+      expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+
+      component.onFieldInput(component.rows[0], "1");
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "Door",
+        "requestedState",
+        1,
+      );
+      expect(emitBlueprintChanged).toHaveBeenCalledTimes(1);
+    });
+
+    it("still shows a stored door state it has no word for", () => {
+      setItem("PressureDoor", [{ Key: "Door", Value: { requestedState: 7 } }]);
+
+      const select = fixture.nativeElement.querySelector(
+        "select.building-setting-select",
+      ) as HTMLSelectElement;
+      const selected = Array.from(select.options).find((o) => o.selected)!;
+      expect(selected.textContent!.trim()).toBe("7");
+    });
+
+    it("edits a valve's flow in grams per second and stores kilograms", () => {
+      setItem("LiquidValve", [{ Key: "Valve", Value: { DesiredFlow: 4.832 } }]);
+
+      const input = fixture.nativeElement.querySelector(
+        "input[type=number]",
+      ) as HTMLInputElement;
+      expect(input.value).toBe("4832");
+      expect(fixture.nativeElement.textContent).toContain("g/s");
+
+      component.onFieldInput(component.rows[0], "2500");
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "Valve",
+        "DesiredFlow",
+        2.5,
+      );
+    });
+
+    it("does not write when an untouched capacity is blurred", () => {
+      setItem("LiquidBottler", [
+        { Key: "IUserControlledCapacity", Value: { UserMaxCapacity: 200 } },
+      ]);
+
+      component.onFieldInput(component.rows[0], "200");
+
+      expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+    });
+
+    it("leaves an untouched default name, markup and all, exactly as stored", () => {
+      const savedName = '<link="STORAGELOCKER">Storage Bin</link>';
+      setItem("StorageLocker", [{ Key: "UserNameable", Value: { savedName } }]);
+
+      const input = fixture.nativeElement.querySelector(
+        "input.building-setting-text",
+      ) as HTMLInputElement;
+      expect(input.value).toBe(savedName);
+      expect(input.getAttribute("maxlength")).toBeNull();
+
+      component.onFieldInput(component.rows[0], savedName, input);
+      expect(component.blueprintItem.setBuildingSetting).not.toHaveBeenCalled();
+
+      component.onFieldInput(component.rows[0], "Seeds", input);
+      expect(component.blueprintItem.setBuildingSetting).toHaveBeenCalledWith(
+        "UserNameable",
+        "savedName",
+        "Seeds",
+      );
+    });
   });
 });

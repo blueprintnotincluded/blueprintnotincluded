@@ -19,8 +19,14 @@ export interface SettingFieldDescriptor {
         whenFalse: string;
     };
     invert?: boolean;
+    jsonProperty?: string;
+    jsonGuard?: {
+        property: string;
+        equals: number | string | boolean;
+    };
     elementForceTag?: string;
 }
+export declare const DOOR_STATE_AUTO = 0;
 export declare const TREE_FILTERABLE_BUILDINGS: string[];
 export declare const CRITTER_COUNT_SENSOR_ID = "LogicCritterCountSensor";
 export declare const NONE_TAG = "Void";
@@ -33,6 +39,8 @@ export interface SettingTag {
 }
 export declare function decodeTagSet(raw: unknown): SettingTag[];
 export declare function encodeTagSet(tags: readonly SettingTag[]): string;
+export declare function readSettingField(descriptor: SettingFieldDescriptor, value: Record<string, any> | null | undefined): any;
+export declare function writeSettingField(descriptor: SettingFieldDescriptor, value: Record<string, any> | null | undefined, next: any): any;
 export declare function isKnownSettingsKey(key: string): boolean;
 export declare function toDisplayValue(descriptor: SettingFieldDescriptor, stored: number): number;
 export declare function toStoredValue(descriptor: SettingFieldDescriptor, display: number): number;

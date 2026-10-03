@@ -80,6 +80,29 @@ export interface BBuildingDef2024 {
     rocketEngineCluster?: {
         maxHeight: number;
     } | null;
+    prioritizable?: true;
+    userNameable?: true;
+    door?: {
+        doorType: string;
+        hasComplexUserControls: boolean;
+        allowAutoControl: boolean;
+    };
+    valve?: {
+        conduitType: string;
+        maxFlow: number;
+    };
+    limitValve?: {
+        conduitType: string;
+        maxLimitKg: number;
+        displayUnitsInsteadOfMass: boolean;
+    };
+    userControlledCapacity?: {
+        minCapacity: number;
+        maxCapacity: number;
+        wholeValues: boolean;
+        units: string;
+        source: string;
+    };
     mod?: string;
     modTitle?: string;
     offlineMerged?: true;

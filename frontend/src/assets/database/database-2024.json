@@ -37,6 +37,9 @@
       "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -109,6 +112,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -253,6 +259,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -533,6 +542,9 @@
           "consumptionRate": 0.5
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -589,6 +601,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -669,6 +684,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -812,6 +830,9 @@
           "consumptionRate": 1.2
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -874,6 +895,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -1012,6 +1036,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -1089,6 +1116,9 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -1153,6 +1183,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -1225,6 +1258,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2110,6 +2146,9 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2427,6 +2466,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2492,6 +2534,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2547,6 +2592,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2602,6 +2650,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2672,6 +2723,14 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "Pressure",
+          "hasComplexUserControls": true,
+          "allowAutoControl": false
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -2807,6 +2866,15 @@
           "EngineOnBottom"
         ],
         "engineMaxHeight": 10
+      },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 100,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "FuelTank"
+        }
       },
       "uiScreens": [],
       "sprites": {
@@ -4414,6 +4482,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -4558,6 +4629,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -4628,6 +4702,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -4717,6 +4794,9 @@
           "verticalStep": 0
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -4814,6 +4894,9 @@
           "verticalStep": 0
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -4954,6 +5037,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -5486,6 +5572,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -5612,6 +5701,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -5659,6 +5751,15 @@
       "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 20,
+          "wholeValues": true,
+          "units": "Critters",
+          "source": "BaggableCritterCapacityTracker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -5712,6 +5813,17 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 2000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "StorageLocker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -5959,6 +6071,15 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 40,
+          "wholeValues": true,
+          "units": "Critters",
+          "source": "BaggableCritterCapacityTracker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -6021,6 +6142,16 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 40,
+          "wholeValues": true,
+          "units": "Critters",
+          "source": "BaggableCritterCapacityTracker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -6151,6 +6282,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -6225,6 +6359,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -6365,6 +6502,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -6495,6 +6635,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -8560,6 +8703,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -8728,6 +8874,14 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "Internal",
+          "hasComplexUserControls": false,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -8790,6 +8944,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -8860,6 +9017,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -8934,6 +9094,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -9014,6 +9177,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -9174,6 +9340,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -9713,6 +9882,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -9879,6 +10051,9 @@
       },
       "buildLocationRule": 6,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -9959,6 +10134,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10076,6 +10254,15 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 20,
+          "wholeValues": true,
+          "units": "Critters",
+          "source": "BaggableCritterCapacityTracker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10131,6 +10318,17 @@
       },
       "buildLocationRule": 0,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 200,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "StorageLocker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10195,6 +10393,16 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 20,
+          "wholeValues": true,
+          "units": "Critters",
+          "source": "BaggableCritterCapacityTracker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10651,6 +10859,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10707,6 +10918,9 @@
       },
       "buildLocationRule": 3,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10763,6 +10977,9 @@
       },
       "buildLocationRule": 3,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10819,6 +11036,9 @@
       },
       "buildLocationRule": 4,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10886,6 +11106,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -10933,6 +11156,9 @@
       "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11007,6 +11233,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11083,6 +11312,10 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11271,6 +11504,9 @@
           }
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11463,6 +11699,15 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 200,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "Bottler"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11540,6 +11785,15 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 11000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "CargoBayCluster"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -11616,6 +11870,15 @@
           "PlaceSpaceAvailable",
           "RocketHeightLimit"
         ]
+      },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 3600,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "CargoBayCluster"
+        }
       },
       "uiScreens": [],
       "sprites": {
@@ -12136,6 +12399,13 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "limitValve": {
+          "conduitType": "Gas",
+          "maxLimitKg": 500,
+          "displayUnitsInsteadOfMass": false
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -12659,6 +12929,12 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "valve": {
+          "conduitType": "Gas",
+          "maxFlow": 1
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -12881,6 +13157,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -12945,6 +13224,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -13019,6 +13301,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -13551,6 +13836,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -13678,6 +13966,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -13733,6 +14024,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -13831,6 +14125,9 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -13939,6 +14236,14 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "Internal",
+          "hasComplexUserControls": false,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -14040,6 +14345,9 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -14101,6 +14409,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -14183,6 +14494,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -14344,6 +14658,15 @@
           "EngineOnBottom"
         ],
         "engineMaxHeight": 20
+      },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 4000,
+          "wholeValues": false,
+          "units": "Radbolts",
+          "source": "HEPFuelTank"
+        }
       },
       "uiScreens": [],
       "sprites": {
@@ -15089,6 +15412,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -15163,6 +15489,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -15522,6 +15851,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -15575,6 +15907,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -15702,6 +16037,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -15967,6 +16305,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16045,6 +16386,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16350,6 +16694,15 @@
         ],
         "engineMaxHeight": 20
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 450,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "FuelTank"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16414,6 +16767,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16732,6 +17088,9 @@
       },
       "buildLocationRule": 0,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16808,6 +17167,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16894,6 +17256,9 @@
           "tag": "Rocket"
         }
       ],
+      "settings": {
+        "userNameable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -16974,6 +17339,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -17102,6 +17470,15 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 200,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "Bottler"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -17179,6 +17556,15 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 27000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "CargoBayCluster"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -17255,6 +17641,15 @@
           "PlaceSpaceAvailable",
           "RocketHeightLimit"
         ]
+      },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 9000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "CargoBayCluster"
+        }
       },
       "uiScreens": [],
       "sprites": {
@@ -18186,6 +18581,9 @@
           "consumptionRate": 0
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -18369,6 +18767,15 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 900,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "FuelTank"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -18537,6 +18944,13 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "limitValve": {
+          "conduitType": "Liquid",
+          "maxLimitKg": 500,
+          "displayUnitsInsteadOfMass": false
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -19070,6 +19484,12 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "valve": {
+          "conduitType": "Liquid",
+          "maxFlow": 10
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -20768,6 +21188,9 @@
           "verticalStep": 0
         }
       ],
+      "settings": {
+        "userNameable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -21958,6 +22381,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -22007,6 +22433,9 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -22180,6 +22609,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -22262,6 +22694,9 @@
           "emitType": "Constant"
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -22315,6 +22750,14 @@
       },
       "buildLocationRule": 6,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "ManualPressure",
+          "hasComplexUserControls": true,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -23645,6 +24088,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -23909,6 +24355,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -23997,6 +24446,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24069,6 +24521,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24141,6 +24596,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24213,6 +24671,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24285,6 +24746,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24354,6 +24818,17 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 50,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "Refrigerator"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24537,6 +25012,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -24626,6 +25104,9 @@
           "verticalStep": 0
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25456,6 +25937,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25785,6 +26269,9 @@
           "emitType": "Constant"
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25867,6 +26354,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -25939,6 +26429,16 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 20000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "ObjectDispenser"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26109,6 +26609,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26271,6 +26774,16 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "prioritizable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 6000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "StorageLocker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26339,6 +26852,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26452,6 +26968,9 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26528,6 +27047,16 @@
           "PlaceSpaceAvailable",
           "RocketHeightLimit"
         ]
+      },
+      "settings": {
+        "prioritizable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 900,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "OxidizerTank"
+        }
       },
       "uiScreens": [],
       "sprites": {
@@ -26615,6 +27144,15 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 450,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "OxidizerTank"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26677,6 +27215,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26875,6 +27416,9 @@
           "consumptionRate": 0.5
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -26955,6 +27499,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27012,6 +27559,9 @@
       },
       "buildLocationRule": 0,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27059,6 +27609,14 @@
       "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "Sealed",
+          "hasComplexUserControls": false,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27106,6 +27664,14 @@
       "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "ManualPressure",
+          "hasComplexUserControls": false,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27162,6 +27728,14 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "Internal",
+          "hasComplexUserControls": false,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27209,6 +27783,14 @@
       "roomTags": [],
       "buildLocationRule": 0,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "ManualPressure",
+          "hasComplexUserControls": false,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27342,6 +27924,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27568,6 +28153,9 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27697,6 +28285,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27832,6 +28423,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -27897,6 +28491,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -28129,6 +28726,14 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "Pressure",
+          "hasComplexUserControls": true,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -28698,6 +29303,9 @@
           "emitType": "Constant"
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -28934,6 +29542,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -28983,6 +29594,17 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 150,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "RationBox"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29066,6 +29688,9 @@
         "x": 0,
         "y": 0
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29135,6 +29760,17 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 100,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "Refrigerator"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29207,6 +29843,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29417,6 +30056,9 @@
           }
         }
       ],
+      "settings": {
+        "userNameable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29489,6 +30131,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29717,6 +30362,9 @@
           "LimitOneRoboPilotModule"
         ]
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -29789,6 +30437,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -30701,6 +31352,9 @@
       "roomTags": [],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -30783,6 +31437,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -30904,6 +31561,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31144,6 +31804,9 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31272,6 +31935,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31328,6 +31994,9 @@
       },
       "buildLocationRule": 19,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31477,6 +32146,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31549,6 +32221,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31625,6 +32300,16 @@
           "PlaceSpaceAvailable",
           "RocketHeightLimit"
         ]
+      },
+      "settings": {
+        "prioritizable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 450,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "OxidizerTank"
+        }
       },
       "uiScreens": [],
       "sprites": {
@@ -31748,6 +32433,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -31938,6 +32626,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -32024,6 +32715,9 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -32101,6 +32795,15 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 27000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "CargoBayCluster"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -32177,6 +32880,15 @@
           "PlaceSpaceAvailable",
           "RocketHeightLimit"
         ]
+      },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 12000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "CargoBayCluster"
+        }
       },
       "uiScreens": [],
       "sprites": {
@@ -32383,6 +33095,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -32447,6 +33162,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -32834,6 +33552,13 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "limitValve": {
+          "conduitType": "Solid",
+          "maxLimitKg": 500,
+          "displayUnitsInsteadOfMass": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -33985,6 +34710,9 @@
           "RocketHeightLimit"
         ]
       },
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34318,6 +35046,15 @@
         ],
         "engineMaxHeight": 25
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 150,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "FuelTank"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34388,6 +35125,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34515,6 +35255,9 @@
           }
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34566,6 +35309,17 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 20000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "StorageLocker"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34632,6 +35386,17 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true,
+        "userNameable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 20000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "StorageLockerSmart"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34679,6 +35444,16 @@
       "roomTags": [],
       "buildLocationRule": 6,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 1000,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "StorageTile.Def"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34753,6 +35528,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34833,6 +35611,15 @@
         ],
         "engineMaxHeight": 16
       },
+      "settings": {
+        "userControlledCapacity": {
+          "minCapacity": 0,
+          "maxCapacity": 450,
+          "wholeValues": false,
+          "units": "kg",
+          "source": "FuelTank"
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34905,6 +35692,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -34983,6 +35773,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -36054,6 +36847,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -36111,6 +36907,9 @@
       },
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -36183,6 +36982,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -36992,6 +37794,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37064,6 +37869,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37141,6 +37949,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37210,6 +38021,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37285,6 +38099,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37449,6 +38266,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37728,6 +38548,9 @@
           "isSecondary": true
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37779,6 +38602,9 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -37951,6 +38777,9 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -38039,6 +38868,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -38914,6 +39746,9 @@
       ],
       "buildLocationRule": 1,
       "utilities": [],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39020,6 +39855,14 @@
       },
       "buildLocationRule": 6,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "Internal",
+          "hasComplexUserControls": false,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39090,6 +39933,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39179,6 +40025,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39232,6 +40081,14 @@
       },
       "buildLocationRule": 6,
       "utilities": [],
+      "settings": {
+        "prioritizable": true,
+        "door": {
+          "doorType": "ManualPressure",
+          "hasComplexUserControls": true,
+          "allowAutoControl": true
+        }
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39306,6 +40163,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39378,6 +40238,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39535,6 +40398,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",
@@ -39607,6 +40473,9 @@
           "isSecondary": false
         }
       ],
+      "settings": {
+        "prioritizable": true
+      },
       "uiScreens": [],
       "sprites": {
         "groupName": "all sprites",

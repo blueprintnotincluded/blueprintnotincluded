@@ -31,6 +31,11 @@
   width: 140px;
 }
 
+/* A choice among named states (a door's Auto / Open / Locked). */
+.building-setting-select {
+  max-width: 140px;
+}
+
 /* The current element on an element-sensor / filter row: an icon + name that
    opens the shared element picker popover. */
 .building-setting-element {

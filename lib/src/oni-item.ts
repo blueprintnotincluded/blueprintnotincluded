@@ -10,6 +10,7 @@ import { Overlay } from './enums/overlay';
 import {
   BBuilding,
   BuildingAttachPoint,
+  BuildingSettingsInfo,
   RocketModuleInfo,
   ROCKET_ATTACH_TAG,
 } from './b-export/b-building';
@@ -48,6 +49,9 @@ export class OniItem {
   attachablePosition: Vector2 = new Vector2();
   attachPoints: BuildingAttachPoint[] = [];
   rocketModule?: RocketModuleInfo;
+  // Which user settings the completed building accepts, with their ranges (see
+  // BuildingSettingsInfo). Read by the settings catalogue to bound a stored value.
+  settings?: BuildingSettingsInfo;
   get isRocketModule(): boolean {
     return this.rocketModule != null;
   }
@@ -168,6 +172,7 @@ export class OniItem {
       offset: { x: point.offset.x, y: point.offset.y },
       tag: point.tag,
     }));
+    this.settings = original.settings ? structuredClone(original.settings) : undefined;
     this.rocketModule = original.rocketModule
       ? { ...original.rocketModule, buildConditions: [...original.rocketModule.buildConditions] }
       : undefined;
