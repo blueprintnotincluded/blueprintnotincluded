@@ -259,54 +259,69 @@ describe("ComponentBlueprintParentComponent.noticeRocketStacks", () => {
   const rocketToasts = () =>
     messageService.add.mock.calls
       .map((call) => call[0])
-      .filter((toast) => toast.summary == "Rocket will not build as drawn");
+      .filter((toast) => String(toast.summary).includes("rocket"));
+  const twoEngines = () => [engine("CO2Engine", 0), engine("SugarEngine", 2)];
 
   it("says nothing about a blueprint with no rocket in it", () => {
-    component.noticeRocketStacks(true);
+    component.noticeRocketStacks();
     expect(messageService.add).not.toHaveBeenCalled();
   });
 
   it("says nothing about a sound stack", () => {
     blueprintService.blueprint.blueprintItems = [engine("CO2Engine", 0)];
-    component.noticeRocketStacks(true);
+    component.noticeRocketStacks();
     expect(messageService.add).not.toHaveBeenCalled();
   });
 
-  it("warns, naming the problem, when a stack would be refused in game", () => {
-    blueprintService.blueprint.blueprintItems = [
-      engine("CO2Engine", 0),
-      engine("SugarEngine", 2),
-    ];
+  it("gives a heads-up, not an error, when a stack would be refused in game", () => {
+    blueprintService.blueprint.blueprintItems = twoEngines();
 
-    component.noticeRocketStacks(true);
+    component.noticeRocketStacks();
 
     expect(messageService.add).toHaveBeenCalledTimes(1);
     const toast = messageService.add.mock.calls[0][0];
-    expect(toast.severity).toBe("warn");
-    expect(toast.sticky).toBe(true);
+    expect(toast.severity).toBe("info");
+    expect(toast.sticky).toBeFalsy();
+    expect(toast.summary).toContain("may not build");
     expect(toast.detail).toContain("SugarEngine");
     expect(toast.detail).toContain("bottom module");
     expect(toast.detail).toContain("2 engines");
   });
 
-  it("warns on a file export without getting in its way", () => {
-    blueprintService.blueprint.blueprintItems = [
-      engine("CO2Engine", 0),
-      engine("SugarEngine", 2),
-    ];
+  it("does not repeat itself while the problems are unchanged", () => {
+    blueprintService.blueprint.blueprintItems = twoEngines();
+
+    component.noticeRocketStacks();
+    component.noticeRocketStacks();
+    component.exportBlueprint();
+
+    expect(rocketToasts()).toHaveLength(1);
+  });
+
+  it("speaks again once the problems change, and after they were fixed in between", () => {
+    blueprintService.blueprint.blueprintItems = twoEngines();
+    component.noticeRocketStacks();
+
+    blueprintService.blueprint.blueprintItems = [engine("CO2Engine", 0)];
+    component.noticeRocketStacks();
+    expect(rocketToasts()).toHaveLength(1);
+
+    blueprintService.blueprint.blueprintItems = twoEngines();
+    component.noticeRocketStacks();
+    expect(rocketToasts()).toHaveLength(2);
+  });
+
+  it("follows a file export without getting in its way", () => {
+    blueprintService.blueprint.blueprintItems = twoEngines();
 
     component.exportBlueprint();
 
     expect(blueprintService.exportBlueprintFile).toHaveBeenCalledWith("Rocket");
     expect(rocketToasts()).toHaveLength(1);
-    expect(rocketToasts()[0].sticky).toBe(false);
   });
 
-  it("warns after a share-string copy, alongside the confirmation", async () => {
-    blueprintService.blueprint.blueprintItems = [
-      engine("CO2Engine", 0),
-      engine("SugarEngine", 2),
-    ];
+  it("follows a share-string copy, alongside the confirmation", async () => {
+    blueprintService.blueprint.blueprintItems = twoEngines();
 
     component.copyBlueprintText();
     await new Promise((resolve) => setTimeout(resolve));

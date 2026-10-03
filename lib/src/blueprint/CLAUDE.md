@@ -335,10 +335,15 @@ no "this is a stack" marker — the Blueprints mod recomputes stacking from the 
   engine's `maxHeight`, judged only with exactly one engine). A module with nothing under it
   is **not** a warning on its own, for the same pasted-onto-a-platform reason. Speed and mass
   budget (`Σ enginePower / Σ burden`) are carried in the data and not yet reported.
-- **Surfacing** — a warn toast from `ComponentBlueprintParentComponent.noticeRocketStacks`:
-  sticky when a blueprint is opened (beside the unrecognized-buildings and hidden-DLC
-  notices), and again, not sticky, after a file export or share-string copy. Never a blocker.
-  Wording lives in `frontend/.../utils/rocket-stack-messages.ts`.
+- **Surfacing — deliberately quiet.** One info toast from
+  `ComponentBlueprintParentComponent.noticeRocketStacks`, raised only after a file export or
+  share-string copy (the moment a rocket is about to go into the game), never on merely
+  opening a blueprint, where it would greet a reader with a complaint about someone else's
+  build. It goes away by itself, names at most two problems, never blocks the export, and is
+  not repeated while the problems are unchanged. The checks err the same way: when a
+  placement could be legitimate (a stack with no platform), say nothing. The aim is a nudge
+  for someone about to be refused in game, not an error report. Wording lives in
+  `frontend/.../utils/rocket-stack-messages.ts`.
 - **Fixture caveat** — `rocket-modules-stack-synthetic.blueprint` is built from the export's
   real `attachPoints`, not captured from a game.
 

@@ -6,8 +6,9 @@ import {
 } from "../../../../../lib/index";
 
 // How many problems one notice spells out before summarising the rest. A
-// badly-drawn rocket can trip a dozen checks at once, and a toast is not a list.
-const MAX_LINES = 3;
+// badly-drawn rocket can trip a dozen checks at once; the notice is a nudge, not
+// an error report, and a wall of them would read as the site being broken.
+const MAX_LINES = 2;
 
 function nameOf(part: RocketStackPartRef): string {
   try {

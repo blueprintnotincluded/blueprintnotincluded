@@ -78,7 +78,7 @@ describe("rocket stack messages", () => {
       ).toBeGreaterThan(10);
   });
 
-  it("spells out the first three and counts the rest", () => {
+  it("spells out the first two and counts the rest", () => {
     const warning: RocketStackWarning = {
       kind: "engineNotOnBottom",
       module: engine,
@@ -91,8 +91,8 @@ describe("rocket stack messages", () => {
       warning,
       warning,
     ]);
-    expect(text.match(/bottom module/g)).toHaveLength(3);
-    expect(text).toContain("And 2 more.");
+    expect(text.match(/bottom module/g)).toHaveLength(2);
+    expect(text).toContain("And 3 more.");
     expect(describeRocketStackWarnings([warning])).not.toContain("more");
   });
 });
