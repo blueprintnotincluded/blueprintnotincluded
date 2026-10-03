@@ -975,6 +975,32 @@ describe("BlueprintService", () => {
         "Fresh.blueprint",
       );
     });
+
+    // The mod's blueprint list shows userdesc under the name.
+    it("writes the site description into a generated file as userdesc", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+      service.metadata = { description: "Feeds four generators." };
+
+      service.exportBlueprintFile("Described");
+
+      const written = JSON.parse(saveSpy.mock.calls[0][0]);
+      expect(written.userdesc).toBe("Feeds four generators.");
+      expect(written.blueprintVersion).toBe(3);
+    });
+
+    it("writes no userdesc for a blueprint with no description", () => {
+      const saveSpy = vi
+        .spyOn(BlueprintService, "saveTextFile")
+        .mockImplementation(() => {});
+
+      service.exportBlueprintFile("Plain");
+
+      expect(JSON.parse(saveSpy.mock.calls[0][0])).not.toHaveProperty(
+        "userdesc",
+      );
+    });
   });
 
   describe("copyBlueprintShareString()", () => {
@@ -1188,6 +1214,25 @@ describe("BlueprintService", () => {
         "/api/blueprints/bp1/downloads",
         {},
         expect.anything(),
+      );
+    });
+
+    it("carries the stored description into a generated string as userdesc", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.get.mockReturnValue(
+        of({
+          hasRawSource: false,
+          description: "Feeds four generators.",
+          data: { blueprintItems: [] },
+        }),
+      );
+
+      await service.copySavedBlueprintShareString("bp1", "Described");
+
+      const written = writeText.mock.calls[0][0];
+      expect(JSON.parse(await decodeBniShareString(written)).userdesc).toBe(
+        "Feeds four generators.",
       );
     });
 

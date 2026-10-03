@@ -1,11 +1,15 @@
 import { MdbBuilding } from './mdb-building';
-import { BniPlanShape, BniWorldNote } from '../bni/bni-blueprint';
+import { BniDigCommand, BniPlanShape, BniWorldNote } from '../bni/bni-blueprint';
 import { BniTerrainFeature } from '../../blueprint/terrain-metadata';
 
 export interface MdbBlueprint {
   blueprintItems: MdbBuilding[];
   planningToolShapes?: BniPlanShape[];
   worldNotes?: BniWorldNote[];
+  // The file's real dig commands (the ones that are not just a Planning Tool
+  // shape's cell). Omitted when empty, so every stored blueprint without any
+  // keeps its exact shape and fingerprint.
+  digCommands?: BniDigCommand[];
   // Natural terrain features (geysers, vents, volcanoes) annotated on the
   // blueprint. Stored decoded here — the JSON-string encoding is a BlueprintsV2
   // transport detail, applied only when writing a .blueprint file.

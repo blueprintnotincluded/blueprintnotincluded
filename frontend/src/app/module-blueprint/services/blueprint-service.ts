@@ -486,7 +486,10 @@ export class BlueprintService implements IObsBlueprintChange {
           const generate = () => {
             const blueprint = new Blueprint();
             blueprint.importFromMdb(response.data);
-            const bniBlueprint = blueprint.toBniBlueprint(friendlyName);
+            const bniBlueprint = blueprint.toBniBlueprint(
+              friendlyName,
+              response.description,
+            );
 
             BlueprintService.saveTextFile(
               JSON.stringify(bniBlueprint),
@@ -542,7 +545,10 @@ export class BlueprintService implements IObsBlueprintChange {
     }
 
     const generate = () => {
-      const bniBlueprint = this.blueprint.toBniBlueprint(friendlyName);
+      const bniBlueprint = this.blueprint.toBniBlueprint(
+        friendlyName,
+        this.metadata.description,
+      );
       BlueprintService.saveTextFile(
         JSON.stringify(bniBlueprint),
         sanitize(friendlyName) + ".blueprint",
@@ -599,7 +605,9 @@ export class BlueprintService implements IObsBlueprintChange {
     // blueprint we serialized, not whatever happens to be open by the time
     // the clipboard write resolves.
     const exportedBlueprintId = this.id;
-    const json = JSON.stringify(this.blueprint.toBniBlueprint(friendlyName));
+    const json = JSON.stringify(
+      this.blueprint.toBniBlueprint(friendlyName, this.metadata.description),
+    );
     const encoded = encodeBniShareString(json);
 
     await BlueprintService.writeClipboardText(clipboard, encoded);
@@ -680,7 +688,9 @@ export class BlueprintService implements IObsBlueprintChange {
     blueprint.importFromMdb(response.data);
     return {
       text: await encodeBniShareString(
-        JSON.stringify(blueprint.toBniBlueprint(friendlyName)),
+        JSON.stringify(
+          blueprint.toBniBlueprint(friendlyName, response.description),
+        ),
       ),
       generated: true,
     };

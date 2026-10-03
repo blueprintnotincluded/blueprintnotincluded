@@ -617,7 +617,7 @@ export class BlueprintController {
       let mdbBlueprint = (await resolveCurrentData(blueprint)) as MdbBlueprint;
       let angularBlueprint = new sharedBlueprint();
       angularBlueprint.importFromMdb(mdbBlueprint);
-      let bniBlueprint = angularBlueprint.toBniBlueprint(blueprint.name);
+      let bniBlueprint = angularBlueprint.toBniBlueprint(blueprint.name, blueprint.description);
 
       // The ONI mod pulling a blueprint by id is a download
       BlueprintController.recordCounter('download', req, blueprint);

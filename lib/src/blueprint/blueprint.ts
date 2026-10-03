@@ -6,7 +6,12 @@ import { BlueprintItemElement } from './blueprint-item-element';
 import { Vector2 } from '../vector2';
 import { OniTemplate } from '../io/oni/oni-template';
 import { OniItem } from '../oni-item';
-import { BniBlueprint, BniPlanShape, BniWorldNote } from '../io/bni/bni-blueprint';
+import {
+  BniBlueprint,
+  BniDigCommand,
+  BniPlanShape,
+  BniWorldNote,
+} from '../io/bni/bni-blueprint';
 import { MdbBlueprint } from '../io/mdb/mdb-blueprint';
 import { BniBuilding } from '../io/bni/bni-building';
 import { Overlay } from '../enums/overlay';
@@ -44,6 +49,12 @@ export class Blueprint {
   // Decorative cells from the separate Planning Tool mod. Unlike world notes,
   // these are editable and therefore live in the normal MDB/undo model.
   planningToolShapes: BniPlanShape[] = [];
+  // Cells the blueprint marks for digging -- the mod's `digcommands`, less the
+  // ones that only mirror a Planning Tool shape (those are regenerated from
+  // planningToolShapes on export, so a deleted shape takes its dig with it).
+  // Carried through the model so a site round-trip no longer drops them; not
+  // drawn or editable yet.
+  digCommands: BniDigCommand[] = [];
   // Natural terrain features (geysers, vents, volcanoes) annotated onto the
   // blueprint. Annotations, not construction: they never become BlueprintItems,
   // never appear in `buildings`, and contribute nothing to material cost or
@@ -71,6 +82,7 @@ export class Blueprint {
     this.bniMetadata = null;
     this.worldNotes = [];
     this.planningToolShapes = [];
+    this.digCommands = [];
     this.terrainFeatures = [];
     this.foreignMetadata = {};
 
@@ -130,6 +142,7 @@ export class Blueprint {
     this.planningToolShapes = (bniBlueprint.planningtoolmod_shapecollection ?? []).map(shape => ({
       ...shape,
     }));
+    this.digCommands = Blueprint.realDigCommands(bniBlueprint);
     this.importTerrainMetadata(bniBlueprint);
 
     for (let building of bniBlueprint.buildings ?? []) {
@@ -149,6 +162,26 @@ export class Blueprint {
         console.log(error);
       }
     }
+  }
+
+  // The dig commands of a file that are really dig commands. The Planning Tool
+  // mod's shapes are mirrored into `digcommands` (toBniBlueprint writes one per
+  // shape cell), so those cells are left to the shapes themselves; anything
+  // malformed is dropped, and a repeated cell is kept once.
+  private static realDigCommands(bniBlueprint: BniBlueprint): BniDigCommand[] {
+    const shapeCells = new Set(
+      (bniBlueprint.planningtoolmod_shapecollection ?? []).map(shape => shape.x + ',' + shape.y)
+    );
+    const seen = new Set<string>();
+    const digCommands: BniDigCommand[] = [];
+    for (const dig of bniBlueprint.digcommands ?? []) {
+      if (dig == null || typeof dig.x !== 'number' || typeof dig.y !== 'number') continue;
+      const key = dig.x + ',' + dig.y;
+      if (shapeCells.has(key) || seen.has(key)) continue;
+      seen.add(key);
+      digCommands.push({ x: dig.x, y: dig.y });
+    }
+    return digCommands;
   }
 
   // Read terrain annotations and any foreign metadata keys out of a
@@ -181,6 +214,7 @@ export class Blueprint {
     this.bniMetadata = null;
     this.worldNotes = (mdbBlueprint.worldNotes ?? []).map(note => ({ ...note }));
     this.planningToolShapes = (mdbBlueprint.planningToolShapes ?? []).map(shape => ({ ...shape }));
+    this.digCommands = (mdbBlueprint.digCommands ?? []).map(dig => ({ x: dig.x, y: dig.y }));
     this.terrainFeatures = (mdbBlueprint.terrainFeatures ?? []).map(feature => ({ ...feature }));
     this.foreignMetadata = { ...(mdbBlueprint.foreignMetadata ?? {}) };
 
@@ -277,6 +311,7 @@ export class Blueprint {
     // rendered blueprint so the editor overlay can draw them.
     this.worldNotes = (source.worldNotes ?? []).map(note => ({ ...note }));
     this.planningToolShapes = source.planningToolShapes.map(shape => ({ ...shape }));
+    this.digCommands = (source.digCommands ?? []).map(dig => ({ ...dig }));
     this.terrainFeatures = (source.terrainFeatures ?? []).map(feature => ({ ...feature }));
     this.foreignMetadata = { ...(source.foreignMetadata ?? {}) };
 
@@ -492,6 +527,9 @@ export class Blueprint {
     if (this.worldNotes.length > 0)
       returnValue.worldNotes = this.worldNotes.map(note => ({ ...note }));
 
+    if (this.digCommands.length > 0)
+      returnValue.digCommands = this.digCommands.map(dig => ({ ...dig }));
+
     if (this.terrainFeatures.length > 0)
       returnValue.terrainFeatures = this.terrainFeatures.map(feature => ({ ...feature }));
 
@@ -504,12 +542,21 @@ export class Blueprint {
     return returnValue;
   }
 
-  public toBniBlueprint(friendlyname: string): BniBlueprint {
+  // `userdesc` is the blueprint's description as the site holds it. It is not part
+  // of the blueprint model (the site keeps a description beside the data, not in
+  // it), so the caller passes it; written only when there is one, as the mod omits
+  // empty keys, and it is what the mod's own blueprint list shows under the name.
+  public toBniBlueprint(friendlyname: string, userdesc?: string | null): BniBlueprint {
     let returnValue: BniBlueprint = {
       friendlyname: friendlyname,
       buildings: [],
-      digcommands: [],
+      digcommands: this.digCommands.map(dig => ({ x: dig.x, y: dig.y })),
     };
+
+    if (userdesc != null && userdesc.trim() !== '') {
+      returnValue.blueprintVersion = 3;
+      returnValue.userdesc = userdesc;
+    }
 
     // `Element` is an editor-only cell annotation with no BlueprintsV2
     // counterpart. (`Info` used to be skipped here too — that is what silently
@@ -524,8 +571,14 @@ export class Blueprint {
       returnValue.planningtoolmod_shapecollection = this.planningToolShapes.map(shape => ({
         ...shape,
       }));
-      // Planning Tool shapes are represented by dig commands in BlueprintsV2.
-      returnValue.digcommands = this.planningToolShapes.map(({ x, y }) => ({ x, y }));
+      // Planning Tool shapes are represented by dig commands in BlueprintsV2:
+      // one per shape cell, after the blueprint's own, without repeating a cell.
+      const dug = new Set(returnValue.digcommands.map(dig => dig.x + ',' + dig.y));
+      for (const { x, y } of this.planningToolShapes)
+        if (!dug.has(x + ',' + y)) {
+          dug.add(x + ',' + y);
+          returnValue.digcommands.push({ x, y });
+        }
     }
 
     if (this.worldNotes.length > 0) {

@@ -17,6 +17,10 @@ export interface BniPlanShape {
     shape: number;
     color: number;
 }
+export interface BniDigCommand {
+    x: number;
+    y: number;
+}
 export declare class BniBlueprint {
     friendlyname: string;
     buildings: BniBuilding[];
