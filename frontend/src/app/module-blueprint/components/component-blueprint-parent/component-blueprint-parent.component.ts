@@ -481,27 +481,36 @@ export class ComponentBlueprintParentComponent
       });
 
     this.noticeHiddenDlcs(this.blueprintService.requiredDlcs);
-    this.noticeRocketStacks(true);
+    // A different blueprint: whatever was said about the last one's rocket is
+    // no reason to stay quiet about this one's.
+    this.lastRocketNotice = null;
   }
 
   // Rocket stacks the game will not build as drawn: a module off its hardpoint,
   // something stacked on a nosecone, two engines, a stack taller than its engine
   // lifts (lib analyzeRocketStacks). The Blueprints mod refuses those placements
-  // in game, so the user hears it here first -- on opening a blueprint and again
-  // whenever they take a copy out to the game. A notice and nothing more: it
-  // never blocks a save, a download or a copy, and a blueprint with no rocket
-  // in it never sees one.
-  noticeRocketStacks(sticky: boolean) {
+  // in game, so the user hears it here first.
+  //
+  // Deliberately quiet. It is a heads-up for someone about to take a rocket into
+  // the game, so it is raised only when they do that -- a file export or a
+  // share-string copy -- and never on merely opening a blueprint, where it would
+  // greet a reader with a complaint about someone else's build. It is an info
+  // toast that goes away by itself, it names at most two problems, it never
+  // blocks the export it follows, and it is not repeated while the problems are
+  // the same ones already shown.
+  private lastRocketNotice: string | null = null;
+  noticeRocketStacks() {
     const warnings = rocketStackWarnings(
       this.blueprintService.blueprint.blueprintItems,
     );
-    if (warnings.length === 0) return;
+    const signature = warnings.length === 0 ? null : JSON.stringify(warnings);
+    if (signature === this.lastRocketNotice) return;
+    this.lastRocketNotice = signature;
+    if (signature === null) return;
     this.messageService.add({
-      severity: "warn",
-      summary: $localize`:editor.rocketStack.summary:Rocket will not build as drawn`,
+      severity: "info",
+      summary: $localize`:editor.rocketStack.summary:Heads up: this rocket may not build as drawn`,
       detail: describeRocketStackWarnings(warnings),
-      sticky,
-      // An export notice is not sticky, but it is longer than a glance.
       life: 12000,
     });
   }
@@ -569,7 +578,7 @@ export class ComponentBlueprintParentComponent
       // Serves the byte-exact imported file when the blueprint is an
       // unedited import; otherwise generates from the parsed model
       this.blueprintService.exportBlueprintFile(friendlyname);
-      this.noticeRocketStacks(false);
+      this.noticeRocketStacks();
     }
   }
 
@@ -598,7 +607,7 @@ export class ComponentBlueprintParentComponent
           summary: $localize`Blueprint copied`,
           detail: $localize`Paste it into the game with the BlueprintsV2 mod`,
         });
-        this.noticeRocketStacks(false);
+        this.noticeRocketStacks();
       })
       .catch(() => {
         this.messageService.add({
