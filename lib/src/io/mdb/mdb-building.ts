@@ -16,6 +16,10 @@ export interface MdbBuilding {
   // blueprint stays byte-identical (same reasoning as worldNotes).
   buildingData?: BniBuildingData[];
 
+  // BlueprintsV2 `tempDisabled`: present (true) only on a disabled building, so
+  // every stored blueprint without one keeps its exact shape and fingerprint.
+  tempDisabled?: boolean;
+
   // Utilities
   connections?: number;
   pipeElement?: string;

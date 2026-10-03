@@ -61,6 +61,15 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
     );
   }
 
+  // BlueprintsV2 `tempDisabled` across the collection: every item, or at least one
+  // (the checkbox shows the in-between as indeterminate).
+  get allTempDisabled() {
+    return this.itemCollection.items.every((item) => item.tempDisabled);
+  }
+  get someTempDisabled() {
+    return this.itemCollection.items.some((item) => item.tempDisabled);
+  }
+
   constructor(
     private blueprintService: BlueprintService,
     private toolService: ToolService,
@@ -104,6 +113,18 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
     });
 
     this.itemCollection.updateNbElements();
+    this.blueprintService.blueprint.emitBlueprintChanged();
+  }
+
+  // One blueprintChanged for the whole collection, so disabling fifty selected
+  // buildings is one undo step.
+  setTempDisabled(disabled: boolean) {
+    if (
+      this.itemCollection.items.every((item) => item.tempDisabled == disabled)
+    )
+      return;
+
+    for (const item of this.itemCollection.items) item.tempDisabled = disabled;
     this.blueprintService.blueprint.emitBlueprintChanged();
   }
 

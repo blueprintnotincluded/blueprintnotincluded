@@ -24,6 +24,11 @@ export declare class BlueprintItem {
     get header(): string;
     buildableElements: BuildableElement[];
     buildingData?: BniBuildingData[];
+    private tempDisabled_;
+    get tempDisabled(): boolean;
+    set tempDisabled(value: boolean);
+    static readonly tempDisabledAlpha = 0.55;
+    static readonly tempDisabledTint = 9080729;
     addBuildingSetting(key: string): boolean;
     setBuildingSetting(key: string, field: string, value: any): void;
     removeBuildingSetting(key: string): boolean;

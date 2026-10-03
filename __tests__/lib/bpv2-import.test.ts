@@ -313,6 +313,91 @@ describe('BlueprintsV2 import', function () {
     });
   });
 
+  // The mod's per-building "temporarily disabled" switch. Written as
+  // `tempDisabled: true` only when set; a disabled building stays in the file but
+  // is skipped on placement. Before this was carried, a site round-trip silently
+  // re-enabled every building its author had switched off.
+  describe('tempDisabled persistence', function () {
+    function withDisabled(indexes: number[]): BniBlueprint {
+      const fixture: BniBlueprint = JSON.parse(
+        fs.readFileSync(TIME_SENSORS_FIXTURE_PATH, 'utf8')
+      );
+      for (const index of indexes) fixture.buildings[index].tempDisabled = true;
+      return fixture;
+    }
+
+    it('round-trips through bni -> Blueprint -> mdb -> Blueprint -> bni, on the same buildings', () => {
+      const fixture = withDisabled([1]);
+      const source = new Blueprint();
+      source.importFromBni(fixture);
+      expect(source.blueprintItems.map(item => item.tempDisabled)).to.deep.equal([
+        false,
+        true,
+        false,
+      ]);
+
+      const reimported = new Blueprint();
+      reimported.importFromMdb(source.toMdbBlueprint());
+      expect(reimported.blueprintItems.map(item => item.tempDisabled)).to.deep.equal([
+        false,
+        true,
+        false,
+      ]);
+
+      const bni = reimported.toBniBlueprint('roundtrip');
+      expect(bni.buildings.map(b => b.tempDisabled)).to.deep.equal([undefined, true, undefined]);
+    });
+
+    it('omits the key entirely for an enabled building, as the mod does', () => {
+      const source = new Blueprint();
+      source.importFromBni(withDisabled([]));
+      expect(JSON.stringify(source.toMdbBlueprint())).to.not.include('tempDisabled');
+      expect(JSON.stringify(source.toBniBlueprint('enabled'))).to.not.include('tempDisabled');
+    });
+
+    it('reads anything but a literal true as enabled', () => {
+      const fixture = withDisabled([]);
+      (fixture.buildings[0] as any).tempDisabled = false;
+      (fixture.buildings[1] as any).tempDisabled = 'true';
+      (fixture.buildings[2] as any).tempDisabled = null;
+      const source = new Blueprint();
+      source.importFromBni(fixture);
+      expect(source.blueprintItems.map(item => item.tempDisabled)).to.deep.equal([
+        false,
+        false,
+        false,
+      ]);
+    });
+
+    it('survives clone(), which is what an undo snapshot is', () => {
+      const source = new Blueprint();
+      source.importFromBni(withDisabled([0, 2]));
+      expect(source.clone().blueprintItems.map(item => item.tempDisabled)).to.deep.equal([
+        true,
+        false,
+        true,
+      ]);
+    });
+
+    it('re-enabling a building removes the key again', () => {
+      const source = new Blueprint();
+      source.importFromBni(withDisabled([0]));
+      source.blueprintItems[0].tempDisabled = false;
+      expect(JSON.stringify(source.toBniBlueprint('re-enabled'))).to.not.include('tempDisabled');
+    });
+
+    it('asks for a redraw when toggled, and not when set to the value it already has', () => {
+      const source = new Blueprint();
+      source.importFromBni(withDisabled([]));
+      const item = source.blueprintItems[0];
+      item.reloadCamera = false;
+      item.tempDisabled = false;
+      expect(item.reloadCamera).to.equal(false);
+      item.tempDisabled = true;
+      expect(item.reloadCamera).to.equal(true);
+    });
+  });
+
   describe('share-string transport (P2, §1.2)', function () {
     // Build a share-string exactly the way the mod does: 4-byte little-endian
     // uncompressed length + gzip, base64'd. Proves our decoder against the

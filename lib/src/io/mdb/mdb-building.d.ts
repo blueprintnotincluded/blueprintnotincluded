@@ -9,6 +9,7 @@ export interface MdbBuilding {
     elements?: string[];
     settings?: UiSaveSettings[];
     buildingData?: BniBuildingData[];
+    tempDisabled?: boolean;
     connections?: number;
     pipeElement?: string;
     orientation?: number;
