@@ -147,8 +147,9 @@ const CYCLE_SECONDS = 600;
 export class BuildingSettingsComponent {
   @Input() blueprintItem!: BlueprintItem;
 
-  // One shared element picker popover — a building carries `Filterable` at most
-  // once, so there is never more than one element row on screen. The tag-set
+  // One shared element picker popover — a building carries `Filterable` or
+  // `StorageTile` at most once, and never both, so there is never more than
+  // one element row on screen. The tag-set
   // picker shares it: `TreeFilterable` is likewise carried at most once, and
   // the two never appear on the same building.
   @ViewChild("elementPanel", { static: false }) elementPanel?: Popover;
@@ -317,8 +318,10 @@ export class BuildingSettingsComponent {
   // or a priority outside the basic class). Counting the second kind keeps it
   // visible as "preserved" rather than silently absent. A Key that resolves to
   // no descriptors at all on this building (a sensor's stowaway Switch) is
-  // deliberately neither, and nor is a Key with no Value object at all: there
-  // is nothing stored there to call preserved.
+  // deliberately neither, and nor is a Key with no Value object at all, or an
+  // empty one: there is nothing stored there to call preserved. The mod writes
+  // `{}` for a Radbolt Chamber or Storage Tile whose state machine had not
+  // started when it was copied.
   get otherKeys(): string[] {
     return (this.blueprintItem.buildingData ?? [])
       .filter((entry) => {
@@ -328,6 +331,7 @@ export class BuildingSettingsComponent {
           formatted.length == 0 &&
           entry.Value != null &&
           typeof entry.Value === "object" &&
+          Object.keys(entry.Value).length > 0 &&
           resolveSettingDescriptors(this.blueprintItem.id, entry.Key).some(
             (descriptor) => !descriptor.hidden,
           )

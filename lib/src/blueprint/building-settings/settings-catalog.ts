@@ -6,8 +6,8 @@ import { BuildingSettingsInfo } from '../../b-export/b-building';
 // know how to display (and, from phase 3, edit) — spec/building-settings-plan.md
 // "Automation keys in scope" table, verified against
 // spec/blueprintsv2-import-spec.md §3. Every other `Key` a file may carry
-// (`Door`, `Valve`, filters, `AccessControl`, `PixelPack`, skins, ...) is
-// preserved opaquely and never reaches this table in v1.
+// (`AccessControl`, `PixelPack`, `FlatTagFilterable`, skins, ...) is preserved
+// opaquely and never reaches this table.
 
 // 'cycleFraction': a 0-1 fraction of a 600s in-game cycle (LogicTimeOfDaySensor),
 // displayed as a percentage. 's': seconds, with a cycle count appended for long
@@ -114,6 +114,7 @@ const DOOR_KEY = 'Door';
 const VALVE_KEY = 'Valve';
 const LIMIT_VALVE_KEY = 'LimitValve';
 const USER_CAPACITY_KEY = 'IUserControlledCapacity';
+const STORAGE_TILE_KEY = 'StorageTile';
 const FILTERABLE_KEY = 'Filterable';
 const TREE_FILTERABLE_KEY = 'TreeFilterable';
 
@@ -382,16 +383,81 @@ export const SETTINGS_CATALOG: Record<string, SettingFieldDescriptor[]> = {
   ],
 
   // The Meter Valves. kg on the gas and liquid ones, a unit count on the Conveyor
-  // Meter (displayUnitsInsteadOfMass); the max is the prefab's maxLimitKg.
+  // Meter (displayUnitsInsteadOfMass); the max is the prefab's maxLimitKg. The
+  // shape is the mod source's DataTransfer_LimitValve, `{ Limit }`, a float.
   [LIMIT_VALVE_KEY]: [
     { field: 'Limit', labelKey: 'Limit', type: 'float', unitSuffix: 'kg', min: 0 },
   ],
 
   // The storage cap ("Storage Capacity Control", "Max:"). kg, critters or radbolts
   // depending on the building, which also sets the range and whether it is a whole
-  // number. Carried by the Storage Tile too: its range comes from StorageTile.Def.
+  // number. The Storage Tile keeps its capacity under its own Key instead (below).
   [USER_CAPACITY_KEY]: [
     { field: 'UserMaxCapacity', labelKey: 'Max capacity', type: 'float', unitSuffix: 'kg', min: 0 },
+  ],
+
+  // The Storage Tile's own Key (issue #268). Shape from the mod source,
+  // DataTransfer_StorageTile: `{ TargetTag: smi.TargetTag.ToString(),
+  // UserMaxCapacity: smi.UserMaxCapacity }`. The tile's capacity sits on its
+  // state machine instance, which the IUserControlledCapacity handler's
+  // TryGetComponent does not look at -- presumably why this handler carries it.
+  // Whether a copied tile also stores an IUserControlledCapacity entry is not
+  // known until a capture shows one.
+  //
+  // TargetTag is the item the tile is set to hold, picked on the game's
+  // single-item side screen ("Select an item for storage below."). That screen
+  // is titled "Element Filter" (SINGLEITEMSELECTIONSIDESCREEN.TITLE), shortened
+  // to "Filter" for the same reason as TreeFilterable's row. The tile holds
+  // "selected non-edible solids" (its DESC), hence the Solid picker. The stored
+  // string is a tag name that TagManager.Create reads back, the same form as
+  // Filterable's SelectedTag, so a tag the site cannot resolve shows by name.
+  //
+  // The handler returns on a missing TargetTag *before* it reads the capacity,
+  // so a Value must keep both: edit-only-when-present, and setBuildingSetting
+  // only ever replaces one field. The capacity's range comes from the export's
+  // StorageTile.Def (withBuildingRange), the same one IUserControlledCapacity
+  // takes on this prefab.
+  [STORAGE_TILE_KEY]: [
+    { field: 'TargetTag', labelKey: 'Filter', type: 'element', elementForceTag: 'Solid' },
+    { field: 'UserMaxCapacity', labelKey: 'Max capacity', type: 'float', unitSuffix: 'kg', min: 0 },
+  ],
+
+  // The Radbolt Chamber and the Radbolt Generator (issue #254): two Keys, not
+  // one. The mod registers a handler under each class name (API_Methods.cs);
+  // `ISingleSliderControl`, the game-side interface both sliders implement, is
+  // never registered and so never appears in a file. Shapes from the mod
+  // source: DataTransfer_HEPBattery writes `{ particleThreshold }`, and
+  // DataTransfer_HighEnergyParticleSpawner writes `{ Direction, particleThreshold }`.
+  //
+  // The handlers copy the component's float as is, so the number is the one the
+  // slider showed: unitSuffix, no `unit`, no scale (the #251 trap). "Radbolt
+  // threshold" is the game's own side-screen title (RADBOLTTHRESHOLDSIDESCREEN /
+  // HEPSWITCHSIDESCREEN). No `max`: the sliders' ranges are per-building Config
+  // values the export does not carry, and a wrong bound would pull a legitimate
+  // stored value down on the first edit.
+  //
+  // The generator's `Direction` (an EightDirection int) is not catalogued. It
+  // round-trips because an edit replaces one field and keeps the rest -- which
+  // matters, since the handler reads Direction first and returns without it.
+  HEPBattery: [
+    {
+      field: 'particleThreshold',
+      labelKey: 'Radbolt threshold',
+      type: 'float',
+      unitSuffix: 'radbolts',
+      min: 0,
+      step: 1,
+    },
+  ],
+  HighEnergyParticleSpawner: [
+    {
+      field: 'particleThreshold',
+      labelKey: 'Radbolt threshold',
+      type: 'float',
+      unitSuffix: 'radbolts',
+      min: 0,
+      step: 1,
+    },
   ],
 
   // The player-given name. No length bound: the string bound doubles as a
@@ -565,7 +631,7 @@ function withBuildingRange(
     );
   }
 
-  if (key == USER_CAPACITY_KEY && info.userControlledCapacity != null) {
+  if ((key == USER_CAPACITY_KEY || key == STORAGE_TILE_KEY) && info.userControlledCapacity != null) {
     const capacity = info.userControlledCapacity;
     return base.map(d =>
       d.field == 'UserMaxCapacity'
@@ -595,7 +661,7 @@ function withBuildingRange(
   return base;
 }
 
-const RANGED_KEYS = [VALVE_KEY, LIMIT_VALVE_KEY, USER_CAPACITY_KEY, DOOR_KEY];
+const RANGED_KEYS = [VALVE_KEY, LIMIT_VALVE_KEY, USER_CAPACITY_KEY, STORAGE_TILE_KEY, DOOR_KEY];
 
 export function isKnownSettingsKey(key: string): boolean {
   return Object.prototype.hasOwnProperty.call(SETTINGS_CATALOG, key);
@@ -632,8 +698,8 @@ export function toStoredValue(descriptor: SettingFieldDescriptor, display: numbe
 //    not a sensor, so it keeps its editable row. (suppressesStowawaySwitch)
 //  - `Filterable` on an element sensor or Gas/Liquid Filter: the picker's phase
 //    filter (Gas/Liquid/Solid) is filled in from the prefab.
-//  - `Valve`, `LimitValve`, `IUserControlledCapacity`, `Door`: the bounds, unit and
-//    choices the export records for the prefab (withBuildingRange).
+//  - `Valve`, `LimitValve`, `IUserControlledCapacity`, `StorageTile`, `Door`: the
+//    bounds, unit and choices the export records for the prefab (withBuildingRange).
 export function resolveSettingDescriptors(
   prefabId: string,
   key: string
@@ -643,7 +709,7 @@ export function resolveSettingDescriptors(
 
   if (key == 'Switch' && suppressesStowawaySwitch(prefabId)) return [];
 
-  // Valve / LimitValve / IUserControlledCapacity / Door: the range, unit and
+  // Valve / LimitValve / capacity / Door: the range, unit and
   // choices the export records for this prefab. Independent of the sensor
   // branches below, which only ever rewrite their own Keys.
   const base = RANGED_KEYS.includes(key)
