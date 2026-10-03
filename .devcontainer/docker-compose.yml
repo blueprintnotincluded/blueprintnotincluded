@@ -28,7 +28,7 @@ x-node: &node
     context: .
     dockerfile: Dockerfile
     args:
-      NODE_VERSION: '20.19.4'
+      NODE_VERSION: '24.21.0'
   environment: &node-env
     NODE_ENV: development
     npm_config_cache: /home/node/.npm

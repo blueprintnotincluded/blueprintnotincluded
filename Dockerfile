@@ -1,4 +1,4 @@
-FROM --platform=amd64 node:20-alpine as build-frontend
+FROM --platform=amd64 node:24-alpine as build-frontend
 
 # Set the working directory
 WORKDIR /app
@@ -24,7 +24,7 @@ RUN npm run build
 # Stage 1: Compile and Build angular codebase
 
 # Use official node image as the base image
-FROM --platform=amd64 node:20-alpine as build
+FROM --platform=amd64 node:24-alpine as build
 
 # Set the working directory
 WORKDIR /app
