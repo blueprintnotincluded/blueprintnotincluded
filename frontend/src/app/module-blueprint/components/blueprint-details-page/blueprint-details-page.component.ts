@@ -350,6 +350,31 @@ export class BlueprintDetailsPageComponent implements OnInit {
       });
   }
 
+  copyWorking = false;
+
+  // The mod's share-string, straight to the clipboard: Ctrl+V in game places it.
+  copyShareString() {
+    if (this.details == null || this.copyWorking) return;
+    this.copyWorking = true;
+    this.blueprintService
+      .copySavedBlueprintShareString(this.details.id, this.details.name)
+      .then(() => {
+        this.messageService.add({
+          severity: "success",
+          summary: $localize`:shareStringCopied:Blueprint copied`,
+          detail: $localize`:shareStringCopiedDetail:Paste it into the game with the Blueprints mod (Ctrl+V)`,
+        });
+      })
+      .catch(() => {
+        this.messageService.add({
+          severity: "error",
+          summary: $localize`:shareStringCopyError:Could not copy blueprint`,
+          detail: $localize`:shareStringCopyErrorDetail:Your browser did not allow writing to the clipboard`,
+        });
+      })
+      .finally(() => (this.copyWorking = false));
+  }
+
   publishWorking = false;
 
   togglePublish(publish: boolean) {

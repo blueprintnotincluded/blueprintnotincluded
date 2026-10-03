@@ -283,6 +283,19 @@
               [attr.download]="downloadFileName"
               (click)="downloadBlueprint($event)"
             ></a>
+            <button
+              pButton
+              type="button"
+              class="p-button-outlined details-copy-share-string"
+              icon="pi pi-copy"
+              i18n-label
+              label="Copy for game"
+              i18n-pTooltip
+              pTooltip="Copy as a share string. Paste it into the game with Ctrl+V (Blueprints mod)."
+              tooltipPosition="bottom"
+              [loading]="copyWorking"
+              (click)="copyShareString()"
+            ></button>
             <app-rating-widget
               [blueprintId]="details.id"
               [myRating]="details.myRating"

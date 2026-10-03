@@ -1,5 +1,9 @@
 import { BlueprintService, BlueprintFileType } from "./blueprint-service";
-import { Blueprint, decodeBniShareString } from "../../../../../lib/index";
+import {
+  Blueprint,
+  decodeBniShareString,
+  encodeBniShareString,
+} from "../../../../../lib/index";
 import { of, throwError } from "rxjs";
 
 describe("BlueprintService", () => {
@@ -1112,6 +1116,137 @@ describe("BlueprintService", () => {
         {},
         expect.anything(),
       );
+    });
+  });
+  // The details page's "Copy for game": a saved blueprint as a share-string,
+  // without opening it in the editor.
+  describe("copySavedBlueprintShareString()", () => {
+    let writeText: any;
+
+    const setClipboard = (impl: any) => {
+      writeText = impl;
+      Object.defineProperty(navigator, "clipboard", {
+        value: impl == null ? undefined : { writeText: impl },
+        configurable: true,
+      });
+    };
+
+    afterEach(() => {
+      setClipboard(undefined);
+      vi.restoreAllMocks();
+    });
+
+    it("serves a stored share-string verbatim", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.get.mockImplementation((url: string) =>
+        url.endsWith("/raw")
+          ? of("STORED-SHARE-STRING")
+          : of({ hasRawSource: true, rawSourceFormat: "bpv2-sharestring" }),
+      );
+
+      await service.copySavedBlueprintShareString("bp1", "Renamed On Site");
+
+      expect(writeText).toHaveBeenCalledWith("STORED-SHARE-STRING");
+      // The raw endpoint records the download server-side -- no beacon
+      expect(mockHttp.post).not.toHaveBeenCalled();
+    });
+
+    it("encodes a stored .blueprint file's exact text, not a regenerated one", async () => {
+      setClipboard(vi.fn(async () => {}));
+      // Contains a building the site would strip and formatting it would not keep.
+      const rawFile =
+        '{ "friendlyname": "In-game name",\n  "buildings": [{"buildingdef":"SomeModdedThing","offset":{"x":1,"y":2}}] }';
+      mockHttp.get.mockImplementation((url: string) =>
+        url.endsWith("/raw")
+          ? of(rawFile)
+          : of({ hasRawSource: true, rawSourceFormat: "bpv2-json" }),
+      );
+
+      await service.copySavedBlueprintShareString("bp1", "Site name");
+
+      const written = writeText.mock.calls[0][0];
+      expect(await decodeBniShareString(written)).toBe(rawFile);
+      expect(written).toBe(await encodeBniShareString(rawFile));
+      expect(mockHttp.post).not.toHaveBeenCalled();
+    });
+
+    it("generates from the stored data when there is no raw copy, and counts the download", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.get.mockReturnValue(
+        of({ hasRawSource: false, data: { blueprintItems: [] } }),
+      );
+
+      await service.copySavedBlueprintShareString("bp1", "Generated");
+
+      expect(mockHttp.get).toHaveBeenCalledTimes(1);
+      const written = writeText.mock.calls[0][0];
+      expect(JSON.parse(await decodeBniShareString(written)).friendlyname).toBe(
+        "Generated",
+      );
+      expect(mockHttp.post).toHaveBeenCalledWith(
+        "/api/blueprints/bp1/downloads",
+        {},
+        expect.anything(),
+      );
+    });
+
+    it("falls back to a generated string when the raw copy has vanished", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.get.mockImplementation((url: string) =>
+        url.endsWith("/raw")
+          ? throwError(() => new Error("404"))
+          : of({
+              hasRawSource: true,
+              rawSourceFormat: "bpv2-json",
+              data: { blueprintItems: [] },
+            }),
+      );
+
+      await service.copySavedBlueprintShareString("bp1", "Fallback");
+
+      const written = writeText.mock.calls[0][0];
+      expect(JSON.parse(await decodeBniShareString(written)).friendlyname).toBe(
+        "Fallback",
+      );
+      expect(mockHttp.post).toHaveBeenCalled();
+    });
+
+    it("sends the auth token so an owner can copy their own draft", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockAuth.isLoggedIn.mockReturnValue(true);
+      mockAuth.getToken.mockReturnValue("tok");
+      mockHttp.post.mockReturnValue(of({}));
+      mockHttp.get.mockReturnValue(
+        of({ hasRawSource: false, data: { blueprintItems: [] } }),
+      );
+
+      await service.copySavedBlueprintShareString("bp1", "Draft");
+
+      expect(mockHttp.get).toHaveBeenCalledWith("/api/getblueprint/bp1", {
+        headers: { Authorization: "Bearer tok" },
+      });
+    });
+
+    it("rejects without fetching anything when the clipboard API is unavailable", async () => {
+      setClipboard(undefined);
+
+      await expect(
+        service.copySavedBlueprintShareString("bp1", "T"),
+      ).rejects.toThrow();
+      expect(mockHttp.get).not.toHaveBeenCalled();
+    });
+
+    it("rejects, and counts nothing, when the blueprint cannot be fetched", async () => {
+      setClipboard(vi.fn(async () => {}));
+      mockHttp.get.mockReturnValue(throwError(() => new Error("403")));
+
+      await expect(
+        service.copySavedBlueprintShareString("bp1", "T"),
+      ).rejects.toThrow();
+      expect(writeText).not.toHaveBeenCalled();
+      expect(mockHttp.post).not.toHaveBeenCalled();
     });
   });
 });
