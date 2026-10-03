@@ -31,9 +31,8 @@ npm ci && (cd frontend && npm ci) && npm run build:lib && npm run migrate:up
 
 Frontend: http://localhost:4200 · Backend: http://localhost:3000
 
-To work on the host instead, use Node **20.19.4** (see `.nvmrc`; Canvas 3.x
-requires Node 20 — do not use Node 22) and run `./dev-setup.sh` to start just
-the database and mail server.
+To work on the host instead, use Node **24.21.0** (see `.nvmrc`) and run
+`./dev-setup.sh` to start just the database and mail server.
 
 More detail on the development environment lives in [CLAUDE.md](CLAUDE.md) —
 it's written for AI agents but the commands are the same for humans.

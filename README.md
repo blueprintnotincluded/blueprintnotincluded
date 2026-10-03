@@ -46,7 +46,7 @@ two dev users (an admin and an ordinary account), seeded automatically at
 boot — no setup, no console paste. `npm run seed:dev-blueprints` adds the
 rest of the social-graph fixture on demand. See `AUTH_MODE` in `CLAUDE.md` "Environment Configuration".
 
-To run the app straight on the host instead — Node 20.19.4 per `.nvmrc` —
+To run the app straight on the host instead — Node 24.21.0 per `.nvmrc` —
 `./dev-setup.sh` starts just the database and mail from the production compose
 file, and `DB_URI` / `SMTP_HOST` in `.env` become `localhost` rather than the
 `database` / `mailhog` service names the sample ships. Uncomment
