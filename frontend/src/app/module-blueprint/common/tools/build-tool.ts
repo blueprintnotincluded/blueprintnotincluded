@@ -9,6 +9,7 @@ import {
   BuildLocationRule,
   ConnectionHelper,
   snapRocketModulePosition,
+  OniItem,
 } from "../../../../../../lib/index";
 import { Injectable, ApplicationRef } from "@angular/core";
 import { ITool, IChangeTool, ToolType } from "./tool";
@@ -27,9 +28,30 @@ const BRIDGE_LOCATION_RULES: ReadonlySet<BuildLocationRule> = new Set([
   BuildLocationRule.NoLiquidConduitAtOrigin,
 ]);
 
+// Whether `candidate` can be built over `existing`, replacing it, the way the
+// game queues a replacement instead of refusing the cell (#272). The game reads
+// this off the BuildingDef (ReplacementLayer, ReplacementTags,
+// ReplacementCandidateLayers), which the OniExtract2024 export does not carry
+// yet. Until it does, this is the interim rule: foundation over foundation on
+// the same object layer, which covers one tile type over another and a wall
+// pump or vent over a wall tile. A building never replaces its own kind, so a
+// tile dragged or clicked over the same tile stays a no-op.
+export function canReplace(candidate: OniItem, existing: OniItem): boolean {
+  return (
+    candidate.isFoundation &&
+    existing.isFoundation &&
+    candidate.objectLayer == existing.objectLayer &&
+    candidate.id != existing.id
+  );
+}
+
 @Injectable()
 export class BuildTool implements ITool {
   templateItemToBuild!: BlueprintItem;
+  // What building the candidate where it stands would replace. Found by
+  // updateBuildCandidateResult with the rest of its verdict, and only ever
+  // destroyed by a single click (see leftClick).
+  private replaceTargets: BlueprintItem[] = [];
   private observers: IObsBuildItemChanged[];
 
   parent!: IChangeTool;
@@ -73,6 +95,7 @@ export class BuildTool implements ITool {
     // replaces it instead of stacking a second cell on the same tile.
     const isElement = this.templateItemToBuild.oniItem.isElement;
 
+    this.replaceTargets = [];
     for (const tileIndex of this.templateItemToBuild.tileIndexes) {
       for (const templateItem of this.blueprintService.blueprint.getBlueprintItemsAtIndex(
         tileIndex,
@@ -85,6 +108,11 @@ export class BuildTool implements ITool {
           this.templateItemToBuild.oniItem.objectLayer ==
             templateItem.oniItem.objectLayer
         ) {
+          if (this.isReplaceable(templateItem)) {
+            if (this.replaceTargets.indexOf(templateItem) == -1)
+              this.replaceTargets.push(templateItem);
+            continue;
+          }
           this.templateItemToBuild.buildCandidateResult.canBuild = false;
           this.templateItemToBuild.buildCandidateResult.cantBuildReason = $localize`Can\'t build here : ${templateItem.oniItem.name} is in the way`;
         }
@@ -140,8 +168,24 @@ export class BuildTool implements ITool {
     }
   }
 
-  build() {
+  // Replaceable under the interim rule, and lying wholly under the candidate:
+  // a replacement must never take out part of a building outside the area
+  // being built on, like a door a tile was clicked onto one cell of.
+  private isReplaceable(existing: BlueprintItem): boolean {
+    const candidateTiles = this.templateItemToBuild.tileIndexes;
+    return (
+      canReplace(this.templateItemToBuild.oniItem, existing.oniItem) &&
+      existing.tileIndexes.every((tile) => candidateTiles.indexOf(tile) != -1)
+    );
+  }
+
+  // Replacing is opt-in: only a single click passes allowReplace. Mouse-down
+  // and every cell a drag passes over build where the cell is free and leave
+  // a replaceable building alone, so a tile drag never wipes what it crosses.
+  build(allowReplace: boolean = false) {
     if (!this.templateItemToBuild.buildCandidateResult.canBuild) return;
+    const replaced = this.replaceTargets;
+    if (replaced.length > 0 && !allowReplace) return;
 
     // Painting an element cell over one that's already there replaces it
     // rather than stacking a second cell on the same tile — the same
@@ -164,10 +208,17 @@ export class BuildTool implements ITool {
       true,
     );
 
+    // Destroying what is replaced and adding the new building is one edit, so
+    // it must be one blueprintChanged and therefore one undo step.
+    const blueprint = this.blueprintService.blueprint;
+    if (replaced.length > 0) blueprint.pauseChangeEvents();
+    for (const item of replaced) blueprint.destroyBlueprintItem(item);
+
     newItem.prepareBoundingBox();
-    newItem.updateTileables(this.blueprintService.blueprint);
-    this.blueprintService.blueprint.addBlueprintItem(newItem);
-    this.blueprintService.blueprint.refreshOverlayInfo();
+    newItem.updateTileables(blueprint);
+    blueprint.addBlueprintItem(newItem);
+    if (replaced.length > 0) blueprint.resumeChangeEvents(true);
+    blueprint.refreshOverlayInfo();
     this.updateBuildCandidateResult();
   }
 
@@ -290,10 +341,14 @@ export class BuildTool implements ITool {
       this.templateItemToBuild.setInvisible();
   }
 
+  // The click that follows a mouse-down without the pointer moving. Its
+  // mouse-down already built wherever the cell was free, so all that is left
+  // for the click is a replacement, which is why only the click may replace.
   leftClick(tile: Vector2) {
     this.placeAt(tile);
     this.templateItemToBuild.prepareBoundingBox();
-    this.build();
+    this.updateBuildCandidateResult();
+    this.build(true);
   }
 
   rightClick(_tile: Vector2) {
@@ -321,6 +376,9 @@ export class BuildTool implements ITool {
   mouseDown(tile: Vector2) {
     this.placeAt(tile);
     this.templateItemToBuild.prepareBoundingBox();
+    // Judge the cell now rather than trust the last hover's verdict: it is
+    // also what tells build() whether this cell holds something to replace.
+    this.updateBuildCandidateResult();
     this.build();
   }
 

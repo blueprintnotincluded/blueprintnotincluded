@@ -4,6 +4,8 @@ import {
   CameraService,
   BlueprintHelpers,
   BuildLocationRule,
+  Blueprint,
+  DrawHelpers,
 } from "../../../../../../lib/index";
 import { ToolType } from "./tool";
 import { ShortcutAction } from "../../keybindings/shortcut-actions";
@@ -687,6 +689,184 @@ describe("BuildTool", () => {
       expect(() =>
         tool.dragStepByStep(new Vector2(0.5, 0.5), new Vector2(1500.5, 0.5)),
       ).toThrow("The tile dragger was too long");
+    });
+  });
+
+  // #272. Foundation over foundation on the same object layer is replaced on a
+  // single click instead of refused; mouse-down and drags never replace. Runs
+  // against a real lib Blueprint so the undo assertion counts the real
+  // blueprintChanged events (BlueprintService snapshots once per event).
+  describe("replacing a building", () => {
+    let blueprint: Blueprint;
+    let changes: number;
+
+    // A placed building: occupies the cell it stands on, like prepareBoundingBox.
+    const placed = (id: string, position: Vector2, oniItem: any = {}) => {
+      const item: any = makeTemplateItem({
+        id,
+        position,
+        tileIndexes: [DrawHelpers.getTileIndex(position)],
+        oniItem: makeOniItem({ id, name: id, isFoundation: true, ...oniItem }),
+      });
+      blueprint.addBlueprintItem(item);
+      return item;
+    };
+
+    const brush = (id: string, oniItem: any = {}) => {
+      const item: any = makeTemplateItem({
+        id,
+        oniItem: makeOniItem({ id, name: id, isFoundation: true, ...oniItem }),
+      });
+      item.prepareBoundingBox = vi.fn(() => {
+        item.tileIndexes = [DrawHelpers.getTileIndex(item.position)];
+      });
+      tool.templateItemToBuild = item;
+      return item;
+    };
+
+    beforeEach(() => {
+      blueprint = new Blueprint();
+      mockBlueprintService.blueprint = blueprint;
+      changes = 0;
+      blueprint.subscribeBlueprintChanged({
+        blueprintChanged: () => changes++,
+        itemAdded: () => {},
+        itemDestroyed: () => {},
+      });
+      // Each clone is a fresh item standing where the brush is.
+      vi.spyOn(BlueprintHelpers, "cloneBlueprintItem").mockImplementation(
+        (original: any) =>
+          makeTemplateItem({
+            id: original.id,
+            oniItem: original.oniItem,
+            position: Vector2.clone(original.position),
+            tileIndexes: [DrawHelpers.getTileIndex(original.position)],
+          }) as any,
+      );
+    });
+
+    const at = (x: number, y: number) =>
+      blueprint.getBlueprintItemsAt(new Vector2(x, y)).map((i: any) => i.id);
+
+    it("replaces a wall tile with a wall pump on a click, as one undo step", () => {
+      const wall = placed("Tile", new Vector2(2, 3));
+      brush("FairGasWallPump");
+      changes = 0;
+
+      tool.mouseDown(new Vector2(2, 3));
+      tool.leftClick(new Vector2(2, 3));
+
+      expect(at(2, 3)).toEqual(["FairGasWallPump"]);
+      expect(wall.destroy).toHaveBeenCalled();
+      expect(changes).toBe(1);
+    });
+
+    it("lets the hover show a replaceable cell as buildable", () => {
+      placed("Tile", new Vector2(2, 3));
+      const pump = brush("FairGasWallPump");
+
+      tool.hover(new Vector2(2, 3));
+
+      expect(pump.buildCandidateResult.canBuild).toBe(true);
+    });
+
+    it("does not replace on mouse-down alone", () => {
+      placed("Tile", new Vector2(2, 3));
+      brush("MeshTile");
+
+      tool.mouseDown(new Vector2(2, 3));
+
+      expect(at(2, 3)).toEqual(["Tile"]);
+    });
+
+    it("still refuses a non-foundation building on the same layer", () => {
+      placed("Tile", new Vector2(2, 3));
+      const bed = brush("Bed", { isFoundation: false });
+
+      tool.hover(new Vector2(2, 3));
+      tool.leftClick(new Vector2(2, 3));
+
+      expect(bed.buildCandidateResult.canBuild).toBe(false);
+      expect(bed.buildCandidateResult.cantBuildReason).toContain("Tile");
+      expect(at(2, 3)).toEqual(["Tile"]);
+    });
+
+    it("still refuses a foundation over a non-foundation on the same layer", () => {
+      placed("Ladder", new Vector2(2, 3), { isFoundation: false });
+      brush("Tile");
+
+      tool.leftClick(new Vector2(2, 3));
+
+      expect(at(2, 3)).toEqual(["Ladder"]);
+    });
+
+    it("leaves a wire on another layer alone", () => {
+      const wire = placed("Wire", new Vector2(2, 3), {
+        isFoundation: false,
+        objectLayer: 26,
+      });
+      brush("Tile");
+
+      tool.leftClick(new Vector2(2, 3));
+
+      expect(at(2, 3)).toEqual(["Wire", "Tile"]);
+      expect(wire.destroy).not.toHaveBeenCalled();
+    });
+
+    it("never replaces part of a building outside the brush", () => {
+      const door: any = makeTemplateItem({
+        id: "PressureDoor",
+        position: new Vector2(2, 3),
+        tileIndexes: [
+          DrawHelpers.getTileIndex(new Vector2(2, 3)),
+          DrawHelpers.getTileIndex(new Vector2(2, 4)),
+        ],
+        oniItem: makeOniItem({
+          id: "PressureDoor",
+          name: "PressureDoor",
+          isFoundation: true,
+        }),
+      });
+      blueprint.addBlueprintItem(door);
+      const tile = brush("Tile");
+
+      tool.leftClick(new Vector2(2, 3));
+
+      expect(tile.buildCandidateResult.canBuild).toBe(false);
+      expect(door.destroy).not.toHaveBeenCalled();
+    });
+
+    it("clicking the same tile over itself changes nothing", () => {
+      const wall = placed("Tile", new Vector2(2, 3));
+      brush("Tile");
+      changes = 0;
+
+      tool.mouseDown(new Vector2(2, 3));
+      tool.leftClick(new Vector2(2, 3));
+
+      expect(at(2, 3)).toEqual(["Tile"]);
+      expect(wall.destroy).not.toHaveBeenCalled();
+      expect(changes).toBe(0);
+    });
+
+    // A drag builds on free cells and passes over what it could replace, so a
+    // tile drag through a wall never wipes it, and a drag of the same tile over
+    // itself is a no-op.
+    it("a drag builds on free cells and replaces nothing it passes over", () => {
+      const other = placed("MeshTile", new Vector2(2, 0));
+      const same = placed("Tile", new Vector2(3, 0));
+      brush("Tile");
+
+      tool.mouseDown(new Vector2(0, 0));
+      tool.drag(new Vector2(0.5, -0.5), new Vector2(4.5, -0.5));
+
+      expect(at(0, 0)).toEqual(["Tile"]);
+      expect(at(1, 0)).toEqual(["Tile"]);
+      expect(at(2, 0)).toEqual(["MeshTile"]);
+      expect(at(3, 0)).toEqual(["Tile"]);
+      expect(at(4, 0)).toEqual(["Tile"]);
+      expect(other.destroy).not.toHaveBeenCalled();
+      expect(same.destroy).not.toHaveBeenCalled();
     });
   });
 });
