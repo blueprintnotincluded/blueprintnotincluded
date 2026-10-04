@@ -209,15 +209,20 @@ export class BuildTool implements ITool {
     );
 
     // Destroying what is replaced and adding the new building is one edit, so
-    // it must be one blueprintChanged and therefore one undo step.
+    // it must be one blueprintChanged and therefore one undo step. Resumed in
+    // a finally: a throw left paused would keep every later edit out of the
+    // undo history.
     const blueprint = this.blueprintService.blueprint;
     if (replaced.length > 0) blueprint.pauseChangeEvents();
-    for (const item of replaced) blueprint.destroyBlueprintItem(item);
+    try {
+      for (const item of replaced) blueprint.destroyBlueprintItem(item);
 
-    newItem.prepareBoundingBox();
-    newItem.updateTileables(blueprint);
-    blueprint.addBlueprintItem(newItem);
-    if (replaced.length > 0) blueprint.resumeChangeEvents(true);
+      newItem.prepareBoundingBox();
+      newItem.updateTileables(blueprint);
+      blueprint.addBlueprintItem(newItem);
+    } finally {
+      if (replaced.length > 0) blueprint.resumeChangeEvents(true);
+    }
     blueprint.refreshOverlayInfo();
     this.updateBuildCandidateResult();
   }

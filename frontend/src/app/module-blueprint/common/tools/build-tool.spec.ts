@@ -761,6 +761,20 @@ describe("BuildTool", () => {
       expect(changes).toBe(1);
     });
 
+    it("resumes change events even when the replacement throws", () => {
+      placed("Tile", new Vector2(2, 3));
+      brush("FairGasWallPump");
+      vi.spyOn(blueprint, "addBlueprintItem").mockImplementation(() => {
+        throw new Error("boom");
+      });
+
+      expect(() => tool.leftClick(new Vector2(2, 3))).toThrow("boom");
+      changes = 0;
+      blueprint.emitBlueprintChanged();
+
+      expect(changes).toBe(1);
+    });
+
     it("lets the hover show a replaceable cell as buildable", () => {
       placed("Tile", new Vector2(2, 3));
       const pump = brush("FairGasWallPump");
