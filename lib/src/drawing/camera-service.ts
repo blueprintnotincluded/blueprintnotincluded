@@ -93,6 +93,16 @@ export class CameraService {
     return CameraService.cameraService_;
   }
 
+  // The constructor only claims the static for the first camera ever made, so
+  // throwaway export cameras never take it over. The editor canvas, though, is
+  // rebuilt every time the editor route is re-entered, and its fresh camera has
+  // to become the one the static hands out: otherwise the build tool switches
+  // the overlay on the previous canvas's camera, and a newly placed item draws
+  // against the live one still on the old overlay (#271).
+  makeCurrent() {
+    CameraService.cameraService_ = this;
+  }
+
   constructor(container: any) {
     if (CameraService.cameraService_ == null) CameraService.cameraService_ = this;
     this.container = container;

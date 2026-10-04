@@ -28,6 +28,7 @@ export declare class CameraService {
     addToContainer(child: any): void;
     private static cameraService_;
     static get cameraService(): CameraService;
+    makeCurrent(): void;
     constructor(container: any);
     observersCameraChange: IObsCameraChanged[];
     subscribeCameraChange(observer: IObsCameraChanged): void;

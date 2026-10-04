@@ -144,6 +144,7 @@ export class ComponentCanvasComponent
   ) {
     this.drawPixi = drawPixi;
     this.cameraService = new CameraService(this.drawPixi.getNewContainer());
+    this.cameraService.makeCurrent();
     this.cameraService.subscribeCameraChange(this);
     this.toolService.subscribeToolChanged(this);
   }
