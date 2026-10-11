@@ -21,7 +21,7 @@ rects, ROADMAP + ROADMAP_DECISIONS); marked BPv2 followups task 3 (buildingData)
   open items in `agent/TODO.md` (deferred plan items each have a stated trigger or were
   decided against, see `spec/archive/multilingual-search-plan.md` §8). Asset pipeline is
   OniExtract2024 flat-icon rendering.
-- **Node.js**: 20.19.4 (via volta)
+- **Node.js**: 24.21.0 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
 - **Tests**: Backend 1072 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
   load locally and pass on a clean run) · Frontend 1226 passing (Vitest/jsdom)
