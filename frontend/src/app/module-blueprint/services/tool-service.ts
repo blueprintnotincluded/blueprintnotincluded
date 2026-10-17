@@ -79,6 +79,11 @@ export class ToolService implements ITool, IChangeTool {
     this.digTool.parent = this;
   }
 
+  // The tool that owns canvas input right now.
+  get currentToolType(): ToolType {
+    return this.currentTool.toolType;
+  }
+
   subscribeToolChanged(observer: IObsToolChanged) {
     this.observers.push(observer);
   }

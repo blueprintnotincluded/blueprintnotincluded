@@ -1,0 +1,25 @@
+<ng-container *ngIf="view">
+  <div
+    *ngFor="let card of view.cards"
+    class="hover-card"
+    [class.hover-card-selected]="card.selected"
+  >
+    <div class="hover-card-header">
+      <span class="hover-card-name">{{ card.header }}</span>
+      <span *ngIf="card.material" class="hover-card-material"
+        >({{ card.material }})</span
+      >
+    </div>
+    <ul *ngIf="card.bullets.length > 0" class="hover-card-bullets">
+      <li *ngFor="let bullet of card.bullets">
+        {{ bullet.text
+        }}<span *ngIf="bullet.accent" class="hover-card-accent">{{
+          bullet.accent
+        }}</span>
+      </li>
+    </ul>
+  </div>
+  <div *ngIf="view.more > 0" class="hover-card hover-card-more" i18n>
+    +{{ view.more }} more
+  </div>
+</ng-container>

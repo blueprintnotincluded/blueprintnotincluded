@@ -1,0 +1,70 @@
+/* Placed by translate() from the component; never takes a click or a hover
+   away from the canvas underneath. */
+:host {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 320px;
+  pointer-events: none;
+}
+
+/* Colours read off the game's own hover card. */
+.hover-card {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 6px 10px;
+  border: 2px solid transparent;
+  border-radius: 2px;
+  background: rgb(55 58 71 / 0.88);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.hover-card-selected {
+  border-color: #d99c50;
+}
+
+.hover-card-header {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hover-card-name {
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.hover-card-material {
+  margin-left: 0.75em;
+  color: #b4b7c2;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hover-card-bullets {
+  margin: 2px 0 0;
+  padding: 0 0 0 1.1em;
+  list-style: "•  ";
+}
+
+.hover-card-bullets li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hover-card-accent {
+  color: #8ec5ff;
+}
+
+.hover-card-more {
+  color: #b4b7c2;
+}

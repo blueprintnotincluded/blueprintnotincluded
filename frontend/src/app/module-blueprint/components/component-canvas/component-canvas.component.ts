@@ -57,6 +57,8 @@ import {
   ExportImageOptions,
 } from "../../services/blueprint-service";
 import { ToolService, IObsToolChanged } from "../../services/tool-service";
+import { HoverCardService } from "../../services/hover-card.service";
+import { cellScreenRect } from "../hover-card/hover-card-placement";
 import { ToolType } from "../../common/tools/tool";
 import { KeyboardShortcutService } from "../../services/keyboard-shortcut.service";
 import {
@@ -150,6 +152,7 @@ export class ComponentCanvasComponent
     private worldNoteService: WorldNoteService,
     private terrainService: TerrainAnnotationService,
     private shortcutService: KeyboardShortcutService,
+    private hoverCardService: HoverCardService,
     drawPixi: DrawPixi,
   ) {
     this.drawPixi = drawPixi;
@@ -163,6 +166,7 @@ export class ComponentCanvasComponent
     if (!this.forceSize)
       this.canvasRef.nativeElement.style.cursor =
         toolType == ToolType.scissors ? SCISSORS_CURSOR : "";
+    this.updateHoverCard(true);
   }
 
   private running!: boolean;
@@ -221,11 +225,17 @@ export class ComponentCanvasComponent
 
     this.registerShortcuts();
 
+    // No hover on a touch screen, and nothing to inspect in an embed.
+    this.hoverCardEnabled =
+      !this.forceSize &&
+      !(window.matchMedia?.("(pointer: coarse)").matches ?? false);
+
     //this.drawAbstraction.Init(this.canvasRef, this)
   }
 
   ngOnDestroy() {
     this.running = false;
+    this.hoverCardService.hide();
     for (const unregister of this.shortcutSubscriptions) unregister();
     this.shortcutSubscriptions = [];
   }
@@ -499,6 +509,8 @@ export class ComponentCanvasComponent
   }
 
   mouseOut(_event: any) {
+    this.hoverPointer = null;
+    this.hoverCardService.hide();
     this.toolService.mouseOut();
   }
 
@@ -561,6 +573,11 @@ export class ComponentCanvasComponent
 
   storePreviousTileFloat: Vector2 | null = null;
   mouseDrag(event: any) {
+    // No card while a selection box is dragged or the view is panned.
+    this.hoverCardDragging = true;
+    this.hoverPointer = this.getCursorPosition(event);
+    this.hoverCardService.hide();
+
     const previousTileFloat = Vector2.clone(
       this.storePreviousTileFloat ?? undefined,
     );
@@ -583,9 +600,14 @@ export class ComponentCanvasComponent
     this.storePreviousTileFloat = Vector2.clone(currentTileFloat);
   }
 
+  // Every pointer-up ends here, a plain click included, after the click
+  // itself was handled: re-rendering now puts the selected card's border on
+  // the click that selected it.
   mouseStopDrag(_event: any) {
     this.storePreviousTileFloat = null;
+    this.hoverCardDragging = false;
     this.toolService.dragStop();
+    this.updateHoverCard(true);
   }
 
   // Two-finger touch gesture: pans and zooms the camera together, mirroring
@@ -622,12 +644,63 @@ export class ComponentCanvasComponent
       this.toolService.hover(currentTileUnderMouse);
 
     this.previousTileUnderMouse = currentTileUnderMouse;
+
+    // A touch "hover" is a finger on the glass, synthesized at touch-down.
+    this.hoverPointer =
+      event.pointerType === "touch" ? null : this.previousMouse;
+    this.updateHoverCard();
   }
 
   // Every key in the editor goes through the shortcut dispatcher, which maps
   // it to an action via the (user-customizable) bindings.
   keyPress(event: KeyboardEvent) {
     this.shortcutService.handleKeyEvent(event);
+    // Escape, Delete and undo change what the card says without a click.
+    this.updateHoverCard(true);
+  }
+
+  // The hover card: what is on the cell under the pointer. On for Select
+  // (the Element Report included, which is a view, not a tool) and off while
+  // any tool with its own ghost is active, as is the game's.
+  private hoverCardEnabled = false;
+  private hoverCardDragging = false;
+  // Canvas pixels; null while the pointer is off the canvas.
+  private hoverPointer: Vector2 | null = null;
+  private hoverCardCameraKey = "";
+
+  private updateHoverCard(force = false) {
+    if (
+      !this.hoverCardEnabled ||
+      this.hoverPointer == null ||
+      this.hoverCardDragging ||
+      this.toolService.currentToolType != ToolType.select
+    ) {
+      this.hoverCardService.hide();
+      return;
+    }
+
+    const coords = this.cameraService.getTileCoords(this.hoverPointer);
+    const tile = { x: Math.floor(coords.x), y: Math.ceil(coords.y) };
+    const rect = cellScreenRect(tile, this.cameraService);
+    const canvas = this.canvasRef.nativeElement.getBoundingClientRect();
+    this.hoverCardService.show(
+      tile,
+      { ...rect, left: rect.left + canvas.left, top: rect.top + canvas.top },
+      force,
+    );
+  }
+
+  // Zoom and pan move the cell under a still pointer, and an overlay change
+  // reorders the buildings, so the card follows the camera, not just the
+  // pointer. Polled per frame: the camera eases toward its target over
+  // several frames and announces none of them.
+  private followCameraWithHoverCard() {
+    if (this.hoverPointer == null) return;
+    const camera = this.cameraService;
+    const key = `${camera.currentZoom}|${camera.cameraOffset.x}|${camera.cameraOffset.y}|${camera.overlay}`;
+    if (key == this.hoverCardCameraKey) return;
+    this.hoverCardCameraKey = key;
+    this.updateHoverCard(true);
   }
 
   prepareOverlayInfo() {
@@ -1484,6 +1557,8 @@ export class ComponentCanvasComponent
     }
 
     if (this.pendingRenderMetric != null) this.checkRenderMetric();
+
+    this.followCameraWithHoverCard();
 
     if (this.cameraService.triggerSortChildren) {
       this.drawPixi.sortChildren();

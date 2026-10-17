@@ -506,6 +506,30 @@ right-click or Escape returns to Select.
 - The editor overlay caches its geometry by zoom + cell signature and only moves the Graphics
   on pan: a large capture can carry thousands of digs.
 
+### Hover card (what is on a cell)
+
+The game's hover card: hovering a cell in the editor lists one small card per thing on it, so
+what a building hides (a dig, a gas cell, a wire under a tile) is still readable.
+
+- **`cellStack(blueprint, cell, visibility)`** (`cell-stack.ts`, pure) is the list, top to
+  bottom: text note, terrain feature (any cell of its footprint), buildings frontmost first (by
+  `depth`, the Select tool's click-cycle order, so it follows the overlay), dig, then the cell's
+  contents — element cells and element notes — last, even though a gas cell draws above the
+  buildings in Base. `findNoteAt` / `findTerrainFeatureAt` / `terrainFootprint` moved here from
+  the frontend services, which re-export them. A view toggle that hides notes, terrain or digs
+  drops their entries; the overlay never does, since a dimmed building is still on the cell.
+- **Frontend** — `HoverCardService` (state; the canvas calls `show`/`hide`) and
+  `components/hover-card/` (contents per kind, placement, the OnPush component). The card renders
+  with a local `detectChanges`, not a signal: pointer moves arrive outside the zone, and a signal
+  would schedule an app-wide tick for every tile crossed. Anchored to the cell's screen rect, not
+  the cursor, flipping left/above at the viewport edge. On for Select only (the Element Report
+  is a view, not a tool); off in embeds, on `pointer: coarse`, and while dragging or panning.
+- **Orange border = selected**: the entry the canvas's green highlight belongs to — a building or
+  element cell in the Select tool's selected group, or the selected note or terrain feature.
+  Element cells and element notes are selectable today, so they can carry it; a dig never does.
+  The canvas re-renders on every pointer-up and key, so the border moves on the click that
+  cycles the selection (`itemGroupeNext` announces nothing).
+
 ### Range-carrying settings (Prioritizable, Door, Valve, LimitValve, capacity, name)
 
 Six more `buildingData` Keys are catalogued: `Prioritizable`, `Door`, `Valve`, `LimitValve`,

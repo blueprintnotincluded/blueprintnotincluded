@@ -4,11 +4,12 @@ import {
   BniWorldNote,
   BuildableElement,
   NEUTRONIUM_ELEMENT_ID,
-  TerrainFeature,
   Vector2,
+  findNoteAt,
+  findTerrainFeatureAt,
+  terrainFootprint,
 } from "../../../../../lib/index";
 import { BlueprintService } from "./blueprint-service";
-import { findNoteAt } from "./world-note.service";
 
 // `BlueprintNoteData.NoteType.Element` — a note that names the element a cell
 // should hold, rather than carrying text. The mod writes only id/mass/temp for
@@ -16,45 +17,9 @@ import { findNoteAt } from "./world-note.service";
 // carries no explanatory text: it would not survive a round-trip through game.
 const ELEMENT_NOTE = 1;
 
-// Footprint of a placed annotation, in cells. The catalogue is the source of
-// truth for size; an id this database doesn't know annotates a single cell, so
-// an unrecognised feature is still selectable and deletable rather than
-// becoming an invisible, unclickable ghost.
-export function terrainFootprint(feature: BniTerrainFeature): {
-  width: number;
-  height: number;
-} {
-  const known = TerrainFeature.getFeature(feature.id);
-  return known != null
-    ? { width: known.width, height: known.height }
-    : { width: 1, height: 1 };
-}
-
-// Resolves a cell to the annotation covering it, last-wins — the same rule the
-// canvas hit-test, the tool and the overlay all use, so a click and the panel
-// it opens always agree.
-//
-// Unlike world notes, terrain features occupy an AREA: the stored x/y is the
-// bottom-left anchor cell and the footprint extends up and right from it, so a
-// click anywhere inside a 4x2 Oil Reservoir selects it.
-export function findTerrainFeatureAt(
-  features: BniTerrainFeature[] | null | undefined,
-  tile: { x: number; y: number },
-): BniTerrainFeature | null {
-  if (features == null) return null;
-  for (let i = features.length - 1; i >= 0; i--) {
-    const feature = features[i];
-    const { width, height } = terrainFootprint(feature);
-    if (
-      tile.x >= feature.x &&
-      tile.x < feature.x + width &&
-      tile.y >= feature.y &&
-      tile.y < feature.y + height
-    )
-      return feature;
-  }
-  return null;
-}
+// The footprint and hit-test live in lib, beside the hover card's cellStack
+// that also uses them; re-exported so the editor keeps importing them here.
+export { findTerrainFeatureAt, terrainFootprint };
 
 // The cells a feature's neutronium base occupies: one row, as wide as the
 // footprint, directly beneath the anchor. In the game every geyser, vent and

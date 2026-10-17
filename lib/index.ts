@@ -64,6 +64,7 @@ export * from './src/blueprint/rocket-interior-fit';
 export * from './src/blueprint/rocket-interior-layouts';
 export * from './src/blueprint/dlc';
 export * from './src/blueprint/terrain-metadata';
+export * from './src/blueprint/cell-stack';
 export * from './src/blueprint/note-conversion';
 export * from './src/blueprint/bpv2-sanitize';
 export * from './src/blueprint/translation';

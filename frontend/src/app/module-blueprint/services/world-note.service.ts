@@ -1,21 +1,10 @@
 import { Injectable } from "@angular/core";
-import { BniWorldNote } from "../../../../../lib/index";
+import { BniWorldNote, findNoteAt } from "../../../../../lib/index";
 import { BlueprintService } from "./blueprint-service";
 
-// Resolves a cell to the note occupying it, last-wins — the same rule the
-// canvas click hit-test and the editor overlay's selection use, so a click
-// and the panel it opens always agree on which note is "at" a cell. Imports
-// are never de-duplicated: a cell with two notes keeps both in the data, but
-// only the last one is reachable (spec/element-notes.md §2.1).
-export function findNoteAt(
-  notes: BniWorldNote[] | null | undefined,
-  tile: { x: number; y: number },
-): BniWorldNote | null {
-  if (notes == null) return null;
-  for (let i = notes.length - 1; i >= 0; i--)
-    if (notes[i].x === tile.x && notes[i].y === tile.y) return notes[i];
-  return null;
-}
+// The hit-test lives in lib, beside the hover card's cellStack that also uses
+// it; re-exported so the editor keeps importing it from here.
+export { findNoteAt };
 
 // Shared selection/edit state for BlueprintsV2 world notes. The canvas
 // detects note clicks and calls select(); the bottom-right edit panel reads

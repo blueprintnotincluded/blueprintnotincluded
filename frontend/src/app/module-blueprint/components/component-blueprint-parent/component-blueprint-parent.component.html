@@ -86,6 +86,8 @@
 
 <app-component-canvas #canvas [forceSize]="forceSize" [forcedSize]="forcedSize">
 </app-component-canvas>
+<!-- What is on the hovered cell, over the canvas. The canvas decides when. -->
+<app-hover-card *ngIf="!forceSize"></app-hover-card>
 <div *ngIf="!forceSize" class="outer">
   <app-component-menu
     *ngIf="!forceSize"

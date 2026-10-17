@@ -13,6 +13,9 @@ import { SelectTool } from "src/app/module-blueprint/common/tools/select-tool";
 import { ScissorsTool } from "src/app/module-blueprint/common/tools/scissors-tool";
 import { DrawPixi } from "src/app/module-blueprint/drawing/draw-pixi";
 import { CameraService, Overlay } from "../../../../../../lib/index";
+import { HoverCardService } from "src/app/module-blueprint/services/hover-card.service";
+import { ToolService } from "src/app/module-blueprint/services/tool-service";
+import { ToolType } from "src/app/module-blueprint/common/tools/tool";
 
 // The real DrawPixi constructs a PIXI.Application (WebGL) in Init(), which jsdom
 // cannot provide. Inject a mock so the renderer never boots in the unit test.
@@ -39,8 +42,13 @@ function mockDrawPixi(): Partial<DrawPixi> {
 describe("ComponentCanvasComponent", () => {
   let component: ComponentCanvasComponent;
   let fixture: ComponentFixture<ComponentCanvasComponent>;
+  let hoverCard: {
+    show: ReturnType<typeof vi.fn>;
+    hide: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
+    hoverCard = { show: vi.fn(), hide: vi.fn() };
     TestBed.configureTestingModule({
       declarations: [ComponentCanvasComponent],
       imports: [RouterTestingModule.withRoutes([])],
@@ -50,6 +58,7 @@ describe("ComponentCanvasComponent", () => {
         ElementReport,
         SelectTool,
         ScissorsTool,
+        { provide: HoverCardService, useValue: hoverCard },
         provideHttpClient(withInterceptorsFromDi()),
       ],
     });
@@ -64,6 +73,91 @@ describe("ComponentCanvasComponent", () => {
 
   it("should create", () => {
     expect(component).toBeTruthy();
+  });
+
+  describe("hover card", () => {
+    const pointer = (x: number, y: number, pointerType = "mouse") => ({
+      clientX: x,
+      clientY: y,
+      pointerType,
+    });
+
+    beforeEach(() => {
+      const camera = component["cameraService"];
+      camera.currentZoom = 20;
+      camera.cameraOffset.x = 0;
+      camera.cameraOffset.y = 5;
+    });
+
+    it("describes the cell under the pointer, anchored to that cell", () => {
+      component.mouseMove(pointer(45, 10));
+
+      expect(hoverCard.show).toHaveBeenLastCalledWith(
+        { x: 2, y: 5 },
+        { left: 40, top: 0, width: 20, height: 20 },
+        false,
+      );
+    });
+
+    it("hides when the pointer leaves the canvas", () => {
+      component.mouseMove(pointer(45, 10));
+      component.mouseOut({});
+      expect(hoverCard.hide).toHaveBeenCalled();
+    });
+
+    it("stays off for a touch", () => {
+      component.mouseMove(pointer(45, 10, "touch"));
+      expect(hoverCard.show).not.toHaveBeenCalled();
+    });
+
+    it("hides while panning and comes back, re-rendered, when it ends", () => {
+      component.mouseMove(pointer(45, 10));
+      hoverCard.show.mockClear();
+
+      component.mouseDrag({
+        ...pointer(45, 10),
+        dragX: 0,
+        dragY: 0,
+        dragButton: [false, false, true],
+      });
+      expect(hoverCard.hide).toHaveBeenCalled();
+      expect(hoverCard.show).not.toHaveBeenCalled();
+
+      component.mouseStopDrag({});
+      expect(hoverCard.show).toHaveBeenLastCalledWith(
+        { x: 2, y: 5 },
+        expect.anything(),
+        true,
+      );
+    });
+
+    it("is off while a tool with its own ghost is active", () => {
+      component.mouseMove(pointer(45, 10));
+      hoverCard.show.mockClear();
+      const toolService = TestBed.inject(ToolService);
+      vi.spyOn(toolService, "currentToolType", "get").mockReturnValue(
+        ToolType.build,
+      );
+
+      component.toolChanged(ToolType.build);
+      component.mouseMove(pointer(65, 10));
+
+      expect(hoverCard.hide).toHaveBeenCalled();
+      expect(hoverCard.show).not.toHaveBeenCalled();
+    });
+
+    it("follows a zoom under a still pointer", () => {
+      component.mouseMove(pointer(45, 10));
+      component["followCameraWithHoverCard"]();
+      component["cameraService"].currentZoom = 40;
+      component["followCameraWithHoverCard"]();
+
+      expect(hoverCard.show).toHaveBeenLastCalledWith(
+        { x: 1, y: 5 },
+        { left: 40, top: 0, width: 40, height: 40 },
+        true,
+      );
+    });
   });
 
   // #271. Leaving the editor route destroys the canvas and re-entering builds
