@@ -104,10 +104,12 @@ Repository → Settings:
   visibility → Public**. ghcr.io creates packages private even for public repositories;
   until it is public the server cannot pull. (Alternative: `docker login ghcr.io` on the
   box with a classic PAT that has `read:packages`.)
-- WorkOS dashboard (Production environment — both projects use it, see
-  `agent/WORKOS_PLAN.md`): add `https://hetzner.blueprintnotincluded.org` and
-  `https://staging.blueprintnotincluded.org` wherever the apex is listed today (Redirects:
-  redirect URIs, sign-in/logout/home URLs).
+- WorkOS needs no hostname change for either project (both use the Production
+  environment, see `agent/WORKOS_PLAN.md`): the app calls the User Management API
+  directly — password and magic-code login, emailed verification codes — and builds the
+  password-reset link itself from `SITE_URL`, so no WorkOS redirect, sign-in or logout URL
+  setting is involved. Only the three env values (`WORKOS_API_KEY`, `WORKOS_CLIENT_ID`,
+  `WORKOS_PLATFORM_ORG_ID`) are copied into `app.env`.
 
 ### 6. Env files on the box
 
