@@ -5,7 +5,10 @@ projects from this directory: **production** (image tag `:prod`, nightly backups
 Cloudflare R2) and **staging** (image tag `:latest`, no backups). Each project has its own
 app container, its own MongoDB 8.2 with a named volume, and its own Cloudflare Tunnel. The
 server publishes no port but SSH; Cloudflare stays in front for DNS, TLS, caching and rate
-limiting. Images come from `ghcr.io/blueprintnotincluded/blueprintnotincluded`.
+limiting — Kevin's own Cloudflare account, which the zone has to be moved into first (First
+install 2): today the domain's DNS is hosted at DigitalOcean, and the `server: cloudflare`
+header the live site returns is App Platform's edge, not a zone of ours. Images come from
+`ghcr.io/blueprintnotincluded/blueprintnotincluded`.
 
 ```
 /srv/bpni/
@@ -20,7 +23,7 @@ Everything below is run as the `deploy` user on the box unless it says otherwise
 
 ## First install
 
-Do these once, in order. Items 1–4 are console work; the rest is on the box.
+Do these once, in order. Items 1–5 are console work; the rest is on the box.
 
 ### 1. Hetzner server
 
@@ -40,7 +43,31 @@ Do these once, in order. Items 1–4 are console work; the rest is on the box.
 - Wait for cloud-init to finish (`ssh deploy@<ip> cloud-init status --wait`), then check
   `docker compose version` and `sudo fail2ban-client status sshd`.
 
-### 2. Cloudflare Tunnel
+### 2. Cloudflare zone
+
+The tunnels, the trial hostname and the cut-over all need `blueprintnotincluded.org` to be a
+zone in the Cloudflare account. Until this step it is not one: the registrar is Namecheap and
+the nameservers are `ns1–3.digitalocean.com`, with the records in DigitalOcean's DNS. Moving
+the zone changes nothing for visitors as long as every record is carried over unproxied.
+
+1. Laptop: `doctl compute domain records list blueprintnotincluded.org` — the full record
+   set to check the import against (at least the apex record pointing at the App Platform
+   app, the SPF `TXT` with `spf.mailjet.com` and `spf.privateemail.com`, `_dmarc`, and any
+   Mailjet or WorkOS verification `TXT`s).
+2. Cloudflare dashboard → **Add a domain** → `blueprintnotincluded.org` → **Free** plan.
+   Cloudflare scans and imports what it can find; add whatever the list above shows is
+   missing. Set **every** record to *DNS only* (grey cloud) for now: proxying the apex would
+   put our Cloudflare in front of App Platform's and break its certificate renewal. The
+   proxied records arrive with the tunnels, and the apex turns orange at cut-over.
+3. Namecheap → the domain → **Nameservers** → *Custom DNS* → the two
+   `*.ns.cloudflare.com` names Cloudflare shows for this zone. Cloudflare marks the zone
+   *Active* once it sees them (minutes to a few hours). DigitalOcean's copy of the zone can
+   stay until decommissioning; it is simply no longer authoritative.
+
+No cache, rate-limit or WAF rules exist yet (there was no zone to hold them). Add them
+after cut-over, on the apex hostname.
+
+### 3. Cloudflare Tunnel
 
 In Zero Trust → Networks → Tunnels create two tunnels, **bpni-production** and
 **bpni-staging** (Cloudflared connector type). For each, note the token shown in the
@@ -55,7 +82,7 @@ In Zero Trust → Networks → Tunnels create two tunnels, **bpni-production** a
 project runs its own tunnel. Cloudflare creates the proxied DNS records itself. The
 production tunnel gains the apex and `www` at cut-over (below).
 
-### 3. Cloudflare R2
+### 4. Cloudflare R2
 
 Create bucket **bpni-backups** (any location). Create an **R2 API token** scoped to that
 bucket with *Object Read & Write*; keep the Access Key ID, Secret Access Key and the
@@ -63,7 +90,7 @@ endpoint `https://<account id>.r2.cloudflarestorage.com`. Free tier: 10 GB store
 egress fees; the nightly archives are a few hundred MB each because `previewimages` is
 excluded (see Backups).
 
-### 4. GitHub
+### 5. GitHub
 
 Repository → Settings:
 
@@ -82,7 +109,7 @@ Repository → Settings:
   `https://staging.blueprintnotincluded.org` wherever the apex is listed today (Redirects:
   redirect URIs, sign-in/logout/home URLs).
 
-### 5. Env files on the box
+### 6. Env files on the box
 
 ```bash
 sudo -u deploy -i
@@ -104,7 +131,7 @@ unset.
 The deploy directory has not been synced yet at this point, so for the very first run
 copy it by hand from a checkout: `rsync -az deploy/ deploy@<ip>:/srv/bpni/deploy/`.
 
-### 6. First deploy
+### 7. First deploy
 
 ```bash
 /srv/bpni/deploy/bin/deploy.sh staging      # pulls :latest, builds the backup image, waits for health
@@ -280,9 +307,10 @@ Pick a quiet hour (03:00–06:00 UTC is the traffic trough). Writes made on DO b
 final dump and the DNS change are lost, so keep the window short.
 
 1. **Before**: note the current apex and `www` DNS records exactly (target, proxy status)
-   — that is the rollback. Confirm Cloudflare cache rules, rate-limit rules and WAF rules
-   are keyed on the zone or the apex hostname, not on an origin. WorkOS needs nothing:
-   the apex is already configured there and the hostname does not change.
+   — that is the rollback. If any cache, rate-limit or WAF rules were added since the zone
+   moved, confirm they are keyed on the zone or the apex hostname, not on an origin. WorkOS
+   needs nothing: login is password or an emailed code and the reset link is built from
+   `SITE_URL`, so no WorkOS redirect setting names a hostname.
 2. **Env diff** on the box: in `/srv/bpni/production/app.env` set
    `HOST=https://blueprintnotincluded.org` and `SITE_URL=https://blueprintnotincluded.org`;
    in `.env` set `PUBLIC_HOSTNAME=blueprintnotincluded.org`. Everything else was copied
