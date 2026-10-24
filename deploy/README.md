@@ -1,9 +1,9 @@
 # Hosting runbook — blueprintnotincluded.org on Hetzner
 
-One Hetzner Cloud CX23 (2 vCPU, 4 GB, 40 GB NVMe, Ubuntu 24.04) runs two Docker Compose
+One Hetzner Cloud CX23 (2 vCPU, 4 GB, 40 GB NVMe, Ubuntu 26.04) runs two Docker Compose
 projects from this directory: **production** (image tag `:prod`, nightly backups to
 Cloudflare R2) and **staging** (image tag `:latest`, no backups). Each project has its own
-app container, its own MongoDB 8.0 with a named volume, and its own Cloudflare Tunnel. The
+app container, its own MongoDB 8.2 with a named volume, and its own Cloudflare Tunnel. The
 server publishes no port but SSH; Cloudflare stays in front for DNS, TLS, caching and rate
 limiting. Images come from `ghcr.io/blueprintnotincluded/blueprintnotincluded`.
 
@@ -24,8 +24,11 @@ Do these once, in order. Items 1–4 are console work; the rest is on the box.
 
 ### 1. Hetzner server
 
-- Create a **CX23**, **Ubuntu 24.04**, location **fsn1** or **nbg1** (Helsinki if neither
-  has capacity).
+- Create a **CX23** (x86, shared vCPU), **Ubuntu 26.04**, in whichever of fsn1, nbg1 or hel1
+  has stock; Cloudflare fronts every visitor, so the city barely matters. Leave IPv4 + IPv6
+  on, no private network, no volume, no placement group. Ubuntu 26.04 and not 24.04 on
+  purpose: its kernel is the 7.0 line, which `mongo:8.0.x` refuses (SERVER-121912) and
+  `mongo:8.2.12` runs on — the same pairing the dev container and CI already use.
 - Generate the deploy key on your laptop: `ssh-keygen -t ed25519 -f ~/.ssh/bpni-deploy -C github-actions-deploy -N ''`.
 - Copy `cloud-init.yaml` into the "Cloud config" box, replacing the two
   `ssh_authorized_keys` placeholders with your own public key and `bpni-deploy.pub`.
@@ -191,7 +194,7 @@ env files you kept), then the steps above.
 bin/restore-drill.sh            # production; exit 0 = pass
 ```
 
-Fetches the newest daily archive, restores it into a throwaway `mongo:8.0.23` container on
+Fetches the newest daily archive, restores it into a throwaway `mongo:8.2.12` container on
 the project's network, prints live → restored counts per collection (excluded collections
 must be absent, every other count within 5 % of live), and removes the container. Run it
 after the first nightly backup and whenever the backup image, exclusions or retention

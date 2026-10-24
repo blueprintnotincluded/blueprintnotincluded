@@ -1,8 +1,11 @@
 #cloud-config
 # Hetzner Cloud user data for the blueprintnotincluded.org box.
 #
-# Paste this into "Cloud config" when creating the server (Ubuntu 24.04 LTS,
-# CX23, fsn1 or nbg1) after filling in the two ssh_authorized_keys lines.
+# Paste this into "Cloud config" when creating the server (Ubuntu 26.04 LTS,
+# CX23, any location with stock) after filling in the two ssh_authorized_keys
+# lines. Those two keys are the only ones that can log in afterwards: yours
+# and the GitHub Actions deploy key. Hetzner's own "SSH keys" picker only
+# seeds root, which this file then closes (PermitRootLogin no).
 # Pair it with a Hetzner Cloud Firewall that allows inbound TCP 22 only (and
 # ICMP if you like): everything else is outbound — cloudflared dials out to
 # Cloudflare, Docker pulls from ghcr.io, backups push to R2.
@@ -14,8 +17,9 @@
 #   - user `deploy` (docker group, passwordless sudo, key-only SSH) for the
 #     workflows and for you; root login and password auth off
 #   - Docker Engine + Compose v2 from Ubuntu's own archive (docker.io,
-#     docker-compose-v2: 26.x / 2.27 on noble, everything compose.yml needs,
-#     and unattended-upgrades keeps them patched with no extra apt origin)
+#     docker-compose-v2, docker-buildx: 27.5 / 2.40 / 0.30 on resolute,
+#     everything compose.yml needs, and unattended-upgrades keeps them
+#     patched with no extra apt origin)
 #   - unattended-upgrades, automatic reboot at 05:17 UTC when a kernel needs
 #     it (containers return via their restart policy)
 #   - fail2ban with the sshd jail
