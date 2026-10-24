@@ -21,9 +21,10 @@ carry Production ids and it must keep using the Production environment:
 | Staging website | Own DB, a restored copy of production | **Production** |
 | Production website | Prod DB | **Production** |
 
-Both hostnames (`staging.blueprintnotincluded.org`, the apex, and during the Hetzner trial
-`hetzner.blueprintnotincluded.org`) have to be allowed in the Production environment's
-redirect / sign-in URL settings.
+No hostname is registered with WorkOS: the app calls the User Management API directly
+(password / magic-code login, emailed verification codes) and builds the password-reset link
+from `SITE_URL`, so staging and the Hetzner trial hostname need nothing in the dashboard —
+only the Production environment's three env values.
 
 **Local dev defaults to `AUTH_MODE=local`** (`specs/local-auth-mode-plan.md`), not the Staging
 mapping above: no checkout ships real WorkOS keys, and with several local databases the Staging
