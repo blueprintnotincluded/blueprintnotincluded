@@ -1,6 +1,6 @@
 #!/bin/bash
 # Prove last night's backup restores: fetch the newest daily archive from R2,
-# restore it into a throwaway mongo:8.0.23 container, compare collection counts
+# restore it into a throwaway mongo:8.2.12 container, compare collection counts
 # with the live database, tear it all down. Exit status is the verdict.
 #
 #   restore-drill.sh [production]
@@ -50,7 +50,7 @@ echo "   $newest"
 
 echo "== starting throwaway mongo ($drill on $network)"
 docker run -d --rm --name "$drill" --network "$network" --memory 768m \
-  mongo:8.0.23 mongod --wiredTigerCacheSizeGB 0.25 >/dev/null
+  mongo:8.2.12 mongod --wiredTigerCacheSizeGB 0.25 >/dev/null
 for _ in $(seq 1 30); do
   if docker exec "$drill" mongosh --quiet --eval "db.adminCommand('ping').ok" 2>/dev/null | grep -q 1; then break; fi
   sleep 2
