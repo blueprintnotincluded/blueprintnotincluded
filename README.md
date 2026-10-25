@@ -89,9 +89,7 @@ To check incoming emails visit: http://localhost:8025
 ## Running batch tasks in production
 
 Production and staging are two Docker Compose projects on one Hetzner server; the
-runbook is `deploy/README.md` (until its cut-over checklist is done, the DigitalOcean
-deployment still serves `blueprintnotincluded.org` and these commands apply to the
-Hetzner trial). The deploy image (`deploy.Dockerfile`) ships only compiled
+runbook is `deploy/README.md`. The deploy image (`deploy.Dockerfile`) ships only compiled
 output under `/bpni/build`: compiled JS, `assets/`, `package.json`, `migrations/`, and
 `scripts/batch.sh`. There are **no TypeScript sources and no devDependencies**
 (`npm ci --omit=dev`), so anything that needs `ts-node` cannot run there.

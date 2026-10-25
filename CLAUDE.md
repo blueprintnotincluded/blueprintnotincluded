@@ -155,7 +155,7 @@ Remaining batch utilities:
 - **`--limit N` on both derive tasks** - A full pass loads every stored blueprint blob (~10 min on the live corpus), so diagnostic dry runs take `--limit N` (`npm run derive-metadata -- --dry-run --limit 100`). The capped run samples **randomly**, not the first N: natural order tracks insertion date and so does everything these reports measure, so a head sample would report the oldest blueprints' problems as the corpus average. Percentages from a sampled run extrapolate; the absolute counts don't. Shared helper: `app/api/batch/batch-sampling.ts`.
 - `npm run avatars:smoke` / `avatars:seed-batch -- --count N` / `avatars:backfill[:dry-run]` - Gemini avatar pipeline (costs real money per generation; setup + rollout order in `agent/AVATARS.md`).
 - `npm run backfill-previews` - Render preview images for all non-deleted blueprints (newest first) and store them durably in Mongo (`previewimages` collection). Skips blueprints whose durable rows are already fresh, so it's rerunnable/resumable. Use `--dry-run` (`npm run backfill-previews:dry-run`) to report the fresh/stale split without rendering or writing.
-- **Running batch tasks in production:** production and staging are Docker Compose projects on one Hetzner server (runbook: `deploy/README.md`; until its cut-over checklist is done, DigitalOcean still serves the apex and the Hetzner commands apply to the trial). The deploy image has no devDependencies or TS sources, but ships `package.json` + `scripts/batch.sh` into `/bpni/build`, the app container's working directory, so the same npm task names work there: `deploy/bin/compose.sh production exec app npm run avatars:seed-batch -- --count 10` (likewise `derive-metadata`, `migrate:up`, …; `backfill-previews` goes through `run --rm --no-deps app` so it gets its own memory limit). `batch.sh` dispatches to compiled `app/api/batch/<name>.js` in the image and `ts-node` in a dev checkout. Direct `node app/api/batch/<name>.js` also works. New prod-runnable batch tasks must go through `scripts/batch.sh`, and any files they read at runtime must land in `build/` (copy_assets.sh + a `COPY` in deploy.Dockerfile). Full checklist: README "Running batch tasks in production".
+- **Running batch tasks in production:** production and staging are Docker Compose projects on one Hetzner server (runbook: `deploy/README.md`). The deploy image has no devDependencies or TS sources, but ships `package.json` + `scripts/batch.sh` into `/bpni/build`, the app container's working directory, so the same npm task names work there: `deploy/bin/compose.sh production exec app npm run avatars:seed-batch -- --count 10` (likewise `derive-metadata`, `migrate:up`, …; `backfill-previews` goes through `run --rm --no-deps app` so it gets its own memory limit). `batch.sh` dispatches to compiled `app/api/batch/<name>.js` in the image and `ts-node` in a dev checkout. Direct `node app/api/batch/<name>.js` also works. New prod-runnable batch tasks must go through `scripts/batch.sh`, and any files they read at runtime must land in `build/` (copy_assets.sh + a `COPY` in deploy.Dockerfile). Full checklist: README "Running batch tasks in production".
 
 ### Docker
 
@@ -188,7 +188,7 @@ Copy `.env.sample` to `.env` and configure:
 
 ## Database
 
-Uses MongoDB 8.0.23 locally and 8.2 in CI — GitHub's runners moved to a kernel ≥ 6.19 on 2026-10-18, where 8.0.x will not start (SERVER-121912). Production and staging run `mongo:8.2.12` self-hosted on the Hetzner server (`deploy/compose.yml`, Ubuntu 26.04 = kernel 7.0; the Hetzner trial restores a dump of the DigitalOcean 7.0.34 cluster into it, which is the upgrade — see `deploy/README.md`). Mongoose models in `app/api/models/`:
+Uses MongoDB 8.0.23 locally and 8.2 in CI — GitHub's runners moved to a kernel ≥ 6.19 on 2026-10-18, where 8.0.x will not start (SERVER-121912). Production and staging run `mongo:8.2.12` self-hosted on the Hetzner server (`deploy/compose.yml`, Ubuntu 26.04 = kernel 7.0; the data was restored there from a dump of the DigitalOcean 7.0.34 cluster at the 2026-10-25 cut-over, which was the upgrade — see `deploy/README.md`). Mongoose models in `app/api/models/`:
 
 - `blueprint.ts` - Blueprint documents
 - `user.ts` - User accounts
@@ -269,7 +269,7 @@ head -20 agent/TODO.md
 
 - Node is pinned to 20.19.4 (`.nvmrc`, volta, CI; the deploy image is `node:20-slim`); moving to a newer major is issue #263. canvas itself is not what holds it: 3.2.3 declares `node: ^18.12.0 || >= 20.9.0` and ships N-API prebuilds that load on 20, 22 and 24
 - All test infrastructure is Mocha + Chai — do not introduce Jest
-- Rate limiting is handled by Cloudflare — do not add express-rate-limit
+- Rate limiting belongs to Cloudflare (a zone rule, `deploy/README.md` "Cloudflare") — do not add express-rate-limit
 
 ## Database Migrations
 
@@ -288,10 +288,9 @@ migration authoring rules, the pre-merge/post-deploy process and rollback: `docs
   scoped token) — `docs/migrations.md`.
 - `/.env` — local dev only. Never put prod or staging credentials here.
 - `/prod-dump/` — gitignored. Real prod data; never commit.
-- Until the DigitalOcean cut-over is complete: the DO admin URI stays in the DO console
-  only, the read-only URI in `/.env.migration` (gitignored, cannot write), `doctl` is
-  read-only by design, and nothing on DO is changed from here (`deploy/README.md`,
-  cut-over checklist).
+- DigitalOcean (the previous host, cut over 2026-10-25) is left untouched until its
+  decommission (`deploy/README.md`, "Decommission DigitalOcean"): its URIs live only in the
+  DO console, `doctl` is read-only by design, and nothing on DO is changed from here.
 
 ---
 

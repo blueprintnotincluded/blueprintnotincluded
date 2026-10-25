@@ -4,26 +4,27 @@ One Hetzner Cloud CX23 (2 vCPU, 4 GB, 40 GB NVMe, Ubuntu 26.04) runs two Docker 
 projects from this directory: **production** (image tag `:prod`, nightly backups to
 Cloudflare R2) and **staging** (image tag `:latest`, no backups). Each project has its own
 app container, its own MongoDB 8.2 with a named volume, and its own Cloudflare Tunnel. The
-server publishes no port but SSH; Cloudflare stays in front for DNS, TLS, caching and rate
-limiting — Kevin's own Cloudflare account, which the zone has to be moved into first (First
-install 2): today the domain's DNS is hosted at DigitalOcean, and the `server: cloudflare`
-header the live site returns is App Platform's edge, not a zone of ours. Images come from
-`ghcr.io/blueprintnotincluded/blueprintnotincluded`.
+server publishes no port but SSH; Cloudflare's zone for the domain is in front for DNS and
+TLS, and is where any caching, WAF or rate-limit rule goes (the "Cloudflare" section is what
+that zone must contain). Images come from `ghcr.io/blueprintnotincluded/blueprintnotincluded`.
 
 ```
 /srv/bpni/
   deploy/        this directory, rsynced by the workflows (never edit on the box)
   production/    .env (compose-level: tag, passwords, tunnel token, R2) + app.env (the app's env)
   staging/       same two files, staging values
-  dumps/         scratch for seed archives; the backup image mounts it as /dumps
+  dumps/         scratch for seed archives and env backups; the backup image mounts it as /dumps
 ```
 
 Everything below is run as the `deploy` user on the box unless it says otherwise.
-`bin/compose.sh <project> …` is `docker compose` for that project.
+`bin/compose.sh <project> …` is `docker compose` for that project. Everything that is not a
+secret is in this directory; the secrets are the four env files, which `bin/env-backup.sh`
+keeps as an encrypted archive off the box. "Rebuild from scratch" below is the test of that
+claim.
 
 ## First install
 
-Do these once, in order. Items 1–5 are console work; the rest is on the box.
+Do these once, in order. Items 1–4 are console work; 5–7 are on the box.
 
 ### 1. Hetzner server
 
@@ -32,9 +33,11 @@ Do these once, in order. Items 1–5 are console work; the rest is on the box.
   on, no private network, no volume, no placement group. Ubuntu 26.04 and not 24.04 on
   purpose: its kernel is the 7.0 line, which `mongo:8.0.x` refuses (SERVER-121912) and
   `mongo:8.2.12` runs on — the same pairing the dev container and CI already use.
-- Generate the deploy key on your laptop: `ssh-keygen -t ed25519 -f ~/.ssh/bpni-deploy -C github-actions-deploy -N ''`.
-- Copy `cloud-init.yaml` into the "Cloud config" box, replacing the two
-  `ssh_authorized_keys` placeholders with your own public key and `bpni-deploy.pub`.
+- Laptop: `deploy/bin/cloud-init-render.sh` fills `cloud-init.yaml` with your SSH public key
+  and the GitHub Actions deploy key (`~/.ssh/bpni-deploy`, generated when missing; its
+  private half is the `DEPLOY_SSH_KEY` repository secret) and copies the result to the
+  clipboard. Paste it into the **Cloud config** box. In Hetzner's SSH key picker add your
+  own key, not the deploy key.
 - Attach a **Cloud Firewall**: inbound TCP 22 from anywhere (optionally ICMP), nothing else.
   Outbound open.
 - Enable **Backups** (weekly server images, 20 % of the server price). They restore the
@@ -43,46 +46,48 @@ Do these once, in order. Items 1–5 are console work; the rest is on the box.
 - Wait for cloud-init to finish (`ssh deploy@<ip> cloud-init status --wait`), then check
   `docker compose version` and `sudo fail2ban-client status sshd`.
 
-### 2. Cloudflare zone
+### 2. Cloudflare
 
-The tunnels, the trial hostname and the cut-over all need `blueprintnotincluded.org` to be a
-zone in the Cloudflare account. Until this step it is not one: the registrar is Namecheap and
-the nameservers are `ns1–3.digitalocean.com`, with the records in DigitalOcean's DNS. Moving
-the zone changes nothing for visitors as long as every record is carried over unproxied.
+The zone `blueprintnotincluded.org` lives in the Cloudflare account that also holds
+`sinetheta.ca` (nameservers `duke.ns.cloudflare.com` / `norah.ns.cloudflare.com` at
+Namecheap since 2026-10-24). This is what it must contain; the console is checked against
+this table, not the other way round. After any record change, export the zone
+(**DNS → Records → Export**) and commit the file as `deploy/cloudflare/blueprintnotincluded.org.zone`
+so the record set has a history.
 
-1. Laptop: `doctl compute domain records list blueprintnotincluded.org` — the full record
-   set to check the import against (at least the apex record pointing at the App Platform
-   app, the SPF `TXT` with `spf.mailjet.com` and `spf.privateemail.com`, `_dmarc`, and any
-   Mailjet or WorkOS verification `TXT`s).
-2. Cloudflare dashboard → **Add a domain** → `blueprintnotincluded.org` → **Free** plan.
-   Cloudflare scans and imports what it can find; add whatever the list above shows is
-   missing. Set **every** record to *DNS only* (grey cloud) for now: proxying the apex would
-   put our Cloudflare in front of App Platform's and break its certificate renewal. The
-   proxied records arrive with the tunnels, and the apex turns orange at cut-over.
-3. Namecheap → the domain → **Nameservers** → *Custom DNS* → the two
-   `*.ns.cloudflare.com` names Cloudflare shows for this zone. Cloudflare marks the zone
-   *Active* once it sees them (minutes to a few hours). DigitalOcean's copy of the zone can
-   stay until decommissioning; it is simply no longer authoritative.
+| Type | Name | Content | Proxy |
+|---|---|---|---|
+| CNAME | `@` (apex) | tunnel **bpni-production** (`<tunnel id>.cfargotunnel.com`) | Proxied |
+| CNAME | `www` | tunnel **bpni-production** | Proxied |
+| CNAME | `staging` | tunnel **bpni-staging** | Proxied |
+| CNAME | `status` | `clownfish-app-8xbp6.ondigitalocean.app` | DNS only — dies with the DigitalOcean app |
+| CNAME | `s1._domainkey`, `s2._domainkey` | `s1.domainkey.u1671653.wl154.sendgrid.net`, `s2.…` | DNS only — SendGrid DKIM, dormant (mail is Mailjet) |
+| TXT | `@` | `v=spf1 include:spf.mailjet.com include:spf.privateemail.com ~all` | — |
+| TXT | `_dmarc` | `v=DMARC1; p=none;` | — |
 
-No cache, rate-limit or WAF rules exist yet (there was no zone to hold them). Add them
-after cut-over, on the apex hostname.
+No `A`/`AAAA` (the apex *is* the tunnel), no `MX`. Settings: **SSL/TLS → Edge
+Certificates → Always Use HTTPS: On**; Universal SSL covers the apex and
+`*.blueprintnotincluded.org`. No cache, WAF or rate-limit rules exist yet (the free plan
+allows one rate-limiting rule); when one is added it goes on the zone or the apex hostname,
+never on an origin, and gets a row here.
 
-### 3. Cloudflare Tunnel
+**Tunnels** (Zero Trust → Networks → Tunnels, connector type Cloudflared). Each project
+runs its own, because the route target `app:3000` is the compose service name on that
+project's network. The token from the tunnel's *Configure* page is `TUNNEL_TOKEN` in the
+project's `.env`; compose runs the connector, never the `docker run` snippet by hand.
 
-In Zero Trust → Networks → Tunnels create two tunnels, **bpni-production** and
-**bpni-staging** (Cloudflared connector type). For each, note the token shown in the
-`docker run … --token …` snippet, and add one public hostname:
-
-| Tunnel | Public hostname | Service |
+| Tunnel | Published application routes | Service |
 |---|---|---|
-| bpni-production | `hetzner.blueprintnotincluded.org` (during the trial) | `http://app:3000` |
+| bpni-production | `blueprintnotincluded.org`, `www.blueprintnotincluded.org` (plus the trial's `hetzner.blueprintnotincluded.org` until the decommission) | `http://app:3000` |
 | bpni-staging | `staging.blueprintnotincluded.org` | `http://app:3000` |
 
-`app` is the compose service name, resolved on the project's network — the reason each
-project runs its own tunnel. Cloudflare creates the proxied DNS records itself. The
-production tunnel gains the apex and `www` at cut-over (below).
+Adding a route creates the proxied CNAME above; Cloudflare refuses a route whose hostname
+already has a DNS record, so an existing record is deleted first. A tunnel recreated from
+scratch has a new id and token: put the token in `.env`, `bin/compose.sh <project> up -d
+cloudflared`, add the routes again. The server's IP appears nowhere in DNS — a rebuilt box
+with the same tokens serves the same hostnames with no DNS change.
 
-### 4. Cloudflare R2
+### 3. Cloudflare R2
 
 Create bucket **bpni-backups** (any location). Create an **R2 API token** scoped to that
 bucket with *Object Read & Write*; keep the Access Key ID, Secret Access Key and the
@@ -90,15 +95,15 @@ endpoint `https://<account id>.r2.cloudflarestorage.com`. Free tier: 10 GB store
 egress fees; the nightly archives are a few hundred MB each because `previewimages` is
 excluded (see Backups).
 
-### 5. GitHub
+### 4. GitHub
 
 Repository → Settings:
 
 - Secret **`DEPLOY_SSH_KEY`**: the contents of `~/.ssh/bpni-deploy` (the private key).
 - Variable **`DEPLOY_HOST`**: the server's IPv4.
 - Variable **`DEPLOY_KNOWN_HOSTS`**: the output of `ssh-keyscan -t ed25519 <ip>`.
-- Environments `staging` and `production` already exist; `production` keeps its required
-  reviewer.
+- Environments `staging` and `production`; `production` has a required reviewer (the
+  approval step of *Promote to production*).
 - After the first `publish.yml` run, open the new package
   (`ghcr.io/blueprintnotincluded/blueprintnotincluded`) → Package settings → **Change
   visibility → Public**. ghcr.io creates packages private even for public repositories;
@@ -111,40 +116,50 @@ Repository → Settings:
   setting is involved. Only the three env values (`WORKOS_API_KEY`, `WORKOS_CLIENT_ID`,
   `WORKOS_PLATFORM_ORG_ID`) are copied into `app.env`.
 
-### 6. Env files on the box
+### 5. Env files on the box
+
+The first box has never received a workflow push, so copy this directory by hand from a
+checkout — Laptop: `rsync -az deploy/ deploy@<ip>:/srv/bpni/deploy/`. Then on the box:
 
 ```bash
 sudo -u deploy -i
-cp /srv/bpni/deploy/env/production.env.example /srv/bpni/production/.env
-cp /srv/bpni/deploy/env/app.env.example        /srv/bpni/production/app.env
-cp /srv/bpni/deploy/env/staging.env.example    /srv/bpni/staging/.env
-cp /srv/bpni/deploy/env/app.env.example        /srv/bpni/staging/app.env
-chmod 600 /srv/bpni/*/.env /srv/bpni/*/app.env
+/srv/bpni/deploy/bin/env-bootstrap.sh
 ```
 
-Fill them in by hand. `.env` wants fresh random passwords (`openssl rand -hex 24` three
-times per project), the tunnel token and the R2 credentials. `app.env` takes the values
-from the DigitalOcean app's environment (Mailjet, WorkOS, Gemini, Translate), with
-`HOST`/`SITE_URL` set to that project's hostname. `JWT_SECRET`: production keeps the DO
-value so existing sessions survive the cut-over; staging gets its own fresh one. Never
-copy `DB_URI` or `AUTH_MODE` across; compose sets the first and the second must stay
-unset.
+It creates the four files (mode 600) from `env/*.example` with the Mongo passwords,
+staging's `JWT_SECRET` and the hostnames filled in, and lists what is left for you:
+the two tunnel tokens, the R2 credentials, production's `JWT_SECRET` (the value the site
+already uses — a new one logs every user out), Mailjet and WorkOS keys, the optional
+Gemini/Translate keys for production only. Edit with `nano`; `DB_URI` and `AUTH_MODE` stay
+out (compose sets the first, the second must remain unset).
 
-The deploy directory has not been synced yet at this point, so for the very first run
-copy it by hand from a checkout: `rsync -az deploy/ deploy@<ip>:/srv/bpni/deploy/`.
+When the files exist and have been checked once, take the encrypted copy and move it off
+the box (passphrase in your password manager, archive next to it or on the laptop):
 
-### 7. First deploy
+```bash
+/srv/bpni/deploy/bin/env-backup.sh backup     # prints the scp line
+```
+
+A rebuilt box skips the hand-filling: `bin/env-backup.sh restore <archive>` recreates the
+four files from that copy (see "Rebuild from scratch").
+
+### 6. First deploy
 
 ```bash
 /srv/bpni/deploy/bin/deploy.sh staging      # pulls :latest, builds the backup image, waits for health
-/srv/bpni/deploy/bin/deploy.sh production   # pulls :prod — exists only after one promotion…
+/srv/bpni/deploy/bin/deploy.sh production   # pulls :prod
 ```
 
-`:prod` does not exist until the first run of the *Promote to production* workflow. For
-the trial, run it once (it retags `:latest` → `:prod` and deploys), or temporarily set
-`IMAGE_TAG=latest` in production's `.env`. Both projects now answer on their hostnames
-with an **empty database**; seed them next (Database → Seed from a dump), then run the
-migrations.
+`:prod` exists only after one run of the *Promote to production* workflow. On a brand-new
+registry run it once (it retags `:latest` → `:prod` and deploys), or set `IMAGE_TAG=latest`
+in production's `.env` for the first deploy and put `prod` back afterwards. Both projects
+now answer on their hostnames with an **empty database**.
+
+### 7. Data
+
+Production: "Restore last night's data" below (from R2), or "Seed from a dump" from another
+cluster. Staging: `bin/seed-from-dump.sh production dump local`, then
+`bin/seed-from-dump.sh staging restore <archive>`. Then `migrate:status` in each project.
 
 ## Everyday operations
 
@@ -156,12 +171,15 @@ migrations.
 | Roll back to an older build | On the box: set `IMAGE_TAG=sha-<short>` in `/srv/bpni/production/.env`, run `deploy.sh production`; put `prod` back afterwards. |
 | Redeploy by hand | `bin/deploy.sh <project>` — idempotent. |
 | Status | `bin/compose.sh production ps`, `docker stats --no-stream` |
-| Logs | `bin/compose.sh production logs -f --tail 200 app` (json-file, 10 MB × 3 per container). The `memory-heartbeat` and `facets-slow` lines the code emits are grepped here now instead of `doctl apps logs`. |
+| Logs | `bin/compose.sh production logs -f --tail 200 app` (json-file, 10 MB × 3 per container). The `memory-heartbeat` and `facets-slow` lines the code emits are grepped here. Ctrl-C ends the follow; the containers keep running. |
 | Shell in the app | `bin/compose.sh production exec app bash` (cwd `/bpni/build`) |
 | Mongo shell | `bin/compose.sh production exec mongo mongosh -u root -p "$(grep MONGO_ROOT_PASSWORD= /srv/bpni/production/.env \| cut -d= -f2)" --authenticationDatabase admin blueprintnotincluded` |
+| Change `app.env` (HOST, keys…) | Edit, then `bin/compose.sh <project> up -d app`. `start`/`restart` keep the container's old environment. |
 | Change a memory limit | Edit `APP_MEM_LIMIT` / `MONGO_MEM_LIMIT` / `MONGO_CACHE_GB` in `.env`, `deploy.sh`. |
 | Rotate the tunnel token | New token in `.env`, `bin/compose.sh <project> up -d cloudflared`. |
-| OS updates | unattended-upgrades nightly; reboots at 05:17 UTC only when a kernel needs it; containers restart on their own. |
+| After any env change | `bin/env-backup.sh backup`, copy the archive off the box; the old archive can be deleted. |
+| OS updates | unattended-upgrades nightly; reboots at 05:17 UTC only when a kernel needs it; every container has `restart: unless-stopped`, Docker starts at boot, so nothing needs a login. |
+| Disk | `df -h /`; `/srv/bpni/dumps` holds seed archives and env backups — delete what is no longer needed. |
 
 The app's preview render worker sizes itself from the container's memory limit
 (`app/api/services/render-memory.ts`); at the 1 GB production limit it runs at the 384 MB
@@ -200,22 +218,23 @@ the trade-off.
 Hetzner's weekly server backup is the second line: it captures the whole box including
 the Mongo volumes (crash-consistent, up to a week old).
 
-### Restore
+### Restore last night's data
 
-From an R2 archive into production (the site keeps serving the old data until the
-`--drop` restore lands; stop the app first for a clean cut):
+Into production, from the newest R2 archive. The site serves the old data until the
+restore lands; the app is stopped for the restore itself (a few minutes), not for the
+download.
 
 ```bash
 bin/compose.sh production --profile backup run --rm --no-deps -T backup rclone lsf r2:bpni-backups/bpni-production/daily/
 bin/compose.sh production --profile backup run --rm --no-deps -T backup rclone copy r2:bpni-backups/bpni-production/daily/<archive> /dumps/
 bin/compose.sh production stop app
 bin/seed-from-dump.sh production restore <archive>
-bin/compose.sh production start app
+bin/compose.sh production up -d app
 bin/compose.sh production exec app npm run migrate:status
 ```
 
-Whole-box loss: restore the Hetzner backup image (or recreate from cloud-init and the
-env files you kept), then the steps above.
+Previews come up cold (`previewimages` is excluded from the nightly archive) and re-render
+as pages are viewed, or all at once with `npm run backfill-previews` (Batch tasks).
 
 ### Restore drill
 
@@ -236,21 +255,24 @@ mongodump / mongorestore inside the backup image, with credentials passed throug
 0600 config file rather than arguments. Dumps include **every** collection (previewimages
 too) so a seeded site has warm previews. A restore first drops every collection of the
 project's `blueprintnotincluded` database (users are kept), so nothing stale survives it.
+`all` stops before touching the database when the dump fails.
 
 ```bash
-# From DigitalOcean's read-only URI (the PROD_READONLY_URI in /.env.migration on the dev
-# box). Type it into the environment rather than the command line; several GB, so run
-# it in tmux. If it cannot connect, the cluster's "Trusted sources" need the server's
-# IPv4 added in the DO console.
+# From another cluster's URI. Type it into the environment rather than the command line;
+# several GB, so run it in tmux. Dump while the app still serves, stop only for the restore.
 read -rs SEED_SOURCE_URI && export SEED_SOURCE_URI
-bin/seed-from-dump.sh production all env
+bin/seed-from-dump.sh production dump env          # prints the archive name
+bin/compose.sh production stop app
+bin/seed-from-dump.sh production restore <archive>
+bin/compose.sh production up -d app
 
 # Refresh staging from production on the same box, through /srv/bpni/dumps
-bin/seed-from-dump.sh production dump local      # prints the archive name
+bin/seed-from-dump.sh production dump local
 bin/seed-from-dump.sh staging restore <archive>
 ```
 
-Then `migrate:status` / `migrate:up` in that project.
+Then `migrate:status` / `migrate:up` in that project. `read -rs` takes the next line typed
+or pasted: paste the URI on its own, after the prompt, never as part of a larger paste.
 
 ## Batch tasks
 
@@ -275,68 +297,61 @@ bin/compose.sh production run --rm --no-deps app npm run backfill-previews
 (`--no-deps` because mongo is already up; the service's `env_file` and `DB_URI` apply to
 `run` just the same.)
 
-## Trial plan (one-time)
+## Rebuild from scratch
 
-Digital Ocean keeps serving `blueprintnotincluded.org` throughout. The Hetzner stack runs
-on `hetzner.blueprintnotincluded.org` with a copy of the data; anything written there is
-throwaway, because the cut-over does a fresh dump/restore.
+The box is gone (or the drill pretends it is). Nothing on it was unique: the stack is this
+directory, the secrets are the env-backup archive, the data is last night's R2 dump, and
+DNS points at tunnels, not at the server. Expect well under an hour; the mongorestore is
+most of it.
 
-1. First install above, through the first deploy of both projects.
-2. Seed production from the DO read-only URI (`seed-from-dump.sh production all env`), then
-   `migrate:status` (everything applied, since the dump carries the `migrations`
-   collection) and compare collection counts with the DO cluster
-   (`db.blueprints.estimatedDocumentCount()` etc. on both).
-3. Seed staging from production (`seed-from-dump.sh production dump local`, then
-   `seed-from-dump.sh staging restore <archive>`).
-4. Wait for the first nightly backup, then `bin/restore-drill.sh` end to end. Check the
-   bucket size in the R2 console.
-5. Better Stack: add HTTP monitors from several regions (at least Singapore, US West or
-   East, Frankfurt, São Paulo) for
-   `https://blueprintnotincluded.org/api/health`,
-   `https://hetzner.blueprintnotincluded.org/api/health`, and the two home pages, 1-minute
-   interval, for at least a week. Compare response times by region and any failed checks.
-6. Manual smoke test on the trial hostname: log in with WorkOS, open a blueprint, open the
-   editor, save a throwaway blueprint, check its preview renders, check the Discover
-   search, trigger a password-reset mail (Mailjet). Watch
-   `bin/compose.sh production logs -f app` meanwhile.
-7. Promote once from GitHub Actions to prove the retag + SSH path; roll back once.
-8. Let it run a week. `docker stats`, the memory-heartbeat log lines and the nightly backup
-   log tell you whether the limits fit.
+1. **Laptop**: `deploy/bin/cloud-init-render.sh`, create the server (First install 1). Note
+   the new IPv4.
+2. **GitHub** → Settings → Variables: `DEPLOY_HOST` = the new IPv4, `DEPLOY_KNOWN_HOSTS` =
+   `ssh-keyscan -t ed25519 <ip>`. Cloudflare needs nothing.
+3. **Laptop**: `rsync -az deploy/ deploy@<ip>:/srv/bpni/deploy/` and
+   `scp env-<stamp>.tar.enc deploy@<ip>:/srv/bpni/dumps/`.
+4. **Server**: `bin/env-backup.sh restore /srv/bpni/dumps/env-<stamp>.tar.enc`. Without the
+   archive: `bin/env-bootstrap.sh` and fill in by hand — tunnel tokens from Zero Trust →
+   Tunnels → *Configure*, a new R2 token, Mailjet and WorkOS keys from their dashboards,
+   production's `JWT_SECRET` from the password manager.
+5. **Server**: `bin/deploy.sh production`, `bin/deploy.sh staging`. The tunnels show
+   Healthy and the hostnames serve an empty database.
+6. **Server**: "Restore last night's data" into production; staging from production with
+   `dump local` / `restore`.
+7. Log in, open the editor, `bin/compose.sh production logs -f --tail 100 app` for a few
+   minutes. Previews re-render on view.
 
-## Cut-over checklist (one-time)
+**Drill** (do it once, and after any change to this directory that touches more than one
+file): a throwaway CX23, a temporary tunnel `bpni-drill` with the route
+`drill.blueprintnotincluded.org`, and steps 1 and 3–7 with a stopwatch — except that step 4
+uses `PRODUCTION_HOSTNAME=drill.blueprintnotincluded.org bin/env-bootstrap.sh` with the
+drill tunnel's token, **not** the env archive: its tokens are the live ones, and a second
+connector on `bpni-production` would serve the real hostnames from the drill box. Afterwards
+destroy the server, the tunnel and its CNAME. Whatever slowed the drill down is a change to
+this file.
 
-Pick a quiet hour (03:00–06:00 UTC is the traffic trough). Writes made on DO between the
-final dump and the DNS change are lost, so keep the window short.
+## Cut-over record (2026-10-25)
 
-1. **Before**: note the current apex and `www` DNS records exactly (target, proxy status)
-   — that is the rollback. If any cache, rate-limit or WAF rules were added since the zone
-   moved, confirm they are keyed on the zone or the apex hostname, not on an origin. WorkOS
-   needs nothing: login is password or an emailed code and the reset link is built from
-   `SITE_URL`, so no WorkOS redirect setting names a hostname.
-2. **Env diff** on the box: in `/srv/bpni/production/app.env` set
-   `HOST=https://blueprintnotincluded.org` and `SITE_URL=https://blueprintnotincluded.org`;
-   in `.env` set `PUBLIC_HOSTNAME=blueprintnotincluded.org`. Everything else was copied
-   from DO already; `diff` the two environments one last time.
-3. **Final dump/restore**: `bin/compose.sh production stop app`, then
-   `bin/seed-from-dump.sh production all env` with the DO read-only URI in
-   `SEED_SOURCE_URI`, then `migrate:status`. Do not start the app yet.
-4. **Tunnel**: in the `bpni-production` tunnel add public hostnames
-   `blueprintnotincluded.org` and `www.blueprintnotincluded.org` → `http://app:3000`.
-   Cloudflare refuses to add a hostname whose DNS record already exists, so for each:
-   delete the old record, add the public hostname (which creates the proxied CNAME to
-   `<tunnel id>.cfargotunnel.com`). Rollback is recreating the old record from step 1 —
-   proxied records change within seconds either way.
-5. `bin/compose.sh production start app`; `bin/deploy.sh production` as the health check.
-   Load the site, log in, open the editor.
-6. **Watch for a week**: Better Stack on the apex (now the Hetzner origin), the memory
-   heartbeat lines, `docker stats`, nightly backup logs, R2 bucket size, Mailjet delivery.
-   DO stays live and untouched the whole week; rollback is step 4 in reverse.
-7. **Decommission DO** after the week: destroy the App Platform app, the Managed MongoDB
-   cluster (take a final manual backup first) and the Container Registry. Delete the
-   `DIGITALOCEAN_ACCESS_TOKEN` and `DIGITALOCEAN_REGISTRY` / `IMAGE_NAME` repository
-   secrets/variables. Remove the trial public hostname `hetzner.blueprintnotincluded.org`
-   from the tunnel. Delete `/.env.migration` on the dev box (the read-only URI dies with
-   the cluster).
-8. **Invoices**: the next Hetzner invoice is the CX23 with IPv4 (about $7.09) plus 20 % for
+DigitalOcean → Hetzner, build `d47261f`. Final dump 23:41 UTC, apex and `www` routes added
+00:26 UTC. Every public blueprint compared equal between the two databases afterwards; the
+only writes made on DO in the window were view and download counters. Rollback until the
+decommission below, in Cloudflare DNS: delete the apex and `www` CNAMEs, re-add
+`A 162.159.140.98`, `A 172.66.0.96`, `AAAA 2606:4700:7::60`, `AAAA 2a06:98c1:58::60`
+as DNS only (App Platform's edge). The old app stays reachable at its
+`ondigitalocean.app` hostname for comparisons.
+
+## Decommission DigitalOcean
+
+A week after the cut-over, once Better Stack, the nightly backup log, `docker stats` and
+Mailjet delivery look right:
+
+1. DigitalOcean: destroy the App Platform app, the Managed MongoDB cluster (take a final
+   manual backup first) and the Container Registry.
+2. GitHub: delete the `DIGITALOCEAN_ACCESS_TOKEN` secret and the `DIGITALOCEAN_REGISTRY` /
+   `IMAGE_NAME` variables.
+3. Cloudflare: remove the `hetzner.blueprintnotincluded.org` route from the tunnel
+   bpni-production (the trial hostname) and the `status` CNAME; export the zone and commit
+   it.
+4. Invoices: the next Hetzner invoice is the CX23 with IPv4 (about $7.09) plus 20 % for
    backups, about $8.50 a month, against $45–50 on DO; the DO invoice should show only the
    prorated days before destruction, then nothing.

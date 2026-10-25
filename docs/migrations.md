@@ -92,9 +92,9 @@ Rules:
   with the scoped R2 token) or from the box's `/srv/bpni/dumps/`.
 - `/.env` — local dev only. Never put prod or staging credentials here.
 - `/prod-dump/` — gitignored. Real prod data; never commit.
-- Until the DigitalOcean cut-over is complete: the read-only DO URI stays in
-  `/.env.migration` (gitignored, cannot write), `doctl` stays read-only, and nothing on DO
-  is changed from here.
+- DigitalOcean (cut over from on 2026-10-25) stays untouched until its decommission; its
+  URIs live only in the DO console, `doctl` stays read-only, and nothing on DO is changed
+  from here.
 
 ### Pre-merge process for every migration
 
@@ -108,7 +108,6 @@ npm run migrate:up
 
 # 3. Fetch last night's production archive from R2 (previewimages excluded — fine for a rehearsal)
 rclone copy r2:bpni-backups/bpni-production/daily/<newest>.archive.gz ./prod-dump/
-#    (until the DO cut-over: source .env.migration && mongodump --uri="$PROD_READONLY_URI" --gzip --archive=./prod-dump/do.archive.gz)
 
 # 4. Restore it locally under a separate DB name
 mongorestore --uri="mongodb://localhost:27017" --nsFrom='blueprintnotincluded.*' --nsTo='bpni-prod.*' --drop --gzip --archive=./prod-dump/<archive>
