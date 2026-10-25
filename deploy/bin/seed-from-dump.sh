@@ -8,20 +8,25 @@
 # `dump` writes /srv/bpni/dumps/seed-<stamp>.archive.gz (gzip mongodump
 # archive of the source's `blueprintnotincluded` database, every collection
 # included — previewimages too, so the restored site comes up with warm
-# previews). `local` as the source dumps the project's own database with its
-# root credentials. `restore` empties the project's `blueprintnotincluded`
-# database (every collection dropped; the users in `admin` and the database's
-# own `bpni` user are untouched) and restores the archive into it, then prints
-# collection counts. `all` does both.
+# previews) and prints the archive name on stdout, progress on stderr. `local`
+# as the source dumps the project's own database with its root credentials.
+# `restore` empties the project's `blueprintnotincluded` database (every
+# collection dropped; the users in `admin` and the database's own `bpni` user
+# are untouched) and restores the archive into it, then prints collection
+# counts. The archive is a name in /srv/bpni/dumps; a full path to a file in
+# that directory is accepted too. `all` does both, and stops before touching
+# the database when the dump fails.
 #
 # Uses:
-#   - the trial seed and the final cut-over: dump from the DigitalOcean
-#     read-only URI (the PROD_READONLY_URI in /.env.migration on the dev box).
-#     Put it in the environment rather than on the command line so it never
-#     shows in `ps` or the shell history:
+#   - copying another cluster in: put its URI in the environment rather than
+#     on the command line, so it never shows in `ps` or the shell history
+#     (`env` as the source means "read SEED_SOURCE_URI"):
 #       read -rs SEED_SOURCE_URI && export SEED_SOURCE_URI
 #       seed-from-dump.sh production all env
-#     (`env` as the source means "read SEED_SOURCE_URI")
+#     For a cut-over with the least downtime, split it: `dump env` while the
+#     app still serves, then `compose.sh production stop app`, `restore <name>`,
+#     `compose.sh production up -d app` (up, not start: start keeps the old
+#     environment). Writes to the source after the dump started are lost.
 #   - refreshing staging from production on the same box, through the shared
 #     /srv/bpni/dumps directory, no cross-project network needed:
 #       seed-from-dump.sh production dump local      # prints the archive name
@@ -33,6 +38,11 @@
 # keeps running during a restore; stop it first for a consistent cut-over
 # (`compose.sh production stop app`), start it after.
 set -euo pipefail
+# Without this, `name=$(do_dump …)` in `all` would carry on after a failed
+# mongodump: errexit is switched off inside a command substitution by default,
+# so the function would still print a name for an archive that was never
+# written and the restore would then drop the database for nothing.
+shopt -s inherit_errexit
 
 here=$(cd "$(dirname "$0")" && pwd)
 compose="$here/compose.sh"
@@ -99,7 +109,8 @@ do_dump() {
 }
 
 do_restore() {
-  local archive=$1
+  local archive
+  archive=$(basename -- "$1")
   [ -f "$dumps/$archive" ] || { echo "$dumps/$archive not found" >&2; exit 66; }
   echo "== emptying $project's $db (every collection; users are kept)"
   # Not dropDatabase: dropping collections one by one leaves the database's
