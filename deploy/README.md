@@ -314,21 +314,28 @@ most of it.
    archive: `bin/env-bootstrap.sh` and fill in by hand — tunnel tokens from Zero Trust →
    Tunnels → *Configure*, a new R2 token, Mailjet and WorkOS keys from their dashboards,
    production's `JWT_SECRET` from the password manager.
-5. **Server**: `bin/deploy.sh production`, `bin/deploy.sh staging`. The tunnels show
-   Healthy and the hostnames serve an empty database.
-6. **Server**: "Restore last night's data" into production; staging from production with
-   `dump local` / `restore`.
-7. Log in, open the editor, `bin/compose.sh production logs -f --tail 100 app` for a few
+5. **Server**: database first, nothing public yet — the restored env carries the live
+   tunnel token, so the app and the tunnel stay down until the data is back:
+   `bin/compose.sh production pull --ignore-buildable`,
+   `bin/compose.sh production --profile backup build backup`,
+   `bin/compose.sh production up -d mongo`.
+6. **Server**: "Restore last night's data" into production, minus its `stop app` / `up -d
+   app` lines (nothing is running yet). Then `bin/deploy.sh production`: app and tunnel come
+   up on the restored data and the hostname goes live.
+7. **Server**: `bin/deploy.sh staging`, then staging from production with `dump local` /
+   `restore` (staging may serve an empty database for those minutes).
+8. Log in, open the editor, `bin/compose.sh production logs -f --tail 100 app` for a few
    minutes. Previews re-render on view.
 
 **Drill** (do it once, and after any change to this directory that touches more than one
 file): a throwaway CX23, a temporary tunnel `bpni-drill` with the route
-`drill.blueprintnotincluded.org`, and steps 1 and 3–7 with a stopwatch — except that step 4
-uses `PRODUCTION_HOSTNAME=drill.blueprintnotincluded.org bin/env-bootstrap.sh` with the
-drill tunnel's token, **not** the env archive: its tokens are the live ones, and a second
-connector on `bpni-production` would serve the real hostnames from the drill box. Afterwards
-destroy the server, the tunnel and its CNAME. Whatever slowed the drill down is a change to
-this file.
+`drill.blueprintnotincluded.org`, and steps 1, 3–6 and 8 with a stopwatch, production only —
+except that step 4 uses `PRODUCTION_HOSTNAME=drill.blueprintnotincluded.org
+bin/env-bootstrap.sh` with the drill tunnel's token, **not** the env archive: its tokens are
+the live ones, and a second connector on `bpni-production` or `bpni-staging` would serve the
+real hostnames from the drill box. Staging is skipped (its `TUNNEL_TOKEN` stays empty).
+Afterwards destroy the server, the tunnel and its CNAME. Whatever slowed the drill down is a
+change to this file.
 
 ## Cut-over record (2026-10-25)
 

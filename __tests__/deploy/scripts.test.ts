@@ -188,6 +188,16 @@ describe('deploy/bin scripts', () => {
       expect(log).to.include(`--archive=/dumps/${name}`);
     });
 
+    it('restore rejects a path outside the dumps directory even when the name matches', () => {
+      const name = run(sb, 'seed-from-dump.sh', ['production', 'dump', 'local']).stdout.trim();
+      fs.mkdirSync(path.join(sb.tmp, 'elsewhere'));
+      fs.writeFileSync(path.join(sb.tmp, 'elsewhere', name), 'other');
+      const r = run(sb, 'seed-from-dump.sh', ['production', 'restore', path.join(sb.tmp, 'elsewhere', name)]);
+      expect(r.status).to.equal(64);
+      expect(r.stderr).to.include('must be a name or a file in');
+      expect(composeLog(sb)).not.to.include('drop');
+    });
+
     it('restore of a missing archive exits before dropping anything', () => {
       const r = run(sb, 'seed-from-dump.sh', ['production', 'restore', 'seed-nope.archive.gz']);
       expect(r.status).to.equal(66);
@@ -254,7 +264,8 @@ describe('deploy/bin scripts', () => {
       expect(r.status, r.stderr).to.equal(0);
       expect(fs.existsSync(path.join(keys, 'fresh.pub'))).to.equal(true);
 
-      fs.writeFileSync(path.join(keys, 'junk.pub'), 'not a key\n');
+      // prefix-looks-right garbage must fail too: an accepted bad key would lock the box
+      fs.writeFileSync(path.join(keys, 'junk.pub'), 'ssh-ed25519 AAAAinvalid kevin@laptop\n');
       const bad = run(sb, 'cloud-init-render.sh', [out + '.bad'], { SSH_PUBLIC_KEY: path.join(keys, 'junk.pub'), DEPLOY_KEY: path.join(keys, 'fresh') });
       expect(bad.status).to.equal(65);
       expect(fs.existsSync(out + '.bad')).to.equal(false);
