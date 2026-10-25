@@ -24,7 +24,8 @@ carry Production ids and it must keep using the Production environment:
 No hostname is registered with WorkOS: the app calls the User Management API directly
 (password / magic-code login, emailed verification codes) and builds the password-reset link
 from `SITE_URL`, so staging and any new hostname need nothing in the dashboard —
-only the Production environment's three env values.
+only the Production environment's three env values, plus that host's own `HOST` and
+`SITE_URL` in `app.env` (the reset link is built from `SITE_URL`).
 
 **Local dev defaults to `AUTH_MODE=local`** (`specs/local-auth-mode-plan.md`), not the Staging
 mapping above: no checkout ships real WorkOS keys, and with several local databases the Staging

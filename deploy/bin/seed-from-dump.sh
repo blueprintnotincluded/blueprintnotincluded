@@ -26,7 +26,10 @@
 #     For a cut-over with the least downtime, split it: `dump env` while the
 #     app still serves, then `compose.sh production stop app`, `restore <name>`,
 #     `compose.sh production up -d app` (up, not start: start keeps the old
-#     environment). Writes to the source after the dump started are lost.
+#     environment). The dump is per collection, not one point in time (no
+#     --oplog: the target may be a standalone and --oplog excludes --db), so a
+#     write to the source after the dump started may or may not be in it — stop
+#     or quiesce the source first when that matters.
 #   - refreshing staging from production on the same box, through the shared
 #     /srv/bpni/dumps directory, no cross-project network needed:
 #       seed-from-dump.sh production dump local      # prints the archive name
@@ -110,7 +113,14 @@ do_dump() {
 
 do_restore() {
   local archive
-  archive=$(basename -- "$1")
+  case "$1" in
+    */*) # a path: only a file in the dumps directory, so a same-named archive
+         # elsewhere can never be mistaken for the one that gets restored
+      [ "$(cd "$(dirname -- "$1")" 2>/dev/null && pwd -P)" = "$(cd "$dumps" && pwd -P)" ] \
+        || { echo "archive must be a name or a file in $dumps" >&2; exit 64; }
+      archive=$(basename -- "$1") ;;
+    *) archive=$1 ;;
+  esac
   [ -f "$dumps/$archive" ] || { echo "$dumps/$archive not found" >&2; exit 66; }
   echo "== emptying $project's $db (every collection; users are kept)"
   # Not dropDatabase: dropping collections one by one leaves the database's

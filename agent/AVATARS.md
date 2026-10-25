@@ -13,8 +13,7 @@ Operational reference for the duplicant-style avatar pipeline
    "Set up billing" link; it routes to the Cloud console billing page for the
    key's project.
 4. Put the key in `.env` as `GEMINI_API_KEY` (never in `.env.sample` or any
-   committed file). Prod: `/srv/bpni/production/app.env` on the Hetzner server
-   (in `/srv/bpni/production/app.env` on the Hetzner box).
+   committed file). Prod: `/srv/bpni/production/app.env` on the Hetzner server.
 5. Verify: `npm run avatars:smoke` — one real grid generation (~$0.09 → four
    avatars), stores them in the pool and writes `avatar-smoke-test.png` (the
    grid) plus `avatar-smoke-test-{0..3}.png` (tiles, all gitignored) for

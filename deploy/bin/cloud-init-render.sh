@@ -31,8 +31,9 @@ rendered=$(<"$template")
 fill() {
   local key count
   key=$(tr -d '\n' <"$2")
-  case "$key" in ssh-ed25519\ AAAA*|ssh-rsa\ AAAA*|ecdsa-sha2-*\ AAAA*) ;;
-    *) echo "$2 is not an SSH public key" >&2; exit 65 ;; esac
+  # ssh-keygen -l parses the key for real; a prefix check would pass garbage
+  # after the key type and lock the box (password login is off).
+  ssh-keygen -lf "$2" >/dev/null 2>&1 || { echo "$2 is not an SSH public key" >&2; exit 65; }
   count=$(grep -cF -- "$1" "$template" || true)
   [ "$count" = 1 ] || { echo "placeholder not found exactly once in $template: $1" >&2; exit 70; }
   rendered=${rendered//"$1"/$key}
