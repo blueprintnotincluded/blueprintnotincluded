@@ -1,3 +1,30 @@
+# Session Notes - 2026-10-25
+
+## Hosting: cut over to Hetzner
+
+`blueprintnotincluded.org` and `www` are routes on the Cloudflare tunnel `bpni-production`
+since 2026-10-25 00:26 UTC (build d47261f, `IMAGE_TAG=prod` after the first promote run);
+DigitalOcean is untouched and serves nothing but its own `ondigitalocean.app` hostname
+until the decommission in `deploy/README.md`. The move surfaced what was not in git:
+`deploy/bin/env-bootstrap.sh` (the four env files from the examples, secrets generated),
+`deploy/bin/cloud-init-render.sh` (cloud-init with the laptop's keys), and a new
+`deploy/bin/env-backup.sh` (encrypted copy of the env files, off the box). The runbook now
+holds the Cloudflare record and route tables as the source of truth, "Restore last night's
+data" and "Rebuild from scratch" as ordered procedures, and the cut-over record.
+`seed-from-dump.sh all` stops after a failed dump (`inherit_errexit`) and `restore` takes a
+path as well as a name; `__tests__/deploy/scripts.test.ts` runs every script against a
+temporary root with a stub `compose.sh`.
+
+## Status snapshot (2026-10-25)
+
+- **Hosting**: Hetzner CX23 (Helsinki), Ubuntu 26.04, `mongo:8.2.12`, two compose
+  projects; production seeded from the final DO dump (5 750 blueprints, 15 303 preview
+  images, 2 831 users). Open: Better Stack monitor on the apex, first nightly backup +
+  `restore-drill.sh`, the rebuild drill, DO decommission after a week, previewimages → R2.
+- Everything else as in the 2026-10-21 snapshot below.
+
+---
+
 # Session Notes - 2026-10-21
 
 ## Hosting: DigitalOcean → Hetzner (branch `hetzner-hosting`)

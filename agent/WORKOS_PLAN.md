@@ -23,7 +23,7 @@ carry Production ids and it must keep using the Production environment:
 
 No hostname is registered with WorkOS: the app calls the User Management API directly
 (password / magic-code login, emailed verification codes) and builds the password-reset link
-from `SITE_URL`, so staging and the Hetzner trial hostname need nothing in the dashboard —
+from `SITE_URL`, so staging and any new hostname need nothing in the dashboard —
 only the Production environment's three env values.
 
 **Local dev defaults to `AUTH_MODE=local`** (`specs/local-auth-mode-plan.md`), not the Staging
