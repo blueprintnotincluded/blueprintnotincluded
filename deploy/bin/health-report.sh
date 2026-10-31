@@ -126,10 +126,13 @@ report_app() {
       last[label] = rss
       if (rss > max[label]) max[label] = rss
       if (heap > hmax[label]) hmax[label] = heap
-      n[label]++
+      n[label]++; seen++
     }
     END {
-      if (length(n) == 0) print "  none"
+      # seen, not length(n): on an empty log gawk types the untouched n as a
+      # scalar at length(n) and then refuses "for (l in n)"; mawk lets it pass,
+      # which is how the test went green here and red in CI.
+      if (seen == 0) { print "  none"; exit }
       for (l in n) printf "  %s: rss %d → %d MB, max %d MB; heapUsed max %d MB (%d samples)\n", l, first[l], last[l], max[l], hmax[l], n[l]
     }'
 
