@@ -271,4 +271,130 @@ describe('deploy/bin scripts', () => {
       expect(fs.existsSync(out + '.bad')).to.equal(false);
     });
   });
+
+  describe('health-report.sh', () => {
+    // compose.sh stand-in that answers `logs … <service>` with a fixture file
+    // ($STUB_LOGS/<project>/<service>.log) and nothing else.
+    const LOG_STUB = `#!/bin/bash
+project=$1; shift
+case "$1" in
+  logs) svc=\${@: -1}; f="$STUB_LOGS/$project/$svc.log"; [ -f "$f" ] && cat "$f"; exit 0 ;;
+esac
+exit 0
+`;
+    function withLogs(files: Record<string, string>): string {
+      const dir = path.join(sb.tmp, 'logs');
+      for (const [rel, text] of Object.entries(files)) {
+        fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
+        fs.writeFileSync(path.join(dir, rel), text);
+      }
+      fs.writeFileSync(path.join(sb.bin, 'compose.sh'), LOG_STUB, { mode: 0o755 });
+      return dir;
+    }
+    const T = '2026-10-31T05:17:40.000000000Z';
+    const APP_LOG =
+      [
+        `${T} Example app listening on port 3000!`,
+        `${T} memory-heartbeat: api rss=120MB heapUsed=43MB heapTotal=51MB external=5MB arrayBuffers=1MB`,
+        `2026-10-31T06:00:00.000000000Z memory-heartbeat: api rss=180MB heapUsed=70MB heapTotal=90MB external=5MB arrayBuffers=1MB`,
+        `2026-10-31T06:05:00.000000000Z memory-heartbeat: api rss=150MB heapUsed=60MB heapTotal=90MB external=5MB arrayBuffers=1MB`,
+        `2026-10-31T06:05:00.000000000Z memory-heartbeat: preview-worker rss=211MB heapUsed=60MB heapTotal=90MB external=50MB arrayBuffers=10MB`,
+        `2026-10-31T06:01:00.000000000Z access: method=GET route=/api/getblueprints status=200 ms=80 bytes=58106 ray=a-YVR country=CA url=/api/getblueprints?limit=20`,
+        `2026-10-31T06:01:01.000000000Z access: method=GET route=/api/getblueprints status=200 ms=120 bytes=58106 ray=b-FRA country=DE url=/api/getblueprints?limit=20`,
+        `2026-10-31T06:01:02.000000000Z access: method=GET route=/api/blueprints/:id status=200 ms=12 bytes=23613 ray=c-YVR country=CA url=/api/blueprints/1`,
+        `2026-10-31T06:01:03.000000000Z access: method=GET route=/api/blueprints/:id/preview/:variant status=500 ms=2400 bytes=- ray=d-YVR country=US url=/api/blueprints/2/preview/card.webp`,
+        `2026-10-31T06:02:00.000000000Z preview render 2 (300 items, 40 prefabs): loadMdb=5ms queueWait=0ms master=900ms (cold) derivatives=100ms mongo=20ms total=1025ms parentRss=150MB`,
+        `2026-10-31T06:03:00.000000000Z preview render 3 (10 items, 4 prefabs): loadMdb=5ms queueWait=0ms master=90ms derivatives=10ms mongo=2ms total=107ms parentRss=150MB`,
+        `2026-10-31T06:04:00.000000000Z preview render worker exited (code=0, signal=null)`,
+        `2026-10-31T06:04:01.000000000Z facets-slow: 400ms`,
+        `2026-10-31T06:04:02.000000000Z Error: ECONNRESET while streaming`,
+      ].join('\n') + '\n';
+    const MONGO_LOG =
+      [
+        `${T} {"t":{"$date":"2026-10-31T05:17:40.000+00:00"},"s":"I","c":"NETWORK","msg":"Waiting for connections","attr":{"port":27017}}`,
+        `2026-10-31T06:01:00.000000000Z {"s":"I","c":"COMMAND","msg":"Slow query","attr":{"type":"command","ns":"blueprintnotincluded.blueprints","durationMillis":350}}`,
+        `2026-10-31T06:01:01.000000000Z {"s":"I","c":"COMMAND","msg":"Slow query","attr":{"type":"command","ns":"blueprintnotincluded.blueprintsearch","durationMillis":120}}`,
+        `2026-10-31T06:01:02.000000000Z {"s":"W","c":"CONTROL","msg":"Access control is not enabled"}`,
+      ].join('\n') + '\n';
+    const CF_LOG =
+      [1, 2, 3, 4]
+        .map(i => `${T} INF Registered tunnel connection connIndex=${i - 1} location=hel01`)
+        .concat([`2026-10-31T06:01:00.000000000Z INF Unregistered tunnel connection connIndex=2`])
+        .join('\n') + '\n';
+    const BACKUP_LOG =
+      [
+        `2026-10-31T03:30:00.000000000Z backup: dumping blueprintnotincluded (excluding: previewimages)`,
+        `2026-10-31T03:31:00.000000000Z backup: done (blueprintnotincluded-20261031T033000Z.archive.gz, 212M). Archives now in R2:`,
+        `2026-10-31T03:31:01.000000000Z Total objects: 6`,
+        `2026-10-31T03:31:01.000000000Z Total size: 1.2 GiB (1288490188 Byte)`,
+      ].join('\n') + '\n';
+
+    it('summarises one project from its container logs', () => {
+      const dir = withLogs({
+        'production/app.log': APP_LOG,
+        'production/mongo.log': MONGO_LOG,
+        'production/cloudflared.log': CF_LOG,
+        'production/backup.log': BACKUP_LOG,
+      });
+      const r = run(sb, 'health-report.sh', ['production', '--no-host'], { STUB_LOGS: dir });
+      expect(r.status, r.stderr).to.equal(0);
+      const out = r.stdout;
+      expect(out).to.include('boots: 1\n  2026-10-31T05:17:40Z');
+      expect(out).to.include('api: rss 120 → 150 MB, max 180 MB; heapUsed max 70 MB (3 samples)');
+      expect(out).to.include(
+        'preview-worker: rss 211 → 211 MB, max 211 MB; heapUsed max 60 MB (1 samples)'
+      );
+      expect(out).to.include('access: 4 logged requests');
+      expect(out).to.match(/by status: .*2xx=3/);
+      expect(out).to.match(/by status: .*5xx=1/);
+      expect(out).to.include('ms: n=4 p50=80 p95=2400 max=2400');
+      expect(out).to.include('    2 /api/getblueprints p50=80ms');
+      expect(out).to.match(/countries: CA=2 /);
+      expect(out).to.include(
+        '    2400ms 2026-10-31T06:01:03Z method=GET route=/api/blueprints/:id/preview/:variant status=500 url=/api/blueprints/2/preview/card.webp'
+      );
+      expect(out).to.include(
+        'preview renders: 2 (cold: 1); total ms: n=2 p50=107 p95=1025 max=1025'
+      );
+      expect(out).to.include('preview queue full: 0; worker exits: 1');
+      expect(out).to.include('facets-slow: 1');
+      expect(out).to.include(
+        'error lines: 1 (last 3):\n  2026-10-31T06:04:02.000000000Z Error: ECONNRESET while streaming'
+      );
+      expect(out).to.include("slow queries (over mongod's 100 ms default): 2");
+      expect(out).to.include('durationMillis: n=2 p50=120 p95=350 max=350');
+      expect(out).to.match(/ +1 blueprintnotincluded\.blueprints\n/);
+      // every section says where its log actually starts
+      expect(out).to.include('== production app (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 14 lines');
+      expect(out).to.include('== production mongo (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 4 lines');
+      expect(out).to.include('connection/election/storage warnings: 1');
+      expect(out).to.include('tunnel connections registered: 4');
+      expect(out).to.include('reconnects/errors: 1');
+      expect(out).to.include('runs completed: 1');
+      expect(out).to.include('Total size: 1.2 GiB');
+      expect(out).not.to.include('== host');
+      expect(out).not.to.include('staging');
+      // the compose calls read a docker duration, not the human one
+      expect(composeLog(sb)).to.equal('');
+    });
+
+    it('copes with an empty project and an image that predates the access log', () => {
+      const dir = withLogs({ 'staging/app.log': `${T} Example app listening on port 3000!\n` });
+      const r = run(sb, 'health-report.sh', ['staging', '--no-host', '--since', '3d'], {
+        STUB_LOGS: dir,
+      });
+      expect(r.status, r.stderr).to.equal(0);
+      expect(r.stdout).to.include('window: 3d');
+      expect(r.stdout).to.include('access: no lines');
+      expect(r.stdout).to.include('== staging mongo (last 3d) ==\nno log lines');
+      expect(r.stdout).not.to.include('backup');
+    });
+
+    it('rejects an unknown argument and a --since docker would not take', () => {
+      expect(run(sb, 'health-report.sh', ['prod']).status).to.equal(64);
+      const r = run(sb, 'health-report.sh', ['staging', '--no-host', '--since', '7days']);
+      expect(r.status).to.equal(64);
+      expect(r.stderr).to.include('--since takes');
+    });
+  });
 });
