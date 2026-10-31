@@ -4,6 +4,7 @@ import path from 'path';
 import { Routes } from './routes';
 import { Database } from './api/db';
 import requestIp from 'request-ip';
+import { accessLog } from './api/middleware/access-log';
 import fs from 'fs';
 import {
   BBuilding,
@@ -67,12 +68,22 @@ class App {
     this.app.set('views', path.join(__dirname, 'views'));
     this.app.set('view engine', 'ejs');
 
+    // One line per request (format in access-log.ts) and a Server-Timing
+    // header. First, so the time covers every middleware below. Off under the
+    // test suite, where supertest would flood the output, and with ACCESS_LOG=off.
+    if (process.env.NODE_ENV !== 'test' && process.env.ACCESS_LOG !== 'off') {
+      this.app.use(accessLog());
+    }
+
     this.app.use(
       helmet.contentSecurityPolicy({
         directives: {
           'default-src': ["'self'"],
           'connect-src': [
             "'self'",
+            // Cloudflare Web Analytics beacon (deploy/README.md "Monitoring");
+            // inert until the zone injects it.
+            'https://cloudflareinsights.com',
             '*.sentry.io',
             'https://www.google-analytics.com',
             'https://www.google.com',
@@ -85,12 +96,14 @@ class App {
             "'self'",
             "'unsafe-inline'",
             "'unsafe-eval'",
+            'https://static.cloudflareinsights.com',
             'https://www.google.com',
             'https://www.gstatic.com',
             'https://www.googletagmanager.com',
           ],
           'script-src-elem': [
             "'self'",
+            'https://static.cloudflareinsights.com',
             'https://www.google.com',
             'https://www.gstatic.com',
             'https://www.googletagmanager.com',
