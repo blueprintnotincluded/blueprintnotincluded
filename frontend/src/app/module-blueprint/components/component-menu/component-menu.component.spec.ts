@@ -70,6 +70,25 @@ describe("ComponentMenuComponent", () => {
     expect(roomsItem!.label).toBe("Rooms");
   });
 
+  // The camera is a static singleton that outlives each fixture, so the only
+  // way to see ngOnInit's defaults land is to knock the camera off them
+  // first and build a fresh component. Display.None rather than blueprint:
+  // the blueprint display also resets the visualization, which would mask a
+  // missing visualization call.
+  it("resets the camera to Base / Color / no visualization on init", () => {
+    const camera = CameraService.cameraService;
+    camera.visualization = Visualization.temperature;
+    camera.display = Display.None;
+    camera.overlay = Overlay.Power;
+
+    const fresh = TestBed.createComponent(ComponentMenuComponent);
+    fresh.detectChanges();
+
+    expect(camera.overlay).toBe(Overlay.Base);
+    expect(camera.display).toBe(Display.solid);
+    expect(camera.visualization).toBe(Visualization.none);
+  });
+
   // PrimeNG MenuItem.id is a string. Buildings compare the overlay loosely
   // and never noticed, but the element-note fade compares strictly, so a
   // string overlay left every element note dimmed until an F-key wrote a
