@@ -15,23 +15,41 @@ const READYSTATE_LABELS: Record<number, string> = {
 // crash loop.
 export const STARTED_AT = new Date(Date.now() - process.uptime() * 1000).toISOString();
 
-// Bounded so the compose healthcheck (5 s timeout) still gets an answer — a
-// stalled Mongo reports as pingMs null with readyState still "connected".
+// Bounded so the compose healthcheck (5 s timeout) still gets an answer. One
+// ping is in flight at a time, shared by every concurrent health request:
+// Promise.race leaves the losing ping running, and during a Mongo stall a ping
+// per request would pile up on the pool the real queries need.
 export const DB_PING_TIMEOUT_MS = 2000;
 
+let inFlightPing: Promise<number> | null = null;
+
+function sharedPing(): Promise<number> {
+  if (!inFlightPing) {
+    const started = performance.now();
+    inFlightPing = Promise.resolve()
+      .then(() => {
+        const db = mongoose.connection.db;
+        if (!db) throw new Error('no database handle');
+        return db.admin().ping();
+      })
+      .then(() => Math.round(performance.now() - started))
+      .finally(() => {
+        inFlightPing = null;
+      });
+  }
+  return inFlightPing;
+}
+
+/** Round-trip to Mongo in ms, or null when it failed or took longer than the timeout. */
 export async function pingDbMs(): Promise<number | null> {
-  const db = mongoose.connection.db;
-  if (!db) return null;
-  const started = performance.now();
   let timer: NodeJS.Timeout | undefined;
   try {
-    await Promise.race([
-      db.admin().ping(),
-      new Promise((_, reject) => {
+    return await Promise.race([
+      sharedPing(),
+      new Promise<never>((_, reject) => {
         timer = setTimeout(() => reject(new Error('ping timeout')), DB_PING_TIMEOUT_MS);
       }),
     ]);
-    return Math.round(performance.now() - started);
   } catch {
     return null;
   } finally {
@@ -43,8 +61,11 @@ export class HealthController {
   public getHealth = async (_req: Request, res: Response) => {
     const dbState = mongoose.connection.readyState;
     const dbStatus = READYSTATE_LABELS[dbState] ?? 'unknown';
-    const dbOk = dbState === 1;
-    const pingMs = dbOk ? await pingDbMs() : null;
+    // "connected" is mongoose's bookkeeping; a server that stopped answering
+    // keeps readyState 1 for a while. The ping is what makes `ok` true, and
+    // the compose healthcheck reads only the status code.
+    const pingMs = dbState === 1 ? await pingDbMs() : null;
+    const dbOk = dbState === 1 && pingMs !== null;
 
     const memUsage = process.memoryUsage();
     const heapUsedMb = Math.round(memUsage.heapUsed / 1024 / 1024);

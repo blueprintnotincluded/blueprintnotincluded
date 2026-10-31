@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import mongoose from 'mongoose';
+import sinon from 'sinon';
 
 import { TestSetup } from '../setup/testSetup';
 
@@ -27,6 +28,29 @@ describe('Health API', function () {
       // deploy/bin/health-report.sh read.
       expect(response.body.preview).to.include({ worker: 'disabled', queueDepth: 0, inFlight: 0 });
       expect(response.body.preview.queueMax).to.be.a('number').and.greaterThan(0);
+    });
+
+    // mongoose can report "connected" for a server that stopped answering;
+    // the ping is what the healthcheck's status code must follow.
+    it('returns 503 degraded when the DB is connected but does not answer a ping', async function () {
+      const db = mongoose.connection.db!;
+      const admin = sinon.stub(db, 'admin').returns({
+        ping: () => Promise.reject(new Error('stalled')),
+      } as any);
+      let response;
+      try {
+        response = await TestSetup.request().get('/api/health');
+      } finally {
+        admin.restore();
+      }
+
+      expect(response.status).to.equal(503);
+      expect(response.body.status).to.equal('degraded');
+      expect(response.body.checks.db).to.deep.equal({
+        status: 'connected',
+        ok: false,
+        pingMs: null,
+      });
     });
 
     // The deploy's health check reads the status code, so a lost DB

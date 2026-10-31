@@ -347,14 +347,14 @@ exit 0
       expect(out).to.include('access: 4 logged requests');
       expect(out).to.match(/by status: .*2xx=3/);
       expect(out).to.match(/by status: .*5xx=1/);
-      expect(out).to.include('ms: n=4 p50=80 p95=120 max=2400');
+      expect(out).to.include('ms: n=4 p50=80 p95=2400 max=2400');
       expect(out).to.include('    2 /api/getblueprints p50=80ms');
       expect(out).to.match(/countries: CA=2 /);
       expect(out).to.include(
         '    2400ms 2026-10-31T06:01:03Z method=GET route=/api/blueprints/:id/preview/:variant status=500 url=/api/blueprints/2/preview/card.webp'
       );
       expect(out).to.include(
-        'preview renders: 2 (cold: 1); total ms: n=2 p50=107 p95=107 max=1025'
+        'preview renders: 2 (cold: 1); total ms: n=2 p50=107 p95=1025 max=1025'
       );
       expect(out).to.include('preview queue full: 0; worker exits: 1');
       expect(out).to.include('facets-slow: 1');
@@ -362,8 +362,11 @@ exit 0
         'error lines: 1 (last 3):\n  2026-10-31T06:04:02.000000000Z Error: ECONNRESET while streaming'
       );
       expect(out).to.include("slow queries (over mongod's 100 ms default): 2");
-      expect(out).to.include('durationMillis: n=2 p50=120 p95=120 max=350');
-      expect(out).to.include('1 blueprintnotincluded.blueprints\n');
+      expect(out).to.include('durationMillis: n=2 p50=120 p95=350 max=350');
+      expect(out).to.match(/ +1 blueprintnotincluded\.blueprints\n/);
+      // every section says where its log actually starts
+      expect(out).to.include('== production app (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 14 lines');
+      expect(out).to.include('== production mongo (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 4 lines');
       expect(out).to.include('connection/election/storage warnings: 1');
       expect(out).to.include('tunnel connections registered: 4');
       expect(out).to.include('reconnects/errors: 1');
@@ -387,8 +390,11 @@ exit 0
       expect(r.stdout).not.to.include('backup');
     });
 
-    it('rejects an unknown argument', () => {
+    it('rejects an unknown argument and a --since docker would not take', () => {
       expect(run(sb, 'health-report.sh', ['prod']).status).to.equal(64);
+      const r = run(sb, 'health-report.sh', ['staging', '--no-host', '--since', '7days']);
+      expect(r.status).to.equal(64);
+      expect(r.stderr).to.include('--since takes');
     });
   });
 });
