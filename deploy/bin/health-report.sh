@@ -37,7 +37,12 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# docker logs takes Go durations (h, m, s), journalctl takes "-7d".
+# One number and one unit: docker logs takes Go durations (h, m, s) and
+# journalctl takes "-7d". Anything else would reach docker unchanged, fail
+# there, and read as an empty week (logs_of hides docker's stderr).
+case "$since" in
+  *[!0-9dhms]*|[!0-9]*|*[0-9]) echo "--since takes <number><d|h|m|s>, e.g. 7d or 36h; got '$since'" >&2; exit 64 ;;
+esac
 case "$since" in
   *d) since_docker="$(( ${since%d} * 24 ))h" ;;
   *) since_docker=$since ;;
@@ -47,16 +52,27 @@ section() { printf '\n== %s ==\n' "$*"; }
 line() { printf '%s\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
-# p50/p95/max of the numbers on stdin (one per line); "-" when there are none.
+# p50/p95/max of the numbers on stdin (one per line), nearest-rank: the
+# p95 of four samples is the fourth, not the third.
 stats() {
   sort -n | awk '
     { a[NR] = $1 }
     END {
       if (NR == 0) { print "n=0"; exit }
-      i50 = int(NR * 0.5); if (i50 < 1) i50 = 1
-      i95 = int(NR * 0.95); if (i95 < 1) i95 = 1
+      i50 = int(NR * 0.5); if (i50 < NR * 0.5) i50++; if (i50 < 1) i50 = 1
+      i95 = int(NR * 0.95); if (i95 < NR * 0.95) i95++; if (i95 < 1) i95 = 1
       printf "n=%d p50=%s p95=%s max=%s\n", NR, a[i50], a[i95], a[NR]
     }'
+}
+
+# "covers: from <first timestamp>, N lines". docker compose logs reads the
+# container that exists now: a deploy inside the window recreated it, and
+# the previous container's lines are gone with it. Every section says where
+# its data actually starts rather than implying the whole window.
+coverage() {
+  local first
+  first=$(printf '%s\n' "$1" | head -n 1 | cut -c1-19)
+  line "covers: from ${first}Z, $(printf '%s\n' "$1" | grep -c . || true) lines (a container recreated by a deploy keeps only its own log)"
 }
 
 # Container log of one service, docker timestamps first on each line.
@@ -75,7 +91,10 @@ report_host() {
     last -x reboot -F 2>/dev/null | grep -E '^reboot' | head -n 5 | sed 's/^/  /' || true
   fi
   if have journalctl; then
-    oom=$(journalctl -k --since "-$since" --no-pager 2>/dev/null | grep -ciE 'out of memory|oom-kill|oom_reaper' || true)
+    # -k alone is the current boot only; -b all spans the reboots in the
+    # window. One "Out of memory: Killed process" line per victim, where the
+    # oom-kill and oom_reaper lines would count the same event twice.
+    oom=$(journalctl -k -b all --since "-$since" --no-pager 2>/dev/null | grep -ci 'Out of memory: Killed process' || true)
     line "kernel OOM kills in window: ${oom:-0}"
   fi
   if [ -r /var/log/unattended-upgrades/unattended-upgrades.log ]; then
@@ -89,8 +108,12 @@ report_host() {
 report_containers() {
   section "containers"
   if ! have docker; then line "docker: not found"; return; fi
-  local names
-  names=$(docker ps -a --format '{{.Names}}' 2>/dev/null | grep -E '^(production|staging)[-_]' || true)
+  local all names
+  if ! all=$(docker ps -a --format '{{.Names}}' 2>&1); then
+    line "docker ps failed: $all"
+    return
+  fi
+  names=$(printf '%s\n' "$all" | grep -E '^(production|staging)[-_]' || true)
   if [ -z "$names" ]; then line "no production/staging containers"; return; fi
   # RestartCount is since the container was created (a deploy recreates it),
   # StartedAt is the last start: both together date a crash loop or a reboot.
@@ -108,7 +131,7 @@ report_app() {
   log=$(logs_of "$project" app)
   section "$project app (last $since)"
   if [ -z "$log" ]; then line "no log lines"; return; fi
-  line "lines: $(printf '%s\n' "$log" | wc -l | tr -d ' ')"
+  coverage "$log"
 
   # Boots: one line per process start, timestamps are docker's.
   line "boots: $(printf '%s\n' "$log" | grep -c 'listening on port' || true)"
@@ -149,15 +172,15 @@ report_app() {
       { r = ""; ms = ""
         for (i = 1; i <= NF; i++) { if (index($i, "route=") == 1) r = substr($i, 7); if (index($i, "ms=") == 1) ms = substr($i, 4) + 0 }
         n[r]++; v[r] = v[r] " " ms }
-      END { for (r in n) print n[r], r, v[r] }' | sort -rn | head -n 8 | while read -r count route rest; do
-        p50=$(printf '%s\n' $rest | sort -n | awk '{ a[NR] = $1 } END { i = int(NR * 0.5); if (i < 1) i = 1; print a[i] }')
+      END { for (r in n) print n[r], r, v[r] }' | sort -rn | awk 'NR <= 8' | while read -r count route rest; do
+        p50=$(printf '%s\n' $rest | sort -n | awk '{ a[NR] = $1 } END { i = int(NR * 0.5); if (i < NR * 0.5) i++; if (i < 1) i = 1; print a[i] }')
         line "    $count $route p50=${p50}ms"
       done
-    line "  countries: $(printf '%s\n' "$access" | awk '{ for (i = 1; i <= NF; i++) if (index($i, "country=") == 1) c[substr($i, 9)]++ } END { for (k in c) print c[k], k }' | sort -rn | head -n 8 | awk '{ printf "%s=%s ", $2, $1 }')"
+    line "  countries: $(printf '%s\n' "$access" | awk '{ for (i = 1; i <= NF; i++) if (index($i, "country=") == 1) c[substr($i, 9)]++ } END { for (k in c) print c[k], k }' | sort -rn | awk 'NR <= 8 { printf "%s=%s ", $2, $1 }')"
     line "  slowest:"
     printf '%s\n' "$access" | awk '
       { ms = 0; for (i = 1; i <= NF; i++) if (index($i, "ms=") == 1) ms = substr($i, 4) + 0
-        print ms, substr($1, 1, 19) "Z", $0 }' | sort -rn | head -n 5 | awk '{ printf "    %sms %s", $1, $2; for (i = 5; i <= NF; i++) if ($i ~ /^(method|route|status|url)=/) printf " %s", $i; print "" }'
+        print ms, substr($1, 1, 19) "Z", $0 }' | sort -rn | awk 'NR <= 5 { printf "    %sms %s", $1, $2; for (i = 5; i <= NF; i++) if ($i ~ /^(method|route|status|url)=/) printf " %s", $i; print "" }'
     line "  5xx:"
     printf '%s\n' "$access" | grep -E ' status=5[0-9][0-9] ' | tail -n 5 | sed 's/^/    /' || line "    none"
   fi
@@ -175,6 +198,7 @@ report_mongo() {
   log=$(logs_of "$project" mongo)
   section "$project mongo (last $since)"
   if [ -z "$log" ]; then line "no log lines"; return; fi
+  coverage "$log"
   line "starts: $(printf '%s\n' "$log" | grep -c 'Waiting for connections' || true)"
   local slow
   slow=$(printf '%s\n' "$log" | grep 'Slow query' || true)
@@ -182,7 +206,7 @@ report_mongo() {
   if [ -n "$slow" ]; then
     line "  durationMillis: $(printf '%s\n' "$slow" | sed -n 's/.*"durationMillis":\([0-9]*\).*/\1/p' | stats)"
     line "  by namespace:"
-    printf '%s\n' "$slow" | sed -n 's/.*"ns":"\([^"]*\)".*/\1/p' | sort | uniq -c | sort -rn | head -n 5 | sed 's/^/    /'
+    printf '%s\n' "$slow" | sed -n 's/.*"ns":"\([^"]*\)".*/\1/p' | sort | uniq -c | sort -rn | awk 'NR <= 5 { print "    " $0 }'
   fi
   line "connection/election/storage warnings: $(printf '%s\n' "$log" | grep -ciE '"s":"(W|E|F)"' || true)"
 }
@@ -192,6 +216,7 @@ report_cloudflared() {
   log=$(logs_of "$project" cloudflared)
   section "$project cloudflared (last $since)"
   if [ -z "$log" ]; then line "no log lines"; return; fi
+  coverage "$log"
   line "tunnel connections registered: $(printf '%s\n' "$log" | grep -c 'Registered tunnel connection' || true) (4 per connector start is normal)"
   local trouble
   trouble=$(printf '%s\n' "$log" | grep -iE 'Unregistered tunnel connection|failed|lost connection|retrying|ERR' || true)
@@ -204,6 +229,7 @@ report_backup() {
   log=$(logs_of "$project" backup)
   section "$project backup (last $since)"
   if [ -z "$log" ]; then line "no log lines (profile not enabled, or no run yet)"; return; fi
+  coverage "$log"
   line "runs completed: $(printf '%s\n' "$log" | grep -c 'backup: done' || true)"
   printf '%s\n' "$log" | grep 'backup: done' | tail -n 3 | sed 's/^/  /' || true
   line "failures: $(printf '%s\n' "$log" | grep -ciE 'fail|error|No such|denied' || true)"

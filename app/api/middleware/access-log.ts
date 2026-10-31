@@ -5,6 +5,9 @@
 //   access: method=GET route=/api/blueprints/:id status=200 ms=12 bytes=4321
 //           ray=a5308…-YVR country=CA url=/api/blueprints/68a…
 //
+// A request the client abandoned before the response finished carries
+// `aborted=1` after the status and is always logged.
+//
 // `route` is the Express pattern the request matched (`/*path` is the SPA
 // shell, `-` is a file express.static served), `url` the raw request. `ray`
 // and `country` are Cloudflare's headers — the ray id joins a line to the
@@ -34,6 +37,8 @@ export interface AccessEntry {
   ray: string | null;
   country: string | null;
   url: string;
+  /** The client went away before the response finished. */
+  aborted?: boolean;
 }
 
 /** Everything under /api and every extension-less page route; files only when they failed or were slow. */
@@ -51,6 +56,7 @@ const clean = (value: string, max: number) =>
 export function formatAccessLine(entry: AccessEntry): string {
   return (
     `access: method=${entry.method} route=${entry.route} status=${entry.status}` +
+    (entry.aborted ? ' aborted=1' : '') +
     ` ms=${entry.ms} bytes=${entry.bytes ?? '-'}` +
     ` ray=${entry.ray ? clean(entry.ray, 40) : '-'} country=${entry.country ? clean(entry.country, 2) : '-'}` +
     ` url=${clean(entry.url, 300)}`
@@ -92,10 +98,18 @@ export function accessLog(options: AccessLogOptions = {}) {
       return (writeHead as (...a: unknown[]) => Response).apply(this, args);
     } as Response['writeHead'];
 
-    res.on('finish', () => {
+    // `finish` is the response fully handed to the socket; a client that
+    // gives up first (a cancelled page load, a timeout at the edge) emits
+    // `close` without it. Those are the requests a latency spike is made of,
+    // so they get a line too, marked, and always — a cut-off request has no
+    // status worth filtering on.
+    let logged = false;
+    const emit = (aborted: boolean) => {
+      if (logged) return;
+      logged = true;
       const ms = Math.round(now() - startedAt);
       const url = req.originalUrl || req.url || '/';
-      if (!shouldLogAccess(url, res.statusCode, ms)) return;
+      if (!aborted && !shouldLogAccess(url, res.statusCode, ms)) return;
       const routePath = (req.route as { path?: unknown } | undefined)?.path;
       log(
         formatAccessLine({
@@ -107,9 +121,12 @@ export function accessLog(options: AccessLogOptions = {}) {
           ray: header(req, 'cf-ray'),
           country: header(req, 'cf-ipcountry'),
           url,
+          aborted,
         })
       );
-    });
+    };
+    res.on('finish', () => emit(false));
+    res.on('close', () => emit(!res.writableFinished));
     next();
   };
 }

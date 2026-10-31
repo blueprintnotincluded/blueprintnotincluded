@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import express from 'express';
+import http from 'http';
 import request from 'supertest';
 
 import {
@@ -101,6 +102,33 @@ describe('access log', () => {
       expect(lines).to.have.length(1);
       expect(lines[0]).to.equal(
         'access: method=GET route=/api/things/:id status=200 ms=250 bytes=11 ray=abc-YVR country=CA url=/api/things/42?x=1'
+      );
+    });
+
+    it('records a request the client abandoned, marked aborted', async () => {
+      const lines: string[] = [];
+      const app = express();
+      app.use(accessLog({ log: l => lines.push(l) }));
+      app.get('/api/slow', (_req, res) => setTimeout(() => res.json({ late: true }), 150));
+      const server = http.createServer(app);
+      await new Promise<void>(resolve => server.listen(0, resolve));
+      const port = (server.address() as { port: number }).port;
+      try {
+        await new Promise<void>(resolve => {
+          const req = http.get({ port, path: '/api/slow' }, () => undefined);
+          req.on('error', () => undefined);
+          req.on('close', () => resolve());
+          setTimeout(() => req.destroy(), 30);
+        });
+        // The server sees the hang-up on its own schedule; give it a tick.
+        for (let i = 0; i < 20 && lines.length === 0; i++)
+          await new Promise(r => setTimeout(r, 10));
+      } finally {
+        await new Promise<void>(resolve => server.close(() => resolve()));
+      }
+      expect(lines).to.have.length(1);
+      expect(lines[0]).to.match(
+        /^access: method=GET route=\/api\/slow status=\d+ aborted=1 ms=\d+ bytes=- ray=- country=- url=\/api\/slow$/
       );
     });
 
