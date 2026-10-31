@@ -170,8 +170,8 @@ cluster. Staging: `bin/seed-from-dump.sh production dump local`, then
 | Roll production back | Same workflow with `rollback`: swaps `:prod` and `:prod-previous`, redeploys. A second rollback goes forward again. |
 | Roll back to an older build | On the box: set `IMAGE_TAG=sha-<short>` in `/srv/bpni/production/.env`, run `deploy.sh production`; put `prod` back afterwards. |
 | Redeploy by hand | `bin/deploy.sh <project>` — idempotent. |
-| Status | `bin/compose.sh production ps`, `docker stats --no-stream` |
-| Logs | `bin/compose.sh production logs -f --tail 200 app` (json-file, 10 MB × 3 per container). The `memory-heartbeat` and `facets-slow` lines the code emits are grepped here. Ctrl-C ends the follow; the containers keep running. |
+| Status | `bin/compose.sh production ps`, `docker stats --no-stream`; the week in one page: `bin/health-report.sh` (Monitoring) |
+| Logs | `bin/compose.sh production logs -f --tail 200 app` (json-file, 10 MB × 3 per container). The `access:`, `memory-heartbeat:`, `preview render` and `facets-slow` lines the code emits are grepped here (Monitoring). Ctrl-C ends the follow; the containers keep running. |
 | Shell in the app | `bin/compose.sh production exec app bash` (cwd `/bpni/build`) |
 | Mongo shell | `bin/compose.sh production exec mongo mongosh -u root -p "$(grep MONGO_ROOT_PASSWORD= /srv/bpni/production/.env \| cut -d= -f2)" --authenticationDatabase admin blueprintnotincluded` |
 | Change `app.env` (HOST, keys…) | Edit, then `bin/compose.sh <project> up -d app`. `start`/`restart` keep the container's old environment. |
@@ -184,6 +184,39 @@ cluster. Staging: `bin/seed-from-dump.sh production dump local`, then
 The app's preview render worker sizes itself from the container's memory limit
 (`app/api/services/render-memory.ts`); at the 1 GB production limit it runs at the 384 MB
 RSS ceiling. The 512 MB renderer smoke test in `publish.yml` is unchanged.
+
+## Monitoring
+
+What there is to look at, from the outside in. None of it needs an account on the box
+except the last two.
+
+| Where | What it answers | Notes |
+|---|---|---|
+| **UptimeRobot** — monitor `blueprintnotincluded.org`, public page `https://stats.uptimerobot.com/V6QANX8e9U` | Is the apex up; response time of `/` from North America | HTTP check every 5 minutes, one region. A reboot that finishes inside the interval does not register (the 2026-10-31 kernel reboot at 05:17 UTC did not). `/status` on the site used to redirect here; the `status` CNAME still points at DigitalOcean and dies with it. Worth adding: a second monitor on `/api/health` with the keyword `"status":"ok"` from an EU region, which sees the origin rather than the edge. |
+| **Cloudflare → Analytics & Logs → Traffic** | Requests, bandwidth, cache ratio, status codes, by country and path; 24 h to 30 d | The only request counts there are until the access log below is read; everything the site serves goes through this zone. |
+| **Cloudflare → Analytics & Logs → Web Analytics** | Real-user page timing and Core Web Vitals by country, path and browser | Free; a zone toggle (*automatic setup* injects the beacon, no deploy). The app's CSP already allows `static.cloudflareinsights.com` and `cloudflareinsights.com`, so turning it on is console-only. When it is on, record it in the Cloudflare section above. |
+| **`GET /api/health`** | The app's own view: `checks.db` (`ok`, `pingMs` to Mongo), `memory`, `uptime`, `startedAt`, `build.commit`/`time`, `preview` (`worker` up/down, `queueDepth`/`queueMax`, `inFlight`, `failedRenders`) | What the compose healthcheck polls every 30 s. `startedAt` is fixed for the life of the process: production and staging reporting the same one is a host reboot, one of them moving alone is a container restart. 503 only when Mongo is not connected. |
+| **`Server-Timing: app;dur=<ms>`** on every response | Origin time, as the browser saw it | In the Network panel's *Timing* tab; subtract it from TTFB and what is left is Cloudflare plus the path to Helsinki. |
+| **Container log lines** (`bin/compose.sh <project> logs app`) | Per request, per render, per process | `access: method=… route=… status=… ms=… bytes=… ray=… country=… url=…` — every API call and page view; static files and the healthcheck only when they failed or took ≥ 1 s. `memory-heartbeat: <api\|preview-worker> rss=…` every 5 minutes. `preview render <id> … total=…ms` per master render, `preview render worker exited` per recycle or crash, `facets-slow` for the facet query. Docker's rotation keeps roughly the last 30 MB per container: read them before they scroll, or let the report below do it. |
+| **`bin/health-report.sh [production\|staging\|all] [--since 7d]`** | The week on one page | Host (reboots, `reboot-required`, kernel OOM kills, memory, disk), containers (status, health, restart counters, `docker stats`), then per project: boots, memory-heartbeat trend per process, the access lines summarised (status classes, p50/p95, busiest routes, countries, slowest five, 5xx), preview renders (count, cold, p50/max, queue sheds, worker exits), error lines, Mongo slow queries by namespace, cloudflared reconnects, and production's backup runs with the bucket total. Run it as `deploy` before the weekly look, keep the output next to last week's. |
+
+Grep recipes, for when the report is not enough:
+
+```bash
+# slowest requests this week, with route and country
+bin/compose.sh production logs --since 168h app | grep ' access: ' | awk '{ for (i = 1; i <= NF; i++) if ($i ~ /^ms=/) print substr($i, 4), $0 }' | sort -n | tail
+# every boot and worker exit, timestamped
+bin/compose.sh production logs -t --since 168h app | grep -E 'listening on port|worker exited'
+# Mongo's own slow-query lines (over its 100 ms default)
+bin/compose.sh production logs --since 168h mongo | grep 'Slow query' | grep -o '"ns":"[^"]*"' | sort | uniq -c
+```
+
+**The reboot window.** unattended-upgrades reboots the box at 05:17 UTC on the night a kernel
+update lands (`cloud-init.yaml`); every container returns on its restart policy, the app
+answers once mongo is healthy, and the tunnel reconnects after that — a minute or two
+in which the site is down. Nothing notifies: the only trace is `last -x reboot` on the box
+and both projects' `startedAt` moving together, both of which the report prints. A
+monitor that polls every 5 minutes from one region will usually miss it.
 
 ## Database
 
@@ -349,8 +382,8 @@ as DNS only (App Platform's edge). The old app stays reachable at its
 
 ## Decommission DigitalOcean
 
-A week after the cut-over, once Better Stack, the nightly backup log, `docker stats` and
-Mailjet delivery look right:
+A week after the cut-over, once UptimeRobot, the nightly backup log, `bin/health-report.sh`
+and Mailjet delivery look right:
 
 1. DigitalOcean: destroy the App Platform app, the Managed MongoDB cluster (take a final
    manual backup first) and the Container Registry.

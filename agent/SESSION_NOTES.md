@@ -1,3 +1,43 @@
+# Session Notes - 2026-10-31
+
+## Hosting: first week on Hetzner, and what can now be seen of it
+
+Reviewed the week since the cut-over from the outside (UptimeRobot's public page, the
+Hetzner and Cloudflare status feeds, timed probes of every route from Vancouver, the
+workflow history): 100 % on the apex monitor every day, production still on `d47261f`,
+staging on `4bb11eb`, both processes ~120 MB RSS, and one host reboot at 05:17 UTC on
+2026-10-31 (the unattended-upgrades kernel slot) that no monitor saw. The move costs a
+North-American visitor ~150 ms per uncached request (Helsinki) and gains a European one
+about as much; hashed bundles and preview images are edge hits, the API and HTML are
+dynamic as intended. Two UptimeRobot spikes on 2026-10-29 (6.0 s, 3.3 s) could not be
+attributed, because nothing on the origin recorded requests — the gap this branch fills:
+
+- `app/api/middleware/access-log.ts`: one `access:` line per API call and page view
+  (route pattern, status, ms, bytes, Cloudflare ray and country), static files and the
+  healthcheck only when failed or slow; plus `Server-Timing: app;dur=` on every response.
+- `/api/health` now also reports `checks.db.pingMs`, `startedAt`, `build`, and the
+  preview service's `worker`/`queueDepth`/`inFlight`/`failedRenders`.
+- `deploy/bin/health-report.sh`: the week on one page from the kernel log, Docker's
+  restart counters and the container logs (tested with fixture logs in
+  `__tests__/deploy/scripts.test.ts`).
+- CSP allows Cloudflare Web Analytics' beacon, so real-user timing by country is a zone
+  toggle; runbook gained a "Monitoring" section naming all of it and the reboot window.
+
+The box itself was not inspected this session (no SSH from the agent): restart counters,
+OOM kills, Mongo slow queries, the backup log and disk are still to be read once —
+`bin/health-report.sh all` does it after the deploy.
+
+## Status snapshot (2026-10-31)
+
+- **Hosting**: as 2026-10-25, one week in: apex monitor 100 %, no production deploy
+  since the cut-over (staging took `4bb11eb` on 10-25), DigitalOcean still untouched (its app still answers on `ondigitalocean.app`).
+  Open: read the box once with `health-report.sh`, second UptimeRobot monitor on
+  `/api/health` (EU), Cloudflare Web Analytics + Tiered Cache toggles, restore drill,
+  DO decommission, previewimages → R2.
+- Everything else as in the 2026-10-25 snapshot below.
+
+---
+
 # Session Notes - 2026-10-25
 
 ## Hosting: cut over to Hetzner
