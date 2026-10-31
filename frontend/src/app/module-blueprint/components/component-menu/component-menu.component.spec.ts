@@ -4,7 +4,12 @@ import { Router } from "@angular/router";
 import { MessageService } from "primeng/api";
 import { Subject } from "rxjs";
 
-import { CameraService, Overlay } from "../../../../../../lib/index";
+import {
+  CameraService,
+  Display,
+  Overlay,
+  Visualization,
+} from "../../../../../../lib/index";
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { ToolService } from "src/app/module-blueprint/services/tool-service";
@@ -63,6 +68,27 @@ describe("ComponentMenuComponent", () => {
     );
     expect(roomsItem).toBeTruthy();
     expect(roomsItem!.label).toBe("Rooms");
+  });
+
+  // PrimeNG MenuItem.id is a string. Buildings compare the overlay loosely
+  // and never noticed, but the element-note fade compares strictly, so a
+  // string overlay left every element note dimmed until an F-key wrote a
+  // number. The items must hand the camera the enum value itself.
+  it("writes the enum value, not the item's string id, to the camera", () => {
+    const camera = CameraService.cameraService;
+    const run = (items: any[], id: number) =>
+      items.find((item) => item.id == id.toString())!.command!({});
+
+    run(component.overlayMenuItems, Overlay.Liquid);
+    expect(camera.overlay).toBe(Overlay.Liquid);
+    run(component.overlayMenuItems, Overlay.Base);
+    expect(camera.overlay).toBe(Overlay.Base);
+
+    run(component.displayMenuItems, Display.blueprint);
+    expect(camera.display).toBe(Display.blueprint);
+
+    run(component.visualizationMenuItems, Visualization.temperature);
+    expect(camera.visualization).toBe(Visualization.temperature);
   });
 
   // The checkmark follows the open blueprint, wherever its interior was set:
