@@ -128,9 +128,7 @@ export class ComponentMenuComponent
       this.overlayMenuItems.push({
         label: overlay.name,
         id: overlay.id.toString(),
-        command: (event: any) => {
-          this.clickOverlay(event);
-        },
+        command: () => this.clickOverlay(overlay.id),
       });
     });
 
@@ -138,16 +136,12 @@ export class ComponentMenuComponent
     this.displayMenuItems.push({
       label: $localize`Blueprint`,
       id: Display.blueprint.toString(),
-      command: (event: any) => {
-        this.clickDisplay(event);
-      },
+      command: () => this.clickDisplay(Display.blueprint),
     });
     this.displayMenuItems.push({
       label: $localize`Color`,
       id: Display.solid.toString(),
-      command: (event: any) => {
-        this.clickDisplay(event);
-      },
+      command: () => this.clickDisplay(Display.solid),
     });
 
     // Rocket interior: which habitat module's hull and landed backdrop to
@@ -166,23 +160,17 @@ export class ComponentMenuComponent
     this.visualizationMenuItems.push({
       label: $localize`None`,
       id: Visualization.none.toString(),
-      command: (event: any) => {
-        this.clickVisualization(event);
-      },
+      command: () => this.clickVisualization(Visualization.none),
     });
     this.visualizationMenuItems.push({
       label: $localize`Temperature`,
       id: Visualization.temperature.toString(),
-      command: (event: any) => {
-        this.clickVisualization(event);
-      },
+      command: () => this.clickVisualization(Visualization.temperature),
     });
     this.visualizationMenuItems.push({
       label: $localize`Elements`,
       id: Visualization.elements.toString(),
-      command: (event: any) => {
-        this.clickVisualization(event);
-      },
+      command: () => this.clickVisualization(Visualization.elements),
     });
 
     this.toolMenuItems = [
@@ -391,9 +379,9 @@ export class ComponentMenuComponent
       },
     ];
 
-    this.clickOverlay({ item: { id: Overlay.Base } });
-    this.clickDisplay({ item: { id: Display.solid } });
-    this.clickVisualization({ item: { id: Visualization.none } });
+    this.clickOverlay(Overlay.Base);
+    this.clickDisplay(Display.solid);
+    this.clickVisualization(Visualization.none);
     this.clickTool(ToolType.select);
   }
 
@@ -450,14 +438,17 @@ export class ComponentMenuComponent
     }
   }
 
-  clickOverlay(event: any) {
-    if (this.cameraService)
-      this.cameraService.overlay = event.item.id as Overlay;
+  // Each item closes over its enum value rather than reading it back from
+  // the PrimeNG item: MenuItem.id is a string, and a string assigned to the
+  // camera passes every loose comparison the buildings make but fails the
+  // strict ones the element-note fade makes (isElementOverlayPrimary), so
+  // notes picked from this menu stayed dimmed until an F-key wrote a number.
+  clickOverlay(overlay: Overlay) {
+    if (this.cameraService) this.cameraService.overlay = overlay;
   }
 
-  clickDisplay(event: any) {
-    if (this.cameraService)
-      this.cameraService.display = event.item.id as Display;
+  clickDisplay(display: Display) {
+    if (this.cameraService) this.cameraService.display = display;
   }
 
   clickRocketInterior(module: RocketInteriorModule | null) {
@@ -477,9 +468,8 @@ export class ComponentMenuComponent
           : "pi pi-fw pi-none";
   }
 
-  clickVisualization(event: any) {
-    if (this.cameraService)
-      this.cameraService.visualization = event.item.id as Visualization;
+  clickVisualization(visualization: Visualization) {
+    if (this.cameraService) this.cameraService.visualization = visualization;
   }
 
   uploadYamlTemplate() {
