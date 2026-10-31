@@ -871,6 +871,28 @@ export class PreviewImageService {
   }
 
   /**
+   * The numbers /api/health reports: whether a worker is resident, how deep
+   * the render queue is against its cap, how many renders are in flight and
+   * how many blueprints the negative cache is holding back. Cheap enough for
+   * a 30-second healthcheck; nothing here touches disk or Mongo.
+   */
+  public getStats(): {
+    worker: 'disabled' | 'up' | 'down';
+    queueDepth: number;
+    queueMax: number;
+    inFlight: number;
+    failedRenders: number;
+  } {
+    return {
+      worker: this.disabled ? 'disabled' : this.worker ? 'up' : 'down',
+      queueDepth: this.renderQueueDepth,
+      queueMax: this.renderQueueMax,
+      inFlight: this.inFlight.size,
+      failedRenders: this.failedRenders.size,
+    };
+  }
+
+  /**
    * Fork the render worker ahead of the first request (server boot, or after
    * an RSS recycle) so no request pays the ~10s cold start. No-op when
    * rendering is disabled or a worker is already up.
