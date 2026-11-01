@@ -22,8 +22,9 @@ headings in older notes are current.
 
 ## Repository conventions
 
-- Use Node 24.21.x (Volta pins 24.21.0). The old "Canvas requires Node 20" rule was
-  wrong: canvas 3.x ships N-API prebuilds that load on 20, 22 and 24.
+- Use Node 24.22.x, never below 24.22.1 (CVE-2026-111497; Volta pins 24.22.2). The old
+  "Canvas requires Node 20" rule was wrong: canvas 3.x ships N-API prebuilds that load on
+  20, 22 and 24.
 - Backend tests use Mocha + Chai. Do not introduce Jest.
 - Frontend tests use the Angular builder with Vitest. Run a single spec with
   `npm test -- --include='**/name.spec.ts'` from `frontend/`; do not invoke bare Vitest on

@@ -80,11 +80,11 @@
     "serialize-javascript": "^2.1.1"
   },
   "engines": {
-    "node": "^24.21",
+    "node": "^24.22.1",
     "npm": "^11.0"
   },
   "volta": {
-    "node": "24.21.0"
+    "node": "24.22.2"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.59.0"

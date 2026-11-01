@@ -4,7 +4,7 @@
 # in and the build context is this directory alone.
 #
 # Node matches .nvmrc / package.json engines. Bump all three together.
-ARG NODE_VERSION=24.21.0
+ARG NODE_VERSION=24.22.2
 FROM node:${NODE_VERSION}-bookworm
 
 # canvas and sharp are native modules. Both publish prebuilt binaries for

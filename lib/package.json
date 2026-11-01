@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@types/bson": "^4.0.5",
-    "@types/node": "^20.19.16",
+    "@types/node": "^24.10.1",
     "typescript": "^5.9.2"
   },
   "scripts": {
@@ -17,5 +17,11 @@
     "tsc": "tsc"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": "^24.22.1"
+  },
+  "volta": {
+    "node": "24.22.2"
+  }
 }
