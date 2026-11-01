@@ -27,6 +27,12 @@ The box itself was not inspected this session (no SSH from the agent): restart c
 OOM kills, Mongo slow queries, the backup log and disk are still to be read once —
 `bin/health-report.sh all` does it after the deploy.
 
+## Status snapshot (2026-11-01)
+
+- **Node.js**: 24.22.2 (via volta, every image tag pinned exactly; engines `^24.22.1` with
+  engine-strict) — CVE-2026-111497, PR #310. Supersedes the 20.19.4 in the 2026-08-28 snapshot.
+- Everything else as in the 2026-10-31 snapshot below.
+
 ## Status snapshot (2026-10-31)
 
 - **Hosting**: as 2026-10-25, one week in: apex monitor 100 %, no production deploy
@@ -117,7 +123,7 @@ rects, ROADMAP + ROADMAP_DECISIONS); marked BPv2 followups task 3 (buildingData)
   open items in `agent/TODO.md` (deferred plan items each have a stated trigger or were
   decided against, see `spec/archive/multilingual-search-plan.md` §8). Asset pipeline is
   OniExtract2024 flat-icon rendering.
-- **Node.js**: 24.22.2 (via volta)
+- **Node.js**: 20.19.4 (via volta)
 - **Stack**: TypeScript 5.9.3 strict (both trees) · Mongoose 8.24 · Express 5.2 · Canvas 3.2.3 · Angular 20 · PrimeNG 20 · ESLint 9 flat config · Prettier 3 (both trees) · husky 9 + lint-staged 16
 - **Tests**: Backend 1072 passing (Mocha 11 + Chai 4; a few DB-heavy API specs time out under
   load locally and pass on a clean run) · Frontend 1226 passing (Vitest/jsdom)
