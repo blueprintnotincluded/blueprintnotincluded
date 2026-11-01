@@ -113,5 +113,6 @@ jobs:
 
       - name: Render the smoke fixture in the real worker
         run: >-
-          node --max-old-space-size=256 -r ts-node/register/transpile-only
+          node --max-old-space-size=256 --max-semi-space-size=16
+          -r ts-node/register/transpile-only
           app/api/services/preview-render-worker.ts --smoke

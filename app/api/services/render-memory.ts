@@ -39,6 +39,24 @@ export const MAX_RSS_CAP_MB = 384;
 // actually keeps renders inside the envelope.
 export const DEFAULT_MAX_OLD_SPACE_MB = 256;
 
+// V8 semi-space ceiling for the worker, passed as --max-semi-space-size next to
+// the old-space flag. V8's heap_size_limit is old space plus the young
+// generation (3 x semi-space), and Node 24 sizes the young generation four
+// times larger than Node 20 did. Measured with --max-old-space-size=256 on
+// linux-x64:
+//
+//   Node 20.19.4                             heap_size_limit 304MB
+//   Node 24.22.2                             heap_size_limit 448MB
+//   Node 24.22.2, --max-semi-space-size=16   heap_size_limit 304MB
+//
+// Lowering the old-space flag cannot get 24 back there: 128 still gives 320MB,
+// and 304MB takes an old space of 112MB, less than half of what the item-count
+// ladder was measured against. Pinning the semi-space at Node 20's 16MB
+// restores both the total and the old/young split, so the backstop aborts at
+// the same point it did on 20. Not env-overridable: it does not move with the
+// instance size.
+export const DEFAULT_MAX_SEMI_SPACE_MB = 16;
+
 const CGROUP_LIMIT_PATHS = [
   '/sys/fs/cgroup/memory.max', // v2
   '/sys/fs/cgroup/memory/memory.limit_in_bytes', // v1
@@ -95,6 +113,14 @@ export function resolveMaxRssMb(opts?: {
       `rss cap ${Math.round(maxRssMb)}MB` +
       ` (memory limit ${Math.round(limitMb)}MB via ${source}${invalidEnvNote})`,
   };
+}
+
+/** The V8 heap flags the preview worker is forked with. */
+export function workerHeapExecArgv(maxOldSpaceMb: number): string[] {
+  return [
+    `--max-old-space-size=${maxOldSpaceMb}`,
+    `--max-semi-space-size=${DEFAULT_MAX_SEMI_SPACE_MB}`,
+  ];
 }
 
 export interface ResolvedHeapCap {

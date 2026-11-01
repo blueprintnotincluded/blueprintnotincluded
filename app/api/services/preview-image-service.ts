@@ -22,7 +22,7 @@ import { RocketInteriorCell, RocketInteriorModule } from '../../../lib';
 import { PreviewImageModel } from '../models/preview-image';
 import { runInBackground } from './background-tasks';
 import { buildPreviewGridSvg, PreviewFraming } from './preview-grid';
-import { resolveMaxOldSpaceMb } from './render-memory';
+import { resolveMaxOldSpaceMb, workerHeapExecArgv } from './render-memory';
 
 export type PreviewVariant = 'card.webp' | 'hero.webp' | 'og.png';
 
@@ -792,7 +792,7 @@ export class PreviewImageService {
     const worker = fork(workerModule + (isTs ? '.ts' : '.js'), [], {
       execArgv: [
         ...(isTs ? ['-r', 'ts-node/register/transpile-only'] : []),
-        `--max-old-space-size=${maxOldSpaceMb}`,
+        ...workerHeapExecArgv(maxOldSpaceMb),
       ],
       env: { ...process.env, TS_NODE_TRANSPILE_ONLY: '1' },
       stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
