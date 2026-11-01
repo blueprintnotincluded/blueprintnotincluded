@@ -3,9 +3,15 @@
 # of the way. The source arrives as a bind mount at /app, so nothing is COPYed
 # in and the build context is this directory alone.
 #
-# Node matches .nvmrc / package.json engines. Bump all three together.
+# Node matches .nvmrc / package.json engines. Bump all three together, along
+# with the image tag in docker-compose.yml. Any edit to this file needs a new
+# tag there, because a published tag is never overwritten.
 ARG NODE_VERSION=24.22.2
 FROM node:${NODE_VERSION}-bookworm
+
+# Links the ghcr.io package to the repository, whose access permissions it then
+# inherits. Visibility is set once, by hand.
+LABEL org.opencontainers.image.source=https://github.com/blueprintnotincluded/blueprintnotincluded
 
 # canvas and sharp are native modules. Both publish prebuilt binaries for
 # linux-x64-glibc, so the toolchain below is usually unused — but the moment a
