@@ -136,7 +136,7 @@ export class Routes {
     // API surface); anything else falls through to random generation
     app
       .route('/api/users/me/avatar/generate')
-      .post(auth, express.raw({ type: 'image/*', limit: '8mb' }), this.avatarController.generate);
+      .post(auth, express.raw({ type: 'image/*', limit: '8mb', inflate: false }), this.avatarController.generate);
     app.route('/api/users/me/avatar/status').get(auth, this.avatarController.getStatus);
     app.route('/api/avatars/available').get(auth, this.avatarController.getAvailable);
     app.route('/api/users/me/avatar/select').post(auth, this.avatarController.select);
