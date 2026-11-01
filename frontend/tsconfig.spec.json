@@ -3,6 +3,9 @@
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
     "skipLibCheck": true,
+    // Specs run in Node (vitest), which has Array.prototype.at. @types/node 20
+    // used to declare it globally; 24 does not, so name it here.
+    "lib": ["es2018", "es2022.array", "dom"],
     "typeRoots": ["node_modules/@types", "node_modules"],
     "types": ["vitest/globals", "node", "@angular/localize"]
   },
