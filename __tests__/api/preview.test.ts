@@ -6,6 +6,8 @@ import fs from 'fs';
 import os from 'os';
 import sharp from 'sharp';
 import sinon from 'sinon';
+import childProcess from 'child_process';
+import { EventEmitter } from 'events';
 
 // Load test environment first
 dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
@@ -22,6 +24,10 @@ import {
   RenderContext,
   PREVIEW_VARIANTS,
 } from '../../app/api/services/preview-image-service';
+import {
+  resolveMaxOldSpaceMb,
+  DEFAULT_MAX_SEMI_SPACE_MB,
+} from '../../app/api/services/render-memory';
 import { Types } from 'mongoose';
 import { drainBackgroundTasks } from '../../app/api/services/background-tasks';
 
@@ -702,6 +708,43 @@ describe('Blueprint preview images', function () {
       } finally {
         clock.restore();
       }
+    });
+  });
+
+  describe('worker fork', function () {
+    let forkStub: sinon.SinonStub | undefined;
+
+    afterEach(function () {
+      forkStub?.restore();
+      forkStub = undefined;
+    });
+
+    // The heap flags only do anything if the fork actually passes them: the
+    // render-memory tests check what the flags produce, this checks that the
+    // production fork uses them.
+    it('forks the worker with the old-space cap and the pinned semi-space', async function () {
+      const fakeWorker = Object.assign(new EventEmitter(), {
+        kill: sinon.stub().returns(true),
+        send: sinon.stub().returns(true),
+      });
+      forkStub = sinon.stub(childProcess, 'fork').returns(fakeWorker as any);
+      const service = new PreviewImageService({
+        cacheDir: tempCacheDir('preview-fork-'),
+        disabled: false,
+        idleShutdownMs: 0,
+      }) as unknown as { ensureWorker: () => Promise<void>; stopWorker: () => void };
+
+      const ready = service.ensureWorker();
+      // Clears the start timer, which stopWorker() alone does not.
+      fakeWorker.emit('message', { type: 'ready' });
+      await ready;
+      service.stopWorker();
+
+      expect(forkStub.calledOnce).to.equal(true);
+      const { execArgv } = forkStub.firstCall.args[2];
+      const { maxOldSpaceMb } = resolveMaxOldSpaceMb();
+      expect(execArgv).to.include(`--max-old-space-size=${maxOldSpaceMb}`);
+      expect(execArgv).to.include(`--max-semi-space-size=${DEFAULT_MAX_SEMI_SPACE_MB}`);
     });
   });
 
