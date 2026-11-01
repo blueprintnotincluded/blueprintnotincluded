@@ -74,7 +74,9 @@ if [ "$DRY_RUN" = 0 ]; then
   USER_NAME="${GHCR_USER:-$(gh api user --jq .login 2>/dev/null || true)}"
   [ -n "$USER_NAME" ] || die "no user name: set GHCR_USER"
 
-  bearer=$(curl -fsS -u "$USER_NAME:$TOKEN" \
+  # The credential goes to curl as config on stdin (printf is a builtin), so
+  # the write-capable token never shows in a process list.
+  bearer=$(printf 'user = "%s:%s"\n' "$USER_NAME" "$TOKEN" | curl -fsS -K - \
     "https://ghcr.io/token?service=ghcr.io&scope=repository:$NAME:pull" \
     | sed -n 's/.*"token":"\([^"]*\)".*/\1/p') \
     || die "ghcr.io refused the token (does it have write:packages?)"
@@ -91,30 +93,43 @@ fi
 
 # --- build ------------------------------------------------------------------
 # --pull: the base is pinned to an exact node tag, but its Debian layer still
-# takes security updates under that tag.
-"$CLI" build --pull \
+# takes security updates under that tag. --platform: the image is for the
+# devbox, an x86-64 Linux host; pinning it means a publish from an ARM machine
+# cannot leave an arm64-only image under a tag that is never overwritten.
+#
+# A dry run tags only :dryrun-<short>, never the compose tag: compose uses a
+# local image of that name in preference to pulling, so a dry run of an
+# unmerged Dockerfile would otherwise become what every stack runs.
+if [ "$DRY_RUN" = 1 ]; then
+  BUILT="$REPO:dryrun-$SHORT"; TAGS=(-t "$BUILT")
+else
+  BUILT="$IMAGE"; TAGS=(-t "$IMAGE" -t "$REPO:sha-$SHORT")
+fi
+"$CLI" build --pull --platform linux/amd64 \
   -f "$CTX/.devcontainer/Dockerfile" \
   --build-arg "NODE_VERSION=$NODE_VERSION" \
   --label "org.opencontainers.image.revision=$REV" \
-  -t "$IMAGE" -t "$REPO:sha-$SHORT" \
+  "${TAGS[@]}" \
   "$CTX/.devcontainer"
 
 # --- smoke test -------------------------------------------------------------
-got=$("$CLI" run --rm "$IMAGE" node -p process.version)
+got=$("$CLI" run --rm "$BUILT" node -p process.version)
 [ "$got" = "v$NODE_VERSION" ] || die "image runs Node $got, expected v$NODE_VERSION"
-"$CLI" run --rm "$IMAGE" bash -c 'gh --version >/dev/null && git --version >/dev/null && nc -h 2>&1 | grep -q OpenBSD && [ "$(id -un)" = node ]' \
+"$CLI" run --rm "$BUILT" bash -c 'gh --version >/dev/null && git --version >/dev/null && nc -h 2>&1 | grep -q OpenBSD && [ "$(id -un)" = node ]' \
   || die "image is missing gh, git or netcat, or does not run as node"
 echo "==> smoke test passed: Node $got"
 
 if [ "$DRY_RUN" = 1 ]; then
-  echo "==> dry run: built $IMAGE and $REPO:sha-$SHORT locally, pushed nothing"
+  echo "==> dry run: built $BUILT locally, pushed nothing (remove it with: $CLI rmi $BUILT)"
   exit 0
 fi
 
 # --- push -------------------------------------------------------------------
 printf '%s' "$TOKEN" | "$CLI" login ghcr.io -u "$USER_NAME" --password-stdin >/dev/null
-"$CLI" push "$IMAGE"
+# :sha-<short> first, so a failure between the two leaves the version tag
+# unpublished and a rerun passes the check above and finishes both.
 "$CLI" push "$REPO:sha-$SHORT"
+"$CLI" push "$IMAGE"
 echo "==> pushed $IMAGE and $REPO:sha-$SHORT"
 echo "    A new package is private: make it public once, at"
 echo "    https://github.com/orgs/blueprintnotincluded/packages/container/${NAME#*/}/settings"
