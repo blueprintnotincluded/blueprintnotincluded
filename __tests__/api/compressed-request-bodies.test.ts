@@ -24,4 +24,28 @@ describe('compressed request bodies', function () {
       expect(response.status).to.equal(415);
     });
   }
+
+  describe('avatar upload (express.raw)', function () {
+    let testData: any;
+
+    beforeEach(async function () {
+      testData = await TestSetup.beforeEach();
+    });
+
+    afterEach(async function () {
+      await TestSetup.afterEach();
+    });
+
+    it('rejects a br image body with 415 before the controller runs', async function () {
+      const token = testData.users.user1.generateJwt();
+      const response = await TestSetup.request()
+        .post('/api/users/me/avatar/generate')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'image/png')
+        .set('Content-Encoding', 'br')
+        .send(zlib.brotliCompressSync(Buffer.from('not really a png')));
+
+      expect(response.status).to.equal(415);
+    });
+  });
 });
