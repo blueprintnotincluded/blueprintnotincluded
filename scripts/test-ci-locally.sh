@@ -74,14 +74,14 @@ test_frontend() {
     print_status "Testing frontend workflow..."
     
     # Build lib with backend Node version first
-    print_status "Building shared library (Node 20.18.0)..."
+    print_status "Building shared library (Node 24.22.2)..."
     npm ci
     npm run build:lib
     
     # Switch to frontend directory
     cd frontend
     
-    print_status "Installing frontend dependencies (Node 20.18.0)..."
+    print_status "Installing frontend dependencies (Node 24.22.2)..."
     npm ci
     
     print_status "Running frontend linting..."

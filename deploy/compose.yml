@@ -44,7 +44,7 @@ services:
       mongo:
         condition: service_healthy
     healthcheck:
-      # node:20-slim ships neither curl nor wget; Node 20 has fetch. /api/health
+      # node:24-slim ships neither curl nor wget; Node has fetch. /api/health
       # answers 503 until mongoose is connected, so this doubles as a database
       # check from the app's point of view.
       test:

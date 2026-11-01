@@ -3,9 +3,10 @@ import zlib from 'zlib';
 
 import { TestSetup } from '../setup/testSetup';
 
-// Node 20 has no fix for the bundled Brotli decoder's out-of-bounds write
-// (CVE-2026-111497), and body-parser 2.x decodes compressed request bodies by
-// default. The parsers run with inflate: false, so the decoder never sees one.
+// Defense in depth for the bundled Brotli decoder's out-of-bounds write
+// (CVE-2026-111497; the runtime is pinned to a fixed Node 24): body-parser 2.x
+// decodes compressed request bodies by default. The parsers run with
+// inflate: false, so the decoder never sees one.
 describe('compressed request bodies', function () {
   const json = Buffer.from(JSON.stringify({ email: 'a@bpni.local', password: 'x' }));
 
