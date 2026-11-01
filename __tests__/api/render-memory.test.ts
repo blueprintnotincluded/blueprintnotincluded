@@ -3,11 +3,13 @@ import { expect } from 'chai';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { execFileSync } from 'child_process';
 
 import {
   readCgroupMemoryLimitMb,
   resolveMaxRssMb,
   resolveMaxOldSpaceMb,
+  workerHeapExecArgv,
   DEFAULT_MAX_OLD_SPACE_MB,
   PARENT_HEADROOM_MB,
   MIN_RSS_CAP_MB,
@@ -127,5 +129,27 @@ describe('resolveMaxOldSpaceMb', () => {
       expect(maxOldSpaceMb).to.equal(DEFAULT_MAX_OLD_SPACE_MB);
       expect(detail).to.contain('ignored invalid');
     }
+  });
+});
+
+describe('workerHeapExecArgv', () => {
+  it('passes the old-space ceiling and the pinned semi-space', () => {
+    expect(workerHeapExecArgv(256)).to.deep.equal([
+      '--max-old-space-size=256',
+      '--max-semi-space-size=16',
+    ]);
+  });
+
+  it('gives the worker the 304MB heap limit Node 20 gave it', function () {
+    // Runs the real runtime with the real flags. On Node 24 the old-space flag
+    // alone yields 448MB; if a Node upgrade moves this again, this is the
+    // test that says so.
+    this.timeout(10000);
+    const out = execFileSync(process.execPath, [
+      ...workerHeapExecArgv(DEFAULT_MAX_OLD_SPACE_MB),
+      '-p',
+      "require('v8').getHeapStatistics().heap_size_limit / 1048576",
+    ]);
+    expect(Math.round(Number(out.toString().trim()))).to.equal(304);
   });
 });
