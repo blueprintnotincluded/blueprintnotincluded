@@ -161,6 +161,7 @@ Remaining batch utilities:
 
 - `docker-compose up` - Full development environment with database
 - `docker build . -t bpni:latest` - Build production image
+- `scripts/publish-devcontainer.sh` - Build the dev image from `origin/master` and push it to ghcr.io; by hand, never in CI. Compose pulls `blueprintnotincluded-dev:node-<version>[-r<n>]`, a published tag is never overwritten, so any `.devcontainer/Dockerfile` change needs a new tag in `.devcontainer/docker-compose.yml` (`__tests__/devcontainer.test.ts` keeps it in step with `.nvmrc`)
 - `deploy/` - The production/staging Compose stack, server bootstrap, backups and runbook (`deploy/README.md`)
 
 ## GitHub & CI

@@ -10,8 +10,10 @@ It is a combined curated version of the original blueprintnotincluded web app.
 
 The whole toolchain — Node, the native build deps for `canvas` and `sharp`,
 MongoDB, Mailpit — is in `.devcontainer/`, so a checkout needs nothing on the
-host but a container runtime. Open the folder in a devcontainer-aware editor
-and it builds itself, or drive it by hand:
+host but a container runtime. Its image is published to
+`ghcr.io/blueprintnotincluded/blueprintnotincluded-dev`, tagged with the Node
+version, and compose pulls it (building locally only when the tag is not
+published). Open the folder in a devcontainer-aware editor, or drive it by hand:
 
 ```bash
 # One-time setup: copy environment configuration
@@ -20,7 +22,7 @@ cp .env.sample .env
 # Bring the stack up. --env-file is not optional: compose looks for .env
 # beside the compose file, not at the repo root.
 dc() { docker compose --env-file .env -f .devcontainer/docker-compose.yml "$@"; }
-dc up -d          # add --build after editing .devcontainer/Dockerfile
+dc up -d          # add --build to try an edit to .devcontainer/Dockerfile
 
 # First run only: install and build, from inside the app container
 dc exec app bash -lc 'npm ci && (cd frontend && npm ci) && npm run build:lib && npm run migrate:up'
@@ -35,6 +37,15 @@ after that. `dc logs -f api web` to watch them, `dc restart api` to bounce one.
 - **Backend API**: http://localhost:3000 (Express with ts-node-dev)
 - **Database**: mongodb://localhost:27017 (`database:27017` from inside)
 - **Mail testing**: http://localhost:8025 (Mailpit web UI)
+
+Changing `.devcontainer/Dockerfile` means a new image tag in
+`.devcontainer/docker-compose.yml` (`node-<version>` for a Node bump,
+`node-<version>-r<n>` for anything else) — a published tag is never
+overwritten. CI does not build the dev image; after the change merges, publish
+it by hand with `scripts/publish-devcontainer.sh` (`--dry-run --ref HEAD` first
+to build and smoke-test a branch). It builds `origin/master` whatever is
+checked out, needs a token with `write:packages`, and refuses a tag that is
+already published.
 
 `dc exec app bash` is the shell for everything else — tests, migrations, batch
 scripts, `git`, `gh`. The `app` container runs no servers, so nothing you do in

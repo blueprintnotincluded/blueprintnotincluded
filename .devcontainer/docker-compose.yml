@@ -16,11 +16,22 @@
 name: ${COMPOSE_PROJECT_NAME:-bpni-dev}
 
 # Everything that runs project code runs the same image off the same volumes.
-# `image:` names it explicitly so app, api and web share one build instead of
+# `image:` names it explicitly so app, api and web share one image instead of
 # tagging three copies — and so a second checkout on the same machine reuses
 # it. It holds no checkout-specific state; the source is a bind mount.
+#
+# It is published to ghcr.io by hand (scripts/publish-devcontainer.sh), never
+# by CI, and `up` pulls it; `build:` below is only the fallback for a tag that
+# is not published yet. The tag names the Node version so that a checkout of an
+# older branch, which builds its own Dockerfile, cannot overwrite the image a
+# newer one runs: they all once shared `blueprintnotincluded-dev:local`, and
+# one old branch's rebuild put every stack back on Node 20. The publish script
+# never overwrites a tag, so ANY change to the Dockerfile needs a new one here:
+# `node-<version>` for a Node bump, `node-<version>-r<n>` for anything else.
+# __tests__/devcontainer.test.ts keeps it, NODE_VERSION below, the Dockerfile
+# default and .nvmrc in step.
 x-node: &node
-  image: blueprintnotincluded-dev:local
+  image: ghcr.io/blueprintnotincluded/blueprintnotincluded-dev:node-24.22.2
   build:
     # This directory, not the repo root: nothing is COPYed into the image (the
     # source is the bind mount below), so there is no reason to hand the
