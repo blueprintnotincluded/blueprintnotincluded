@@ -115,7 +115,11 @@ class App {
     );
 
     this.app.use(requestIp.mw());
-    this.app.use(express.json({ limit: '1mb' }));
+    // inflate: false — compressed request bodies get a 415 instead of being
+    // decoded. Node 20 has no fix for the bundled Brotli decoder's
+    // out-of-bounds write (CVE-2026-111497), and body-parser 2.x decodes
+    // `Content-Encoding: br` by default. No client of ours compresses uploads.
+    this.app.use(express.json({ limit: '1mb', inflate: false }));
 
     // Subdomain redirects
     this.app.use((req, res, next) => {
