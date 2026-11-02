@@ -60,16 +60,15 @@ so the record set has a history.
 | CNAME | `@` (apex) | tunnel **bpni-production** (`<tunnel id>.cfargotunnel.com`) | Proxied |
 | CNAME | `www` | tunnel **bpni-production** | Proxied |
 | CNAME | `staging` | tunnel **bpni-staging** | Proxied |
-| CNAME | `status` | `clownfish-app-8xbp6.ondigitalocean.app` | DNS only — dies with the DigitalOcean app |
-| CNAME | `s1._domainkey`, `s2._domainkey` | `s1.domainkey.u1671653.wl154.sendgrid.net`, `s2.…` | DNS only — SendGrid DKIM, dormant (mail is Mailjet) |
-| TXT | `@` | `v=spf1 include:spf.mailjet.com include:spf.privateemail.com ~all` | — |
+| TXT | `@` | `v=spf1 include:spf.mailjet.com include:spf.privateemail.com ~all` | — (nothing sends as the domain today: WorkOS sends auth mail from its own domain, the Mailjet code is unused; #312) |
 | TXT | `_dmarc` | `v=DMARC1; p=none;` | — |
 
-No `A`/`AAAA` (the apex *is* the tunnel), no `MX`. Settings: **SSL/TLS → Edge
-Certificates → Always Use HTTPS: On**; Universal SSL covers the apex and
-`*.blueprintnotincluded.org`. No cache, WAF or rate-limit rules exist yet (the free plan
-allows one rate-limiting rule); when one is added it goes on the zone or the apex hostname,
-never on an origin, and gets a row here.
+No `A`/`AAAA` (the apex *is* the tunnel), no `MX`. The 2026-11-02 export still has the
+trial's `hetzner` CNAME, which goes when its tunnel route does (Decommission DigitalOcean,
+step 3). Settings: **SSL/TLS → Edge Certificates → Always Use HTTPS: On**; Universal SSL
+covers the apex and `*.blueprintnotincluded.org`. No cache, WAF or rate-limit rules exist
+yet (the free plan allows one rate-limiting rule); when one is added it goes on the zone or
+the apex hostname, never on an origin, and gets a row here.
 
 **Tunnels** (Zero Trust → Networks → Tunnels, connector type Cloudflared). Each project
 runs its own, because the route target `app:3000` is the compose service name on that
@@ -192,7 +191,7 @@ except the last two.
 
 | Where | What it answers | Notes |
 |---|---|---|
-| **UptimeRobot** — monitor `blueprintnotincluded.org`, public page `https://stats.uptimerobot.com/V6QANX8e9U` | Is the apex up; response time of `/` from North America | HTTP check every 5 minutes, one region. A reboot that finishes inside the interval does not register (the 2026-10-31 kernel reboot at 05:17 UTC did not). `/status` on the site used to redirect here; the `status` CNAME still points at DigitalOcean and dies with it. Worth adding: a second monitor on `/api/health` with the keyword `"status":"ok"` from an EU region, which sees the origin rather than the edge. |
+| **UptimeRobot** — monitor `blueprintnotincluded.org`, public page `https://stats.uptimerobot.com/V6QANX8e9U` | Is the apex up; response time of `/` from North America | HTTP check every 5 minutes, one region. A reboot that finishes inside the interval does not register (the 2026-10-31 kernel reboot at 05:17 UTC did not). `/status` on the site used to redirect here; the `status` CNAME that did was deleted with the DigitalOcean app on 2026-11-02. Worth adding: a second monitor on `/api/health` with the keyword `"status":"ok"` from an EU region, which sees the origin rather than the edge. |
 | **Cloudflare → Analytics & Logs → Traffic** | Requests, bandwidth, cache ratio, status codes, by country and path; 24 h to 30 d | The only request counts there are until the access log below is read; everything the site serves goes through this zone. |
 | **Cloudflare → Analytics & Logs → Web Analytics** | Real-user page timing and Core Web Vitals by country, path and browser | Free; a zone toggle (*automatic setup* injects the beacon, no deploy). The app's CSP already allows `static.cloudflareinsights.com` and `cloudflareinsights.com`, so turning it on is console-only. When it is on, record it in the Cloudflare section above. |
 | **`GET /api/health`** | The app's own view: `checks.db` (`ok`, `pingMs` to Mongo), `memory`, `uptime`, `startedAt`, `build.commit`/`time`, `preview` (`worker` up/down, `queueDepth`/`queueMax`, `inFlight`, `failedRenders`) | What the compose healthcheck polls every 30 s. `startedAt` is fixed for the life of the process: production and staging reporting the same one is a host reboot, one of them moving alone is a container restart. 503 only when Mongo is not connected. |

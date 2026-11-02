@@ -1,0 +1,41 @@
+;;
+;; Domain:     blueprintnotincluded.org.
+;; Exported:   2026-11-02 17:54:43
+;;
+;; This file is intended for use for informational and archival
+;; purposes ONLY and MUST be edited before use on a production
+;; DNS server.  In particular, you must:
+;;   -- update the SOA record with the correct authoritative name server
+;;   -- update the SOA record with the contact e-mail address information
+;;   -- update the NS record(s) with the authoritative name servers for this domain.
+;;
+;; For further information, please consult the BIND documentation
+;; located on the following website:
+;;
+;; http://www.isc.org/
+;;
+;; And RFC 1035:
+;;
+;; http://www.ietf.org/rfc/rfc1035.txt
+;;
+;; Please note that we do NOT offer technical support for any use
+;; of this zone data, the BIND name server, or any other third-party
+;; DNS software.
+;;
+;; Use at your own risk.
+;; SOA Record
+blueprintnotincluded.org	3600	IN	SOA	duke.ns.cloudflare.com. dns.cloudflare.com. 2054530868 10000 2400 604800 3600
+
+;; NS Records
+blueprintnotincluded.org.	86400	IN	NS	duke.ns.cloudflare.com.
+blueprintnotincluded.org.	86400	IN	NS	norah.ns.cloudflare.com.
+
+;; CNAME Records
+blueprintnotincluded.org.	1	IN	CNAME	12eecddc-c652-4f8f-a660-8497fd76a996.cfargotunnel.com. ; cf_tags=cf-proxied:true
+hetzner.blueprintnotincluded.org.	1	IN	CNAME	12eecddc-c652-4f8f-a660-8497fd76a996.cfargotunnel.com. ; cf_tags=cf-proxied:true
+staging.blueprintnotincluded.org.	1	IN	CNAME	0100b2c7-7c0e-4186-9a5c-fd1303279003.cfargotunnel.com. ; cf_tags=cf-proxied:true
+www.blueprintnotincluded.org.	1	IN	CNAME	12eecddc-c652-4f8f-a660-8497fd76a996.cfargotunnel.com. ; cf_tags=cf-proxied:true
+
+;; TXT Records
+blueprintnotincluded.org.	1	IN	TXT	"v=spf1 include:spf.mailjet.com include:spf.privateemail.com ~all"
+_dmarc.blueprintnotincluded.org.	1	IN	TXT	"v=DMARC1; p=none;"
