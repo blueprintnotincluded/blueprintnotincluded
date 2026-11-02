@@ -389,8 +389,8 @@ and Mailjet delivery look right:
 2. GitHub: delete the `DIGITALOCEAN_ACCESS_TOKEN` secret and the `DIGITALOCEAN_REGISTRY` /
    `IMAGE_NAME` variables.
 3. Cloudflare: remove the `hetzner.blueprintnotincluded.org` route from the tunnel
-   bpni-production (the trial hostname) and the `status` CNAME; export the zone and commit
-   it.
+   bpni-production (the trial hostname); export the zone and commit it. (The `status`
+   CNAME and the SendGrid DKIM records were deleted on 2026-11-02.)
 4. Invoices: the next Hetzner invoice is the CX23 with IPv4 (about $7.09) plus 20 % for
    backups, about $8.50 a month, against $45–50 on DO; the DO invoice should show only the
    prorated days before destruction, then nothing.
