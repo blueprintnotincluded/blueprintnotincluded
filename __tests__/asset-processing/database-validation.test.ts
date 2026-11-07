@@ -7,6 +7,7 @@ import {
   UNCATEGORIZED_SUBCATEGORY,
   connectionScaleFromCells,
   convertBuildMenuItems,
+  plantIconRect,
 } from '../../app/api/batch/convert-export-2024';
 import {
   BuildableElement,
@@ -726,6 +727,41 @@ describe('Database Asset Validation', () => {
       expect(plantsWithActive, 'plants carrying an activeTile').to.be.empty;
       const unnamed = features.filter((f) => !f.name).map((f) => f.id);
       expect(unnamed, 'features with no name').to.be.empty;
+    });
+
+    // Plant icons are menu icons with no measured rect, so the importer fits
+    // them into the footprint: aspect kept, centred, standing on the bottom row.
+    describe('plantIconRect', () => {
+      it('fits a tall icon to the width of a 1x2 footprint, on the ground', () => {
+        // Mealwood: 69x113 px in a 1x2 footprint — width-limited.
+        const rect = plantIconRect(1, 2, { x: 69, y: 113 });
+        expect(rect.w).to.equal(1);
+        expect(rect.h).to.be.closeTo(113 / 69, 0.001);
+        expect(rect.x).to.equal(0);
+        expect(rect.y).to.equal(0);
+      });
+
+      it('fits a wide icon to the height of a wide footprint, centred', () => {
+        // A 128x85 icon in a 4x1 footprint — height-limited, so it is centred.
+        const rect = plantIconRect(4, 1, { x: 128, y: 85 });
+        expect(rect.h).to.equal(1);
+        expect(rect.w).to.be.closeTo(128 / 85, 0.001);
+        expect(rect.x).to.be.closeTo((4 - rect.w) / 2, 0.001);
+        expect(rect.y).to.equal(0);
+      });
+
+      it('never leaves the footprint', () => {
+        for (const [w, h, png] of [
+          [1, 1, { x: 126, y: 115 }],
+          [3, 4, { x: 89, y: 102 }],
+          [1, 3, { x: 66, y: 108 }],
+        ] as [number, number, { x: number; y: number }][]) {
+          const rect = plantIconRect(w, h, png);
+          expect(rect.x, `${w}x${h}`).to.be.at.least(0);
+          expect(rect.x + rect.w, `${w}x${h}`).to.be.at.most(w + 0.001);
+          expect(rect.y + rect.h, `${w}x${h}`).to.be.at.most(h + 0.001);
+        }
+      });
     });
 
     it('should give every terrain feature a usable placement rect', () => {
