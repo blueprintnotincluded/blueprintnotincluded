@@ -20,8 +20,12 @@
 # box restored from it comes up warm.
 #
 # A dump that fails part-way would still leave a complete-looking object in
-# the bucket (rclone sees end-of-stream, not an error), so a failed upload is
-# deleted again before the script exits non-zero.
+# the bucket (rclone sees end-of-stream, not an error), so every archive is
+# uploaded under incoming/ and moved to its prefix (server side) only once
+# mongodump has exited cleanly; a failed upload is deleted, and incoming/ is
+# swept of anything older than a day in case even that failed. Nothing under
+# daily/, weekly/ or monthly/ is ever a partial dump. The pruning runs only
+# after a successful dump: a night whose dump failed keeps every old archive.
 #
 # Run by crond inside the backup container (see entrypoint.sh), or by hand for
 # an ad-hoc pre-migration snapshot:
@@ -38,6 +42,7 @@ set -euo pipefail
 # The bucket root: BACKUP_REMOTE is r2:<bucket>/<project>, seeds live beside
 # the projects.
 seeds="${BACKUP_REMOTE%/*}/seeds"
+incoming="${BACKUP_REMOTE%/*}/incoming"
 
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
 name="${BACKUP_DB}-${stamp}.archive.gz"
@@ -57,16 +62,18 @@ for c in "${excluded[@]}"; do
   [ -n "$c" ] && exclude+=("--excludeCollection=$c")
 done
 
-# dump <remote object> [mongodump options…]: stream one archive up, or delete
-# the partial object and fail.
+# dump <remote object> [mongodump options…]: stream one archive into incoming/
+# and move it to its place, or delete the partial object and fail.
 dump() {
   local target=$1; shift
+  local staging="$incoming/${target##*/}"
   if ! mongodump --config="$cfg" --db="$BACKUP_DB" "$@" --gzip --archive --quiet \
-      | rclone rcat "$target"; then
+      | rclone rcat "$staging"; then
     echo "backup: dump to $target failed, deleting the partial upload" >&2
-    rclone deletefile "$target" || true
+    rclone deletefile "$staging" || true
     return 1
   fi
+  rclone moveto "$staging" "$target"
   echo "backup: uploaded $target ($(rclone lsf --format "s" "$target" | numfmt --to=iec 2>/dev/null || true))"
 }
 
@@ -86,6 +93,7 @@ rclone delete --min-age "${BACKUP_KEEP_DAILY_DAYS}d" "$BACKUP_REMOTE/daily/"
 rclone delete --min-age "${BACKUP_KEEP_WEEKLY_DAYS}d" "$BACKUP_REMOTE/weekly/"
 rclone delete --min-age "${BACKUP_KEEP_MONTHLY_DAYS}d" "$BACKUP_REMOTE/monthly/"
 rclone delete --min-age "${BACKUP_KEEP_SEED_DAYS}d" "$seeds/"
+rclone delete --min-age 1d "$incoming/"
 
 echo "backup: done ($name). Archives now in R2:"
 rclone lsf --format "tsp" "$BACKUP_REMOTE/daily/" | tail -n 3

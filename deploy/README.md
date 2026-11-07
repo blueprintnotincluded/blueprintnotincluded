@@ -247,11 +247,14 @@ archive store; R2 is. Under `r2:bpni-backups/`:
 | `bpni-production/weekly/` | Sundays, a server-side copy of that night's daily | 8 weeks |
 | `bpni-production/monthly/` | first Sunday of the month, a second dump with **every** collection (~4.5 GB) | 62 days, so two |
 | `seeds/` | ad-hoc archives written by `bin/seed-from-dump.sh dump` | 30 days |
+| `incoming/` | uploads in progress; moved to their prefix once mongodump exits cleanly | 1 day |
 
-A dump that fails part-way is deleted from the bucket again before the run fails (rclone
-sees end-of-stream, not an error, so the object would otherwise look complete). The run
-logs each archive's size and the bucket total; `bin/compose.sh production logs backup`
-shows the last runs. Retention: `BACKUP_KEEP_{DAILY,WEEKLY,MONTHLY,SEED}_DAYS` in `.env`.
+A dump that fails part-way is deleted from `incoming/` before the run fails (rclone sees
+end-of-stream, not an error, so the object would otherwise look complete), and the move
+into `daily/` or `seeds/` happens only after a clean exit, so `restore latest` can never
+pick a partial archive. A night whose dump failed prunes nothing. The run logs each
+archive's size and the bucket total; `bin/compose.sh production logs backup` shows the
+last runs. Retention: `BACKUP_KEEP_{DAILY,WEEKLY,MONTHLY,SEED}_DAYS` in `.env`.
 
 `previewimages` is the rendered-preview cache: about 3 GB of WebP (three variants, roughly
 600 KB per blueprint) that the app rebuilds on request, and that would multiply the bucket

@@ -115,22 +115,29 @@ do_dump() {
   local uri
   uri=$(source_uri "$1")
   local name="seed-$(date -u +%Y%m%dT%H%M%SZ).archive.gz"
-  local target="$(bucket)/seeds/$name"
+  local target="$(bucket)/seeds/$name" staging="$(bucket)/incoming/$name"
   # Progress to stderr: stdout carries only the archive name, for `all`.
   echo "== dumping $db from the source into $target (previewimages included; several GB, be patient)" >&2
   # A failed dump leaves rclone with an end-of-stream, not an error, so the
-  # partial object is deleted again before this fails.
+  # archive is uploaded under incoming/ and moved into seeds/ only once
+  # mongodump exited cleanly; the partial object is deleted otherwise (and the
+  # nightly backup sweeps incoming/ in case even that failed).
   tool "$project" "$uri" '
-    if ! mongodump --config="$cfg" --db='"$db"' --gzip --archive | rclone rcat '"$target"'; then
-      rclone deletefile '"$target"' || true
+    if ! mongodump --config="$cfg" --db='"$db"' --gzip --archive | rclone rcat '"$staging"'; then
+      rclone deletefile '"$staging"' || true
       exit 1
     fi
+    rclone moveto '"$staging"' '"$target"'
     rclone lsf --format "sp" '"$target"'' >&2
   echo "$name"
 }
 
-# The bucket path of a restore argument, or exit 64.
+# The bucket path of a restore argument, or exit 64. The result is spliced
+# into the shell line `tool` runs, so only path characters get through.
 resolve() {
+  case "$1" in
+    *[!A-Za-z0-9._/-]*) echo "archive names are letters, digits, . _ - and /" >&2; exit 64 ;;
+  esac
   case "$1" in
     seed-*.archive.gz) echo "$(bucket)/seeds/$1" ;;
     latest)
@@ -163,6 +170,10 @@ do_clone() {
   local source=$1
   [ -f "$root/$source/.env" ] || { echo "$root/$source/.env not found" >&2; exit 66; }
   [ "$source" != "$project" ] || { echo "clone needs two different projects" >&2; exit 64; }
+  # The source's mongo answering as root is the one failure that would
+  # otherwise be found only after the target had been emptied.
+  echo "== checking $source's mongo"
+  mongosh_root "$source" 'if (!db.stats().ok) throw new Error("source database not ok")' >/dev/null
   echo "== emptying $project's $db (every collection; users are kept)"
   mongosh_root "$project" 'db.getCollectionNames().forEach(c => { db.getCollection(c).drop(); print("dropped " + c); })'
   echo "== piping $source's $db into $project (previewimages included; several GB, be patient)"

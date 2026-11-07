@@ -26,7 +26,12 @@ obj() { echo "$line" | tr '\\n' ' ' | grep -o "rclone $1 [^|;]*" | grep -o 'r2:[
 case "$line" in
   *mongodump*"rclone rcat"*)
     if [ "\${STUB_DUMP_FAIL:-}" = 1 ]; then echo "Failed: error connecting" >&2; exit 1; fi
-    t="$root/bucket/$(obj rcat)"; mkdir -p "$(dirname "$t")"; echo fake-dump > "$t" ;;
+    t="$root/bucket/$(obj rcat)"; mkdir -p "$(dirname "$t")"; echo fake-dump > "$t"
+    if m=$(echo "$line" | tr '\\n' ' ' | grep -o 'rclone moveto r2:[^ ]* r2:[^ ;]*'); then
+      from="$root/bucket/$(echo "$m" | awk '{print $3}' | sed 's|^r2:[^/]*/||')"
+      to="$root/bucket/$(echo "$m" | awk '{print $4}' | sed 's|^r2:[^/]*/||')"
+      mkdir -p "$(dirname "$to")"; mv "$from" "$to"
+    fi ;;
   *"rclone cat"*mongorestore*)
     [ -f "$root/bucket/$(obj cat)" ] || { echo "object not found" >&2; exit 1; }
     echo "restored" ;;
@@ -234,7 +239,8 @@ describe('deploy/bin scripts', () => {
       expect(fs.existsSync(path.join(sb.root, 'dumps'))).to.equal(false);
       const log = composeLog(sb);
       expect(log).to.include('--db=blueprintnotincluded');
-      expect(log).to.include('rclone rcat r2:bpni-backups/seeds/');
+      expect(log).to.include('rclone rcat r2:bpni-backups/incoming/');
+      expect(log).to.include('rclone moveto r2:bpni-backups/incoming/');
       expect(log).to.include('-e TOOL_URI');
       expect(log).not.to.include('mongodb://');
       expect(log).not.to.include(value(read(sb, 'production/.env'), 'MONGO_ROOT_PASSWORD'));
@@ -296,6 +302,17 @@ describe('deploy/bin scripts', () => {
       expect(composeLog(sb)).not.to.include('drop');
     });
 
+    it('restore refuses shell metacharacters in an archive name, before dropping anything', () => {
+      const r = run(sb, 'seed-from-dump.sh', [
+        'production',
+        'restore',
+        'bpni-production/daily/x.archive.gz; rm -rf /',
+      ]);
+      expect(r.status).to.equal(64);
+      expect(r.stderr).to.include('letters, digits');
+      expect(composeLog(sb)).to.equal('');
+    });
+
     it('restore of a missing archive exits before dropping anything', () => {
       const r = run(sb, 'seed-from-dump.sh', ['production', 'restore', 'seed-nope.archive.gz']);
       expect(r.status).to.equal(66);
@@ -342,7 +359,9 @@ describe('deploy/bin scripts', () => {
       expect(r.stdout).to.include('== collection counts');
       const log = composeLog(sb);
       expect(log).not.to.include('rclone');
-      expect(log.indexOf('staging exec')).to.be.lessThan(log.indexOf('mongodump')); // the drop
+      // production's mongo is checked first, then staging is emptied, then the pipe runs
+      expect(log.indexOf('production exec')).to.be.lessThan(log.indexOf('drop()'));
+      expect(log.indexOf('drop()')).to.be.lessThan(log.indexOf('mongodump'));
       expect(log).to.match(/^production .*mongodump/m);
       expect(log).to.match(/^staging .*mongorestore/m);
       expect(log).not.to.include('mongodb://');
@@ -368,16 +387,25 @@ strip() { echo "$1" | sed 's|^r2:[^/]*/||'; }
 case "$1" in
   rcat) t="$STUB_BUCKET/$(strip "$2")"; mkdir -p "$(dirname "$t")"; cat > "$t" ;;
   copyto) t="$STUB_BUCKET/$(strip "$3")"; mkdir -p "$(dirname "$t")"; cp "$STUB_BUCKET/$(strip "$2")" "$t" ;;
+  moveto) t="$STUB_BUCKET/$(strip "$3")"; mkdir -p "$(dirname "$t")"; mv "$STUB_BUCKET/$(strip "$2")" "$t" ;;
   deletefile) rm -f "$STUB_BUCKET/$(strip "$2")" ;;
   lsf) t="$STUB_BUCKET/$(strip "\${@: -1}")"; [ -f "$t" ] && stat -c %s "$t"; [ -d "$t" ] && ls "$t" ;;
   delete|size) ;;
 esac
 exit 0
 `;
-    // date -u +%u / +%d / +%Y%m%dT%H%M%SZ, from STUB_DATE (a day), else real
+    // date -u +%u / +%d / +%Y%m%dT%H%M%SZ from STUB_DATE ("YYYY-MM-DD HH:MM")
+    // and STUB_DOW (1 = Monday … 7 = Sunday); plain /bin/date otherwise. No
+    // `date -d`, which is GNU only.
     const STUB_DATE = `#!/bin/bash
-if [ -n "\${STUB_DATE:-}" ]; then exec /bin/date -u -d "$STUB_DATE" "\${@: -1}"; fi
-exec /bin/date "$@"
+if [ -z "\${STUB_DATE:-}" ]; then exec /bin/date "$@"; fi
+d=\${STUB_DATE:0:10}; t=\${STUB_DATE:11:5}
+case "\${@: -1}" in
+  +%u) echo "$STUB_DOW" ;;
+  +%d) echo "\${d:8:2}" ;;
+  +%Y%m%dT%H%M%SZ) echo "\${d//-/}T\${t//:/}00Z" ;;
+  *) exec /bin/date "$@" ;;
+esac
 `;
     let stubBin: string;
     let bucketDir: string;
@@ -419,7 +447,7 @@ exec /bin/date "$@"
     };
 
     it('streams a weekday dump to daily/ with the exclusion and prunes every prefix', () => {
-      const r = backup({ STUB_DATE: '2026-11-04 03:30' }); // a Wednesday
+      const r = backup({ STUB_DATE: '2026-11-04 03:30', STUB_DOW: '3' }); // a Wednesday
       expect(r.status, r.stderr).to.equal(0);
       expect(objects()).to.deep.equal([
         'bpni-production/daily/blueprintnotincluded-20261104T033000Z.archive.gz',
@@ -440,14 +468,14 @@ exec /bin/date "$@"
     });
 
     it('copies a Sunday dump to weekly/, and on the first Sunday also dumps everything to monthly/', () => {
-      const sunday = backup({ STUB_DATE: '2026-11-15 03:30' });
+      const sunday = backup({ STUB_DATE: '2026-11-15 03:30', STUB_DOW: '7' });
       expect(sunday.status, sunday.stderr).to.equal(0);
       expect(objects()).to.deep.equal([
         'bpni-production/daily/blueprintnotincluded-20261115T033000Z.archive.gz',
         'bpni-production/weekly/blueprintnotincluded-20261115T033000Z.archive.gz',
       ]);
       fs.rmSync(sb.log);
-      const first = backup({ STUB_DATE: '2026-11-01 03:30' });
+      const first = backup({ STUB_DATE: '2026-11-01 03:30', STUB_DOW: '7' });
       expect(first.status, first.stderr).to.equal(0);
       expect(objects()).to.include(
         'bpni-production/monthly/blueprintnotincluded-20261101T033000Z.archive.gz'
@@ -461,10 +489,13 @@ exec /bin/date "$@"
     });
 
     it('deletes the partial upload and fails when the dump breaks mid-stream', () => {
-      const r = backup({ STUB_DATE: '2026-11-04 03:30', STUB_DUMP_FAIL: '1' });
+      const r = backup({ STUB_DATE: '2026-11-04 03:30', STUB_DOW: '3', STUB_DUMP_FAIL: '1' });
       expect(r.status).not.to.equal(0);
       expect(r.stderr).to.include('deleting the partial upload');
-      expect(composeLog(sb)).to.include('rclone deletefile r2:bpni-backups/bpni-production/daily/');
+      expect(composeLog(sb)).to.include('rclone deletefile r2:bpni-backups/incoming/');
+      expect(composeLog(sb)).not.to.include('moveto');
+      // and no pruning after a failed night: the old archives stay
+      expect(composeLog(sb)).not.to.include('delete --min-age');
       expect(objects()).to.deep.equal([]);
     });
   });
