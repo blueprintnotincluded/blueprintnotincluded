@@ -25,9 +25,16 @@ describe('staticCacheControl', () => {
       );
   });
 
-  it('leaves the database, the strings, the HTML and unhashed files on the default', () => {
+  it('marks the hashed database zip immutable', () => {
+    expect(staticCacheControl(pub('assets/database/database-2024-3c455b595fdbd617.zip'))).to.equal(
+      `public, max-age=${ONE_YEAR_SECONDS}, immutable`
+    );
+  });
+
+  it('leaves the loose database, the strings, the HTML and unhashed files on the default', () => {
     for (const file of [
       'assets/database/database-2024.zip',
+      'assets/database/database-2024.json',
       'assets/strings/strings.json',
       'index.html',
       'main.js',

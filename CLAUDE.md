@@ -108,9 +108,13 @@ run the single repeatable step:
   image library.
 - `npm run import:2024:dry-run` - Validate + report counts only; writes/copies nothing.
 - The committed runtime DB artifact is the loose `database-2024.json` (readable diffs).
-  The `database-2024.zip` (both roots) is a **gitignored** build derivative: the backend
-  reads the JSON directly, the frontend regenerates the zip from it via `prebuild`/
-  `prestart` (`frontend/scripts/build-database-zip.js`). The converter emits no `.zip`.
+  The `database-2024-<hash>.zip` is a **gitignored** build derivative: the backend reads
+  the JSON directly, the frontend regenerates the zip from it via `prebuild`/`prestart`
+  (`frontend/scripts/build-database-zip.js`). The name carries the JSON's SHA-256 so the
+  origin can serve it immutable for a year; the script writes that name into the
+  **committed** `frontend/src/app/generated/database-zip.ts`, the import runs the script,
+  and a backend test fails when the constant and the JSON disagree. The converter emits
+  no `.zip` itself.
 - Sprite sync rewrites a file only when it actually changed and prunes removed ones, so
   unchanged icons keep their mtime and git shows only real changes. A PNG it writes is
   losslessly recompressed first (`app/api/batch/png-optimize.ts`, about 16% smaller than

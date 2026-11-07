@@ -36,6 +36,7 @@
 //                          and the ui_image/connection_sprites sync (leaves them untouched)
 
 import * as fs from 'fs';
+import { execFileSync } from 'child_process';
 import * as path from 'path';
 import { createCanvas, Image } from 'canvas';
 import {
@@ -1413,8 +1414,9 @@ export async function convertExport2024(opts: ConvertOptions): Promise<void> {
 
   // The committed runtime artifact is the loose JSON, written to BOTH asset roots:
   // the backend reads it directly at startup, and the frontend build/serve step zips
-  // it into the gitignored database-2024.zip the Angular app fetches. No .zip is
-  // emitted here (see frontend prebuild/prestart).
+  // it into a gitignored, content-hashed database-2024-<hash>.zip the Angular app
+  // fetches (see frontend prebuild/prestart). That script runs below so the
+  // committed constant naming the zip moves with the JSON.
   // Pretty-print (2-space) so git diffs are line-oriented: a small data change
   // touches a few lines, not the whole file. Minifying would make every edit a
   // full-file replace, defeating the point of committing JSON over the zip.
@@ -1427,6 +1429,12 @@ export async function convertExport2024(opts: ConvertOptions): Promise<void> {
     const changed = writeFileIfChanged(target, jsonBytes);
     console.log('---', changed ? 'wrote' : 'unchanged', path.normalize(target), '---');
   }
+
+  // The hashed zip name the frontend fetches lives in a committed generated file;
+  // regenerate it here so it lands in the same commit as the JSON it names.
+  execFileSync(process.execPath, [path.join(__dirname, '../../../frontend/scripts/build-database-zip.js')], {
+    stdio: 'inherit',
+  });
 
   // English game strings -> frontend only. Skipped when po_string.json is absent.
   if (hasPoStrings) writeEnglishStrings(englishStrings, opts.out);
