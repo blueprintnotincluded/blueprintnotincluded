@@ -1655,14 +1655,19 @@ function buildTerrainFeatures(
         !isTerrain && tags.indexOf(PLANT_TAG) !== -1 && !e.name.endsWith(PLANT_PART_SUFFIX);
       if (!isTerrain && !isPlant) continue;
 
-      // Footprint comes from the collider; entities.json has no width/height.
-      // A feature with no collider still belongs in the palette — it just
-      // annotates a single cell.
+      // Footprint: the exporter's own `width`/`height` when it wrote them (it
+      // does for plants, from OccupyArea — the Arbor and Bonbon trees are
+      // rendered whole, trunk plus branches, so their box is 3x3 where the
+      // collider says 1x2), else the collider rounded. A feature with neither
+      // still belongs in the palette — it just annotates a single cell. The
+      // exporter's `footprintOffset` is not read: an annotation stores the
+      // footprint's bottom-left cell, not the plant's own, so the offset
+      // between the two never enters the site.
       const record: TerrainFeatureRecord = {
         id: e.name,
         name: stripRichText(e.nameString ?? ''),
-        width: Math.max(1, Math.round(e.kBoxCollider2D?.x ?? 1)),
-        height: Math.max(1, Math.round(e.kBoxCollider2D?.y ?? 1)),
+        width: Math.max(1, e.width ?? Math.round(e.kBoxCollider2D?.x ?? 1)),
+        height: Math.max(1, e.height ?? Math.round(e.kBoxCollider2D?.y ?? 1)),
         dlcIds: normalizeDlcIds(e.kPrefabID?.requiredDlcIds),
         kind: isPlant ? 'plant' : 'terrain',
       };

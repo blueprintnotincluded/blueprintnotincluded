@@ -729,6 +729,26 @@ describe('Database Asset Validation', () => {
       expect(unnamed, 'features with no name').to.be.empty;
     });
 
+    // The exporter renders the Arbor and Bonbon trees whole, trunk plus every
+    // branch, and sizes their box to match: 3x3 where the collider says 1x2.
+    // A 1x2 here means the converter fell back to the collider, i.e. the
+    // export predates plant rendering or the width/height fields were dropped.
+    it('should size the whole-tree plants from the export, not the collider', () => {
+      const database = readDatabase();
+      const byId = new Map<string, any>((database.terrainFeatures ?? []).map((f: any) => [f.id, f]));
+      for (const id of ['ForestTree', 'SpaceTree']) {
+        const tree = byId.get(id);
+        expect(tree, id).to.exist;
+        expect({ width: tree.width, height: tree.height }, `${id} footprint`).to.deep.equal({ width: 3, height: 3 });
+        // Measured by the exporter, not derived: a derived rect is exactly
+        // footprint-wide with no overhang, a measured one never is.
+        expect(tree.uiImageRect.w, `${id} rect width`).to.not.equal(tree.width);
+      }
+      // Hanging plants keep the collider's box; their offset is the mod's concern.
+      const vine = byId.get('SpiceVine');
+      expect({ width: vine.width, height: vine.height }, 'SpiceVine').to.deep.equal({ width: 1, height: 3 });
+    });
+
     // Plant icons are menu icons with no measured rect, so the importer fits
     // them into the footprint: aspect kept, centred, standing on the bottom row.
     describe('plantIconRect', () => {

@@ -252,13 +252,19 @@ roughly half a cell low and ~15% small, with the plume overhang cropped away. Ev
 catalogue entry therefore carries `uiImageRect`, and a test fails if one does not.
 
 The 50 wild plants (`kind: 'plant'`, every `Plant`-tagged entity in `entities.json` minus
-the four `*Branch` sub-entities that grow on a parent) are different: the exporter does not
-measure them, and their `ui_image/` PNGs are the game's menu icons — about 128 px on the
-long side, at no fixed scale — rather than per-cell renders. The converter derives their
-rect instead (`plantIconRect`): the icon fitted inside the collider footprint with its aspect
-kept, centred horizontally and standing on the bottom row. Same units and semantics as a
-measured rect, so the renderers do not know the difference, and the aspect invariant holds
-by construction. A plant with no readable PNG is the one way to end up rect-less.
+the four `*Branch` sub-entities that grow on a parent) are rendered and measured by the
+same path since the 2026-11-07 exporter: a spawned, fully grown plant at 200 px/cell, with
+its rect in `ui_image_rects.json`. The exporter also writes `width`, `height` and
+`footprintOffset` on each plant entity (the box of the game's `OccupyArea`), and the
+converter prefers `width`/`height` to the collider rounding when present: they agree for
+every plant except the Arbor Tree and Bonbon Tree (`ForestTree`, `SpaceTree`), which are
+drawn whole — trunk plus every branch — and so measure 3x3 where the collider says 1x2.
+`footprintOffset` is not read: an annotation stores its footprint's bottom-left cell, so
+where the plant's own cell sits inside that box (the top, for the five `Hanging` plants)
+never matters to the site. An export that predates plant rendering still imports — the
+collider gives the footprint and the menu-icon PNG is fitted inside it by `plantIconRect`
+(aspect kept, centred, standing on the bottom row) — but the result is the placeholder it
+looks like: a plant with no measured rect is a sign of an old export, not a supported state.
 
 ## Connection-sprite scale (declared, not measured)
 
