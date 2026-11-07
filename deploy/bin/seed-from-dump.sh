@@ -66,8 +66,8 @@ mode=${2:?$usage}
 arg=${3:?$usage}
 db=blueprintnotincluded
 
-getenv() { # <project> <KEY>
-  grep -E "^$2=" "$root/$1/.env" | tail -n1 | cut -d= -f2- | tr -d '"'
+getenv() { # <project> <KEY>; empty, not a failure, when the file lacks it
+  { grep -E "^$2=" "$root/$1/.env" || true; } | tail -n1 | cut -d= -f2- | tr -d '"'
 }
 root_pw() { getenv "$project" MONGO_ROOT_PASSWORD; }
 bucket() { local b; b=$(getenv "$project" R2_BUCKET); echo "r2:${b:-bpni-backups}"; }

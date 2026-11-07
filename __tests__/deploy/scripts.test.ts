@@ -510,6 +510,28 @@ esac
     });
   });
 
+  // restore-drill.sh drives docker directly for the throwaway mongo, so only
+  // its first stretch runs here: reading .env and asking the bucket for the
+  // newest archive, through the compose stub.
+  describe('restore-drill.sh', () => {
+    it('reaches the bucket listing when .env leaves a variable at its default', () => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      const env = read(sb, 'production/.env');
+      expect(env).not.to.match(/^BACKUP_EXCLUDE_COLLECTIONS=/m);
+      const r = run(sb, 'restore-drill.sh', ['production']);
+      // an empty fake bucket: the script must get as far as saying so, not die silently
+      expect(r.status).to.equal(1);
+      expect(r.stderr).to.include('no archive found under r2:bpni-backups/bpni-production/daily/');
+      expect(composeLog(sb)).to.include('rclone lsf');
+    });
+
+    it('rejects an unknown archive kind', () => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      const r = run(sb, 'restore-drill.sh', ['production', 'hourly']);
+      expect(r.status).to.equal(64);
+    });
+  });
+
   describe('cloud-init-render.sh', () => {
     it('fills both key placeholders and leaves none behind', () => {
       const keys = path.join(sb.tmp, 'keys');
