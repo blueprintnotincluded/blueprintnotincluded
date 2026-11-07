@@ -4,15 +4,13 @@
 # changes rarely, so it is not worth a registry round trip. The same image is
 # what bin/seed-from-dump.sh and bin/restore-drill.sh run their one-off
 # mongodump / mongorestore / rclone commands in, so the host needs none of
-# those installed.
+# those installed. Archives are streamed to and from R2 and never written to a
+# disk, here or on the host.
 FROM alpine:3.22
 
 RUN apk add --no-cache mongodb-tools rclone bash coreutils tini ca-certificates
 
 COPY entrypoint.sh backup.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/backup.sh
-
-# Scratch for dump archives (bind-mounted to /srv/bpni/dumps in compose.yml).
-VOLUME /dumps
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]

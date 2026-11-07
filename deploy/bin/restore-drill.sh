@@ -1,9 +1,10 @@
 #!/bin/bash
-# Prove last night's backup restores: fetch the newest daily archive from R2,
-# restore it into a throwaway mongo:8.2.12 container, compare collection counts
-# with the live database, tear it all down. Exit status is the verdict.
+# Prove last night's backup restores: stream the newest archive from R2 into a
+# throwaway mongo:8.2.12 container, compare collection counts with the live
+# database, tear it all down. Nothing is written to disk. Exit status is the
+# verdict.
 #
-#   restore-drill.sh [production]
+#   restore-drill.sh [production] [daily|weekly|monthly]
 #
 # Run it once after the first nightly backup, and again whenever the backup
 # image, the exclusions or the retention change. Takes a minute or two; the
@@ -13,13 +14,17 @@
 #
 # Tolerance: a count may be lower in the archive than live by up to
 # DRILL_TOLERANCE_PERCENT (default 5), since the site keeps writing after the
-# dump. Excluded collections (previewimages) are expected to be absent.
+# dump. Excluded collections (previewimages) are expected to be absent from a
+# daily or weekly archive and present in a monthly one. A monthly archive is
+# weeks old, so run that drill with a wider tolerance if the site has grown.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
 compose="$here/compose.sh"
 root=${BPNI_ROOT:-/srv/bpni}
 project=${1:-production}
+kind=${2:-daily}
+case "$kind" in daily|weekly|monthly) ;; *) echo "archive kind must be daily, weekly or monthly" >&2; exit 64 ;; esac
 db=blueprintnotincluded
 tolerance=${DRILL_TOLERANCE_PERCENT:-5}
 
@@ -43,9 +48,9 @@ run() {
   "$compose" "$project" --profile backup run --rm --no-deps -T backup "$@"
 }
 
-echo "== newest daily archive in $remote/daily/"
-newest=$(run rclone lsf --format "p" --files-only "$remote/daily/" | sort | tail -n1)
-[ -n "$newest" ] || { echo "no archive found under $remote/daily/" >&2; exit 1; }
+echo "== newest $kind archive in $remote/$kind/"
+newest=$(run rclone lsf --format "p" --files-only "$remote/$kind/" | sort | tail -n1)
+[ -n "$newest" ] || { echo "no archive found under $remote/$kind/" >&2; exit 1; }
 echo "   $newest"
 
 echo "== starting throwaway mongo ($drill on $network)"
@@ -56,10 +61,9 @@ for _ in $(seq 1 30); do
   sleep 2
 done
 
-echo "== fetching and restoring"
-run bash -c "rclone copyto '$remote/daily/$newest' /dumps/drill.archive.gz \
-  && mongorestore --uri='mongodb://$drill:27017' --nsInclude='$db.*' --drop --gzip --archive=/dumps/drill.archive.gz --quiet \
-  && rm -f /dumps/drill.archive.gz"
+echo "== streaming it into the throwaway mongo"
+run bash -c "rclone cat '$remote/$kind/$newest' \
+  | mongorestore --uri='mongodb://$drill:27017' --nsInclude='$db.*' --drop --gzip --archive --quiet"
 
 # Collection counts from a mongo container. The live one needs the root
 # password: `-e MONGO_PW` with no value copies it from this process's
@@ -86,7 +90,7 @@ status=0
 while read -r name live_n; do
   [ -n "$name" ] || continue
   restored_n=$(echo "$restored" | awk -v n="$name" '$1==n {print $2}')
-  if echo ",$excluded," | grep -q ",$name,"; then
+  if [ "$kind" != monthly ] && echo ",$excluded," | grep -q ",$name,"; then
     if [ -z "$restored_n" ]; then
       printf '   %-28s %8s -> %8s  excluded, as configured\n' "$name" "$live_n" "-"
     else

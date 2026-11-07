@@ -14,50 +14,87 @@ const repoEnv = path.resolve(__dirname, '../../deploy/env');
 const ENV_FILES = ['production/.env', 'production/app.env', 'staging/.env', 'staging/app.env'];
 
 // compose.sh stand-in: records every call, fakes mongodump / mongorestore /
-// mongosh. STUB_DUMP_FAIL=1 makes mongodump fail the way a bad URI does.
+// mongosh / rclone. The backup image's one-off commands arrive as the last
+// argument (a shell line for `bash -c`); rclone's bucket is a directory under
+// BPNI_ROOT/bucket, with the `r2:<bucket>/` prefix stripped. STUB_DUMP_FAIL=1
+// makes mongodump fail the way a bad URI does.
 const STUB_COMPOSE = `#!/bin/bash
-printf '%s\\n' "$*" >> "$STUB_LOG"
+printf '%s\\n' "$(printf '%s' "$*" | tr '\\n' ' ')" >> "$STUB_LOG"
 root=\${BPNI_ROOT}
-case "$*" in
+line=\${@: -1}
+obj() { echo "$line" | tr '\\n' ' ' | grep -o "rclone $1 [^|;]*" | grep -o 'r2:[^ ;]*' | head -n1 | sed 's|^r2:[^/]*/||'; }
+case "$line" in
+  *mongodump*"rclone rcat"*)
+    if [ "\${STUB_DUMP_FAIL:-}" = 1 ]; then echo "Failed: error connecting" >&2; exit 1; fi
+    t="$root/bucket/$(obj rcat)"; mkdir -p "$(dirname "$t")"; echo fake-dump > "$t" ;;
+  *"rclone cat"*mongorestore*)
+    [ -f "$root/bucket/$(obj cat)" ] || { echo "object not found" >&2; exit 1; }
+    echo "restored" ;;
+  *"rclone lsf"*)
+    t="$root/bucket/$(obj lsf)"
+    if [ -d "$t" ]; then ls "$t"; elif [ -f "$t" ]; then basename "$t"; fi ;;
   *mongodump*)
     if [ "\${STUB_DUMP_FAIL:-}" = 1 ]; then echo "Failed: error connecting" >&2; exit 1; fi
-    name=$(printf '%s\\n' "$@" | sed -n 's|^--archive=/dumps/||p')
-    mkdir -p "$root/dumps"; echo fake-dump > "$root/dumps/$name" ;;
-  *mongorestore*) echo "restored" ;;
+    echo fake-dump ;;
+  *mongorestore*) cat >/dev/null; echo "restored" ;;
   *mongosh*) case "$*" in *drop*) echo "dropped blueprints" ;; *) echo "blueprints 5" ;; esac ;;
 esac
 exit 0
 `;
 
-interface Sandbox { tmp: string; root: string; bin: string; log: string }
+interface Sandbox {
+  tmp: string;
+  root: string;
+  bin: string;
+  log: string;
+}
 
 function makeSandbox(): Sandbox {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bpni-deploy-'));
   const root = path.join(tmp, 'srv');
   const bin = path.join(tmp, 'bin');
   fs.mkdirSync(bin);
-  for (const f of fs.readdirSync(repoBin)) fs.copyFileSync(path.join(repoBin, f), path.join(bin, f));
+  for (const f of fs.readdirSync(repoBin))
+    fs.copyFileSync(path.join(repoBin, f), path.join(bin, f));
   fs.writeFileSync(path.join(bin, 'compose.sh'), STUB_COMPOSE, { mode: 0o755 });
   // cloud-init-render.sh reads the template next to its bin directory
   fs.copyFileSync(path.resolve(repoBin, '../cloud-init.yaml'), path.join(tmp, 'cloud-init.yaml'));
   fs.mkdirSync(path.join(root, 'deploy', 'env'), { recursive: true });
-  for (const f of fs.readdirSync(repoEnv)) fs.copyFileSync(path.join(repoEnv, f), path.join(root, 'deploy', 'env', f));
+  for (const f of fs.readdirSync(repoEnv))
+    fs.copyFileSync(path.join(repoEnv, f), path.join(root, 'deploy', 'env', f));
   return { tmp, root, bin, log: path.join(tmp, 'compose.log') };
 }
 
-function run(sb: Sandbox, script: string, args: string[], extraEnv: Record<string, string> = {}): SpawnSyncReturns<string> {
-  const env: Record<string, string> = { PATH: process.env.PATH ?? '', HOME: sb.tmp, BPNI_ROOT: sb.root, STUB_LOG: sb.log, ...extraEnv };
+function run(
+  sb: Sandbox,
+  script: string,
+  args: string[],
+  extraEnv: Record<string, string> = {}
+): SpawnSyncReturns<string> {
+  const env: Record<string, string> = {
+    PATH: process.env.PATH ?? '',
+    HOME: sb.tmp,
+    BPNI_ROOT: sb.root,
+    STUB_LOG: sb.log,
+    ...extraEnv,
+  };
   return spawnSync('bash', [path.join(sb.bin, script), ...args], { encoding: 'utf8', env });
 }
 
 const composeLog = (sb: Sandbox) => (fs.existsSync(sb.log) ? fs.readFileSync(sb.log, 'utf8') : '');
 const read = (sb: Sandbox, rel: string) => fs.readFileSync(path.join(sb.root, rel), 'utf8');
 const mode = (sb: Sandbox, rel: string) => fs.statSync(path.join(sb.root, rel)).mode & 0o777;
-const value = (text: string, key: string) => text.split('\n').find((l) => l.startsWith(`${key}=`))?.slice(key.length + 1);
+const value = (text: string, key: string) =>
+  text
+    .split('\n')
+    .find(l => l.startsWith(`${key}=`))
+    ?.slice(key.length + 1);
 
 describe('deploy/bin scripts', () => {
   let sb: Sandbox;
-  beforeEach(() => { sb = makeSandbox(); });
+  beforeEach(() => {
+    sb = makeSandbox();
+  });
   afterEach(() => fs.rmSync(sb.tmp, { recursive: true, force: true }));
 
   it('every script parses', () => {
@@ -78,11 +115,21 @@ describe('deploy/bin scripts', () => {
           expect(value(env, k), `${p} ${k}`).to.match(/^[0-9a-f]{48}$/);
         }
       }
-      expect(value(read(sb, 'production/.env'), 'PUBLIC_HOSTNAME')).to.equal('blueprintnotincluded.org');
-      expect(value(read(sb, 'production/app.env'), 'HOST')).to.equal('https://blueprintnotincluded.org');
-      expect(value(read(sb, 'production/app.env'), 'SITE_URL')).to.equal('https://blueprintnotincluded.org');
-      expect(value(read(sb, 'staging/.env'), 'PUBLIC_HOSTNAME')).to.equal('staging.blueprintnotincluded.org');
-      expect(value(read(sb, 'staging/app.env'), 'HOST')).to.equal('https://staging.blueprintnotincluded.org');
+      expect(value(read(sb, 'production/.env'), 'PUBLIC_HOSTNAME')).to.equal(
+        'blueprintnotincluded.org'
+      );
+      expect(value(read(sb, 'production/app.env'), 'HOST')).to.equal(
+        'https://blueprintnotincluded.org'
+      );
+      expect(value(read(sb, 'production/app.env'), 'SITE_URL')).to.equal(
+        'https://blueprintnotincluded.org'
+      );
+      expect(value(read(sb, 'staging/.env'), 'PUBLIC_HOSTNAME')).to.equal(
+        'staging.blueprintnotincluded.org'
+      );
+      expect(value(read(sb, 'staging/app.env'), 'HOST')).to.equal(
+        'https://staging.blueprintnotincluded.org'
+      );
       // production keeps the live JWT secret (filled by hand); staging gets its own
       expect(value(read(sb, 'production/app.env'), 'JWT_SECRET')).to.equal('');
       expect(value(read(sb, 'staging/app.env'), 'JWT_SECRET')).to.match(/^[0-9a-f]{64}$/);
@@ -90,23 +137,27 @@ describe('deploy/bin scripts', () => {
       expect(r.stdout).to.include('TUNNEL_TOKEN=').and.include('MAILJET_API_KEY=');
       expect(r.stdout).not.to.include('MONGO_ROOT_PASSWORD=');
       // the Mongo passwords differ between projects
-      expect(value(read(sb, 'production/.env'), 'MONGO_ROOT_PASSWORD')).not.to.equal(value(read(sb, 'staging/.env'), 'MONGO_ROOT_PASSWORD'));
+      expect(value(read(sb, 'production/.env'), 'MONGO_ROOT_PASSWORD')).not.to.equal(
+        value(read(sb, 'staging/.env'), 'MONGO_ROOT_PASSWORD')
+      );
     });
 
     it('honours hostname overrides', () => {
       const r = run(sb, 'env-bootstrap.sh', [], { PRODUCTION_HOSTNAME: 'drill.example.org' });
       expect(r.status, r.stderr).to.equal(0);
-      expect(value(read(sb, 'production/app.env'), 'SITE_URL')).to.equal('https://drill.example.org');
+      expect(value(read(sb, 'production/app.env'), 'SITE_URL')).to.equal(
+        'https://drill.example.org'
+      );
       expect(value(read(sb, 'production/.env'), 'PUBLIC_HOSTNAME')).to.equal('drill.example.org');
     });
 
     it('refuses to touch an existing env file', () => {
       expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
-      const before = ENV_FILES.map((f) => read(sb, f));
+      const before = ENV_FILES.map(f => read(sb, f));
       const r = run(sb, 'env-bootstrap.sh', []);
       expect(r.status).to.equal(73);
       expect(r.stderr).to.include('exists, not touching it');
-      expect(ENV_FILES.map((f) => read(sb, f))).to.deep.equal(before);
+      expect(ENV_FILES.map(f => read(sb, f))).to.deep.equal(before);
     });
 
     it('fails when deploy/env has not been synced', () => {
@@ -122,15 +173,19 @@ describe('deploy/bin scripts', () => {
 
     it('round-trips the four files through an encrypted archive', () => {
       expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
-      const before = ENV_FILES.map((f) => read(sb, f));
+      const before = ENV_FILES.map(f => read(sb, f));
       const b = run(sb, 'env-backup.sh', ['backup'], pass);
       expect(b.status, b.stderr).to.equal(0);
-      const archives = fs.readdirSync(path.join(sb.root, 'dumps')).filter((f) => /^env-\d{8}T\d{6}Z\.tar\.enc$/.test(f));
+      const archives = fs
+        .readdirSync(path.join(sb.root, 'dumps'))
+        .filter(f => /^env-\d{8}T\d{6}Z\.tar\.enc$/.test(f));
       expect(archives).to.have.length(1);
       const archive = path.join(sb.root, 'dumps', archives[0]);
       expect(fs.statSync(archive).mode & 0o777).to.equal(0o600);
       // ciphertext: no secret in the clear
-      expect(fs.readFileSync(archive, 'latin1')).not.to.include(value(before[0], 'MONGO_ROOT_PASSWORD'));
+      expect(fs.readFileSync(archive, 'latin1')).not.to.include(
+        value(before[0], 'MONGO_ROOT_PASSWORD')
+      );
 
       // restore refuses while the files exist…
       const refused = run(sb, 'env-backup.sh', ['restore', archive], pass);
@@ -139,7 +194,7 @@ describe('deploy/bin scripts', () => {
       for (const f of ENV_FILES) fs.rmSync(path.join(sb.root, f));
       const r = run(sb, 'env-backup.sh', ['restore', archive], pass);
       expect(r.status, r.stderr).to.equal(0);
-      expect(ENV_FILES.map((f) => read(sb, f))).to.deep.equal(before);
+      expect(ENV_FILES.map(f => read(sb, f))).to.deep.equal(before);
       for (const f of ENV_FILES) expect(mode(sb, f), f).to.equal(0o600);
     });
 
@@ -155,46 +210,89 @@ describe('deploy/bin scripts', () => {
 
     it('refuses an empty passphrase and a missing env file', () => {
       expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
-      expect(run(sb, 'env-backup.sh', ['backup'], { ENV_BACKUP_PASSPHRASE: '' }).status).to.equal(65);
+      expect(run(sb, 'env-backup.sh', ['backup'], { ENV_BACKUP_PASSPHRASE: '' }).status).to.equal(
+        65
+      );
       fs.rmSync(path.join(sb.root, 'staging/app.env'));
       expect(run(sb, 'env-backup.sh', ['backup'], pass).status).to.equal(66);
     });
   });
 
   describe('seed-from-dump.sh', () => {
-    beforeEach(() => { expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0); });
+    beforeEach(() => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+    });
+    const bucket = (rel: string) => path.join(sb.root, 'bucket', rel);
+    const seeds = () => (fs.existsSync(bucket('seeds')) ? fs.readdirSync(bucket('seeds')) : []);
 
-    it('dump local prints only the archive name on stdout and keeps the URI out of the arguments', () => {
+    it('dump local streams the archive to seeds/, prints only its name and keeps the URI out of the arguments', () => {
       const r = run(sb, 'seed-from-dump.sh', ['production', 'dump', 'local']);
       expect(r.status, r.stderr).to.equal(0);
       expect(r.stdout.trim()).to.match(/^seed-\d{8}T\d{6}Z\.archive\.gz$/);
-      expect(fs.existsSync(path.join(sb.root, 'dumps', r.stdout.trim()))).to.equal(true);
+      expect(fs.existsSync(bucket(`seeds/${r.stdout.trim()}`))).to.equal(true);
+      // nothing on the box
+      expect(fs.existsSync(path.join(sb.root, 'dumps'))).to.equal(false);
       const log = composeLog(sb);
       expect(log).to.include('--db=blueprintnotincluded');
+      expect(log).to.include('rclone rcat r2:bpni-backups/seeds/');
       expect(log).to.include('-e TOOL_URI');
       expect(log).not.to.include('mongodb://');
       expect(log).not.to.include(value(read(sb, 'production/.env'), 'MONGO_ROOT_PASSWORD'));
     });
 
-    it('restore accepts the archive as a name or as a path in the dumps directory', () => {
+    it('restore streams a seed by name, or any archive by its bucket path', () => {
       const name = run(sb, 'seed-from-dump.sh', ['production', 'dump', 'local']).stdout.trim();
-      const byPath = run(sb, 'seed-from-dump.sh', ['staging', 'restore', path.join(sb.root, 'dumps', name)]);
-      expect(byPath.status, byPath.stderr).to.equal(0);
-      expect(byPath.stdout).to.include('== collection counts');
       const byName = run(sb, 'seed-from-dump.sh', ['staging', 'restore', name]);
       expect(byName.status, byName.stderr).to.equal(0);
-      const log = composeLog(sb);
-      expect(log).to.include('drop()');
-      expect(log).to.include(`--archive=/dumps/${name}`);
+      expect(byName.stdout).to.include('== collection counts');
+      let log = composeLog(sb);
+      expect(log.indexOf('drop()')).to.be.lessThan(log.indexOf('mongorestore'));
+      expect(log).to.include(`rclone cat r2:bpni-backups/seeds/${name} | mongorestore`);
+
+      fs.mkdirSync(bucket('bpni-production/daily'), { recursive: true });
+      fs.writeFileSync(
+        bucket('bpni-production/daily/blueprintnotincluded-20261106T033000Z.archive.gz'),
+        'nightly'
+      );
+      const byPath = run(sb, 'seed-from-dump.sh', [
+        'staging',
+        'restore',
+        'bpni-production/daily/blueprintnotincluded-20261106T033000Z.archive.gz',
+      ]);
+      expect(byPath.status, byPath.stderr).to.equal(0);
+      log = composeLog(sb);
+      expect(log).to.include(
+        'rclone cat r2:bpni-backups/bpni-production/daily/blueprintnotincluded-20261106T033000Z.archive.gz | mongorestore'
+      );
     });
 
-    it('restore rejects a path outside the dumps directory even when the name matches', () => {
-      const name = run(sb, 'seed-from-dump.sh', ['production', 'dump', 'local']).stdout.trim();
-      fs.mkdirSync(path.join(sb.tmp, 'elsewhere'));
-      fs.writeFileSync(path.join(sb.tmp, 'elsewhere', name), 'other');
-      const r = run(sb, 'seed-from-dump.sh', ['production', 'restore', path.join(sb.tmp, 'elsewhere', name)]);
+    it('restore latest picks the newest nightly of the project itself', () => {
+      fs.mkdirSync(bucket('bpni-production/daily'), { recursive: true });
+      for (const d of ['20261105', '20261107', '20261106']) {
+        fs.writeFileSync(
+          bucket(`bpni-production/daily/blueprintnotincluded-${d}T033000Z.archive.gz`),
+          'nightly'
+        );
+      }
+      const r = run(sb, 'seed-from-dump.sh', ['production', 'restore', 'latest']);
+      expect(r.status, r.stderr).to.equal(0);
+      expect(composeLog(sb)).to.include(
+        'rclone cat r2:bpni-backups/bpni-production/daily/blueprintnotincluded-20261107T033000Z.archive.gz | mongorestore'
+      );
+      // staging has no nightlies of its own
+      const none = run(sb, 'seed-from-dump.sh', ['staging', 'restore', 'latest']);
+      expect(none.status).to.equal(66);
+      expect(none.stderr).to.include('no archive under');
+    });
+
+    it('restore rejects an archive that is not a seed, latest, or a bucket path, before dropping anything', () => {
+      const r = run(sb, 'seed-from-dump.sh', [
+        'production',
+        'restore',
+        '/srv/bpni/dumps/seed-20261024T234143Z.archive.gz',
+      ]);
       expect(r.status).to.equal(64);
-      expect(r.stderr).to.include('must be a name or a file in');
+      expect(r.stderr).to.include('archive must be');
       expect(composeLog(sb)).not.to.include('drop');
     });
 
@@ -215,15 +313,19 @@ describe('deploy/bin scripts', () => {
     });
 
     it('all stops after a failed dump instead of restoring a missing archive', () => {
-      const r = run(sb, 'seed-from-dump.sh', ['production', 'all', 'local'], { STUB_DUMP_FAIL: '1' });
+      const r = run(sb, 'seed-from-dump.sh', ['production', 'all', 'local'], {
+        STUB_DUMP_FAIL: '1',
+      });
       expect(r.status).not.to.equal(0);
       // the dump's own error is the last word, not a misleading "archive not found" from the restore
       expect(r.stderr).to.include('error connecting').and.not.include('not found');
       const log = composeLog(sb);
       expect(log).to.include('mongodump');
+      // a partial upload is deleted inside the same container run
+      expect(log).to.include('rclone deletefile');
       expect(log).not.to.include('drop');
       expect(log).not.to.include('mongorestore');
-      expect(fs.existsSync(path.join(sb.root, 'dumps')) ? fs.readdirSync(path.join(sb.root, 'dumps')) : []).to.deep.equal([]);
+      expect(seeds()).to.deep.equal([]);
     });
 
     it('all restores the archive it just dumped', () => {
@@ -233,6 +335,138 @@ describe('deploy/bin scripts', () => {
       expect(log.indexOf('mongodump')).to.be.lessThan(log.indexOf('drop'));
       expect(log.indexOf('drop')).to.be.lessThan(log.indexOf('mongorestore'));
     });
+
+    it('clone pipes one project into the other without touching the bucket', () => {
+      const r = run(sb, 'seed-from-dump.sh', ['staging', 'clone', 'production']);
+      expect(r.status, r.stderr).to.equal(0);
+      expect(r.stdout).to.include('== collection counts');
+      const log = composeLog(sb);
+      expect(log).not.to.include('rclone');
+      expect(log.indexOf('staging exec')).to.be.lessThan(log.indexOf('mongodump')); // the drop
+      expect(log).to.match(/^production .*mongodump/m);
+      expect(log).to.match(/^staging .*mongorestore/m);
+      expect(log).not.to.include('mongodb://');
+      expect(fs.existsSync(path.join(sb.root, 'bucket'))).to.equal(false);
+      // the same project twice, or one with no .env, never drops anything
+      expect(run(sb, 'seed-from-dump.sh', ['staging', 'clone', 'staging']).status).to.equal(64);
+      expect(run(sb, 'seed-from-dump.sh', ['staging', 'clone', 'nowhere']).status).to.equal(66);
+    });
+  });
+
+  // backup.sh runs inside the sidecar, not through compose: it is exercised
+  // here with stub mongodump / rclone / date binaries on PATH. The bucket is a
+  // directory; STUB_DATE fixes the day for the Sunday and first-Sunday rules.
+  describe('backup/backup.sh', () => {
+    const STUB_MONGODUMP = `#!/bin/bash
+printf 'mongodump %s\\n' "$*" >> "$STUB_LOG"
+if [ "\${STUB_DUMP_FAIL:-}" = 1 ]; then echo "Failed: error connecting" >&2; exit 1; fi
+echo fake-dump
+`;
+    const STUB_RCLONE = `#!/bin/bash
+printf 'rclone %s\\n' "$*" >> "$STUB_LOG"
+strip() { echo "$1" | sed 's|^r2:[^/]*/||'; }
+case "$1" in
+  rcat) t="$STUB_BUCKET/$(strip "$2")"; mkdir -p "$(dirname "$t")"; cat > "$t" ;;
+  copyto) t="$STUB_BUCKET/$(strip "$3")"; mkdir -p "$(dirname "$t")"; cp "$STUB_BUCKET/$(strip "$2")" "$t" ;;
+  deletefile) rm -f "$STUB_BUCKET/$(strip "$2")" ;;
+  lsf) t="$STUB_BUCKET/$(strip "\${@: -1}")"; [ -f "$t" ] && stat -c %s "$t"; [ -d "$t" ] && ls "$t" ;;
+  delete|size) ;;
+esac
+exit 0
+`;
+    // date -u +%u / +%d / +%Y%m%dT%H%M%SZ, from STUB_DATE (a day), else real
+    const STUB_DATE = `#!/bin/bash
+if [ -n "\${STUB_DATE:-}" ]; then exec /bin/date -u -d "$STUB_DATE" "\${@: -1}"; fi
+exec /bin/date "$@"
+`;
+    let stubBin: string;
+    let bucketDir: string;
+    beforeEach(() => {
+      stubBin = path.join(sb.tmp, 'stubbin');
+      bucketDir = path.join(sb.tmp, 'bucket');
+      fs.mkdirSync(stubBin);
+      fs.writeFileSync(path.join(stubBin, 'mongodump'), STUB_MONGODUMP, { mode: 0o755 });
+      fs.writeFileSync(path.join(stubBin, 'rclone'), STUB_RCLONE, { mode: 0o755 });
+      fs.writeFileSync(path.join(stubBin, 'date'), STUB_DATE, { mode: 0o755 });
+    });
+    const backup = (extraEnv: Record<string, string> = {}) =>
+      spawnSync('bash', [path.resolve(__dirname, '../../deploy/backup/backup.sh')], {
+        encoding: 'utf8',
+        env: {
+          PATH: `${stubBin}:${process.env.PATH ?? ''}`,
+          STUB_LOG: sb.log,
+          STUB_BUCKET: bucketDir,
+          BACKUP_MONGO_URI:
+            'mongodb://backup:s3cret@mongo:27017/blueprintnotincluded?authSource=admin',
+          BACKUP_DB: 'blueprintnotincluded',
+          BACKUP_REMOTE: 'r2:bpni-backups/bpni-production',
+          BACKUP_EXCLUDE_COLLECTIONS: 'previewimages',
+          ...extraEnv,
+        },
+      });
+    const objects = () => {
+      const out: string[] = [];
+      const walk = (dir: string, rel: string) => {
+        if (!fs.existsSync(dir)) return;
+        for (const f of fs.readdirSync(dir)) {
+          const p = path.join(dir, f);
+          if (fs.statSync(p).isDirectory()) walk(p, `${rel}${f}/`);
+          else out.push(`${rel}${f}`);
+        }
+      };
+      walk(bucketDir, '');
+      return out.sort();
+    };
+
+    it('streams a weekday dump to daily/ with the exclusion and prunes every prefix', () => {
+      const r = backup({ STUB_DATE: '2026-11-04 03:30' }); // a Wednesday
+      expect(r.status, r.stderr).to.equal(0);
+      expect(objects()).to.deep.equal([
+        'bpni-production/daily/blueprintnotincluded-20261104T033000Z.archive.gz',
+      ]);
+      const log = composeLog(sb);
+      expect(log).to.include('--excludeCollection=previewimages');
+      expect(log).not.to.include('s3cret');
+      for (const p of [
+        'bpni-production/daily/',
+        'bpni-production/weekly/',
+        'bpni-production/monthly/',
+        'bpni-backups/seeds/',
+      ]) {
+        expect(log, p).to.include(`delete --min-age`);
+        expect(log, p).to.include(p);
+      }
+      expect(log).to.match(/delete --min-age 30d r2:bpni-backups\/seeds\//);
+    });
+
+    it('copies a Sunday dump to weekly/, and on the first Sunday also dumps everything to monthly/', () => {
+      const sunday = backup({ STUB_DATE: '2026-11-15 03:30' });
+      expect(sunday.status, sunday.stderr).to.equal(0);
+      expect(objects()).to.deep.equal([
+        'bpni-production/daily/blueprintnotincluded-20261115T033000Z.archive.gz',
+        'bpni-production/weekly/blueprintnotincluded-20261115T033000Z.archive.gz',
+      ]);
+      fs.rmSync(sb.log);
+      const first = backup({ STUB_DATE: '2026-11-01 03:30' });
+      expect(first.status, first.stderr).to.equal(0);
+      expect(objects()).to.include(
+        'bpni-production/monthly/blueprintnotincluded-20261101T033000Z.archive.gz'
+      );
+      const dumps = composeLog(sb)
+        .split('\n')
+        .filter(l => l.startsWith('mongodump'));
+      expect(dumps).to.have.length(2);
+      expect(dumps[0]).to.include('--excludeCollection=previewimages');
+      expect(dumps[1]).not.to.include('--excludeCollection');
+    });
+
+    it('deletes the partial upload and fails when the dump breaks mid-stream', () => {
+      const r = backup({ STUB_DATE: '2026-11-04 03:30', STUB_DUMP_FAIL: '1' });
+      expect(r.status).not.to.equal(0);
+      expect(r.stderr).to.include('deleting the partial upload');
+      expect(composeLog(sb)).to.include('rclone deletefile r2:bpni-backups/bpni-production/daily/');
+      expect(objects()).to.deep.equal([]);
+    });
   });
 
   describe('cloud-init-render.sh', () => {
@@ -240,18 +474,30 @@ describe('deploy/bin scripts', () => {
       const keys = path.join(sb.tmp, 'keys');
       fs.mkdirSync(keys);
       for (const name of ['me', 'bpni-deploy']) {
-        const k = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-C', name, '-f', path.join(keys, name)], { encoding: 'utf8' });
+        const k = spawnSync(
+          'ssh-keygen',
+          ['-q', '-t', 'ed25519', '-N', '', '-C', name, '-f', path.join(keys, name)],
+          { encoding: 'utf8' }
+        );
         expect(k.status, k.stderr).to.equal(0);
       }
       const out = path.join(sb.tmp, 'cloud-init.yaml');
-      const r = run(sb, 'cloud-init-render.sh', [out], { SSH_PUBLIC_KEY: path.join(keys, 'me.pub'), DEPLOY_KEY: path.join(keys, 'bpni-deploy') });
+      const r = run(sb, 'cloud-init-render.sh', [out], {
+        SSH_PUBLIC_KEY: path.join(keys, 'me.pub'),
+        DEPLOY_KEY: path.join(keys, 'bpni-deploy'),
+      });
       expect(r.status, r.stderr).to.equal(0);
       const rendered = fs.readFileSync(out, 'utf8');
       expect(rendered).not.to.include('AAAA...');
       expect(rendered).to.include(fs.readFileSync(path.join(keys, 'me.pub'), 'utf8').trim());
-      expect(rendered).to.include(fs.readFileSync(path.join(keys, 'bpni-deploy.pub'), 'utf8').trim());
+      expect(rendered).to.include(
+        fs.readFileSync(path.join(keys, 'bpni-deploy.pub'), 'utf8').trim()
+      );
       // only the two key lines changed
-      const template = fs.readFileSync(path.resolve(__dirname, '../../deploy/cloud-init.yaml'), 'utf8');
+      const template = fs.readFileSync(
+        path.resolve(__dirname, '../../deploy/cloud-init.yaml'),
+        'utf8'
+      );
       expect(rendered.split('\n').length).to.equal(template.split('\n').length);
     });
 
@@ -260,13 +506,19 @@ describe('deploy/bin scripts', () => {
       fs.mkdirSync(keys);
       spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', path.join(keys, 'me')]);
       const out = path.join(sb.tmp, 'cloud-init.yaml');
-      const r = run(sb, 'cloud-init-render.sh', [out], { SSH_PUBLIC_KEY: path.join(keys, 'me.pub'), DEPLOY_KEY: path.join(keys, 'fresh') });
+      const r = run(sb, 'cloud-init-render.sh', [out], {
+        SSH_PUBLIC_KEY: path.join(keys, 'me.pub'),
+        DEPLOY_KEY: path.join(keys, 'fresh'),
+      });
       expect(r.status, r.stderr).to.equal(0);
       expect(fs.existsSync(path.join(keys, 'fresh.pub'))).to.equal(true);
 
       // prefix-looks-right garbage must fail too: an accepted bad key would lock the box
       fs.writeFileSync(path.join(keys, 'junk.pub'), 'ssh-ed25519 AAAAinvalid kevin@laptop\n');
-      const bad = run(sb, 'cloud-init-render.sh', [out + '.bad'], { SSH_PUBLIC_KEY: path.join(keys, 'junk.pub'), DEPLOY_KEY: path.join(keys, 'fresh') });
+      const bad = run(sb, 'cloud-init-render.sh', [out + '.bad'], {
+        SSH_PUBLIC_KEY: path.join(keys, 'junk.pub'),
+        DEPLOY_KEY: path.join(keys, 'fresh'),
+      });
       expect(bad.status).to.equal(65);
       expect(fs.existsSync(out + '.bad')).to.equal(false);
     });
@@ -365,8 +617,12 @@ exit 0
       expect(out).to.include('durationMillis: n=2 p50=120 p95=350 max=350');
       expect(out).to.match(/ +1 blueprintnotincluded\.blueprints\n/);
       // every section says where its log actually starts
-      expect(out).to.include('== production app (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 14 lines');
-      expect(out).to.include('== production mongo (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 4 lines');
+      expect(out).to.include(
+        '== production app (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 14 lines'
+      );
+      expect(out).to.include(
+        '== production mongo (last 7d) ==\ncovers: from 2026-10-31T05:17:40Z, 4 lines'
+      );
       expect(out).to.include('connection/election/storage warnings: 1');
       expect(out).to.include('tunnel connections registered: 4');
       expect(out).to.include('reconnects/errors: 1');
