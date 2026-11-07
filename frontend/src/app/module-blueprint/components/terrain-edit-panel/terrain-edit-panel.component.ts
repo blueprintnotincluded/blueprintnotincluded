@@ -12,6 +12,8 @@ import {
 } from "../../services/terrain-annotation.service";
 import { ToolService } from "../../services/tool-service";
 import { ToolType } from "../../common/tools/tool";
+import { KeybindingService } from "../../services/keybinding.service";
+import { ShortcutAction } from "../../keybindings/shortcut-actions";
 
 // The one place a selected terrain annotation (geyser, vent, volcano, or a
 // wild plant) is shown and acted on, pinned bottom-right the way the note edit
@@ -34,7 +36,17 @@ export class TerrainEditPanelComponent {
   constructor(
     public terrainService: TerrainAnnotationService,
     private toolService: ToolService,
+    private keybindings: KeybindingService,
   ) {}
+
+  // "Delete feature (Del)": the editor's one delete, named with the user's
+  // key for it rather than a key written into the prose.
+  get deleteLabel(): string {
+    return this.keybindings.withHint(
+      $localize`:terrain panel button:Delete feature`,
+      ShortcutAction.editDelete,
+    );
+  }
 
   get feature(): BniTerrainFeature | null {
     return this.terrainService.selected;

@@ -19,12 +19,11 @@
 
     <p class="dig-panel-hint" i18n>
       Dug out when the blueprint is placed in game, so whatever is there now
-      makes way for the build. Press Delete, or use the button below, to erase
-      this area.
+      makes way for the build.
     </p>
 
-    <button type="button" class="dig-panel-erase" (click)="erase()" i18n>
-      Erase dig area
+    <button type="button" class="dig-panel-erase" (click)="erase()">
+      {{ eraseLabel }}
     </button>
     <button type="button" class="dig-panel-link" (click)="openDigTool()" i18n>
       Paint or erase single cells with the Dig tool…

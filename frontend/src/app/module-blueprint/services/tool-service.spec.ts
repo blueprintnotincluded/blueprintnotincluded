@@ -341,6 +341,28 @@ describe("ToolService", () => {
       expect(mockBuild.changeItem).not.toHaveBeenCalled();
     });
 
+    it("openNotesToolLike samples an element note and opens the notes tool in text mode for a text note", () => {
+      service.openNotesToolLike({
+        x: 0,
+        y: 0,
+        type: 1,
+        id: 9,
+        mass: 10,
+        temp: 280,
+      });
+      expect(mockNotes.pendingElementNote).to.include({
+        id: 9,
+        mass: 10,
+        temp: 280,
+      });
+      expect(mockNotes.mode).toBe("element");
+      expect(mockNotes.visible).toBe(true);
+
+      service.openNotesToolLike({ x: 0, y: 0, type: 0, title: "hi" });
+      expect(mockNotes.mode).toBe("text");
+      expect(mockNotes.visible).toBe(true);
+    });
+
     it("prefers a selected world note over the hover tile, mirroring the selected-building rule", () => {
       const selectedNote: BniWorldNote = {
         x: 9,

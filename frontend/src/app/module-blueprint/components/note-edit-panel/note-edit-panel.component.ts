@@ -10,6 +10,8 @@ import { ToolService } from "../../services/tool-service";
 import { NotesTool } from "../../common/tools/notes-tool";
 import { ToolType } from "../../common/tools/tool";
 import { NOTE_TINT_PALETTE } from "./note-tint-palette";
+import { KeybindingService } from "../../services/keybinding.service";
+import { ShortcutAction } from "../../keybindings/shortcut-actions";
 
 // The one editor for BlueprintsV2 world notes, pinned bottom-right the way the
 // mod's in-game note screen is. It shows whichever note is in play:
@@ -38,7 +40,17 @@ export class NoteEditPanelComponent {
     public noteService: WorldNoteService,
     private toolService: ToolService,
     private notesTool: NotesTool,
+    private keybindings: KeybindingService,
   ) {}
+
+  // "Delete note (Del)": the same editor delete that removes a selected
+  // building, named with the user's own key for it.
+  get deleteLabel(): string {
+    return this.keybindings.withHint(
+      $localize`:note panel button:Delete note`,
+      ShortcutAction.editDelete,
+    );
+  }
 
   // No note selected: the panel is showing the creation template.
   get isDraft(): boolean {
@@ -112,6 +124,14 @@ export class NoteEditPanelComponent {
   deleteNote() {
     const note = this.noteService.selected;
     if (note != null) this.noteService.delete(note);
+  }
+
+  // The Notes tool with this note as the brush, the same way the terrain and
+  // dig panels link to their tools: someone who only clicked an existing note
+  // may not have found the tool yet.
+  placeMore() {
+    const note = this.noteService.selected;
+    if (note != null) this.toolService.openNotesToolLike(note);
   }
 
   // Closing a placed note falls back to the creation template while the tool

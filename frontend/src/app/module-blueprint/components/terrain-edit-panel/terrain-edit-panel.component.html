@@ -40,22 +40,19 @@
 
     <p class="terrain-panel-hint" *ngIf="!isPlant" i18n>
       Geysers and vents are annotations of what the map already has — no
-      materials, no build order. Press Delete, or use the button below, to
-      remove this one.
+      materials, no build order.
     </p>
     <p class="terrain-panel-hint" *ngIf="isPlant" i18n>
       Wild plants and trees are annotations of what already grows on the map —
-      no seed, no farm tile, no build order. Press Delete, or use the button
-      below, to remove this one.
+      no seed, no farm tile, no build order.
     </p>
 
     <button
       type="button"
       class="terrain-panel-delete"
       (click)="deleteFeature()"
-      i18n
     >
-      Delete feature
+      {{ deleteLabel }}
     </button>
     <button
       type="button"

@@ -8,7 +8,7 @@ import {
   ViewChild,
 } from "@angular/core";
 import { Subscription } from "rxjs";
-import { formatChord } from "../../keybindings/key-chord";
+
 import {
   ShortcutAction,
   ShortcutActionId,
@@ -69,9 +69,6 @@ export class BuildMenuComponent implements OnInit, OnDestroy {
   private tipTimer: ReturnType<typeof setTimeout> | null = null;
   private tipWarmUntil = 0;
 
-  readonly isApple =
-    typeof navigator != "undefined" &&
-    /Mac|iPhone|iPad/.test(navigator.platform);
   readonly paintElementLabel = $localize`:build menu:Paint Element`;
   readonly paintElementDescription = $localize`:build menu:Paint gas, liquid or solid element cells.`;
 
@@ -173,8 +170,7 @@ export class BuildMenuComponent implements OnInit, OnDestroy {
 
   hotkey(category: BuildMenuCategoryView): string {
     if (category.actionId == null) return "";
-    const chord = this.keybindingService.getChords(category.actionId)[0];
-    return chord == null ? "" : formatChord(chord, this.isApple);
+    return this.keybindingService.hint(category.actionId);
   }
 
   paintElement() {

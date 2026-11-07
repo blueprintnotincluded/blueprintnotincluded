@@ -84,8 +84,7 @@
   class="ui-button buttonspace"
   icon="pi pi-clone"
   (click)="buildingsCopy()"
-  i18n-pTooltip
-  pTooltip="Build this type of building"
+  [pTooltip]="copyTooltip"
   tooltipEvent="both"
 ></button>
 <button
@@ -104,7 +103,6 @@
   class="ui-button buttonspace"
   icon="pi pi-trash"
   (click)="buildingsDestroy()"
-  i18n-pTooltip
-  pTooltip="Destroy these buildings (Delete key)"
+  [pTooltip]="destroyTooltip"
   tooltipEvent="both"
 ></button>

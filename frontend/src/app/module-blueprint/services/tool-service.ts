@@ -235,6 +235,18 @@ export class ToolService implements ITool, IChangeTool {
     );
   }
 
+  // The note panel's "Place more notes like this": the Notes tool with this
+  // note's kind as the pending brush - an element note sampled the way the
+  // Build shortcut samples it, a text note just the text mode.
+  openNotesToolLike(note: BniWorldNote) {
+    if (note.type === ELEMENT_NOTE) {
+      this.sampleElementNoteIntoNotesTool(note);
+      return;
+    }
+    this.notesTool.mode = "text";
+    this.changeTool(ToolType.notes);
+  }
+
   // Sets the pending note's fields before flipping the mode: NotesTool's mode
   // setter seeds a default element only when none is set yet, so writing
   // id/mass/temp first makes that seed a no-op and the sampled values stick.
