@@ -338,6 +338,18 @@ describe("BuildTool", () => {
     });
   });
 
+  describe("rotate", () => {
+    it("turns the brush and refreshes whether it can be built", () => {
+      expect(tool.rotate()).toBe(true);
+      expect(templateItem.nextOrientation).toHaveBeenCalled();
+    });
+
+    it("declines when there is nothing to build", () => {
+      tool.templateItemToBuild = null!;
+      expect(tool.rotate()).toBe(false);
+    });
+  });
+
   describe("handleShortcut", () => {
     it("calls nextOrientation on the rotate action", () => {
       expect(tool.handleShortcut(ShortcutAction.buildRotate)).toBe(true);
