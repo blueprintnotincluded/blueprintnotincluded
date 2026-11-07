@@ -129,9 +129,10 @@ sudo -u deploy -i
 
 It creates the four files (mode 600) from `env/*.example` with the Mongo passwords,
 staging's `JWT_SECRET` and the hostnames filled in, and lists what is left for you:
-the two tunnel tokens, the R2 credentials, production's `JWT_SECRET` (the value the site
-already uses — a new one logs every user out), Mailjet and WorkOS keys, the optional
-Gemini/Translate keys for production only. Edit with `nano`; `DB_URI` and `AUTH_MODE` stay
+the two tunnel tokens, the R2 credentials, the two Better Stack heartbeat URLs ("Backup
+monitoring"), production's `JWT_SECRET` (the value the site already uses — a new one logs
+every user out), Mailjet and WorkOS keys, the optional Gemini/Translate keys for production
+only. Edit with `nano`; `DB_URI` and `AUTH_MODE` stay
 out (compose sets the first, the second must remain unset).
 
 When the files exist and have been checked once, take the encrypted copy and move it off
@@ -180,7 +181,8 @@ in each project.
 | Rotate the tunnel token | New token in `.env`, `bin/compose.sh <project> up -d cloudflared`. |
 | After any env change | `bin/env-backup.sh backup`, copy the archive off the box; the old archive can be deleted. |
 | OS updates | unattended-upgrades nightly; reboots at 05:17 UTC only when a kernel needs it; every container has `restart: unless-stopped`, Docker starts at boot, so nothing needs a login. |
-| Disk | `df -h /`. Nothing on the box is an archive: dumps stream to R2, `deploy.sh` prunes the images it replaces, container logs rotate. `/srv/bpni/dumps` holds only env-backup archives waiting to be copied off — delete them once they are. If the disk still fills, `docker system df` says which of images, volumes or build cache it is. |
+| Disk | `df -h /`. Nothing on the box is an archive: dumps stream to R2, `deploy.sh` prunes the images it replaces, container logs rotate. `/srv/bpni/dumps` holds only env-backup archives waiting to be copied off — delete them once they are. If the disk still fills, `docker system df` says which of images, volumes or build cache it is. The weekly drill (`bin/drill-weekly.sh`, Sundays) refuses to send its heartbeat while the root disk is over 85 %, so a filling disk becomes a Better Stack alert within the week rather than a full disk mid-deploy (2026-11-07). |
+| Maintenance that stops the backup or the drill | Pause the heartbeat monitor in Better Stack first ("Backup monitoring"), resume it afterwards; a paused heartbeat never alerts. |
 
 The app's preview render worker sizes itself from the container's memory limit
 (`app/api/services/render-memory.ts`); at the 1 GB production limit it runs at the 384 MB
@@ -188,12 +190,16 @@ RSS ceiling. The 512 MB renderer smoke test in `publish.yml` is unchanged.
 
 ## Monitoring
 
-What there is to look at, from the outside in. None of it needs an account on the box
-except the last two.
+What there is to look at, from the outside in. Nothing here needs an account on the box
+except the log lines and the report. The two heartbeats are the only things that alert on
+their own; everything else has to be looked at.
 
 | Where | What it answers | Notes |
 |---|---|---|
-| **UptimeRobot** — monitor `blueprintnotincluded.org`, public page `https://stats.uptimerobot.com/V6QANX8e9U` | Is the apex up; response time of `/` from North America | HTTP check every 5 minutes, one region. A reboot that finishes inside the interval does not register (the 2026-10-31 kernel reboot at 05:17 UTC did not). `/status` on the site used to redirect here; the `status` CNAME that did was deleted with the DigitalOcean app on 2026-11-02. Worth adding: a second monitor on `/api/health` with the keyword `"status":"ok"` from an EU region, which sees the origin rather than the edge. |
+| **Better Stack heartbeat "bpni nightly backup"** | Did last night's backup land in R2 | A dead-man's switch: `backup.sh` requests the heartbeat URL once at the end of a successful run (03:30 UTC nightly); the monitor alerts when a day and two hours pass without one, so around 05:30 UTC. Dead container, empty R2 credentials, box off, failed dump: all the same alert. Setup and what to do: "Backup monitoring" under Backups. |
+| **Better Stack heartbeat "bpni weekly restore drill"** | Did the newest archive restore, and is the disk under 85 % | `bin/drill-weekly.sh` from the deploy user's crontab, Sundays 05:00 UTC, pings after a passed drill; period 7 days, grace 1 day, so an alert on a Monday morning. Log on the box: `/srv/bpni/drill-weekly.log`. |
+| **HTTP monitor on `blueprintnotincluded.org`** — either UptimeRobot (public page `https://stats.uptimerobot.com/V6QANX8e9U`) or a Better Stack HTTP monitor, whichever is kept | Is the apex up; response time of `/` | HTTP check every 5 minutes (UptimeRobot: free tier, one North American region; Better Stack: free tier, pick an EU region, which is nearer the origin). A reboot that finishes inside the interval does not register (the 2026-10-31 kernel reboot at 05:17 UTC did not). `/status` on the site used to redirect to the UptimeRobot page; the `status` CNAME that did was deleted with the DigitalOcean app on 2026-11-02. |
+| **Better Stack HTTP monitor on `/api/health`**, keyword `"status":"ok"` (optional; add it when creating the heartbeats) | Does the origin answer, with Mongo connected | Sees the app through the tunnel rather than Cloudflare's edge, and reads the health endpoint's own verdict (503 when Mongo is down). Can replace the UptimeRobot check or sit beside it; record here which was done. |
 | **Cloudflare → Analytics & Logs → Traffic** | Requests, bandwidth, cache ratio, status codes, by country and path; 24 h to 30 d | The only request counts there are until the access log below is read; everything the site serves goes through this zone. |
 | **Cloudflare → Analytics & Logs → Web Analytics** | Real-user page timing and Core Web Vitals by country, path and browser | Free; a zone toggle (*automatic setup* injects the beacon, no deploy). The app's CSP already allows `static.cloudflareinsights.com` and `cloudflareinsights.com`, so turning it on is console-only. When it is on, record it in the Cloudflare section above. |
 | **`GET /api/health`** | The app's own view: `checks.db` (`ok`, `pingMs` to Mongo), `memory`, `uptime`, `startedAt`, `build.commit`/`time`, `preview` (`worker` up/down, `queueDepth`/`queueMax`, `inFlight`, `failedRenders`) | What the compose healthcheck polls every 30 s. `startedAt` is fixed for the life of the process: production and staging reporting the same one is a host reboot, one of them moving alone is a container restart. 503 only when Mongo is not connected. |
@@ -217,7 +223,12 @@ update lands (`cloud-init.yaml`); every container returns on its restart policy,
 answers once mongo is healthy, and the tunnel reconnects after that — a minute or two
 in which the site is down. Nothing notifies: the only trace is `last -x reboot` on the box
 and both projects' `startedAt` moving together, both of which the report prints. A
-monitor that polls every 5 minutes from one region will usually miss it.
+monitor that polls every 5 minutes from one region will usually miss it. The weekly drill
+starts at 05:00 UTC on Sundays and takes a few minutes (longer on a first Sunday, when it
+also restores the 4.5 GB monthly archive); a Sunday that is also a kernel-reboot night can
+cut it off at 05:17, in which case no heartbeat is sent and Better Stack alerts on Monday.
+Rerun `bin/drill-weekly.sh` by hand and the alert resolves; if it happens twice, move the
+crontab hour in `deploy.sh`.
 
 ## Database
 
@@ -267,6 +278,63 @@ the trade-off.
 Hetzner's weekly server backup is the second line: it captures the whole box including
 the Mongo volumes (crash-consistent, up to a week old).
 
+#### Backup monitoring
+
+From 2026-10-25 to 2026-11-07 the R2 credentials in production's `.env` were empty, every
+nightly failed at the upload, and nothing said so: the output went to the container log and
+to a weekly report nobody ran. Two Better Stack heartbeats (free tier) now watch for the
+opposite of a failure, a success that stops arriving, so a dead container, empty
+credentials, a failed dump or a box that is off all read the same way.
+
+| Heartbeat | Pinged by | When | Period / grace | Alert means |
+|---|---|---|---|---|
+| **bpni nightly backup** (`BACKUP_HEARTBEAT_URL`) | `backup/backup.sh`, inside the sidecar | Nightly at 03:30 UTC, at the very end of the run: after the daily archive is moved into `daily/`, after the Sunday `weekly/` copy and first-Sunday `monthly/` dump, after the pruning | 1 day / 2 h, so an alert at about 05:30 UTC | Last night's run did not finish. `bin/compose.sh production logs --tail 50 backup` says where it stopped. |
+| **bpni weekly restore drill** (`DRILL_HEARTBEAT_URL`) | `bin/drill-weekly.sh`, from the deploy user's crontab | Sundays at 05:00 UTC | 7 days / 1 day, so an alert on Monday | The newest daily (and on a first Sunday, monthly) archive did not restore within tolerance, or the root disk is over 85 %, or the box never ran the job. `/srv/bpni/drill-weekly.log` has the run. |
+
+Both URLs live in `/srv/bpni/production/.env`, so the env-backup archive carries them and a
+rebuilt box pings the same monitors. Compose passes the first into the `backup` service;
+the wrapper reads the second from the file. Either left empty means no ping and nothing
+else changes, which is what staging and the tests want. A ping that fails (`curl -fsS -m 10
+--retry 3`) is a line on stderr, never a failed backup or drill.
+
+The drill wrapper runs `bin/restore-drill.sh production` (newest `daily/`), on the first
+Sunday of the month also `bin/restore-drill.sh production monthly` with
+`DRILL_MONTHLY_TOLERANCE_PERCENT` (default 20, since that archive is a month old if the
+morning's dump failed), then `df /` against `DRILL_DISK_MAX_PERCENT` (default 85), and
+pings only when all of it passed. Output is appended to `/srv/bpni/drill-weekly.log`, kept
+to its last 2000 lines; the box is not an archive. By hand, as `deploy`:
+
+```bash
+bin/drill-weekly.sh                 # prints to the terminal and the log; exit 0 = pinged
+tail -n 60 /srv/bpni/drill-weekly.log
+crontab -l                          # the line deploy.sh production installs
+```
+
+`deploy.sh production` installs the crontab line (`0 5 * * 0 …/drill-weekly.sh # bpni
+drill-weekly`) on every run, replacing its own earlier line and leaving any other, so a
+rebuilt box gets it with its first deploy. The drill is not tied to deploys otherwise:
+deploys change the app, not the backup path. Keep the habit of running `bin/restore-drill.sh`
+by hand after any change to `backup/`.
+
+Memory: the throwaway mongo runs under a 768 MB limit with a 256 MB WiredTiger cache, on a
+4 GB box that already runs two stacks, which is why the drill is scheduled in the quiet
+hour. Each drill prints `== drill container usage` (its `docker stats`) before teardown;
+the first hand run on 2026-11-07 passed under live load in about two minutes. If a drill
+ever OOMs, lower `--wiredTigerCacheSizeGB` in `restore-drill.sh`; do not skip the drill.
+
+**Silencing during maintenance.** Anything that stops the sidecar or the box past the grace
+window (a long migration with the stack down, a rebuild) will alert. Pause the affected
+heartbeat in Better Stack first (the monitor's *Pause* button), resume it after, and
+confirm with a hand run (`bin/compose.sh production exec backup backup.sh`,
+`bin/drill-weekly.sh`) that the next ping arrives. The alternative, clearing the URL from
+`.env`, needs `up -d backup` and a new env-backup for a temporary state; pausing is cheaper.
+
+**Better Stack setup** (console, once): a heartbeat monitor per row above, with the name,
+period and grace from the table, on an escalation policy that emails (and optionally pushes
+to a phone). Each monitor shows its URL; those go into `.env` at a `read -rs` prompt, never
+on a command line or in a chat, then `bin/compose.sh production up -d backup`, a hand run of
+each job to turn both monitors green, and `bin/env-backup.sh backup` copied off the box.
+
 ### Restore last night's data
 
 Into production, from the newest R2 archive. The site serves the old data until the
@@ -300,9 +368,10 @@ Streams the newest archive of that kind into a throwaway `mongo:8.2.12` containe
 project's network, prints live → restored counts per collection (excluded collections
 must be absent from a daily or weekly archive and present in a monthly one, every other
 count within 5 % of live — `DRILL_TOLERANCE_PERCENT` widens it for a weeks-old monthly),
-and removes the container. Nothing touches the disk. Run it after the first nightly
-backup, after the first monthly one, and whenever the backup image, exclusions or
-retention change.
+prints the throwaway container's `docker stats` and removes it. Nothing touches the disk.
+`bin/drill-weekly.sh` runs it every Sunday with a heartbeat on success ("Backup
+monitoring"); run it by hand as well after the first nightly backup, after the first
+monthly one, and whenever the backup image, exclusions or retention change.
 
 ### Seed from a dump
 
@@ -370,9 +439,11 @@ most of it.
    `ssh-keyscan -t ed25519 <ip>`. Cloudflare needs nothing.
 3. **Laptop**: `rsync -az deploy/ deploy@<ip>:/srv/bpni/deploy/` and
    `scp env-<stamp>.tar.enc deploy@<ip>:/srv/bpni/dumps/`.
-4. **Server**: `bin/env-backup.sh restore /srv/bpni/dumps/env-<stamp>.tar.enc`. Without the
-   archive: `bin/env-bootstrap.sh` and fill in by hand — tunnel tokens from Zero Trust →
-   Tunnels → *Configure*, a new R2 token, Mailjet and WorkOS keys from their dashboards,
+4. **Server**: `bin/env-backup.sh restore /srv/bpni/dumps/env-<stamp>.tar.enc`. The archive
+   carries the two heartbeat URLs, so the rebuilt box reports to the same Better Stack
+   monitors. Without the archive: `bin/env-bootstrap.sh` and fill in by hand — tunnel
+   tokens from Zero Trust → Tunnels → *Configure*, a new R2 token, the heartbeat URLs from
+   each monitor's page in Better Stack, Mailjet and WorkOS keys from their dashboards,
    production's `JWT_SECRET` from the password manager.
 5. **Server**: database first, nothing public yet — the restored env carries the live
    tunnel token, so the app and the tunnel stay down until the data is back:
@@ -382,11 +453,14 @@ most of it.
 6. **Server**: `bin/seed-from-dump.sh production restore latest` (last night's daily;
    `restore bpni-production/monthly/<archive>` instead for warm previews, at up to a
    month's staleness — check `rclone lsf` first). Then `bin/deploy.sh production`: app and
-   tunnel come up on the restored data and the hostname goes live.
+   tunnel come up on the restored data, the hostname goes live, and the weekly drill is
+   back in the crontab (`crontab -l`).
 7. **Server**: `bin/deploy.sh staging`, then `bin/seed-from-dump.sh staging clone
    production` (staging may serve an empty database for those minutes).
 8. Log in, open the editor, `bin/compose.sh production logs -f --tail 100 app` for a few
-   minutes. Previews re-render on view unless the monthly archive was restored.
+   minutes. Previews re-render on view unless the monthly archive was restored. If the
+   heartbeats alerted during the rebuild, `bin/compose.sh production exec backup backup.sh`
+   and `bin/drill-weekly.sh` by hand turn them green again.
 
 **Drill** (do it once, and after any change to this directory that touches more than one
 file): a throwaway CX23, a temporary tunnel `bpni-drill` with the route
