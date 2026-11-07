@@ -46,9 +46,12 @@ const plural = (n: number, word: string) =>
 //     304 back from the origin for each; a day's TTL turns those into cache hits
 //     here and at the edge. The cost is that a redrawn icon can show stale for
 //     up to a day after a deploy that changes it (new names are unaffected).
-// The database, the string map and index.html stay on the default: a cached
-// stale database under a new bundle is not something to risk for one request.
+// The database zip is hashed too — frontend/scripts/build-database-zip.js names it
+// after the JSON's SHA-256 and bakes that name into the bundle — so it joins the
+// bundles at a year. The string map and index.html stay on the default: a cached
+// stale file under a new bundle is not something to risk for one request.
 const HASHED_BUNDLE = /[-.][0-9A-Za-z]{8,}\.(?:js|css|woff2?)$/;
+const HASHED_DATABASE_ZIP = /\/assets\/database\/database-2024-[0-9a-f]{16}\.zip$/;
 const LONG_LIVED_ASSET_DIRS = [
   'assets/ui_image/',
   'assets/ui_thumb/',
@@ -65,6 +68,7 @@ export function staticCacheControl(filePath: string): string | null {
     return `public, max-age=${ONE_DAY_SECONDS}`;
   if (HASHED_BUNDLE.test(path.basename(relative)) && !relative.includes('/assets/'))
     return `public, max-age=${ONE_YEAR_SECONDS}, immutable`;
+  if (HASHED_DATABASE_ZIP.test(relative)) return `public, max-age=${ONE_YEAR_SECONDS}, immutable`;
   return null;
 }
 

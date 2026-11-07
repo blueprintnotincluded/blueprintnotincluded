@@ -19,10 +19,10 @@
 /export
 /export.zip
 # Committed runtime DB artifact is the loose JSON (readable diffs). The .zip is a
-# build derivative the frontend regenerates from it (prebuild/prestart) and the
-# converter no longer emits — keep it out of git so imports don't churn opaque bytes.
-/assets/database/database-2024.zip
-/frontend/src/assets/database/database-2024.zip
+# build derivative the frontend regenerates from it (prebuild/prestart) under a
+# content-hashed name — keep it out of git so imports don't churn opaque bytes.
+/assets/database/database-2024*.zip
+/frontend/src/assets/database/database-2024*.zip
 
 # Graphify knowledge-graph build artifacts (AI coding aid, not source)
 /graphify-out

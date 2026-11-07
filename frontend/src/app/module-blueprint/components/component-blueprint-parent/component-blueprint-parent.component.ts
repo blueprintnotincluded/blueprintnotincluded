@@ -70,6 +70,7 @@ import { FeedbackDialogComponent } from "../dialogs/feedback-dialog/feedback-dia
 import { DialogImportStringComponent } from "../dialogs/dialog-import-string/dialog-import-string.component";
 import { ComponentSideBuildToolComponent } from "../side-bar/build-tool/build-tool.component";
 import { ComponentSideSelectionToolComponent } from "../side-bar/selection-tool/selection-tool.component";
+import { DATABASE_ZIP_PATH } from "../../../generated/database-zip";
 
 /*
 TODO Feature List before release :
@@ -451,7 +452,7 @@ export class ComponentBlueprintParentComponent
     const promise = new Promise((resolve, reject) => {
       // Start comment here
       this.http
-        .get("assets/database/database-2024.zip", {
+        .get(DATABASE_ZIP_PATH, {
           responseType: "arraybuffer",
         })
         .subscribe((data) => {
@@ -523,7 +524,8 @@ export class ComponentBlueprintParentComponent
       // Dead code: direct JSON fetch, replaced by the zip approach above.
       // The loose database.json in frontend/src/assets/database/ is a legacy copy
       // of database-repack.json and is NOT the same file that lives inside the zip.
-      // The zip is now generated from database-2024.json (frontend/scripts/build-database-zip.js).
+      // The zip is now generated from database-2024.json (frontend/scripts/build-database-zip.js)
+      // under a content-hashed name the generated DATABASE_ZIP_PATH carries.
       fetch("/assets/database/database.json")
         .then(response => { return response.json(); })
         .then(json => {

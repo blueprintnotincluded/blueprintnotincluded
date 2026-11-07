@@ -20,8 +20,11 @@ Steps:
 2. Write `database-2024.json` into **both** asset roots (backend `assets/database/` +
    `frontend/src/assets/database/`). The loose JSON is the only committed runtime DB
    artifact (readable diffs). The backend reads it directly at startup; the frontend
-   zips it into the gitignored `database-2024.zip` it fetches, via its `prebuild`/
-   `prestart` (`frontend/scripts/build-database-zip.js`). The converter emits no `.zip`.
+   zips it into the gitignored, content-hashed `database-2024-<hash>.zip` it fetches,
+   via its `prebuild`/`prestart` (`frontend/scripts/build-database-zip.js`). The
+   converter runs that script so the committed constant naming the zip
+   (`frontend/src/app/generated/database-zip.ts`) moves with the JSON; it emits no
+   `.zip` itself.
 3. Detect connectables (a `connection_sprites/<prefabId>/` dir exists) and take each
    one's render scale from the cell the export declares for it in
    `connection_sprite_cells.json` (canvas ÷ cell, see "Connection-sprite scale" below).
@@ -544,7 +547,8 @@ Rendering uses the 2024 flat-icon model, not the retired multi-sprite atlas.
   are registered from the export's own `ui_image/<name>.png` flats (copied into
   `frontend/src/assets/images/` at import) — they no longer slice the legacy atlas pages.
 - **Loaders**: backend reads `database-2024.json` directly; frontend fetches
-  `database-2024.zip` (regenerated from the committed JSON by its `prebuild`/`prestart`).
+  `database-2024-<hash>.zip` (regenerated from the committed JSON by its `prebuild`/
+  `prestart`, served immutable, named by the committed `generated/database-zip.ts`).
 - **Menu thumbnails**: `icon-thumbnails.ts` renders `frontend/src/assets/ui_thumb/<name>.webp`
   (≤128 px a side) for every frontend `ui_image/*.png`, after the sync, content-aware and
   pruned like the sprites. `OniItem.thumbUrl`, `BuildableElement.thumbUrl` and

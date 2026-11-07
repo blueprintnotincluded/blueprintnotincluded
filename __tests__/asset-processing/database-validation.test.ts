@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
@@ -37,6 +38,33 @@ describe('Database Asset Validation', () => {
   // with both false and these assertions hold vacuously. They are the regression guard for
   // afterwards -- the failure they exist to catch is a future import quietly putting
   // unbuildable buildings back in the menu.
+  // frontend/scripts/build-database-zip.js names the zip the editor fetches after the
+  // frontend JSON's SHA-256 and commits that name in src/app/generated/database-zip.ts.
+  // The two must move together, or a deploy serves a bundle asking for a zip that
+  // the build never produced. `npm run import:2024` regenerates the constant.
+  describe('Hashed database zip', () => {
+    it('names the zip after the committed frontend JSON', () => {
+      const frontendJson = fs.readFileSync(
+        path.join(__dirname, '../../frontend/src/assets/database/database-2024.json')
+      );
+      const hash = crypto.createHash('sha256').update(frontendJson).digest('hex').slice(0, 16);
+      const generated = fs.readFileSync(
+        path.join(__dirname, '../../frontend/src/app/generated/database-zip.ts'),
+        'utf8'
+      );
+      expect(generated).to.include(
+        `export const DATABASE_ZIP_PATH = "assets/database/database-2024-${hash}.zip";`
+      );
+    });
+
+    it('keeps both asset roots on the same JSON', () => {
+      const frontendJson = fs.readFileSync(
+        path.join(__dirname, '../../frontend/src/assets/database/database-2024.json')
+      );
+      expect(fs.readFileSync(databaseJsonPath).equals(frontendJson)).to.equal(true);
+    });
+  });
+
   describe('Unbuildable buildings', () => {
     const unbuildable = (db: any) =>
       new Set(
