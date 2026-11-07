@@ -31,9 +31,14 @@ tolerance=${DRILL_TOLERANCE_PERCENT:-5}
 envfile="$root/$project/.env"
 # Empty when the variable is not in the file: grep's "no match" status must
 # not end the script under set -e (it did, silently, for the defaulted
-# BACKUP_EXCLUDE_COLLECTIONS).
-getenv() { { grep -E "^$1=" "$envfile" || true; } | tail -n1 | cut -d= -f2- | tr -d '"'; }
+# BACKUP_EXCLUDE_COLLECTIONS). An unreadable file is still fatal.
+getenv() {
+  local out
+  out=$(grep -E "^$1=" "$envfile") || [ $? -eq 1 ] || { echo "cannot read $envfile" >&2; exit 66; }
+  printf '%s\n' "$out" | tail -n1 | cut -d= -f2- | tr -d '"'
+}
 project_name=$(getenv COMPOSE_PROJECT_NAME)
+[ -n "$project_name" ] || { echo "COMPOSE_PROJECT_NAME is not set in $envfile" >&2; exit 65; }
 root_pw=$(getenv MONGO_ROOT_PASSWORD)
 bucket=$(getenv R2_BUCKET); bucket=${bucket:-bpni-backups}
 remote="r2:${bucket}/${project_name}"

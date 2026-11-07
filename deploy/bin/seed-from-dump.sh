@@ -67,7 +67,9 @@ arg=${3:?$usage}
 db=blueprintnotincluded
 
 getenv() { # <project> <KEY>; empty, not a failure, when the file lacks it
-  { grep -E "^$2=" "$root/$1/.env" || true; } | tail -n1 | cut -d= -f2- | tr -d '"'
+  local out
+  out=$(grep -E "^$2=" "$root/$1/.env") || [ $? -eq 1 ] || { echo "cannot read $root/$1/.env" >&2; exit 66; }
+  printf '%s\n' "$out" | tail -n1 | cut -d= -f2- | tr -d '"'
 }
 root_pw() { getenv "$project" MONGO_ROOT_PASSWORD; }
 bucket() { local b; b=$(getenv "$project" R2_BUCKET); echo "r2:${b:-bpni-backups}"; }
@@ -141,8 +143,10 @@ resolve() {
   case "$1" in
     seed-*.archive.gz) resolved="$(bucket)/seeds/$1" ;;
     latest)
-      local prefix newest
-      prefix="$(bucket)/$(getenv "$project" COMPOSE_PROJECT_NAME)/daily/"
+      local prefix newest name
+      name=$(getenv "$project" COMPOSE_PROJECT_NAME)
+      [ -n "$name" ] || { echo "COMPOSE_PROJECT_NAME is not set in $root/$project/.env" >&2; exit 65; }
+      prefix="$(bucket)/$name/daily/"
       newest=$(tool "$project" "" 'rclone lsf --format "p" --files-only '"$prefix" | sort | tail -n1)
       [ -n "$newest" ] || { echo "no archive under $prefix" >&2; exit 66; }
       resolved="$prefix$newest" ;;

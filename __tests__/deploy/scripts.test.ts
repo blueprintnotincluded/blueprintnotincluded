@@ -313,6 +313,15 @@ describe('deploy/bin scripts', () => {
       expect(composeLog(sb)).to.equal('');
     });
 
+    it('restore falls back to the default bucket when R2_BUCKET is absent from .env', () => {
+      const file = path.join(sb.root, 'staging/.env');
+      fs.writeFileSync(file, read(sb, 'staging/.env').replace(/^R2_BUCKET=.*\n/m, ''));
+      const name = run(sb, 'seed-from-dump.sh', ['production', 'dump', 'local']).stdout.trim();
+      const r = run(sb, 'seed-from-dump.sh', ['staging', 'restore', name]);
+      expect(r.status, r.stderr).to.equal(0);
+      expect(composeLog(sb)).to.include(`rclone cat r2:bpni-backups/seeds/${name}`);
+    });
+
     it('restore latest refuses a bucket object whose name carries shell syntax', () => {
       fs.mkdirSync(bucket('bpni-production/daily'), { recursive: true });
       fs.writeFileSync(bucket('bpni-production/daily/zz$(touch pwned).archive.gz'), 'planted');
@@ -523,6 +532,19 @@ esac
       expect(r.status).to.equal(1);
       expect(r.stderr).to.include('no archive found under r2:bpni-backups/bpni-production/daily/');
       expect(composeLog(sb)).to.include('rclone lsf');
+    });
+
+    it('stops before the bucket when COMPOSE_PROJECT_NAME is missing', () => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      const file = path.join(sb.root, 'production/.env');
+      fs.writeFileSync(
+        file,
+        read(sb, 'production/.env').replace(/^COMPOSE_PROJECT_NAME=.*\n/m, '')
+      );
+      const r = run(sb, 'restore-drill.sh', ['production']);
+      expect(r.status).to.equal(65);
+      expect(r.stderr).to.include('COMPOSE_PROJECT_NAME');
+      expect(composeLog(sb)).to.equal('');
     });
 
     it('rejects an unknown archive kind', () => {

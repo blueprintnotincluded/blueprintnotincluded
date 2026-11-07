@@ -10,6 +10,11 @@ FROM alpine:3.22
 
 RUN apk add --no-cache mongodb-tools rclone bash coreutils tini ca-certificates
 
+# Empty on purpose: the remote comes from RCLONE_CONFIG_R2_* in the
+# environment, and an existing (empty) config file keeps rclone from logging a
+# NOTICE about a missing one on every call.
+RUN touch /etc/rclone.conf
+
 COPY entrypoint.sh backup.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/backup.sh
 
