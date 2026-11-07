@@ -149,6 +149,9 @@ services:
       RCLONE_CONFIG_R2_ENDPOINT: ${R2_ENDPOINT:-}
       RCLONE_CONFIG_R2_ACL: private
       RCLONE_CONFIG_R2_NO_CHECK_BUCKET: "true"
+      # No config file is the point; without this every rclone call logs a
+      # NOTICE saying so.
+      RCLONE_LOG_LEVEL: ERROR
     depends_on:
       mongo:
         condition: service_healthy

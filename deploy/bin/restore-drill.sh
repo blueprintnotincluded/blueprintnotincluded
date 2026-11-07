@@ -29,7 +29,10 @@ db=blueprintnotincluded
 tolerance=${DRILL_TOLERANCE_PERCENT:-5}
 
 envfile="$root/$project/.env"
-getenv() { grep -E "^$1=" "$envfile" | tail -n1 | cut -d= -f2- | tr -d '"'; }
+# Empty when the variable is not in the file: grep's "no match" status must
+# not end the script under set -e (it did, silently, for the defaulted
+# BACKUP_EXCLUDE_COLLECTIONS).
+getenv() { { grep -E "^$1=" "$envfile" || true; } | tail -n1 | cut -d= -f2- | tr -d '"'; }
 project_name=$(getenv COMPOSE_PROJECT_NAME)
 root_pw=$(getenv MONGO_ROOT_PASSWORD)
 bucket=$(getenv R2_BUCKET); bucket=${bucket:-bpni-backups}
