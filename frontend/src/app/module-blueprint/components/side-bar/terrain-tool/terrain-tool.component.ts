@@ -38,12 +38,21 @@ export class TerrainToolComponent {
 
   showKind(kind: TerrainFeatureKind) {
     if (this.kind === kind) return;
-    const first = TerrainFeature.byKind(kind)[0];
+    const first = this.sorted(kind)[0];
     if (first != null) this.tool.featureId = first.id;
   }
 
+  private sorted(kind: TerrainFeatureKind): TerrainFeature[] {
+    return TerrainFeature.byKind(kind).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }
+
+  // Alphabetical by display name: the palette has no search, and the
+  // catalogue's own order is by prefab id, which is not what the icons say
+  // ("BasicSingleHarvestPlant" reads "Mealwood").
   get features(): TerrainFeature[] {
-    return TerrainFeature.byKind(this.kind);
+    return this.sorted(this.kind);
   }
 
   get hasPlants(): boolean {
