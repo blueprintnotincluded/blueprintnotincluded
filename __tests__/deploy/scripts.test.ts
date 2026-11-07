@@ -620,10 +620,12 @@ exit 0
     const STUB_DF = `#!/bin/bash
 printf 'Use%%\\n%s%%\\n' "\${STUB_DISK_PERCENT:-42}"
 `;
+    // STUB_DATE is "YYYY-MM-DD", STUB_DOW its weekday (7 = Sunday)
     const STUB_DATE = `#!/bin/bash
 if [ -z "\${STUB_DATE:-}" ]; then exec /bin/date "$@"; fi
 case "\${@: -1}" in
   +%d) echo "\${STUB_DATE:8:2}" ;;
+  +%u) echo "\${STUB_DOW:-7}" ;;
   *) exec /bin/date "$@" ;;
 esac
 `;
@@ -684,6 +686,25 @@ esac
       ).to.have.length(1);
     });
 
+    it('runs the monthly drill only on a Sunday that is the 1st to the 7th', () => {
+      withUrl();
+      const drills = () =>
+        composeLog(sb)
+          .split('\n')
+          .filter(l => l.startsWith('restore-drill'))
+          .map(l => l.split(' ')[2]);
+      // a hand run on the Wednesday before the first Sunday: no monthly
+      expect(drill({ STUB_DATE: '2026-12-03', STUB_DOW: '3' }).status).to.equal(0);
+      expect(drills()).to.deep.equal(['daily']);
+      fs.rmSync(sb.log);
+      // the boundary: Sunday the 7th yes, Sunday the 8th no
+      expect(drill({ STUB_DATE: '2027-02-07', STUB_DOW: '7' }).status).to.equal(0);
+      expect(drills()).to.deep.equal(['daily', 'monthly']);
+      fs.rmSync(sb.log);
+      expect(drill({ STUB_DATE: '2026-11-08', STUB_DOW: '7' }).status).to.equal(0);
+      expect(drills()).to.deep.equal(['daily']);
+    });
+
     it('does not ping when the drill failed', () => {
       withUrl();
       const r = drill({ STUB_DRILL_FAIL: '1' });
@@ -702,6 +723,31 @@ esac
       fs.rmSync(sb.log);
       expect(drill({ STUB_DISK_PERCENT: '91', DRILL_DISK_MAX_PERCENT: '95' }).status).to.equal(0);
       expect(composeLog(sb)).to.include('curl');
+      // a mistyped knob fails the run instead of waving the disk through
+      fs.rmSync(sb.log);
+      const bad = drill({ STUB_DISK_PERCENT: '91', DRILL_DISK_MAX_PERCENT: '95%' });
+      expect(bad.status).to.equal(64);
+      expect(composeLog(sb)).not.to.include('curl');
+      expect(logFile()).to.include('DRILL_DISK_MAX_PERCENT must be a number');
+    });
+
+    it('fails without a ping, and says so in the log, when df gives nothing', () => {
+      withUrl();
+      fs.writeFileSync(path.join(stubBin, 'df'), '#!/bin/bash\nexit 1\n', { mode: 0o755 });
+      const r = drill();
+      expect(r.status).to.equal(1);
+      expect(composeLog(sb)).not.to.include('curl');
+      expect(logFile()).to.include('could not read root disk usage');
+    });
+
+    it('logs the verdict when production/.env is unreadable', () => {
+      fs.chmodSync(path.join(sb.root, 'production/.env'), 0o000);
+      const r = drill();
+      fs.chmodSync(path.join(sb.root, 'production/.env'), 0o600);
+      if (process.getuid && process.getuid() === 0) return; // root reads anything
+      expect(r.status).to.equal(66);
+      expect(logFile()).to.include('cannot read').and.include('FAILED');
+      expect(composeLog(sb)).to.equal('');
     });
 
     it('runs the drill but calls no curl when the URL is not in .env', () => {
@@ -736,6 +782,7 @@ esac
   // file, stub docker and curl stand in for the prune and the public health check.
   describe('deploy.sh crontab', () => {
     const STUB_CRONTAB = `#!/bin/bash
+if [ "\${STUB_CRON_BROKEN:-}" = 1 ]; then echo "crontab: can't open spool" >&2; exit 1; fi
 case "$1" in
   -l) [ -f "$STUB_CRONTAB" ] || { echo "no crontab for deploy" >&2; exit 1; }; cat "$STUB_CRONTAB" ;;
   -) cat > "$STUB_CRONTAB.new" && mv "$STUB_CRONTAB.new" "$STUB_CRONTAB" ;;
@@ -755,10 +802,11 @@ exit 0
       fs.writeFileSync(path.join(stubBin, 'docker'), STUB_OK, { mode: 0o755 });
       fs.writeFileSync(path.join(stubBin, 'curl'), STUB_OK, { mode: 0o755 });
     });
-    const deploy = (project: string) =>
+    const deploy = (project: string, extraEnv: Record<string, string> = {}) =>
       run(sb, 'deploy.sh', [project], {
         PATH: `${stubBin}:${process.env.PATH ?? ''}`,
         STUB_CRONTAB: table,
+        ...extraEnv,
       });
     const cron = () => (fs.existsSync(table) ? fs.readFileSync(table, 'utf8') : '');
 
@@ -782,6 +830,14 @@ exit 0
       const before = cron();
       expect(deploy('staging').status).to.equal(0);
       expect(cron()).to.equal(before);
+    });
+
+    it('leaves the table alone, and the deploy green, when crontab itself fails', () => {
+      fs.writeFileSync(table, '15 4 * * * /home/deploy/other.sh\n');
+      const r = deploy('production', { STUB_CRON_BROKEN: '1' });
+      expect(r.status, r.stderr).to.equal(0);
+      expect(r.stderr).to.include('drill line not installed');
+      expect(cron()).to.equal('15 4 * * * /home/deploy/other.sh\n');
     });
 
     it('creates the table when the user had none', () => {
