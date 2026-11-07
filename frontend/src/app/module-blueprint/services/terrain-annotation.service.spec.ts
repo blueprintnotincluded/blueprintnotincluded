@@ -23,6 +23,14 @@ const CATALOGUE: BTerrainFeature[] = [
     dlcIds: [],
   },
   { id: "OilWell", name: "Oil Reservoir", width: 4, height: 2, dlcIds: [] },
+  {
+    id: "ForestTree",
+    name: "Arbor Tree",
+    width: 1,
+    height: 1,
+    dlcIds: [],
+    kind: "plant",
+  },
 ];
 
 describe("terrain annotation geometry", () => {
@@ -236,6 +244,15 @@ describe("TerrainAnnotationService", () => {
     beforeEach(() => {
       BuildableElement.init();
       BuildableElement.load([NEUTRONIUM as never]);
+    });
+
+    // A plant grows out of whatever the ground is; a neutronium row under a
+    // tree would be a claim about the map that is simply false.
+    it("seeds nothing under a plant", () => {
+      service.add({ id: "ForestTree", x: 10, y: 20 });
+
+      expect(blueprint.terrainFeatures).toHaveLength(1);
+      expect(blueprint.worldNotes).toHaveLength(0);
     });
 
     it("seeds one row, as wide as the footprint, directly beneath the anchor", () => {

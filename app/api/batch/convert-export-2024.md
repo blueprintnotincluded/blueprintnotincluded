@@ -62,7 +62,7 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 
 | Export provides | We use it for |
 |---|---|
-| `database/*.json` (13 files) | building/element data — we read `building.json`, `elements.json`, `uiSpriteInfo.json`, `po_string.json`, plus `geyser.json` + `entities.json` for the terrain catalogue |
+| `database/*.json` (13 files) | building/element data — we read `building.json`, `elements.json`, `uiSpriteInfo.json`, `po_string.json`, plus `geyser.json` + `entities.json` for the terrain catalogue (geysers, and the `Plant`-tagged entities as `kind: 'plant'`) |
 | `ui_image_rects.json` (export **root**) | flat-icon placement rects by prefab id — the only delivery path for terrain features' rects (see below) |
 | `ui_image/<prefabId>.png` | the single flat icon per building (1,361 files) |
 | `connection_sprites/<prefabId>/<0..15>.png` | the 16 tiling states for connectables |
@@ -496,8 +496,8 @@ Current export: 32 gas, 52 liquid, 125 solid, 3 vacuum.
 7 of 13 JSONs are intentionally unread today; the schema unblocks them if/when we add
 the capability: `items` (eggs/seeds/suits), `food`, `recipe`, `multiEntities` (space POIs),
 `tags`, `attribute`, `db` (duplicant DB, ~20 MB, case-sensitive parse). `geyser` and
-`entities` are read, but only for the terrain-feature catalogue — the rest of `entities`
-(critters/plants) is still unused. `ui_image_facade/` (988 files) is also unused. `po_string`
+`entities` are read, but only for the terrain-feature catalogue (geysers and `Plant`-tagged
+entities) — the rest of `entities` (critters) is still unused. `ui_image_facade/` (988 files) is also unused. `po_string`
 is read (English game strings → `strings.json`); the site is English-only, so the legacy
 per-locale `.po` files have been retired — non-English i18n would need translated sources.
 

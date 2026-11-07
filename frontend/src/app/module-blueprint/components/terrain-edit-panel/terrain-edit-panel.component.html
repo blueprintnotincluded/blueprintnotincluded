@@ -1,6 +1,9 @@
 <div class="terrain-panel" *ngIf="feature as f">
   <div class="terrain-panel-header">
-    <span class="terrain-panel-title" i18n>Terrain Feature</span>
+    <span class="terrain-panel-title" *ngIf="!isPlant" i18n
+      >Terrain Feature</span
+    >
+    <span class="terrain-panel-title" *ngIf="isPlant" i18n>Plant</span>
     <button
       type="button"
       class="terrain-panel-close"
@@ -35,10 +38,15 @@
       </div>
     </div>
 
-    <p class="terrain-panel-hint" i18n>
+    <p class="terrain-panel-hint" *ngIf="!isPlant" i18n>
       Geysers and vents are annotations of what the map already has — no
       materials, no build order. Press Delete, or use the button below, to
       remove this one.
+    </p>
+    <p class="terrain-panel-hint" *ngIf="isPlant" i18n>
+      Wild plants and trees are annotations of what already grows on the map —
+      no seed, no farm tile, no build order. Press Delete, or use the button
+      below, to remove this one.
     </p>
 
     <button
@@ -55,7 +63,7 @@
       (click)="openTerrainTool()"
       i18n
     >
-      Place more terrain features…
+      Place more terrain features and plants…
     </button>
   </div>
 </div>

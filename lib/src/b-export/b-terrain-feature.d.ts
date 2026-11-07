@@ -1,9 +1,11 @@
+export type TerrainFeatureKind = 'terrain' | 'plant';
 export interface BTerrainFeature {
     id: string;
     name: string;
     width: number;
     height: number;
     dlcIds: string[];
+    kind?: TerrainFeatureKind;
     activeTile?: {
         x: number;
         y: number;
@@ -21,6 +23,7 @@ export declare class TerrainFeature implements BTerrainFeature {
     width: number;
     height: number;
     dlcIds: string[];
+    kind: TerrainFeatureKind;
     activeTile: {
         x: number;
         y: number;
@@ -34,8 +37,10 @@ export declare class TerrainFeature implements BTerrainFeature {
     iconUrl: string;
     thumbUrl: string;
     importFrom(original: BTerrainFeature): void;
+    get isPlant(): boolean;
     static features: TerrainFeature[];
     private static featuresMap;
+    static byKind(kind: TerrainFeatureKind): TerrainFeature[];
     static init(): void;
     static load(originals: BTerrainFeature[] | null | undefined): void;
     static getFeature(id: string): TerrainFeature | undefined;

@@ -4,6 +4,7 @@ import {
   BniWorldNote,
   BuildableElement,
   NEUTRONIUM_ELEMENT_ID,
+  TerrainFeature,
   Vector2,
   findNoteAt,
   findTerrainFeatureAt,
@@ -118,7 +119,12 @@ export class TerrainAnnotationService {
   // edits with the note tool (or deletes) — which is the point, since real
   // terrain rarely matches the default exactly. Deleting the annotation
   // therefore leaves them alone rather than discarding edits the user made.
+  //
+  // Plants get no base: they grow from whatever the ground is, and a row of
+  // neutronium under a Mealwood would be a lie about the map.
   private neutroniumBaseNotes(feature: BniTerrainFeature): BniWorldNote[] {
+    if (TerrainFeature.getFeature(feature.id)?.isPlant) return [];
+
     const blueprint = this.blueprintService.blueprint;
 
     // A database with no Neutronium simply gets no base rather than a crash.

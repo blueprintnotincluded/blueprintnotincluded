@@ -95,8 +95,8 @@ Remaining, by what they need:
   skins (`DecorPackA_MoodLamp`, `Backwalls_Backwall`, True Tiles) stay opaque.
 - **What is planted** — `SingleEntityReceptacle.requestedEntityTag` now shows as the raw
   seed/egg id. Showing "Prickle Flower" and drawing the crop in the farm tile needs the
-  plant/seed names and a flat icon per plant: `entities.json` already carries the entities
-  (only the geyser subset is read today) but no plant art is exported.
+  seed → plant mapping: the plant names and flat icons are now in the terrain catalogue
+  (`kind: 'plant'` entries of `terrainFeatures`), so what is missing is only the seed ids.
 - **Blueprint list icon** — the mod's top-level `icon`/`icontint` is a building prefab id
   (`BuildingDef.GetUISprite`) _or_ any name in `Assets.Sprites`. The site parses and
   round-trips it but never shows it. Prefab-id icons need nothing new (we have `ui_image/`);

@@ -1,11 +1,40 @@
 <div class="box-card ui-widget terrain-card">
   <div class="box-card-title" i18n>Terrain Features</div>
   <p class="hint" i18n>
-    Geysers and vents that are already on the map. They are annotations only —
-    no materials, no build order.
+    Geysers, vents and wild plants that are already on the map. They are
+    annotations only — no materials, no build order.
   </p>
 
-  <div class="section-label" i18n>Feature</div>
+  <!-- Two tabs, not two cards: one tool places both, and the kind of the
+       feature under the cursor is whatever tab is open. Hidden when the
+       database has no plants (an older catalogue), since a lone tab is noise. -->
+  <div class="kind-tabs" role="tablist" *ngIf="hasPlants">
+    <button
+      type="button"
+      role="tab"
+      class="kind-tab"
+      [class.active]="kind === 'terrain'"
+      [attr.aria-selected]="kind === 'terrain'"
+      (click)="showKind('terrain')"
+      i18n
+    >
+      Geysers
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="kind-tab"
+      [class.active]="kind === 'plant'"
+      [attr.aria-selected]="kind === 'plant'"
+      (click)="showKind('plant')"
+      i18n
+    >
+      Plants
+    </button>
+  </div>
+
+  <div class="section-label" *ngIf="kind === 'terrain'" i18n>Feature</div>
+  <div class="section-label" *ngIf="kind === 'plant'" i18n>Plant</div>
   <div class="feature-grid">
     <button
       *ngFor="let feature of features"
@@ -26,7 +55,7 @@
       [checked]="terrainService.visible"
       (change)="terrainService.toggleVisible()"
     />
-    <span i18n>Show terrain features</span>
+    <span i18n>Show terrain features and plants</span>
   </label>
 
   <p class="hint" i18n>

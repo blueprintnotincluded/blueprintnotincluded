@@ -1,8 +1,9 @@
 import { StringHelpers } from '../string-helpers';
-// Natural terrain features — geysers, vents, volcanoes, fissures, oil
-// reservoirs. Dupes cannot build these: they are *annotations* that record what
-// the surrounding map already contains ("this pump array sits on a chlorine
-// vent"), not construction. They are deliberately kept out of every
+// Natural map features — geysers, vents, volcanoes, fissures, oil reservoirs,
+// and the wild plants and trees that grow on the map. Dupes cannot build
+// these: they are *annotations* that record what the surrounding map already
+// contains ("this pump array sits on a chlorine vent", "these ladders thread
+// an arbor tree"), not construction. They are deliberately kept out of every
 // build-related model — no BlueprintItem, no material cost, no build order, and
 // never an entry in the exported `buildings` array (a geyser written as a
 // building resolves to a null BuildingDef in the BlueprintsV2 mod, which then
@@ -12,7 +13,16 @@ import { StringHelpers } from '../string-helpers';
 // (`terrainFeatures` in database-2024.json) and loaded here the same way
 // BuildableElement loads `elements` — see convert-export-2024.ts for the
 // sources (geyser.json plus the GeyserFeature-tagged entities and OilWell from
-// entities.json).
+// entities.json; plants are the Plant-tagged entities of the same file).
+
+// What a catalogue entry is. One catalogue and one annotation list for both,
+// because a blueprint stores only the prefab id and the kind is a property of
+// the prefab, not of the placement — so a plant costs no new storage schema
+// and an older client reading a plant id simply sees an unknown feature, which
+// it already keeps and renders as a placeholder. The kind decides what differs
+// in the editor: a geyser has an active cell and sits on neutronium, a plant
+// has neither.
+export type TerrainFeatureKind = 'terrain' | 'plant';
 
 // The shape stored in database-2024.json.
 export interface BTerrainFeature {
@@ -31,12 +41,16 @@ export interface BTerrainFeature {
   height: number;
   // Raw Klei DLC ids required by the feature; [] for base game.
   dlcIds: string[];
+  // Absent ⇒ 'terrain': the field postdates the geyser catalogue, and every
+  // entry written before it was a geyser, vent, volcano or reservoir.
+  kind?: TerrainFeatureKind;
   // Footprint-relative offset of the one cell the feature actually acts on —
   // where a geyser erupts, a volcano vents. The rest of the footprint is
   // scenery. NOT uniform: a volcano erupts from the middle of its 3x3 (1,1),
   // a geyser from the left of its footprint (0,1). The importer decides which
   // from the game's own `geyserType.shape`, so the split lives in data rather
-  // than in render code.
+  // than in render code. Plants have none: nothing about a plant acts on a
+  // cell, so the importer omits the field and the editor shows no such cell.
   activeTile?: { x: number; y: number };
   // Where the flat icon sits over the footprint, in cells, origin at the
   // footprint's bottom-left, +y up — the same contract as BBuildingDef2024's
@@ -54,6 +68,8 @@ export class TerrainFeature implements BTerrainFeature {
   width: number = 1;
   height: number = 1;
   dlcIds: string[] = [];
+  kind: TerrainFeatureKind = 'terrain';
+  // Meaningful only for kind 'terrain' — see activeTileOf in terrain-markers.
   activeTile: { x: number; y: number } = { x: 1, y: 1 };
   // Undefined rather than a footprint-sized default: the renderer distinguishes
   // "placed by measurement" from "no rect, stretch it" — see BTerrainFeature.
@@ -73,6 +89,9 @@ export class TerrainFeature implements BTerrainFeature {
     this.width = original.width > 0 ? original.width : 1;
     this.height = original.height > 0 ? original.height : 1;
     this.dlcIds = original.dlcIds != null ? [...original.dlcIds] : [];
+    // Anything that is not a plant is terrain: the only other value the
+    // catalogue has ever written, and what a database predating the field means.
+    this.kind = original.kind === 'plant' ? 'plant' : 'terrain';
     // A database predating the field has no offsets at all. Fall back to the
     // volcano cell rather than (0,0): there is no single correct answer once
     // volcanoes and geysers differ, and (1,1) is inside every footprint in the
@@ -95,9 +114,19 @@ export class TerrainFeature implements BTerrainFeature {
     this.thumbUrl = StringHelpers.iconThumbUrl(this.id);
   }
 
+  get isPlant(): boolean {
+    return this.kind === 'plant';
+  }
+
   // static
   public static features: TerrainFeature[] = [];
   private static featuresMap: Map<string, TerrainFeature> = new Map();
+
+  // The palette shows the two kinds apart — a geyser and a Mealwood share a
+  // storage model, not a mental one — so the catalogue is queried by kind.
+  public static byKind(kind: TerrainFeatureKind): TerrainFeature[] {
+    return TerrainFeature.features.filter((f) => f.kind === kind);
+  }
 
   public static init() {
     TerrainFeature.features = [];

@@ -707,6 +707,27 @@ describe('Database Asset Validation', () => {
       }
     });
 
+    // One catalogue, two kinds. A geyser has the cell it erupts from; a plant
+    // has none, and must not carry a default that the editor would then draw.
+    it('should type every terrain feature, with an active tile on terrain only', () => {
+      const database = readDatabase();
+      const features: any[] = database.terrainFeatures ?? [];
+      const badKind = features.filter((f) => f.kind !== 'terrain' && f.kind !== 'plant');
+      expect(badKind.map((f) => `${f.id}: ${f.kind}`), 'kind').to.be.empty;
+
+      const terrain = features.filter((f) => f.kind === 'terrain');
+      const plants = features.filter((f) => f.kind === 'plant');
+      expect(terrain, 'terrain').to.have.length(31);
+      expect(plants.length, 'plants').to.be.at.least(40);
+
+      const terrainWithoutActive = terrain.filter((f) => f.activeTile == null).map((f) => f.id);
+      expect(terrainWithoutActive, 'terrain with no activeTile').to.be.empty;
+      const plantsWithActive = plants.filter((f) => f.activeTile != null).map((f) => f.id);
+      expect(plantsWithActive, 'plants carrying an activeTile').to.be.empty;
+      const unnamed = features.filter((f) => !f.name).map((f) => f.id);
+      expect(unnamed, 'features with no name').to.be.empty;
+    });
+
     it('should give every terrain feature a usable placement rect', () => {
       // Terrain icons are tight-cropped renders, so the stretch fallback is a
       // visible regression rather than a graceful default: every catalogue entry

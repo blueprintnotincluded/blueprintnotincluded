@@ -20,6 +20,14 @@ const CATALOGUE: BTerrainFeature[] = [
     dlcIds: [],
     activeTile: { x: 0, y: 1 },
   },
+  {
+    id: "ForestTree",
+    name: "Arbor Tree",
+    width: 1,
+    height: 1,
+    dlcIds: [],
+    kind: "plant",
+  },
 ];
 
 describe("TerrainEditPanelComponent", () => {
@@ -70,6 +78,22 @@ describe("TerrainEditPanelComponent", () => {
     expect(component.activeTile).toEqual({ x: 5, y: 8 });
     expect(component.isUnknown).toBe(false);
     expect(component.iconUrl).toContain("GeyserGeneric_steam");
+  });
+
+  // A plant erupts nowhere, so the panel names it and labels no active cell.
+  it("describes a plant without an eruption cell", () => {
+    place({ id: "ForestTree", x: 2, y: 2 });
+
+    expect(component.isPlant).toBe(true);
+    expect(component.name).toBe("Arbor Tree");
+    expect(component.footprintLabel).toBe("1×1");
+    expect(component.activeTile).toBe(null);
+    expect(component.isUnknown).toBe(false);
+  });
+
+  it("does not call a geyser a plant", () => {
+    place({ id: "GeyserGeneric_steam", x: 5, y: 7 });
+    expect(component.isPlant).toBe(false);
   });
 
   // An id the database doesn't know is still shown and still deletable, so a

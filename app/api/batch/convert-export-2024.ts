@@ -1026,7 +1026,12 @@ export async function convertExport2024(opts: ConvertOptions): Promise<void> {
     hiddenMenuBuildings.length,
     hiddenMenuBuildings.length > 0 ? `(${hiddenMenuBuildings.join(', ')})` : ''
   );
-  console.log('  terrainFeatures    :', terrainFeatures.length);
+  console.log(
+    '  terrainFeatures    :',
+    terrainFeatures.length,
+    `(${terrainFeatures.filter((f) => f.kind === 'terrain').length} terrain, ` +
+      `${terrainFeatures.filter((f) => f.kind === 'plant').length} plants)`
+  );
   console.log('  ui_image PNGs      :', uiImageFiles.size);
   console.log('  english strings    :', Object.keys(englishStrings).length);
   console.log(
@@ -1179,8 +1184,9 @@ export async function convertExport2024(opts: ConvertOptions): Promise<void> {
   );
   // Unlike buildings, a terrain feature with no rect is an incomplete import, not a
   // fallback: its icon is a tight-cropped render, so stretch-to-footprint draws it
-  // squashed and misplaced rather than merely imprecise. The export measures all 31,
-  // so a gap here means the rects file is stale or a prefab was renamed.
+  // squashed and misplaced rather than merely imprecise. The export measures every
+  // prefab it rendered an icon for, geysers and plants alike, so a gap here means
+  // the rects file is stale or a prefab was renamed.
   const missingTerrainRects = terrainFeatures.filter((f) => !f.uiImageRect).map((f) => f.id);
   console.log(
     '  terrain with uiImageRect placement :',
@@ -1461,6 +1467,14 @@ function normalizeDlcIds(raw: string[] | string | null | undefined): string[] {
 //      GeyserGeneric variant: everything tagged `GeyserFeature` (Niobium Volcano,
 //      Tidal Spring, Thermal Gas Fissure) plus the Oil Reservoir, which predates
 //      that tag and so carries none.
+//   3. entities.json again — every entity tagged `Plant`, the tag
+//      `EntityTemplates.ExtendEntityToBasicPlant` puts on each plant prefab
+//      (crops, decor plants and trees alike; seeds, branches and harvested
+//      produce are separate prefabs without it). Emitted as kind 'plant' into
+//      the same catalogue: a wild Mealwood or an arbor tree is scenery a build
+//      wraps around, exactly like a geyser, so it shares the annotation model
+//      and differs only in what the editor shows for it (no active cell, no
+//      neutronium base).
 //
 // Names come from po_string via each geyser's `nameStringKey`, or straight off the
 // entity's `nameString` — rich-text markup intact, exactly like buildings and
@@ -1469,6 +1483,7 @@ function normalizeDlcIds(raw: string[] | string | null | undefined): string[] {
 // Prefabs that are terrain features but carry no `GeyserFeature` tag.
 const UNTAGGED_TERRAIN_PREFABS = ['OilWell'];
 const TERRAIN_FEATURE_TAG = 'GeyserFeature';
+const PLANT_TAG = 'Plant';
 
 function lookupGameString(
   englishStrings: Record<string, string>,
@@ -1538,8 +1553,10 @@ interface TerrainFeatureRecord {
   width: number;
   height: number;
   dlcIds: string[];
+  kind: 'terrain' | 'plant';
   // Footprint-relative offset of the active cell, from the bottom-left anchor.
-  activeTile: { x: number; y: number };
+  // Terrain only: a plant acts on no cell, so the field is omitted for it.
+  activeTile?: { x: number; y: number };
   // Flat-icon placement rect, from ui_image_rects.json (see UiImageRect). Omitted
   // when the export has no measurement for the prefab.
   uiImageRect?: UiImageRect;
@@ -1587,6 +1604,7 @@ function buildTerrainFeatures(
         width: g.width,
         height: g.height,
         dlcIds: normalizeDlcIds(g.geyserType?.requiredDlcIds),
+        kind: 'terrain',
         activeTile: terrainActiveTile(g.geyserType?.shape),
       });
 
@@ -1598,19 +1616,22 @@ function buildTerrainFeatures(
       const isTerrain =
         tags.indexOf(TERRAIN_FEATURE_TAG) !== -1 ||
         UNTAGGED_TERRAIN_PREFABS.indexOf(e.name) !== -1;
-      if (!isTerrain) continue;
+      const isPlant = !isTerrain && tags.indexOf(PLANT_TAG) !== -1;
+      if (!isTerrain && !isPlant) continue;
 
       // Footprint comes from the collider; entities.json has no width/height.
       // A feature with no collider still belongs in the palette — it just
       // annotates a single cell.
-      add({
+      const record: TerrainFeatureRecord = {
         id: e.name,
         name: stripRichText(e.nameString ?? ''),
         width: Math.max(1, Math.round(e.kBoxCollider2D?.x ?? 1)),
         height: Math.max(1, Math.round(e.kBoxCollider2D?.y ?? 1)),
         dlcIds: normalizeDlcIds(e.kPrefabID?.requiredDlcIds),
-        activeTile: { ...TERRAIN_ACTIVE_TILE_DEFAULT },
-      });
+        kind: isPlant ? 'plant' : 'terrain',
+      };
+      if (isTerrain) record.activeTile = { ...TERRAIN_ACTIVE_TILE_DEFAULT };
+      add(record);
     }
 
   features.sort((a, b) => a.id.localeCompare(b.id));

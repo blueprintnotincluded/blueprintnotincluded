@@ -30,7 +30,9 @@ const PREVIEW_ALPHA = 0.5;
 // which makes the placement cue read clearly.
 const DEFAULT_FEATURE_ID = "GeyserGeneric_steam";
 
-// Terrain Annotation Tool. Places geysers, vents and volcanoes on click.
+// Terrain Annotation Tool. Places geysers, vents, volcanoes and wild plants on
+// click — one tool for both kinds, since they are the same kind of thing to
+// the blueprint (scenery the build wraps around) and differ only in the palette.
 // Modelled on NotesTool and PlanningTool: single-click mutation, exclusive
 // within toolGroup 1, right-click/Escape return to Select.
 //

@@ -12,8 +12,9 @@ import {
 } from "../../../../../lib/index";
 import { DrawPixi } from "./draw-pixi";
 
-// Terrain annotations render deliberately unlike buildings: a building is
-// something you will construct, a geyser is something that is already there.
+// Terrain annotations — geysers and wild plants — render deliberately unlike
+// buildings: a building is something you will construct, a geyser or a tree is
+// something that is already there.
 // So each one is drawn as a translucent icon inside a dashed outline of its
 // real footprint, rather than as an opaque sprite flush to the grid. The
 // treatment reads as "context", and it also keeps a 4x2 Oil Reservoir from
@@ -45,9 +46,8 @@ interface PreparedFeature {
   width: number;
   height: number;
   url: string;
-  // Absolute cell the feature acts on.
-  activeX: number;
-  activeY: number;
+  // Absolute cell the feature acts on; null for a plant, which acts on none.
+  active: { x: number; y: number } | null;
   // Measured icon placement, when the catalogue has one for this id.
   rect: TerrainIconRect | undefined;
 }
@@ -61,8 +61,7 @@ function prepare(feature: BniTerrainFeature): PreparedFeature {
     width: known != null ? known.width : 1,
     height: known != null ? known.height : 1,
     url: terrainIconUrl(feature),
-    activeX: active.x,
-    activeY: active.y,
+    active,
     rect: known?.uiImageRect,
   };
 }
@@ -166,10 +165,11 @@ export class DrawTerrainOverlay {
       // Area of effect: the single cell the feature acts on, drawn only while
       // it is selected — same as a building, which shows its areasOfEffect on
       // selection. The footprint outline above is the feature's body; this is
-      // the one cell that actually does anything.
-      if (isSelected) {
-        const activeLeft = (feature.activeX + offset.x) * zoom;
-        const activeTop = (offset.y - feature.activeY) * zoom;
+      // the one cell that actually does anything. A plant has no such cell,
+      // so a selected plant shows only the white outline.
+      if (isSelected && feature.active != null) {
+        const activeLeft = (feature.active.x + offset.x) * zoom;
+        const activeTop = (offset.y - feature.active.y) * zoom;
 
         this.activeTileGraphics.beginFill(
           ACTIVE_TILE_COLOR,
