@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { loadGameDatabase } from '../helpers/roomFixtures';
 import fs from 'fs';
 import path from 'path';
 import {
@@ -9,6 +10,9 @@ import {
 } from '../../lib';
 
 describe('deriveCategory: context signals', function () {
+  // The tamer signal reads the terrain catalogue to tell a geyser from a plant.
+  before(() => loadGameDatabase());
+
   const db = JSON.parse(
     fs.readFileSync(path.join(__dirname, '../../assets/database/database-2024.json'), 'utf8')
   );
@@ -30,6 +34,19 @@ describe('deriveCategory: context signals', function () {
     expect(deriveCategory(COOLING_LOOP, lookup, { terrainFeatureIds: ['OilWell'] })).to.equal(
       'tamer'
     );
+  });
+
+  // Wild plants ride in the same annotation list; a loop beside a Mealwood is
+  // still just a loop.
+  it('a plant annotation is not a tamer signal, a geyser beside it still is', () => {
+    expect(
+      deriveCategory(COOLING_LOOP, lookup, { terrainFeatureIds: ['ForestTree', 'PrickleFlower'] })
+    ).to.equal('cooling');
+    expect(
+      deriveCategory(COOLING_LOOP, lookup, {
+        terrainFeatureIds: ['ForestTree', 'GeyserGeneric_steam'],
+      })
+    ).to.equal('tamer');
   });
 
   it('a title that names a tamer or a boiler does too, whatever the case', () => {
