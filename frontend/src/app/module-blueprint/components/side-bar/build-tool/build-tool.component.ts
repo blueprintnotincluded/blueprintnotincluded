@@ -11,6 +11,8 @@ import {
 } from "src/app/module-blueprint/services/tool-service";
 import { IObsBuildItemChanged } from "src/app/module-blueprint/common/tools/build-tool";
 import { BuildMenuService } from "src/app/module-blueprint/services/build-menu.service";
+import { KeybindingService } from "src/app/module-blueprint/services/keybinding.service";
+import { ShortcutAction } from "src/app/module-blueprint/keybindings/shortcut-actions";
 import { ElementChangeInfo } from "../buildable-element-picker/buildable-element-picker.component";
 import { buildingDlcLabels } from "../../build-menu/building-labels";
 
@@ -35,6 +37,7 @@ export class ComponentSideBuildToolComponent
   constructor(
     public toolService: ToolService,
     private buildMenuService: BuildMenuService,
+    private keybindings: KeybindingService,
   ) {
     this.toolService.buildTool.subscribeBuildItemChanged(this);
     this.toolService.subscribeToolChanged(this);
@@ -48,6 +51,19 @@ export class ComponentSideBuildToolComponent
       BlueprintHelpers.createInstance("Tile")!,
     );
     this.databaseLoaded = true;
+  }
+
+  // "Rotate (O)", with whatever key the user has the action on; the button is
+  // the touch screen's only way to turn the brush.
+  get rotateLabel(): string {
+    return this.keybindings.withHint(
+      $localize`:build tool button:Rotate`,
+      ShortcutAction.buildRotate,
+    );
+  }
+
+  rotate() {
+    this.toolService.buildTool.rotate();
   }
 
   // The current-item button: the build menu, open on this building's category.

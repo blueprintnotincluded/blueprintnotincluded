@@ -525,13 +525,18 @@ export class BuildTool implements ITool {
     // required for type
   }
 
+  // Turns the brush to its next orientation. Shared by the "Rotate building"
+  // shortcut and the Build Tool card's Rotate button, which is how a touch
+  // screen, with no O key, reaches it. False when there is no brush to turn.
+  rotate(): boolean {
+    if (this.templateItemToBuild == null) return false;
+    this.templateItemToBuild.nextOrientation();
+    this.updateBuildCandidateResult();
+    return true;
+  }
+
   handleShortcut(action: ShortcutActionId): boolean {
-    if (action == ShortcutAction.buildRotate) {
-      if (this.templateItemToBuild == null) return false;
-      this.templateItemToBuild.nextOrientation();
-      this.updateBuildCandidateResult();
-      return true;
-    }
+    if (action == ShortcutAction.buildRotate) return this.rotate();
 
     // Leaving the build tool is the game's "Building Cancel" behaviour.
     if (action == ShortcutAction.interfaceCancel) {

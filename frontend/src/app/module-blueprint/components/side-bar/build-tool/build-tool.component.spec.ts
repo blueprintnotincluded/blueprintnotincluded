@@ -23,6 +23,7 @@ describe("ComponentSideBuildToolComponent", () => {
       },
       changeItem: vi.fn(),
       subscribeBuildItemChanged: vi.fn(),
+      rotate: vi.fn(),
     };
     toolService = {
       buildTool,
@@ -79,6 +80,19 @@ describe("ComponentSideBuildToolComponent", () => {
       component.currentItem = { id: "LiquidPump" } as any;
       component.openBuildMenu();
       expect(buildMenu.openForItem).toHaveBeenCalledWith("LiquidPump");
+    });
+  });
+
+  // The card's Rotate button is a touch screen's only way to turn the brush;
+  // its label names the key the action is on.
+  describe("rotate", () => {
+    it("turns the build tool's brush", () => {
+      component.rotate();
+      expect(buildTool.rotate).toHaveBeenCalled();
+    });
+
+    it("labels the button with the rotate key", () => {
+      expect(component.rotateLabel).toBe("Rotate (O)");
     });
   });
 

@@ -34,9 +34,21 @@
       </div>
     </div>
 
-    <div *ngIf="currentItem.orientations.length > 1" i18n>
-      Press "O" to change item orientation
-    </div>
+    <!-- The only way to turn the brush on a touch screen; the key hint in the
+         label follows the user's binding. Hidden for an item with a single
+         orientation, which has nothing to turn to. -->
+    <button
+      *ngIf="currentItem.orientations.length > 1"
+      pButton
+      type="button"
+      class="ui-button rotate-button"
+      icon="pi pi-refresh"
+      [label]="rotateLabel"
+      (click)="rotate()"
+      i18n-pTooltip
+      pTooltip="Turn the item to its next orientation"
+      tooltipEvent="both"
+    ></button>
     <div
       *ngIf="!currentItemToBuild.buildCandidateResult.canBuild"
       class="error-red"
