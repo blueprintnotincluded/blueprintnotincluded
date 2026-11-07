@@ -61,11 +61,20 @@ export function buildLookups(dbPath: string): {
   knownIds: Set<string>;
   modByPrefabId: Map<string, string>;
   categoryLookup: CategoryLookup;
+  // Terrain-catalogue ids that are wild plants rather than geysers. The tamer
+  // signal in deriveCategory is "sits on a terrain feature"; a plant
+  // annotation shares the stored list but says nothing about taming.
+  plantIds: Set<string>;
 } {
   const raw = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
   const dlcIdsMap = new Map<string, string[]>();
   const knownIds = new Set<string>();
   const modByPrefabId = new Map<string, string>();
+  const plantIds = new Set<string>(
+    ((raw.terrainFeatures ?? []) as { id: string; kind?: string }[])
+      .filter(f => f.kind === 'plant')
+      .map(f => f.id)
+  );
 
   for (const building of raw.buildings) {
     dlcIdsMap.set(building.prefabId, building.dlcIds ?? []);
@@ -76,12 +85,12 @@ export function buildLookups(dbPath: string): {
 
   const categoryLookup = buildCategoryLookup(raw.buildMenuCategories, raw.buildMenuItems);
 
-  return { dlcIdsMap, knownIds, modByPrefabId, categoryLookup };
+  return { dlcIdsMap, knownIds, modByPrefabId, categoryLookup, plantIds };
 }
 
 async function run(dryRun: boolean, recategorize: boolean, limit: number | null) {
   const dbPath = path.resolve(__dirname, '../../../assets/database/database-2024.json');
-  const { dlcIdsMap, knownIds, modByPrefabId, categoryLookup } = buildLookups(dbPath);
+  const { dlcIdsMap, knownIds, modByPrefabId, categoryLookup, plantIds } = buildLookups(dbPath);
 
   const mongoUri = process.env.DB_URI;
   if (!mongoUri) throw new Error('DB_URI not set in environment');
@@ -145,7 +154,10 @@ async function run(dryRun: boolean, recategorize: boolean, limit: number | null)
     const derivedCategory = shouldDerive
       ? deriveCategory(prefabIds, categoryLookup, {
           title: doc.name,
-          terrainFeatureIds: (mdb?.terrainFeatures ?? []).map(feature => feature.id),
+          // Geysers, vents and volcanoes only — see plantIds.
+          terrainFeatureIds: (mdb?.terrainFeatures ?? [])
+            .map(feature => feature.id)
+            .filter(id => !plantIds.has(id)),
         })
       : null;
     if (doc.category == null) {

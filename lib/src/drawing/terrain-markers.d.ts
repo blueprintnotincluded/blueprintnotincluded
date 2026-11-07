@@ -23,7 +23,7 @@ export declare function terrainIconPlacement(left: number, top: number, width: n
 export declare function activeTileOf(feature: BniTerrainFeature): {
     x: number;
     y: number;
-};
+} | null;
 export declare function drawDashedRect(target: any, left: number, top: number, width: number, height: number, zoom: number, color: number, thickness: number, alpha?: number): void;
 export declare function drawTerrainFootprint(graphics: any, left: number, top: number, width: number, height: number, zoom: number, color?: number, thickness?: number, alpha?: number): void;
 export declare function positionTerrainSprite(sprite: any, left: number, top: number, width: number, height: number, rect: TerrainIconRect | undefined, zoom: number, inset?: number): TerrainIconPlacement;

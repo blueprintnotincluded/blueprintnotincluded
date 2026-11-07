@@ -6,6 +6,27 @@
   margin: 12px 0 6px;
   font-weight: 600;
 }
+/* Geysers | Plants. Same palette, two lists. */
+.kind-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+}
+.kind-tab {
+  flex: 1;
+  padding: 6px 0;
+  background: transparent;
+  border: 2px solid #6a6256;
+  border-radius: 4px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.kind-tab.active {
+  background: #d5c5a7;
+  color: #2b2620;
+  font-weight: 600;
+}
 /* 31 features is too many for a flat row, and the panel shares vertical space
    with the canvas — so the palette scrolls rather than pushing the card past
    the viewport. */

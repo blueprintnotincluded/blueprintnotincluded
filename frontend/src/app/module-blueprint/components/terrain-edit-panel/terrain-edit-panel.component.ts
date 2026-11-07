@@ -13,8 +13,9 @@ import {
 import { ToolService } from "../../services/tool-service";
 import { ToolType } from "../../common/tools/tool";
 
-// The one place a selected terrain annotation (geyser, vent, volcano) is shown
-// and acted on, pinned bottom-right the way the note edit panel is.
+// The one place a selected terrain annotation (geyser, vent, volcano, or a
+// wild plant) is shown and acted on, pinned bottom-right the way the note edit
+// panel is.
 //
 // A feature can be selected from ANY tool — clicking one on the canvas
 // selects it whether the user is on Select, Build or Terrain — so its controls
@@ -58,6 +59,11 @@ export class TerrainEditPanelComponent {
     return this.feature != null && this.def === null;
   }
 
+  // Drives the wording: "Terrain Feature" vs "Plant", and which hint applies.
+  get isPlant(): boolean {
+    return this.def?.isPlant === true;
+  }
+
   get iconUrl(): string {
     const feature = this.feature;
     return feature != null
@@ -73,7 +79,8 @@ export class TerrainEditPanelComponent {
   }
 
   // The one cell the feature acts on — where it erupts. That, not the anchor,
-  // is the coordinate someone planning a pump around it cares about.
+  // is the coordinate someone planning a pump around it cares about. Null for
+  // a plant, which erupts nowhere, so the template shows no such line.
   get activeTile(): { x: number; y: number } | null {
     const feature = this.feature;
     return feature != null ? activeTileOf(feature) : null;

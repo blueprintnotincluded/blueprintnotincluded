@@ -35,6 +35,14 @@ const CATALOGUE: BTerrainFeature[] = [
     dlcIds: [],
     activeTile: { x: 0, y: 1 },
   },
+  {
+    id: "ForestTree",
+    name: "Arbor Tree",
+    width: 1,
+    height: 1,
+    dlcIds: [],
+    kind: "plant",
+  },
 ];
 
 function building(overrides: Record<string, any> = {}): any {
@@ -260,6 +268,13 @@ describe("hoverCardContent", () => {
   it("calls an untitled text note a Note", () => {
     const card = cardFor({ kind: "note", ref: { x: 0, y: 0, type: 0 } });
     expect(card).toEqual({ header: "Note", bullets: [], selected: false });
+  });
+
+  it("names a plant and says nothing about erupting", () => {
+    const feature = { id: "ForestTree", x: 10, y: 10 };
+    expect(
+      cardFor({ kind: "terrain", ref: feature }, { x: 10, y: 10 }),
+    ).toEqual({ header: "Arbor Tree", bullets: [], selected: false });
   });
 
   it("says where a terrain feature erupts, on that cell only", () => {

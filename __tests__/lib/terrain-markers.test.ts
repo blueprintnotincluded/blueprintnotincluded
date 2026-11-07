@@ -45,6 +45,15 @@ const CATALOGUE: BTerrainFeature[] = [
     dlcIds: [],
     activeTile: { x: 1, y: 1 },
   },
+  // A wild plant: same catalogue, no active cell, as the importer emits it.
+  {
+    id: 'ForestTree',
+    name: 'Arbor Tree',
+    width: 1,
+    height: 1,
+    dlcIds: [],
+    kind: 'plant',
+  },
 ];
 
 describe('terrain icon/name resolution', function () {
@@ -103,11 +112,21 @@ describe('activeTileOf', function () {
   it('always lands inside the footprint', () => {
     for (const def of TerrainFeature.features) {
       const active = activeTileOf({ id: def.id, x: 0, y: 0 });
+      if (active == null) {
+        expect(def.isPlant, def.id).to.equal(true);
+        continue;
+      }
       expect(active.x, def.id).to.be.lessThan(def.width);
       expect(active.y, def.id).to.be.lessThan(def.height);
       expect(active.x, def.id).to.be.at.least(0);
       expect(active.y, def.id).to.be.at.least(0);
     }
+  });
+
+  // Nothing about a plant erupts, so there is no cell to report — null, not a
+  // made-up offset that the panel and hover card would then label "erupts".
+  it('has no active cell for a plant', () => {
+    expect(activeTileOf({ id: 'ForestTree', x: 4, y: 4 })).to.equal(null);
   });
 
   // An unknown id has a single-cell footprint, so its anchor is the only cell

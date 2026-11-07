@@ -45,6 +45,15 @@ const CATALOGUE: BTerrainFeature[] = [
     dlcIds: [],
     activeTile: { x: 1, y: 1 },
   },
+  // A wild plant: no active cell, as the importer emits it.
+  {
+    id: "ForestTree",
+    name: "Arbor Tree",
+    width: 1,
+    height: 1,
+    dlcIds: [],
+    kind: "plant",
+  },
 ];
 
 // PIXI is always mocked in specs — this is the smallest surface
@@ -119,6 +128,21 @@ describe("DrawTerrainOverlay", () => {
 
     const layer = vi.mocked(drawPixi.getNewContainer).mock.results[0].value;
     expect(layer.addChild.mock.calls.at(-1)![0]).toBe(activeTileLayer);
+  });
+
+  // A plant acts on no cell, so selecting one shows the outline and nothing
+  // else — never a magenta cell invented from a default offset.
+  it("draws no active cell for a selected plant", () => {
+    const features: BniTerrainFeature[] = [{ id: "ForestTree", x: 3, y: 4 }];
+    const activeTileLayer = vi.mocked(drawPixi.getNewGraphics).mock.results[1]
+      .value;
+
+    overlay.draw(features, camera, features[0]);
+    expect(activeTileLayer.drawRect).not.toHaveBeenCalled();
+    // The footprint outline is still drawn, on the lower layer.
+    const outlineLayer = vi.mocked(drawPixi.getNewGraphics).mock.results[0]
+      .value;
+    expect(outlineLayer.drawRect).toHaveBeenCalledWith(30, -40, 10, 10);
   });
 
   it("creates one pooled sprite per annotation", () => {

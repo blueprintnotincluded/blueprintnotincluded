@@ -247,8 +247,9 @@ describe('Terrain catalogue: active tile', function () {
   });
 
   it('splits the catalogue by shape, not by name', () => {
-    const geysers = TerrainFeature.features.filter(f => f.activeTile.x === 0);
-    const volcanoes = TerrainFeature.features.filter(f => f.activeTile.x === 1);
+    const terrain = TerrainFeature.byKind('terrain');
+    const geysers = terrain.filter(f => f.activeTile.x === 0);
+    const volcanoes = terrain.filter(f => f.activeTile.x === 1);
 
     // 9 gas vents + 9 liquid geysers; 10 volcanoes + 3 shapeless prefabs.
     expect(geysers).to.have.length(18);
@@ -256,6 +257,51 @@ describe('Terrain catalogue: active tile', function () {
     // Every geyser-offset feature is one of the two geyser footprints.
     for (const f of geysers)
       expect(`${f.width}x${f.height}`, f.id).to.be.oneOf(['2x4', '4x2']);
+  });
+});
+
+// Wild plants and trees share the catalogue and the annotation list with
+// geysers (a blueprint stores only the prefab id), and differ in what the
+// editor does with them: no active cell, no neutronium base.
+describe('Terrain catalogue: plants', function () {
+  before(function () {
+    loadGameDatabase();
+  });
+
+  it('ships the wild plants beside the geysers, told apart by kind', () => {
+    const plants = TerrainFeature.byKind('plant');
+    expect(plants.length, 'plants').to.be.at.least(40);
+    expect(TerrainFeature.byKind('terrain')).to.have.length(31);
+    expect(plants.length + 31).to.equal(TerrainFeature.features.length);
+    for (const id of ['ForestTree', 'PrickleFlower', 'BasicSingleHarvestPlant'])
+      expect(TerrainFeature.getFeature(id)?.isPlant, id).to.equal(true);
+  });
+
+  it('gives every plant a name, a positive footprint and a measured icon rect', () => {
+    for (const plant of TerrainFeature.byKind('plant')) {
+      expect(plant.name, plant.id).to.not.equal('');
+      expect(plant.width, plant.id).to.be.at.least(1);
+      expect(plant.height, plant.id).to.be.at.least(1);
+      expect(plant.uiImageRect, plant.id).to.not.equal(undefined);
+    }
+  });
+
+  it('treats a catalogue entry with no kind as terrain', () => {
+    const feature = new TerrainFeature();
+    feature.importFrom({ id: 'OilWell', name: 'Oil Reservoir', width: 4, height: 2, dlcIds: [] });
+    expect(feature.kind).to.equal('terrain');
+    expect(feature.isPlant).to.equal(false);
+  });
+
+  it('round-trips a plant through the same metadata payload as a geyser', () => {
+    const encoded = encodeTerrainFeatures(undefined, [
+      { id: 'ForestTree', x: 2, y: 3 },
+      { id: 'GeyserGeneric_steam', x: 5, y: 5 },
+    ]);
+    expect(decodeTerrainFeatures(encoded)).to.deep.equal([
+      { id: 'ForestTree', x: 2, y: 3 },
+      { id: 'GeyserGeneric_steam', x: 5, y: 5 },
+    ]);
   });
 });
 

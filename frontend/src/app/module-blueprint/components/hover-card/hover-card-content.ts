@@ -176,11 +176,12 @@ function describeTerrain(
   feature: BniTerrainFeature,
   cell: { x: number; y: number },
 ): Omit<HoverCard, "selected"> {
+  // Null for a plant: nothing erupts, so the card is the name alone.
   const active = activeTileOf(feature);
   return {
     header: terrainDisplayName(feature),
     bullets:
-      active.x === cell.x && active.y === cell.y
+      active != null && active.x === cell.x && active.y === cell.y
         ? [{ text: $localize`Erupts here` }]
         : [],
   };

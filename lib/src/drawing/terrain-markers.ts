@@ -1,7 +1,8 @@
 import { BniTerrainFeature } from '../blueprint/terrain-metadata';
 import { TerrainFeature } from '../b-export/b-terrain-feature';
 
-// How a terrain annotation becomes marks on the canvas: footprint geometry,
+// How a terrain annotation — a geyser or a wild plant — becomes marks on the
+// canvas: footprint geometry,
 // icon placement, dashed-outline drawing. Pure and renderer-agnostic, because
 // three renderers need the same answers — the editor overlay, the
 // client-side export/thumbnail snapshots, and the server-side preview worker
@@ -110,13 +111,16 @@ export function terrainIconPlacement(
 
 // The absolute cell a placed feature acts on. The offset comes from the
 // catalogue (see BTerrainFeature.activeTile); an id we do not recognise has a
-// single-cell footprint, so its anchor is the only cell it can act on.
+// single-cell footprint, so its anchor is the only cell it can act on. A plant
+// acts on nothing — it is scenery through and through — so it has no such
+// cell, and callers draw and label nothing rather than a made-up one.
 export function activeTileOf(feature: BniTerrainFeature): {
   x: number;
   y: number;
-} {
+} | null {
   const known = TerrainFeature.getFeature(feature.id);
   if (known == null) return { x: feature.x, y: feature.y };
+  if (known.isPlant) return null;
   return {
     x: feature.x + known.activeTile.x,
     y: feature.y + known.activeTile.y,

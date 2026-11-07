@@ -4,10 +4,10 @@ Design rationale for the shared blueprint data model. Loaded automatically by
 Claude Code when working in this directory. See root `CLAUDE.md` for
 project-wide setup, commands, and constraints.
 
-### Terrain annotations (geysers, vents, volcanoes)
+### Terrain annotations (geysers, vents, volcanoes, wild plants)
 
 Natural map features placed on a blueprint as _annotations_ — "this pump array sits on a
-chlorine vent". Dupes cannot build them, so they are excluded from every build-related model:
+chlorine vent", "these ladders thread an arbor tree". Dupes cannot build them, so they are excluded from every build-related model:
 no `BlueprintItem`, no material cost, no ingredient totals, no build order, and never an entry
 in the exported `buildings` array (a geyser written as a building resolves to a null
 `BuildingDef` in the BlueprintsV2 mod, which then rejects the whole config).
@@ -19,6 +19,20 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   these are not re-resolved through `GameStringService`), the real footprint, and `dlcIds`.
   The export already ships one flat icon per prefab, so art needs no separate sourcing.
   Loaded via `TerrainFeature.load()` alongside `BuildableElement`/`OniItem`.
+- **Plants share the catalogue** — every entity tagged `Plant` in `entities.json` (the tag
+  `ExtendEntityToBasicPlant` gives crops, decor plants and trees alike) is emitted into the
+  same `terrainFeatures` array with `kind: 'plant'`; geysers carry `kind: 'terrain'`, and an
+  entry with no `kind` (a database predating the field) reads as terrain. One catalogue and
+  one annotation list because a blueprint stores only the prefab id, so the kind is a property
+  of the prefab, not of the placement: plants needed no storage schema change, and an older
+  client reading a plant id sees an unknown feature, which it already keeps and renders as a
+  placeholder. The kind decides what differs in the editor — a plant has **no active tile**
+  (`activeTileOf` returns `null`, so the panel and hover card label no "erupts" cell and the
+  overlay draws no magenta highlight), seeds **no neutronium base**, and casts no vote for the
+  `tamer` category in `derive-metadata` (`plantIds` in `buildLookups`). The palette shows the
+  two kinds on two tabs (`TerrainTool`'s current feature decides which is open) and hides the
+  tabs when the database has no plants. The export already shipped the plant art, so adding
+  the catalogue cost ~10 KB of JSON and no new PNGs.
 - **Icon placement** — each entry also carries `uiImageRect`, the same cells/footprint-relative
   placement rect buildings use. Terrain icons are tight-cropped ~200 px/cell renders (a 3x3
   volcano's PNG is 693x725), so stretching one to the footprint both squashes its aspect and
