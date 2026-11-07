@@ -31,6 +31,11 @@ echo "== $project: starting"
 # fails after --wait-timeout. The app's start_period is 60 s; mongo's 30 s.
 "$compose" "$project" up -d --remove-orphans --wait --wait-timeout 180
 
+# The image this project ran until a moment ago is untagged now; without this
+# every deploy leaves one behind and the disk fills (2026-11-07: it did).
+echo "== $project: pruning dangling images"
+docker image prune -f | tail -n 1
+
 echo "== $project: running"
 "$compose" "$project" ps
 "$compose" "$project" exec -T app node -e "fetch('http://127.0.0.1:3000/api/version').then(r => r.json()).then(v => console.log('version', v.version, 'commit', v.buildCommit, 'built', v.buildTime))"

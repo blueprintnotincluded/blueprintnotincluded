@@ -138,6 +138,8 @@ services:
       BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-30 3 * * *}
       BACKUP_KEEP_DAILY_DAYS: ${BACKUP_KEEP_DAILY_DAYS:-14}
       BACKUP_KEEP_WEEKLY_DAYS: ${BACKUP_KEEP_WEEKLY_DAYS:-56}
+      BACKUP_KEEP_MONTHLY_DAYS: ${BACKUP_KEEP_MONTHLY_DAYS:-62}
+      BACKUP_KEEP_SEED_DAYS: ${BACKUP_KEEP_SEED_DAYS:-30}
       BACKUP_REMOTE: r2:${R2_BUCKET:-bpni-backups}/${COMPOSE_PROJECT_NAME:-bpni}
       # rclone reads its remote from the environment: no config file to write.
       RCLONE_CONFIG_R2_TYPE: s3
@@ -147,8 +149,6 @@ services:
       RCLONE_CONFIG_R2_ENDPOINT: ${R2_ENDPOINT:-}
       RCLONE_CONFIG_R2_ACL: private
       RCLONE_CONFIG_R2_NO_CHECK_BUCKET: "true"
-    volumes:
-      - /srv/bpni/dumps:/dumps
     depends_on:
       mongo:
         condition: service_healthy

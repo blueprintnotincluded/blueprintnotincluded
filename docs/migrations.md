@@ -89,7 +89,7 @@ Rules:
 - Server access is key-only SSH as `deploy`; the workflows use the `DEPLOY_SSH_KEY`
   repository secret. Nothing on the box is reachable from this dev container.
 - Dumps for a local rehearsal come from R2 (`rclone copy r2:bpni-backups/bpni-production/daily/<archive>`
-  with the scoped R2 token) or from the box's `/srv/bpni/dumps/`.
+  with the scoped R2 token); the box keeps no database archives.
 - `/.env` — local dev only. Never put prod or staging credentials here.
 - `/prod-dump/` — gitignored. Real prod data; never commit.
 - DigitalOcean (cut over from on 2026-10-25) stays untouched until its decommission; its

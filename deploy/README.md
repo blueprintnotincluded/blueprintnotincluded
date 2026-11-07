@@ -13,7 +13,8 @@ that zone must contain). Images come from `ghcr.io/blueprintnotincluded/blueprin
   deploy/        this directory, rsynced by the workflows (never edit on the box)
   production/    .env (compose-level: tag, passwords, tunnel token, R2) + app.env (the app's env)
   staging/       same two files, staging values
-  dumps/         scratch for seed archives and env backups; the backup image mounts it as /dumps
+  dumps/         env-backup archives only, until copied off the box; database archives
+                 never land here (they stream to and from R2)
 ```
 
 Everything below is run as the `deploy` user on the box unless it says otherwise.
@@ -90,9 +91,10 @@ with the same tokens serves the same hostnames with no DNS change.
 
 Create bucket **bpni-backups** (any location). Create an **R2 API token** scoped to that
 bucket with *Object Read & Write*; keep the Access Key ID, Secret Access Key and the
-endpoint `https://<account id>.r2.cloudflarestorage.com`. Free tier: 10 GB stored, no
-egress fees; the nightly archives are a few hundred MB each because `previewimages` is
-excluded (see Backups).
+endpoint `https://<account id>.r2.cloudflarestorage.com`. No egress fees; the first
+10 GB stored are free and the rest is about $0.015 per GB-month. With the retention below
+(14 daily + 8 weekly archives of a few hundred MB, two monthly ones with `previewimages`
+at ~4.5 GB) the bucket sits around 15–20 GB, so expect a bill of a few cents.
 
 ### 4. GitHub
 
@@ -157,8 +159,8 @@ now answer on their hostnames with an **empty database**.
 ### 7. Data
 
 Production: "Restore last night's data" below (from R2), or "Seed from a dump" from another
-cluster. Staging: `bin/seed-from-dump.sh production dump local`, then
-`bin/seed-from-dump.sh staging restore <archive>`. Then `migrate:status` in each project.
+cluster. Staging: `bin/seed-from-dump.sh staging clone production`. Then `migrate:status`
+in each project.
 
 ## Everyday operations
 
@@ -178,7 +180,7 @@ cluster. Staging: `bin/seed-from-dump.sh production dump local`, then
 | Rotate the tunnel token | New token in `.env`, `bin/compose.sh <project> up -d cloudflared`. |
 | After any env change | `bin/env-backup.sh backup`, copy the archive off the box; the old archive can be deleted. |
 | OS updates | unattended-upgrades nightly; reboots at 05:17 UTC only when a kernel needs it; every container has `restart: unless-stopped`, Docker starts at boot, so nothing needs a login. |
-| Disk | `df -h /`; `/srv/bpni/dumps` holds seed archives and env backups — delete what is no longer needed. |
+| Disk | `df -h /`. Nothing on the box is an archive: dumps stream to R2, `deploy.sh` prunes the images it replaces, container logs rotate. `/srv/bpni/dumps` holds only env-backup archives waiting to be copied off — delete them once they are. If the disk still fills, `docker system df` says which of images, volumes or build cache it is. |
 
 The app's preview render worker sizes itself from the container's memory limit
 (`app/api/services/render-memory.ts`); at the 1 GB production limit it runs at the 384 MB
@@ -235,15 +237,27 @@ Staging has its own database now, so a migration can be rehearsed there first
 ### Backups
 
 The `backup` sidecar (production only, `COMPOSE_PROFILES=backup`) runs `backup/backup.sh`
-at 03:30 UTC: `mongodump --gzip --archive` of `blueprintnotincluded` **excluding
-`previewimages`**, uploaded with rclone to `r2:bpni-backups/bpni-production/daily/`
-(kept 14 days) and, on Sundays, `weekly/` (kept 8 weeks). The run logs the archive size and
-the bucket total; `bin/compose.sh production logs backup` shows the last runs.
+at 03:30 UTC. `mongodump --gzip --archive` writes to stdout and `rclone rcat` streams it
+into the bucket, so no archive is ever written to the box's disk — the server is not an
+archive store; R2 is. Under `r2:bpni-backups/`:
+
+| Prefix | What | Kept |
+|---|---|---|
+| `bpni-production/daily/` | every night, `blueprintnotincluded` **excluding `previewimages`** | 14 days |
+| `bpni-production/weekly/` | Sundays, a server-side copy of that night's daily | 8 weeks |
+| `bpni-production/monthly/` | first Sunday of the month, a second dump with **every** collection (~4.5 GB) | 62 days, so two |
+| `seeds/` | ad-hoc archives written by `bin/seed-from-dump.sh dump` | 30 days |
+
+A dump that fails part-way is deleted from the bucket again before the run fails (rclone
+sees end-of-stream, not an error, so the object would otherwise look complete). The run
+logs each archive's size and the bucket total; `bin/compose.sh production logs backup`
+shows the last runs. Retention: `BACKUP_KEEP_{DAILY,WEEKLY,MONTHLY,SEED}_DAYS` in `.env`.
 
 `previewimages` is the rendered-preview cache: about 3 GB of WebP (three variants, roughly
-600 KB per blueprint) that the app rebuilds on request, and that would exhaust R2's free
-10 GB in three nights. A restore therefore comes up with cold previews; they re-render as
-pages are viewed, or all at once with `npm run backfill-previews` (below). Moving that
+600 KB per blueprint) that the app rebuilds on request, and that would multiply the bucket
+by ten if every nightly carried it. A daily restore therefore comes up with cold previews;
+they re-render as pages are viewed, or all at once with `npm run backfill-previews`
+(below). The monthly archive has them, for a rebuild that should come up warm. Moving that
 collection out of Mongo into R2 is a separate, later change; until then the exclusion is
 the trade-off.
 
@@ -253,41 +267,53 @@ the Mongo volumes (crash-consistent, up to a week old).
 ### Restore last night's data
 
 Into production, from the newest R2 archive. The site serves the old data until the
-restore lands; the app is stopped for the restore itself (a few minutes), not for the
-download.
+restore lands; the app is stopped for the restore itself (a few minutes). The archive
+streams from R2 straight into mongorestore; nothing is downloaded to the box.
 
 ```bash
-bin/compose.sh production --profile backup run --rm --no-deps -T backup rclone lsf r2:bpni-backups/bpni-production/daily/
-bin/compose.sh production --profile backup run --rm --no-deps -T backup rclone copy r2:bpni-backups/bpni-production/daily/<archive> /dumps/
 bin/compose.sh production stop app
-bin/seed-from-dump.sh production restore <archive>
+bin/seed-from-dump.sh production restore latest
 bin/compose.sh production up -d app
 bin/compose.sh production exec app npm run migrate:status
 ```
 
-Previews come up cold (`previewimages` is excluded from the nightly archive) and re-render
-as pages are viewed, or all at once with `npm run backfill-previews` (Batch tasks).
+`latest` is the newest `daily/` archive. Any other one goes by its bucket path:
+`bin/compose.sh production --profile backup run --rm --no-deps -T backup rclone lsf
+r2:bpni-backups/bpni-production/weekly/` to list, then `restore
+bpni-production/weekly/<archive>` (or `monthly/`, which carries previews).
+
+Previews come up cold from a daily or weekly archive (`previewimages` is excluded) and
+re-render as pages are viewed, or all at once with `npm run backfill-previews` (Batch
+tasks); a `monthly/` archive restores them warm.
 
 ### Restore drill
 
 ```bash
-bin/restore-drill.sh            # production; exit 0 = pass
+bin/restore-drill.sh            # production, newest daily; exit 0 = pass
+bin/restore-drill.sh production monthly
 ```
 
-Fetches the newest daily archive, restores it into a throwaway `mongo:8.2.12` container on
-the project's network, prints live → restored counts per collection (excluded collections
-must be absent, every other count within 5 % of live), and removes the container. Run it
-after the first nightly backup and whenever the backup image, exclusions or retention
-change.
+Streams the newest archive of that kind into a throwaway `mongo:8.2.12` container on the
+project's network, prints live → restored counts per collection (excluded collections
+must be absent from a daily or weekly archive and present in a monthly one, every other
+count within 5 % of live — `DRILL_TOLERANCE_PERCENT` widens it for a weeks-old monthly),
+and removes the container. Nothing touches the disk. Run it after the first nightly
+backup, after the first monthly one, and whenever the backup image, exclusions or
+retention change.
 
 ### Seed from a dump
 
-`bin/seed-from-dump.sh <project> <dump|restore|all> <uri|env|local|archive>` runs
-mongodump / mongorestore inside the backup image, with credentials passed through a
-0600 config file rather than arguments. Dumps include **every** collection (previewimages
-too) so a seeded site has warm previews. A restore first drops every collection of the
-project's `blueprintnotincluded` database (users are kept), so nothing stale survives it.
-`all` stops before touching the database when the dump fails.
+`bin/seed-from-dump.sh <project> <dump|restore|all|clone> <uri|env|local|archive|project>`
+runs mongodump / mongorestore / rclone inside the backup image, with credentials passed
+through a 0600 config file rather than arguments. `dump` streams the archive to
+`r2:bpni-backups/seeds/seed-<stamp>.archive.gz` (pruned after 30 days by the nightly job)
+and `restore` streams it back; neither writes a file on the box. Dumps include **every**
+collection (previewimages too) so a seeded site has warm previews. A restore first drops
+every collection of the project's `blueprintnotincluded` database (users are kept), so
+nothing stale survives it. `all` stops before touching the database when the dump fails.
+`clone` pipes one project's mongodump into the other's mongorestore and stores nothing
+anywhere — the staging refresh; it needs no R2 credentials, `dump`/`restore` on staging
+need the `R2_*` lines in its `.env`.
 
 ```bash
 # From another cluster's URI. Type it into the environment rather than the command line;
@@ -298,9 +324,8 @@ bin/compose.sh production stop app
 bin/seed-from-dump.sh production restore <archive>
 bin/compose.sh production up -d app
 
-# Refresh staging from production on the same box, through /srv/bpni/dumps
-bin/seed-from-dump.sh production dump local
-bin/seed-from-dump.sh staging restore <archive>
+# Refresh staging from production on the same box
+bin/seed-from-dump.sh staging clone production
 ```
 
 Then `migrate:status` / `migrate:up` in that project. `read -rs` takes the next line typed
@@ -351,13 +376,14 @@ most of it.
    `bin/compose.sh production pull --ignore-buildable`,
    `bin/compose.sh production --profile backup build backup`,
    `bin/compose.sh production up -d mongo`.
-6. **Server**: "Restore last night's data" into production, minus its `stop app` / `up -d
-   app` lines (nothing is running yet). Then `bin/deploy.sh production`: app and tunnel come
-   up on the restored data and the hostname goes live.
-7. **Server**: `bin/deploy.sh staging`, then staging from production with `dump local` /
-   `restore` (staging may serve an empty database for those minutes).
+6. **Server**: `bin/seed-from-dump.sh production restore latest` (last night's daily;
+   `restore bpni-production/monthly/<archive>` instead for warm previews, at up to a
+   month's staleness — check `rclone lsf` first). Then `bin/deploy.sh production`: app and
+   tunnel come up on the restored data and the hostname goes live.
+7. **Server**: `bin/deploy.sh staging`, then `bin/seed-from-dump.sh staging clone
+   production` (staging may serve an empty database for those minutes).
 8. Log in, open the editor, `bin/compose.sh production logs -f --tail 100 app` for a few
-   minutes. Previews re-render on view.
+   minutes. Previews re-render on view unless the monthly archive was restored.
 
 **Drill** (do it once, and after any change to this directory that touches more than one
 file): a throwaway CX23, a temporary tunnel `bpni-drill` with the route
