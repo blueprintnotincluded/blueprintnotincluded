@@ -1,5 +1,6 @@
 import { CATEGORIES, Category } from './blueprint-metadata';
 import { DlcId } from './dlc';
+import { TerrainFeature } from '../b-export/b-terrain-feature';
 
 // The set of DLCs a blueprint needs in order to be built: the union of every
 // placed building's dlcIds, deduped and sorted so storage and diffs are stable.
@@ -323,7 +324,10 @@ export interface CategoryContext {
   // Keyword rules are English today; a translated-title pass is a follow-up.
   title?: string | null;
   // Terrain annotation ids ("GeyserGeneric_steam", "OilWell"): any one of
-  // them is the tamer signal, whatever it is.
+  // them is the tamer signal, whatever it is. Wild plants share the
+  // annotation list but say nothing about taming, so callers pass the list
+  // as stored and the analyzer drops the plant ids itself — one rule, every
+  // caller (save dialog, derive batch).
   terrainFeatureIds?: readonly string[] | null;
 }
 
@@ -367,7 +371,10 @@ export const TITLE_SIGNATURES: readonly TitleSignature[] = [
 function contextVotes(context: CategoryContext | undefined): SignatureVote[] {
   if (context == null) return [];
   const votes: SignatureVote[] = [];
-  if ((context.terrainFeatureIds?.length ?? 0) > 0) {
+  const tamerIds = (context.terrainFeatureIds ?? []).filter(
+    (id) => TerrainFeature.getFeature(id)?.isPlant !== true
+  );
+  if (tamerIds.length > 0) {
     votes.push({ category: 'tamer', weight: CONTEXT_WEIGHT });
   }
   const title = context.title ?? '';

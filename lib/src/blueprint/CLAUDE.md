@@ -31,7 +31,8 @@ in the exported `buildings` array (a geyser written as a building resolves to a 
   placeholder. The kind decides what differs in the editor — a plant has **no active tile**
   (`activeTileOf` returns `null`, so the panel and hover card label no "erupts" cell and the
   overlay draws no magenta highlight), seeds **no neutronium base**, and casts no vote for the
-  `tamer` category in `derive-metadata` (`plantIds` in `buildLookups`). The palette shows the
+  `tamer` category (`contextVotes` in `blueprint-analyzer` drops plant ids itself, so the save
+  dialog and `derive-metadata` pass the stored list as is; the batch loads the catalogue for it). The palette shows the
   two kinds on two tabs (`TerrainTool`'s current feature decides which is open) and hides the
   tabs when the database has no plants. The export already shipped the plant art, so adding
   the catalogue cost ~10 KB of JSON and no new PNGs. Plant icons are menu icons with no
