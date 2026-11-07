@@ -10,6 +10,7 @@ import { TerrainAnnotationService } from "../../services/terrain-annotation.serv
 import { BlueprintService } from "../../services/blueprint-service";
 import { ToolService } from "../../services/tool-service";
 import { ToolType } from "../../common/tools/tool";
+import { KeybindingService } from "../../services/keybinding.service";
 
 const CATALOGUE: BTerrainFeature[] = [
   {
@@ -55,6 +56,7 @@ describe("TerrainEditPanelComponent", () => {
     component = new TerrainEditPanelComponent(
       terrainService,
       toolService as unknown as ToolService,
+      new KeybindingService(),
     );
   });
 

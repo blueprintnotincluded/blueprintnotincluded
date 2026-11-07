@@ -116,16 +116,25 @@
     </label>
 
     <p class="note-panel-hint" *ngIf="isDraft" i18n>
-      Click on the blueprint to place a note. Right-click to return to Select.
+      Click on the blueprint to place a note. Right-click, or tap Select in the
+      toolbar, to return to Select.
     </p>
     <button
       type="button"
       class="note-panel-delete"
       *ngIf="!isDraft"
       (click)="deleteNote()"
+    >
+      {{ deleteLabel }}
+    </button>
+    <button
+      type="button"
+      class="note-panel-link"
+      *ngIf="!isDraft"
+      (click)="placeMore()"
       i18n
     >
-      Delete note
+      Place more notes like this…
     </button>
   </div>
 </div>

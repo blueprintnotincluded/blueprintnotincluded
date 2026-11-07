@@ -20,6 +20,39 @@ describe("KeybindingService", () => {
     service = new KeybindingService();
   });
 
+  // The key named in a button label or tooltip is read from the live
+  // bindings, so a rebind renames it and an unbind removes it.
+  describe("hint", () => {
+    it("formats the first bound chord", () => {
+      expect(service.hint(ShortcutAction.buildRotate)).toBe("O");
+      expect(service.hint(ShortcutAction.editDelete)).toBe("Del");
+    });
+
+    it("is empty for an unbound action, so the label stands alone", () => {
+      expect(service.hint(ShortcutAction.toolScissors)).toBe("");
+      expect(service.withHint("Scissors", ShortcutAction.toolScissors)).toBe(
+        "Scissors",
+      );
+    });
+
+    it("puts the key after the label", () => {
+      expect(service.withHint("Rotate", ShortcutAction.buildRotate)).toBe(
+        "Rotate (O)",
+      );
+    });
+
+    it("follows a rebind", () => {
+      service.setChords(ShortcutAction.buildRotate, [makeChord("KeyR")]);
+      expect(service.withHint("Rotate", ShortcutAction.buildRotate)).toBe(
+        "Rotate (R)",
+      );
+      service.setChords(ShortcutAction.buildRotate, []);
+      expect(service.withHint("Rotate", ShortcutAction.buildRotate)).toBe(
+        "Rotate",
+      );
+    });
+  });
+
   describe("defaults", () => {
     it("starts from the catalogue defaults", () => {
       expect(service.getSerializedChords(ShortcutAction.cameraPanUp)).toEqual(

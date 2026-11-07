@@ -3,6 +3,7 @@ import { Observable, Subject } from "rxjs";
 import {
   KeyChord,
   chordEquals,
+  formatChord,
   parseChord,
   serializeChord,
 } from "../keybindings/key-chord";
@@ -51,6 +52,29 @@ export class KeybindingService {
 
   isCustomized(actionId: ShortcutActionId): boolean {
     return this.overrides[actionId] != null;
+  }
+
+  // ⌘/⌥ read better than Meta/Alt on a Mac, and are what the OS prints.
+  readonly isApple =
+    typeof navigator != "undefined" &&
+    /Mac|iPhone|iPad/.test(navigator.platform);
+
+  // The key an action currently answers to, as a short label for a tooltip or
+  // a button ("O", "Del", "Ctrl + Z"): the first bound chord, formatted for
+  // this platform. "" for an unbound action, so a hint disappears instead of
+  // naming a key that does nothing. Every key named in the UI goes through
+  // here rather than being written into the text, so a rebind updates the
+  // hint and a user who unbinds a key is not told to press it.
+  hint(actionId: ShortcutActionId): string {
+    const chord = this.getChords(actionId)[0];
+    return chord == null ? "" : formatChord(chord, this.isApple);
+  }
+
+  // "Rotate (O)" - a label with the action's key hint after it, or the bare
+  // label when the action is unbound.
+  withHint(label: string, actionId: ShortcutActionId): string {
+    const hint = this.hint(actionId);
+    return hint == "" ? label : `${label} (${hint})`;
   }
 
   setChords(actionId: ShortcutActionId, chords: KeyChord[]): void {

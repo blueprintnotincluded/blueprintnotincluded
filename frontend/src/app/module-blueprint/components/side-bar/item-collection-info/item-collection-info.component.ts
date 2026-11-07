@@ -13,6 +13,8 @@ import {
   BlueprintItemWire,
 } from "../../../../../../../lib/index";
 import { ElementChangeInfo } from "../buildable-element-picker/buildable-element-picker.component";
+import { KeybindingService } from "src/app/module-blueprint/services/keybinding.service";
+import { ShortcutAction } from "src/app/module-blueprint/keybindings/shortcut-actions";
 
 @Component({
   selector: "app-item-collection-info",
@@ -73,7 +75,24 @@ export class ItemCollectionInfoComponent implements OnInit, IObsSelected {
   constructor(
     private blueprintService: BlueprintService,
     private toolService: ToolService,
+    private keybindings: KeybindingService,
   ) {}
+
+  // The buttons' tooltips name the key each action also answers to, read
+  // from the user's bindings rather than written in.
+  get copyTooltip(): string {
+    return this.keybindings.withHint(
+      $localize`:select tool button:Build this type of building`,
+      ShortcutAction.toolBuild,
+    );
+  }
+
+  get destroyTooltip(): string {
+    return this.keybindings.withHint(
+      $localize`:select tool button:Destroy these buildings`,
+      ShortcutAction.editDelete,
+    );
+  }
 
   ngOnInit() {
     const numItems = this.itemCollection.items.length;

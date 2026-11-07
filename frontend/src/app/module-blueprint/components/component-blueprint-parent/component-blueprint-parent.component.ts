@@ -41,6 +41,7 @@ import {
 import { GameStringService } from "../../services/game-string-service";
 import { BuildMenuService } from "../../services/build-menu.service";
 import { KeyboardShortcutService } from "../../services/keyboard-shortcut.service";
+import { KeybindingService } from "../../services/keybinding.service";
 import {
   ShortcutAction,
   ShortcutActionId,
@@ -135,6 +136,7 @@ export class ComponentBlueprintParentComponent
   selectionTool!: ComponentSideSelectionToolComponent;
 
   public readonly ToolType = ToolType;
+  public readonly ShortcutAction = ShortcutAction;
 
   constructor(
     private messageService: MessageService,
@@ -146,6 +148,7 @@ export class ComponentBlueprintParentComponent
     private http: HttpClient,
     public gameStringService: GameStringService,
     private shortcutService: KeyboardShortcutService,
+    public keybindings: KeybindingService,
     private userService: UserService,
     private unsavedWork: UnsavedWorkService,
     private pendingImport: PendingImportService,

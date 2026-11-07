@@ -6,12 +6,16 @@ import { NotesTool } from "../../common/tools/notes-tool";
 import { ToolService } from "../../services/tool-service";
 import { BlueprintService } from "../../services/blueprint-service";
 import { ToolType } from "../../common/tools/tool";
+import { KeybindingService } from "../../services/keybinding.service";
 
 describe("NoteEditPanelComponent", () => {
   let component: NoteEditPanelComponent;
   let worldNoteService: WorldNoteService;
   let notesTool: NotesTool;
-  let toolService: { changeTool: ReturnType<typeof vi.fn> };
+  let toolService: {
+    changeTool: ReturnType<typeof vi.fn>;
+    openNotesToolLike: ReturnType<typeof vi.fn>;
+  };
   let blueprint: {
     worldNotes: BniWorldNote[];
     emitBlueprintChanged: ReturnType<typeof vi.fn>;
@@ -22,11 +26,12 @@ describe("NoteEditPanelComponent", () => {
     const blueprintService = { blueprint } as unknown as BlueprintService;
     worldNoteService = new WorldNoteService(blueprintService);
     notesTool = new NotesTool(blueprintService, worldNoteService);
-    toolService = { changeTool: vi.fn() };
+    toolService = { changeTool: vi.fn(), openNotesToolLike: vi.fn() };
     component = new NoteEditPanelComponent(
       worldNoteService,
       toolService as unknown as ToolService,
       notesTool,
+      new KeybindingService(),
     );
   });
 
@@ -85,6 +90,21 @@ describe("NoteEditPanelComponent", () => {
     expect(notesTool.pendingTextNote.tinthex).to.equal("0000ffff");
     expect(blueprint.worldNotes).to.equal(notes);
     expect(blueprint.emitBlueprintChanged).not.toHaveBeenCalled();
+  });
+
+  // The same link the terrain and dig panels have to their tools.
+  it("placeMore() hands the selected note to the Notes tool as its brush", () => {
+    const note: BniWorldNote = { x: 1, y: 1, type: 1, id: 7 };
+    blueprint.worldNotes.push(note);
+    worldNoteService.select(note);
+
+    component.placeMore();
+
+    expect(toolService.openNotesToolLike).toHaveBeenCalledWith(note);
+  });
+
+  it("names the delete key on the Delete button", () => {
+    expect(component.deleteLabel).toBe("Delete note (Del)");
   });
 
   it("close() from the draft template returns to the select tool", () => {

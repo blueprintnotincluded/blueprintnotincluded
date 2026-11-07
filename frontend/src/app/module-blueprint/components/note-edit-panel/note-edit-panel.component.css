@@ -209,3 +209,19 @@
 .note-panel-delete:hover {
   background: #a83535;
 }
+
+.note-panel-link {
+  margin-top: 2px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: var(--p-primary-color);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.note-panel-link:hover {
+  text-decoration: underline;
+}

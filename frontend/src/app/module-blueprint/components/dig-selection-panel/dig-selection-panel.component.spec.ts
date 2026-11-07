@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { DigSelectionPanelComponent } from "./dig-selection-panel.component";
 import { DigSelectionService } from "../../services/dig-selection.service";
 import { GameStringService } from "../../services/game-string-service";
+import { KeybindingService } from "../../services/keybinding.service";
 import { ToolService } from "../../services/tool-service";
 import { ToolType } from "../../common/tools/tool";
 
@@ -23,6 +24,7 @@ describe("DigSelectionPanelComponent", () => {
       digSelection as unknown as DigSelectionService,
       toolService as unknown as ToolService,
       gameStrings as unknown as GameStringService,
+      new KeybindingService(),
     );
   });
 
