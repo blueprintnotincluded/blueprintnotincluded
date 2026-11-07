@@ -81,10 +81,32 @@ async function main() {
   const zipName = zipNameFor(json);
   const zipPath = path.join(dbDir, zipName);
 
-  if (writeIfChanged(generatedPath, generatedSource(zipName)))
+  // Order matters: the zip is produced first, then the stale siblings go, then
+  // the constant moves. A failure part way leaves the previous zip and the
+  // constant naming it in place, so the checkout still builds and serves.
+  if (fs.existsSync(zipPath)) {
+    console.log("[build-database-zip] zip up to date, skipping");
+  } else {
+    const zip = new JSZip();
+    // Entry MUST be named "database.json": the app reads zipped.files["database.json"].
+    // Fixed date keeps the output reproducible (it is gitignored, but tidy regardless).
+    zip.file("database.json", json, { date: new Date(0) });
+    const buf = await zip.generateAsync({
+      type: "nodebuffer",
+      compression: "DEFLATE",
+      compressionOptions: { level: 9 },
+    });
+    // Written beside and renamed over, so the name is only ever on a whole file:
+    // a zip named by its content must never exist half-written.
+    const tmpPath = `${zipPath}.${process.pid}.tmp`;
+    fs.writeFileSync(tmpPath, buf);
+    fs.renameSync(tmpPath, zipPath);
     console.log(
-      `[build-database-zip] wrote ${path.relative(process.cwd(), generatedPath)}`,
+      `[build-database-zip] wrote ${path.relative(process.cwd(), zipPath)} (${
+        buf.length
+      } bytes)`,
     );
+  }
 
   // Prune zips for other hashes: only the current one is referenced, and a stale
   // sibling would otherwise ship in every build until someone noticed.
@@ -93,26 +115,10 @@ async function main() {
       fs.unlinkSync(path.join(dbDir, name));
   }
 
-  if (fs.existsSync(zipPath)) {
-    console.log("[build-database-zip] zip up to date, skipping");
-    return;
-  }
-
-  const zip = new JSZip();
-  // Entry MUST be named "database.json": the app reads zipped.files["database.json"].
-  // Fixed date keeps the output reproducible (it is gitignored, but tidy regardless).
-  zip.file("database.json", json, { date: new Date(0) });
-  const buf = await zip.generateAsync({
-    type: "nodebuffer",
-    compression: "DEFLATE",
-    compressionOptions: { level: 9 },
-  });
-  fs.writeFileSync(zipPath, buf);
-  console.log(
-    `[build-database-zip] wrote ${path.relative(process.cwd(), zipPath)} (${
-      buf.length
-    } bytes)`,
-  );
+  if (writeIfChanged(generatedPath, generatedSource(zipName)))
+    console.log(
+      `[build-database-zip] wrote ${path.relative(process.cwd(), generatedPath)}`,
+    );
 }
 
 main().catch((err) => {
