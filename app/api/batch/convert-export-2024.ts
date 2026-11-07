@@ -153,6 +153,28 @@ function overlayFromViewMode(viewMode: string | null, unknown: Set<string>): Ove
 // ---------------------------------------------------------------------------
 // Flat-icon PNG dimensions (read the IHDR chunk; no image decode needed).
 // ---------------------------------------------------------------------------
+// A plant's icon rect, derived rather than measured. The exporter measures rects
+// only for buildings and geysers — the things it renders at ~200 px/cell. Plant
+// icons are the game's menu icons instead (about 128 px on the long side, no
+// fixed scale), so there is nothing to measure them against: the icon is fitted
+// inside the footprint, aspect preserved, centred horizontally and standing on
+// the bottom row, which is where a plant's art sits over its cells. Same units
+// and semantics as a measured rect, so the renderers do not know the difference.
+export function plantIconRect(
+  width: number,
+  height: number,
+  png: { x: number; y: number }
+): UiImageRect {
+  const scale = Math.min(width / png.x, height / png.y);
+  const w = round3(png.x * scale);
+  const h = round3(png.y * scale);
+  return { x: round3((width - w) / 2), y: 0, w, h };
+}
+
+function round3(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
+
 function readPngSize(file: string): { x: number; y: number } | null {
   let fd: number;
   try {
@@ -997,6 +1019,7 @@ export async function convertExport2024(opts: ConvertOptions): Promise<void> {
     englishStrings,
     uiImageFiles,
     uiImageRects,
+    iconFile,
     missingTerrainIcons,
     missingTerrainNames,
     missingTerrainSources
@@ -1184,9 +1207,10 @@ export async function convertExport2024(opts: ConvertOptions): Promise<void> {
   );
   // Unlike buildings, a terrain feature with no rect is an incomplete import, not a
   // fallback: its icon is a tight-cropped render, so stretch-to-footprint draws it
-  // squashed and misplaced rather than merely imprecise. The export measures every
-  // prefab it rendered an icon for, geysers and plants alike, so a gap here means
-  // the rects file is stale or a prefab was renamed.
+  // squashed and misplaced rather than merely imprecise. The export measures all 31
+  // geysers, so a gap there means the rects file is stale or a prefab was renamed;
+  // plant rects are derived from the PNG (plantIconRect), so a gap there is a
+  // missing or unreadable icon.
   const missingTerrainRects = terrainFeatures.filter((f) => !f.uiImageRect).map((f) => f.id);
   console.log(
     '  terrain with uiImageRect placement :',
@@ -1484,6 +1508,11 @@ function normalizeDlcIds(raw: string[] | string | null | undefined): string[] {
 const UNTAGGED_TERRAIN_PREFABS = ['OilWell'];
 const TERRAIN_FEATURE_TAG = 'GeyserFeature';
 const PLANT_TAG = 'Plant';
+// Branch sub-entities (ForestTreeBranch, SpaceTreeBranch, SeaTreeBranch,
+// VineBranch) carry the Plant tag too, but they grow on a parent plant at
+// positions the game decides — annotating one on its own says nothing. The
+// parent trunk is the palette entry; a wider footprint is the follow-up.
+const PLANT_PART_SUFFIX = 'Branch';
 
 function lookupGameString(
   englishStrings: Record<string, string>,
@@ -1567,6 +1596,7 @@ function buildTerrainFeatures(
   englishStrings: Record<string, string>,
   uiImageFiles: Set<string>,
   uiImageRects: Record<string, UiImageRect>,
+  iconFile: (id: string) => string,
   missingIcons: string[],
   missingNames: string[],
   missingSources: string[]
@@ -1585,6 +1615,11 @@ function buildTerrainFeatures(
     // id and neither geyser.json nor entities.json carries one.
     const rect = uiImageRects[record.id];
     if (rect) record.uiImageRect = rect;
+    else if (record.kind === 'plant') {
+      // Not measured by the exporter (see plantIconRect); derived from the PNG.
+      const png = readPngSize(iconFile(record.id));
+      if (png) record.uiImageRect = plantIconRect(record.width, record.height, png);
+    }
     features.push(record);
   };
 
@@ -1616,7 +1651,8 @@ function buildTerrainFeatures(
       const isTerrain =
         tags.indexOf(TERRAIN_FEATURE_TAG) !== -1 ||
         UNTAGGED_TERRAIN_PREFABS.indexOf(e.name) !== -1;
-      const isPlant = !isTerrain && tags.indexOf(PLANT_TAG) !== -1;
+      const isPlant =
+        !isTerrain && tags.indexOf(PLANT_TAG) !== -1 && !e.name.endsWith(PLANT_PART_SUFFIX);
       if (!isTerrain && !isPlant) continue;
 
       // Footprint comes from the collider; entities.json has no width/height.

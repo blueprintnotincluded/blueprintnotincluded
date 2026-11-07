@@ -70,7 +70,8 @@ unchanged pixels stay byte-identical and git shows only genuine changes.
 | `building_image_report.json` (export **root**) | nothing: diagnostic only, never imported. Per icon, the `anim`, `frame`, `render` (`spawned`/`artOnly`) and `candidates` (states weighed, with sizes) the exporter used; diff it between two exports to see why an icon changed |
 | `ui_image_facade/` | nothing today (not copied) |
 
-Current output (480 buildings, U59-744825): 212 elements, 404 build-menu items (395
+Current output (480 buildings, U59-744825): 81 terrain features (31 geysers, 50 plants),
+212 elements, 404 build-menu items (395
 plan-order entries less the 23 deprecated/debug-only ones, plus the 32 rocket modules),
 15 categories, 505 uiSprites (480 building icons + 17 injected element/info overlays + 8
 utility-port indicators registered from the export's `ui_image/` PNGs), 31 connectables,
@@ -249,6 +250,15 @@ renders (`GeyserGeneric_big_volcano.png` is 693×725 for a 3×3 footprint), so t
 fallback is a visible regression for them rather than a graceful default: the art lands
 roughly half a cell low and ~15% small, with the plume overhang cropped away. Every
 catalogue entry therefore carries `uiImageRect`, and a test fails if one does not.
+
+The 50 wild plants (`kind: 'plant'`, every `Plant`-tagged entity in `entities.json` minus
+the four `*Branch` sub-entities that grow on a parent) are different: the exporter does not
+measure them, and their `ui_image/` PNGs are the game's menu icons — about 128 px on the
+long side, at no fixed scale — rather than per-cell renders. The converter derives their
+rect instead (`plantIconRect`): the icon fitted inside the collider footprint with its aspect
+kept, centred horizontally and standing on the bottom row. Same units and semantics as a
+measured rect, so the renderers do not know the difference, and the aspect invariant holds
+by construction. A plant with no readable PNG is the one way to end up rect-less.
 
 ## Connection-sprite scale (declared, not measured)
 

@@ -60712,11 +60712,378 @@
   ],
   "terrainFeatures": [
     {
+      "id": "BasicFabricPlant",
+      "name": "Thimble Reed",
+      "width": 1,
+      "height": 3,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.636
+      }
+    },
+    {
+      "id": "BasicSingleHarvestPlant",
+      "name": "Mealwood",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.638
+      }
+    },
+    {
+      "id": "BeanPlant",
+      "name": "Nosh Sprout",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.432
+      }
+    },
+    {
+      "id": "BlueGrass",
+      "name": "Alveo Vera",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC2_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.432
+      }
+    },
+    {
+      "id": "Bulbloom",
+      "name": "Bulbloom",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.154,
+        "y": 0,
+        "w": 0.692,
+        "h": 1
+      }
+    },
+    {
+      "id": "BulbPlant",
+      "name": "Buddy Bud",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.056,
+        "y": 0,
+        "w": 0.888,
+        "h": 1
+      }
+    },
+    {
+      "id": "ButterflyPlant",
+      "name": "Mimika Bud",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.128
+      }
+    },
+    {
+      "id": "CactusPlant",
+      "name": "Jumping Joya",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.028,
+        "y": 0,
+        "w": 0.944,
+        "h": 1
+      }
+    },
+    {
+      "id": "CarrotPlant",
+      "name": "Plume Squash Plant",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC2_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.208
+      }
+    },
+    {
+      "id": "Clam",
+      "name": "Clampum",
+      "width": 3,
+      "height": 3,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.086,
+        "y": 0,
+        "w": 2.828,
+        "h": 3
+      }
+    },
+    {
+      "id": "ColdWheat",
+      "name": "Sleet Wheat",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.194,
+        "y": 0,
+        "w": 0.613,
+        "h": 1
+      }
+    },
+    {
+      "id": "CritterTrapPlant",
+      "name": "Saturn Critter Trap",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.311
+      }
+    },
+    {
+      "id": "Cylindrica",
+      "name": "Bliss Burst",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.974
+      }
+    },
+    {
+      "id": "DewDripperPlant",
+      "name": "Dew Dripper",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.167
+      }
+    },
+    {
+      "id": "DewPalm",
+      "name": "Gum Palm",
+      "width": 3,
+      "height": 4,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 3,
+        "h": 3.438
+      }
+    },
+    {
+      "id": "Dinofern",
+      "name": "Megafrond",
+      "width": 3,
+      "height": 3,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.151,
+        "y": 0,
+        "w": 2.697,
+        "h": 3
+      }
+    },
+    {
+      "id": "EvilFlower",
+      "name": "Sporechid",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.086,
+        "y": 0,
+        "w": 0.829,
+        "h": 1
+      }
+    },
+    {
+      "id": "FilamentPlant",
+      "name": "Petta Pouf",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.913
+      }
+    },
+    {
+      "id": "FilterPlant",
+      "name": "Hydrocactus",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.844
+      }
+    },
+    {
+      "id": "FlyTrapPlant",
+      "name": "Lura Plant",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.828
+      }
+    },
+    {
+      "id": "ForestTree",
+      "name": "Arbor Tree",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.959
+      }
+    },
+    {
+      "id": "GardenDecorPlant",
+      "name": "Ring Rosebush",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.032,
+        "y": 0,
+        "w": 0.935,
+        "h": 1
+      }
+    },
+    {
+      "id": "GardenFoodPlant",
+      "name": "Sweatcorn Stalk",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.5
+      }
+    },
+    {
+      "id": "GasGrass",
+      "name": "Gas Grass",
+      "width": 1,
+      "height": 3,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.315
+      }
+    },
+    {
       "id": "GeyserGeneric_big_volcano",
       "name": "Volcano",
       "width": 3,
       "height": 3,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -60734,6 +61101,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60751,6 +61119,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60768,6 +61137,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60785,6 +61155,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60802,6 +61173,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60819,6 +61191,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60836,6 +61209,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60853,6 +61227,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60870,6 +61245,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60889,6 +61265,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60906,6 +61283,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -60925,6 +61303,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -60944,6 +61323,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -60961,6 +61341,7 @@
       "width": 3,
       "height": 3,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -60978,6 +61359,7 @@
       "width": 3,
       "height": 3,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -60995,6 +61377,7 @@
       "width": 3,
       "height": 3,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61014,6 +61397,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61033,6 +61417,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61052,6 +61437,7 @@
       "dlcIds": [
         "DLC5_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -61069,6 +61455,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -61086,6 +61473,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -61103,6 +61491,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -61120,6 +61509,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -61137,6 +61527,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -61154,6 +61545,7 @@
       "width": 3,
       "height": 3,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61171,6 +61563,7 @@
       "width": 2,
       "height": 4,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 0,
         "y": 1
@@ -61183,6 +61576,82 @@
       }
     },
     {
+      "id": "HardSkinBerryPlant",
+      "name": "Pikeapple Bush",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC2_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.341
+      }
+    },
+    {
+      "id": "IceFlower",
+      "name": "Idylla Flower",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "DLC2_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.005,
+        "y": 0,
+        "w": 0.991,
+        "h": 1
+      }
+    },
+    {
+      "id": "KelpPlant",
+      "name": "Seakomb",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.947
+      }
+    },
+    {
+      "id": "LeafyPlant",
+      "name": "Mirth Leaf",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.02,
+        "y": 0,
+        "w": 0.961,
+        "h": 1
+      }
+    },
+    {
+      "id": "MushroomPlant",
+      "name": "Dusk Cap",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.226
+      }
+    },
+    {
       "id": "NiobiumGeyser",
       "name": "Niobium Volcano",
       "width": 3,
@@ -61190,6 +61659,7 @@
       "dlcIds": [
         "EXPANSION1_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61207,6 +61677,7 @@
       "width": 4,
       "height": 2,
       "dlcIds": [],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61219,6 +61690,140 @@
       }
     },
     {
+      "id": "OxyCoral",
+      "name": "Flue Coral",
+      "width": 3,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 3,
+        "h": 1.992
+      }
+    },
+    {
+      "id": "Oxyfern",
+      "name": "Oxyfern",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.221
+      }
+    },
+    {
+      "id": "PlanktonCoral",
+      "name": "Starnacle",
+      "width": 2,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.034,
+        "y": 0,
+        "w": 1.932,
+        "h": 2
+      }
+    },
+    {
+      "id": "PrickleFlower",
+      "name": "Bristle Blossom",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.881
+      }
+    },
+    {
+      "id": "PrickleGrass",
+      "name": "Bluff Briar",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.978
+      }
+    },
+    {
+      "id": "SaltPlant",
+      "name": "Dasha Saltvine",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.156
+      }
+    },
+    {
+      "id": "SaltySticksPlant",
+      "name": "Sodicane",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.472
+      }
+    },
+    {
+      "id": "SeaLettuce",
+      "name": "Waterweed",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.881
+      }
+    },
+    {
+      "id": "SeaTree",
+      "name": "Tower Kelp",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.046
+      }
+    },
+    {
       "id": "SmallReefGeyser",
       "name": "Tidal Spring",
       "width": 3,
@@ -61226,6 +61831,7 @@
       "dlcIds": [
         "DLC5_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61238,6 +61844,114 @@
       }
     },
     {
+      "id": "SpaceTree",
+      "name": "Bonbon Tree",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC2_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.103
+      }
+    },
+    {
+      "id": "SpiceVine",
+      "name": "Pincha Pepperplant",
+      "width": 1,
+      "height": 3,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.207
+      }
+    },
+    {
+      "id": "SuperWormPlant",
+      "name": "Grubfruit Plant",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.982
+      }
+    },
+    {
+      "id": "SwampHarvestPlant",
+      "name": "Bog Bucket",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.547
+      }
+    },
+    {
+      "id": "SwampLily",
+      "name": "Balm Lily",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.37
+      }
+    },
+    {
+      "id": "ToePlant",
+      "name": "Tranquil Toes",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.005,
+        "y": 0,
+        "w": 0.991,
+        "h": 1
+      }
+    },
+    {
+      "id": "TubeWorm",
+      "name": "Tublia",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.106
+      }
+    },
+    {
       "id": "UnderwaterVent",
       "name": "Thermal Gas Fissure",
       "width": 4,
@@ -61245,6 +61959,7 @@
       "dlcIds": [
         "DLC5_ID"
       ],
+      "kind": "terrain",
       "activeTile": {
         "x": 1,
         "y": 1
@@ -61254,6 +61969,86 @@
         "y": -0.17,
         "w": 4.085,
         "h": 4.475
+      }
+    },
+    {
+      "id": "UrchinPlant",
+      "name": "Pinpoket",
+      "width": 2,
+      "height": 2,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0.035,
+        "y": 0,
+        "w": 1.93,
+        "h": 2
+      }
+    },
+    {
+      "id": "VineMother",
+      "name": "Ovagro Node",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "DLC4_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1.198
+      }
+    },
+    {
+      "id": "WaterCups",
+      "name": "Husha Cups",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "DLC5_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.98
+      }
+    },
+    {
+      "id": "WineCups",
+      "name": "Mellow Mallow",
+      "width": 1,
+      "height": 1,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.99
+      }
+    },
+    {
+      "id": "WormPlant",
+      "name": "Spindly Grubfruit Plant",
+      "width": 1,
+      "height": 2,
+      "dlcIds": [
+        "EXPANSION1_ID"
+      ],
+      "kind": "plant",
+      "uiImageRect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.982
       }
     }
   ],
