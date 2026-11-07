@@ -1,6 +1,8 @@
 import { Component, ViewChild, ElementRef, Renderer2 } from "@angular/core";
 import { ToolService } from "../../../services/tool-service";
 import { Accordion } from "primeng/accordion";
+import { KeybindingService } from "../../../services/keybinding.service";
+import { ShortcutAction } from "../../../keybindings/shortcut-actions";
 
 @Component({
   selector: "app-selection-tool",
@@ -16,7 +18,15 @@ export class ComponentSideSelectionToolComponent {
   constructor(
     public toolService: ToolService,
     private renderer: Renderer2,
+    private keybindings: KeybindingService,
   ) {}
+
+  get deselectTooltip(): string {
+    return this.keybindings.withHint(
+      $localize`:select tool button:Deselect`,
+      ShortcutAction.interfaceCancel,
+    );
+  }
 
   // The card sits top-right, above the tool toolbar in the bottom-right
   // corner (52px buttons, 16px from the edge): it stops short of it.
@@ -51,5 +61,9 @@ export class ComponentSideSelectionToolComponent {
 
   destroyAll() {
     this.toolService.selectTool.destroyAll();
+  }
+
+  deselectAll() {
+    this.toolService.selectTool.deselectAll();
   }
 }

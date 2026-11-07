@@ -1,4 +1,5 @@
 import { ComponentSideSelectionToolComponent } from "./selection-tool.component";
+import { KeybindingService } from "../../../services/keybinding.service";
 
 // The accordion is the only view of which same-item groups are selected, so
 // its open panels and the select tool's `selected` flags must stay in step in
@@ -12,6 +13,7 @@ describe("ComponentSideSelectionToolComponent", () => {
     component = new ComponentSideSelectionToolComponent(
       { selectTool: { sameItemCollections: collections } } as any,
       {} as any,
+      new KeybindingService(),
     );
   });
 

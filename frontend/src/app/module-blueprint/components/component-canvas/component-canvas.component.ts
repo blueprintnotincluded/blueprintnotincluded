@@ -456,8 +456,20 @@ export class ComponentCanvasComponent
     this.frameBlueprint();
   }
 
+  // One zoom level in (+1) or out (-1) around the middle of the canvas: the
+  // menu's zoom, which has no cursor to zoom around the way the wheel and the
+  // keyboard do.
+  zoomStep(delta: number) {
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    this.cameraService.zoom(
+      delta,
+      new Vector2(rect.width / 2, rect.height / 2),
+    );
+  }
+
   // Zooms and centers the camera so the whole blueprint is in view - used both
-  // when a blueprint loads and by the "center on blueprint" shortcut.
+  // when a blueprint loads and by the "center on blueprint" shortcut and menu
+  // item.
   frameBlueprint() {
     //let cameraOffset = new Vector2(-topLeft.x + 1, bottomRight.y + 1);
 

@@ -31,6 +31,16 @@
       pTooltip="Destroy every item group"
       tooltipEvent="both"
     ></button>
+    <!-- Escape and right-click deselect, neither of which a touch screen has. -->
+    <button
+      pButton
+      type="button"
+      class="ui-button buttonspace"
+      icon="pi pi-times"
+      (click)="deselectAll()"
+      [pTooltip]="deselectTooltip"
+      tooltipEvent="both"
+    ></button>
   </div>
   <app-replace-element></app-replace-element>
   <div class="scrollable">
