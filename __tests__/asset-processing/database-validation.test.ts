@@ -53,7 +53,7 @@ describe('Database Asset Validation', () => {
         'utf8'
       );
       expect(generated).to.include(
-        `export const DATABASE_ZIP_PATH = "assets/database/database-2024-${hash}.zip";`
+        `export const DATABASE_ZIP_PATH =\n  "assets/database/database-2024-${hash}.zip";`
       );
     });
 
