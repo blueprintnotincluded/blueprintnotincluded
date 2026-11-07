@@ -20,8 +20,25 @@ const GEYSERS: BTerrainFeature[] = [
     dlcIds: [],
   },
   { id: "OilWell", name: "Oil Reservoir", width: 4, height: 2, dlcIds: [] },
+  {
+    id: "GeyserGeneric_big_volcano",
+    name: "Volcano",
+    width: 3,
+    height: 3,
+    dlcIds: [],
+  },
 ];
+// Catalogue order is by prefab id, which puts Mealwood ("BasicSingle…") before
+// Arbor Tree ("ForestTree") — the palette must not.
 const PLANTS: BTerrainFeature[] = [
+  {
+    id: "BasicSingleHarvestPlant",
+    name: "Mealwood",
+    width: 1,
+    height: 2,
+    dlcIds: [],
+    kind: "plant",
+  },
   {
     id: "ForestTree",
     name: "Arbor Tree",
@@ -66,24 +83,32 @@ describe("TerrainToolComponent", () => {
 
   beforeEach(() => load([...GEYSERS, ...PLANTS]));
 
-  it("opens on the geysers tab and lists only geysers there", () => {
+  it("opens on the geysers tab and lists only geysers there, by name", () => {
     expect(component.kind).toBe("terrain");
-    expect(component.features.map((f) => f.id)).toEqual([
-      "GeyserGeneric_steam",
-      "OilWell",
+    expect(component.features.map((f) => f.name)).toEqual([
+      "Cool Steam Vent",
+      "Oil Reservoir",
+      "Volcano",
     ]);
     expect(component.hasPlants).toBe(true);
   });
 
-  it("moves the tool onto the first plant when the plants tab is picked", () => {
+  // No search in the palette, so the order has to be the one a reader scans:
+  // the display name, not the prefab id behind it.
+  it("lists plants alphabetically by display name, not by prefab id", () => {
+    component.showKind("plant");
+    expect(component.features.map((f) => f.name)).toEqual([
+      "Arbor Tree",
+      "Bristle Blossom",
+      "Mealwood",
+    ]);
+  });
+
+  it("moves the tool onto the first listed plant when the plants tab is picked", () => {
     component.showKind("plant");
 
     expect(tool.featureId).toBe("ForestTree");
     expect(component.kind).toBe("plant");
-    expect(component.features.map((f) => f.id)).toEqual([
-      "ForestTree",
-      "PrickleFlower",
-    ]);
   });
 
   it("follows the tool's feature rather than holding a tab of its own", () => {
@@ -105,6 +130,6 @@ describe("TerrainToolComponent", () => {
     expect(component.hasPlants).toBe(false);
     component.showKind("plant");
     expect(component.kind).toBe("terrain");
-    expect(component.features).toHaveLength(2);
+    expect(component.features).toHaveLength(3);
   });
 });
