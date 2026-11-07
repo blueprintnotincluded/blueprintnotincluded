@@ -27,6 +27,13 @@
 # daily/, weekly/ or monthly/ is ever a partial dump. The pruning runs only
 # after a successful dump: a night whose dump failed keeps every old archive.
 #
+# BACKUP_HEARTBEAT_URL, when set, is pinged once at the very end: after the
+# daily archive is in place, the Sunday copies are made and the pruning is
+# done. It is a dead-man's switch (Better Stack heartbeat): the monitor alerts
+# when the ping stops arriving, so a dead container, empty credentials or a box
+# that is off all read the same way. A failed ping is reported but never fails
+# the backup; an unset URL (staging, tests) skips it silently.
+#
 # Run by crond inside the backup container (see entrypoint.sh), or by hand for
 # an ad-hoc pre-migration snapshot:
 #   bin/compose.sh production exec backup backup.sh
@@ -98,3 +105,8 @@ rclone delete --min-age 1d "$incoming/"
 echo "backup: done ($name). Archives now in R2:"
 rclone lsf --format "tsp" "$BACKUP_REMOTE/daily/" | tail -n 3
 rclone size "${BACKUP_REMOTE%/*}"
+
+if [ -n "${BACKUP_HEARTBEAT_URL:-}" ]; then
+  curl -fsS -m 10 --retry 3 -o /dev/null "$BACKUP_HEARTBEAT_URL" \
+    || echo "backup: heartbeat ping failed" >&2
+fi

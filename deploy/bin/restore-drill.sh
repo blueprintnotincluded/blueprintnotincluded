@@ -93,6 +93,11 @@ live_container="$("$compose" "$project" ps -q mongo)"
 live=$(counts "$live_container" root)
 restored=$(counts "$drill" "")
 
+# What the throwaway mongo actually used, for the memory notes in the runbook
+# (its limit is 768 MB on a 4 GB box shared with staging). Informational only.
+echo "== drill container usage"
+docker stats --no-stream --format '   mem {{.MemUsage}}  cpu {{.CPUPerc}}' "$drill" 2>/dev/null || true
+
 echo "== collection counts (live -> restored)"
 status=0
 while read -r name live_n; do
