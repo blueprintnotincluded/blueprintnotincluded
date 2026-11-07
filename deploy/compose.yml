@@ -141,6 +141,9 @@ services:
       BACKUP_KEEP_MONTHLY_DAYS: ${BACKUP_KEEP_MONTHLY_DAYS:-62}
       BACKUP_KEEP_SEED_DAYS: ${BACKUP_KEEP_SEED_DAYS:-30}
       BACKUP_REMOTE: r2:${R2_BUCKET:-bpni-backups}/${COMPOSE_PROJECT_NAME:-bpni}
+      # Success ping at the end of each run (deploy/README.md "Backup
+      # monitoring"); empty on staging, so no ping.
+      BACKUP_HEARTBEAT_URL: ${BACKUP_HEARTBEAT_URL:-}
       # rclone reads its remote from the environment: no config file to write.
       RCLONE_CONFIG_R2_TYPE: s3
       RCLONE_CONFIG_R2_PROVIDER: Cloudflare

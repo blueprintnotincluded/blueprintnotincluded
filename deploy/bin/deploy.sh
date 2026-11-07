@@ -36,6 +36,18 @@ echo "== $project: starting"
 echo "== $project: pruning dangling images"
 docker image prune -f | tail -n 1
 
+if [ "$project" = production ]; then
+  # The weekly restore drill (bin/drill-weekly.sh, README "Backup monitoring")
+  # runs from this user's crontab: Sundays 05:00 UTC, after the 03:30 backup and
+  # its weekly copy. Installed here so a rebuilt box gets it with its first
+  # deploy; the marker keeps one line however often this runs. The deploy user
+  # has docker but not root, so no system unit.
+  echo "== $project: weekly restore drill in crontab"
+  marker="# bpni drill-weekly"
+  line="0 5 * * 0 $here/drill-weekly.sh $marker"
+  { crontab -l 2>/dev/null | grep -vF "$marker" || true; echo "$line"; } | crontab -
+fi
+
 echo "== $project: running"
 "$compose" "$project" ps
 "$compose" "$project" exec -T app node -e "fetch('http://127.0.0.1:3000/api/version').then(r => r.json()).then(v => console.log('version', v.version, 'commit', v.buildCommit, 'built', v.buildTime))"

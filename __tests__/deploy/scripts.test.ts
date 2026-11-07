@@ -47,6 +47,14 @@ esac
 exit 0
 `;
 
+// curl stand-in for the heartbeat pings: logs its arguments, fails on
+// STUB_CURL_FAIL=1 the way an unreachable host does.
+const STUB_CURL = `#!/bin/bash
+printf 'curl %s\\n' "$*" >> "$STUB_LOG"
+if [ "\${STUB_CURL_FAIL:-}" = 1 ]; then echo "curl: (6) Could not resolve host" >&2; exit 6; fi
+exit 0
+`;
+
 interface Sandbox {
   tmp: string;
   root: string;
@@ -435,6 +443,7 @@ esac
       fs.writeFileSync(path.join(stubBin, 'mongodump'), STUB_MONGODUMP, { mode: 0o755 });
       fs.writeFileSync(path.join(stubBin, 'rclone'), STUB_RCLONE, { mode: 0o755 });
       fs.writeFileSync(path.join(stubBin, 'date'), STUB_DATE, { mode: 0o755 });
+      fs.writeFileSync(path.join(stubBin, 'curl'), STUB_CURL, { mode: 0o755 });
     });
     const backup = (extraEnv: Record<string, string> = {}) =>
       spawnSync('bash', [path.resolve(__dirname, '../../deploy/backup/backup.sh')], {
@@ -517,6 +526,48 @@ esac
       expect(composeLog(sb)).not.to.include('delete --min-age');
       expect(objects()).to.deep.equal([]);
     });
+
+    describe('heartbeat', () => {
+      const url = 'https://uptime.betterstack.com/api/v1/heartbeat/abc123';
+      const day = { STUB_DATE: '2026-11-04 03:30', STUB_DOW: '3' };
+
+      it('pings the URL once, after the archive is in place and the pruning is done', () => {
+        const r = backup({ ...day, BACKUP_HEARTBEAT_URL: url });
+        expect(r.status, r.stderr).to.equal(0);
+        const lines = composeLog(sb).split('\n');
+        const pings = lines.filter(l => l.startsWith('curl'));
+        expect(pings).to.have.length(1);
+        expect(pings[0]).to.include('-fsS -m 10 --retry 3').and.include(url);
+        expect(lines.indexOf(pings[0])).to.be.greaterThan(
+          lines.findIndex(l => l.startsWith('rclone moveto'))
+        );
+        expect(lines.indexOf(pings[0])).to.be.greaterThan(
+          lines.findIndex(l => l.startsWith('rclone delete --min-age'))
+        );
+        expect(r.stderr).not.to.include('heartbeat');
+      });
+
+      it('does not ping when the dump failed', () => {
+        const r = backup({ ...day, BACKUP_HEARTBEAT_URL: url, STUB_DUMP_FAIL: '1' });
+        expect(r.status).not.to.equal(0);
+        expect(composeLog(sb)).not.to.include('curl');
+      });
+
+      it('calls no curl at all when the URL is unset', () => {
+        const r = backup(day);
+        expect(r.status, r.stderr).to.equal(0);
+        expect(composeLog(sb)).not.to.include('curl');
+      });
+
+      it('reports a failed ping without failing the backup', () => {
+        const r = backup({ ...day, BACKUP_HEARTBEAT_URL: url, STUB_CURL_FAIL: '1' });
+        expect(r.status, r.stderr).to.equal(0);
+        expect(r.stderr).to.include('backup: heartbeat ping failed');
+        expect(objects()).to.deep.equal([
+          'bpni-production/daily/blueprintnotincluded-20261104T033000Z.archive.gz',
+        ]);
+      });
+    });
   });
 
   // restore-drill.sh drives docker directly for the throwaway mongo, so only
@@ -551,6 +602,192 @@ esac
       expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
       const r = run(sb, 'restore-drill.sh', ['production', 'hourly']);
       expect(r.status).to.equal(64);
+    });
+  });
+
+  // drill-weekly.sh is the crontab entry: restore-drill.sh is replaced by a
+  // stub that records its arguments and passes or fails on STUB_DRILL_FAIL,
+  // df and curl are stubs on PATH, date follows STUB_DATE for the first-Sunday
+  // rule.
+  describe('drill-weekly.sh', () => {
+    const url = 'https://uptime.betterstack.com/api/v1/heartbeat/drill456';
+    const STUB_DRILL = `#!/bin/bash
+printf 'restore-drill %s tolerance=%s\\n' "$*" "\${DRILL_TOLERANCE_PERCENT:-default}" >> "$STUB_LOG"
+echo "== restore drill $([ "\${STUB_DRILL_FAIL:-}" = 1 ] && echo FAILED || echo PASSED) (fake)"
+[ "\${STUB_DRILL_FAIL:-}" = 1 ] && exit 1
+exit 0
+`;
+    const STUB_DF = `#!/bin/bash
+printf 'Use%%\\n%s%%\\n' "\${STUB_DISK_PERCENT:-42}"
+`;
+    const STUB_DATE = `#!/bin/bash
+if [ -z "\${STUB_DATE:-}" ]; then exec /bin/date "$@"; fi
+case "\${@: -1}" in
+  +%d) echo "\${STUB_DATE:8:2}" ;;
+  *) exec /bin/date "$@" ;;
+esac
+`;
+    let stubBin: string;
+    beforeEach(() => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      stubBin = path.join(sb.tmp, 'stubbin');
+      fs.mkdirSync(stubBin);
+      fs.writeFileSync(path.join(stubBin, 'df'), STUB_DF, { mode: 0o755 });
+      fs.writeFileSync(path.join(stubBin, 'curl'), STUB_CURL, { mode: 0o755 });
+      fs.writeFileSync(path.join(stubBin, 'date'), STUB_DATE, { mode: 0o755 });
+      fs.writeFileSync(path.join(sb.bin, 'restore-drill.sh'), STUB_DRILL, { mode: 0o755 });
+    });
+    const withUrl = () =>
+      fs.appendFileSync(path.join(sb.root, 'production/.env'), `DRILL_HEARTBEAT_URL=${url}\n`);
+    const drill = (extraEnv: Record<string, string> = {}) =>
+      run(sb, 'drill-weekly.sh', [], {
+        PATH: `${stubBin}:${process.env.PATH ?? ''}`,
+        STUB_DATE: '2026-11-15',
+        ...extraEnv,
+      });
+    const logFile = () => fs.readFileSync(path.join(sb.root, 'drill-weekly.log'), 'utf8');
+
+    it('runs the daily drill, checks the disk and pings when both pass', () => {
+      withUrl();
+      const r = drill();
+      expect(r.status, r.stderr).to.equal(0);
+      const log = composeLog(sb).split('\n');
+      expect(log.filter(l => l.startsWith('restore-drill'))).to.deep.equal([
+        'restore-drill production daily tolerance=default',
+      ]);
+      const pings = log.filter(l => l.startsWith('curl'));
+      expect(pings).to.have.length(1);
+      expect(pings[0]).to.include('-fsS -m 10 --retry 3').and.include(url);
+      // the run is in the log on the box, not only on a terminal nobody watches
+      expect(logFile()).to.include('==== drill-weekly 20').and.include('drill-weekly PASSED');
+      expect(logFile()).to.include('root disk 42% used');
+      // the URL itself stays out of the log
+      expect(logFile()).not.to.include(url);
+    });
+
+    it('adds the monthly drill, with the wider tolerance, on the first Sunday', () => {
+      withUrl();
+      const r = drill({ STUB_DATE: '2026-12-06' });
+      expect(r.status, r.stderr).to.equal(0);
+      expect(
+        composeLog(sb)
+          .split('\n')
+          .filter(l => l.startsWith('restore-drill'))
+      ).to.deep.equal([
+        'restore-drill production daily tolerance=default',
+        'restore-drill production monthly tolerance=20',
+      ]);
+      expect(
+        composeLog(sb)
+          .split('\n')
+          .filter(l => l.startsWith('curl'))
+      ).to.have.length(1);
+    });
+
+    it('does not ping when the drill failed', () => {
+      withUrl();
+      const r = drill({ STUB_DRILL_FAIL: '1' });
+      expect(r.status).to.equal(1);
+      expect(composeLog(sb)).not.to.include('curl');
+      expect(logFile()).to.include('drill-weekly FAILED (no heartbeat sent)');
+    });
+
+    it('does not ping when the root disk is over the threshold', () => {
+      withUrl();
+      const r = drill({ STUB_DISK_PERCENT: '91' });
+      expect(r.status).to.equal(1);
+      expect(composeLog(sb)).not.to.include('curl');
+      expect(logFile()).to.include('root disk 91% used, over 85%');
+      // the threshold is a knob
+      fs.rmSync(sb.log);
+      expect(drill({ STUB_DISK_PERCENT: '91', DRILL_DISK_MAX_PERCENT: '95' }).status).to.equal(0);
+      expect(composeLog(sb)).to.include('curl');
+    });
+
+    it('runs the drill but calls no curl when the URL is not in .env', () => {
+      const r = drill();
+      expect(r.status, r.stderr).to.equal(0);
+      expect(composeLog(sb)).to.include('restore-drill production daily');
+      expect(composeLog(sb)).not.to.include('curl');
+    });
+
+    it('a failed ping is reported and does not change the verdict', () => {
+      withUrl();
+      const r = drill({ STUB_CURL_FAIL: '1' });
+      expect(r.status, r.stderr).to.equal(0);
+      expect(logFile()).to.include('drill-weekly: heartbeat ping failed');
+    });
+
+    it('trims the log to its last 2000 lines', () => {
+      withUrl();
+      fs.mkdirSync(sb.root, { recursive: true });
+      fs.writeFileSync(
+        path.join(sb.root, 'drill-weekly.log'),
+        Array.from({ length: 3000 }, (_, i) => `old line ${i}`).join('\n') + '\n'
+      );
+      expect(drill().status).to.equal(0);
+      const lines = logFile().split('\n');
+      expect(lines[0]).to.equal('old line 1000');
+      expect(lines.length).to.be.lessThan(2020);
+    });
+  });
+
+  // deploy.sh's crontab line for the drill: a stub crontab keeps the table in a
+  // file, stub docker and curl stand in for the prune and the public health check.
+  describe('deploy.sh crontab', () => {
+    const STUB_CRONTAB = `#!/bin/bash
+case "$1" in
+  -l) [ -f "$STUB_CRONTAB" ] || { echo "no crontab for deploy" >&2; exit 1; }; cat "$STUB_CRONTAB" ;;
+  -) cat > "$STUB_CRONTAB.new" && mv "$STUB_CRONTAB.new" "$STUB_CRONTAB" ;;
+esac
+`;
+    const STUB_OK = `#!/bin/bash
+exit 0
+`;
+    let stubBin: string;
+    let table: string;
+    beforeEach(() => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      stubBin = path.join(sb.tmp, 'stubbin');
+      table = path.join(sb.tmp, 'crontab');
+      fs.mkdirSync(stubBin);
+      fs.writeFileSync(path.join(stubBin, 'crontab'), STUB_CRONTAB, { mode: 0o755 });
+      fs.writeFileSync(path.join(stubBin, 'docker'), STUB_OK, { mode: 0o755 });
+      fs.writeFileSync(path.join(stubBin, 'curl'), STUB_OK, { mode: 0o755 });
+    });
+    const deploy = (project: string) =>
+      run(sb, 'deploy.sh', [project], {
+        PATH: `${stubBin}:${process.env.PATH ?? ''}`,
+        STUB_CRONTAB: table,
+      });
+    const cron = () => (fs.existsSync(table) ? fs.readFileSync(table, 'utf8') : '');
+
+    it('installs the Sunday 05:00 UTC drill line once, keeps other lines, and leaves staging alone', () => {
+      fs.writeFileSync(table, '15 4 * * * /home/deploy/other.sh\n');
+      const r = deploy('production');
+      expect(r.status, r.stderr).to.equal(0);
+      const expected = `0 5 * * 0 ${sb.bin}/drill-weekly.sh # bpni drill-weekly`;
+      expect(cron().split('\n').filter(Boolean)).to.deep.equal([
+        '15 4 * * * /home/deploy/other.sh',
+        expected,
+      ]);
+      expect(deploy('production').status).to.equal(0);
+      expect(deploy('production').status).to.equal(0);
+      expect(
+        cron()
+          .split('\n')
+          .filter(l => l.includes('drill-weekly'))
+      ).to.deep.equal([expected]);
+
+      const before = cron();
+      expect(deploy('staging').status).to.equal(0);
+      expect(cron()).to.equal(before);
+    });
+
+    it('creates the table when the user had none', () => {
+      expect(deploy('production').status).to.equal(0);
+      expect(cron().split('\n').filter(Boolean)).to.have.length(1);
+      expect(cron()).to.include('drill-weekly.sh # bpni drill-weekly');
     });
   });
 

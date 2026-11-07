@@ -8,7 +8,8 @@
 # disk, here or on the host.
 FROM alpine:3.22
 
-RUN apk add --no-cache mongodb-tools rclone bash coreutils tini ca-certificates
+# curl: the success ping to BACKUP_HEARTBEAT_URL at the end of backup.sh.
+RUN apk add --no-cache mongodb-tools rclone bash coreutils curl tini ca-certificates
 
 # Empty on purpose: the remote comes from RCLONE_CONFIG_R2_* in the
 # environment, and an existing (empty) config file keeps rclone from logging a

@@ -23,6 +23,8 @@
 #   - unattended-upgrades, automatic reboot at 05:17 UTC when a kernel needs
 #     it (containers return via their restart policy)
 #   - fail2ban with the sshd jail
+#   - cron, for the deploy user's weekly restore drill (bin/deploy.sh installs
+#     the crontab line)
 #   - journald capped at 200 MB; Docker json-file logs 10 MB x 3 per container
 #   - a 2 GB swapfile (swappiness 10): four containers with memory limits on a
 #     4 GB box, with headroom so an overshoot pages instead of OOM-killing mongo
@@ -55,6 +57,9 @@ packages:
   - unattended-upgrades
   - curl
   - rsync
+  # The deploy user's crontab runs bin/drill-weekly.sh (installed by deploy.sh);
+  # Ubuntu's minimal images do not ship cron.
+  - cron
 
 swap:
   filename: /swapfile
