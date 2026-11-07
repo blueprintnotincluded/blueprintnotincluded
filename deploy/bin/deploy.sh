@@ -45,7 +45,18 @@ if [ "$project" = production ]; then
   echo "== $project: weekly restore drill in crontab"
   marker="# bpni drill-weekly"
   line="0 5 * * 0 $here/drill-weekly.sh $marker"
-  { crontab -l 2>/dev/null | grep -vF "$marker" || true; echo "$line"; } | crontab -
+  # "no crontab for deploy" is an empty table; any other failure (cron not
+  # installed, a broken spool) must not end with the user's jobs replaced by
+  # this one line. The drill heartbeat says so if the line never runs.
+  if existing=$(crontab -l 2>&1); then :
+  elif printf '%s' "$existing" | grep -q '^no crontab for'; then existing=""
+  else
+    echo "deploy: crontab -l failed, drill line not installed: $existing" >&2
+    existing=skip
+  fi
+  if [ "$existing" != skip ]; then
+    { printf '%s\n' "$existing" | grep -vF "$marker" | grep -v '^$' || true; echo "$line"; } | crontab -
+  fi
 fi
 
 echo "== $project: running"

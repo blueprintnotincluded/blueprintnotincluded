@@ -102,9 +102,12 @@ rclone delete --min-age "${BACKUP_KEEP_MONTHLY_DAYS}d" "$BACKUP_REMOTE/monthly/"
 rclone delete --min-age "${BACKUP_KEEP_SEED_DAYS}d" "$seeds/"
 rclone delete --min-age 1d "$incoming/"
 
+# The closing report is informational: a listing that fails must not stand
+# between a backup that landed and its heartbeat.
 echo "backup: done ($name). Archives now in R2:"
-rclone lsf --format "tsp" "$BACKUP_REMOTE/daily/" | tail -n 3
-rclone size "${BACKUP_REMOTE%/*}"
+{ rclone lsf --format "tsp" "$BACKUP_REMOTE/daily/" | tail -n 3; } \
+  || echo "backup: could not list $BACKUP_REMOTE/daily/" >&2
+rclone size "${BACKUP_REMOTE%/*}" || echo "backup: could not size the bucket" >&2
 
 if [ -n "${BACKUP_HEARTBEAT_URL:-}" ]; then
   curl -fsS -m 10 --retry 3 -o /dev/null "$BACKUP_HEARTBEAT_URL" \
