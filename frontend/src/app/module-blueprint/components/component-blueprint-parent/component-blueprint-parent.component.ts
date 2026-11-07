@@ -596,6 +596,12 @@ export class ComponentBlueprintParentComponent
       this.importStringDialog.showDialog();
     else if (menuCommand.type == MenuCommandType.keyboardShortcuts)
       this.keybindingsDialog.toggleDialog();
+    else if (menuCommand.type == MenuCommandType.cameraHome)
+      this.canvas.frameBlueprint();
+    else if (menuCommand.type == MenuCommandType.zoomIn)
+      this.canvas.zoomStep(1);
+    else if (menuCommand.type == MenuCommandType.zoomOut)
+      this.canvas.zoomStep(-1);
   }
 
   // Editor-wide actions that live on this component (they open dialogs it

@@ -143,6 +143,32 @@ export class ComponentMenuComponent
       id: Display.solid.toString(),
       command: () => this.clickDisplay(Display.solid),
     });
+    // The camera's own shortcuts (H, -, =) had no button anywhere, so a touch
+    // screen that panned off the blueprint had no way back. They live under
+    // Display with the other "how it looks" settings. Static ids keep the
+    // checkmark loop below from treating them as a display mode.
+    this.displayMenuItems.push({ separator: true });
+    this.displayMenuItems.push({
+      id: "camera-home",
+      label: $localize`:menu item:Center on blueprint`,
+      icon: "pi pi-fw pi-home",
+      command: () =>
+        this.menuCommand.emit({ type: MenuCommandType.cameraHome, data: null }),
+    });
+    this.displayMenuItems.push({
+      id: "camera-zoom-in",
+      label: $localize`:menu item:Zoom in`,
+      icon: "pi pi-fw pi-search-plus",
+      command: () =>
+        this.menuCommand.emit({ type: MenuCommandType.zoomIn, data: null }),
+    });
+    this.displayMenuItems.push({
+      id: "camera-zoom-out",
+      label: $localize`:menu item:Zoom out`,
+      icon: "pi pi-fw pi-search-minus",
+      command: () =>
+        this.menuCommand.emit({ type: MenuCommandType.zoomOut, data: null }),
+    });
 
     // Rocket interior: which habitat module's hull and landed backdrop to
     // draw behind the blueprint. A choice about the blueprint (stored with
@@ -173,29 +199,26 @@ export class ComponentMenuComponent
       command: () => this.clickVisualization(Visualization.elements),
     });
 
-    this.toolMenuItems = [
-      {
-        label: $localize`Select`,
-        id: ToolType[ToolType.select],
-        command: (_event: any) => {
-          this.clickTool(ToolType.select);
-        },
-      },
-      {
-        label: $localize`Build`,
-        id: ToolType[ToolType.build],
-        command: (_event: any) => {
-          this.clickTool(ToolType.build);
-        },
-      },
-      {
-        label: $localize`Dig`,
-        id: ToolType[ToolType.dig],
-        command: (_event: any) => {
-          this.clickTool(ToolType.dig);
-        },
-      },
+    // Every tool, named as the toolbar names it, so the menu is a complete
+    // second route to each one rather than a sample of three. Scissors is
+    // greyed out the way its toolbar button is while the overlay has nothing
+    // to cut (see updateToolIcon).
+    const tools: [ToolType, string][] = [
+      [ToolType.select, $localize`Select`],
+      [ToolType.build, $localize`Build`],
+      [ToolType.planning, $localize`Planning Notes`],
+      [ToolType.dig, $localize`Dig`],
+      [ToolType.scissors, $localize`Scissors`],
+      [ToolType.notes, $localize`Note Creation Tool`],
+      [ToolType.terrain, $localize`Terrain Features`],
     ];
+    this.toolMenuItems = tools.map(([toolType, label]) => ({
+      label,
+      id: ToolType[toolType],
+      command: (_event: any) => {
+        this.clickTool(toolType);
+      },
+    }));
 
     this.languagesMenuItems = [];
     for (const lang of ALL_LANGUAGES) {
@@ -401,6 +424,8 @@ export class ComponentMenuComponent
           menuItem.icon = "pi pi-fw pi-check";
         else menuItem.icon = "pi pi-fw pi-none";
       }
+      if (menuItem.id == ToolType[ToolType.scissors])
+        menuItem.disabled = !!this.toolService.scissorsDisabled;
     }
   }
 
@@ -409,6 +434,8 @@ export class ComponentMenuComponent
   }
 
   cameraChanged(camera: CameraService) {
+    // Scissors follows the overlay, so its menu entry does too.
+    this.updateToolIcon();
     this.updateOverlayIcon(camera.overlay);
     this.updateVisualizationIcon(camera.visualization);
     this.updateDisplayIcon(camera.display);
@@ -424,6 +451,7 @@ export class ComponentMenuComponent
 
   updateDisplayIcon(display: Display) {
     for (const menuItem of this.displayMenuItems) {
+      if (menuItem.separator || menuItem.id?.startsWith("camera-")) continue;
       if (menuItem.id == display.toString()) {
         menuItem.icon = "pi pi-fw pi-check";
       } else menuItem.icon = "pi pi-fw pi-none";
@@ -544,6 +572,9 @@ export enum MenuCommandType {
   changeOverlay,
   about,
   keyboardShortcuts,
+  cameraHome,
+  zoomIn,
+  zoomOut,
 
   browseBlueprints,
   saveBlueprint,

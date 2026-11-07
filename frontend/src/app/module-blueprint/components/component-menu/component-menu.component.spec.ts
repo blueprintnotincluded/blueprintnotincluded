@@ -13,7 +13,10 @@ import {
 import { AuthenticationService } from "src/app/module-blueprint/services/authentification-service";
 import { BlueprintService } from "src/app/module-blueprint/services/blueprint-service";
 import { ToolService } from "src/app/module-blueprint/services/tool-service";
-import { ComponentMenuComponent } from "./component-menu.component";
+import {
+  ComponentMenuComponent,
+  MenuCommandType,
+} from "./component-menu.component";
 
 describe("ComponentMenuComponent", () => {
   let component: ComponentMenuComponent;
@@ -60,6 +63,56 @@ describe("ComponentMenuComponent", () => {
     fixture = TestBed.createComponent(ComponentMenuComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  // The toolbar has a button per tool; the menu used to list three of them.
+  it("lists every tool, Scissors greyed out while the overlay has nothing to cut", () => {
+    expect(component.toolMenuItems.map((item) => item.id)).toEqual([
+      "select",
+      "build",
+      "planning",
+      "dig",
+      "scissors",
+      "notes",
+      "terrain",
+    ]);
+    const scissors = () =>
+      component.toolMenuItems.find((item) => item.id == "scissors")!;
+
+    const toolService = TestBed.inject(ToolService) as any;
+    toolService.scissorsDisabled = true;
+    component.cameraChanged(CameraService.cameraService);
+    expect(scissors().disabled).toBe(true);
+
+    toolService.scissorsDisabled = false;
+    component.cameraChanged(CameraService.cameraService);
+    expect(scissors().disabled).toBe(false);
+  });
+
+  // The camera shortcuts (H, -, =) had no button anywhere.
+  it("offers the camera's home and zoom under Display, leaving the display checkmark alone", () => {
+    const emitted: MenuCommandType[] = [];
+    component.menuCommand.subscribe((command) => emitted.push(command.type));
+    const run = (id: string) =>
+      component.displayMenuItems.find((item) => item.id == id)!.command!({});
+
+    run("camera-home");
+    run("camera-zoom-in");
+    run("camera-zoom-out");
+    expect(emitted).toEqual([
+      MenuCommandType.cameraHome,
+      MenuCommandType.zoomIn,
+      MenuCommandType.zoomOut,
+    ]);
+
+    component.updateDisplayIcon(Display.blueprint);
+    const checked = component.displayMenuItems
+      .filter((item) => item.icon == "pi pi-fw pi-check")
+      .map((item) => item.id);
+    expect(checked).toEqual([Display.blueprint.toString()]);
+    expect(
+      component.displayMenuItems.find((item) => item.id == "camera-home")!.icon,
+    ).toBe("pi pi-fw pi-home");
   });
 
   it("offers the Rooms overlay in the overlay switcher", () => {
