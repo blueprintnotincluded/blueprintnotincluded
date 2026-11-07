@@ -740,9 +740,12 @@ describe('Database Asset Validation', () => {
         const tree = byId.get(id);
         expect(tree, id).to.exist;
         expect({ width: tree.width, height: tree.height }, `${id} footprint`).to.deep.equal({ width: 3, height: 3 });
-        // Measured by the exporter, not derived: a derived rect is exactly
-        // footprint-wide with no overhang, a measured one never is.
-        expect(tree.uiImageRect.w, `${id} rect width`).to.not.equal(tree.width);
+        // Measured by the exporter, not derived: the derived rect is a pure
+        // function of the footprint and the served PNG, so a stored rect equal
+        // to it means the converter fell back (no entry in ui_image_rects.json).
+        const png = pngSize(path.join(uiImagePath, `${id}.png`))!;
+        const derived = plantIconRect(tree.width, tree.height, { x: png.w, y: png.h });
+        expect(tree.uiImageRect, `${id} rect is the derived fallback`).to.not.deep.equal(derived);
       }
       // Hanging plants keep the collider's box; their offset is the mod's concern.
       const vine = byId.get('SpiceVine');
