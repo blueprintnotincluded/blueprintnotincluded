@@ -266,6 +266,21 @@ describe("BuildMenuComponent", () => {
       expect(el().querySelector(".build-menu-panel")).toBeNull();
       expect(el().querySelector(".build-menu-tip")).toBeNull();
     });
+
+    it("drops a building's tooltip once the building is chosen", () => {
+      const entry = service.categories[0].groups[0].entries[0];
+      const button = el().querySelector(".build-menu-entry") as HTMLElement;
+      component.showEntryTip(entry, button, true);
+      fixture.detectChanges();
+      expect(el().querySelector(".build-menu-tip")).not.toBeNull();
+      // The pointer stays on the entry after the click, so no mouseleave
+      // fires; the panel stays open and the tip would otherwise sit over the
+      // canvas the building is about to be placed on.
+      button.click();
+      fixture.detectChanges();
+      expect(el().querySelector(".build-menu-panel")).not.toBeNull();
+      expect(el().querySelector(".build-menu-tip")).toBeNull();
+    });
   });
 
   describe("search", () => {

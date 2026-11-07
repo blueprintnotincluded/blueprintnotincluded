@@ -196,6 +196,10 @@ export class BuildMenuComponent implements OnInit, OnDestroy {
 
   choose(entry: BuildMenuItemEntry) {
     this.menu.choose(entry);
+    // The tooltip has done its job once the building is picked; beside the
+    // panel it sits over the canvas the building now goes on — mid-screen on
+    // a small laptop — and the pointer resting on the entry would keep it up.
+    this.hideTip();
     // On a phone the sheet covers the canvas the building goes on, so it gets
     // out of the way; it opens again on this building's category.
     if (this.layout.compact) this.menu.close();
