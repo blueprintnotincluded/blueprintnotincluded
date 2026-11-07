@@ -306,11 +306,21 @@ describe('deploy/bin scripts', () => {
       const r = run(sb, 'seed-from-dump.sh', [
         'production',
         'restore',
-        'bpni-production/daily/x.archive.gz; rm -rf /',
+        'bpni-production/daily/x$(id).archive.gz',
       ]);
       expect(r.status).to.equal(64);
       expect(r.stderr).to.include('letters, digits');
       expect(composeLog(sb)).to.equal('');
+    });
+
+    it('restore latest refuses a bucket object whose name carries shell syntax', () => {
+      fs.mkdirSync(bucket('bpni-production/daily'), { recursive: true });
+      fs.writeFileSync(bucket('bpni-production/daily/zz$(touch pwned).archive.gz'), 'planted');
+      const r = run(sb, 'seed-from-dump.sh', ['production', 'restore', 'latest']);
+      expect(r.status).to.equal(64);
+      expect(r.stderr).to.include('letters, digits');
+      expect(composeLog(sb)).not.to.include('drop');
+      expect(fs.existsSync(path.join(sb.tmp, 'pwned'))).to.equal(false);
     });
 
     it('restore of a missing archive exits before dropping anything', () => {

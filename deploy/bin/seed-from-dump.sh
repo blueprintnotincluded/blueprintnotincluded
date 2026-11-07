@@ -133,22 +133,26 @@ do_dump() {
 }
 
 # The bucket path of a restore argument, or exit 64. The result is spliced
-# into the shell line `tool` runs, so only path characters get through.
+# into the shell line `tool` runs, so only path characters get through —
+# checked on the resolved path, which for `latest` is a name the bucket
+# listing supplied, not the operator.
 resolve() {
+  local resolved
   case "$1" in
-    *[!A-Za-z0-9._/-]*) echo "archive names are letters, digits, . _ - and /" >&2; exit 64 ;;
-  esac
-  case "$1" in
-    seed-*.archive.gz) echo "$(bucket)/seeds/$1" ;;
+    seed-*.archive.gz) resolved="$(bucket)/seeds/$1" ;;
     latest)
       local prefix newest
       prefix="$(bucket)/$(getenv "$project" COMPOSE_PROJECT_NAME)/daily/"
       newest=$(tool "$project" "" 'rclone lsf --format "p" --files-only '"$prefix" | sort | tail -n1)
       [ -n "$newest" ] || { echo "no archive under $prefix" >&2; exit 66; }
-      echo "$prefix$newest" ;;
-    */daily/*.archive.gz|*/weekly/*.archive.gz|*/monthly/*.archive.gz) echo "$(bucket)/$1" ;;
+      resolved="$prefix$newest" ;;
+    */daily/*.archive.gz|*/weekly/*.archive.gz|*/monthly/*.archive.gz) resolved="$(bucket)/$1" ;;
     *) echo "archive must be a seed name, latest, or <project>/<daily|weekly|monthly>/<name>" >&2; exit 64 ;;
   esac
+  case "${resolved#r2:}" in
+    *[!A-Za-z0-9._/-]*) echo "archive names are letters, digits, . _ - and /: $resolved" >&2; exit 64 ;;
+  esac
+  echo "$resolved"
 }
 
 do_restore() {
