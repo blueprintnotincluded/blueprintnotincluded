@@ -356,6 +356,13 @@ export interface BEntity2024 {
   // Footprint in cells. Present on world-placed entities; null for the ones
   // that only ever exist in inventories.
   kBoxCollider2D: { x: number; y: number } | null;
+  // Footprint in cells and the box's bottom-left cell relative to the entity's
+  // own cell, from the game's OccupyArea. Written only for Plant-tagged
+  // entities, and only by an exporter that renders plants (2026-11-07 on);
+  // older exports have neither and the collider stands in.
+  width?: number;
+  height?: number;
+  footprintOffset?: { x: number; y: number };
 }
 
 export interface BEntitiesFile2024 extends BExport2024Meta {

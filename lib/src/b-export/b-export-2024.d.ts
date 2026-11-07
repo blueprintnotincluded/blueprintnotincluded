@@ -226,6 +226,12 @@ export interface BEntity2024 {
         x: number;
         y: number;
     } | null;
+    width?: number;
+    height?: number;
+    footprintOffset?: {
+        x: number;
+        y: number;
+    };
 }
 export interface BEntitiesFile2024 extends BExport2024Meta {
     entities: BEntity2024[];
