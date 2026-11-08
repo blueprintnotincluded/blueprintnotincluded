@@ -115,14 +115,33 @@ tests:
               assert_eq!(.kind, "worker-exit")
               assert_eq!(.exit_code, "null")
               assert_eq!(.exit_signal, "SIGKILL")
+              assert_eq!(.exit, "crash")
 
-  - name: app boot
+  - name: the worker's own recycle is not a crash
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "preview render worker exited (code=0, signal=null)",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.exit, "recycle")
+
+  - name: app boot in a container started again carries its age
     inputs:
       - insert_at: shape
         type: vrl
         source: |
           . = {
             "message": "Example app listening on port 3000!",
+            "timestamp": t'2026-11-09T05:18:30Z',
+            "container_created_at": t'2026-11-08T01:00:00Z',
             "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
           }
     outputs:
@@ -131,6 +150,44 @@ tests:
           - type: vrl
             source: |
               assert_eq!(.kind, "boot")
+              assert_eq!(.container_age_s, 101910)
+              assert!(!exists(.container_created_at))
+
+  - name: app boot without docker's timestamps still ships
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "Example app listening on port 3000!",
+            "label": {"com.docker.compose.project": "production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "boot")
+              assert_eq!(.project, "production")
+              assert!(!exists(.container_age_s))
+
+  - name: a credential in a query string is redacted in url and message
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "access: method=GET route=/*path status=200 ms=3 bytes=900 ray=- country=CA url=/reset-password?token=s3cr3t&lang=en",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.url, "/reset-password?token=redacted&lang=en")
+              assert!(!contains(string!(.message), "s3cr3t"))
+              assert!(contains(string!(.message), "lang=en"))
 
   - name: facets-slow
     inputs:
@@ -184,6 +241,17 @@ tests:
         source: |
           . = {
             "message": "getBlueprint203.0.113.7",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    no_outputs_from: [shape]
+
+  - name: the upload, delete and rate client-IP lines are dropped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "rateBlueprint::ffff:203.0.113.7",
             "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
           }
     no_outputs_from: [shape]
@@ -351,6 +419,17 @@ tests:
           . = {
             "message": "{\"s\":\"W\",\"msg\":\"the drill's throwaway mongo\"}",
             "container_name": "bpni-production-restore-drill"
+          }
+    no_outputs_from: [shape]
+
+  - name: another compose project's app is not shipped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "access: method=GET route=/ status=200 ms=1 bytes=1 ray=- country=CA url=/",
+            "label": {"com.docker.compose.project": "bpni-review", "com.docker.compose.service": "app"}
           }
     no_outputs_from: [shape]
 

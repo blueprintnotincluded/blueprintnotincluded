@@ -1218,6 +1218,33 @@ exit 0
       expect(section).to.include('bpni-production-vector-1 status=running');
       expect(section).to.include('bpni-staging-app-1 status=running');
       expect(section).not.to.include('no containers');
+      // the sandbox has no dumps/: the root filesystem is still reported
+      expect(r.stdout).to.match(/disk:\n {2}Filesystem.*\n {2}\S+/);
+    });
+
+    it("falls back to compose's own project name when .env sets none", () => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      const env = path.join(sb.root, 'staging', '.env');
+      fs.writeFileSync(
+        env,
+        fs
+          .readFileSync(env, 'utf8')
+          .split('\n')
+          .filter(l => !l.startsWith('COMPOSE_PROJECT_NAME='))
+          .join('\n')
+      );
+      const stubBin = path.join(sb.tmp, 'stubbin');
+      fs.mkdirSync(stubBin);
+      fs.writeFileSync(
+        path.join(stubBin, 'docker'),
+        `#!/bin/bash
+[ "$1" = ps ] && printf '%s\\n' "$*" >> "$STUB_LOG"
+exit 0
+`,
+        { mode: 0o755 }
+      );
+      run(sb, 'health-report.sh', ['staging'], { PATH: `${stubBin}:${process.env.PATH ?? ''}` });
+      expect(composeLog(sb)).to.include('label=com.docker.compose.project=staging ');
     });
 
     it('rejects an unknown argument and a --since docker would not take', () => {
