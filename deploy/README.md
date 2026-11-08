@@ -173,7 +173,7 @@ in each project.
 | Roll back to an older build | On the box: set `IMAGE_TAG=sha-<short>` in `/srv/bpni/production/.env`, run `deploy.sh production`; put `prod` back afterwards. |
 | Redeploy by hand | `bin/deploy.sh <project>` — idempotent. |
 | Status | `bin/compose.sh production ps`, `docker stats --no-stream`; the week in one page: `bin/health-report.sh` (Monitoring) |
-| Logs | `bin/compose.sh production logs -f --tail 200 app` (json-file, 10 MB × 3 per container). The `access:`, `memory-heartbeat:`, `preview render` and `facets-slow` lines the code emits are grepped here (Monitoring). Ctrl-C ends the follow; the containers keep running. |
+| Logs | Better Stack Live tail on the "bni vector" source, both projects, the last 3 days ("Log shipping"); on the box `bin/compose.sh production logs -f --tail 200 app` (json-file, 10 MB × 3 per container). The `access:`, `memory-heartbeat:`, `preview render` and `facets-slow` lines the code emits are grepped here (Monitoring). Ctrl-C ends the follow; the containers keep running. |
 | Shell in the app | `bin/compose.sh production exec app bash` (cwd `/bpni/build`) |
 | Mongo shell | `bin/compose.sh production exec mongo mongosh -u root -p "$(grep MONGO_ROOT_PASSWORD= /srv/bpni/production/.env \| cut -d= -f2)" --authenticationDatabase admin blueprintnotincluded` |
 | Change `app.env` (HOST, keys…) | Edit, then `bin/compose.sh <project> up -d app`. `start`/`restart` keep the container's old environment. |
@@ -191,21 +191,26 @@ RSS ceiling. The 512 MB renderer smoke test in `publish.yml` is unchanged.
 ## Monitoring
 
 What there is to look at, from the outside in. Nothing here needs an account on the box
-except the log lines and the report. The two heartbeats are the only things that alert on
-their own; everything else has to be looked at.
+except the log lines and the report. What alerts on its own, all by email from the free
+Better Stack account `monitoring@blueprintnotincluded.org` (team BNI, kept apart from any
+other Better Stack account): the two heartbeats, the HTTP monitor on `/api/health`, and the
+eight log alerts under "Alerts" below. Everything else has to be looked at.
 
 | Where | What it answers | Notes |
 |---|---|---|
 | **Better Stack heartbeat "bpni nightly backup"** | Did last night's backup land in R2 | A dead-man's switch: `backup.sh` requests the heartbeat URL once at the end of a successful run (03:30 UTC nightly); the monitor alerts when a day and two hours pass without one, so around 05:30 UTC. Dead container, empty R2 credentials, box off, failed dump: all the same alert. Setup and what to do: "Backup monitoring" under Backups. |
 | **Better Stack heartbeat "bpni weekly restore drill"** | Did the newest archive restore, and is the disk under 85 % | `bin/drill-weekly.sh` from the deploy user's crontab, Sundays 05:00 UTC, pings after a passed drill; period 7 days, grace 1 day, so an alert on a Monday morning. Log on the box: `/srv/bpni/drill-weekly.log`. |
 | **HTTP monitor on `blueprintnotincluded.org`** — either UptimeRobot (public page `https://stats.uptimerobot.com/V6QANX8e9U`) or a Better Stack HTTP monitor, whichever is kept | Is the apex up; response time of `/` | HTTP check every 5 minutes (UptimeRobot: free tier, one North American region; Better Stack: free tier, pick an EU region, which is nearer the origin). A reboot that finishes inside the interval does not register (the 2026-10-31 kernel reboot at 05:17 UTC did not). `/status` on the site used to redirect to the UptimeRobot page; the `status` CNAME that did was deleted with the DigitalOcean app on 2026-11-02. |
-| **Better Stack HTTP monitor on `/api/health`**, keyword `"status":"ok"` (optional; add it when creating the heartbeats) | Does the origin answer, with Mongo connected | Sees the app through the tunnel rather than Cloudflare's edge, and reads the health endpoint's own verdict (503 when Mongo is down). Can replace the UptimeRobot check or sit beside it; record here which was done. |
+| **Better Stack HTTP monitor "bpni api health"** on `https://blueprintnotincluded.org/api/health`, keyword `"status":"ok"`, every 3 minutes from Europe and North America | Does the origin answer, through the tunnel, with Mongo connected | Reads the health endpoint's own verdict (503 when Mongo is down), so a dead app, a dead tunnel and a dead database are all this alert. The end-to-end check the log alerts lean on. |
+| **Better Stack log source "bni vector"** (Telemetry → Sources; Live tail, Explore) | Every shipped line of both projects, searchable, with the `access:` fields typed | Logs kept 3 days; the extracted metrics 30 days. Fields and what is shipped: "Log shipping" below. |
+| **Better Stack dashboard "bpni"** | A week (up to 30 days) of traffic and performance without SSH: requests by status class, p50/p95 by route, countries, renders and worker exits, RSS per process, slow queries, tunnel events, backup runs | Built on the metrics the source extracts ("Dashboard" below), so it outlives the 3-day log retention. |
+| **Better Stack log alerts** (eight, "Alerts" below) | 5xx, slow responses, worker crashes, API memory, Mongo slow-query bursts, a lost tunnel, a host reboot, and the logs going silent | Email only on the free plan. Production only, except the reboot alert. |
 | **Cloudflare → Analytics & Logs → Traffic** | Requests, bandwidth, cache ratio, status codes, by country and path; 24 h to 30 d | The only request counts there are until the access log below is read; everything the site serves goes through this zone. |
 | **Cloudflare → Analytics & Logs → Web Analytics** | Real-user page timing and Core Web Vitals by country, path and browser | Free; a zone toggle (*automatic setup* injects the beacon, no deploy). The app's CSP already allows `static.cloudflareinsights.com` and `cloudflareinsights.com`, so turning it on is console-only. When it is on, record it in the Cloudflare section above. |
 | **`GET /api/health`** | The app's own view: `checks.db` (`ok`, `pingMs` to Mongo), `memory`, `uptime`, `startedAt`, `build.commit`/`time`, `preview` (`worker` up/down, `queueDepth`/`queueMax`, `inFlight`, `failedRenders`) | What the compose healthcheck polls every 30 s. `startedAt` is fixed for the life of the process: production and staging reporting the same one is a host reboot, one of them moving alone is a container restart. 503 only when Mongo is not connected. |
 | **`Server-Timing: app;dur=<ms>`** on every response | Origin time, as the browser saw it | In the Network panel's *Timing* tab; subtract it from TTFB and what is left is Cloudflare plus the path to Helsinki. |
 | **Container log lines** (`bin/compose.sh <project> logs app`) | Per request, per render, per process | `access: method=… route=… status=… ms=… bytes=… ray=… country=… url=…` — every API call and page view; static files and the healthcheck only when they failed or took ≥ 1 s; a request the client abandoned carries `aborted=1` and is always logged. `memory-heartbeat: <api\|preview-worker> rss=…` every 5 minutes. `preview render <id> … total=…ms` per master render, `preview render worker exited` per recycle or crash, `facets-slow` for the facet query. Docker's rotation keeps roughly the last 30 MB per container: read them before they scroll, or let the report below do it. |
-| **`bin/health-report.sh [production\|staging\|all] [--since 7d]`** | The week on one page | Host (reboots, `reboot-required`, kernel OOM kills, memory, disk), containers (status, health, restart counters, `docker stats`), then per project: boots, memory-heartbeat trend per process, the access lines summarised (status classes, p50/p95, busiest routes, countries, slowest five, 5xx), preview renders (count, cold, p50/max, queue sheds, worker exits), error lines, Mongo slow queries by namespace, cloudflared reconnects, and production's backup runs with the bucket total. Each section starts with `covers: from <timestamp>`: `compose logs` reads the container that exists now, so a deploy inside the window shortens the data to the time since it. Run it as `deploy` before the weekly look, keep the output next to last week's. |
+| **`bin/health-report.sh [production\|staging\|all] [--since 7d]`** | The week on one page | Host (reboots, `reboot-required`, kernel OOM kills, memory, disk), containers (status, health, restart counters, `docker stats`), then per project: boots, memory-heartbeat trend per process, the access lines summarised (status classes, p50/p95, busiest routes, countries, slowest five, 5xx), preview renders (count, cold, p50/max, queue sheds, worker exits), error lines, Mongo slow queries by namespace, cloudflared reconnects, and production's backup runs with the bucket total. Each section starts with `covers: from <timestamp>`: `compose logs` reads the container that exists now, so a deploy inside the window shortens the data to the time since it. Run it as `deploy` before the weekly look, keep the output next to last week's. The offline fallback: it needs nothing but the box, so it still answers when Better Stack is down, over quota or past its retention. |
 
 Grep recipes, for when the report is not enough:
 
@@ -266,7 +271,9 @@ Every event has `dt`, `project` (`production` / `staging`), `service` (`app`, `m
 | `log` | any other app, cloudflared or backup line | |
 
 Not shipped: mongod's other informational lines (the per-connection chatter was 95 % of
-its log on 2026-11-07, about 120 MB a day across the two stacks), the app's
+its log on 2026-11-07, about 120 MB a day across the two stacks, so Docker's 30 MB rotation
+keeps only about half a day of either mongod's log and `health-report.sh`'s Mongo section
+covers that much; the source keeps the slow queries for 3 days and their counts for 30), the app's
 `getBlueprint<client IP>` debug lines (no IP address leaves the box), one-off `compose
 run` containers (the drill and seed tooling), and Vector's own log.
 
@@ -289,6 +296,48 @@ bin/compose.sh production --profile logs rm -sf vector   # stop shipping (after 
 
 The token and the ingesting host go into `/srv/bpni/production/.env` at a `read -rsp`
 prompt, never on a command line; then `bin/env-backup.sh backup`.
+
+### Dashboard
+
+The source "bni vector" extracts these metrics from the shipped events (Telemetry →
+Sources → bni vector → *Extract metrics*), kept 30 days where the logs are kept 3:
+
+| Metric | Value, from events of `kind` | Aggregations | Labels |
+|---|---|---|---|
+| `bpni_http_ms` | `ms` of `access` | Count, Avg, Max, Histogram | `project`, `status_class`, `route` |
+| `bpni_http_country` | 1 per `access` | Count | `project`, `country` |
+| `bpni_rss_mb` | `rss_mb` of `memory` | Max, Avg | `project`, `process` |
+| `bpni_render_ms` | `render_ms` of `render` | Count, Avg, Max, Histogram | `project`, `cold` |
+| `bpni_events` | 1 per `boot`, `worker-exit`, `queue-full`, `facets-slow`, `slow-query`, `mongo-error`, `tunnel-*`, `backup-*`, `memory` | Count | `project`, `service`, `kind`, `exit` (`recycle` / `crash` on a worker exit) |
+
+The dashboard "bpni" has a `project` variable (production by default) and one chart per
+question: requests per hour by status class, 5xx by route, p50 and p95 latency by route,
+requests by country, preview renders per hour (cold and warm) with their p95, worker
+exits by `exit`, RSS per process against the 1024 MB app limit, slow queries per hour,
+tunnel registrations and drops, backup runs per day. Mongo's warning lines are not on it:
+every mongod start logs about six (memory allocator, swappiness, file descriptors) and the
+search-query upsert logs a `DuplicateKey` one now and then, none of them news.
+
+### Alerts
+
+Few on purpose: each is something to act on, and an alert that fires on a healthy day
+gets its threshold raised rather than learned to be ignored. All are charts' alerts in
+Better Stack, emailing the BNI team; production only unless the row says otherwise. The
+thresholds come from the logs of 2026-11-07: about 1 000 logged requests an hour, 25 Mongo
+slow queries an hour, the API process at 230 MB.
+
+| Alert | Fires when | Why that threshold | Look first |
+|---|---|---|---|
+| **bpni 5xx** | 10 or more 5xx responses in 15 minutes (checked every 5 minutes, recovers after 15 quiet minutes) | A quarter-hour is ~250 logged requests and a healthy one has none or a stray one; 10 is ~4 % and more than one bad crawler. A count, not a rate, so a quiet night with two errors stays quiet. | The dashboard's 5xx-by-route chart; the 5xx lines in Explore (`status_class` = `5xx`); `/api/health` (a 503 there is Mongo). |
+| **bpni slow responses** | p95 of `ms` over 15 minutes above 2 000 ms, preview image routes and aborted requests left out, held for 30 minutes | Renders take a second or more by design, so they are excluded; the API answers in tens of ms. Two seconds for 45 minutes of windows is a site that feels broken, not one slow request. | Latency by route; Mongo slow queries; `docker stats` and `free -m` for swap. |
+| **bpni preview worker crashing** | 3 or more worker exits that are not the routine recycle (`code=0`, no signal) in an hour | One crash on a pathological blueprint happens; three in an hour is a loop or memory pressure (`SIGKILL` is the cgroup's OOM kill). Recycles are normal and not counted. | `bin/compose.sh production logs app \| grep -B5 'worker exited'`; the RSS chart. |
+| **bpni api memory high** | The `api` process's RSS at 600 MB or more for 10 minutes (two heartbeats) | The app container's limit is 1024 MB and the render worker sizes itself up to 384 MB of it: 600 + 384 leaves about 40 MB before the kernel kills the container. | The RSS chart (a climb is a leak, a step is a load); a `deploy.sh production` restart is the stopgap. |
+| **bpni mongo slow-query burst** | 60 or more slow queries in 15 minutes | Baseline is about 6 per 15 minutes; ten times that is a missing index, a pathological query or Mongo short of memory. | `bin/health-report.sh production --since 1d` (slow queries by namespace); a deploy or migration just before. |
+| **bpni tunnel lost** | Over the last hour, cloudflared logged at least 2 more connection drops than registrations, for 5 minutes | A reconnect logs a drop and a registration, a restart only registrations; a surplus of drops is connections that did not come back. "bpni api health" is the end-to-end check; this one names the tunnel. | `bin/compose.sh production logs --tail 50 cloudflared`; Zero Trust → Networks → Tunnels. |
+| **bpni host reboot** (both projects) | App boot lines from production *and* staging within 10 minutes | Deploys restart one project at a time; both at once is the box rebooting (unattended-upgrades at 05:17 UTC, or anything else) or Docker restarting. News, not an emergency. | `last -x reboot`, `/var/run/reboot-required`, the report's host section; that the drill or backup was not cut off. |
+| **bpni logs silent** | No `memory` events from production in 30 minutes | The app writes one per process every 5 minutes. None means the app, the box or the shipper is down, and every other log alert above is blind until it is fixed. | "bpni api health" first: up means the shipper (`bin/compose.sh production ps vector`, `logs vector`; a `402` there is the free quota). |
+
+Pause an alert, like a heartbeat, before maintenance that would trip it.
 
 ## Database
 
