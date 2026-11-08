@@ -51,4 +51,12 @@ if [ "$project" = production ]; then
   unset token
 fi
 
+# vector.yaml's hash for the shipper's label (compose.yml): an `up` after the
+# workflow synced a changed config recreates the container.
+vector_config="$root/deploy/vector/vector.yaml"
+if [ -f "$vector_config" ]; then
+  VECTOR_CONFIG_HASH=$(sha256sum < "$vector_config" | cut -c1-16)
+  export VECTOR_CONFIG_HASH
+fi
+
 exec docker compose --project-directory "$dir" -f "$root/deploy/compose.yml" "$@"
