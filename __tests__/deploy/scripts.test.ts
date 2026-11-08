@@ -847,6 +847,157 @@ exit 0
     });
   });
 
+  describe('compose.sh log-shipper profile', () => {
+    // docker stand-in: prints the profiles compose would see and its arguments.
+    const STUB_DOCKER = `#!/bin/bash
+printf 'profiles=%s\n' "\${COMPOSE_PROFILES-<unset>}"
+printf 'args=%s\n' "$*"
+`;
+    let stubBin: string;
+    beforeEach(() => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      fs.copyFileSync(path.join(repoBin, 'compose.sh'), path.join(sb.bin, 'compose.sh'));
+      stubBin = path.join(sb.tmp, 'stubbin');
+      fs.mkdirSync(stubBin);
+      fs.writeFileSync(path.join(stubBin, 'docker'), STUB_DOCKER, { mode: 0o755 });
+    });
+    const setToken = (project: string, token: string) => {
+      const f = path.join(sb.root, project, '.env');
+      const lines = fs
+        .readFileSync(f, 'utf8')
+        .split('\n')
+        .filter(l => !l.startsWith('BETTERSTACK_SOURCE_TOKEN='));
+      fs.writeFileSync(f, [...lines, `BETTERSTACK_SOURCE_TOKEN=${token}`, ''].join('\n'));
+    };
+    const compose = (project: string, extraEnv: Record<string, string> = {}) =>
+      run(sb, 'compose.sh', [project, 'ps'], {
+        PATH: `${stubBin}:${process.env.PATH ?? ''}`,
+        ...extraEnv,
+      });
+
+    it('leaves the profiles alone while the token is empty, as the example ships it', () => {
+      expect(value(read(sb, 'production/.env'), 'BETTERSTACK_SOURCE_TOKEN')).to.equal('');
+      const r = compose('production');
+      expect(r.status, r.stderr).to.equal(0);
+      expect(r.stdout).to.include('profiles=<unset>');
+    });
+
+    it('adds logs to the .env profiles in production, and keeps the token off the command line', () => {
+      setToken('production', 'secret-token-123');
+      const r = compose('production');
+      expect(r.status, r.stderr).to.equal(0);
+      expect(r.stdout).to.include('profiles=backup,logs\n');
+      expect(r.stdout).not.to.include('secret-token-123');
+    });
+
+    it('adds logs to profiles the caller set, once', () => {
+      setToken('production', 't');
+      expect(compose('production', { COMPOSE_PROFILES: '' }).stdout).to.include('profiles=logs\n');
+      expect(compose('production', { COMPOSE_PROFILES: 'logs,backup' }).stdout).to.include(
+        'profiles=logs,backup\n'
+      );
+    });
+
+    it('never starts a second shipper from staging', () => {
+      setToken('staging', 't');
+      expect(compose('staging').stdout).to.include('profiles=<unset>');
+    });
+
+    it('fails when production/.env cannot be read', function () {
+      if (process.getuid && process.getuid() === 0) this.skip();
+      fs.chmodSync(path.join(sb.root, 'production', '.env'), 0o000);
+      const r = compose('production');
+      expect(r.status).to.equal(66);
+      expect(r.stderr).to.include('cannot read');
+      expect(r.stdout).not.to.include('args=');
+    });
+  });
+
+  describe('compose.yml', () => {
+    const composeFile = fs.readFileSync(path.resolve(repoBin, '../compose.yml'), 'utf8');
+    // Service blocks: two-space-indented keys under `services:`.
+    const services = () => {
+      const body = composeFile.split(/^services:\n/m)[1].split(/^\S/m)[0];
+      const out: Record<string, string> = {};
+      let current = '';
+      for (const l of body.split('\n')) {
+        const m = /^  ([a-z][\w-]*):\s*$/.exec(l);
+        if (m) {
+          current = m[1];
+          out[current] = '';
+        } else if (current) out[current] += l + '\n';
+      }
+      return out;
+    };
+
+    it('gives every service a memory limit, the shipper included', () => {
+      const all = services();
+      expect(Object.keys(all)).to.include.members([
+        'app',
+        'mongo',
+        'cloudflared',
+        'backup',
+        'vector',
+      ]);
+      for (const [name, block] of Object.entries(all))
+        expect(block, name).to.match(/limits:\n\s+(#.*\n\s+)*memory: \S+/);
+    });
+
+    it('starts the shipper only in the logs profile, with a pinned image and the config read-only', () => {
+      const vector = services().vector;
+      expect(vector).to.include('profiles: ["logs"]');
+      expect(vector).to.match(/image: timberio\/vector:\d+\.\d+\.\d+-alpine\n/);
+      expect(vector).to.include('/vector/vector.yaml:/etc/vector/vector.yaml:ro');
+      expect(vector).to.include('memory: 128m');
+    });
+  });
+
+  describe('vector config', () => {
+    const vectorDir = path.resolve(repoBin, '../vector');
+    const config = fs.readFileSync(path.join(vectorDir, 'vector.yaml'), 'utf8');
+    const image = /image: (timberio\/vector:\S+)/.exec(
+      fs.readFileSync(path.resolve(repoBin, '../compose.yml'), 'utf8')
+    )![1];
+
+    it('names no environment variable but the two it is given', () => {
+      // Vector substitutes $NAME and ${NAME} in the whole file, comments
+      // included; an unset one fails the start. $$ is a literal dollar.
+      const names = [...config.replace(/\$\$/g, '').matchAll(/\$\{?([A-Za-z_]\w*)/g)].map(
+        m => m[1]
+      );
+      expect([...new Set(names)].sort()).to.deep.equal([
+        'BETTERSTACK_INGEST_HOST',
+        'BETTERSTACK_SOURCE_TOKEN',
+      ]);
+    });
+
+    // The transform's own unit tests (vector/tests.yaml), in the pinned image.
+    // Needs docker, so it runs in CI and is skipped where there is none.
+    it('passes its unit tests in the pinned image', function () {
+      this.timeout(300000);
+      if (spawnSync('docker', ['version'], { encoding: 'utf8' }).status !== 0) this.skip();
+      const r = spawnSync(
+        'docker',
+        [
+          'run',
+          '--rm',
+          '-e',
+          'BETTERSTACK_INGEST_HOST=ingest.invalid',
+          '-e',
+          'BETTERSTACK_SOURCE_TOKEN=test',
+          '-v',
+          `${vectorDir}:/etc/vector:ro`,
+          image,
+          'test',
+          '/etc/vector/vector.yaml',
+          '/etc/vector/tests.yaml',
+        ],
+        { encoding: 'utf8' }
+      );
+      expect(r.status, `${r.stdout}\n${r.stderr}`).to.equal(0);
+    });
+  });
+
   describe('cloud-init-render.sh', () => {
     it('fills both key placeholders and leaves none behind', () => {
       const keys = path.join(sb.tmp, 'keys');
@@ -1022,6 +1173,38 @@ exit 0
       expect(r.stdout).to.include('access: no lines');
       expect(r.stdout).to.include('== staging mongo (last 3d) ==\nno log lines');
       expect(r.stdout).not.to.include('backup');
+    });
+
+    it('finds the containers by their compose project label, as the box names them', () => {
+      expect(run(sb, 'env-bootstrap.sh', []).status).to.equal(0);
+      const stubBin = path.join(sb.tmp, 'stubbin');
+      fs.mkdirSync(stubBin);
+      // docker stand-in: `ps --filter label=com.docker.compose.project=<p>`
+      // lists that project's containers, inspect echoes the name, the rest
+      // (stats) prints nothing.
+      fs.writeFileSync(
+        path.join(stubBin, 'docker'),
+        `#!/bin/bash
+case "$1" in
+  ps) case "$*" in
+        *project=bpni-production*) printf 'bpni-production-app-1\nbpni-production-vector-1\n' ;;
+        *project=bpni-staging*) printf 'bpni-staging-app-1\n' ;;
+      esac ;;
+  inspect) echo "/\${@: -1} status=running" ;;
+esac
+exit 0
+`,
+        { mode: 0o755 }
+      );
+      const r = run(sb, 'health-report.sh', ['all'], {
+        PATH: `${stubBin}:${process.env.PATH ?? ''}`,
+      });
+      expect(r.status, r.stderr).to.equal(0);
+      const section = r.stdout.split('== containers ==\n')[1].split('\n==')[0];
+      expect(section).to.include('bpni-production-app-1 status=running');
+      expect(section).to.include('bpni-production-vector-1 status=running');
+      expect(section).to.include('bpni-staging-app-1 status=running');
+      expect(section).not.to.include('no containers');
     });
 
     it('rejects an unknown argument and a --since docker would not take', () => {
