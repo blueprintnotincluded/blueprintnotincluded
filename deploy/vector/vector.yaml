@@ -51,7 +51,10 @@ transforms:
       if service == "app" {
         # A query value that can be a credential (the password-reset page is
         # /reset-password?token=…) never leaves the box, in `url` or `message`.
-        msg = replace(msg, r'(?i)([?&](?:token|code|state|key|secret|password|email)=)[^&\s]*', "$${1}redacted")
+        # The whole pair becomes `redacted`: VRL's replace expands no capture
+        # groups, so the key cannot be kept without one line per key.
+        msg = replace(msg, r'(?i)\?(?:token|code|state|key|secret|password|email)=[^&\s]*', "?redacted")
+        msg = replace(msg, r'(?i)&(?:token|code|state|key|secret|password|email)=[^&\s]*', "&redacted")
       }
 
       ev = {
