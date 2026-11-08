@@ -130,7 +130,7 @@ sudo -u deploy -i
 It creates the four files (mode 600) from `env/*.example` with the Mongo passwords,
 staging's `JWT_SECRET` and the hostnames filled in, and lists what is left for you:
 the two tunnel tokens, the R2 credentials, the two Better Stack heartbeat URLs ("Backup
-monitoring"), production's `JWT_SECRET` (the value the site already uses — a new one logs
+monitoring") and the log source's token and ingesting host ("Log shipping"), production's `JWT_SECRET` (the value the site already uses — a new one logs
 every user out), Mailjet and WorkOS keys, the optional Gemini/Translate keys for production
 only. Edit with `nano`; `DB_URI` and `AUTH_MODE` stay
 out (compose sets the first, the second must remain unset).
@@ -229,6 +229,66 @@ also restores the 4.5 GB monthly archive); a Sunday that is also a kernel-reboot
 cut it off at 05:17, in which case no heartbeat is sent and Better Stack alerts on Monday.
 Rerun `bin/drill-weekly.sh` by hand and the alert resolves; if it happens twice, move the
 crontab hour in `deploy.sh`.
+
+### Log shipping
+
+`vector` (pinned `timberio/vector`, 128 MB limit) ships the box's container logs to one
+Better Stack Telemetry source in the BNI team (platform Vector, US region: the free plan
+offers no EU one). It runs in the production project only, in the `logs` profile that
+`bin/compose.sh` turns on when `BETTERSTACK_SOURCE_TOKEN` is set in production's `.env`,
+and reads **both** projects' containers through the Docker socket, so staging has no
+token (`compose.sh` would not start a second shipper from staging anyway). The json-file
+logs are untouched: `compose logs` and `health-report.sh` read what they always did, and
+are the fallback when Better Stack is down, over its quota, or past its 3-day retention.
+
+The config is `vector/vector.yaml`, unit-tested by `vector/tests.yaml` (`vector test`,
+run in the pinned image by `__tests__/deploy/scripts.test.ts` wherever docker exists,
+CI included). It reaches the box with the rest of `deploy/`; the container carries a
+hash of it as a label, so the next `deploy.sh production` (or `bin/compose.sh production
+up -d vector`) recreates it with a changed config.
+
+Every event has `dt`, `project` (`production` / `staging`), `service` (`app`, `mongo`,
+`cloudflared`, `backup`), `kind` and the original line as `message`. By `kind`:
+
+| `kind` | From | Extra fields |
+|---|---|---|
+| `access` | the app's `access:` line | `method`, `route`, `status` (number), `status_class` (`2xx`…`5xx`), `ms`, `bytes` (number or null), `country`, `ray`, `url`, `aborted` (bool) |
+| `memory` | `memory-heartbeat:`, every 5 min per process | `process` (`api` / `preview-worker`), `rss_mb`, `heap_used_mb` |
+| `render` | `preview render <id> … total=…ms` | `render_ms`, `queue_wait_ms`, `cold` (bool) |
+| `worker-exit` | `preview render worker exited (code=…, signal=…)` | `exit_code`, `exit_signal` (strings; `code=0` with `signal=null` is the routine RSS recycle) |
+| `queue-full` | `render queue full` | |
+| `facets-slow` | `facets-slow:` | `ms` |
+| `boot` | the app's `listening on port`, mongod's `Waiting for connections` | |
+| `slow-query` | mongod `Slow query` (over its 100 ms default) | `duration_ms`, `ns`, `severity`, `mongo_msg` |
+| `mongo-warning` / `mongo-error` | mongod lines at severity W / E or F | `severity`, `mongo_msg` |
+| `tunnel-up` / `tunnel-down` / `tunnel-error` | cloudflared `Registered` / `Unregistered tunnel connection`, other `ERR` lines | `level` |
+| `backup-done` / `backup-error` | the sidecar's `backup: done` / `backup: … failed` | |
+| `log` | any other app, cloudflared or backup line | |
+
+Not shipped: mongod's other informational lines (the per-connection chatter was 95 % of
+its log on 2026-11-07, about 120 MB a day across the two stacks), the app's
+`getBlueprint<client IP>` debug lines (no IP address leaves the box), one-off `compose
+run` containers (the drill and seed tooling), and Vector's own log.
+
+**Volume and the free tier.** Measured on 2026-11-07: production's access lines about
+4 MB a day, the mongod lines kept about 2 MB a day, the rest small; shipped with their
+fields, roughly 12 MB a day, 0.35 GB a month, against the free plan's 3 GB a month kept
+for 3 days. Past the quota Better Stack answers `402` and the rest of the month's lines
+are lost, the log-based alerts going quiet with them; Vector logs each rejected batch
+(`bin/compose.sh production logs --tail 20 vector`). Volume to cut first if it ever
+grows: staging's access lines, then the `url` field.
+
+By hand, as `deploy`:
+
+```bash
+bin/compose.sh production logs --tail 20 vector   # warnings and errors only; empty is healthy
+docker stats --no-stream bpni-production-vector-1
+bin/compose.sh production up -d vector            # after setting or rotating the token
+bin/compose.sh production --profile logs rm -sf vector   # stop shipping (after clearing the token)
+```
+
+The token and the ingesting host go into `/srv/bpni/production/.env` at a `read -rsp`
+prompt, never on a command line; then `bin/env-backup.sh backup`.
 
 ## Database
 
@@ -440,10 +500,11 @@ most of it.
 3. **Laptop**: `rsync -az deploy/ deploy@<ip>:/srv/bpni/deploy/` and
    `scp env-<stamp>.tar.enc deploy@<ip>:/srv/bpni/dumps/`.
 4. **Server**: `bin/env-backup.sh restore /srv/bpni/dumps/env-<stamp>.tar.enc`. The archive
-   carries the two heartbeat URLs, so the rebuilt box reports to the same Better Stack
-   monitors. Without the archive: `bin/env-bootstrap.sh` and fill in by hand — tunnel
+   carries the two heartbeat URLs and the log source token, so the rebuilt box reports to
+   the same Better Stack monitors and source. Without the archive: `bin/env-bootstrap.sh` and fill in by hand — tunnel
    tokens from Zero Trust → Tunnels → *Configure*, a new R2 token, the heartbeat URLs from
-   each monitor's page in Better Stack, Mailjet and WorkOS keys from their dashboards,
+   each monitor's page in Better Stack and the source token and ingesting host from the
+   log source's page, Mailjet and WorkOS keys from their dashboards,
    production's `JWT_SECRET` from the password manager.
 5. **Server**: database first, nothing public yet — the restored env carries the live
    tunnel token, so the app and the tunnel stay down until the data is back:
