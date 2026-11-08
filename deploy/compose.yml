@@ -173,6 +173,11 @@ services:
     # container through the Docker socket and ships both projects.
     image: timberio/vector:0.59.0-alpine
     profiles: ["logs"]
+    labels:
+      # A hash of vector.yaml, set by bin/compose.sh: a changed config
+      # changes the label, so the next `up` (deploy.sh production) recreates
+      # the container and it reads the new file.
+      bpni.vector-config: ${VECTOR_CONFIG_HASH:-}
     restart: unless-stopped
     command: ["--config", "/etc/vector/vector.yaml"]
     environment:
@@ -186,7 +191,9 @@ services:
       # this container is as trusted as the deploy user; the config only
       # reads (docker_logs). The image is pinned like every other here.
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${DEPLOY_DIR:-/srv/bpni/deploy}/vector/vector.yaml:/etc/vector/vector.yaml:ro
+      # The directory, not the file: rsync replaces vector.yaml by renaming
+      # a new copy over it, and a single-file bind keeps the old one.
+      - ${DEPLOY_DIR:-/srv/bpni/deploy}/vector:/etc/vector:ro
     deploy:
       resources:
         limits:

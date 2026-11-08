@@ -852,6 +852,7 @@ exit 0
     const STUB_DOCKER = `#!/bin/bash
 printf 'profiles=%s\n' "\${COMPOSE_PROFILES-<unset>}"
 printf 'args=%s\n' "$*"
+printf 'vector-config=%s\n' "\${VECTOR_CONFIG_HASH-<unset>}"
 `;
     let stubBin: string;
     beforeEach(() => {
@@ -896,6 +897,17 @@ printf 'args=%s\n' "$*"
       expect(compose('production', { COMPOSE_PROFILES: 'logs,backup' }).stdout).to.include(
         'profiles=logs,backup\n'
       );
+    });
+
+    it('labels the shipper with a hash of its config, so a changed config recreates it', () => {
+      const cfgDir = path.join(sb.root, 'deploy', 'vector');
+      expect(compose('production').stdout).to.include('vector-config=<unset>');
+      fs.mkdirSync(cfgDir);
+      fs.writeFileSync(path.join(cfgDir, 'vector.yaml'), 'a: 1\n');
+      const first = /vector-config=(\w+)/.exec(compose('production').stdout)![1];
+      expect(first).to.have.length(16);
+      fs.writeFileSync(path.join(cfgDir, 'vector.yaml'), 'a: 2\n');
+      expect(compose('production').stdout).not.to.include(`vector-config=${first}`);
     });
 
     it('never starts a second shipper from staging', () => {
@@ -947,7 +959,8 @@ printf 'args=%s\n' "$*"
       const vector = services().vector;
       expect(vector).to.include('profiles: ["logs"]');
       expect(vector).to.match(/image: timberio\/vector:\d+\.\d+\.\d+-alpine\n/);
-      expect(vector).to.include('/vector/vector.yaml:/etc/vector/vector.yaml:ro');
+      expect(vector).to.include('/vector:/etc/vector:ro');
+      expect(vector).to.include('bpni.vector-config: ${VECTOR_CONFIG_HASH:-}');
       expect(vector).to.include('memory: 128m');
     });
   });
