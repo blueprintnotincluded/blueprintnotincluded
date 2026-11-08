@@ -280,7 +280,7 @@ covers that much; the source keeps the slow queries for 3 days and their counts 
 `getBlueprint<client IP>` / `uploadBlueprint…` / `deleteBlueprint…` / `rateBlueprint…`
 debug lines (no IP address leaves the box), one-off `compose run` containers (the drill and
 seed tooling), and Vector's own log. In the app's lines a query value named `token`,
-`code`, `state`, `key`, `secret`, `password` or `email` is replaced by `redacted`, in `url`
+`code`, `state`, `key`, `secret`, `password` or `email` is replaced, key and value, by `redacted`, in `url`
 and `message` alike (the password-reset page is `/reset-password?token=…`).
 
 **Volume and the free tier.** Measured on 2026-11-07: production's access lines about

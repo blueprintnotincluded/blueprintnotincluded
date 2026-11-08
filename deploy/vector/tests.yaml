@@ -177,7 +177,7 @@ tests:
         type: vrl
         source: |
           . = {
-            "message": "access: method=GET route=/*path status=200 ms=3 bytes=900 ray=- country=CA url=/reset-password?token=s3cr3t&lang=en",
+            "message": "access: method=GET route=/*path status=200 ms=3 bytes=900 ray=- country=CA url=/reset-password?token=s3cr3t&lang=en&Email=a@b.example",
             "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
           }
     outputs:
@@ -185,7 +185,7 @@ tests:
         conditions:
           - type: vrl
             source: |
-              assert_eq!(.url, "/reset-password?token=redacted&lang=en")
+              assert_eq!(.url, "/reset-password?redacted&lang=en&redacted")
               assert!(!contains(string!(.message), "s3cr3t"))
               assert!(contains(string!(.message), "lang=en"))
 
