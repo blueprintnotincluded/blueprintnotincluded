@@ -528,7 +528,7 @@ esac
     });
 
     describe('heartbeat', () => {
-      const url = 'https://uptime.betterstack.com/api/v1/heartbeat/abc123';
+      const url = 'https://incidents.betterstack.com/api/v1/heartbeat/abc123';
       const day = { STUB_DATE: '2026-11-04 03:30', STUB_DOW: '3' };
 
       it('pings the URL once, after the archive is in place and the pruning is done', () => {
@@ -610,7 +610,7 @@ esac
   // df and curl are stubs on PATH, date follows STUB_DATE for the first-Sunday
   // rule.
   describe('drill-weekly.sh', () => {
-    const url = 'https://uptime.betterstack.com/api/v1/heartbeat/drill456';
+    const url = 'https://incidents.betterstack.com/api/v1/heartbeat/drill456';
     const STUB_DRILL = `#!/bin/bash
 printf 'restore-drill %s tolerance=%s\\n' "$*" "\${DRILL_TOLERANCE_PERCENT:-default}" >> "$STUB_LOG"
 echo "== restore drill $([ "\${STUB_DRILL_FAIL:-}" = 1 ] && echo FAILED || echo PASSED) (fake)"

@@ -50,8 +50,9 @@ Do these once, in order. Items 1–4 are console work; 5–7 are on the box.
 ### 2. Cloudflare
 
 The zone `blueprintnotincluded.org` lives in the Cloudflare account that also holds
-`sinetheta.ca` (nameservers `duke.ns.cloudflare.com` / `norah.ns.cloudflare.com` at
-Namecheap since 2026-10-24). This is what it must contain; the console is checked against
+`sinetheta.ca`; the domain itself is registered there too (transferred from Namecheap on
+2026-11-07, expires March 2028, nameservers `duke.ns.cloudflare.com` /
+`norah.ns.cloudflare.com`). This is what it must contain; the console is checked against
 this table, not the other way round. After any record change, export the zone
 (**DNS → Records → Export**) and commit the file as `deploy/cloudflare/blueprintnotincluded.org.zone`
 so the record set has a history.
@@ -61,10 +62,14 @@ so the record set has a history.
 | CNAME | `@` (apex) | tunnel **bpni-production** (`<tunnel id>.cfargotunnel.com`) | Proxied |
 | CNAME | `www` | tunnel **bpni-production** | Proxied |
 | CNAME | `staging` | tunnel **bpni-staging** | Proxied |
-| TXT | `@` | `v=spf1 include:spf.mailjet.com include:spf.privateemail.com ~all` | — (nothing sends as the domain today: WorkOS sends auth mail from its own domain, the Mailjet code is unused; #312) |
+| TXT | `@` | `v=spf1 include:spf.mailjet.com include:_spf.mx.cloudflare.net ~all` | — (nothing sends as the domain today: WorkOS sends auth mail from its own domain, the Mailjet code is unused; #312. The Cloudflare include is for Email Routing's forwarding) |
 | TXT | `_dmarc` | `v=DMARC1; p=none;` | — |
+| MX (×3) | `@` | Cloudflare Email Routing (`route1/2/3.mx.cloudflare.net`), managed by the Email Routing page | — |
 
-No `A`/`AAAA` (the apex *is* the tunnel), no `MX`. The 2026-11-02 export still has the
+No `A`/`AAAA` (the apex *is* the tunnel). **Email → Email Routing** forwards every address
+at the domain (catch-all) to the maintainer's mailbox; `monitoring@blueprintnotincluded.org`
+is the Better Stack account (Monitoring), which is why the alerts arrive without a second
+inbox. The 2026-11-02 export still has the
 trial's `hetzner` CNAME, which goes when its tunnel route does (Decommission DigitalOcean,
 step 3). Settings: **SSL/TLS → Edge Certificates → Always Use HTTPS: On**; Universal SSL
 covers the apex and `*.blueprintnotincluded.org`. No cache, WAF or rate-limit rules exist
@@ -196,10 +201,11 @@ their own; everything else has to be looked at.
 
 | Where | What it answers | Notes |
 |---|---|---|
+| **Better Stack** — account `monitoring@blueprintnotincluded.org`, team `BNI`, free plan, nothing shared with any other Better Stack account | The three monitors below | Free plan: alerts by **email only** (no escalation policies, no push, no calls), regions are continents, 3-minute checks at best. Onboarding also created a default monitor on the homepage, left as it is. The heartbeat URLs are `https://incidents.betterstack.com/api/v1/heartbeat/<token>` (not `uptime.betterstack.com`); HEAD, GET and POST all count, and `<url>/fail` would report an explicit failure, which the scripts do not use yet. |
 | **Better Stack heartbeat "bpni nightly backup"** | Did last night's backup land in R2 | A dead-man's switch: `backup.sh` requests the heartbeat URL once at the end of a successful run (03:30 UTC nightly); the monitor alerts when a day and two hours pass without one, so around 05:30 UTC. Dead container, empty R2 credentials, box off, failed dump: all the same alert. Setup and what to do: "Backup monitoring" under Backups. |
 | **Better Stack heartbeat "bpni weekly restore drill"** | Did the newest archive restore, and is the disk under 85 % | `bin/drill-weekly.sh` from the deploy user's crontab, Sundays 05:00 UTC, pings after a passed drill; period 7 days, grace 1 day, so an alert on a Monday morning. Log on the box: `/srv/bpni/drill-weekly.log`. |
 | **HTTP monitor on `blueprintnotincluded.org`** — either UptimeRobot (public page `https://stats.uptimerobot.com/V6QANX8e9U`) or a Better Stack HTTP monitor, whichever is kept | Is the apex up; response time of `/` | HTTP check every 5 minutes (UptimeRobot: free tier, one North American region; Better Stack: free tier, pick an EU region, which is nearer the origin). A reboot that finishes inside the interval does not register (the 2026-10-31 kernel reboot at 05:17 UTC did not). `/status` on the site used to redirect to the UptimeRobot page; the `status` CNAME that did was deleted with the DigitalOcean app on 2026-11-02. |
-| **Better Stack HTTP monitor on `/api/health`**, keyword `"status":"ok"` (optional; add it when creating the heartbeats) | Does the origin answer, with Mongo connected | Sees the app through the tunnel rather than Cloudflare's edge, and reads the health endpoint's own verdict (503 when Mongo is down). Can replace the UptimeRobot check or sit beside it; record here which was done. |
+| **Better Stack HTTP monitor "bpni api health"** — `GET https://blueprintnotincluded.org/api/health` must contain `"status":"ok"` | Does the origin answer, with Mongo connected | Every 3 minutes from Europe and North America, 30 s timeout, created 2026-11-07. Sees the app through the tunnel rather than Cloudflare's edge, and reads the health endpoint's own verdict (503 when Mongo is down). Whether UptimeRobot stays beside it is still open; update the row above when decided. |
 | **Cloudflare → Analytics & Logs → Traffic** | Requests, bandwidth, cache ratio, status codes, by country and path; 24 h to 30 d | The only request counts there are until the access log below is read; everything the site serves goes through this zone. |
 | **Cloudflare → Analytics & Logs → Web Analytics** | Real-user page timing and Core Web Vitals by country, path and browser | Free; a zone toggle (*automatic setup* injects the beacon, no deploy). The app's CSP already allows `static.cloudflareinsights.com` and `cloudflareinsights.com`, so turning it on is console-only. When it is on, record it in the Cloudflare section above. |
 | **`GET /api/health`** | The app's own view: `checks.db` (`ok`, `pingMs` to Mongo), `memory`, `uptime`, `startedAt`, `build.commit`/`time`, `preview` (`worker` up/down, `queueDepth`/`queueMax`, `inFlight`, `failedRenders`) | What the compose healthcheck polls every 30 s. `startedAt` is fixed for the life of the process: production and staging reporting the same one is a host reboot, one of them moving alone is a container restart. 503 only when Mongo is not connected. |
@@ -329,11 +335,13 @@ confirm with a hand run (`bin/compose.sh production exec backup backup.sh`,
 `bin/drill-weekly.sh`) that the next ping arrives. The alternative, clearing the URL from
 `.env`, needs `up -d backup` and a new env-backup for a temporary state; pausing is cheaper.
 
-**Better Stack setup** (console, once): a heartbeat monitor per row above, with the name,
-period and grace from the table, on an escalation policy that emails (and optionally pushes
-to a phone). Each monitor shows its URL; those go into `.env` at a `read -rs` prompt, never
-on a command line or in a chat, then `bin/compose.sh production up -d backup`, a hand run of
-each job to turn both monitors green, and `bin/env-backup.sh backup` copied off the box.
+**Better Stack setup** (console, done 2026-11-07; repeat only for a new account): a
+heartbeat monitor per row above with the name, period and grace from the table; on the
+free plan alerts go to the account's email and nothing else. Each monitor's page shows its
+URL (`incidents.betterstack.com`); those go into `.env` at a `read -rs` prompt, never on a
+command line or in a chat, then `bin/compose.sh production up -d backup`, a hand run of each
+job to turn both monitors from *pending* to green, and `bin/env-backup.sh backup` copied
+off the box.
 
 ### Restore last night's data
 
