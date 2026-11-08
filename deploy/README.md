@@ -194,7 +194,10 @@ What there is to look at, from the outside in. Nothing here needs an account on 
 except the log lines and the report. What alerts on its own, all by email from the free
 Better Stack account `monitoring@blueprintnotincluded.org` (team BNI, kept apart from any
 other Better Stack account): the two heartbeats, the HTTP monitor on `/api/health`, and the
-eight log alerts under "Alerts" below. Everything else has to be looked at.
+eight log alerts under "Alerts" below. Each exists only once it is set up in the Better
+Stack console as those tables describe (Uptime → Monitors and Heartbeats; Telemetry →
+dashboard "bpni" → the charts' *Alerts* tabs): look there before counting on one.
+Everything else has to be looked at.
 
 | Where | What it answers | Notes |
 |---|---|---|
@@ -260,10 +263,10 @@ Every event has `dt`, `project` (`production` / `staging`), `service` (`app`, `m
 | `access` | the app's `access:` line | `method`, `route`, `status` (number), `status_class` (`2xx`…`5xx`), `ms`, `bytes` (number or null), `country`, `ray`, `url`, `aborted` (bool) |
 | `memory` | `memory-heartbeat:`, every 5 min per process | `process` (`api` / `preview-worker`), `rss_mb`, `heap_used_mb` |
 | `render` | `preview render <id> … total=…ms` | `render_ms`, `queue_wait_ms`, `cold` (bool) |
-| `worker-exit` | `preview render worker exited (code=…, signal=…)` | `exit_code`, `exit_signal` (strings; `code=0` with `signal=null` is the routine RSS recycle) |
+| `worker-exit` | `preview render worker exited (code=…, signal=…)` | `exit_code`, `exit_signal` (strings), `exit`: `recycle` for `code=0` with `signal=null` (the worker's routine RSS recycle), `crash` for anything else |
 | `queue-full` | `render queue full` | |
 | `facets-slow` | `facets-slow:` | `ms` |
-| `boot` | the app's `listening on port`, mongod's `Waiting for connections` | |
+| `boot` | the app's `listening on port`, mongod's `Waiting for connections` | app only: `container_age_s`, seconds from the container's creation to the boot (about 0 after a deploy, which recreates it; large when an existing container started again) |
 | `slow-query` | mongod `Slow query` (over its 100 ms default) | `duration_ms`, `ns`, `severity`, `mongo_msg` |
 | `mongo-warning` / `mongo-error` | mongod lines at severity W / E or F | `severity`, `mongo_msg` |
 | `tunnel-up` / `tunnel-down` / `tunnel-error` | cloudflared `Registered` / `Unregistered tunnel connection`, other `ERR` lines | `level` |
@@ -274,8 +277,11 @@ Not shipped: mongod's other informational lines (the per-connection chatter was 
 its log on 2026-11-07, about 120 MB a day across the two stacks, so Docker's 30 MB rotation
 keeps only about half a day of either mongod's log and `health-report.sh`'s Mongo section
 covers that much; the source keeps the slow queries for 3 days and their counts for 30), the app's
-`getBlueprint<client IP>` debug lines (no IP address leaves the box), one-off `compose
-run` containers (the drill and seed tooling), and Vector's own log.
+`getBlueprint<client IP>` / `uploadBlueprint…` / `deleteBlueprint…` / `rateBlueprint…`
+debug lines (no IP address leaves the box), one-off `compose run` containers (the drill and
+seed tooling), and Vector's own log. In the app's lines a query value named `token`,
+`code`, `state`, `key`, `secret`, `password` or `email` is replaced by `redacted`, in `url`
+and `message` alike (the password-reset page is `/reset-password?token=…`).
 
 **Volume and the free tier.** Measured on 2026-11-07: production's access lines about
 4 MB a day, the mongod lines kept about 2 MB a day, the rest small; shipped with their
@@ -304,11 +310,11 @@ Sources → bni vector → *Extract metrics*), kept 30 days where the logs are k
 
 | Metric | Value, from events of `kind` | Aggregations | Labels |
 |---|---|---|---|
-| `bpni_http_ms` | `ms` of `access` | Count, Avg, Max, Histogram | `project`, `status_class`, `route` |
+| `bpni_http_ms` | `ms` of `access` | Count, Avg, Max, Histogram | `project`, `status_class`, `route`, `aborted` |
 | `bpni_http_country` | 1 per `access` | Count | `project`, `country` |
 | `bpni_rss_mb` | `rss_mb` of `memory` | Max, Avg | `project`, `process` |
 | `bpni_render_ms` | `render_ms` of `render` | Count, Avg, Max, Histogram | `project`, `cold` |
-| `bpni_events` | 1 per `boot`, `worker-exit`, `queue-full`, `facets-slow`, `slow-query`, `mongo-error`, `tunnel-*`, `backup-*`, `memory` | Count | `project`, `service`, `kind`, `exit` (`recycle` / `crash` on a worker exit) |
+| `bpni_events` | 1 per `boot`, `worker-exit`, `queue-full`, `facets-slow`, `slow-query`, `mongo-error`, `tunnel-*`, `backup-*`, `memory` | Count | `project`, `service`, `kind`, `exit` (the event's own field: `recycle` / `crash` on a worker exit, empty otherwise) |
 
 The dashboard "bpni" has a `project` variable (production by default) and one chart per
 question: requests per hour by status class, 5xx by route, p50 and p95 latency by route,
@@ -329,12 +335,12 @@ slow queries an hour, the API process at 230 MB.
 | Alert | Fires when | Why that threshold | Look first |
 |---|---|---|---|
 | **bpni 5xx** | 10 or more 5xx responses in 15 minutes (checked every 5 minutes, recovers after 15 quiet minutes) | A quarter-hour is ~250 logged requests and a healthy one has none or a stray one; 10 is ~4 % and more than one bad crawler. A count, not a rate, so a quiet night with two errors stays quiet. | The dashboard's 5xx-by-route chart; the 5xx lines in Explore (`status_class` = `5xx`); `/api/health` (a 503 there is Mongo). |
-| **bpni slow responses** | p95 of `ms` over 15 minutes above 2 000 ms, preview image routes and aborted requests left out, held for 30 minutes | Renders take a second or more by design, so they are excluded; the API answers in tens of ms. Two seconds for 45 minutes of windows is a site that feels broken, not one slow request. | Latency by route; Mongo slow queries; `docker stats` and `free -m` for swap. |
+| **bpni slow responses** | p95 of `ms` over 15 minutes above 2 000 ms, preview image routes and aborted requests (`aborted` label true) left out, held for 30 minutes | Renders take a second or more by design, so they are excluded; the API answers in tens of ms. Two seconds for 45 minutes of windows is a site that feels broken, not one slow request. | Latency by route; Mongo slow queries; `docker stats` and `free -m` for swap. |
 | **bpni preview worker crashing** | 3 or more worker exits that are not the routine recycle (`code=0`, no signal) in an hour | One crash on a pathological blueprint happens; three in an hour is a loop or memory pressure (`SIGKILL` is the cgroup's OOM kill). Recycles are normal and not counted. | `bin/compose.sh production logs app \| grep -B5 'worker exited'`; the RSS chart. |
 | **bpni api memory high** | The `api` process's RSS at 600 MB or more for 10 minutes (two heartbeats) | The app container's limit is 1024 MB and the render worker sizes itself up to 384 MB of it: 600 + 384 leaves about 40 MB before the kernel kills the container. | The RSS chart (a climb is a leak, a step is a load); a `deploy.sh production` restart is the stopgap. |
 | **bpni mongo slow-query burst** | 60 or more slow queries in 15 minutes | Baseline is about 6 per 15 minutes; ten times that is a missing index, a pathological query or Mongo short of memory. | `bin/health-report.sh production --since 1d` (slow queries by namespace); a deploy or migration just before. |
-| **bpni tunnel lost** | Over the last hour, cloudflared logged at least 2 more connection drops than registrations, for 5 minutes | A reconnect logs a drop and a registration, a restart only registrations; a surplus of drops is connections that did not come back. "bpni api health" is the end-to-end check; this one names the tunnel. | `bin/compose.sh production logs --tail 50 cloudflared`; Zero Trust → Networks → Tunnels. |
-| **bpni host reboot** (both projects) | App boot lines from production *and* staging within 10 minutes | Deploys restart one project at a time; both at once is the box rebooting (unattended-upgrades at 05:17 UTC, or anything else) or Docker restarting. News, not an emergency. | `last -x reboot`, `/var/run/reboot-required`, the report's host section; that the drill or backup was not cut off. |
+| **bpni tunnel lost** | Over the last hour, cloudflared logged at least 2 more connection drops than registrations, for 5 minutes | A reconnect logs a drop and a registration, a restart only registrations; a surplus of drops is connections that did not come back. The logs carry events, not the tunnel's current state, so this alert names the cause in the first hour and resolves once the drops leave its window even if the tunnel is still down: "bpni api health" is what stays red for as long as the site is unreachable. | `bin/compose.sh production logs --tail 50 cloudflared`; Zero Trust → Networks → Tunnels. |
+| **bpni host reboot** (both projects) | App boot lines with `container_age_s` over 300 from production *and* staging within 10 minutes | A deploy recreates the container, so its boot is about 0 s old and is not counted, however close a staging deploy and a promote come; an existing container starting again in both projects at once is the box rebooting (unattended-upgrades at 05:17 UTC, or anything else) or Docker restarting. The app boots only after Mongo is healthy, by which time Vector, which waits on nothing, is normally already reading. News, not an emergency. | `last -x reboot`, `/var/run/reboot-required`, the report's host section; that the drill or backup was not cut off. |
 | **bpni logs silent** | No `memory` events from production in 30 minutes | The app writes one per process every 5 minutes. None means the app, the box or the shipper is down, and every other log alert above is blind until it is fixed. | "bpni api health" first: up means the shipper (`bin/compose.sh production ps vector`, `logs vector`; a `402` there is the free quota). |
 
 Pause an alert, like a heartbeat, before maintenance that would trip it.

@@ -102,9 +102,13 @@ report_host() {
     tail -n 3 /var/log/unattended-upgrades/unattended-upgrades.log | sed 's/^/  /'
   fi
   have free && { line "memory (MB):"; free -m | sed 's/^/  /'; }
-  # df exits 1 when one path is missing (a box without dumps/) and still
-  # prints the rest; under pipefail that ended the report here.
-  have df && { line "disk:"; df -h / "$root/dumps" 2>/dev/null | sed 's/^/  /' || true; }
+  if have df; then
+    line "disk:"
+    df -h / 2>&1 | sed 's/^/  /' || line "  df / failed"
+    # Optional: a box without dumps/ has nothing to report there, and a
+    # missing path made df exit 1, which under pipefail ended the report.
+    if [ -d "$root/dumps" ]; then df -h "$root/dumps" 2>&1 | tail -n +2 | sed 's/^/  /' || true; fi
+  fi
 }
 
 report_containers() {
@@ -115,8 +119,10 @@ report_containers() {
   # on a "production-" prefix found none of them (2026-11-07).
   local p name found names=""
   for p in $projects; do
-    name=$(grep -E '^COMPOSE_PROJECT_NAME=' "$root/$p/.env" 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '"' || true)
-    name=${name:-bpni-$p}
+    name=$(grep -E '^COMPOSE_PROJECT_NAME=' "$root/$p/.env" 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d "\"'" || true)
+    # Unset, compose names the project after its directory (compose.sh's
+    # --project-directory /srv/bpni/<project>).
+    name=${name:-$p}
     if ! found=$(docker ps -a --filter "label=com.docker.compose.project=$name" --format '{{.Names}}' 2>&1); then
       line "docker ps failed: $found"
       return
