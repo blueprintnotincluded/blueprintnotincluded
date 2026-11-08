@@ -164,6 +164,38 @@ services:
           memory: 512m
     logging: *logging
 
+  vector:
+    # Ships the box's container logs to Better Stack (vector/vector.yaml,
+    # README "Log shipping"). Production only, and only when
+    # BETTERSTACK_SOURCE_TOKEN is set in its .env: bin/compose.sh adds the
+    # `logs` profile then, so an empty token (staging, a drill box, the
+    # tests) means this service never starts. One instance reads every
+    # container through the Docker socket and ships both projects.
+    image: timberio/vector:0.59.0-alpine
+    profiles: ["logs"]
+    restart: unless-stopped
+    command: ["--config", "/etc/vector/vector.yaml"]
+    environment:
+      BETTERSTACK_SOURCE_TOKEN: ${BETTERSTACK_SOURCE_TOKEN:-}
+      BETTERSTACK_INGEST_HOST: ${BETTERSTACK_INGEST_HOST:-}
+      # Its own errors only (a rejected batch, an unreachable host); they
+      # stay in this container's json-file log and are not shipped.
+      VECTOR_LOG: warn
+    volumes:
+      # `:ro` on a socket does not narrow what the Docker API allows, so
+      # this container is as trusted as the deploy user; the config only
+      # reads (docker_logs). The image is pinned like every other here.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DEPLOY_DIR:-/srv/bpni/deploy}/vector/vector.yaml:/etc/vector/vector.yaml:ro
+    deploy:
+      resources:
+        limits:
+          # A few tens of MB at this volume (`docker stats` says); the sink's
+          # buffer is in memory and capped, and drops rather than grows when
+          # Better Stack is unreachable.
+          memory: 128m
+    logging: *logging
+
 volumes:
   mongo_data:
   preview_cache:

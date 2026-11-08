@@ -26,4 +26,29 @@ dir="$root/$project"
 [ -f "$dir/.env" ] || { echo "$dir/.env is missing (copy deploy/env/$project.env.example)" >&2; exit 66; }
 [ -f "$dir/app.env" ] || { echo "$dir/app.env is missing (copy deploy/env/app.env.example)" >&2; exit 66; }
 
+# The log shipper (`vector`, README "Log shipping") is in the `logs` profile:
+# on in production when BETTERSTACK_SOURCE_TOKEN is set in its .env, never
+# in staging, because the one production instance already ships both
+# projects. Added to whatever COMPOSE_PROFILES the caller or the .env gives,
+# so `backup` stays on. Empty when the variable is absent; an unreadable
+# .env is fatal, as compose would be.
+getenv() {
+  local out
+  out=$(grep -E "^$1=" "$dir/.env") || [ $? -eq 1 ] || { echo "cannot read $dir/.env" >&2; exit 66; }
+  printf '%s\n' "$out" | tail -n1 | cut -d= -f2- | tr -d '"'
+}
+if [ "$project" = production ]; then
+  # An assignment, so a getenv that fails ends the script under set -e.
+  token=$(getenv BETTERSTACK_SOURCE_TOKEN)
+  if [ -n "$token" ]; then
+    profiles=${COMPOSE_PROFILES-}
+    [ -n "${COMPOSE_PROFILES+set}" ] || profiles=$(getenv COMPOSE_PROFILES)
+    case ",$profiles," in
+      *,logs,*) ;;
+      *) export COMPOSE_PROFILES="${profiles:+$profiles,}logs" ;;
+    esac
+  fi
+  unset token
+fi
+
 exec docker compose --project-directory "$dir" -f "$root/deploy/compose.yml" "$@"

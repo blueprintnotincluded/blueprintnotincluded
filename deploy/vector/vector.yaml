@@ -1,0 +1,164 @@
+# Log shipper: the box's container logs -> one Better Stack source.
+#
+# Runs as the `vector` service of the production compose project, and only
+# when BETTERSTACK_SOURCE_TOKEN is set in /srv/bpni/production/.env
+# (bin/compose.sh turns the `logs` profile on then). One Vector reads every
+# container on the box through the Docker socket and keeps the two projects'
+# app, mongo, cloudflared and backup containers; `project` says which. The
+# json-file logs are untouched, so `compose logs` and bin/health-report.sh
+# read exactly what they did before.
+#
+# Shaped here rather than in Better Stack so the fields are versioned and
+# unit-tested (tests.yaml, `vector test`): every shipped event is
+#   dt, project (production|staging), service, kind, message
+# plus the fields of its kind (README "Log shipping" lists them). What is
+# not worth the free tier's 3 GB a month is dropped before it leaves: the
+# connection chatter that is 95 % of mongo's log, the app's per-request
+# client-IP debug lines (no IP address goes to Better Stack), one-off
+# `compose run` containers, and Vector's own output.
+#
+# Vector substitutes environment variables written as a dollar sign plus a
+# name, anywhere in this file, comments included; a doubled dollar sign is a
+# literal one (the regex anchor below, the test fixtures' Mongo dates).
+
+data_dir: /var/lib/vector
+
+sources:
+  docker:
+    type: docker_logs
+
+transforms:
+  shape:
+    type: remap
+    inputs: [docker]
+    drop_on_abort: true
+    source: |
+      project = string(.label."com.docker.compose.project") ?? ""
+      service = string(.label."com.docker.compose.service") ?? ""
+      oneoff = string(.label."com.docker.compose.oneoff") ?? "False"
+      if !starts_with(project, "bpni-") || oneoff == "True" || !includes(["app", "mongo", "cloudflared", "backup"], service) {
+        abort
+      }
+      msg = string(.message) ?? ""
+      if strip_whitespace(msg) == "" {
+        abort
+      }
+
+      ev = {
+        "dt": .timestamp,
+        "project": replace(project, r'^bpni-', ""),
+        "service": service,
+        "kind": "log",
+        "message": msg
+      }
+
+      if service == "app" {
+        if starts_with(msg, "access: ") {
+          kv = parse_key_value(slice!(msg, 8), key_value_delimiter: "=", field_delimiter: " ") ?? {}
+          status = string(kv.status) ?? ""
+          ev.kind = "access"
+          ev.method = kv.method
+          ev.route = kv.route
+          ev.status = parse_int(status) ?? null
+          ev.status_class = if length(status) == 3 { slice!(status, 0, 1) + "xx" } else { null }
+          ev.ms = parse_int(string(kv.ms) ?? "") ?? null
+          ev.bytes = parse_int(string(kv.bytes) ?? "") ?? null
+          ev.country = kv.country
+          ev.ray = kv.ray
+          ev.url = kv.url
+          ev.aborted = kv.aborted == "1"
+        } else if match(msg, r'^getBlueprint(s|Mod|Facets)?([0-9A-Fa-f:.]+|undefined|null)?$$') {
+          # `console.log('getBlueprint' + req.clientIp)` and its siblings in
+          # blueprint-controller.ts: a client IP and nothing else.
+          abort
+        } else if starts_with(msg, "memory-heartbeat: ") {
+          m = parse_regex(msg, r'^memory-heartbeat: (?P<process>\S+) rss=(?P<rss>\d+)MB heapUsed=(?P<heap>\d+)MB') ?? {}
+          ev.kind = "memory"
+          ev.process = m.process
+          ev.rss_mb = parse_int(string(m.rss) ?? "") ?? null
+          ev.heap_used_mb = parse_int(string(m.heap) ?? "") ?? null
+        } else if contains(msg, "render worker exited") {
+          m = parse_regex(msg, r'render worker exited \(code=(?P<code>[^,]*), signal=(?P<signal>[^)]*)\)') ?? {}
+          ev.kind = "worker-exit"
+          ev.exit_code = m.code
+          ev.exit_signal = m.signal
+        } else if contains(msg, "render queue full") {
+          ev.kind = "queue-full"
+        } else if match(msg, r'^preview render \S+ \(.*total=\d+ms') {
+          total = parse_regex(msg, r'total=(?P<v>\d+)ms') ?? {}
+          wait = parse_regex(msg, r'queueWait=(?P<v>\d+)ms') ?? {}
+          ev.kind = "render"
+          ev.render_ms = parse_int(string(total.v) ?? "") ?? null
+          ev.queue_wait_ms = parse_int(string(wait.v) ?? "") ?? null
+          ev.cold = contains(msg, "(cold)")
+        } else if starts_with(msg, "facets-slow: ") {
+          m = parse_regex(msg, r'^facets-slow: (?P<ms>\d+)ms') ?? {}
+          ev.kind = "facets-slow"
+          ev.ms = parse_int(string(m.ms) ?? "") ?? null
+        } else if contains(msg, "listening on port") {
+          ev.kind = "boot"
+        }
+      } else if service == "mongo" {
+        # mongod's own JSON log. Kept: slow queries, startup, and anything at
+        # warning severity or worse; the rest is per-connection chatter.
+        j = parse_json(msg) ?? {}
+        severity = string(j.s) ?? ""
+        what = string(j.msg) ?? ""
+        ev.severity = severity
+        ev.mongo_msg = what
+        if what == "Slow query" {
+          ev.kind = "slow-query"
+          ev.duration_ms = j.attr.durationMillis
+          ev.ns = j.attr.ns
+        } else if what == "Waiting for connections" {
+          ev.kind = "boot"
+        } else if severity == "W" {
+          ev.kind = "mongo-warning"
+        } else if severity == "E" || severity == "F" {
+          ev.kind = "mongo-error"
+        } else {
+          abort
+        }
+      } else if service == "cloudflared" {
+        lv = parse_regex(msg, r'^\S+ (?P<level>[A-Z]{3}) ') ?? {}
+        ev.level = lv.level
+        if contains(msg, "Unregistered tunnel connection") {
+          ev.kind = "tunnel-down"
+        } else if contains(msg, "Registered tunnel connection") {
+          ev.kind = "tunnel-up"
+        } else if ev.level == "ERR" {
+          ev.kind = "tunnel-error"
+        }
+      } else if service == "backup" {
+        if starts_with(msg, "backup: done") {
+          ev.kind = "backup-done"
+        } else if starts_with(msg, "backup: ") && match(msg, r'(?i)fail|could not') {
+          ev.kind = "backup-error"
+        }
+      }
+
+      . = ev
+
+sinks:
+  betterstack:
+    type: http
+    inputs: [shape]
+    uri: 'https://${BETTERSTACK_INGEST_HOST}/'
+    method: post
+    encoding:
+      codec: json
+    compression: gzip
+    auth:
+      strategy: bearer
+      token: '${BETTERSTACK_SOURCE_TOKEN}'
+    batch:
+      timeout_secs: 5
+    # In memory only, and dropping rather than growing when Better Stack is
+    # unreachable: the shipper must never compete with the app for RAM. What
+    # is dropped is still in the json-file logs on the box.
+    buffer:
+      type: memory
+      max_events: 5000
+      when_full: drop_newest
+    healthcheck:
+      enabled: false

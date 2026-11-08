@@ -102,19 +102,29 @@ report_host() {
     tail -n 3 /var/log/unattended-upgrades/unattended-upgrades.log | sed 's/^/  /'
   fi
   have free && { line "memory (MB):"; free -m | sed 's/^/  /'; }
-  have df && { line "disk:"; df -h / "$root/dumps" 2>/dev/null | sed 's/^/  /'; }
+  # df exits 1 when one path is missing (a box without dumps/) and still
+  # prints the rest; under pipefail that ended the report here.
+  have df && { line "disk:"; df -h / "$root/dumps" 2>/dev/null | sed 's/^/  /' || true; }
 }
 
 report_containers() {
   section "containers"
   if ! have docker; then line "docker: not found"; return; fi
-  local all names
-  if ! all=$(docker ps -a --format '{{.Names}}' 2>&1); then
-    line "docker ps failed: $all"
-    return
-  fi
-  names=$(printf '%s\n' "$all" | grep -E '^(production|staging)[-_]' || true)
-  if [ -z "$names" ]; then line "no production/staging containers"; return; fi
+  # By compose project label, not by name: the containers are called
+  # bpni-production-app-1 and so on, after COMPOSE_PROJECT_NAME, and a match
+  # on a "production-" prefix found none of them (2026-11-07).
+  local p name found names=""
+  for p in $projects; do
+    name=$(grep -E '^COMPOSE_PROJECT_NAME=' "$root/$p/.env" 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '"' || true)
+    name=${name:-bpni-$p}
+    if ! found=$(docker ps -a --filter "label=com.docker.compose.project=$name" --format '{{.Names}}' 2>&1); then
+      line "docker ps failed: $found"
+      return
+    fi
+    names="$names $found"
+  done
+  names=$(printf '%s\n' $names | sort)
+  if [ -z "$names" ]; then line "no containers in project(s): $projects"; return; fi
   # RestartCount is since the container was created (a deploy recreates it),
   # StartedAt is the last start: both together date a crash loop or a reboot.
   for n in $names; do

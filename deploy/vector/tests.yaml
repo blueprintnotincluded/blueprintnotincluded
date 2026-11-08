@@ -1,0 +1,377 @@
+# Unit tests for vector.yaml's `shape` transform, run with
+#   vector test vector.yaml tests.yaml
+# (__tests__/deploy/scripts.test.ts does it in the pinned image wherever
+# docker is available, which includes CI). Production loads vector.yaml only.
+#
+# Each input is a docker_logs event as Vector builds it: the line in
+# `message`, the container's compose labels under `label`.
+
+tests:
+  - name: an access line becomes typed fields, labels and docker metadata are gone
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "access: method=GET route=/api/blueprints/:id status=503 aborted=1 ms=2400 bytes=- ray=8f1-HEL country=FI url=/api/blueprints/1?x=a=b",
+            "timestamp": t'2026-11-07T06:01:00Z',
+            "container_name": "bpni-production-app-1",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.project, "production")
+              assert_eq!(.service, "app")
+              assert_eq!(.kind, "access")
+              assert_eq!(.method, "GET")
+              assert_eq!(.route, "/api/blueprints/:id")
+              assert_eq!(.status, 503)
+              assert_eq!(.status_class, "5xx")
+              assert_eq!(.ms, 2400)
+              assert_eq!(.bytes, null)
+              assert_eq!(.country, "FI")
+              assert_eq!(.url, "/api/blueprints/1?x=a=b")
+              assert_eq!(.aborted, true)
+              assert_eq!(.dt, t'2026-11-07T06:01:00Z')
+              assert!(starts_with!(.message, "access: "))
+              assert!(!exists(.label))
+              assert!(!exists(.container_name))
+
+  - name: a plain access line is not aborted
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "access: method=GET route=/*path status=200 ms=12 bytes=4321 ray=- country=CA url=/",
+            "label": {"com.docker.compose.project": "bpni-staging", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.project, "staging")
+              assert_eq!(.status, 200)
+              assert_eq!(.status_class, "2xx")
+              assert_eq!(.bytes, 4321)
+              assert_eq!(.aborted, false)
+
+  - name: memory heartbeat
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "memory-heartbeat: preview-worker rss=211MB heapUsed=60MB heapTotal=90MB external=50MB arrayBuffers=10MB",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "memory")
+              assert_eq!(.process, "preview-worker")
+              assert_eq!(.rss_mb, 211)
+              assert_eq!(.heap_used_mb, 60)
+
+  - name: preview render
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "preview render 2 (300 items, 40 prefabs): loadMdb=5ms queueWait=7ms master=900ms (cold) derivatives=100ms mongo=20ms total=1025ms parentRss=150MB",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "render")
+              assert_eq!(.render_ms, 1025)
+              assert_eq!(.queue_wait_ms, 7)
+              assert_eq!(.cold, true)
+
+  - name: worker exit
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "Error: preview render worker exited (code=null, signal=SIGKILL)",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "worker-exit")
+              assert_eq!(.exit_code, "null")
+              assert_eq!(.exit_signal, "SIGKILL")
+
+  - name: app boot
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "Example app listening on port 3000!",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "boot")
+
+  - name: facets-slow
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "facets-slow: 812ms query=/api/blueprints/facets?dlc=all",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "facets-slow")
+              assert_eq!(.ms, 812)
+
+  - name: any other app line ships as a plain log
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "Error: ECONNRESET while streaming",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "log")
+              assert_eq!(.message, "Error: ECONNRESET while streaming")
+
+  - name: the client-IP debug lines are dropped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "getBlueprintFacets2804:1b3:ab01:3d61:9967:727e:f61d:30a1",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    no_outputs_from: [shape]
+
+  - name: an IPv4 client-IP line is dropped too
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "getBlueprint203.0.113.7",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    no_outputs_from: [shape]
+
+  - name: mongo slow query keeps its duration and namespace
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "{\"t\":{\"$$date\":\"2026-11-07T06:01:00.000+00:00\"},\"s\":\"I\",\"c\":\"COMMAND\",\"msg\":\"Slow query\",\"attr\":{\"ns\":\"blueprintnotincluded.blueprints\",\"durationMillis\":350}}",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "mongo"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "slow-query")
+              assert_eq!(.duration_ms, 350)
+              assert_eq!(.ns, "blueprintnotincluded.blueprints")
+              assert_eq!(.severity, "I")
+
+  - name: mongo warning and startup are kept
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "{\"s\":\"W\",\"c\":\"CONTROL\",\"msg\":\"Something to know\"}",
+            "label": {"com.docker.compose.project": "bpni-staging", "com.docker.compose.service": "mongo"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "mongo-warning")
+              assert_eq!(.mongo_msg, "Something to know")
+
+  - name: mongo fatal is an error
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "{\"s\":\"F\",\"c\":\"CONTROL\",\"msg\":\"Fatal assertion\"}",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "mongo"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "mongo-error")
+
+  - name: mongo startup
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "{\"s\":\"I\",\"c\":\"NETWORK\",\"msg\":\"Waiting for connections\",\"attr\":{\"port\":27017}}",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "mongo"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "boot")
+
+  - name: mongo connection chatter is dropped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "{\"s\":\"I\",\"c\":\"NETWORK\",\"msg\":\"Connection accepted\",\"attr\":{\"remote\":\"172.18.0.4:51234\"}}",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "mongo"}
+          }
+    no_outputs_from: [shape]
+
+  - name: cloudflared registrations
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "2026-11-07T06:01:00Z INF Registered tunnel connection connIndex=0 connection=abc event=0 ip=198.41.200.13 location=hel01 protocol=quic",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "cloudflared"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "tunnel-up")
+              assert_eq!(.level, "INF")
+
+  - name: cloudflared unregistration
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "2026-11-07T06:02:00Z WRN Unregistered tunnel connection connIndex=2 event=0",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "cloudflared"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "tunnel-down")
+
+  - name: backup done
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "backup: done (blueprintnotincluded-20261107T033000Z.archive.gz). Archives now in R2:",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "backup"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "backup-done")
+
+  - name: backup failure
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "backup: dump to r2:bpni-backups/bpni-production/incoming/x failed, deleting the partial upload",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "backup"}
+          }
+    outputs:
+      - extract_from: shape
+        conditions:
+          - type: vrl
+            source: |
+              assert_eq!(.kind, "backup-error")
+
+  - name: a one-off compose run container is not shipped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "backup: dumping blueprintnotincluded",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "backup", "com.docker.compose.oneoff": "True"}
+          }
+    no_outputs_from: [shape]
+
+  - name: a container outside the two projects is not shipped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "{\"s\":\"W\",\"msg\":\"the drill's throwaway mongo\"}",
+            "container_name": "bpni-production-restore-drill"
+          }
+    no_outputs_from: [shape]
+
+  - name: the shipper's own log is not shipped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "WARN vector: something",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "vector"}
+          }
+    no_outputs_from: [shape]
+
+  - name: blank lines are not shipped
+    inputs:
+      - insert_at: shape
+        type: vrl
+        source: |
+          . = {
+            "message": "   ",
+            "label": {"com.docker.compose.project": "bpni-production", "com.docker.compose.service": "app"}
+          }
+    no_outputs_from: [shape]
