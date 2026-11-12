@@ -114,6 +114,23 @@ describe("UserMenuComponent", () => {
     });
   });
 
+  describe("Status", () => {
+    it("links to the status page in a new tab, beside Github, logged in or not", () => {
+      for (const loggedIn of [false, true]) {
+        authService.isLoggedIn.mockReturnValue(loggedIn);
+        component.ngOnInit();
+        const labels = component.userMenuItems.map((i) => i.label);
+        const item = component.userMenuItems.find((i) => i.label === "Status");
+        expect(item).toMatchObject({
+          url: "https://status.blueprintnotincluded.org",
+          target: "_blank",
+        });
+        expect(item?.visible).not.toBe(false);
+        expect(labels.indexOf("Status")).toBe(labels.indexOf("Github") + 1);
+      }
+    });
+  });
+
   describe("My Profile", () => {
     it("navigates to the current user's profile page", () => {
       authService.getUserDetails.mockReturnValue(makeUser("user"));
