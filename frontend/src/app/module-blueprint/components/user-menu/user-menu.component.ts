@@ -120,6 +120,12 @@ export class UserMenuComponent implements OnInit {
         url: "https://github.com/Sinetheta/blueprintnotincluded",
         target: "github",
       },
+      {
+        label: $localize`Status`,
+        icon: "pi pi-heart",
+        url: "https://status.blueprintnotincluded.org",
+        target: "_blank",
+      },
       { separator: true, visible: loggedIn },
       {
         label: $localize`Log out`,
