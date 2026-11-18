@@ -126,6 +126,24 @@ describe("ElementNoteEditorComponent", () => {
     expect(component.sliderMaxMass).to.equal(5000);
   });
 
+  it("holds a stretched slider max steady through a drag, releasing it on commit", () => {
+    note.id = 2; // Oxygen
+    note.mass = 150;
+    component.freezeSliderMax();
+    note.mass = 75; // mid-drag
+    expect(component.sliderMaxMass).to.equal(150);
+    component.commitMass();
+    expect(component.sliderMaxMass).to.equal(75);
+  });
+
+  it("ignores a frozen slider max left over from another note", () => {
+    note.id = 2;
+    note.mass = 150;
+    component.freezeSliderMax();
+    component.note = { x: 0, y: 0, type: 1, id: 2, mass: 1, temp: 300 };
+    expect(component.sliderMaxMass).to.equal(20);
+  });
+
   it("clamps temperature to the transition band widened by the 3 K overshoot", () => {
     note.temp = 1000;
     component.commitTemp();

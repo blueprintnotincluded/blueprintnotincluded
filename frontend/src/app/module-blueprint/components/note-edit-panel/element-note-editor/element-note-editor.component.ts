@@ -134,12 +134,22 @@ export class ElementNoteEditorComponent {
   // The slider's own range: up to the High Pressure Gas Vent's 20 kg for a
   // gas (the most any building packs into a cell), maxMass otherwise, and
   // never short of the current mass so a heavier note still sits on it.
+  // That stretch is frozen for the length of a drag: PrimeNG derives each
+  // drag value from the current max, so a max that shrank with the mass
+  // would make a rightward drag lower it.
+  private frozenSliderMax: { note: BniWorldNote; max: number } | null = null;
   get sliderMaxMass(): number {
+    const frozen = this.frozenSliderMax;
+    if (frozen != null && frozen.note === this.note) return frozen.max;
     const ceiling =
       this.element?.state === ElementState.Gas
         ? Math.max(this.maxMass, GAS_SLIDER_MAX_KG)
         : this.maxMass;
     return Math.max(ceiling, this.massKg);
+  }
+  freezeSliderMax() {
+    this.frozenSliderMax = null;
+    this.frozenSliderMax = { note: this.note, max: this.sliderMaxMass };
   }
   // A step derived from the element's own maxMass rather than one constant
   // for every element: gases (maxMass ~1.8) land on ~0.001 kg steps, solids
@@ -162,6 +172,7 @@ export class ElementNoteEditorComponent {
     return Number.isFinite(value) ? Math.max(0, value) : 0;
   }
   commitMass() {
+    this.frozenSliderMax = null;
     if (this.note == null) return;
     this.note.mass = this.clampMass(this.note.mass ?? 0);
     this.noteChange.emit();
