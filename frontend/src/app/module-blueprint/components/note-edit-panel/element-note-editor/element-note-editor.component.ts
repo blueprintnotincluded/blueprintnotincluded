@@ -7,6 +7,17 @@ import {
   stripNoteMarkup,
 } from "../../../../../../../lib/index";
 
+// The High Pressure Gas Vent overpressures at 20 kg, the most any building
+// packs into a gas cell; only the slider stops there, typed masses don't.
+const GAS_SLIDER_MAX_KG = 20;
+// A cell changes phase only once it passes a transition temperature by 3 K,
+// so water holds as liquid up to highTemp + 3 (superheated) and so on.
+const TRANSITION_OVERSHOOT_K = 3;
+// The sim's absolute temperature limits; highTemp 10000 is the database's
+// "never transitions" sentinel for the same ceiling.
+const MIN_TEMPERATURE_K = 0;
+const MAX_TEMPERATURE_K = 10000;
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -110,16 +121,29 @@ export class ElementNoteEditorComponent {
     this.noteChange.emit();
   }
 
-  // Mass (kg)
+  // Mass (kg). The element's maxMass is the game's "full cell" mass — what the
+  // sim settles a cell at and what sandbox paints — not a ceiling: vents
+  // overpressure past it and sealed rooms can be pumped to far more. So it
+  // only sizes the slider; any non-negative typed mass is kept.
   get maxMass(): number {
     return this.element?.maxMass ?? 0;
   }
   get hasMassRange(): boolean {
     return this.maxMass > 0;
   }
-  // A step derived from the element's own range rather than one constant for
-  // every element: gases (maxMass ~1.8) land on ~0.001 kg steps, solids
-  // (maxMass ~1840) on ~1 kg steps (spec §8.2).
+  // The slider's own range: up to the High Pressure Gas Vent's 20 kg for a
+  // gas (the most any building packs into a cell), maxMass otherwise, and
+  // never short of the current mass so a heavier note still sits on it.
+  get sliderMaxMass(): number {
+    const ceiling =
+      this.element?.state === ElementState.Gas
+        ? Math.max(this.maxMass, GAS_SLIDER_MAX_KG)
+        : this.maxMass;
+    return Math.max(ceiling, this.massKg);
+  }
+  // A step derived from the element's own maxMass rather than one constant
+  // for every element: gases (maxMass ~1.8) land on ~0.001 kg steps, solids
+  // (maxMass ~1840) on ~1 kg steps.
   get massStep(): number {
     const max = this.maxMass;
     if (max <= 0) return 1;
@@ -135,9 +159,7 @@ export class ElementNoteEditorComponent {
     if (this.note != null) this.note.mass = value;
   }
   clampMass(value: number): number {
-    return this.hasMassRange
-      ? clamp(value, 0, this.maxMass)
-      : Math.max(0, value);
+    return Number.isFinite(value) ? Math.max(0, value) : 0;
   }
   commitMass() {
     if (this.note == null) return;
@@ -146,7 +168,10 @@ export class ElementNoteEditorComponent {
   }
 
   // Temperature (stored Kelvin, edited in °C on a piecewise 0-100 scale so
-  // gases with highTemp in the thousands stay usable — spec §8.3).
+  // gases with highTemp in the thousands stay usable). lowTemp/highTemp are
+  // the element's phase transitions, and the game only changes state once a
+  // cell overshoots one by TRANSITION_OVERSHOOT_K, so the valid range is the
+  // transition band widened by that much, inside the sim's absolute limits.
   get lowTemp(): number {
     return this.element?.lowTemp ?? 0;
   }
@@ -155,6 +180,16 @@ export class ElementNoteEditorComponent {
   }
   get hasTempRange(): boolean {
     return this.highTemp > 0;
+  }
+  get minTemp(): number {
+    return this.hasTempRange
+      ? Math.max(MIN_TEMPERATURE_K, this.lowTemp - TRANSITION_OVERSHOOT_K)
+      : MIN_TEMPERATURE_K;
+  }
+  get maxTemp(): number {
+    return this.hasTempRange
+      ? Math.min(MAX_TEMPERATURE_K, this.highTemp + TRANSITION_OVERSHOOT_K)
+      : MAX_TEMPERATURE_K;
   }
   get tempKelvin(): number {
     return this.note?.temp ?? 0;
@@ -173,9 +208,9 @@ export class ElementNoteEditorComponent {
       this.note.temp = DrawHelpers.scaleToTemperature(value);
   }
   clampTemp(kelvin: number): number {
-    return this.hasTempRange
-      ? clamp(kelvin, this.lowTemp, this.highTemp)
-      : kelvin;
+    return Number.isFinite(kelvin)
+      ? clamp(kelvin, this.minTemp, this.maxTemp)
+      : this.minTemp;
   }
   commitTemp() {
     if (this.note == null) return;
@@ -184,11 +219,11 @@ export class ElementNoteEditorComponent {
   }
   // Reachable band on the 0-100 gradient, for the highlight overlay.
   get bandStartPercent(): number {
-    return this.hasTempRange ? DrawHelpers.temperatureToScale(this.lowTemp) : 0;
+    return this.hasTempRange ? DrawHelpers.temperatureToScale(this.minTemp) : 0;
   }
   get bandEndPercent(): number {
     return this.hasTempRange
-      ? DrawHelpers.temperatureToScale(this.highTemp)
+      ? DrawHelpers.temperatureToScale(this.maxTemp)
       : 100;
   }
 
