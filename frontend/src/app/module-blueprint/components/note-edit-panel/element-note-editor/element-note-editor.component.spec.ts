@@ -6,7 +6,7 @@ import {
 } from "../../../../../../../lib/index";
 import { ElementNoteEditorComponent } from "./element-note-editor.component";
 
-// Matches the mod screenshot cited in spec/element-notes.md: Ice at
+// Matches the mod screenshot the feature was specced from: Ice at
 // 1000 kg / -41 C, maxMass 1100, lowTemp/highTemp 0/272.5 K.
 function iceLikeElement(): BuildableElement {
   const e = new BuildableElement();
@@ -95,24 +95,56 @@ describe("ElementNoteEditorComponent", () => {
     expect(note.temp).to.be.closeTo(232.15, 1e-9);
   });
 
-  it("clamps mass to [0, maxMass] on commit", () => {
-    note.mass = 5000;
+  it("keeps any non-negative mass on commit, past maxMass", () => {
+    note.mass = 5000; // Ice maxMass is 1100: the full-cell mass, not a cap
     component.commitMass();
-    expect(note.mass).to.equal(1100);
+    expect(note.mass).to.equal(5000);
 
     note.mass = -10;
     component.commitMass();
     expect(note.mass).to.equal(0);
+
+    note.mass = NaN;
+    component.commitMass();
+    expect(note.mass).to.equal(0);
   });
 
-  it("clamps temperature to [lowTemp, highTemp] (Kelvin) on commit", () => {
+  it("lets a gas mass go past 1.8 kg, and the slider reach 20 kg", () => {
+    note.id = 2; // Oxygen, maxMass 1.8
+    note.mass = 1;
+    expect(component.sliderMaxMass).to.equal(20);
+    note.mass = 150; // a pumped-up sealed room
+    component.commitMass();
+    expect(note.mass).to.equal(150);
+    expect(component.sliderMaxMass).to.equal(150);
+  });
+
+  it("sizes a solid's slider to maxMass, stretching to fit a heavier note", () => {
+    note.mass = 1000;
+    expect(component.sliderMaxMass).to.equal(1100);
+    note.mass = 5000;
+    expect(component.sliderMaxMass).to.equal(5000);
+  });
+
+  it("clamps temperature to the transition band widened by the 3 K overshoot", () => {
     note.temp = 1000;
     component.commitTemp();
-    expect(note.temp).to.equal(272.5);
+    expect(note.temp).to.equal(275.5); // Ice highTemp 272.5 + 3
+
+    note.temp = 274; // superheated ice the game still holds as solid
+    component.commitTemp();
+    expect(note.temp).to.equal(274);
 
     note.temp = -50;
     component.commitTemp();
     expect(note.temp).to.equal(0);
+  });
+
+  it("caps temperature at the sim's 10000 K for an element that never transitions", () => {
+    note.id = 2; // Oxygen, highTemp 10000
+    note.temp = 20000;
+    component.commitTemp();
+    expect(note.temp).to.equal(10000);
   });
 
   it("derives a smaller mass step for a small-maxMass (gas) element than a large one (solid)", () => {
@@ -133,12 +165,15 @@ describe("ElementNoteEditorComponent", () => {
     expect(note.mass).to.equal(0);
   });
 
-  it("falls back to an unclamped temperature when highTemp is 0 (stale database)", () => {
+  it("falls back to the sim's absolute temperature limits when highTemp is 0 (stale database)", () => {
     note.id = 3;
     expect(component.hasTempRange).to.equal(false);
+    note.temp = 5000;
+    component.commitTemp();
+    expect(note.temp).to.equal(5000);
     note.temp = 99999;
     component.commitTemp();
-    expect(note.temp).to.equal(99999);
+    expect(note.temp).to.equal(10000);
   });
 
   it("re-seeds mass and temperature from the newly selected element, always (plan Q3)", () => {

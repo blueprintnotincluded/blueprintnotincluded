@@ -41,7 +41,7 @@
         *ngIf="hasMassRange"
         [(ngModel)]="massKg"
         [min]="0"
-        [max]="maxMass"
+        [max]="sliderMaxMass"
         [step]="massStep"
         [ariaLabelledBy]="'element-note-mass-label'"
         (onSlideEnd)="commitMass()"
@@ -52,7 +52,7 @@
       class="control-number"
       type="number"
       min="0"
-      [attr.max]="hasMassRange ? maxMass : null"
+      step="any"
       [(ngModel)]="massKg"
       (blur)="commitMass()"
     />
@@ -150,6 +150,9 @@
       id="element-note-temperature-input"
       class="control-number"
       type="number"
+      step="any"
+      [attr.min]="minTemp - 273.15"
+      [attr.max]="maxTemp - 273.15"
       [(ngModel)]="tempCelsius"
       (blur)="commitTemp()"
     />
